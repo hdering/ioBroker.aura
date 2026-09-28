@@ -12,7 +12,7 @@ import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -587,7 +587,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 {/* Title row */}
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center justify-between gap-2">
+                        <TitleRow align={titleAlign} className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 {showIcon && (
                                     <ThermoIcon
@@ -610,7 +610,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                             </div>
                             <StatusIcon />
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>

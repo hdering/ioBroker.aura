@@ -7,7 +7,7 @@ import { valueHidden, valueTextOverride } from '../../utils/conditionSet';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // Preset configurations per sensor sub-type
 export const BINARY_SENSOR_PRESETS: Record<
@@ -204,7 +204,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2">
                         {showIcon && (
                             <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />
                         )}
@@ -220,7 +220,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

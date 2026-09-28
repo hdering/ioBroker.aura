@@ -9,7 +9,7 @@ import { SliderScale } from './SliderScale';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { controlValueTransform } from '../../utils/valueTransform';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 type SliderAction = {
     id: string;
@@ -321,7 +321,7 @@ export function SliderWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon || showValue) && (
-                    <div className="flex items-center gap-2">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                             {showIcon && (
                                 <WidgetIcon
@@ -351,7 +351,7 @@ export function SliderWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

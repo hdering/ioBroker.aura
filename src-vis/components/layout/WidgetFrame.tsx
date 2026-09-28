@@ -7740,7 +7740,8 @@ function WidgetFrameInner({
                         <HeaderRowOne
                             items={collapsedHeaderItems}
                             onAction={onHeaderAction}
-                            title={
+                            align={collapsedTitleAlign}
+                            lead={
                                 <>
                                     <ChevronDown
                                         size={16}
@@ -7750,6 +7751,10 @@ function WidgetFrameInner({
                                     {collapsedShowIcon && (
                                         <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
                                     )}
+                                </>
+                            }
+                            title={
+                                <>
                                     <span
                                         className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
                                         style={{ textAlign: collapsedTitleAlign }}

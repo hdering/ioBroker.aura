@@ -82,13 +82,19 @@ function Slot({
 
 export function HeaderRowOne({
     items,
+    lead,
     title,
+    align,
     trailing,
     onAction,
 }: {
     items: ResolvedHeaderItem[];
-    /** Chevron, icon and title — the left part of the row. Omitted: a row of items only. */
+    /** Chevron and icon, left of the title. */
+    lead?: ReactNode;
+    /** The title — the left part of the row. Omitted: a row of items only. */
     title?: ReactNode;
+    /** The title's alignment. 'center' puts it in the middle of the row, the centre items beside it. */
+    align?: string;
     /** Anything after the right slot (the click-action icon). */
     trailing?: ReactNode;
     onAction?: () => void;
@@ -96,10 +102,36 @@ export function HeaderRowOne({
     const slots = groupBySlot(items);
     const center = slots['r1-center'];
     const right = slots['r1-right'];
+    if (title && align === 'center') {
+        // [lead | title + centre items | right items] — the outer two grow equally,
+        // so the title is the middle of the card (see TitleRow).
+        return (
+            <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1" data-title-align="center">
+                <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
+                    {lead}
+                </div>
+                <div className="flex items-center gap-2 min-w-0" style={{ flex: '0 1 auto' }}>
+                    <div className="flex min-w-0" style={{ flex: '0 1 auto' }}>
+                        {title}
+                    </div>
+                    {center.length > 0 && (
+                        <Slot items={center} slot="r1-center" style={{ flex: '0 1 auto' }} onAction={onAction} />
+                    )}
+                </div>
+                <div className="flex items-center justify-end gap-2 min-w-0" style={{ flex: '1 1 0' }}>
+                    {right.length > 0 && (
+                        <Slot items={right} slot="r1-right" className="justify-end" onAction={onAction} />
+                    )}
+                    {trailing}
+                </div>
+            </div>
+        );
+    }
     const centered = center.length > 0;
     return (
         <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1">
             <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
+                {lead}
                 {title}
             </div>
             {centered && (

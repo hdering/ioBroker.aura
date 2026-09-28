@@ -17,7 +17,7 @@ import {
     stepIframeZoom,
     writeDeviceZoom,
 } from '../../utils/iframeZoom';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -130,7 +130,10 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
             <div className="aura-widget-row flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
+                        <TitleRow
+                            align={titleAlign}
+                            className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2"
+                        >
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -150,7 +153,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -173,7 +176,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -193,7 +196,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

@@ -7,7 +7,7 @@ import { useT, type Language } from '../../i18n';
 import { useConfigStore } from '../../store/configStore';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Default 3×3 grid used when layout='custom' has no overrides ──────────────
 export const DEFAULT_WEATHER_GRID: CustomGrid = [
@@ -1028,7 +1028,7 @@ export function WeatherWidget({ config }: WidgetProps) {
         >
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -1049,7 +1049,7 @@ export function WeatherWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

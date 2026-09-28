@@ -2596,6 +2596,10 @@ export const en: Record<TranslationKey, string> = {
     'hdr.foldHint':
         "Expanded, the items sit in the widget's title row; collapsed, in the folded header. In layouts without a title row of their own they line up with the title, row 2 goes below the content.",
     'hdr.slot.title': 'Title',
+    'hdr.slot.lead': 'Icon',
+    'hdr.slot.titleCenter': 'Title · centre',
+    'hdr.centerHint':
+        'The title is centred: it sits in the middle of the card, items on "Row 1 centre" right behind it.',
     'hdr.slot.r1-center': 'Row 1 centre',
     'hdr.slot.r1-right': 'Row 1 right',
     'hdr.slot.r2-left': 'Row 2 left',

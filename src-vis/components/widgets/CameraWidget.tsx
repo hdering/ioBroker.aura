@@ -15,7 +15,7 @@ import {
     resolveIframeInteractionMode,
     type IframeInteractionMode,
 } from '../../utils/iframeInteraction';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Exported types (used by WidgetFrame config) ───────────────────────────────
 
@@ -1076,7 +1076,10 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                         </div>
                         <HeaderGroup>
                             {(showTitle || showIcon) && (
-                                <div className="flex items-center gap-1 min-w-0 max-w-[80%] justify-center">
+                                <TitleRow
+                                    align={titleAlign}
+                                    className="flex items-center gap-1 min-w-0 max-w-[80%] justify-center"
+                                >
                                     {showIcon && (
                                         <WidgetIcon
                                             className="aura-widget-icon"
@@ -1096,7 +1099,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                                         </p>
                                     )}
                                     <HeaderSlotsInline />
-                                </div>
+                                </TitleRow>
                             )}
                             <HeaderSlotsRow2 />
                         </HeaderGroup>
@@ -1223,7 +1226,8 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                     >
                         <HeaderGroup>
                             {(showTitle || showIcon) && (
-                                <div
+                                <TitleRow
+                                    align={titleAlign}
                                     className="flex items-center gap-1 shrink-0 min-w-0"
                                     style={{ paddingBottom: '2px' }}
                                 >
@@ -1246,7 +1250,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                                         </p>
                                     )}
                                     <HeaderSlotsInline />
-                                </div>
+                                </TitleRow>
                             )}
                             <HeaderSlotsRow2 />
                         </HeaderGroup>

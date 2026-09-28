@@ -19,7 +19,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT, type TranslationKey } from '../../i18n';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── alarm state mapping (mirrors info.state_list of ioBroker.alarm) ──────────
 
@@ -390,7 +390,7 @@ export function AlarmWidget({ config }: WidgetProps) {
             {/* Widget header (title + icon) */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 shrink-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0">
                         {showIcon && (
                             <WidgetIcon
                                 size={iconSize}
@@ -410,7 +410,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

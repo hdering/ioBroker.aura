@@ -11,7 +11,7 @@ import { useStatusFields } from '../../hooks/useStatusFields';
 import { ShutterViz } from './ShutterViz';
 import { TILT_SLIDER_WIDTH, TiltButton, TiltPopover, TiltSlider, TiltStepButtons } from './TiltControls';
 import { clampPct, rawToTiltPct, tiltPctToRaw, tiltRange } from '../../utils/shutterTilt';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function BtnRow({
     onUp,
@@ -656,7 +656,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || (showIcon && CustomIcon)) && (
-                    <div className="flex items-center justify-between">
+                    <TitleRow align={titleAlign} className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 min-w-0 flex-1">
                             {showIcon && CustomIcon && (
                                 <CustomIcon
@@ -688,7 +688,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                             </span>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

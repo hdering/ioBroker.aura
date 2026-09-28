@@ -7,7 +7,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDateValueFields, type DateValueSettings } from '../common/DateValueFields';
 import type { DateOutputFormat } from '../../utils/dateValue';
 import { StatusBadges } from './StatusBadges';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 export function DatePickerWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
@@ -160,7 +160,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -180,7 +180,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

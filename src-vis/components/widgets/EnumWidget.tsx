@@ -12,7 +12,7 @@ import { ConfirmOverlay } from './ConfirmOverlay';
 import { CustomGridView } from './CustomGridView';
 import { HtmlSelect, type HtmlSelectSize } from '../common/HtmlSelect';
 import { EnumCurrent, EnumOptionLabel, type EnumEntry, type EnumEntryDisplay } from './enumEntry';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function parseValue(raw: string): boolean | number | string {
     if (raw === 'true') return true;
@@ -181,7 +181,7 @@ export function EnumWidget({ config }: WidgetProps) {
                 style={{ position: 'relative' }}
             >
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -203,7 +203,7 @@ export function EnumWidget({ config }: WidgetProps) {
                             </span>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <div className="flex items-center gap-2 shrink-0 min-w-0">
                     {showValue &&
@@ -256,7 +256,7 @@ export function EnumWidget({ config }: WidgetProps) {
                 <div className="flex flex-col justify-between flex-1 min-w-0">
                     <HeaderGroup>
                         {(showTitle || showIcon) && (
-                            <div className="flex items-center gap-2">
+                            <TitleRow align={titleAlign} className="flex items-center gap-2">
                                 {showIcon && (
                                     <WidgetIcon
                                         className="aura-widget-icon"
@@ -278,7 +278,7 @@ export function EnumWidget({ config }: WidgetProps) {
                                     </p>
                                 )}
                                 <HeaderSlotsInline />
-                            </div>
+                            </TitleRow>
                         )}
                         <HeaderSlotsRow2 />
                     </HeaderGroup>
@@ -302,7 +302,7 @@ export function EnumWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2" style={titleStyle}>
+                    <TitleRow align={titleAlign} className="flex items-center gap-2" style={titleStyle}>
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -327,7 +327,7 @@ export function EnumWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

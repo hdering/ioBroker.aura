@@ -17,7 +17,7 @@ import {
     resolveContactState,
     getWcCfg,
 } from '../../utils/windowContact';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // The window-contact presets/helpers moved to utils/windowContact so the list
 // widgets can reuse them without importing this widget. Re-exported for the
@@ -250,7 +250,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2">
                         {showIcon && (
                             <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} className="aura-widget-icon" />
                         )}
@@ -266,7 +266,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

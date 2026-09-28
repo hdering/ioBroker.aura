@@ -81,7 +81,7 @@ import {
     type ListFilterRow,
 } from '../../utils/listFilter';
 import { effectiveSortRules, makeSortComparator, type ListSortOptions } from '../../utils/listSort';
-import { HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1171,59 +1171,57 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                 className="shrink-0 py-1.5 flex flex-col gap-1"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}
             >
-                <div className="flex items-center justify-between gap-1.5">
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                        {showIcon && (
-                            <HeaderIcon
-                                size={iconSize}
-                                className="aura-widget-icon shrink-0"
-                                style={{ color: 'var(--text-secondary)' }}
-                            />
-                        )}
-                        {/* Title and stats share one line: the title shrinks/truncates, the stats
+                <TitleRow align={titleAlign} className="flex items-center justify-between gap-1.5">
+                    {showIcon && (
+                        <HeaderIcon
+                            size={iconSize}
+                            className="aura-widget-icon shrink-0"
+                            style={{ color: 'var(--text-secondary)' }}
+                        />
+                    )}
+                    {/* Title and stats share one line: the title shrinks/truncates, the stats
                         keep their natural width. sumAlign 'left' parks them right after the
                         title, 'center'/'right' lets the stats box take the rest of the row. */}
-                        <div className="flex-1 min-w-0 flex items-center gap-2">
-                            {showTitle && (
-                                <p
-                                    className="aura-widget-title text-xs font-semibold truncate min-w-0"
-                                    style={{
-                                        color: 'var(--text-secondary)',
-                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                        // A shrink-to-fit box would swallow textAlign, so the
-                                        // title only keeps its natural width while it is left
-                                        // aligned and the stats want to sit right behind it.
-                                        flex: titleAlign === 'left' && statsAlign === 'left' ? '0 1 auto' : '1 1 auto',
-                                    }}
-                                >
-                                    {config.title || 'Statische Liste'}
-                                    {showCount && entries.length > 0 && (
-                                        <span className="ml-1 opacity-50">
-                                            ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}
-                                            {entries.length})
-                                        </span>
-                                    )}
-                                </p>
-                            )}
-                            {opts.showSum && sumInfo && (
-                                <div
-                                    className="min-w-0"
-                                    style={{ flex: showTitle && statsAlign === 'left' ? '0 1 auto' : '1 1 auto' }}
-                                >
-                                    <StatLine
-                                        stats={sumInfo}
-                                        selected={opts.sumStats}
-                                        labels={opts.statLabels}
-                                        icons={opts.statIcons}
-                                        sumLabel={opts.sumLabel}
-                                        decimals={defaultDecimals}
-                                        numFmt={globalNumFmt}
-                                        align={statsAlign}
-                                        fontSize={opts.sumFontSize ?? 10}
-                                    />
-                                </div>
-                            )}
-                        </div>
+                    <div className="flex-1 min-w-0 flex items-center gap-2" data-title-slot="">
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs font-semibold truncate min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    // A shrink-to-fit box would swallow textAlign, so the
+                                    // title only keeps its natural width while it is left
+                                    // aligned and the stats want to sit right behind it.
+                                    flex: titleAlign === 'left' && statsAlign === 'left' ? '0 1 auto' : '1 1 auto',
+                                }}
+                            >
+                                {config.title || 'Statische Liste'}
+                                {showCount && entries.length > 0 && (
+                                    <span className="ml-1 opacity-50">
+                                        ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}
+                                        {entries.length})
+                                    </span>
+                                )}
+                            </p>
+                        )}
+                        {opts.showSum && sumInfo && (
+                            <div
+                                className="min-w-0"
+                                style={{ flex: showTitle && statsAlign === 'left' ? '0 1 auto' : '1 1 auto' }}
+                            >
+                                <StatLine
+                                    stats={sumInfo}
+                                    selected={opts.sumStats}
+                                    labels={opts.statLabels}
+                                    icons={opts.statIcons}
+                                    sumLabel={opts.sumLabel}
+                                    decimals={defaultDecimals}
+                                    numFmt={globalNumFmt}
+                                    align={statsAlign}
+                                    fontSize={opts.sumFontSize ?? 10}
+                                />
+                            </div>
+                        )}
                     </div>
                     <HeaderSlotsInline />
                     <div className="flex items-center gap-1.5 shrink-0">
@@ -1241,7 +1239,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             />
                         )}
                     </div>
-                </div>
+                </TitleRow>
                 <HeaderSlotsRow2 />
             </div>
         ) : null;

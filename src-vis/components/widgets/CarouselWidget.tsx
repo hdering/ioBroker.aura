@@ -22,7 +22,7 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { WidgetClickPopup } from './popup/WidgetClickPopup';
 import type { WidgetProps, ClickAction } from '../../types';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 export type CarouselItem = {
     id: string;
@@ -543,7 +543,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
         <div className="aura-widget-row relative w-full h-full flex flex-col gap-1.5">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1.5 shrink-0 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -563,7 +563,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

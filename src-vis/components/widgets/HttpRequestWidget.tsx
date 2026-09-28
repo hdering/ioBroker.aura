@@ -7,7 +7,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CustomGridView } from './CustomGridView';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 type RequestStatus = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -147,7 +147,7 @@ export function HttpRequestWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-3 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -167,7 +167,7 @@ export function HttpRequestWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

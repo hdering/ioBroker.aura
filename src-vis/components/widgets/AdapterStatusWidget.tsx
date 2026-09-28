@@ -11,7 +11,7 @@ import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import type { WidgetProps, ioBrokerState, ioBrokerObject } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { NS } from '../../utils/namespace';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -471,7 +471,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
             {/* Header */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 shrink-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0">
                         {showIcon && (
                             <Icon
                                 size={iconSize}
@@ -491,7 +491,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

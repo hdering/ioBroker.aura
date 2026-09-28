@@ -8,7 +8,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { CustomGridView } from './CustomGridView';
 import { controlValueTransform } from '../../utils/valueTransform';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 export type KnobPointerStyle = 'line' | 'circle' | 'arrow';
 export type KnobDialStyle = 'bogen' | 'skala' | 'endless';
@@ -921,7 +921,7 @@ export function KnobWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full gap-1" style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -938,7 +938,7 @@ export function KnobWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

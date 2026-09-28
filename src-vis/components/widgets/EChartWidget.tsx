@@ -44,7 +44,7 @@ import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartL
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import { parseRangeChips, rangeKey, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -802,7 +802,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -822,7 +822,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -928,7 +928,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -948,7 +948,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>

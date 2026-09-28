@@ -91,7 +91,7 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { applyListDisplay } from '../../utils/listDisplayDefaults';
-import { HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1692,7 +1692,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 className="shrink-0 py-1.5 flex flex-col gap-1"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}
             >
-                <div className="flex items-center justify-between gap-1.5">
+                <TitleRow align={titleAlign} className="flex items-center justify-between gap-1.5">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                         {showIcon && (
                             <HeaderIcon
@@ -1758,7 +1758,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                             <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
                         </button>
                     </div>
-                </div>
+                </TitleRow>
                 <HeaderSlotsRow2 />
             </div>
         ) : null;

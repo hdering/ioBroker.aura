@@ -19,7 +19,7 @@ import { CustomGridView } from './CustomGridView';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { NS } from '../../utils/namespace';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
 
@@ -1031,7 +1031,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
             <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -1051,7 +1051,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -1178,7 +1178,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
             <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -1198,7 +1198,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>

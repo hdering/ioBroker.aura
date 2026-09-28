@@ -9,7 +9,7 @@ import { contentPositionClass } from '../../utils/widgetUtils';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -205,7 +205,7 @@ export function StateImageWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2">
                         {showIcon && <StateDisplay cfg={cfg} size={iconSize} className="aura-widget-icon" />}
                         {showTitle && (
                             <p
@@ -219,7 +219,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

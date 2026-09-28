@@ -2615,6 +2615,10 @@ export const de = {
     'hdr.foldHint':
         'Aufgeklappt stehen die Elemente in der Titelzeile des Widgets, eingeklappt in der Kopfzeile. In Layouts ohne eigene Titelzeile stehen sie auf der Höhe des Titels, Zeile 2 unter dem Inhalt.',
     'hdr.slot.title': 'Titel',
+    'hdr.slot.lead': 'Symbol',
+    'hdr.slot.titleCenter': 'Titel · Mitte',
+    'hdr.centerHint':
+        'Der Titel ist zentriert: Er steht in der Mitte der Karte, Elemente auf „Zeile 1 Mitte“ direkt dahinter.',
     'hdr.slot.r1-center': 'Zeile 1 Mitte',
     'hdr.slot.r1-right': 'Zeile 1 rechts',
     'hdr.slot.r2-left': 'Zeile 2 links',

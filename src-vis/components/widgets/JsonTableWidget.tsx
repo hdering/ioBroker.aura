@@ -12,7 +12,7 @@ import { cellText, formatCellValue, hasCellFormat } from '../../utils/jsonTableF
 import { sortJsonRows, usableJsonSortRules, type JsonSortRule } from '../../utils/jsonTableSort';
 import type { NumberFormat } from '../../utils/formatValue';
 import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets, resolveImageSource } from '../../utils/assetUrl';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
 export interface JsonColumnDef {
@@ -435,7 +435,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
             <div className="aura-widget-row flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -455,7 +455,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -475,7 +475,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
             <div className="aura-widget-row flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -495,7 +495,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -517,7 +517,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
             {/* Title */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -537,7 +537,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

@@ -3,7 +3,7 @@ import { ScrollText, Pause, Play, Trash2, ArrowDownToLine, Search } from 'lucide
 import { getObjectViewDirect, sendToDirect, useIoBroker, type LogEntry } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -249,7 +249,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             {/* Header */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 shrink-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0">
                         {showIcon && (
                             <Icon
                                 size={iconSize}
@@ -300,7 +300,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                             </div>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

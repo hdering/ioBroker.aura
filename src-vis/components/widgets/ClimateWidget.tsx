@@ -36,7 +36,7 @@ import {
     type ResolvedClimateMetric,
 } from '../../utils/climateMetrics';
 import { ClimateMetricGrid, ClimateMetricPrimary, ClimateMetricValue } from './ClimateMetricChips';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { unitSpanMs, type RangeUnit } from '../../utils/rangeChips';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -362,7 +362,8 @@ export function ClimateWidget({ config }: WidgetProps) {
             {/* Title */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div
+                    <TitleRow
+                        align={titleAlign}
                         className="flex items-center gap-1 min-w-0 shrink-0"
                         style={{
                             justifyContent:
@@ -389,7 +390,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

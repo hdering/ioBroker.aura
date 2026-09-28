@@ -11,7 +11,7 @@ import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { evaluateClause } from '../../utils/conditionEval';
 import { controlValueTransform } from '../../utils/valueTransform';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
     if (raw === undefined || raw === '') return fallback;
@@ -349,7 +349,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full justify-between" style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2">
                         {showIcon && (
                             <CompactIcon
                                 className="aura-widget-icon"
@@ -373,7 +373,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

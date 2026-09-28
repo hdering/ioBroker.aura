@@ -9,7 +9,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { parseTimeValue, formatRelative } from '../../utils/parseTimeValue';
 import { pad, isoWeek, formatHM, applyTimeFormat, TIME_DASH } from '../../utils/timeDisplay';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 type TFn = ReturnType<typeof useT>;
 
@@ -217,7 +217,7 @@ export function ClockWidget({ config }: WidgetProps) {
                     {extrasRow}
                     <HeaderGroup>
                         {(showTitle || showIcon) && (
-                            <div className="flex items-center gap-1 mt-1 min-w-0">
+                            <TitleRow align={titleAlign} className="flex items-center gap-1 mt-1 min-w-0">
                                 {showIcon && (
                                     <WidgetIcon
                                         className="aura-widget-icon"
@@ -237,7 +237,7 @@ export function ClockWidget({ config }: WidgetProps) {
                                     </p>
                                 )}
                                 <HeaderSlotsInline />
-                            </div>
+                            </TitleRow>
                         )}
                         <HeaderSlotsRow2 />
                     </HeaderGroup>
@@ -268,7 +268,7 @@ export function ClockWidget({ config }: WidgetProps) {
                 {extrasRow}
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 mt-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 mt-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -288,7 +288,7 @@ export function ClockWidget({ config }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -302,7 +302,7 @@ export function ClockWidget({ config }: WidgetProps) {
             <div className="aura-widget-row flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -322,7 +322,7 @@ export function ClockWidget({ config }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -343,7 +343,7 @@ export function ClockWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -363,7 +363,7 @@ export function ClockWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

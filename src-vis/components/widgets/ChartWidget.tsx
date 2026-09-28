@@ -30,7 +30,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
 import { samplePreviewHistory } from '../../utils/sampleChartData';
 import { applyValueTransform } from '../../utils/valueTransform';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -430,7 +430,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
             <HeaderGroup>
                 <div className="flex justify-between items-start mb-1">
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 min-w-0 flex-1">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 min-w-0 flex-1">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -451,7 +451,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     {current !== null && (
                         <div className="aura-widget-value flex flex-col items-end shrink-0 ml-2">

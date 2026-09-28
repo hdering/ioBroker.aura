@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { BarChart2, Maximize2, X } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function getIoBrokerBase(): string {
     const injected = (window as unknown as { __AURA_SOCKET_URL__?: string }).__AURA_SOCKET_URL__;
@@ -54,7 +54,7 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
             <div className="aura-widget-row flex flex-col h-full p-2">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -74,7 +74,7 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -97,7 +97,10 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
             <div className="aura-widget-row flex flex-col w-full h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
+                        <TitleRow
+                            align={titleAlign}
+                            className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2"
+                        >
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -117,7 +120,7 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>

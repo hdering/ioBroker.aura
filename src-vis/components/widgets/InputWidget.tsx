@@ -8,7 +8,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { controlValueTransform } from '../../utils/valueTransform';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 type SubmitMode = 'live' | 'submit';
 
@@ -270,7 +270,7 @@ export function InputWidget({ config }: WidgetProps) {
         return (
             <div className="aura-widget-row flex items-center h-full gap-2" style={{ position: 'relative' }}>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 shrink-0 min-w-0 max-w-[50%]">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0 min-w-0 max-w-[50%]">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -290,7 +290,7 @@ export function InputWidget({ config }: WidgetProps) {
                             </span>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 {singleLineContent}
                 {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
@@ -302,7 +302,7 @@ export function InputWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full gap-1.5" style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 shrink-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -322,7 +322,7 @@ export function InputWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

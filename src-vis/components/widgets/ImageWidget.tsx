@@ -5,7 +5,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { CustomGridView } from './CustomGridView';
 import { resolveAssetUrl, resolveImageSource } from '../../utils/assetUrl';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 type FitMode = 'none' | 'contain' | 'width' | 'height';
 
@@ -72,7 +72,7 @@ export function ImageWidget({ config }: WidgetProps) {
             <div className="aura-widget-row flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -92,7 +92,7 @@ export function ImageWidget({ config }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -124,7 +124,7 @@ export function ImageWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -144,7 +144,7 @@ export function ImageWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

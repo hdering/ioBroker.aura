@@ -2031,7 +2031,9 @@ eingeklappt gar nicht gemountet ist; Listen-Summen laufen deshalb über
 Eingeklappt zeichnet der Rahmen die Kopfzeile. Aufgeklappt gehört die Titelzeile
 dem Widget (Layout, Symbolfarbe, Bedienelement in derselben Zeile), deshalb setzt
 das Widget die Plätze selbst ein: `HeaderSlotsInline` / `HeaderSlotsRow2` in
-`HeaderGroup` (components/layout/HeaderSlotsContext). Eine Zeile, die kein Widget
+`HeaderGroup` (components/layout/HeaderSlotsContext). Die Titelzeile selbst ist ein
+`TitleRow`: bei `titleAlign: "center"` drei Spalten (davor | Titel + `r1-center` |
+danach), die äußeren gleich breit, damit der Titel in der Kartenmitte bleibt. Eine Zeile, die kein Widget
 zeichnet, holt der Rahmen nach: Zeile 1 als Überlagerung auf der Höhe des
 gemessenen Titels (`.aura-widget-title`, sonst oben), Zeile 2 unter dem Inhalt. `npm run test:header-items-sweep` prüft alle
 Typen × Layouts: jedes Element genau einmal, in der Karte, Zeile 2 direkt unter

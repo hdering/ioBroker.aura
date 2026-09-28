@@ -4,7 +4,7 @@ import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
     const rad = (angleDeg * Math.PI) / 180;
@@ -363,7 +363,7 @@ export function GaugeWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1.5 mb-1 min-w-0">
                         {showIcon && (
                             <GaugeIcon
                                 className="aura-widget-icon"
@@ -385,7 +385,7 @@ export function GaugeWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

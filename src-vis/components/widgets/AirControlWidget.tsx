@@ -35,7 +35,7 @@ import {
     stateLabelKey,
     type ClimateEnumEntry,
 } from '../../utils/climateProfiles';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -335,7 +335,7 @@ export function AirControlWidget({ config }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full gap-2 min-h-0" style={{ position: 'relative' }}>
             {/* Header */}
             <HeaderGroup>
-                <div className="flex items-center justify-between gap-2">
+                <TitleRow align={titleAlign} className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0 flex-1">
                         {showIcon && (
                             <Icon
@@ -380,7 +380,7 @@ export function AirControlWidget({ config }: WidgetProps) {
                         )}
                     </div>
                     <HeaderSlotsInline />
-                </div>
+                </TitleRow>
                 <HeaderSlotsRow2 />
             </HeaderGroup>
 

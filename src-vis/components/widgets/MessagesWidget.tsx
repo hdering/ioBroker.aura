@@ -8,7 +8,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { formatRelative } from '../../utils/parseTimeValue';
 import { useT } from '../../i18n';
 import type { AuraMessage, MessageSeverity, WidgetProps } from '../../types';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 const ALL_SEVERITIES: MessageSeverity[] = ['error', 'warning', 'success', 'info'];
 
@@ -147,7 +147,7 @@ export function MessagesWidget({ config }: WidgetProps) {
         <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden" data-aura-messages="list">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 shrink-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0">
                         {showIcon && (
                             <Icon
                                 size={iconSize}
@@ -175,7 +175,7 @@ export function MessagesWidget({ config }: WidgetProps) {
                             </span>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

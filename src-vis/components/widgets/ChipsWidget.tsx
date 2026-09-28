@@ -5,7 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import type { WidgetProps } from '../../types';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 export type ChipItem = {
     id: string;
@@ -161,7 +161,7 @@ export function ChipsWidget({ config }: WidgetProps) {
         <div className="aura-widget-row relative w-full h-full flex flex-col gap-1.5">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1.5 shrink-0 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -181,7 +181,7 @@ export function ChipsWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

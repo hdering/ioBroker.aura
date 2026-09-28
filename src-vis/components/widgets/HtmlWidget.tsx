@@ -15,7 +15,7 @@ import { extractJsonPath } from '../../utils/dpRef';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import type { WidgetProps } from '../../types';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const opts = config.options ?? {};
@@ -99,7 +99,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
             <div className="aura-widget-row flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                             {showIcon && (
                                 <WidgetIcon
                                     className="aura-widget-icon"
@@ -119,7 +119,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                                 </p>
                             )}
                             <HeaderSlotsInline />
-                        </div>
+                        </TitleRow>
                     )}
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
@@ -138,7 +138,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
         <div className="aura-widget-row flex flex-col h-full">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -158,7 +158,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

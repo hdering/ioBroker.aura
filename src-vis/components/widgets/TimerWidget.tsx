@@ -24,7 +24,7 @@ import { TimerEventModal } from './TimerEventModal';
 import { CustomGridView } from './CustomGridView';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { NS } from '../../utils/namespace';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 /**
  * Flush the dashboard config to ioBroker immediately after a user edit.
@@ -681,7 +681,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-1.5 ${posClass}`}>
             {/* Header */}
             <HeaderGroup>
-                <div className="flex items-center gap-2">
+                <TitleRow align={titleAlign} className="flex items-center gap-2">
                     {iconNode}
                     {showTitle && (
                         <p
@@ -696,7 +696,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     )}
                     {showMaster && masterSwitch}
                     <HeaderSlotsInline />
-                </div>
+                </TitleRow>
                 <HeaderSlotsRow2 />
             </HeaderGroup>
 

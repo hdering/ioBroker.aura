@@ -394,7 +394,25 @@ export function HeaderItemsEditor({
         onChange(next);
     };
 
-    const slotCell = (slot: WidgetHeaderSlot) => (
+    // A centred title stands in the middle of the row and the r1-center items right
+    // behind it (TitleRow) — the map shows the row that way.
+    const titleCentered = config.options?.titleAlign === 'center';
+    const staticCell = (label: string, text: string, attr: string) => (
+        <div
+            className="min-w-0 rounded-lg px-2 py-1.5"
+            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+            data-header-map-cell={attr}
+        >
+            <span className="block text-[9px] uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </span>
+            <span className="block text-[11px] truncate" style={{ color: 'var(--text-secondary)' }}>
+                {text}
+            </span>
+        </div>
+    );
+
+    const slotCell = (slot: WidgetHeaderSlot, withTitle = false) => (
         <button
             key={slot}
             onClick={() => add(slot)}
@@ -404,9 +422,14 @@ export function HeaderItemsEditor({
             data-header-slot-add={slot}
         >
             <span className="block text-[9px] uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
-                {t(slotKey(slot))}
+                {withTitle ? t('hdr.slot.titleCenter') : t(slotKey(slot))}
             </span>
             <span className="block text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
+                {withTitle && (
+                    <span style={{ color: 'var(--text-secondary)' }} data-header-map-title="">
+                        {config.title || '—'}{' '}
+                    </span>
+                )}
                 {bySlot[slot].length ? (
                     bySlot[slot].map((it) => itemSummary(it, t, config)).join(' · ')
                 ) : (
@@ -422,27 +445,28 @@ export function HeaderItemsEditor({
                 <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                     {t('hdr.mapHint')}
                 </p>
-                <div className="grid grid-cols-3 gap-1.5">
-                    <div
-                        className="min-w-0 rounded-lg px-2 py-1.5"
-                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                    >
-                        <span
-                            className="block text-[9px] uppercase tracking-wide"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            {t('hdr.slot.title')}
-                        </span>
-                        <span className="block text-[11px] truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {config.title || '—'}
-                        </span>
-                    </div>
-                    {slotCell('r1-center')}
+                <div className="grid grid-cols-3 gap-1.5" data-title-centered={titleCentered ? '' : undefined}>
+                    {titleCentered ? (
+                        <>
+                            {staticCell(t('hdr.slot.lead'), '—', 'lead')}
+                            {slotCell('r1-center', true)}
+                        </>
+                    ) : (
+                        <>
+                            {staticCell(t('hdr.slot.title'), config.title || '—', 'title')}
+                            {slotCell('r1-center')}
+                        </>
+                    )}
                     {slotCell('r1-right')}
                     {slotCell('r2-left')}
                     {slotCell('r2-center')}
                     {slotCell('r2-right')}
                 </div>
+                {titleCentered && (
+                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('hdr.centerHint')}
+                    </p>
+                )}
             </div>
 
             {items.length === 0 && (

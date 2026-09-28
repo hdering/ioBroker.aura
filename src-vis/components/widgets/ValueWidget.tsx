@@ -19,7 +19,7 @@ import { valueTextOverride } from '../../utils/conditionSet';
 import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 export function ValueWidget({ config }: WidgetProps) {
     const t = useT();
@@ -137,7 +137,7 @@ export function ValueWidget({ config }: WidgetProps) {
                 <div className="flex flex-col justify-between flex-1">
                     <HeaderGroup>
                         {(showTitle || showIcon) && (
-                            <div className="flex items-center gap-2">
+                            <TitleRow align={titleAlign} className="flex items-center gap-2">
                                 {showIcon && (
                                     <CardIcon
                                         className="aura-widget-icon"
@@ -159,7 +159,7 @@ export function ValueWidget({ config }: WidgetProps) {
                                     </p>
                                 )}
                                 <HeaderSlotsInline />
-                            </div>
+                            </TitleRow>
                         )}
                         <HeaderSlotsRow2 />
                     </HeaderGroup>
@@ -190,7 +190,7 @@ export function ValueWidget({ config }: WidgetProps) {
                 style={{ position: 'relative' }}
             >
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2 min-w-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-2 min-w-0">
                         {showIcon && (
                             <CompactIcon
                                 className="aura-widget-icon"
@@ -212,7 +212,7 @@ export function ValueWidget({ config }: WidgetProps) {
                             </span>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 {showValue &&
                     (htmlValueNode ?? (
@@ -296,7 +296,7 @@ export function ValueWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2" style={titleStyle}>
+                    <TitleRow align={titleAlign} className="flex items-center gap-2" style={titleStyle}>
                         {showIcon && (
                             <DefaultIcon
                                 className="aura-widget-icon"
@@ -321,7 +321,7 @@ export function ValueWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

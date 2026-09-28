@@ -13,7 +13,7 @@ import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CheckboxControl } from './CheckboxControl';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
     if (raw === undefined || raw === '') return fallback;
@@ -286,7 +286,7 @@ export function SwitchWidget({ config }: WidgetProps) {
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-2" style={titleStyle}>
+                    <TitleRow align={titleAlign} className="flex items-center gap-2" style={titleStyle}>
                         {showIcon && (
                             <WidgetIcon
                                 className="aura-widget-icon"
@@ -311,7 +311,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                             </p>
                         )}
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>

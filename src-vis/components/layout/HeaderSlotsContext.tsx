@@ -16,7 +16,18 @@
  * title row, a widget that was never wired, title and icon both off — is drawn
  * by the frame as a strip above the body instead, so an item is never lost.
  */
-import { createContext, useContext, useLayoutEffect, type ReactNode } from 'react';
+import {
+    Children,
+    cloneElement,
+    createContext,
+    isValidElement,
+    useContext,
+    useLayoutEffect,
+    type CSSProperties,
+    type HTMLAttributes,
+    type ReactElement,
+    type ReactNode,
+} from 'react';
 import type { ResolvedHeaderItem } from '../../hooks/useHeaderItems';
 import { groupBySlot, hasSecondRow } from '../../utils/headerItems';
 import { HeaderItemView, HeaderRowTwo } from './HeaderItemSlots';
@@ -44,21 +55,28 @@ function useRegister(ctx: HeaderSlotsValue | null, row: HeaderRow) {
  * Row-1 items for a widget's title row. Right items push to the end of the row;
  * centre items are centred on the card — absolutely positioned but vertically in
  * place (no `top`), so they sit in the title row without taking its space.
+ *
+ * `part` is set by a centred TitleRow only: it draws the centre items right beside
+ * the title ('center', in flow) and the right items in the right column ('right').
  */
-export function HeaderSlotsInline(): ReactNode {
+export function HeaderSlotsInline({ part = 'all' }: { part?: 'all' | 'center' | 'right' }): ReactNode {
     const ctx = useContext(HeaderSlotsContext);
     useRegister(ctx, 'r1');
     if (!ctx?.items.length) return null;
     const slots = groupBySlot(ctx.items);
-    const center = slots['r1-center'];
-    const right = slots['r1-right'];
+    const center = part === 'right' ? [] : slots['r1-center'];
+    const right = part === 'center' ? [] : slots['r1-right'];
     if (!center.length && !right.length) return null;
     return (
         <>
             {center.length > 0 && (
                 <span
                     className="flex items-center gap-2 min-w-0 pointer-events-auto"
-                    style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', maxWidth: '40%' }}
+                    style={
+                        part === 'center'
+                            ? { flex: '0 1 auto' }
+                            : { position: 'absolute', left: '50%', transform: 'translateX(-50%)', maxWidth: '40%' }
+                    }
                     data-header-slot="r1-center"
                 >
                     {center.map((item) => (
@@ -69,7 +87,7 @@ export function HeaderSlotsInline(): ReactNode {
             {right.length > 0 && (
                 <span
                     className="flex items-center justify-end gap-2 min-w-0 shrink"
-                    style={{ marginLeft: 'auto', maxWidth: '60%' }}
+                    style={{ marginLeft: 'auto', maxWidth: part === 'right' ? '100%' : '60%' }}
                     data-header-slot="r1-right"
                 >
                     {right.map((item) => (
@@ -78,6 +96,94 @@ export function HeaderSlotsInline(): ReactNode {
                 </span>
             )}
         </>
+    );
+}
+
+const hasClass = (el: ReactElement, cls: string) => {
+    const c = (el.props as { className?: unknown }).className;
+    return typeof c === 'string' && c.split(/\s+/).includes(cls);
+};
+
+const isTitle = (el: ReactElement) =>
+    (el.props as { 'data-title-slot'?: unknown })['data-title-slot'] !== undefined || hasClass(el, 'aura-widget-title');
+
+const holds = (node: ReactNode, pred: (el: ReactElement) => boolean): boolean =>
+    isValidElement(node) &&
+    (pred(node) || Children.toArray((node.props as { children?: ReactNode }).children).some((c) => holds(c, pred)));
+
+/**
+ * Lifts the children of a wrapper that holds both the icon and the title up into
+ * the row (`<div>[icon][title]</div>`), so the icon can go left and the title into
+ * the middle. A wrapper round the title alone (title + stats) stays one unit.
+ */
+function liftWrappers(kids: ReturnType<typeof Children.toArray>, depth = 0): ReturnType<typeof Children.toArray> {
+    return kids.flatMap((k) => {
+        if (
+            depth < 3 &&
+            isValidElement(k) &&
+            k.type === 'div' &&
+            !isTitle(k) &&
+            holds(k, isTitle) &&
+            holds(k, (el) => hasClass(el, 'aura-widget-icon'))
+        ) {
+            const inner = Children.toArray((k.props as { children?: ReactNode }).children);
+            return liftWrappers(inner, depth + 1).map((c) =>
+                isValidElement(c) ? cloneElement(c, { key: `${String(k.key)}/${String(c.key)}` }) : c,
+            );
+        }
+        return [k];
+    });
+}
+
+/**
+ * A widget's title row (issue #676). Takes the row's children as they are —
+ * icon, title, `<HeaderSlotsInline />`, the widget's own controls — and only
+ * changes how they are laid out when the title is centred:
+ *
+ *   [ everything before the title | title + r1-center items | everything after ]
+ *
+ * The outer two columns grow equally from zero, so the title sits in the middle of
+ * the card no matter how wide the icon on the left or the values and buttons on the
+ * right are; it truncates first once the row gets tight. Centre items join the
+ * title instead of lying on top of it.
+ *
+ * The title is the child that is or holds the element with class
+ * `aura-widget-title` (or `data-title-slot`); a wrapper round icon and title is
+ * lifted first (liftWrappers). Left/right alignment, or no title at all: a plain
+ * flex row, exactly as before.
+ */
+export function TitleRow({ align, children, ...rest }: { align?: string } & HTMLAttributes<HTMLDivElement>): ReactNode {
+    if (align !== 'center') return <div {...rest}>{children}</div>;
+    const kids = liftWrappers(Children.toArray(children));
+    const titleAt = kids.findIndex((k) => holds(k, isTitle));
+    if (titleAt < 0) return <div {...rest}>{children}</div>;
+    const hasSlots = kids.some((k) => isValidElement(k) && k.type === HeaderSlotsInline);
+    const side: CSSProperties = { flex: '1 1 0', display: 'flex', alignItems: 'center', gap: 'inherit', minWidth: 0 };
+    return (
+        <div {...rest} data-title-align="center">
+            <div style={side} data-title-side="lead">
+                {kids.slice(0, titleAt)}
+            </div>
+            <div className="flex items-center gap-2 min-w-0" style={{ flex: '0 1 auto' }} data-title-side="center">
+                {/* Own box: the title (often flex: 1, basis 0) would otherwise give up all its
+                    width to the centre items before they shrink at all. */}
+                <div className="flex min-w-0" style={{ flex: '0 1 auto' }}>
+                    {kids[titleAt]}
+                </div>
+                {hasSlots && <HeaderSlotsInline part="center" />}
+            </div>
+            <div style={{ ...side, justifyContent: 'flex-end' }} data-title-side="trail">
+                {kids
+                    .slice(titleAt + 1)
+                    .map((k) =>
+                        isValidElement(k) && k.type === HeaderSlotsInline ? (
+                            <HeaderSlotsInline key={k.key ?? 'slots'} part="right" />
+                        ) : (
+                            k
+                        ),
+                    )}
+            </div>
+        </div>
     );
 }
 

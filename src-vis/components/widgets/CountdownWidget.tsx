@@ -27,7 +27,7 @@ import { publishCountdownConfig, countdownStateId, type CountdownConfigPayload }
 import { formatCountdown, formatPreset } from '../../utils/countdownFormat';
 import { CountdownDurationModal } from './CountdownDurationModal';
 import { CustomGridView } from './CustomGridView';
-import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 type Phase = 'idle' | 'running' | 'paused' | 'ended' | 'unknown';
 
@@ -505,7 +505,7 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
         <div className={`aura-widget-row aura-countdown flex flex-col h-full gap-1.5 ${posClass}`} data-state={phase}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <TitleRow align={titleAlign} className="flex items-center gap-1.5 shrink-0">
                         {iconNode}
                         {titleNode}
                         <span
@@ -515,7 +515,7 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
                             {stateLabel}
                         </span>
                         <HeaderSlotsInline />
-                    </div>
+                    </TitleRow>
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>
