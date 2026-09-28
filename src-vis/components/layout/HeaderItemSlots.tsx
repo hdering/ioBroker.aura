@@ -103,19 +103,24 @@ export function HeaderRowOne({
     const center = slots['r1-center'];
     const right = slots['r1-right'];
     if (title && align === 'center') {
-        // [lead | title + centre items | right items] — the outer two grow equally,
-        // so the title is the middle of the card (see TitleRow).
+        // [lead | centre items + title + centre items | right items] — the outer two
+        // grow equally, so the title is the middle of the card (see TitleRow).
+        const before = center.filter((i) => i.titleSide === 'before');
+        const after = center.filter((i) => i.titleSide !== 'before');
         return (
             <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1" data-title-align="center">
                 <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
                     {lead}
                 </div>
                 <div className="flex items-center gap-2 min-w-0" style={{ flex: '0 1 auto' }}>
+                    {before.length > 0 && (
+                        <Slot items={before} slot="r1-center" style={{ flex: '0 1 auto' }} onAction={onAction} />
+                    )}
                     <div className="flex min-w-0" style={{ flex: '0 1 auto' }}>
                         {title}
                     </div>
-                    {center.length > 0 && (
-                        <Slot items={center} slot="r1-center" style={{ flex: '0 1 auto' }} onAction={onAction} />
+                    {after.length > 0 && (
+                        <Slot items={after} slot="r1-center" style={{ flex: '0 1 auto' }} onAction={onAction} />
                     )}
                 </div>
                 <div className="flex items-center justify-end gap-2 min-w-0" style={{ flex: '1 1 0' }}>

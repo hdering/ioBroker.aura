@@ -91,7 +91,7 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { applyListDisplay } from '../../utils/listDisplayDefaults';
-import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow, useHasHeaderItems } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1639,6 +1639,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     const o = config.options ?? {};
     const showTitle = opts.showTitle !== false;
+    const hasHeaderItems = useHasHeaderItems();
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 20;
     const titleAlign = (o.titleAlign as string) ?? 'left';
@@ -1686,8 +1687,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
     // ── Shared header ──────────────────────────────────────────────────────────
+    // Header items keep the row and its divider even with title and icon off (#676).
     const header =
-        showTitle || showIcon || (opts.showSum && sumInfo) || masterSwitch ? (
+        showTitle || showIcon || (opts.showSum && sumInfo) || masterSwitch || hasHeaderItems ? (
             <div
                 className="shrink-0 py-1.5 flex flex-col gap-1"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}

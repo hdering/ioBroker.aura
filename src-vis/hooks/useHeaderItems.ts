@@ -39,6 +39,8 @@ import type { LucideIcon } from 'lucide-react';
 export interface ResolvedHeaderItem {
     id: string;
     slot: WidgetHeaderSlot;
+    /** Slot 'r1-center' beside a centred title: left or right of it. */
+    titleSide?: 'before' | 'after';
     text: string;
     icon?: string;
     color?: string;
@@ -125,6 +127,7 @@ export function useHeaderItems(
                 out.push({
                     id: item.id,
                     slot: item.slot,
+                    titleSide: item.titleSide,
                     text: '',
                     color: item.color,
                     action: true,
@@ -143,7 +146,14 @@ export function useHeaderItems(
             }
             // An item with nothing to say takes no room — no empty gap in the row.
             if (!text.trim() && !item.icon) continue;
-            out.push({ id: item.id, slot: item.slot, text, icon: item.icon, color: item.color });
+            out.push({
+                id: item.id,
+                slot: item.slot,
+                titleSide: item.titleSide,
+                text,
+                icon: item.icon,
+                color: item.color,
+            });
         }
         return out;
         // eslint-disable-next-line react-hooks/exhaustive-deps

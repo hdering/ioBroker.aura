@@ -81,7 +81,7 @@ import {
     type ListFilterRow,
 } from '../../utils/listFilter';
 import { effectiveSortRules, makeSortComparator, type ListSortOptions } from '../../utils/listSort';
-import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow, useHasHeaderItems } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1103,6 +1103,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
 
     const o = config.options ?? {};
     const showTitle = opts.showTitle !== false;
+    const hasHeaderItems = useHasHeaderItems();
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 20;
     const titleAlign = (o.titleAlign as string) ?? 'left';
@@ -1165,8 +1166,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const statsAlign = opts.sumAlign ?? 'left';
 
     // ── Shared header ──────────────────────────────────────────────────────────
+    // Header items keep the row and its divider even with title and icon off (#676).
     const header =
-        showTitle || showIcon || (opts.showSum && sumInfo) || masterSwitch ? (
+        showTitle || showIcon || (opts.showSum && sumInfo) || masterSwitch || hasHeaderItems ? (
             <div
                 className="shrink-0 py-1.5 flex flex-col gap-1"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}
@@ -1182,7 +1184,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                     {/* Title and stats share one line: the title shrinks/truncates, the stats
                         keep their natural width. sumAlign 'left' parks them right after the
                         title, 'center'/'right' lets the stats box take the rest of the row. */}
-                    <div className="flex-1 min-w-0 flex items-center gap-2" data-title-slot="">
+                    <div
+                        className="flex-1 min-w-0 flex items-center gap-2"
+                        data-title-slot={showTitle || (opts.showSum && sumInfo) ? '' : undefined}
+                    >
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs font-semibold truncate min-w-0"

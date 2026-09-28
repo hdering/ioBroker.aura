@@ -52,6 +52,7 @@ function ItemRow({
     item,
     config,
     hasClickAction,
+    titleCentered,
     index,
     count,
     onChange,
@@ -61,6 +62,8 @@ function ItemRow({
     item: WidgetHeaderItem;
     config: WidgetConfig;
     hasClickAction: boolean;
+    /** titleAlign 'center': a centre item picks its side of the title. */
+    titleCentered: boolean;
     index: number;
     count: number;
     onChange: (item: WidgetHeaderItem) => void;
@@ -137,6 +140,29 @@ function ItemRow({
                         </option>
                     ))}
                 </select>
+                {titleCentered && (item.slot === 'r1-center' || item.slot === 'r2-center') && (
+                    // Below the title is the second row's centre — one place, so height and
+                    // aura_measure keep counting it as row 2.
+                    <select
+                        value={item.slot === 'r2-center' ? 'below' : (item.titleSide ?? 'after')}
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            update(
+                                v === 'below'
+                                    ? { slot: 'r2-center', titleSide: undefined }
+                                    : { slot: 'r1-center', titleSide: v === 'before' ? 'before' : undefined },
+                            );
+                        }}
+                        className={cls}
+                        style={inputStyle}
+                        title={t('hdr.titleSide')}
+                        data-header-item-title-side=""
+                    >
+                        <option value="before">{t('hdr.titleSide.before')}</option>
+                        <option value="after">{t('hdr.titleSide.after')}</option>
+                        <option value="below">{t('hdr.titleSide.below')}</option>
+                    </select>
+                )}
                 <select
                     value={item.show ?? 'always'}
                     onChange={(e) => {
@@ -412,6 +438,15 @@ export function HeaderItemsEditor({
         </div>
     );
 
+    const summary = (list: WidgetHeaderItem[], sep: string, lead = false) =>
+        list.length ? (
+            <span>
+                {lead ? sep : ''}
+                {list.map((it) => itemSummary(it, t, config)).join(' · ')}
+                {lead ? '' : sep}
+            </span>
+        ) : null;
+
     const slotCell = (slot: WidgetHeaderSlot, withTitle = false) => (
         <button
             key={slot}
@@ -425,12 +460,25 @@ export function HeaderItemsEditor({
                 {withTitle ? t('hdr.slot.titleCenter') : t(slotKey(slot))}
             </span>
             <span className="block text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
-                {withTitle && (
-                    <span style={{ color: 'var(--text-secondary)' }} data-header-map-title="">
-                        {config.title || '—'}{' '}
-                    </span>
-                )}
-                {bySlot[slot].length ? (
+                {withTitle ? (
+                    <>
+                        {summary(
+                            bySlot[slot].filter((it) => it.titleSide === 'before'),
+                            ' ',
+                        )}
+                        <span style={{ color: 'var(--text-secondary)' }} data-header-map-title="">
+                            {config.title || '—'}
+                        </span>
+                        {summary(
+                            bySlot[slot].filter((it) => it.titleSide !== 'before'),
+                            ' ',
+                            true,
+                        )}
+                        {!bySlot[slot].length && (
+                            <Plus size={11} className="inline ml-1" style={{ color: 'var(--text-secondary)' }} />
+                        )}
+                    </>
+                ) : bySlot[slot].length ? (
                     bySlot[slot].map((it) => itemSummary(it, t, config)).join(' · ')
                 ) : (
                     <Plus size={11} style={{ color: 'var(--text-secondary)' }} />
@@ -481,6 +529,7 @@ export function HeaderItemsEditor({
                     item={item}
                     config={config}
                     hasClickAction={hasClickAction}
+                    titleCentered={titleCentered}
                     index={i}
                     count={items.length}
                     onChange={(next) => onChange(items.map((x) => (x.id === next.id ? next : x)))}

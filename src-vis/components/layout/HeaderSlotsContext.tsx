@@ -56,16 +56,22 @@ function useRegister(ctx: HeaderSlotsValue | null, row: HeaderRow) {
  * centre items are centred on the card — absolutely positioned but vertically in
  * place (no `top`), so they sit in the title row without taking its space.
  *
- * `part` is set by a centred TitleRow only: it draws the centre items right beside
- * the title ('center', in flow) and the right items in the right column ('right').
+ * `part` is set by a centred TitleRow only: it draws the centre items in flow beside
+ * the title — 'before' / 'after' by their titleSide — and the right items in the
+ * right column ('right').
  */
-export function HeaderSlotsInline({ part = 'all' }: { part?: 'all' | 'center' | 'right' }): ReactNode {
+export function HeaderSlotsInline({ part = 'all' }: { part?: 'all' | 'before' | 'after' | 'right' }): ReactNode {
     const ctx = useContext(HeaderSlotsContext);
     useRegister(ctx, 'r1');
     if (!ctx?.items.length) return null;
     const slots = groupBySlot(ctx.items);
-    const center = part === 'right' ? [] : slots['r1-center'];
-    const right = part === 'center' ? [] : slots['r1-right'];
+    const center =
+        part === 'right'
+            ? []
+            : part === 'all'
+              ? slots['r1-center']
+              : slots['r1-center'].filter((i) => (i.titleSide === 'before') === (part === 'before'));
+    const right = part === 'all' || part === 'right' ? slots['r1-right'] : [];
     if (!center.length && !right.length) return null;
     return (
         <>
@@ -73,7 +79,7 @@ export function HeaderSlotsInline({ part = 'all' }: { part?: 'all' | 'center' | 
                 <span
                     className="flex items-center gap-2 min-w-0 pointer-events-auto"
                     style={
-                        part === 'center'
+                        part !== 'all'
                             ? { flex: '0 1 auto' }
                             : { position: 'absolute', left: '50%', transform: 'translateX(-50%)', maxWidth: '40%' }
                     }
@@ -140,7 +146,7 @@ function liftWrappers(kids: ReturnType<typeof Children.toArray>, depth = 0): Ret
  * icon, title, `<HeaderSlotsInline />`, the widget's own controls — and only
  * changes how they are laid out when the title is centred:
  *
- *   [ everything before the title | title + r1-center items | everything after ]
+ *   [ everything before the title | r1-center items + title + r1-center items | everything after ]
  *
  * The outer two columns grow equally from zero, so the title sits in the middle of
  * the card no matter how wide the icon on the left or the values and buttons on the
@@ -165,12 +171,13 @@ export function TitleRow({ align, children, ...rest }: { align?: string } & HTML
                 {kids.slice(0, titleAt)}
             </div>
             <div className="flex items-center gap-2 min-w-0" style={{ flex: '0 1 auto' }} data-title-side="center">
+                {hasSlots && <HeaderSlotsInline part="before" />}
                 {/* Own box: the title (often flex: 1, basis 0) would otherwise give up all its
                     width to the centre items before they shrink at all. */}
                 <div className="flex min-w-0" style={{ flex: '0 1 auto' }}>
                     {kids[titleAt]}
                 </div>
-                {hasSlots && <HeaderSlotsInline part="center" />}
+                {hasSlots && <HeaderSlotsInline part="after" />}
             </div>
             <div style={{ ...side, justifyContent: 'flex-end' }} data-title-side="trail">
                 {kids
@@ -185,6 +192,15 @@ export function TitleRow({ align, children, ...rest }: { align?: string } & HTML
             </div>
         </div>
     );
+}
+
+/**
+ * Whether the widget has header items to show. A widget whose title row is optional
+ * (title and icon off) keeps the row — and its divider — while items sit on it,
+ * instead of leaving them to the frame's overlay strip.
+ */
+export function useHasHeaderItems(): boolean {
+    return !!useContext(HeaderSlotsContext)?.items.length;
 }
 
 /** Row-2 items, placed right below the widget's title row. */

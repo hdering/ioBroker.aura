@@ -1233,7 +1233,8 @@ export const UNIVERSAL_OPTIONS = {
             'Text mit Bindings wie bei Markern, "action" = das Klick-Aktions-Symbol auf diesem Platz statt in ' +
             'der Kartenecke) und ein Platz (slot): "r1-center"/"r1-right" neben dem Titel, ' +
             '"r2-left"/"r2-center"/"r2-right" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. ' +
-            'Bei titleAlign "center" steht der Titel in der Kartenmitte und "r1-center" direkt dahinter. ' +
+            'Bei titleAlign "center" steht der Titel in der Kartenmitte und "r1-center" direkt daneben ' +
+            '(titleSide "after" = rechts, Standard, "before" = links); unter dem Titel = slot "r2-center". ' +
             'Mehrere Elemente je Platz stehen nebeneinander. show: "always" (Standard), "collapsed" (nur ' +
             'eingeklappt, defaultCollapsed), "expanded". Aufgeklappt stehen die Elemente in der Titelzeile des ' +
             'Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. ' +

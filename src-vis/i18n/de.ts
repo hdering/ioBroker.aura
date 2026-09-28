@@ -2618,7 +2618,11 @@ export const de = {
     'hdr.slot.lead': 'Symbol',
     'hdr.slot.titleCenter': 'Titel · Mitte',
     'hdr.centerHint':
-        'Der Titel ist zentriert: Er steht in der Mitte der Karte, Elemente auf „Zeile 1 Mitte“ direkt dahinter.',
+        'Der Titel ist zentriert: Er steht in der Mitte der Karte, Elemente auf „Zeile 1 Mitte“ direkt daneben – links, rechts oder darunter, je Element einstellbar.',
+    'hdr.titleSide': 'Lage zum zentrierten Titel',
+    'hdr.titleSide.before': 'links vom Titel',
+    'hdr.titleSide.after': 'rechts vom Titel',
+    'hdr.titleSide.below': 'unter dem Titel',
     'hdr.slot.r1-center': 'Zeile 1 Mitte',
     'hdr.slot.r1-right': 'Zeile 1 rechts',
     'hdr.slot.r2-left': 'Zeile 2 links',

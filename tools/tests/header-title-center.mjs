@@ -126,6 +126,30 @@ for (const type of ['list', 'switch']) {
     check(`${type}: right item still shown`, m?.rightShown);
 }
 
+// ── titleSide: centre item left of the title, title still in the middle ─────
+for (const collapsed of [false, true]) {
+    const id = await show('switch', {
+        defaultCollapsed: collapsed,
+        collapsible: true,
+        headerItems: [
+            ...RIGHT,
+            { id: 'l', source: 'text', text: 'links', slot: 'r1-center', titleSide: 'before' },
+            { id: 'a', source: 'text', text: 'rechts', slot: 'r1-center' },
+        ],
+    });
+    const r = await page.evaluate((wid) => {
+        const card = document.querySelector(`[data-aura-widget="${wid}"]`);
+        const title = card.querySelector('.aura-widget-title').getBoundingClientRect();
+        const pos = (key) => card.querySelector(`[data-header-item="${key}"]`)?.getBoundingClientRect();
+        const l = pos('l');
+        const a = pos('a');
+        return { leftOk: !!l && l.right <= title.left + 0.5, rightOk: !!a && a.left >= title.right - 0.5 };
+    }, id);
+    const tag = collapsed ? 'folded' : 'expanded';
+    check(`${tag}: titleSide before → left of the title`, r.leftOk, JSON.stringify(r));
+    check(`${tag}: default → right of the title`, r.rightOk, JSON.stringify(r));
+}
+
 // ── Narrow card: the title truncates, the row does not overflow ─────────────
 {
     const id = await show(
@@ -156,6 +180,54 @@ for (const type of ['list', 'switch']) {
     if (process.env.SHOTS)
         await page.locator(`[data-aura-widget="${id2}"]`).screenshot({ path: `${process.env.SHOTS}/folded.png` });
     check('folded: centre item beside the title', m2 && !m2.overlapsMid && m2.midAfter, JSON.stringify(m2));
+}
+
+// ── Title and icon off, text on row 1: the list keeps its header row and divider ─
+for (const [type, opts] of [
+    ['list', { entries: [{ id: 'demo.sw', label: 'Ofen' }], hideFilterButton: true }],
+    ['autolist', { hideFilterButton: true }],
+]) {
+    for (const align of ['left', 'center']) {
+        const id = await show(type, {
+            ...opts,
+            titleAlign: align,
+            showTitle: false,
+            showIcon: false,
+            headerItems: [{ id: 'm', source: 'text', text: 'Sauna', slot: 'r1-center' }, ...RIGHT],
+        });
+        const r = await page.evaluate((wid) => {
+            const card = document.querySelector(`[data-aura-widget="${wid}"]`);
+            const mid = card?.querySelector('[data-header-slot="r1-center"]');
+            if (!card || !mid) return null;
+            // The divider sits on the header box that holds the row.
+            let el = mid.parentElement;
+            let divider = false;
+            while (el && el !== card) {
+                if (parseFloat(getComputedStyle(el).borderBottomWidth) > 0) {
+                    divider = true;
+                    break;
+                }
+                el = el.parentElement;
+            }
+            const c = card.getBoundingClientRect();
+            const m = mid.getBoundingClientRect();
+            return {
+                divider,
+                strip: !!card.querySelector('[data-header-strip]'),
+                offset: Math.round((m.left + m.width / 2 - (c.left + c.width / 2)) * 10) / 10,
+            };
+        }, id);
+        check(`${type}/${align} without title: header row with divider`, r?.divider && !r.strip, JSON.stringify(r));
+        check(
+            `${type}/${align} without title: centre item in the middle`,
+            r && Math.abs(r.offset) <= 1.5,
+            JSON.stringify(r),
+        );
+        if (process.env.SHOTS)
+            await page
+                .locator(`[data-aura-widget="${id}"]`)
+                .screenshot({ path: `${process.env.SHOTS}/notitle-${type}-${align}.png` });
+    }
 }
 
 // ── Editor: the slot map shows the centred title in the middle ─────────────
@@ -197,6 +269,36 @@ for (const type of ['list', 'switch']) {
         await mid.innerText(),
     );
     check('editor: no title cell on the left', (await editor.locator('[data-header-map-cell="title"]').count()) === 0);
+    const side = editor.locator('[data-header-item-title-side]').first();
+    check('editor: centre item offers its side of the title', (await side.count()) === 1);
+    await side.selectOption('before');
+    await page.waitForTimeout(300);
+    let o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check(
+        'editor: left of the title writes titleSide',
+        o?.headerItems?.[0]?.titleSide === 'before',
+        JSON.stringify(o?.headerItems),
+    );
+    check(
+        'editor: map shows the item before the title',
+        (await editor.locator('[data-header-slot-add="r1-center"]').innerText())
+            .trim()
+            .split(/\n/)
+            .pop()
+            .startsWith('offen'),
+    );
+    await side.selectOption('below');
+    await page.waitForTimeout(300);
+    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check(
+        'editor: below the title moves the item to row 2 centre',
+        o?.headerItems?.[0]?.slot === 'r2-center' && o.headerItems[0].titleSide === undefined,
+        JSON.stringify(o?.headerItems),
+    );
+    await editor.locator('[data-header-item-title-side]').first().selectOption('after');
+    await page.waitForTimeout(300);
+    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check('editor: right of the title brings it back to row 1', o?.headerItems?.[0]?.slot === 'r1-center');
     if (process.env.SHOTS) await editor.screenshot({ path: `${process.env.SHOTS}/editor.png` });
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');

@@ -2599,7 +2599,11 @@ export const en: Record<TranslationKey, string> = {
     'hdr.slot.lead': 'Icon',
     'hdr.slot.titleCenter': 'Title · centre',
     'hdr.centerHint':
-        'The title is centred: it sits in the middle of the card, items on "Row 1 centre" right behind it.',
+        'The title is centred: it sits in the middle of the card, items on "Row 1 centre" right beside it — left, right or below, per item.',
+    'hdr.titleSide': 'Position next to the centred title',
+    'hdr.titleSide.before': 'left of the title',
+    'hdr.titleSide.after': 'right of the title',
+    'hdr.titleSide.below': 'below the title',
     'hdr.slot.r1-center': 'Row 1 centre',
     'hdr.slot.r1-right': 'Row 1 right',
     'hdr.slot.r2-left': 'Row 2 left',

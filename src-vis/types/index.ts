@@ -941,6 +941,7 @@ export interface WidgetHeaderItem {
     source: WidgetHeaderSource; // 'dp' = datapoint below, 'widget' = widgetValue, 'text' = text with bindings, 'action' = the click-action icon (replaces the corner button)
     slot: WidgetHeaderSlot; // 'r1-center' | 'r1-right' | 'r2-left' | 'r2-center' | 'r2-right'
     show?: WidgetHeaderShow; // default 'always'
+    titleSide?: 'before' | 'after'; // slot 'r1-center' with a centred title (titleAlign 'center'): left or right of the title; default 'after'. Below the title = slot 'r2-center'
     dp?: string; // source 'dp': state id, JSON path allowed ('0_userdata.0.x?soc')
     decimals?: number; // source 'dp' / 'widget': fixed decimals; unset = global default (main value: the widget's own)
     unit?: string; // source 'dp' / 'widget': appended after a space; 'widget' falls back to the widget's unit
