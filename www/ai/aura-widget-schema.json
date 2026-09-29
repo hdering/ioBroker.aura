@@ -343,6 +343,11 @@
       "type": "string",
       "ref": "NumberFormat",
       "description": "Tausender-/Dezimaltrennzeichen. Ohne Angabe gilt die globale Einstellung."
+    },
+    "autoHeight": {
+      "type": "boolean",
+      "default": false,
+      "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count) und nicht als Kind einer Gruppe. Adapter-Logs: Höhe wächst bis visibleLimit Zeilen."
     }
   },
   "types": {
@@ -5853,6 +5858,7 @@
         "title"
       ],
       "commonOptions": [
+        "autoHeight",
         "badges",
         "clickAction",
         "clickActionIcon",
@@ -6403,6 +6409,7 @@
         "title"
       ],
       "commonOptions": [
+        "autoHeight",
         "badges",
         "clickAction",
         "clickActionIcon",
@@ -6443,11 +6450,6 @@
           "description": "Global text color when on. Per-DP activeColor overrides. Default: green.",
           "default": "var(--accent-green)",
           "color": true
-        },
-        "autoHeight": {
-          "type": "boolean",
-          "default": false,
-          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
         },
         "backendValueFilter": {
           "type": "string",
@@ -7115,6 +7117,7 @@
         "title"
       ],
       "commonOptions": [
+        "autoHeight",
         "badges",
         "clickAction",
         "clickActionIcon",
@@ -7142,11 +7145,6 @@
         "transparent"
       ],
       "options": {
-        "autoHeight": {
-          "type": "boolean",
-          "default": false,
-          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
-        },
         "calFontScale": {
           "type": "number",
           "default": 1,
@@ -10569,6 +10567,7 @@
         "title"
       ],
       "commonOptions": [
+        "autoHeight",
         "badges",
         "clickAction",
         "clickActionIcon",
@@ -10595,11 +10594,6 @@
         "transparent"
       ],
       "options": {
-        "autoHeight": {
-          "type": "boolean",
-          "default": false,
-          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
-        },
         "columns": {
           "type": "array",
           "items": {
@@ -11029,6 +11023,7 @@
         "title"
       ],
       "commonOptions": [
+        "autoHeight",
         "badges",
         "clickAction",
         "clickActionIcon",
@@ -11067,11 +11062,6 @@
           "description": "Global text color when on. Per-DP activeColor overrides. Default: green.",
           "default": "var(--accent-green)",
           "color": true
-        },
-        "autoHeight": {
-          "type": "boolean",
-          "default": false,
-          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
         },
         "backendValueFilter": {
           "type": "string",
@@ -12083,6 +12073,7 @@
         "title"
       ],
       "commonOptions": [
+        "autoHeight",
         "badges",
         "clickAction",
         "clickActionIcon",
@@ -12951,6 +12942,7 @@
         "title"
       ],
       "commonOptions": [
+        "autoHeight",
         "badges",
         "clickAction",
         "clickActionIcon",
@@ -12974,11 +12966,6 @@
       "options": {
         "allClearText": {
           "type": "string"
-        },
-        "autoHeight": {
-          "type": "boolean",
-          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe.",
-          "default": false
         },
         "batteryThreshold": {
           "type": "number",
