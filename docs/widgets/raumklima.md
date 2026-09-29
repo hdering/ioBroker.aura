@@ -59,6 +59,10 @@ Das Diagramm erscheint nur, wenn `showChart` aktiv ist und eine `historyInstance
 | Option | Standard | |
 | --- | --- | --- |
 | `showChart` | `true` | Verlaufsdiagramm anzeigen |
+| `tempInChart` | `true` | Temperatur-Reihe zeichnen; ohne jede Reihe entfällt das Diagramm |
+| `humidityInChart` | `false` | Luftfeuchte als Linie zeichnen (auch bei ausgeblendeter Feuchte-Zeile) |
+| `humidityChartAxis` | `right` | `right` · `left`; ohne Temperatur-Reihe immer links |
+| `humidityChartColor` | `#14b8a6` | Linienfarbe der Luftfeuchte |
 | `historyInstance` | — | History-Instanz, z. B. `history.0` |
 | `historyRange` | `24h` | `1h` · `6h` · `24h` · `7d` · `30d` · `custom` |
 | `historyRangeCustomValue` | `24` | Wert bei `custom` |

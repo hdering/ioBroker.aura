@@ -30,6 +30,8 @@ import {
     mergeChartRows,
     metricsInSlot,
     resolveClimateMetrics,
+    HUMIDITY_CHART_COLOR,
+    LEGACY_HUMIDITY,
     LEGACY_TARGET,
     type ClimateContext,
     type FormattedMetric,
@@ -41,7 +43,7 @@ import { unitSpanMs, type RangeUnit } from '../../utils/rangeChips';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
-/** Series key of the temperature — the main datapoint always draws itself. */
+/** Series key of the temperature — drawn unless `tempInChart` is off. */
 const TEMP_SERIES = '__temp';
 
 function formatLabel(ts: number): string {
@@ -91,6 +93,11 @@ export function ClimateWidget({ config }: WidgetProps) {
     const showPressure = o.showPressure !== false;
     const showComfort = o.showComfort === true;
     const showChart = o.showChart !== false;
+    // Diagramm-Reihen der Hauptwerte (#724): Temperatur an, Feuchte aus, solange nichts gesetzt ist.
+    const tempInChart = o.tempInChart !== false;
+    const humidityInChart = o.humidityInChart === true;
+    const humidityChartAxis = o.humidityChartAxis === 'left' ? 'left' : 'right';
+    const humidityChartColor = (o.humidityChartColor as string | undefined) || HUMIDITY_CHART_COLOR;
 
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
@@ -204,13 +211,32 @@ export function ClimateWidget({ config }: WidgetProps) {
         setActiveCustomMs(cfgCustomMs);
     }, [cfgRange, cfgCustomMs]);
 
-    const showChartSection = showChart && !!historyInstance;
+    // ── Diagramm: Temperatur, Feuchte plus jeder Wert mit „im Diagramm“ ───────
+    // Die Feuchte-Reihe hängt nicht an showHumidity — Zeile aus, Verlauf an ist erlaubt.
+    // Ohne Temperatur-Reihe rückt die Feuchte auf die linke Achse, sonst bliebe die leer.
+    const showTempSeries = tempInChart && !!config.datapoint;
+    const humidityAxis = showTempSeries ? humidityChartAxis : 'left';
+    const chartMetrics: ResolvedClimateMetric[] = useMemo(() => {
+        const list = metrics.filter((m) => m.inChart && (m.source ?? 'datapoint') === 'datapoint' && !!m.datapoint);
+        if (humidityInChart && humidityDpId) {
+            list.unshift({
+                id: LEGACY_HUMIDITY,
+                legacy: true,
+                source: 'datapoint',
+                datapoint: humidityDpId,
+                label: 'Luftfeuchtigkeit',
+                unit: humidityUnit,
+                color: humidityChartColor,
+                inChart: true,
+                chartAxis: humidityAxis,
+                chartType: 'line',
+                slot: 'secondary',
+            });
+        }
+        return list;
+    }, [metrics, humidityInChart, humidityDpId, humidityUnit, humidityChartColor, humidityAxis]);
 
-    // ── Diagramm: Temperatur plus jeder Wert mit „im Diagramm“ ────────────────
-    const chartMetrics: ResolvedClimateMetric[] = useMemo(
-        () => metrics.filter((m) => m.inChart && (m.source ?? 'datapoint') === 'datapoint' && !!m.datapoint),
-        [metrics],
-    );
+    const showChartSection = showChart && !!historyInstance && (showTempSeries || chartMetrics.length > 0);
 
     const activeCustomValue = activeCustomMs ? activeCustomMs / 3_600_000 : customVal;
     const chartSeries: EChartSeriesConfig[] = useMemo(() => {
@@ -220,8 +246,9 @@ export function ClimateWidget({ config }: WidgetProps) {
             historyRangeCustomValue: activeRange === 'custom' ? activeCustomValue : undefined,
             historyRangeCustomUnit: 'h' as const,
         };
-        const list: EChartSeriesConfig[] = [
-            {
+        const list: EChartSeriesConfig[] = [];
+        if (showTempSeries) {
+            list.push({
                 id: TEMP_SERIES,
                 name: config.title || 'Temperatur',
                 datapointId: config.datapoint,
@@ -229,8 +256,8 @@ export function ClimateWidget({ config }: WidgetProps) {
                 color: lineColor,
                 historyInstance,
                 ...common,
-            },
-        ];
+            });
+        }
         for (const m of chartMetrics) {
             list.push({
                 id: m.id,
@@ -245,6 +272,7 @@ export function ClimateWidget({ config }: WidgetProps) {
         return list;
     }, [
         showChartSection,
+        showTempSeries,
         config.datapoint,
         config.title,
         lineColor,
@@ -524,7 +552,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                             ];
                                         }}
                                     />
-                                    {showChartLegend && chartMetrics.length > 0 && (
+                                    {showChartLegend && chartSeries.length > 1 && (
                                         <Legend
                                             iconSize={8}
                                             wrapperStyle={{
@@ -534,17 +562,19 @@ export function ClimateWidget({ config }: WidgetProps) {
                                             formatter={(value) => seriesMeta[String(value)]?.name ?? String(value)}
                                         />
                                     )}
-                                    <Area
-                                        yAxisId="left"
-                                        type="monotone"
-                                        dataKey={TEMP_SERIES}
-                                        stroke={lineColor}
-                                        strokeWidth={2}
-                                        fill={`url(#climate-grad-${config.id})`}
-                                        dot={false}
-                                        connectNulls
-                                        isAnimationActive={false}
-                                    />
+                                    {showTempSeries && (
+                                        <Area
+                                            yAxisId="left"
+                                            type="monotone"
+                                            dataKey={TEMP_SERIES}
+                                            stroke={lineColor}
+                                            strokeWidth={2}
+                                            fill={`url(#climate-grad-${config.id})`}
+                                            dot={false}
+                                            connectNulls
+                                            isAnimationActive={false}
+                                        />
+                                    )}
                                     {chartMetrics.map((m) =>
                                         m.chartType === 'area' ? (
                                             <Area

@@ -238,7 +238,7 @@ import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ConfigModal } from '../config/ConfigModal';
 import { ClimateMetricsEditor } from '../config/ClimateMetricsEditor';
-import { CLIMATE_METRIC_TEMPLATES, metricFromTemplate } from '../../utils/climateMetrics';
+import { CLIMATE_METRIC_TEMPLATES, HUMIDITY_CHART_COLOR, metricFromTemplate } from '../../utils/climateMetrics';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
 import { useResolvedTitle } from '../widgets/DynamicTitle';
@@ -278,7 +278,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     ],
     // enum: current-selection / dropdown / display-mode toggles live in EnumConfig
     // (below the entries), matching the universal widget's DP-Auswahlfeld cell editor.
-    // climate: Ist/Soll/Luftfeuchtigkeit/Komfortzone/Temperaturverlauf toggles live
+    // climate: Ist/Soll/Luftfeuchtigkeit/Komfortzone/Verlaufsdiagramm toggles live
     // in the Raumklima settings block (ClimateConfig) — kept out of this generic list.
     windowcontact: [{ key: 'showLabel', label: 'Status-Text' }],
     binarysensor: [{ key: 'showLabel', label: 'Status-Text' }],
@@ -1584,7 +1584,7 @@ function ClimateConfig({
                     { key: 'showHumidity', label: 'Luftfeuchtigkeit', def: true },
                     { key: 'showPressure', label: 'Luftdruck', def: true },
                     { key: 'showComfort', label: 'Komfortzone', def: false },
-                    { key: 'showChart', label: 'Temperaturverlauf', def: true },
+                    { key: 'showChart', label: 'Verlaufsdiagramm', def: true },
                 ] as const
             ).map(({ key, label, def }) => {
                 const val = def ? o[key] !== false : o[key] === true;
@@ -1922,11 +1922,77 @@ function ClimateConfig({
                 />
             </div>
 
-            {/* Diagrammfarbe */}
+            {/* Diagramm-Reihen der Hauptwerte (#724) */}
             <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+            <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                Diagramm
+            </p>
+            {(
+                [
+                    { key: 'tempInChart', label: 'Temperatur im Diagramm', def: true },
+                    { key: 'humidityInChart', label: 'Luftfeuchtigkeit im Diagramm', def: false },
+                ] as const
+            ).map(({ key, label, def }) => {
+                const val = def ? o[key] !== false : o[key] === true;
+                return (
+                    <div key={key} className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                            {label}
+                        </span>
+                        <button
+                            onClick={() => set({ [key]: val === def ? !def : undefined })}
+                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                            style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                style={{ left: val ? '14px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                );
+            })}
+            {o.humidityInChart === true && !o.humidityDatapoint && (
+                <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    Braucht einen Luftfeuchtigkeits-Datenpunkt.
+                </p>
+            )}
+            {o.humidityInChart === true && (
+                <div className="flex gap-2 mb-2 items-end">
+                    <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Achse Luftfeuchtigkeit
+                        </label>
+                        <select
+                            value={o.humidityChartAxis === 'left' ? 'left' : 'right'}
+                            onChange={(e) => set({ humidityChartAxis: e.target.value === 'left' ? 'left' : undefined })}
+                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                            style={inputStyle}
+                        >
+                            <option value="right">Rechts (eigene Skala)</option>
+                            <option value="left">Links (mit Temperatur)</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-1.5 pb-1">
+                        <ColorPicker
+                            value={(o.humidityChartColor as string | undefined) || HUMIDITY_CHART_COLOR}
+                            onChange={(v) => set({ humidityChartColor: v })}
+                            className="w-7 h-7 rounded cursor-pointer border-0 p-0"
+                            style={{ background: 'none' }}
+                        />
+                        <button
+                            onClick={() => set({ humidityChartColor: undefined })}
+                            className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                            style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="flex items-center justify-between mb-1">
                 <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    Diagrammfarbe
+                    Farbe Temperatur
                 </span>
                 <div className="flex items-center gap-1.5">
                     <ColorPicker

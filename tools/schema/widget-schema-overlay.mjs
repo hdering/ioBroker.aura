@@ -604,7 +604,23 @@ export const WIDGET_OPTION_NOTES = {
         humidityIcon: { description: 'Icon vor der Luftfeuchte (Lucide-Name), Vorgabe "Droplets".' },
         pressureIcon: { description: 'Icon vor dem Luftdruck (Lucide-Name), Vorgabe "Gauge".' },
         showComfort: { description: 'Komfortbereich hervorheben.' },
-        showChart: { description: 'Verlaufsdiagramm anzeigen.' },
+        showChart: { description: 'Verlaufsdiagramm anzeigen (braucht historyInstance).' },
+        tempInChart: {
+            description:
+                'Ist-Temperatur (datapoint) als Flächenreihe im Verlaufsdiagramm zeichnen. false = Diagramm nur ' +
+                'mit Luftfeuchte und/oder weiteren Werten; ist gar keine Reihe übrig, entfällt das Diagramm (#724).',
+        },
+        humidityInChart: {
+            description:
+                'Luftfeuchte (humidityDatapoint) als Linie im Verlaufsdiagramm zeichnen — unabhängig von ' +
+                'showHumidity. Für die Luftfeuchte KEINEN Eintrag in metrics anlegen, sondern diesen Schalter nutzen (#724).',
+        },
+        humidityChartAxis: {
+            description:
+                'Achse der Feuchte-Reihe: "right" (Vorgabe, eigene Skala) oder "left" (mit der Temperatur). ' +
+                'Ohne Temperatur-Reihe liegt sie immer links.',
+        },
+        humidityChartColor: { description: 'Linienfarbe der Feuchte-Reihe, Vorgabe #14b8a6.' },
         metrics: {
             description:
                 'Weitere Messwerte der Kachel — CO₂, VOC, Taupunkt, Luftqualität, Helligkeit, Bewegung … (Issue #698). ' +

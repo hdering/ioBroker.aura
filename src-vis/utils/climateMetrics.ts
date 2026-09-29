@@ -279,6 +279,9 @@ export const LEGACY_TARGET = '__target';
 export const LEGACY_HUMIDITY = '__humidity';
 export const LEGACY_PRESSURE = '__pressure';
 
+/** Vorgabefarbe der Feuchte-Reihe im Diagramm (#724). */
+export const HUMIDITY_CHART_COLOR = '#14b8a6';
+
 /**
  * Die Werte, die das Widget zeichnet — Altoptionen zuerst, danach `metrics`.
  *
