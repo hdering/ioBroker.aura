@@ -1122,7 +1122,7 @@ export const EXTRA_OPTIONS = {
             type: 'boolean',
             default: false,
             description:
-                'Nur Stil minimal: Titel in Versalien mit weiter Laufweite. Aus = Titel so, wie er eingegeben wurde.',
+                'Titel in Versalien mit weiter Laufweite, in jedem Stil. Aus = Titel so, wie er eingegeben wurde.',
         },
         titleColor: { description: 'Farbe von Titel und Icon. Leer = --header-text aus dem Theme.' },
         subtitleColor: { description: 'Farbe des Untertitels. Leer = --text-secondary aus dem Theme.' },
