@@ -278,7 +278,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     ],
     // enum: current-selection / dropdown / display-mode toggles live in EnumConfig
     // (below the entries), matching the universal widget's DP-Auswahlfeld cell editor.
-    // climate: Ist/Soll/Luftfeuchtigkeit/Komfortzone/Verlaufsdiagramm toggles live
+    // climate: Ist/Soll/Luftfeuchtigkeit/Komfortzone toggles and the chart series live
     // in the Raumklima settings block (ClimateConfig) — kept out of this generic list.
     windowcontact: [{ key: 'showLabel', label: 'Status-Text' }],
     binarysensor: [{ key: 'showLabel', label: 'Status-Text' }],
@@ -1515,6 +1515,21 @@ function ClimateConfig({
 
     const climateMetrics = (o.metrics as ClimateMetric[] | undefined) ?? [];
 
+    // Diagramm (#724): EIN Schalter je Hauptwert, kein eigener für das Diagramm. Gespeichert
+    // wird weiter showChart (Hauptschalter, alte Widgets), tempInChart und humidityInChart —
+    // beide aus = showChart false, damit ein Widget ohne Reihen aussieht wie vorher „aus“.
+    const extraInChart = climateMetrics.some((m) => m.inChart && !m.hidden);
+    const chartOn = o.showChart !== false;
+    const chartTempOn = chartOn && o.tempInChart !== false;
+    const chartHumOn = chartOn && o.humidityInChart === true;
+    const setChartSeries = (temp: boolean, hum: boolean) => {
+        if (!temp && !hum && !extraInChart) {
+            set({ showChart: false, tempInChart: undefined, humidityInChart: undefined });
+            return;
+        }
+        set({ showChart: undefined, tempInChart: temp ? undefined : false, humidityInChart: hum || undefined });
+    };
+
     const autoFill = async () => {
         if (!config.datapoint) return;
         const parts = config.datapoint.split('.');
@@ -1584,7 +1599,6 @@ function ClimateConfig({
                     { key: 'showHumidity', label: 'Luftfeuchtigkeit', def: true },
                     { key: 'showPressure', label: 'Luftdruck', def: true },
                     { key: 'showComfort', label: 'Komfortzone', def: false },
-                    { key: 'showChart', label: 'Verlaufsdiagramm', def: true },
                 ] as const
             ).map(({ key, label, def }) => {
                 const val = def ? o[key] !== false : o[key] === true;
@@ -1929,18 +1943,22 @@ function ClimateConfig({
             </p>
             {(
                 [
-                    { key: 'tempInChart', label: 'Temperatur im Diagramm', def: true },
-                    { key: 'humidityInChart', label: 'Luftfeuchtigkeit im Diagramm', def: false },
+                    { key: 'temp', label: 'Verlauf Temperatur', val: chartTempOn },
+                    { key: 'humidity', label: 'Verlauf Luftfeuchtigkeit', val: chartHumOn },
                 ] as const
-            ).map(({ key, label, def }) => {
-                const val = def ? o[key] !== false : o[key] === true;
+            ).map(({ key, label, val }) => {
                 return (
                     <div key={key} className="flex items-center justify-between mb-1.5">
                         <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
                             {label}
                         </span>
                         <button
-                            onClick={() => set({ [key]: val === def ? !def : undefined })}
+                            onClick={() =>
+                                setChartSeries(
+                                    key === 'temp' ? !chartTempOn : chartTempOn,
+                                    key === 'humidity' ? !chartHumOn : chartHumOn,
+                                )
+                            }
                             className="relative w-7 h-4 rounded-full transition-colors shrink-0"
                             style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
                         >
@@ -1952,12 +1970,17 @@ function ClimateConfig({
                     </div>
                 );
             })}
-            {o.humidityInChart === true && !o.humidityDatapoint && (
+            {extraInChart && (
+                <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    Weitere Werte mit „im Diagramm“ erscheinen zusätzlich.
+                </p>
+            )}
+            {chartHumOn && !o.humidityDatapoint && (
                 <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                     Braucht einen Luftfeuchtigkeits-Datenpunkt.
                 </p>
             )}
-            {o.humidityInChart === true && (
+            {chartHumOn && (
                 <div className="flex gap-2 mb-2 items-end">
                     <div className="flex-1">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>

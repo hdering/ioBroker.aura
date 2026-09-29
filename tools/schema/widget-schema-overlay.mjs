@@ -604,7 +604,12 @@ export const WIDGET_OPTION_NOTES = {
         humidityIcon: { description: 'Icon vor der Luftfeuchte (Lucide-Name), Vorgabe "Droplets".' },
         pressureIcon: { description: 'Icon vor dem Luftdruck (Lucide-Name), Vorgabe "Gauge".' },
         showComfort: { description: 'Komfortbereich hervorheben.' },
-        showChart: { description: 'Verlaufsdiagramm anzeigen (braucht historyInstance).' },
+        showChart: {
+            description:
+                'Hauptschalter des Verlaufsdiagramms (braucht historyInstance). Der Editor zeigt ihn nicht eigens: ' +
+                'Temperatur und Luftfeuchte beide aus (ohne weitere Werte mit inChart) speichert showChart false. ' +
+                'Für "nur Feuchte" tempInChart false + humidityInChart true setzen, showChart weglassen.',
+        },
         tempInChart: {
             description:
                 'Ist-Temperatur (datapoint) als Flächenreihe im Verlaufsdiagramm zeichnen. false = Diagramm nur ' +

@@ -8016,7 +8016,7 @@
         "showChart": {
           "type": "boolean",
           "default": true,
-          "description": "Verlaufsdiagramm anzeigen (braucht historyInstance)."
+          "description": "Hauptschalter des Verlaufsdiagramms (braucht historyInstance). Der Editor zeigt ihn nicht eigens: Temperatur und Luftfeuchte beide aus (ohne weitere Werte mit inChart) speichert showChart false. Für \"nur Feuchte\" tempInChart false + humidityInChart true setzen, showChart weglassen."
         },
         "showChartLegend": {
           "type": "boolean",

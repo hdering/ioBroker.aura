@@ -143,6 +143,66 @@ async function show(options) {
     eq('Ohne Feuchte-DP: keine Linie', r.lines, 0);
 }
 
+// 8. Editor: je Hauptwert EIN Schalter, kein eigener „Verlaufsdiagramm“-Schalter mehr
+{
+    await show({});
+    const wid = `climchart${seq}`;
+    await page.evaluate(() => window.__auraShot.setEditMode(true));
+    await page.waitForTimeout(300);
+    const card = page.locator(`.aura-widget-${wid}`).first();
+    await card.hover();
+    await card.locator('.aura-edit-chrome button').first().click();
+    await page
+        .locator('button:text-is("Bearbeiten")')
+        .click()
+        .catch(() => {});
+    await page.waitForSelector('p:text-is("Diagramm")', { timeout: 10000 });
+    const toggle = (label) => page.locator(`div.flex:has(> span:text-is("${label}")) > button`).last();
+    const opts = () =>
+        page.evaluate((id) => {
+            const o = window.__auraShot.widgetOptions(id) ?? {};
+            return JSON.stringify([o.showChart, o.tempInChart, o.humidityInChart]);
+        }, wid);
+
+    eq('Editor: kein Schalter „Verlaufsdiagramm“', await page.locator('span:text-is("Verlaufsdiagramm")').count(), 0);
+    await toggle('Verlauf Luftfeuchtigkeit').click();
+    await page.waitForTimeout(250);
+    eq('Editor: Feuchte an', await opts(), JSON.stringify([undefined, undefined, true]));
+    await toggle('Verlauf Temperatur').click();
+    await page.waitForTimeout(250);
+    eq('Editor: nur Feuchte', await opts(), JSON.stringify([undefined, false, true]));
+    await toggle('Verlauf Luftfeuchtigkeit').click();
+    await page.waitForTimeout(250);
+    eq('Editor: beides aus = showChart false', await opts(), JSON.stringify([false, undefined, undefined]));
+    await toggle('Verlauf Temperatur').click();
+    await page.waitForTimeout(250);
+    eq('Editor: Temperatur wieder an = Vorgabe', await opts(), JSON.stringify([undefined, undefined, undefined]));
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+}
+
+// 9. Altes Widget mit showChart false: im Editor sind beide Schalter aus
+{
+    await show({ showChart: false });
+    const wid = `climchart${seq}`;
+    await page.evaluate(() => window.__auraShot.setEditMode(true));
+    await page.waitForTimeout(300);
+    const card = page.locator(`.aura-widget-${wid}`).first();
+    await card.hover();
+    await card.locator('.aura-edit-chrome button').first().click();
+    await page
+        .locator('button:text-is("Bearbeiten")')
+        .click()
+        .catch(() => {});
+    await page.waitForSelector('p:text-is("Diagramm")', { timeout: 10000 });
+    const bg = (label) =>
+        page
+            .locator(`div.flex:has(> span:text-is("${label}")) > button`)
+            .last()
+            .evaluate((b) => b.style.background);
+    eq('Alt-Widget: Temperatur-Schalter aus', await bg('Verlauf Temperatur'), 'var(--app-border)');
+    eq('Alt-Widget: Feuchte-Schalter aus', await bg('Verlauf Luftfeuchtigkeit'), 'var(--app-border)');
+}
+
 eq('keine Seitenfehler', pageErrors.length, 0);
 await browser.close();
 
