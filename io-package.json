@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.72.0",
+    "version": "0.72.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.72.1": {
+        "en": "Section title widget: the minimal style now shows the title as typed instead of forcing capitals; a new \"Title in capitals\" switch works in every style (#723)",
+        "de": "Abschnittstitel-Widget: Der Minimalstil zeigt den Titel jetzt wie eingegeben an, anstatt Großbuchstaben zu erzwingen. ein neuer Schalter „Titel in Großbuchstaben“ funktioniert in jedem Stil (#723)",
+        "ru": "Виджет заголовка раздела: минимальный стиль теперь отображает заголовок в том виде, в каком он был напечатан, а не заглавными буквами; новый переключатель «Название заглавными буквами» работает в любом стиле (#723).",
+        "pt": "Widget de título de seção: o estilo mínimo agora mostra o título digitado em vez de forçar letras maiúsculas; uma nova opção \"Título em maiúsculas\" funciona em todos os estilos (#723)",
+        "nl": "Sectietitelwidget: de minimale stijl toont nu de titel zoals getypt in plaats van hoofdletters te forceren; een nieuwe schakelaar \"Titel in hoofdletters\" werkt in elke stijl (#723)",
+        "fr": "Widget de titre de section : le style minimal affiche désormais le titre tel que saisi au lieu de forcer les majuscules ; un nouveau commutateur \"Titre en majuscules\" fonctionne dans tous les styles (#723)",
+        "it": "Widget titolo sezione: lo stile minimal ora mostra il titolo così come è stato digitato invece di forzare le maiuscole; un nuovo interruttore \"Titolo in maiuscolo\" funziona in ogni stile (#723)",
+        "es": "Widget de título de sección: el estilo minimalista ahora muestra el título escrito en lugar de forzar las mayúsculas; un nuevo interruptor \"Título en mayúsculas\" funciona en todos los estilos (#723)",
+        "pl": "Widżet tytułu sekcji: styl minimalny pokazuje teraz tytuł wpisany, zamiast wymuszać wielkie litery; nowy przełącznik „Tytuł wielkimi literami” działa w każdym stylu (#723)",
+        "uk": "Віджет заголовка розділу: мінімальний стиль тепер показує заголовок у введеному вигляді замість примусового використання великих літер; новий перемикач «Назва великими літерами» працює в усіх стилях (#723)",
+        "zh-cn": "部分标题小部件：最小样式现在显示键入的标题，而不是强制大写；新的“大写标题”开关适用于各种风格 (#723)"
+      },
       "0.72.0": {
         "en": "🌟 New feature: \"Fit height to content\" is now one option in the Appearance block and also available for lists, dynamic lists, the JSON table, messages and adapter logs; resizing such a widget in the editor shows a hint why its height is fixed",
         "de": "🌟 Neue Funktion: „Höhe an Inhalt anpassen“ ist jetzt eine Option im Darstellungsblock und auch für Listen, dynamische Listen, die JSON-Tabelle, Nachrichten und Adapterprotokolle verfügbar; Wenn Sie die Größe eines solchen Widgets im Editor ändern, wird ein Hinweis angezeigt, warum seine Höhe festgelegt ist",
@@ -184,19 +197,6 @@
         "pl": "Niestandardowy CSS zastosowany w edytorze dashboardów stylizuje teraz tylko podgląd dashboardu, a nie otaczające go menu administracyjne (#710)\nPrzegląd administratora — kartę dostępu AI (MCP) można odrzucić, podobnie jak kartę dla początkujących\n🌟 Nowa funkcja: tabela JSON: reguły sortowania takie jak lista statyczna - kilka kolumn w rzędzie, porównywanie według liczby, tekstu, włączenia/wyłączenia lub daty (również dd.MM.rrrr), puste komórki na początku lub na końcu; kliknięcie nagłówka nadal przejmuje kontrolę (#706)\n🌟 Nowa funkcja: tabela JSON: separator tysięcy dla każdej kolumny obok miejsc dziesiętnych; przełącznik „Umrechnung” nazywa się teraz „Zahlenformat” i pokazuje konwersję, miejsca dziesiętne i separator w jednym wierszu (#707)\nOdtwarzacz multimedialny: przyciski szybkiego wyboru głośności (25/50/75/100 %) można ukryć, aby zachować rząd wysokości (#708)\n🌟 Nowa funkcja: Wykres / Wykres zaawansowany: zdefiniuj własne żetony przedziału czasowego dla selektora frontendu, np.: tylko miesiące (1, 2, 3, 6, 12, 24 miesiące, łącznie); zakresy niestandardowe obsługują teraz także tygodnie, miesiące i lata (#709)\n🌟 Nowa funkcja: Siatka i urządzenia mobilne - widok mobilny może teraz używać 2-4 kolumn, podobnie jak widok na tablecie (ustawienie „Kolumny mobilne”); mobilny panel zamówień w edytorze porządkuje następnie kolumny i pasma o pełnej szerokości; w projekcie Frontend ustawienia telefonu i tabletu są pogrupowane obok siebie, a oba panele zamówień prowadzą bezpośrednio do nich (#413)",
         "uk": "Спеціальний CSS, застосований у редакторі інформаційної панелі, тепер стилізує лише попередній перегляд інформаційної панелі, а не меню адміністратора навколо неї (#710)\nОгляд адміністратора – картку доступу AI (MCP), як і картку початку роботи, можна закрити\n🌟 Нова функція: таблиця JSON: правила сортування, такі як статичний список - кілька стовпців у рядку, порівняння як число, текст, увімкнення/вимкнення чи дата (також дд.ММ.рррр), порожні перші чи останні клітинки; клацання заголовка все ще має перевагу (#706)\n🌟 Нова функція: таблиця JSON: роздільник тисяч для кожного стовпця поруч із десятковими знаками; перемикач \"Umrechnung\" тепер називається \"Zahlenformat\" і показує перетворення, десяткові знаки та роздільник в одному рядку (#707)\nМедіаплеєр: кнопки швидкого вибору гучності (25/50/75/100%) можна приховати, щоб зберегти рядок висоти (#708)\n🌟 Нова функція: діаграма / розширена діаграма: визначте власні чіпи діапазону часу для селектора інтерфейсу, напр. лише місяці (1, 2, 3, 6, 12, 24 місяці, всього); спеціальні діапазони тепер також підтримують тижні, місяці та роки (#709)\n🌟 Нова функція: Grid & Mobile - мобільний перегляд тепер може використовувати 2-4 стовпці, як планшет (налаштування \"Мобільні стовпці\"); мобільна панель порядку в редакторі потім упорядковує стовпці та смуги повної ширини; у дизайні інтерфейсу налаштування мобільних пристроїв і планшетів згруповані поруч, і обидві панелі замовлень посилаються безпосередньо на них (#413)",
         "zh-cn": "仪表板编辑器中应用的自定义 CSS 现在仅设置仪表板预览的样式，而不是其周围的管理菜单的样式 (#710)\n管理员概述 - AI 访问 (MCP) 卡可以被关闭，就像入门卡一样\n🌟 新功能：JSON 表：排序规则如静态列表 - 一行中的几列，比较数字、文本、开/关或日期（也包括 dd.MM.yyyy）、第一个或最后一个空单元格；标题点击仍然占据主导地位(#706)\n🌟 新功能：JSON 表：每列小数点旁边的千位分隔符； “Umrechnung”开关现在称为“Zahlenformat”，并在一行中显示转换、小数和分隔符 (#707)\n媒体播放器：可以隐藏音量快速选择按钮（25/50/75/100%）以节省一行高度(#708)\n🌟 新功能：图表/高级图表：为前端选择器定义您自己的时间范围芯片，例如仅几个月（总计 1、2、3、6、12、24 个月）；自定义范围现在还支持周、月和年 (#709)\n🌟 新功能：网格和移动设备 - 移动设备视图现在可以像平板电脑视图一样使用 2-4 列（设置“移动设备列”）；然后，编辑器中的移动订单面板会排列列和全宽带；在前端设计中，移动设备和平板电脑设置并排分组，两个订单面板都直接链接到它们(#413)"
-      },
-      "0.68.2": {
-        "en": "Design - every overridden setting of a layout or section now gets the orange marking, including the section menu, tab bar, theme and header title/elements",
-        "de": "Design – Jede überschriebene Einstellung eines Layouts oder Abschnitts erhält jetzt die orangefarbene Markierung, einschließlich Abschnittsmenü, Registerkartenleiste, Thema und Titel/Elemente der Kopfzeile",
-        "ru": "Дизайн — каждая переопределенная настройка макета или раздела теперь отмечена оранжевым цветом, включая меню раздела, панель вкладок, тему и заголовок/элементы заголовка.",
-        "pt": "Design - todas as configurações substituídas de um layout ou seção agora recebem a marcação laranja, incluindo o menu da seção, barra de guias, tema e título/elementos do cabeçalho",
-        "nl": "Ontwerp - elke overschreven instelling van een lay-out of sectie krijgt nu de oranje markering, inclusief het sectiemenu, de tabbalk, het thema en de koptitel/-elementen",
-        "fr": "Conception - chaque paramètre remplacé d'une mise en page ou d'une section reçoit désormais le marquage orange, y compris le menu de section, la barre d'onglets, le thème et le titre/les éléments d'en-tête.",
-        "it": "Design: ogni impostazione sovrascritta di un layout o di una sezione ora ottiene il contrassegno arancione, incluso il menu della sezione, la barra delle schede, il tema e il titolo/elementi dell'intestazione",
-        "es": "Diseño: cada configuración anulada de un diseño o sección ahora recibe la marca naranja, incluido el menú de la sección, la barra de pestañas, el tema y el título/elementos del encabezado.",
-        "pl": "Projekt — każde nadpisane ustawienie układu lub sekcji otrzymuje teraz pomarańczowe oznaczenie, łącznie z menu sekcji, paskiem kart, motywem i tytułem/elementami nagłówka",
-        "uk": "Дизайн — усі перевизначені налаштування макета чи розділу тепер позначаються помаранчевим кольором, включаючи меню розділу, панель вкладок, тему та заголовок/елементи",
-        "zh-cn": "设计 - 布局或部分的每个覆盖设置现在都会获得橙色标记，包括部分菜单、选项卡栏、主题和标题标题/元素"
       }
     }
   },
