@@ -10042,7 +10042,7 @@
         "titleUppercase": {
           "type": "boolean",
           "default": false,
-          "description": "Nur Stil minimal: Titel in Versalien mit weiter Laufweite. Aus = Titel so, wie er eingegeben wurde."
+          "description": "Titel in Versalien mit weiter Laufweite, in jedem Stil. Aus = Titel so, wie er eingegeben wurde."
         }
       }
     },
