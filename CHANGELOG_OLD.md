@@ -1,5 +1,16 @@
 # Changelog (older entries)
 
+## 0.63.0 (2026-09-18)
+- Image - adapter assets such as Pirate Weather icons are now read straight from the ioBroker file storage, so they no longer depend on the configured socket port serving them ([#519](https://github.com/hdering/ioBroker.aura/issues/519))
+- Groups - the editor sizes a group exactly like the frontend again: children stored with a gap between them (or next to a shorter widget) no longer leave an empty strip under the last child, and the children keep the size the frontend gives them ([#680](https://github.com/hdering/ioBroker.aura/issues/680))
+- 🌟 **New feature:** Countdown - new widget: remaining time as hh:mm:ss with Start/Pause/Stop, ± buttons and preset chips; runs in the adapter, switches a datapoint at start and end, scriptable through its cmd state, and can also display a foreign remaining-time datapoint such as mytime ([#675](https://github.com/hdering/ioBroker.aura/issues/675))
+- Settings - the web instance can now be picked from a list instead of typing its port; its port, bind address and HTTPS setting are then used automatically
+- Settings - new "Check backend" button that tests the web instance, the socket connection and the file delivery and reports what is wrong in plain words; the same check runs at every start and writes its result to the log and to info.backendCheck
+- Select - with a fixed dropdown width, a value that is missing from the widget's own entry list is no longer printed in the closed control; it now shows a dash just like the automatic width, so several selectors can share one datapoint ([#679](https://github.com/hdering/ioBroker.aura/issues/679))
+- Status overview - card layout now shows the state first and the affected device below it
+- New widget dialog - the two shading entries are merged into one "Rollladen / Jalousie / Markise"; a slat datapoint is still detected automatically and switches the tilt regulator on
+- New widget dialog - double-clicking an entry adds it and closes the dialog again
+
 ## 0.62.0 (2026-09-18)
 - 🌟 **New feature:** Layouts - the admin page is now a master-detail view like Frontend Design: a tree of layouts and sections on the left, the selected one on the right with labelled actions, a section list with default section and menu visibility, and a searchable tab list with default tab, hidden state and drag ordering
 - 🌟 **New feature:** Menu widget - new "Overview" mode lists every section of the layout with its tabs as clickable chips, generated from the layout itself, with optional search field, group titles, chip size and an "all layouts" source ([#669](https://github.com/hdering/ioBroker.aura/issues/669))
