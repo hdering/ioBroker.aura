@@ -179,6 +179,35 @@ function LayoutMenuItemRow({
                             />
                         </div>
                     </div>
+                    <div>
+                        <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {t('settings.frontend.layoutDrawerItemAlign')}
+                        </p>
+                        <div className="flex gap-1">
+                            {(['left', 'center', 'right'] as const).map((v) => {
+                                const labels = {
+                                    left: t('settings.tabBar.alignLeft'),
+                                    center: t('settings.tabBar.alignCenter'),
+                                    right: t('settings.tabBar.alignRight'),
+                                };
+                                const active = (item.align ?? 'left') === v;
+                                return (
+                                    <button
+                                        key={v}
+                                        onClick={() => onUpdate({ align: v === 'left' ? undefined : v })}
+                                        className="flex-1 text-xs py-1 rounded-lg transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {labels[v]}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                     <MenuItemFields item={item} onUpdate={onUpdate} variant={host.variant} hostWidth={host.width} />
                 </div>
             )}

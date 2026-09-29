@@ -390,7 +390,20 @@ export function LayoutDrawer({
                 {groupItems.map((it) => (
                     <div
                         key={it.id}
-                        style={{ marginTop: it.marginTop || undefined, marginBottom: it.marginBottom || undefined }}
+                        style={{
+                            marginTop: it.marginTop || undefined,
+                            marginBottom: it.marginBottom || undefined,
+                            // Left stays the plain block flow it always was; center / right
+                            // shrink the element to its content and push it across.
+                            ...(it.align === 'center' || it.align === 'right'
+                                ? {
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: it.align === 'center' ? 'center' : 'flex-end',
+                                      textAlign: it.align,
+                                  }
+                                : undefined),
+                        }}
                     >
                         <LayoutMenuItemView item={it} />
                     </div>

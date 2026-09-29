@@ -169,6 +169,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerItemPosBottom': 'Bottom',
     'settings.frontend.layoutDrawerItemMarginTop': 'Space above',
     'settings.frontend.layoutDrawerItemMarginBottom': 'Space below',
+    'settings.frontend.layoutDrawerItemAlign': 'Alignment',
     'settings.frontend.idleReturn': 'Auto-return to default tab',
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':

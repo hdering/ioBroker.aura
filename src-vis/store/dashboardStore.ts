@@ -69,6 +69,11 @@ export interface LayoutMenuItem extends MenuItemContent {
     marginTop?: number;
     /** Extra space in px below this element. */
     marginBottom?: number;
+    /**
+     * Horizontal alignment inside the stacked menu column (sidebar / overlay).
+     * Default `left`. The docked top / bottom bar hosts elements inline and ignores it.
+     */
+    align?: 'left' | 'center' | 'right';
 }
 
 /**

@@ -168,6 +168,7 @@ export const de = {
     'settings.frontend.layoutDrawerItemPosBottom': 'Unten',
     'settings.frontend.layoutDrawerItemMarginTop': 'Abstand oben',
     'settings.frontend.layoutDrawerItemMarginBottom': 'Abstand unten',
+    'settings.frontend.layoutDrawerItemAlign': 'Ausrichtung',
     'settings.frontend.idleReturn': 'Automatisch zum Standard-Tab zurückkehren',
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':
