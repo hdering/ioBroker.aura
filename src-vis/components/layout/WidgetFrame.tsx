@@ -6,6 +6,7 @@ import React, {
     useMemo,
     useCallback,
     useSyncExternalStore,
+    useContext,
     Suspense,
 } from 'react';
 import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
@@ -48,6 +49,8 @@ import { setDragBridge, getTabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
+import { supportsAutoHeight } from '../../utils/autoHeight';
+import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { WidgetWriteLockContext } from '../../hooks/widgetWriteLock';
 import { exportWidget } from '../../utils/widgetExportImport';
@@ -910,31 +913,6 @@ function CalendarEditPanel({
                     style={{ accentColor: 'var(--accent)' }}
                 />
             </div>
-
-            {/* ── Höhe automatisch an Inhalt anpassen ── */}
-            {config.layout !== 'custom' && (
-                <div>
-                    <div className="flex items-center justify-between">
-                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                            Höhe automatisch an Inhalt anpassen
-                        </span>
-                        <button
-                            onClick={() => setOpts({ autoHeight: !o.autoHeight })}
-                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                            style={{ background: o.autoHeight ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                style={{ left: o.autoHeight ? '14px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        Das Widget wird so hoch wie sein Inhalt, statt eine feste Höhe zu füllen. Die eingestellte Höhe
-                        wird dann automatisch überschrieben und lässt sich nicht mehr manuell ändern.
-                    </p>
-                </div>
-            )}
 
             {/* ── Mehrtägige Termine ── */}
             <div>
@@ -6442,6 +6420,7 @@ const DISPLAY_OPTION_KEYS = [
     'showLastChange',
     'lastChangePosition',
     'lastChangeDatapoint',
+    'autoHeight',
 ] as const;
 
 function WidgetFrameInner({
@@ -6465,6 +6444,9 @@ function WidgetFrameInner({
     // types that must stay clickable while designing — a group and a panel
     // stack hold child widgets that have to remain selectable and draggable.
     const editorLock = useAdminPrefsStore((s) => s.lockWidgets) && editMode;
+    // Content auto-height is off inside a group, and wherever an outer container
+    // (popup view) already switched it off.
+    const autoHeightBlocked = useContext(ContentAutoHeightBlockedContext) || !!inGroup;
     const pointerLocked = editorLock && !LOCK_PASSTHROUGH_TYPES.has(config.type);
     useEffect(() => {
         if (!isFocused) return;
@@ -7868,14 +7850,18 @@ function WidgetFrameInner({
                                             label={config.title ? `${config.type} · ${config.title}` : config.type}
                                             enabled={!editMode && isWidgetTrackingEnabled()}
                                         >
-                                            <Widget
-                                                key={`r${refreshNonce}`}
-                                                config={renderConfig}
-                                                editMode={editMode}
-                                                onConfigChange={onBodyConfigChange}
-                                                onLastChange={setLastChangedTs}
-                                                onNeedsActionButton={requestActionButton}
-                                            />
+                                            {/* A group lays its children out on its own pitch and
+                                                never reads a measured content height. */}
+                                            <ContentAutoHeightBlockedContext.Provider value={autoHeightBlocked}>
+                                                <Widget
+                                                    key={`r${refreshNonce}`}
+                                                    config={renderConfig}
+                                                    editMode={editMode}
+                                                    onConfigChange={onBodyConfigChange}
+                                                    onLastChange={setLastChangedTs}
+                                                    onNeedsActionButton={requestActionButton}
+                                                />
+                                            </ContentAutoHeightBlockedContext.Provider>
                                         </ProfiledWidget>
                                     );
                                     if (!expandedHeaderItems.length) return body;
@@ -9325,6 +9311,39 @@ function WidgetFrameInner({
                                                 </div>
                                             );
                                         })()}
+                                    {/* Fit height to content (utils/autoHeight AUTO_HEIGHT_TYPES). Not
+                                        inside a group: its children are laid out on the group's pitch. */}
+                                    {supportsAutoHeight(config.type, config.layout) && !inGroup && (
+                                        <>
+                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                            <div className="flex items-center justify-between">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('wf.edit.autoHeight')}
+                                                </label>
+                                                <button
+                                                    onClick={() => setO({ autoHeight: !o.autoHeight })}
+                                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                                    style={{
+                                                        background: o.autoHeight
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                    }}
+                                                    data-auto-height-option=""
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: o.autoHeight ? '18px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+                                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {t('wf.edit.autoHeightHint')}
+                                            </p>
+                                        </>
+                                    )}
                                     {/* Collapsible widget (issue #676). A group keeps the chevron in
                                         its own header; every other type folds to a frame header and
                                         gets a fold button in a corner. Children of a group are laid

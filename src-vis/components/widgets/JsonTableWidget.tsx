@@ -1,8 +1,8 @@
-import { useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { useMemo, useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import { Table2, Search, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import { useDashboardStore } from '../../store/dashboardStore';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import { useConfigStore } from '../../store/configStore';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useT } from '../../i18n';
@@ -211,7 +211,7 @@ export function parseJson(raw: unknown): TableData | null {
 }
 
 // ── Main widget ────────────────────────────────────────────────────────────────
-export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
+export function JsonTableWidget({ config }: WidgetProps) {
     const opts = config.options ?? {};
     const { value } = useDatapoint(config.datapoint);
 
@@ -228,7 +228,6 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const showHeader = (opts.showHeader as boolean) ?? true;
     const showSearch = (opts.showSearch as boolean) ?? false;
     const fontSize = (opts.fontSize as number) ?? 12;
-    const autoHeight = (opts.autoHeight as boolean) ?? false;
     const sortable = (opts.sortable as boolean) ?? false;
     const maxRows = (opts.maxRows as number) ?? 0;
     const showTitle = opts.showTitle !== false;
@@ -243,15 +242,17 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     // The clicked header; null falls back to the configured rule chain.
     const [sortOverride, setSortOverride] = useState<JsonSortRule | null>(null);
 
-    const contentRef = useRef<HTMLDivElement>(null);
-
-    // Latest config + onConfigChange — read by the auto-height effect so its
-    // write doesn't clobber sibling option changes (showTitle, showIcon,
-    // transparent, …) that happened between effect setups.
-    const configRef = useRef(config);
-    configRef.current = config;
-    const onConfigChangeRef = useRef(onConfigChange);
-    onConfigChangeRef.current = onConfigChange;
+    const contentRef = useRef<HTMLDivElement | null>(null);
+    // Darstellung → "Höhe automatisch an Inhalt anpassen": the table grows with its
+    // rows and measureRef publishes the height, the Dashboard sizes the grid item.
+    const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
+    const rootRef = useCallback(
+        (el: HTMLDivElement | null) => {
+            contentRef.current = el;
+            measureRef(el);
+        },
+        [measureRef],
+    );
 
     const tableData = useMemo(() => parseJson(value), [value]);
 
@@ -365,63 +366,6 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         }
     });
 
-    // Auto-height: measure content and update gridPos.h when data changes.
-    // We compare against config.gridPos.h (not a ref) and include it in deps so
-    // the effect re-runs when external writes (e.g. delayed loadConfigFromIoBroker
-    // after socket connect in the frontend) revert the height — otherwise the
-    // last computed value would silently lose to the persisted one.
-    useEffect(() => {
-        if (!autoHeight || !contentRef.current) return;
-        const el = contentRef.current;
-        const update = () => {
-            // Always read the freshest config — the effect's deps intentionally
-            // exclude `config`, so a stale closure would overwrite sibling option
-            // toggles (showTitle, showIcon, transparent, …) made between setups.
-            const latest = configRef.current;
-            // Match Dashboard's effective-settings resolution: per-layout override
-            // wins, otherwise fall back to global frontend settings, then hardcoded
-            // defaults. Reading layout-only would miss user-customized global
-            // gridGap/gridRowHeight and produce a wrong (too small) gridPos.h.
-            const { layouts } = useDashboardStore.getState();
-            const { frontend } = useConfigStore.getState();
-            const layout = layouts.find((l) =>
-                l.sections.some((sec) => sec.tabs.some((t) => (t.widgets ?? []).some((w) => w.id === latest.id))),
-            );
-            const cellSize = layout?.settings?.gridRowHeight ?? frontend.gridRowHeight ?? 20;
-            const margin = layout?.settings?.gridGap ?? frontend.gridGap ?? 10;
-            // The outer .aura-widget wrapper adds vertical padding (widgetPadding)
-            // and a border that sit OUTSIDE contentRef.scrollHeight.
-            const widgetEl = el.closest('.aura-widget') as HTMLElement | null;
-            let parentOverhead = 0;
-            if (widgetEl) {
-                const cs = getComputedStyle(widgetEl);
-                parentOverhead =
-                    parseFloat(cs.paddingTop || '0') +
-                    parseFloat(cs.paddingBottom || '0') +
-                    parseFloat(cs.borderTopWidth || '0') +
-                    parseFloat(cs.borderBottomWidth || '0');
-            }
-            const naturalH = el.scrollHeight + parentOverhead;
-            const newH = Math.max(1, Math.ceil((naturalH + margin) / (cellSize + margin)));
-            if (newH !== latest.gridPos.h) {
-                onConfigChangeRef.current({ ...latest, gridPos: { ...latest.gridPos, h: newH } });
-            }
-        };
-        update();
-        const ro = new ResizeObserver(update);
-        ro.observe(el);
-        return () => ro.disconnect();
-    }, [
-        autoHeight,
-        displayedRows.length,
-        columns.length,
-        showHeader,
-        showSearch,
-        fontSize,
-        config.id,
-        config.gridPos.h,
-    ]);
-
     const fs = fontSize;
     // Vertical cell padding follows the font size. Together with the `normal` line
     // height on the table a row now reserves about 1.85 × fontSize instead of 2.3 ×
@@ -513,7 +457,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     }
 
     return (
-        <div ref={contentRef} className={`aura-widget-row flex flex-col gap-1 ${autoHeight ? '' : 'h-full'}`}>
+        <div ref={rootRef} className={`aura-widget-row flex flex-col gap-1 ${autoHeight ? '' : 'h-full'}`}>
             {/* Title */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (

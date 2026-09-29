@@ -36,7 +36,9 @@ export const KEY_DESCRIPTIONS = {
     valueFactor: 'Rohwert wird mit diesem Faktor multipliziert, bevor er angezeigt wird.',
     valueOffset: 'Dieser Wert wird nach dem Faktor addiert.',
     colorThresholds: 'Schwellenwerte, die den Wert je nach Höhe einfärben.',
-    autoHeight: 'Widget in der gestapelten Mobilansicht an seinen Inhalt anpassen.',
+    autoHeight:
+        'Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird ' +
+        'dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe.',
     confirmAction: 'Vor dem Schalten eine Rückfrage anzeigen.',
     confirmText: 'Text der Rückfrage. Leer = Standardtext.',
     batteryDp: 'Datenpunkt für den Batteriestatus (Badge in der Ecke).',
@@ -1055,11 +1057,19 @@ export const WIDGET_OPTION_NOTES = {
     },
 };
 
+// Read through hooks/useContentAutoHeight → utils/autoHeight, not off the widget's
+// own options binding. Offered for utils/autoHeight AUTO_HEIGHT_TYPES only.
+const AUTO_HEIGHT_OPTION = { autoHeight: { type: 'boolean', default: false } };
+
 /**
  * Keys the readers cannot see. Group and panels keep their children in a
  * separate store, so the component never reads them off `options`.
  */
 export const EXTRA_OPTIONS = {
+    list: { ...AUTO_HEIGHT_OPTION },
+    autolist: { ...AUTO_HEIGHT_OPTION },
+    jsontable: { ...AUTO_HEIGHT_OPTION },
+    statusoverview: { ...AUTO_HEIGHT_OPTION },
     iframe: {
         // Read in hooks/useIframeColorScheme, not through the widget's own
         // options binding.
@@ -1075,6 +1085,7 @@ export const EXTRA_OPTIONS = {
         },
     },
     calendar: {
+        ...AUTO_HEIGHT_OPTION,
         // Read inside getMultiDayMode(options), i.e. through a parameter rather
         // than the component's own options binding.
         multiDayDisplay: {

@@ -22,7 +22,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `autoHeight` | `false` | Widget-Höhe folgt der Zeilenanzahl |
+| `autoHeight` | `false` | Widget-Höhe folgt der Zeilenanzahl — unter **Darstellung**, siehe [Höhe an Inhalt anpassen](../einstellungen/editor#hohe-an-inhalt-anpassen) |
 | `showSearch` | `false` | Suchfeld über der Tabelle |
 | `showHeader` | `true` | Kopfzeile anzeigen |
 | `striped` | `true` | Zebra-Streifen |

@@ -13,7 +13,7 @@ import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresho
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
-import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
@@ -760,9 +760,10 @@ function EntryValue({
 
 export function ListWidget({ config, editMode }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as StaticListOptions, [config.options]);
-    // Inside an auto-height popup-view: render the full list without an inner scrollbar
-    // so the popup grid (and dialog) can grow to fit every row. Off elsewhere.
-    const autoHeight = usePopupAutoHeight();
+    // Darstellung → "Höhe automatisch an Inhalt anpassen", or an auto-height popup-view:
+    // render the full list without an inner scrollbar. measureRef publishes the height
+    // so the Dashboard sizes the grid item to it (utils/autoHeight).
+    const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
     // Two views on the same array: `rows` is what gets rendered (separators included),
     // `entries` is the datapoints only. Everything value-related — subscriptions, filters,
     // sorting, statistics, counts, group actions — reads `entries`, so a separator can
@@ -1266,7 +1267,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // ── KACHELN (card) ─────────────────────────────────────────────────────────
     if (layout === 'card') {
         return (
-            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
+            <div ref={measureRef} className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {rowPopup.node}
@@ -1401,7 +1402,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
     if (layout === 'compact') {
         return (
-            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
+            <div ref={measureRef} className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {rowPopup.node}
@@ -1536,7 +1537,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
     if (layout === 'minimal') {
         return (
-            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
+            <div ref={measureRef} className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {rowPopup.node}
@@ -1783,7 +1784,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
 
     // ── STANDARD (default) — full-width rows ───────────────────────────────────
     return (
-        <div className={`relative flex flex-col ${rootHCls}`}>
+        <div ref={measureRef} className={`relative flex flex-col ${rootHCls}`}>
             {header}
             {empty}
             {rowPopup.node}

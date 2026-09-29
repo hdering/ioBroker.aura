@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     ShieldCheck,
     TriangleAlert,
@@ -15,7 +15,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import { useConfigStore } from '../../store/configStore';
-import { useAutoHeightStore } from '../../store/autoHeightStore';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import {
     loadDeviceModelIndex,
     loadBatteryLibrary,
@@ -319,41 +319,16 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     const contentAlign = opts.contentAlign ?? 'left';
     const alignFlex = contentAlign === 'center' ? 'center' : contentAlign === 'right' ? 'flex-end' : 'flex-start';
     const isAligned = contentAlign !== 'left';
-    // Auto-height: size to content (used in the stacked/mobile view). Drops the
-    // fixed-box fill (h-full/flex-1/overflow) so the widget grows with its content.
-    const autoHeight = opts.autoHeight === true;
+    // Auto-height (Darstellung → "Höhe automatisch an Inhalt anpassen"): drops the
+    // fixed-box fill (h-full/flex-1/overflow) so the widget grows with its content,
+    // and measureRef publishes that height so the Dashboard sizes the grid item.
+    const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
     const rootCls = autoHeight ? 'w-full flex flex-col' : 'h-full w-full flex flex-col min-h-0';
     // overflow-x-hidden is required, not cosmetic: with only overflow-y set, CSS
     // promotes the other axis from `visible` to `auto`, so the rows' -mx-1 bleed
     // (and a wide card minmax) produced a stray horizontal scrollbar.
     const scrollCls = autoHeight ? 'overflow-visible' : 'flex-1 min-h-0 overflow-y-auto overflow-x-hidden';
 
-    // Auto-height: measure the rendered content and publish it so the Dashboard can
-    // size the grid item to fit (desktop grid) instead of using the stored height.
-    const widgetId = config.id;
-    const roRef = useRef<ResizeObserver | null>(null);
-    const measureRef = useCallback(
-        (el: HTMLDivElement | null) => {
-            if (roRef.current) {
-                roRef.current.disconnect();
-                roRef.current = null;
-            }
-            if (!el || !autoHeight) {
-                useAutoHeightStore.getState().clear(widgetId);
-                return;
-            }
-            const report = () => useAutoHeightStore.getState().setHeight(widgetId, el.offsetHeight);
-            report();
-            const ro = new ResizeObserver(report);
-            ro.observe(el);
-            roRef.current = ro;
-        },
-        [autoHeight, widgetId],
-    );
-    // No unmount effect on top of this: React calls the ref with null when the widget
-    // goes away (disconnect + clear above), and a second clear from an effect cleanup
-    // would wipe a height that the re-attached ref had just reported (StrictMode
-    // double-invoke), which left the grid item at its stored height in dev.
     // ── Attention chip (the one "loud" element) ────────────────────────────────
     // While loading it stays neutral: a green "OK" would claim a verdict the widget
     // does not have yet. Already known hints are counted, the count can still grow.

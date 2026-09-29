@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- "Fit height to content" is now one option in the Appearance block and also available for lists, dynamic lists and the JSON table; resizing such a widget in the editor shows a hint why its height is fixed

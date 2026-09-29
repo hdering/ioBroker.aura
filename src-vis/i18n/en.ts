@@ -1177,6 +1177,10 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.autoShrink': 'Shrink when widgets are hidden',
     'wf.edit.group.autoShrinkHint':
         'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',
+    'wf.edit.autoHeight': 'Fit height to content',
+    'dash.autoHeightLocked': 'Height follows the content – turn it off under Darstellung.',
+    'wf.edit.autoHeightHint':
+        'The widget grows as tall as its content instead of filling a fixed height. The set height is then overridden and can no longer be changed by hand.',
     'wf.edit.defaultCollapsed': 'Collapsed by default',
     'wf.edit.defaultCollapsedHint':
         'The widget initially shows only icon and title; a tap expands the content and the widgets below move up. While expanded, the fold button sits in the chosen corner.',

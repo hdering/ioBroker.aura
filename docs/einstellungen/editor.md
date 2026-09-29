@@ -88,6 +88,18 @@ Jedes Icon-Feld öffnet dieselbe Auswahl. Die Titelleiste verschiebt den Dialog.
 
 Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfahren der Kachel. `Esc` oder das Kreuz schließt. Nicht bei `iFrame`, `Kamera` und `eCharts` — die haben ein eigenes Vollbild.
 
+## Höhe an Inhalt anpassen
+
+`Bearbeiten` → **Darstellung** → `Höhe automatisch an Inhalt anpassen`. Das Widget wird so hoch wie seine Zeilen bzw. Einträge; die eingestellte Höhe gilt dann nicht, die Breite bleibt frei.
+
+| Widget | |
+| --- | --- |
+| Liste, Dynamische Liste, JSON-Tabelle, Statusübersicht | ✓ |
+| Kalender | ✓ (nicht Layout `Custom`) |
+| alle anderen | — (Inhalt skaliert mit der Kachel) |
+
+Nicht für Widgets innerhalb einer Gruppe. Im Editor zeigt der Ziehgriff beim Vergrößern einen Hinweis.
+
 ## Einklappen
 
 `Bearbeiten` → **Darstellung** → `Standardmäßig eingeklappt`. Das Widget startet als einzelne Zeile mit Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach.

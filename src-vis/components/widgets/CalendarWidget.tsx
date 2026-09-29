@@ -16,8 +16,7 @@ import {
     type SplitPart,
 } from '../../utils/calendarEvents';
 import { CustomGridView } from './CustomGridView';
-import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
-import { useAutoHeightStore } from '../../store/autoHeightStore';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import { NS } from '../../utils/namespace';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
@@ -770,7 +769,6 @@ function AgendaCalName({
 
 export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const t = useT();
-    const popupAutoHeight = usePopupAutoHeight();
     const options = config.options ?? {};
     const refreshInterval = (options.refreshInterval as number) ?? 30;
     const maxEvents = (options.maxEvents as number) ?? 5;
@@ -974,12 +972,10 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     /** Which visible rows open a new calendar week — the ones that get the label. */
     const weekFirst = firstOfWeekFlags(visibleEvents.map((ev) => ev.start));
 
-    // Widget option "Höhe automatisch an Inhalt anpassen" (mirrors Statusübersicht):
-    // the widget grows with its content and the Dashboard sizes the grid item to the
-    // measured height. The custom layout is excluded — CustomGridView is height:100%
-    // and would collapse to 0 without a definite box.
-    const contentAutoHeight = options.autoHeight === true && layout !== 'custom';
-    const autoHeight = popupAutoHeight || contentAutoHeight;
+    // Darstellung → "Höhe automatisch an Inhalt anpassen" (or an auto-height popup):
+    // the widget grows with its content and measureRef publishes the height so the
+    // Dashboard sizes the grid item. Not for the custom layout (utils/autoHeight).
+    const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
 
     // Event rows bleed past the content column so the row background and the
     // "important" accent bar reach into the widget's padding gutter — capped at
@@ -996,34 +992,6 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const rootHCls = autoHeight ? '' : 'h-full';
     // Empty/loading placeholders fill the box; with auto height they'd be razor-thin.
     const emptyCls = autoHeight ? 'py-2' : 'flex-1';
-
-    // Publish the rendered content height so the Dashboard can size the grid item.
-    // Only for the widget option — inside an auto-height popup the dialog measures the
-    // embedded copy itself, and reporting there would resize the dashboard item too.
-    const measureOn = contentAutoHeight && !popupAutoHeight;
-    const widgetId = config.id;
-    const roRef = useRef<ResizeObserver | null>(null);
-    const measureRef = useCallback(
-        (el: HTMLDivElement | null) => {
-            if (roRef.current) {
-                roRef.current.disconnect();
-                roRef.current = null;
-            }
-            if (!el || !measureOn) {
-                useAutoHeightStore.getState().clear(widgetId);
-                return;
-            }
-            const report = () => useAutoHeightStore.getState().setHeight(widgetId, el.offsetHeight);
-            report();
-            const ro = new ResizeObserver(report);
-            ro.observe(el);
-            roRef.current = ro;
-        },
-        [measureOn, widgetId],
-    );
-    // No unmount effect on top of this: React calls the ref with null when the widget
-    // goes away (disconnect + clear above), and a second clear from an effect cleanup
-    // would wipe a height that the re-attached ref had just reported (StrictMode).
 
     // ── no sources configured ────────────────────────────────────────────────
     if (sources.length === 0) {

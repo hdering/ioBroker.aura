@@ -22,7 +22,7 @@ import {
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
-import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
@@ -1164,9 +1164,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         () => (opts.entries ?? []).filter((e) => !!e?.id).map((e) => applyListDisplay(e, opts.entryDisplay)),
         [opts.entries, opts.entryDisplay],
     );
-    // Inside an auto-height popup-view: render the full list without an inner scrollbar
-    // so the popup grid (and dialog) can grow to fit every row. Off elsewhere.
-    const autoHeight = usePopupAutoHeight();
+    // Darstellung → "Höhe automatisch an Inhalt anpassen", or an auto-height popup-view:
+    // render the full list without an inner scrollbar. measureRef publishes the height
+    // so the Dashboard sizes the grid item to it (utils/autoHeight).
+    const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
     const t = useT();
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (opts.decimals as number) ?? defaultDecimals;
@@ -1833,7 +1834,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // ── KACHELN (card) ─────────────────────────────────────────────────────────
     if (layout === 'card') {
         return (
-            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
+            <div ref={measureRef} className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {rowPopup.node}
@@ -1987,7 +1988,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
     if (layout === 'compact') {
         return (
-            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
+            <div ref={measureRef} className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {rowPopup.node}
@@ -2133,7 +2134,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
     if (layout === 'minimal') {
         return (
-            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
+            <div ref={measureRef} className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {rowPopup.node}
@@ -2383,7 +2384,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     // ── STANDARD (default) — full-width rows ───────────────────────────────────
     return (
-        <div className={`relative flex flex-col ${rootHCls}`}>
+        <div ref={measureRef} className={`relative flex flex-col ${rootHCls}`}>
             {header}
             {empty}
             {rowPopup.node}

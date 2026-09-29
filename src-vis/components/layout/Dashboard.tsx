@@ -20,6 +20,7 @@ import { useIframeStore, type IframeFullscreenData } from '../../store/iframeSto
 import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import { WidgetFullscreenOverlay } from './WidgetFullscreenOverlay';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
+import { usesContentAutoHeight } from '../../utils/autoHeight';
 import { WidgetFrame } from './WidgetFrame';
 import { TouchScrollbar } from './TouchScrollbar';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
@@ -53,18 +54,6 @@ const DEFAULT_MARGIN = 10;
 const EMBED_TYPES = new Set(['iframe', 'html']);
 /** Floor for that shrink, so a wide-and-flat frame doesn't collapse to a few pixels. */
 const EMBED_MOBILE_MIN_H = 120;
-
-/**
- * Widgets with the "Höhe automatisch an Inhalt anpassen" option: they publish their
- * rendered content height to autoHeightStore and the grid item is sized to it instead
- * of the stored gridPos.h. The calendar's custom layout is excluded — CustomGridView is
- * height:100% and needs a definite box.
- */
-function usesContentAutoHeight(w?: WidgetConfig): boolean {
-    if (!w || w.options?.autoHeight !== true) return false;
-    if (w.type === 'statusoverview') return true;
-    return w.type === 'calendar' && (w.layout ?? 'default') !== 'custom';
-}
 
 interface DashboardProps {
     readonly?: boolean;
@@ -473,6 +462,17 @@ export function Dashboard({
     // layout arranged on desktop. The desktop grid can only be arranged sensibly
     // with a mouse anyway, so we disable drag/resize (and the writeback) whenever
     // the primary pointer is coarse. Config edits and mobile ordering still work.
+    // Widget whose resize handle was grabbed although its height follows the content
+    // (autoHeight): RGL pins minH = maxH, so the drag only changes the width. A small
+    // hint at the handle says why (AutoHeightLockHint).
+    const [heightLockHintId, setHeightLockHintId] = useState<string | null>(null);
+    const heightLockTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(
+        () => () => {
+            if (heightLockTimer.current) clearTimeout(heightLockTimer.current);
+        },
+        [],
+    );
     const [coarsePointer, setCoarsePointer] = useState(
         () =>
             typeof window !== 'undefined' &&
@@ -1059,7 +1059,7 @@ export function Dashboard({
                                                 h = Math.max(1, headerRows);
                                                 minH = Math.min(minH, h);
                                             }
-                                            // Content auto-height (Statusübersicht, Kalender): size the item to
+                                            // Content auto-height (utils/autoHeight AUTO_HEIGHT_TYPES): size the item to
                                             // the widget's measured content instead of the stored height. The widget
                                             // reports its content px; add the frame chrome (padding top+bottom + border).
                                             if (usesContentAutoHeight(w)) {
@@ -1224,7 +1224,23 @@ export function Dashboard({
                                                         if (updated.some((uw, idx) => uw !== tabWidgets[idx]))
                                                             updateLayouts(updated);
                                                     }}
+                                                    onResizeStart={(_nl, oldItem) => {
+                                                        if (!oldItem) return;
+                                                        const rw = tabGridWidgets.find((x) => x.id === oldItem.i);
+                                                        if (!usesContentAutoHeight(rw)) return;
+                                                        if (heightLockTimer.current)
+                                                            clearTimeout(heightLockTimer.current);
+                                                        setHeightLockHintId(oldItem.i);
+                                                    }}
                                                     onResizeStop={(nl, oldItem, newItem) => {
+                                                        if (oldItem && heightLockHintId === oldItem.i) {
+                                                            if (heightLockTimer.current)
+                                                                clearTimeout(heightLockTimer.current);
+                                                            heightLockTimer.current = setTimeout(
+                                                                () => setHeightLockHintId(null),
+                                                                2500,
+                                                            );
+                                                        }
                                                         if (!isActive || readonly || coarsePointer) return;
                                                         if (!itemMoved(oldItem, newItem)) return;
                                                         const updated = buildTabUpdated(nl);
@@ -1247,6 +1263,7 @@ export function Dashboard({
                                                                 onRemove={removeWidget}
                                                                 onConfigChange={handleConfigChange}
                                                             />
+                                                            {heightLockHintId === w.id && <AutoHeightLockHint />}
                                                         </div>
                                                     ))}
                                                 </ReactGridLayout>
@@ -1431,6 +1448,25 @@ function GuidelinesOverlay({
                 </div>
             )}
         </>
+    );
+}
+
+/** Shown at the resize handle while a widget with "Höhe automatisch an Inhalt
+ *  anpassen" is resized: only the width follows the drag, the height the content. */
+function AutoHeightLockHint() {
+    const t = useT();
+    return (
+        <div
+            className="absolute right-1 bottom-5 z-30 pointer-events-none max-w-[220px] rounded-md px-2 py-1 text-[10px] leading-snug shadow-lg"
+            style={{
+                background: 'var(--app-surface)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--app-border)',
+            }}
+            data-auto-height-lock-hint=""
+        >
+            {t('dash.autoHeightLocked')}
+        </div>
     );
 }
 

@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.71.0",
+    "auraVersion": "0.71.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6444,6 +6444,11 @@
           "default": "var(--accent-green)",
           "color": true
         },
+        "autoHeight": {
+          "type": "boolean",
+          "default": false,
+          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
+        },
         "backendValueFilter": {
           "type": "string",
           "description": "Backend display filter — independent from frontend valueFilter. Default 'all'.",
@@ -7140,7 +7145,7 @@
         "autoHeight": {
           "type": "boolean",
           "default": false,
-          "description": "Widget in der gestapelten Mobilansicht an seinen Inhalt anpassen."
+          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
         },
         "calFontScale": {
           "type": "number",
@@ -10593,7 +10598,7 @@
         "autoHeight": {
           "type": "boolean",
           "default": false,
-          "description": "Widget in der gestapelten Mobilansicht an seinen Inhalt anpassen."
+          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
         },
         "columns": {
           "type": "array",
@@ -11062,6 +11067,11 @@
           "description": "Global text color when on. Per-DP activeColor overrides. Default: green.",
           "default": "var(--accent-green)",
           "color": true
+        },
+        "autoHeight": {
+          "type": "boolean",
+          "default": false,
+          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe."
         },
         "backendValueFilter": {
           "type": "string",
@@ -12967,7 +12977,8 @@
         },
         "autoHeight": {
           "type": "boolean",
-          "description": "Widget in der gestapelten Mobilansicht an seinen Inhalt anpassen."
+          "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe.",
+          "default": false
         },
         "batteryThreshold": {
           "type": "number",

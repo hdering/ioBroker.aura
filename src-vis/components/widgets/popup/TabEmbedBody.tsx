@@ -9,20 +9,13 @@ import { getWidgetMap } from '../widgetMap';
 import { useDualResolved } from '../../../hooks/useDualResolved';
 import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
+import { ContentAutoHeightBlockedContext } from '../../../hooks/useContentAutoHeight';
+import { supportsAutoHeight } from '../../../utils/autoHeight';
 import { buildPopupSubMap, popupMainDp, resolvePopupWidget } from '../../../utils/popupPlaceholders';
 import { useResolvedTitle } from '../DynamicTitle';
 import type { WidgetConfig, WidgetCondition } from '../../../types';
 
 const DEFAULT_MARGIN = 10;
-
-/**
- * Widget types that carry a meaningful "natural" content height (lists grow with their
- * rows). When the popup dialog height is "auto", these widgets render their full content
- * and their grid row-count is derived from the measured height — so the grid, and thus
- * the auto-sized dialog, grows to fit. Fill-type widgets (charts, gauges, maps …) have no
- * intrinsic height and keep their designed grid height.
- */
-const CONTENT_HEIGHT_TYPES = new Set(['list', 'autolist']);
 
 // Stable empty reference so useConditionStyle doesn't re-subscribe every render.
 const NO_CONDITIONS: WidgetCondition[] = [];
@@ -350,8 +343,10 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
         return !(c?.hidden && c?.reflow);
     });
 
-    // Whether a given widget grows to its measured content height (auto dialog + content type).
-    const isAutoCell = (w: WidgetConfig) => autoPopupHeight && CONTENT_HEIGHT_TYPES.has(w.type);
+    // Whether a given widget grows to its measured content height (auto dialog + a type
+    // with a natural content height, utils/autoHeight). Fill-type widgets (charts,
+    // gauges, maps …) have no intrinsic height and keep their designed grid height.
+    const isAutoCell = (w: WidgetConfig) => autoPopupHeight && supportsAutoHeight(w.type, w.layout);
 
     // react-grid-layout compacts only vertically, so a widget placed at x>0 in the editor
     // keeps its empty leading columns at runtime and hugs the right edge. Two-step fix:
@@ -416,18 +411,22 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
                             <div key={w.id}>
                                 {/* Provider tells the widget (e.g. list) to render its full
                                     content without an inner scrollbar in auto-height mode. */}
+                                {/* The widget's own auto-height option is off here: the popup
+                                    sizes its cells itself (the dashboard store would be wrong). */}
                                 <PopupAutoHeightContext.Provider value={cellAuto}>
-                                    <PopupWidgetCell
-                                        w={w}
-                                        cond={conds[w.id] ?? EMPTY_COND}
-                                        widgetPadding={widgetPadding}
-                                        autoHeight={cellAuto}
-                                        onMeasure={onMeasure}
-                                        onConfigChange={(next) => {
-                                            const patch = mergedOptionsPatch(orig, w, next);
-                                            if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
-                                        }}
-                                    />
+                                    <ContentAutoHeightBlockedContext.Provider value={true}>
+                                        <PopupWidgetCell
+                                            w={w}
+                                            cond={conds[w.id] ?? EMPTY_COND}
+                                            widgetPadding={widgetPadding}
+                                            autoHeight={cellAuto}
+                                            onMeasure={onMeasure}
+                                            onConfigChange={(next) => {
+                                                const patch = mergedOptionsPatch(orig, w, next);
+                                                if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
+                                            }}
+                                        />
+                                    </ContentAutoHeightBlockedContext.Provider>
                                 </PopupAutoHeightContext.Provider>
                             </div>
                         );
