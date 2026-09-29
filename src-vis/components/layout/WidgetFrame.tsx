@@ -10203,6 +10203,34 @@ function WidgetFrameInner({
                                             </p>
                                         )}
 
+                                        {hLayout === 'minimal' && (
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                                    {t('wf.edit.header.uppercase')}
+                                                </span>
+                                                <button
+                                                    onClick={() =>
+                                                        set({
+                                                            titleUppercase:
+                                                                o.titleUppercase === true ? undefined : true,
+                                                        })
+                                                    }
+                                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                    style={{
+                                                        background:
+                                                            o.titleUppercase === true
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: o.titleUppercase === true ? '14px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+                                        )}
+
                                         <div className="flex items-center gap-2">
                                             <div className="flex-1 min-w-0">
                                                 <ColorField

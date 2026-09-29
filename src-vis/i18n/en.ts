@@ -1243,6 +1243,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.header.rule': 'Rule',
     'wf.edit.header.ruleDivider': 'In the minimal style the rule is the divider right of the title.',
     'wf.edit.header.ruleAlignHint': 'The accent bar is only drawn with a left-aligned title.',
+    'wf.edit.header.uppercase': 'Title in capitals',
     'wf.edit.header.color': 'Color',
     'wf.edit.header.titleText': 'Title',
     'wf.edit.header.subtitleText': 'Subtitle',

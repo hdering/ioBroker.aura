@@ -27,6 +27,8 @@ export function HeaderWidget({ config }: Props) {
     // The rule (accent bar in default/compact/framed, divider in minimal) is optional
     // and takes its own colour; unset falls back to the theme variables it always used.
     const showAccent = opts.showAccent !== false;
+    // Minimal-Stil: Titel so, wie er eingegeben wurde; Versalien nur auf Wunsch (#723).
+    const titleUppercase = opts.titleUppercase === true;
     const accentColor = (opts.accentColor as string) || undefined;
 
     // Own text colour / size per line. The size is a px value scaled by the global
@@ -107,7 +109,7 @@ export function HeaderWidget({ config }: Props) {
                     )}
                     {showTitle && (
                         <span
-                            className="aura-widget-title text-xs font-semibold tracking-widest uppercase shrink-0"
+                            className={`aura-widget-title text-xs font-semibold shrink-0 ${titleUppercase ? 'tracking-widest uppercase' : 'tracking-wide'}`}
                             style={{ color: titleColor ?? 'var(--text-secondary)', ...titleSizeStyle }}
                         >
                             {config.title}

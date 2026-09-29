@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.71.1",
+    "auraVersion": "0.72.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -10038,6 +10038,11 @@
         "titleSize": {
           "type": "number",
           "description": "Schriftgröße des Titels in px. Leer = Größe des Stils (default/framed 20, compact 16, minimal 12)."
+        },
+        "titleUppercase": {
+          "type": "boolean",
+          "default": false,
+          "description": "Nur Stil minimal: Titel in Versalien mit weiter Laufweite. Aus = Titel so, wie er eingegeben wurde."
         }
       }
     },

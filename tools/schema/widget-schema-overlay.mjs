@@ -1118,6 +1118,12 @@ export const EXTRA_OPTIONS = {
                 'rechts vom Titel (minimal). Im Stil default zeichnet ihn nur ein linksbündiger Titel.',
         },
         accentColor: { description: 'Farbe des Strichs. Leer = --header-accent aus dem Theme.' },
+        titleUppercase: {
+            type: 'boolean',
+            default: false,
+            description:
+                'Nur Stil minimal: Titel in Versalien mit weiter Laufweite. Aus = Titel so, wie er eingegeben wurde.',
+        },
         titleColor: { description: 'Farbe von Titel und Icon. Leer = --header-text aus dem Theme.' },
         subtitleColor: { description: 'Farbe des Untertitels. Leer = --text-secondary aus dem Theme.' },
         titleSize: {

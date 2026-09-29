@@ -1254,6 +1254,7 @@ export const de = {
     'wf.edit.header.rule': 'Strich',
     'wf.edit.header.ruleDivider': 'Im Stil Minimal ist der Strich die Trennlinie rechts vom Titel.',
     'wf.edit.header.ruleAlignHint': 'Der Akzentbalken erscheint nur bei linksbündigem Titel.',
+    'wf.edit.header.uppercase': 'Titel in Großbuchstaben',
     'wf.edit.header.color': 'Farbe',
     'wf.edit.header.titleText': 'Titel',
     'wf.edit.header.subtitleText': 'Untertitel',
