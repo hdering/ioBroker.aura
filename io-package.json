@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.72.2",
+    "version": "0.72.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.72.3": {
+        "en": "🌟 New feature: Section menu - elements in the sidebar / overlay menu can be aligned left, centered or right",
+        "de": "🌟 Neue Funktion: Abschnittsmenü – Elemente in der Seitenleiste/Overlay-Menü können links, zentriert oder rechts ausgerichtet werden",
+        "ru": "🌟 Новая функция: меню разделов — элементы в боковой панели/меню наложения можно выравнивать по левому краю, по центру или по правому краю.",
+        "pt": "🌟 Novo recurso: Menu de seção - os elementos da barra lateral/menu de sobreposição podem ser alinhados à esquerda, centralizado ou à direita",
+        "nl": "🌟 Nieuwe functie: Sectiemenu - elementen in de zijbalk / overlay-menu kunnen links, gecentreerd of rechts worden uitgelijnd",
+        "fr": "🌟 Nouvelle fonctionnalité : menu de section - les éléments de la barre latérale/du menu de superposition peuvent être alignés à gauche, au centre ou à droite",
+        "it": "🌟 Nuova funzionalità: menu sezione: gli elementi nella barra laterale/menu in sovrapposizione possono essere allineati a sinistra, al centro o a destra",
+        "es": "🌟 Nueva función: menú de sección: los elementos de la barra lateral/menú superpuesto se pueden alinear hacia la izquierda, el centro o la derecha",
+        "pl": "🌟 Nowa funkcja: menu sekcji - elementy menu paska bocznego / nakładki można wyrównać do lewej, wyśrodkowanej lub prawej",
+        "uk": "🌟 Нова функція: меню розділів - елементи бічної панелі/меню накладання можна вирівняти за лівим, центрованим або правим краєм",
+        "zh-cn": "🌟 新功能：部分菜单 - 侧边栏/覆盖菜单中的元素可以左对齐、居中或右对齐"
+      },
       "0.72.2": {
         "en": "Room climate - humidity can be drawn in the history chart (own right axis, selectable colour), and the temperature series can be switched off (#724)\nRoom climate - settings regrouped per value (show switch, datapoint, icon and unit side by side) with one history section; the chart legend is now switchable (#724)",
         "de": "Raumklima - Luftfeuchtigkeit kann im Verlaufsdiagramm eingezeichnet werden (eigene rechte Achse, wählbare Farbe), und die Temperaturreihe kann abgeschaltet werden (#724)\nRaumklima – Einstellungen nach Wert neu gruppiert (Schalter, Datenpunkt, Symbol und Einheit nebeneinander anzeigen) mit einem Verlaufsabschnitt; Die Diagrammlegende ist jetzt umschaltbar (#724)",
@@ -184,19 +197,6 @@
         "pl": "Ikona akcji kliknięcia na widżetach jest teraz domyślnie wyłączona i należy ją włączyć dla każdego widżetu",
         "uk": "Значок дії клацання у віджетах тепер вимкнено за замовчуванням і його потрібно вмикати для кожного віджета",
         "zh-cn": "小部件上的单击操作图标现在默认处于关闭状态，必须为每个小部件打开"
-      },
-      "0.70.0": {
-        "en": "🌟 New feature: Widget fullscreen can fill the whole screen: the new \"Fill the screen\" option uses the browser's fullscreen mode, hiding the address bar and task bar (#711)\n🌟 New feature: Settings - new grid option \"Fill window width\": widgets stretch to the full screen width on any resolution, the arrangement stays; off by default (#413)",
-        "de": "🌟 Neue Funktion: Widget-Vollbild kann den gesamten Bildschirm ausfüllen: Die neue Option „Bildschirm ausfüllen“ verwendet den Vollbildmodus des Browsers und blendet die Adressleiste und die Taskleiste aus (#711)\n🌟 Neue Funktion: Einstellungen – neue Rasteroption „Fensterbreite ausfüllen“: Widgets werden bei jeder Auflösung auf die volle Bildschirmbreite gestreckt, die Anordnung bleibt erhalten; Standardmäßig deaktiviert (#413)",
-        "ru": "🌟 Новая функция: полноэкранный виджет может заполнять весь экран: новая опция «Заполнить экран» использует полноэкранный режим браузера, скрывая адресную строку и панель задач (#711).\n🌟 Новая функция: Настройки - новая опция сетки «Заполнить ширину окна»: виджеты растягиваются на всю ширину экрана при любом разрешении, расположение сохраняется; выключено по умолчанию (#413)",
-        "pt": "🌟 Novo recurso: Widget em tela cheia pode preencher a tela inteira: a nova opção \"Preencher a tela\" usa o modo de tela cheia do navegador, ocultando a barra de endereço e a barra de tarefas (#711)\n🌟 Novo recurso: Configurações - nova opção de grade \"Preencher largura da janela\": os widgets se estendem até a largura total da tela em qualquer resolução, a organização permanece; desativado por padrão (#413)",
-        "nl": "🌟 Nieuwe functie: Widget op volledig scherm kan het hele scherm vullen: de nieuwe optie \"Scherm vullen\" gebruikt de volledig schermmodus van de browser en verbergt de adresbalk en taakbalk (#711)\n🌟 Nieuwe functie: Instellingen - nieuwe rasteroptie \"Vensterbreedte vullen\": widgets strekken zich uit over de volledige schermbreedte bij elke resolutie, de indeling blijft; standaard uitgeschakeld (#413)",
-        "fr": "🌟 Nouvelle fonctionnalité : Le widget plein écran peut remplir tout l'écran : la nouvelle option \"Remplir l'écran\" utilise le mode plein écran du navigateur, masquant la barre d'adresse et la barre des tâches (#711)\n🌟 Nouvelle fonctionnalité : Paramètres - nouvelle option de grille « Remplir la largeur de la fenêtre » : les widgets s'étendent sur toute la largeur de l'écran quelle que soit la résolution, la disposition reste ; désactivé par défaut (#413)",
-        "it": "🌟 Nuova funzionalità: il widget a schermo intero può riempire l'intero schermo: la nuova opzione \"Riempi lo schermo\" utilizza la modalità a schermo intero del browser, nascondendo la barra degli indirizzi e la barra delle applicazioni (#711)\n🌟 Nuova funzionalità: Impostazioni - nuova opzione griglia \"Riempi larghezza finestra\": i widget si estendono fino alla larghezza dello schermo intero su qualsiasi risoluzione, la disposizione rimane; disattivato per impostazione predefinita (#413)",
-        "es": "🌟 Nueva característica: el widget de pantalla completa puede llenar toda la pantalla: la nueva opción \"Rellenar la pantalla\" utiliza el modo de pantalla completa del navegador, ocultando la barra de direcciones y la barra de tareas (#711)\n🌟 Nueva característica: Configuración - nueva opción de cuadrícula \"Rellenar ancho de ventana\": los widgets se extienden hasta el ancho completo de la pantalla en cualquier resolución, la disposición permanece; desactivado de forma predeterminada (#413)",
-        "pl": "🌟 Nowa funkcja: Pełny ekran widżetu może wypełnić cały ekran: nowa opcja „Wypełnij ekran” wykorzystuje tryb pełnoekranowy przeglądarki, ukrywając pasek adresu i pasek zadań (#711)\n🌟 Nowa funkcja: Ustawienia - nowa opcja siatki „Wypełnij szerokość okna”: widżety rozciągają się na pełną szerokość ekranu w dowolnej rozdzielczości, układ pozostaje niezmienny; domyślnie wyłączone (#413)",
-        "uk": "🌟 Нова функція: повноекранний віджет може заповнювати весь екран: нова опція «Заповнити екран» використовує повноекранний режим браузера, приховуючи адресний рядок і панель завдань (#711)\n🌟 Нова функція: Налаштування - нова опція сітки «Заповнити ширину вікна»: віджети розтягуються на всю ширину екрана в будь-якій роздільній здатності, розташування зберігається; вимкнено за замовчуванням (#413)",
-        "zh-cn": "🌟 新功能：Widget 全屏可以填满整个屏幕：新的“填满屏幕”选项使用浏览器的全屏模式，隐藏地址栏和任务栏(#711)\n🌟 New feature: Settings - new grid option \"Fill window width\": widgets stretch to the full screen width on any resolution, the arrangement stays; off by default (#413)"
       }
     }
   },
