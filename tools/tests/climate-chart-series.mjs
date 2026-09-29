@@ -156,7 +156,7 @@ async function show(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('p:text-is("Diagramm")', { timeout: 10000 });
+    await page.waitForSelector('p:text-is("Verlauf")', { timeout: 10000 });
     const toggle = (label) => page.locator(`div.flex:has(> span:text-is("${label}")) > button`).last();
     const opts = () =>
         page.evaluate((id) => {
@@ -165,16 +165,16 @@ async function show(options) {
         }, wid);
 
     eq('Editor: kein Schalter „Verlaufsdiagramm“', await page.locator('span:text-is("Verlaufsdiagramm")').count(), 0);
-    await toggle('Verlauf Luftfeuchtigkeit').click();
+    await toggle('Luftfeuchtigkeit').click();
     await page.waitForTimeout(250);
     eq('Editor: Feuchte an', await opts(), JSON.stringify([undefined, undefined, true]));
-    await toggle('Verlauf Temperatur').click();
+    await toggle('Temperatur').click();
     await page.waitForTimeout(250);
     eq('Editor: nur Feuchte', await opts(), JSON.stringify([undefined, false, true]));
-    await toggle('Verlauf Luftfeuchtigkeit').click();
+    await toggle('Luftfeuchtigkeit').click();
     await page.waitForTimeout(250);
     eq('Editor: beides aus = showChart false', await opts(), JSON.stringify([false, undefined, undefined]));
-    await toggle('Verlauf Temperatur').click();
+    await toggle('Temperatur').click();
     await page.waitForTimeout(250);
     eq('Editor: Temperatur wieder an = Vorgabe', await opts(), JSON.stringify([undefined, undefined, undefined]));
     await page.evaluate(() => window.__auraShot.setEditMode(false));
@@ -193,14 +193,28 @@ async function show(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('p:text-is("Diagramm")', { timeout: 10000 });
+    await page.waitForSelector('p:text-is("Verlauf")', { timeout: 10000 });
     const bg = (label) =>
         page
             .locator(`div.flex:has(> span:text-is("${label}")) > button`)
             .last()
             .evaluate((b) => b.style.background);
-    eq('Alt-Widget: Temperatur-Schalter aus', await bg('Verlauf Temperatur'), 'var(--app-border)');
-    eq('Alt-Widget: Feuchte-Schalter aus', await bg('Verlauf Luftfeuchtigkeit'), 'var(--app-border)');
+    eq('Alt-Widget: Temperatur-Schalter aus', await bg('Temperatur'), 'var(--app-border)');
+    eq('Alt-Widget: Feuchte-Schalter aus', await bg('Luftfeuchtigkeit'), 'var(--app-border)');
+
+    // 10. Die Überschrift jedes Werts trägt seinen „anzeigen“-Schalter (showX)
+    const header = (label) => page.locator(`div.flex:has(> p:text-is("${label}")) button`).first();
+    const shown = () =>
+        page.evaluate((id) => {
+            const o = window.__auraShot.widgetOptions(id) ?? {};
+            return JSON.stringify([o.showActualTemp, o.showTargetTemp, o.showHumidity, o.showPressure]);
+        }, wid);
+    for (const label of ['Temperatur', 'Soll-Temperatur', 'Luftfeuchtigkeit', 'Luftdruck']) {
+        await header(label).click();
+        await page.waitForTimeout(200);
+    }
+    eq('Überschriften: alle vier Werte aus', await shown(), JSON.stringify([false, false, false, false]));
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
 }
 
 eq('keine Seitenfehler', pageErrors.length, 0);
