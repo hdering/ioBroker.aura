@@ -217,6 +217,51 @@ async function show(options) {
     await page.evaluate(() => window.__auraShot.setEditMode(false));
 }
 
+// 11. Ausgeschaltete Werte blenden ihre Felder aus — die Feuchte nur, wenn sie niemand braucht
+async function openEditor(options) {
+    await show(options);
+    const wid = `climchart${seq}`;
+    await page.evaluate(() => window.__auraShot.setEditMode(true));
+    await page.waitForTimeout(300);
+    const card = page.locator(`.aura-widget-${wid}`).first();
+    await card.hover();
+    await card.locator('.aura-edit-chrome button').first().click();
+    await page
+        .locator('button:text-is("Bearbeiten")')
+        .click()
+        .catch(() => {});
+    await page.waitForSelector('p:text-is("Verlauf")', { timeout: 10000 });
+    return page.evaluate(() => ({
+        dpInputs: document.querySelectorAll('input[placeholder="Datenpunkt (optional)"]').length,
+        stellen: [...document.querySelectorAll('label')].filter((l) => l.textContent === 'Stellen').length,
+        icons: [...document.querySelectorAll('label')].filter((l) => l.textContent === 'Icon').length,
+        hint: /wird noch gebraucht für ([^.]*)/.exec(document.body.innerText)?.[1] ?? null,
+    }));
+}
+{
+    const all = await openEditor({});
+    eq('Alles an: drei Datenpunkt-Felder', all.dpInputs, 3);
+    eq('Alles an: zwei Icon-Felder', all.icons, 2);
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+
+    const off = await openEditor({ showHumidity: false, showPressure: false, showTargetTemp: false });
+    eq('Alles aus: kein Datenpunkt-Feld', off.dpInputs, 0);
+    eq('Alles aus: keine Luftdruck-Stellen', off.stellen, 0);
+    eq('Alles aus: keine Icon-Felder', off.icons, 0);
+    eq('Alles aus: kein Hinweis', off.hint, null);
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+
+    const used = await openEditor({
+        showHumidity: false,
+        humidityInChart: true,
+        metrics: [{ id: 'dewpoint', source: 'dewpoint', label: 'Taupunkt' }],
+    });
+    eq('Feuchte aus, aber gebraucht: Datenpunkt bleibt', used.dpInputs, 3);
+    eq('Feuchte aus, aber gebraucht: kein Icon', used.icons, 1);
+    eq('Feuchte aus, aber gebraucht: Hinweis nennt beide', used.hint, 'den Verlauf, den Taupunkt');
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+}
+
 eq('keine Seitenfehler', pageErrors.length, 0);
 await browser.close();
 

@@ -1572,6 +1572,22 @@ function ClimateConfig({
         set({ showChart: undefined, tempInChart: temp ? undefined : false, humidityInChart: hum || undefined });
     };
 
+    // Ausgeschaltete Werte blenden ihre Felder aus. Die Feuchte ist die Ausnahme: ihr
+    // Datenpunkt rechnet auch ohne Zeile weiter — dann bleibt er mit Hinweis stehen.
+    const showTarget = o.showTargetTemp !== false;
+    const showHum = o.showHumidity !== false;
+    const showPress = o.showPressure !== false;
+    const humidityUsers: string[] = [];
+    if (chartHumOn) humidityUsers.push('den Verlauf');
+    if (o.showComfort === true) humidityUsers.push('die Komfortzone');
+    for (const [src, label] of [
+        ['dewpoint', 'den Taupunkt'],
+        ['absoluteHumidity', 'die absolute Feuchte'],
+        ['comfort', 'die Behaglichkeit'],
+    ] as const) {
+        if (climateMetrics.some((m) => m.source === src && !m.hidden)) humidityUsers.push(label);
+    }
+
     const autoFill = async () => {
         if (!config.datapoint) return;
         const parts = config.datapoint.split('.');
@@ -1850,37 +1866,48 @@ function ClimateConfig({
             {/* ── Soll-Temperatur ── */}
             {divider()}
             {valueHeader('Soll-Temperatur', 'showTargetTemp', true)}
-            {dpField((o.targetDatapoint as string) ?? '', (v) => set({ targetDatapoint: v }), 'climate_targetDp')}
+            {showTarget &&
+                dpField((o.targetDatapoint as string) ?? '', (v) => set({ targetDatapoint: v }), 'climate_targetDp')}
 
             {/* ── Luftfeuchtigkeit ── */}
+            {/* Ausgeblendet bleibt der Datenpunkt stehen, solange ihn etwas anderes braucht. */}
             {divider()}
             {valueHeader('Luftfeuchtigkeit', 'showHumidity', true)}
-            {dpField((o.humidityDatapoint as string) ?? '', (v) => set({ humidityDatapoint: v }), 'climate_humidityDp')}
-            <div className="flex gap-2 mt-1.5">
-                <div className="flex-1 min-w-0">
-                    <label className={labelCls} style={labelStyle}>
-                        Icon
-                    </label>
-                    {iconButton(humidityIconName, HumidityIconPreview, 'Droplets', () =>
-                        setHumidityIconPickerOpen(true),
-                    )}
+            {(showHum || humidityUsers.length > 0) &&
+                dpField(
+                    (o.humidityDatapoint as string) ?? '',
+                    (v) => set({ humidityDatapoint: v }),
+                    'climate_humidityDp',
+                )}
+            {!showHum && humidityUsers.length > 0 && (
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    Zeile ausgeblendet — der Datenpunkt wird noch gebraucht für {humidityUsers.join(', ')}.
+                </p>
+            )}
+            {showHum && (
+                <div className="flex gap-2 mt-1.5">
+                    <div className="flex-1 min-w-0">
+                        <label className={labelCls} style={labelStyle}>
+                            Icon
+                        </label>
+                        {iconButton(humidityIconName, HumidityIconPreview, 'Droplets', () =>
+                            setHumidityIconPickerOpen(true),
+                        )}
+                    </div>
+                    <div className="w-20 shrink-0">
+                        <label className={labelCls} style={labelStyle}>
+                            Einheit
+                        </label>
+                        <input
+                            type="text"
+                            value={(o.humidityUnit as string) ?? '%'}
+                            onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
+                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                            style={inputStyle}
+                        />
+                    </div>
                 </div>
-                <div className="w-20 shrink-0">
-                    <label className={labelCls} style={labelStyle}>
-                        Einheit
-                    </label>
-                    <input
-                        type="text"
-                        value={(o.humidityUnit as string) ?? '%'}
-                        onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
-                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                        style={inputStyle}
-                    />
-                </div>
-            </div>
-            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                Taupunkt und absolute Feuchte rechnen damit, auch wenn die Zeile ausgeblendet ist.
-            </p>
+            )}
             {humidityIconPickerOpen && (
                 <IconPickerModal
                     current={humidityIconName ?? ''}
@@ -1895,44 +1922,54 @@ function ClimateConfig({
             {/* ── Luftdruck ── */}
             {divider()}
             {valueHeader('Luftdruck', 'showPressure', true)}
-            {dpField((o.pressureDatapoint as string) ?? '', (v) => set({ pressureDatapoint: v }), 'climate_pressureDp')}
-            <div className="flex gap-2 mt-1.5">
-                <div className="flex-1 min-w-0">
-                    <label className={labelCls} style={labelStyle}>
-                        Icon
-                    </label>
-                    {iconButton(pressureIconName, PressureIconPreview, 'Gauge', () => setPressureIconPickerOpen(true))}
-                </div>
-                <div className="w-20 shrink-0">
-                    <label className={labelCls} style={labelStyle}>
-                        Einheit
-                    </label>
-                    <input
-                        type="text"
-                        value={(o.pressureUnit as string) ?? 'hPa'}
-                        onChange={(e) => set({ pressureUnit: e.target.value || 'hPa' })}
-                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                        style={inputStyle}
-                    />
-                </div>
-                <div className="w-20 shrink-0">
-                    <label className={labelCls} style={labelStyle} title="Nachkommastellen">
-                        Stellen
-                    </label>
-                    <input
-                        type="number"
-                        min={0}
-                        max={4}
-                        value={(o.pressureDecimals as number | undefined) ?? 0}
-                        onChange={(e) => {
-                            const n = parseInt(e.target.value, 10);
-                            set({ pressureDecimals: Number.isFinite(n) ? Math.max(0, Math.min(4, n)) : 0 });
-                        }}
-                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                        style={inputStyle}
-                    />
-                </div>
-            </div>
+            {showPress && (
+                <>
+                    {dpField(
+                        (o.pressureDatapoint as string) ?? '',
+                        (v) => set({ pressureDatapoint: v }),
+                        'climate_pressureDp',
+                    )}
+                    <div className="flex gap-2 mt-1.5">
+                        <div className="flex-1 min-w-0">
+                            <label className={labelCls} style={labelStyle}>
+                                Icon
+                            </label>
+                            {iconButton(pressureIconName, PressureIconPreview, 'Gauge', () =>
+                                setPressureIconPickerOpen(true),
+                            )}
+                        </div>
+                        <div className="w-20 shrink-0">
+                            <label className={labelCls} style={labelStyle}>
+                                Einheit
+                            </label>
+                            <input
+                                type="text"
+                                value={(o.pressureUnit as string) ?? 'hPa'}
+                                onChange={(e) => set({ pressureUnit: e.target.value || 'hPa' })}
+                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div className="w-20 shrink-0">
+                            <label className={labelCls} style={labelStyle} title="Nachkommastellen">
+                                Stellen
+                            </label>
+                            <input
+                                type="number"
+                                min={0}
+                                max={4}
+                                value={(o.pressureDecimals as number | undefined) ?? 0}
+                                onChange={(e) => {
+                                    const n = parseInt(e.target.value, 10);
+                                    set({ pressureDecimals: Number.isFinite(n) ? Math.max(0, Math.min(4, n)) : 0 });
+                                }}
+                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                style={inputStyle}
+                            />
+                        </div>
+                    </div>
+                </>
+            )}
             {pressureIconPickerOpen && (
                 <IconPickerModal
                     current={pressureIconName ?? ''}
