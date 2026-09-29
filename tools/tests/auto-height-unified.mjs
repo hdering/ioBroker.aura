@@ -42,10 +42,13 @@ const TYPES = {
     list: { options: { entries: Array.from({ length: 6 }, (_, i) => ({ id: `test.list.${i}` })) } },
     jsontable: { datapoint: 'test.json', options: {} },
     statusoverview: { options: {} },
+    // Offline harness: both render their empty state — still a content height.
+    messages: { options: {} },
+    adapterlogs: { options: {} },
 };
 
 let scenario = 0;
-async function show(type, { rows, autoHeight }) {
+async function show(type, { rows, autoHeight, layout }) {
     scenario += 1;
     const id = `w-ah-${type}-${scenario}`;
     const base = TYPES[type];
@@ -57,6 +60,7 @@ async function show(type, { rows, autoHeight }) {
                 type,
                 title: type,
                 datapoint: base.datapoint ?? '',
+                ...(layout ? { layout } : {}),
                 gridPos: { x: 0, y: 0, w: 6, h: rows },
                 options: { ...base.options, autoHeight },
             },
@@ -79,6 +83,13 @@ for (const type of Object.keys(TYPES)) {
     const short = await show(type, { rows: 1, autoHeight: true });
     check(`${type}: on grows a too-short box`, short.item > boxPx(1), `${short.item}px`);
     check(`${type}: same content, same height`, Math.abs(short.item - tall.item) <= 1, `${short.item} vs ${tall.item}`);
+}
+
+// ── 2. a count tile has no content height: the option stays without effect ──
+TYPES.autolist = { options: {} };
+for (const type of ['messages', 'autolist']) {
+    const tile = await show(type, { rows: 6, autoHeight: true, layout: 'count' });
+    check(`${type} count tile keeps the stored box`, tile.item === boxPx(6), `${tile.item}px`);
 }
 
 // ── 3. toggle in the Darstellung block, only for content types ─────────────

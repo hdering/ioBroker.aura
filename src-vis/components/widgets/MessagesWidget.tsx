@@ -9,6 +9,7 @@ import { formatRelative } from '../../utils/parseTimeValue';
 import { useT } from '../../i18n';
 import type { AuraMessage, MessageSeverity, WidgetProps } from '../../types';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 
 const ALL_SEVERITIES: MessageSeverity[] = ['error', 'warning', 'success', 'info'];
 
@@ -118,6 +119,9 @@ export function MessagesWidget({ config }: WidgetProps) {
     // One subscription set for the whole list - has to run before the 'count'
     // layout returns, or the hook order would depend on the layout.
     const plain = useMessagePlainText(visible);
+    // Darstellung → "Höhe automatisch an Inhalt anpassen": the list grows with its
+    // messages, measureRef publishes the height (not for the 'count' tile).
+    const { fit, measureRef } = useContentAutoHeight(config);
 
     // ── Layout 'count': just the tally, for use as a small tile ───────────────
     if (config.layout === 'count') {
@@ -144,7 +148,11 @@ export function MessagesWidget({ config }: WidgetProps) {
     let lastDay = '';
 
     return (
-        <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden" data-aura-messages="list">
+        <div
+            ref={measureRef}
+            className={`aura-widget-row w-full flex flex-col gap-2 ${fit ? '' : 'h-full overflow-hidden'}`}
+            data-aura-messages="list"
+        >
             <HeaderGroup>
                 {(showTitle || showIcon) && (
                     <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0">
@@ -242,9 +250,9 @@ export function MessagesWidget({ config }: WidgetProps) {
                 </div>
             )}
 
-            <div className="aura-scroll flex-1 min-h-0 overflow-auto flex flex-col gap-1">
+            <div className={`flex flex-col gap-1 ${fit ? '' : 'aura-scroll flex-1 min-h-0 overflow-auto'}`}>
                 {visible.length === 0 && (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className={`flex items-center justify-center ${fit ? 'py-3' : 'flex-1'}`}>
                         <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                             {t('messages.empty')}
                         </span>

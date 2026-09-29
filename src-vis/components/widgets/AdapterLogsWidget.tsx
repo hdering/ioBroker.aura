@@ -4,6 +4,7 @@ import { getObjectViewDirect, sendToDirect, useIoBroker, type LogEntry } from '.
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -168,6 +169,10 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
         };
     }, [connected, bufferSize, instancesFilter]);
 
+    // Darstellung → "Höhe automatisch an Inhalt anpassen": the table grows with its
+    // lines (capped by visibleLimit), measureRef publishes the height.
+    const { fit, measureRef } = useContentAutoHeight(config);
+
     // Auto-scroll handling — follow whichever end shows the newest entry.
     const listRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
@@ -245,7 +250,10 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     };
 
     return (
-        <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden">
+        <div
+            ref={measureRef}
+            className={`aura-widget-row w-full flex flex-col gap-2 ${fit ? '' : 'h-full overflow-hidden'}`}
+        >
             {/* Header */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (
@@ -417,10 +425,10 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             </div>
 
             {/* Log table */}
-            <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto pr-1">
+            <div ref={listRef} className={fit ? 'pr-1' : 'flex-1 min-h-0 overflow-y-auto pr-1'}>
                 {visible.length === 0 ? (
                     <div
-                        className="flex items-center justify-center h-full text-[11px]"
+                        className={`flex items-center justify-center text-[11px] ${fit ? 'py-3' : 'h-full'}`}
                         style={{ color: 'var(--text-secondary)' }}
                     >
                         {!connected

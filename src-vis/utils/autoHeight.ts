@@ -12,12 +12,23 @@ export const AUTO_HEIGHT_TYPES: ReadonlySet<string> = new Set([
     'jsontable',
     'statusoverview',
     'calendar',
+    'messages',
+    'adapterlogs',
 ]);
 
-/** Whether the type/layout can size itself to its content. The custom layout is
- *  excluded — CustomGridView is height:100% and needs a definite box. */
+/** Types whose 'count' layout just centres one number in the box. The status
+ *  overview's tally is not among them — it measures and grows like its lists. */
+const COUNT_TILE_TYPES: ReadonlySet<string> = new Set(['messages', 'autolist']);
+
+/** Layouts without a content height: the custom layout (CustomGridView is height:100%
+ *  and needs a definite box) and the plain count tiles. */
+function fixedLayout(type: string, layout: string): boolean {
+    return layout === 'custom' || (layout === 'count' && COUNT_TILE_TYPES.has(type));
+}
+
+/** Whether the type/layout can size itself to its content. */
 export function supportsAutoHeight(type: string, layout?: string): boolean {
-    return AUTO_HEIGHT_TYPES.has(type) && (layout ?? 'default') !== 'custom';
+    return AUTO_HEIGHT_TYPES.has(type) && !fixedLayout(type, layout ?? 'default');
 }
 
 /** The widget publishes its content height to autoHeightStore and the Dashboard sizes

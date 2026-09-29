@@ -94,8 +94,11 @@ Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfah
 
 | Widget | |
 | --- | --- |
-| Liste, Dynamische Liste, JSON-Tabelle, Statusübersicht | ✓ |
+| Liste, JSON-Tabelle, Statusübersicht | ✓ |
+| Dynamische Liste | ✓ (nicht Layout `Anzahl`) |
 | Kalender | ✓ (nicht Layout `Custom`) |
+| Meldungen | ✓ (nicht Layout `Anzahl`) |
+| Adapter-Logs | ✓ — wächst bis `Sichtbare Zeilen` |
 | alle anderen | — (Inhalt skaliert mit der Kachel) |
 
 Nicht für Widgets innerhalb einer Gruppe. Im Editor zeigt der Ziehgriff beim Vergrößern einen Hinweis.

@@ -38,7 +38,8 @@ export const KEY_DESCRIPTIONS = {
     colorThresholds: 'Schwellenwerte, die den Wert je nach Höhe einfärben.',
     autoHeight:
         'Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird ' +
-        'dann ignoriert. Nicht im Layout custom und nicht als Kind einer Gruppe.',
+        'dann ignoriert. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count) und nicht als Kind einer Gruppe. Adapter-Logs: ' +
+        'Höhe wächst bis visibleLimit Zeilen.',
     confirmAction: 'Vor dem Schalten eine Rückfrage anzeigen.',
     confirmText: 'Text der Rückfrage. Leer = Standardtext.',
     batteryDp: 'Datenpunkt für den Batteriestatus (Badge in der Ecke).',
@@ -1070,6 +1071,8 @@ export const EXTRA_OPTIONS = {
     autolist: { ...AUTO_HEIGHT_OPTION },
     jsontable: { ...AUTO_HEIGHT_OPTION },
     statusoverview: { ...AUTO_HEIGHT_OPTION },
+    messages: { ...AUTO_HEIGHT_OPTION },
+    adapterlogs: { ...AUTO_HEIGHT_OPTION },
     iframe: {
         // Read in hooks/useIframeColorScheme, not through the widget's own
         // options binding.
