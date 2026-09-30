@@ -41,6 +41,7 @@ export function AdminLayouts() {
             ? { kind: 'layout' as const, layout: fallback }
             : null;
     const selectedId = selected ? (selected.kind === 'layout' ? selected.layout.id : selected.section.id) : null;
+    const selectedLayoutId = selected?.layout.id ?? null;
 
     const select = useCallback(
         (id: string) => {
@@ -57,9 +58,9 @@ export function AdminLayouts() {
     // of the first one.
     const lastRef = useRef<{ id: string; layoutId: string } | null>(null);
     useEffect(() => {
-        if (selected && (asLayout || asSection) && selectedId)
-            lastRef.current = { id: selectedId, layoutId: selected.layout.id };
-    }, [selected, asLayout, asSection, selectedId]);
+        if ((asLayout || asSection) && selectedId && selectedLayoutId)
+            lastRef.current = { id: selectedId, layoutId: selectedLayoutId };
+    }, [asLayout, asSection, selectedId, selectedLayoutId]);
 
     // Unknown / legacy ctx → normalise the URL to what is actually shown.
     useEffect(() => {

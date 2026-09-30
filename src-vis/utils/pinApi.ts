@@ -17,11 +17,29 @@ export interface UnlockResult {
     unlockToken: string;
 }
 
+/**
+ * The fields the security API answers with, across all routes. Each route fills
+ * its own subset; the callers check what they read, since the body may come from
+ * an older adapter.
+ */
+interface ApiJson {
+    configured?: boolean;
+    token?: string;
+    exp?: unknown;
+    retryAfter?: number;
+    sections?: Record<string, VaultSectionMeta>;
+    removed?: boolean;
+    scope?: string;
+    content?: unknown;
+    pinRelock?: UnlockResult['pinRelock'];
+    unlockToken?: string;
+}
+
 async function request(
     method: string,
     route: string,
     opts: { body?: unknown; token?: string } = {},
-): Promise<{ status: number; json: any }> {
+): Promise<{ status: number; json: ApiJson | null }> {
     const headers: Record<string, string> = {};
     if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
     if (opts.token) headers['Authorization'] = `Bearer ${opts.token}`;
@@ -31,7 +49,7 @@ async function request(
             headers,
             body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
         });
-        let json: any = null;
+        let json: ApiJson | null = null;
         // Only a body that claims to be JSON is an answer from the API. The vite
         // dev server serves index.html for unknown paths — with status 200 — so a
         // status code alone says nothing about who answered (#632 follow-up).
@@ -65,9 +83,9 @@ export interface AdminSession {
     exp: number | null;
 }
 
-const session = (json: { token: string; exp?: unknown }): AdminSession => ({
-    token: json.token,
-    exp: typeof json.exp === 'number' ? json.exp : null,
+const session = (token: string, exp: unknown): AdminSession => ({
+    token,
+    exp: typeof exp === 'number' ? exp : null,
 });
 
 export type AdminAuthResult =
@@ -77,7 +95,7 @@ export type AdminAuthResult =
 /** First run: set the password. 409 = somebody already did — then log in. */
 export async function adminSetup(password: string): Promise<AdminAuthResult> {
     const { status, json } = await request('POST', 'admin/setup', { body: { password } });
-    if (status === 200 && json?.token) return { ok: true, session: session(json) };
+    if (status === 200 && json?.token) return { ok: true, session: session(json.token, json.exp) };
     if (status === 409) return { ok: false, reason: 'exists' };
     if (status === 400) return { ok: false, reason: 'tooShort' };
     return { ok: false, reason: 'unavailable' };
@@ -85,7 +103,7 @@ export async function adminSetup(password: string): Promise<AdminAuthResult> {
 
 export async function adminLogin(password: string): Promise<AdminAuthResult> {
     const { status, json } = await request('POST', 'admin/login', { body: { password } });
-    if (status === 200 && json?.token) return { ok: true, session: session(json) };
+    if (status === 200 && json?.token) return { ok: true, session: session(json.token, json.exp) };
     if (status === 401) return { ok: false, reason: 'wrong' };
     // The server backs off after five wrong tries; „wrong PIN“ for a lockout sent
     // people typing the right code in circles.
@@ -117,7 +135,7 @@ export type AdminChangeResult =
  */
 export async function adminChange(token: string, newPassword: string): Promise<AdminChangeResult> {
     const { status, json } = await request('POST', 'admin/change', { body: { newPassword }, token });
-    if (status === 200) return { ok: true, session: json?.token ? session(json) : null };
+    if (status === 200) return { ok: true, session: json?.token ? session(json.token, json.exp) : null };
     if (status === 401) return { ok: false, reason: 'expired' };
     if (status === 400) return { ok: false, reason: 'tooShort' };
     // 0 = network error, 404 = no adapter behind this origin.
@@ -203,7 +221,11 @@ export async function pinUnlock(key: string, pin: string): Promise<UnlockOutcome
     if (status === 200 && json)
         return {
             ok: true,
-            result: { content: json.content, pinRelock: json.pinRelock, unlockToken: json.unlockToken },
+            result: {
+                content: json.content,
+                pinRelock: json.pinRelock ?? 'leave',
+                unlockToken: json.unlockToken ?? '',
+            },
         };
     if (status === 429) return { ok: false, reason: 'ratelimited', retryAfter: json?.retryAfter };
     if (status === 401) return { ok: false, reason: 'wrong' };
