@@ -1466,14 +1466,14 @@ export function EvccWidget({ config }: WidgetProps) {
                     <WidgetIcon
                         className="aura-widget-icon"
                         size={headerIcon}
-                        style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                        style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                     />
                 )}
                 {showTitle && (
                     <p
                         className="aura-widget-title truncate flex-1 min-w-0"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                             fontSize: headerFs,
                         }}

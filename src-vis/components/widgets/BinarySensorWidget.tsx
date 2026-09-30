@@ -88,7 +88,13 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                     reach,
                 }}
                 extraComponents={{
-                    icon: <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />,
+                    icon: (
+                        <Icon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': color, flexShrink: 0 }}
+                        />
+                    ),
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
@@ -110,14 +116,18 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                 }}
             >
                 {showIcon && (
-                    <Icon className="aura-widget-icon" size={iconSize} style={{ color: isActive ? '#fff' : color }} />
+                    <Icon
+                        className="aura-widget-icon"
+                        size={iconSize}
+                        style={{ '--aura-icon-color': isActive ? '#fff' : color }}
+                    />
                 )}
                 <div className="text-center">
                     {showTitle && (
                         <p
                             className="aura-widget-title font-bold text-sm"
                             style={{
-                                color: isActive ? '#fff' : 'var(--text-primary)',
+                                '--aura-title-color': isActive ? '#fff' : 'var(--text-primary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
                             }}
                         >
@@ -142,12 +152,18 @@ export function BinarySensorWidget({ config }: WidgetProps) {
     if (layout === 'compact') {
         return (
             <div className="aura-widget-row flex items-center gap-2 h-full" style={{ position: 'relative' }}>
-                {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />}
+                {showIcon && (
+                    <Icon
+                        className="aura-widget-icon"
+                        size={iconSize}
+                        style={{ '--aura-icon-color': color, flexShrink: 0 }}
+                    />
+                )}
                 {showTitle && (
                     <span
                         className="aura-widget-title flex-1 text-sm truncate"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -175,7 +191,9 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                 className="aura-widget-row flex flex-col items-center justify-center h-full gap-1"
                 style={{ position: 'relative' }}
             >
-                {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color }} />}
+                {showIcon && (
+                    <Icon className="aura-widget-icon" size={iconSize} style={{ '--aura-icon-color': color }} />
+                )}
                 {showLabel && (
                     <span className="aura-widget-value text-xl font-bold" style={{ color }}>
                         {label}
@@ -185,7 +203,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title text-xs"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -206,13 +224,17 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                 {(showTitle || showIcon) && (
                     <TitleRow align={titleAlign} className="flex items-center gap-2">
                         {showIcon && (
-                            <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />
+                            <Icon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ '--aura-icon-color': color, flexShrink: 0 }}
+                            />
                         )}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >

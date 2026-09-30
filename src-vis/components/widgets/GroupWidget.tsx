@@ -440,9 +440,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const titleBar = hasHeaderContent ? (
         <div
             ref={headerRef}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
+            // aura-group-header: the hook for the group's head alone (#726) — its colour
+            // comes from index.css, not inline, so custom CSS can restyle text and background.
+            className="aura-group-header shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
             style={{
-                color: 'var(--text-secondary)',
                 // When collapsed the body is gone, so drop the header's divider.
                 // Same when the bar is just an empty editor drag strip (no
                 // header content) — a divider would read as a real header.
@@ -476,7 +477,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 <WidgetIcon
                     className="aura-widget-icon"
                     size={iconSize}
-                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                    style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                 />
             )}
             {showTitle && config.title && (

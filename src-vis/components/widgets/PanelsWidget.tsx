@@ -396,7 +396,7 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
                     <WidgetIcon
                         className="aura-widget-icon"
                         size={iconSize}
-                        style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                        style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                     />
                 )}
                 {showTitle && config.title && (

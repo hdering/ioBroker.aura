@@ -798,7 +798,10 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const titleEl = (
         <span
             className="aura-widget-title text-xs truncate block w-full"
-            style={{ color: 'var(--text-secondary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}
+            style={{
+                '--aura-title-color': 'var(--text-secondary)',
+                textAlign: titleAlign as React.CSSProperties['textAlign'],
+            }}
         >
             {config.title}
         </span>
@@ -812,7 +815,11 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
         </span>
     );
     const iconEl = (
-        <CompactIcon className="aura-widget-icon" size={iconSize} style={{ color: accent, flexShrink: 0 }} />
+        <CompactIcon
+            className="aura-widget-icon"
+            size={iconSize}
+            style={{ '--aura-icon-color': accent, flexShrink: 0 }}
+        />
     );
 
     // ── Custom grid layout — user places elements freely ──────────────────────

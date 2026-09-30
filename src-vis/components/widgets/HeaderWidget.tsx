@@ -107,13 +107,16 @@ export function HeaderWidget({ config }: Props) {
                         <WidgetIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: iconColor ?? titleColor ?? 'var(--text-secondary)', flexShrink: 0 }}
+                            style={{
+                                '--aura-icon-color': iconColor ?? titleColor ?? 'var(--text-secondary)',
+                                flexShrink: 0,
+                            }}
                         />
                     )}
                     {showTitle && (
                         <span
                             className={`aura-widget-title text-xs font-semibold shrink-0 ${titleUppercase ? 'tracking-widest uppercase' : 'tracking-wide'}`}
-                            style={{ color: titleColor ?? 'var(--text-secondary)', ...titleSizeStyle }}
+                            style={{ '--aura-title-color': titleColor ?? 'var(--text-secondary)', ...titleSizeStyle }}
                         >
                             {config.title}
                         </span>
@@ -142,14 +145,14 @@ export function HeaderWidget({ config }: Props) {
                     <WidgetIcon
                         className="aura-widget-icon"
                         size={iconSize}
-                        style={{ color: iconColor ?? headerText, flexShrink: 0 }}
+                        style={{ '--aura-icon-color': iconColor ?? headerText, flexShrink: 0 }}
                     />
                 )}
                 <div className="flex flex-col min-w-0 flex-1">
                     {showTitle && (
                         <span
                             className={`aura-widget-title font-semibold text-base${caps}`}
-                            style={{ color: headerText, ...titleSizeStyle }}
+                            style={{ '--aura-title-color': headerText, ...titleSizeStyle }}
                         >
                             {config.title}
                         </span>
@@ -179,13 +182,13 @@ export function HeaderWidget({ config }: Props) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: iconColor ?? headerText, flexShrink: 0 }}
+                                style={{ '--aura-icon-color': iconColor ?? headerText, flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <h2
                                 className={`aura-widget-title font-bold text-xl leading-tight${caps}`}
-                                style={{ color: headerText, ...titleSizeStyle }}
+                                style={{ '--aura-title-color': headerText, ...titleSizeStyle }}
                             >
                                 {config.title}
                             </h2>

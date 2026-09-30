@@ -121,7 +121,13 @@ export function ValueWidget({ config }: WidgetProps) {
                 unit={unit}
                 extraFields={{ unit: unit ?? '', battery, reach }}
                 extraComponents={{
-                    icon: <DefaultIcon size={iconSize} style={{ color: accentColor, flexShrink: 0 }} />,
+                    icon: (
+                        <DefaultIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
+                        />
+                    ),
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
@@ -142,14 +148,14 @@ export function ValueWidget({ config }: WidgetProps) {
                                     <CardIcon
                                         className="aura-widget-icon"
                                         size={iconSize}
-                                        style={{ color: accentColor }}
+                                        style={{ '--aura-icon-color': accentColor }}
                                     />
                                 )}
                                 {showTitle && (
                                     <p
                                         className="aura-widget-title text-xs truncate"
                                         style={{
-                                            color: 'var(--text-secondary)',
+                                            '--aura-title-color': 'var(--text-secondary)',
                                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                                             flex: '1',
                                             minWidth: 0,
@@ -195,14 +201,14 @@ export function ValueWidget({ config }: WidgetProps) {
                             <CompactIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <span
                                 className="aura-widget-title text-sm truncate"
                                 style={{
-                                    color: 'var(--text-primary)',
+                                    '--aura-title-color': 'var(--text-primary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     flex: '1',
                                     minWidth: 0,
@@ -270,7 +276,7 @@ export function ValueWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title mt-2 truncate max-w-full"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                             fontSize: fitTitle,
                             // Relative, so the line box shrinks with the font — an absolute
@@ -301,14 +307,14 @@ export function ValueWidget({ config }: WidgetProps) {
                             <DefaultIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',

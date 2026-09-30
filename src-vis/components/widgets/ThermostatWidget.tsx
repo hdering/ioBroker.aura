@@ -242,7 +242,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         <ThermoIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: accentColor, flexShrink: 0 }}
+                            style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
                         />
                     ) : null,
                     'btn-plus': (
@@ -280,14 +280,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         <ThermoIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: accentColor, flexShrink: 0 }}
+                            style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
                         />
                     )}
                     {showTitle && (
                         <span
                             className="aura-widget-title flex-1 text-sm truncate min-w-0"
                             style={{
-                                color: 'var(--text-secondary)',
+                                '--aura-title-color': 'var(--text-secondary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
                             }}
                         >
@@ -341,7 +341,11 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     style={{ position: 'relative' }}
                 >
                     {showIcon && (
-                        <ThermoIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor }} />
+                        <ThermoIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': accentColor }}
+                        />
                     )}
                     {showSetpoint && (
                         <span
@@ -522,7 +526,15 @@ export function ThermostatWidget({ config }: WidgetProps) {
                                     textAnchor="middle"
                                     fontSize={l.fs}
                                     fontWeight={l.weight}
-                                    fill={l.fill}
+                                    // The title line is the widget's title: class + colour
+                                    // variable, so custom CSS on .aura-widget-title reaches it.
+                                    {...(l.key === 'title'
+                                        ? {
+                                              className: 'aura-widget-title',
+                                              fill: 'currentColor',
+                                              style: { '--aura-title-color': l.fill },
+                                          }
+                                        : { fill: l.fill })}
                                 >
                                     {fitDialText(l.text, l.fs)}
                                 </text>
@@ -593,14 +605,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
                                     <ThermoIcon
                                         className="aura-widget-icon"
                                         size={iconSize}
-                                        style={{ color: accentColor, flexShrink: 0 }}
+                                        style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
                                     />
                                 )}
                                 {showTitle && (
                                     <p
                                         className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                         style={{
-                                            color: 'var(--text-secondary)',
+                                            '--aura-title-color': 'var(--text-secondary)',
                                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                                         }}
                                     >

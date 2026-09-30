@@ -157,7 +157,7 @@ export function EnumWidget({ config }: WidgetProps) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }}
+                                style={{ '--aura-icon-color': currentColor ?? 'var(--accent)', flexShrink: 0 }}
                             />
                         ) : null,
                         select: selectEl,
@@ -186,14 +186,14 @@ export function EnumWidget({ config }: WidgetProps) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <span
                                 className="aura-widget-title text-sm truncate"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     flex: '1',
                                     minWidth: 0,
@@ -234,7 +234,7 @@ export function EnumWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title text-xs mt-1 truncate max-w-full"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -261,14 +261,14 @@ export function EnumWidget({ config }: WidgetProps) {
                                     <WidgetIcon
                                         className="aura-widget-icon"
                                         size={iconSize}
-                                        style={{ color: accent }}
+                                        style={{ '--aura-icon-color': accent }}
                                     />
                                 )}
                                 {showTitle && (
                                     <p
                                         className="aura-widget-title text-xs truncate"
                                         style={{
-                                            color: 'var(--text-secondary)',
+                                            '--aura-title-color': 'var(--text-secondary)',
                                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                                             flex: '1',
                                             minWidth: 0,
@@ -307,14 +307,14 @@ export function EnumWidget({ config }: WidgetProps) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',

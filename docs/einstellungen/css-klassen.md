@@ -55,15 +55,39 @@ Ein Tab mit dem Slug `active` bekäme über `.aura-tab-<slug>` ebenfalls `.aura-
 | `.aura-fullscreen-btn` | Vollbild-Knopf in der Kartenecke |
 | `.aura-collapse-btn` | Einklapp-Knopf in der Kartenecke (Option „Standardmäßig eingeklappt") |
 | `.aura-click-action-btn` | Klick-Aktions-Symbol in der Kartenecke bzw. rechts in der eingeklappten Kopfzeile |
-| `.aura-header-item` | Element der Kopfzeile (Einstellung „Kopfzeile“); Platz über `[data-header-slot="r1-right"]` usw. |
 | `.aura-collapsed-header` | eingeklappte Karte: die Zeile mit Icon und Titel |
 | `.aura-zoom-ctl` | Zoom-Tasten im iFrame-Widget (Option `iframeZoomControls`) |
 | `.aura-badge-corner` | Badge-Overlay in der Kartenecke |
 | `.aura-textwrap` | Karte mit aktivem Textumbruch (Option „Textumbruch") |
 
+## Kopfzeile des Widgets
+
+Elemente aus der Einstellung „Kopfzeile“, in zwei Zeilen mit je drei Plätzen.
+
+| Selektor | trifft |
+| --- | --- |
+| `.aura-header-row` | eine Zeile der Kopfzeile |
+| `.aura-header-row-1` / `.aura-header-row-2` | Zeile 1 (Titelzeile) bzw. Zeile 2 |
+| `.aura-header-slot` | ein Platz, gleich welcher |
+| `.aura-header-slot-r1-left` | Zeile 1 links |
+| `.aura-header-slot-r1-center` | Zeile 1 Mitte |
+| `.aura-header-slot-r1-right` | Zeile 1 rechts |
+| `.aura-header-slot-r2-left` | Zeile 2 links |
+| `.aura-header-slot-r2-center` | Zeile 2 Mitte |
+| `.aura-header-slot-r2-right` | Zeile 2 rechts |
+| `.aura-header-item` | ein Element auf einem Platz |
+| `.aura-header-item-icon` | Symbol eines Elements |
+| `.aura-header-item-text` | Text eines Elements |
+
+```css
+.aura-header-slot-r2-left .aura-header-item {
+    color: orange;
+}
+```
+
 ## Widget-Innenleben
 
-Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert über alle Typen hinweg zu treffen.
+Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert über alle Typen hinweg zu treffen. Titel, Icon und Kopfzeilen-Elemente übernehmen eine einfache Regel ohne `!important`, auch die Titel-Zelle eines Custom-Layouts und die Titelzeile im Thermostat-Layout „Dial“.
 
 | Selektor | trifft |
 | --- | --- |
@@ -79,6 +103,9 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-frame-neutral` | eingebettetes Dokument ohne eigenes Farbschema (HTML-, eCharts- und Kamera-Widget) |
 
 ```css
+.aura-widget-title {
+    color: red;
+}
 .aura-widget-type-thermostat .aura-widget-title {
     text-transform: uppercase;
 }
@@ -124,6 +151,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-countdown-controls` · `.aura-countdown-primary` · `.aura-countdown-stop` · `.aura-countdown-step` · `.aura-countdown-presets` | Countdown: Tastenzeile, Start/Pause, Stopp, ±-Tasten, Vorgaben-Chips |
 | `.aura-countdown-modal` | Countdown: Dialog „Dauer einstellen“ |
 | `.aura-cal-*` | Kalender — [eigene Tabelle](../widgets/kalender#css-klassen) |
+| `.aura-group-header` | Kopfleiste einer Gruppe (Titel, Icon, Einklapp-Pfeil) — trifft die Titel der Kinder-Widgets nicht |
 | `.aura-custom-grid` | Raster des Benutzerdefinierten Widgets |
 | `.aura-custom-cell-<index>` | eine Zelle darin, von `0` an gezählt |
 | `.aura-marquee-track` | Lauftext im Karussell |
@@ -131,6 +159,15 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-map-pin` | Markierung im Karten-Widget |
 | `.aura-msg-html` | HTML-Inhalt einer Meldung (Titel und Text) |
 | `.aura-html-fill` | HTML-Zelle der JSON-Tabelle mit `Breite füllen` |
+
+```css
+.aura-group-header {
+    background: #1e3a5f;
+}
+.aura-group-header .aura-widget-title {
+    color: #fff;
+}
+```
 
 ## Bedingungen
 

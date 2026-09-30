@@ -341,14 +341,14 @@ export function AirControlWidget({ config }: WidgetProps) {
                             <Icon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: accent, flexShrink: 0 }}
+                                style={{ '--aura-icon-color': accent, flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >

@@ -1179,7 +1179,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         <HeaderIcon
                             size={iconSize}
                             className="aura-widget-icon shrink-0"
-                            style={{ color: 'var(--text-secondary)' }}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)' }}
                         />
                     )}
                     {/* Title and stats share one line: the title shrinks/truncates, the stats
@@ -1193,7 +1193,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             <p
                                 className="aura-widget-title text-xs font-semibold truncate min-w-0"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     // A shrink-to-fit box would swallow textAlign, so the
                                     // title only keeps its natural width while it is left

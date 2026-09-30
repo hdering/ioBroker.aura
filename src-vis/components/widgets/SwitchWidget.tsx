@@ -138,8 +138,12 @@ export function SwitchWidget({ config }: WidgetProps) {
                     extraComponents={{
                         icon: showIcon ? (
                             <WidgetIcon
+                                className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }}
+                                style={{
+                                    '--aura-icon-color': isOn ? 'var(--accent-green)' : 'var(--text-secondary)',
+                                    flexShrink: 0,
+                                }}
                             />
                         ) : null,
                         'battery-icon': batteryIcon,
@@ -195,7 +199,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                         className="aura-widget-icon"
                         size={iconSize}
                         style={{
-                            color: isOn ? '#fff' : 'var(--text-secondary)',
+                            '--aura-icon-color': isOn ? '#fff' : 'var(--text-secondary)',
                             filter: isOn ? 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' : 'none',
                         }}
                     />
@@ -205,7 +209,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                         <p
                             className="aura-widget-title font-bold text-sm"
                             style={{
-                                color: isOn ? '#fff' : 'var(--text-secondary)',
+                                '--aura-title-color': isOn ? '#fff' : 'var(--text-secondary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
                             }}
                         >
@@ -235,14 +239,17 @@ export function SwitchWidget({ config }: WidgetProps) {
                     <WidgetIcon
                         className="aura-widget-icon"
                         size={iconSize}
-                        style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }}
+                        style={{
+                            '--aura-icon-color': isOn ? 'var(--accent-green)' : 'var(--text-secondary)',
+                            flexShrink: 0,
+                        }}
                     />
                 )}
                 {showTitle && (
                     <span
                         className="aura-widget-title flex-1 text-sm truncate"
                         style={{
-                            color: 'var(--text-primary)',
+                            '--aura-title-color': 'var(--text-primary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -291,14 +298,17 @@ export function SwitchWidget({ config }: WidgetProps) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)', flexShrink: 0 }}
+                                style={{
+                                    '--aura-icon-color': isOn ? 'var(--accent-green)' : 'var(--text-secondary)',
+                                    flexShrink: 0,
+                                }}
                             />
                         )}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     overflow: 'hidden',
                                     textOverflow: 'ellipsis',

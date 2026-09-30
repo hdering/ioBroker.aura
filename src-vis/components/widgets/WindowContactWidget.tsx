@@ -56,7 +56,7 @@ function StateDisplay({
         );
     }
     const Icon = getWidgetIcon(cfg.icon, Fallback);
-    return <Icon className={className} size={size} style={{ color: cfg.color, flexShrink: 0 }} />;
+    return <Icon className={className} size={size} style={{ '--aura-icon-color': cfg.color, flexShrink: 0 }} />;
 }
 
 // ─── widget ───────────────────────────────────────────────────────────────────
@@ -168,7 +168,10 @@ export function WindowContactWidget({ config }: WidgetProps) {
                     {showTitle && (
                         <p
                             className="aura-widget-title font-bold text-sm"
-                            style={{ color: '#fff', textAlign: titleAlign as React.CSSProperties['textAlign'] }}
+                            style={{
+                                '--aura-title-color': '#fff',
+                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                            }}
                         >
                             {config.title}
                         </p>
@@ -193,7 +196,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title flex-1 text-sm font-medium truncate"
                         style={{
-                            color: 'var(--text-primary)',
+                            '--aura-title-color': 'var(--text-primary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -231,7 +234,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title text-xs"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -258,7 +261,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                             <p
                                 className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >

@@ -551,7 +551,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                     {showIcon && (
                         <Icon
                             size={iconSize}
-                            style={{ color: 'var(--accent)' }}
+                            style={{ '--aura-icon-color': 'var(--accent)' }}
                             className="aura-widget-icon shrink-0"
                         />
                     )}
@@ -559,7 +559,7 @@ export function LoadTimesWidget({ config, editMode }: WidgetProps) {
                         <p
                             className="aura-widget-title text-xs flex-1 min-w-0 truncate"
                             style={{
-                                color: 'var(--text-secondary)',
+                                '--aura-title-color': 'var(--text-secondary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
                             }}
                         >

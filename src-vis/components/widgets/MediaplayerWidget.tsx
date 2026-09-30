@@ -65,7 +65,7 @@ function CoverImage({ src, Icon, iconSize }: { src: string; Icon: React.ElementT
             className="w-full h-full rounded-xl flex items-center justify-center"
             style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
         >
-            {Icon && <Icon size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
+            {Icon && <Icon size={iconSize} />}
         </div>
     );
 }
@@ -356,7 +356,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                 {showCover && (
                     <div
                         className="aura-widget-icon rounded-xl overflow-hidden self-center shrink-0"
-                        style={{ width: '50%', aspectRatio: '1 / 1' }}
+                        style={{ '--aura-icon-color': 'var(--text-secondary)', width: '50%', aspectRatio: '1 / 1' }}
                     >
                         <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
                     </div>
@@ -366,7 +366,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                 <div className="shrink-0 space-y-0.5 text-center min-w-0">
                     <p
                         className="aura-widget-title text-base font-semibold truncate"
-                        style={{ color: 'var(--text-primary)' }}
+                        style={{ '--aura-title-color': 'var(--text-primary)' }}
                     >
                         {titleStr || '–'}
                     </p>
@@ -466,7 +466,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     {showCover && (
                         <div
                             className="aura-widget-icon shrink-0 rounded-md overflow-hidden"
-                            style={{ width: 36, height: 36 }}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)', width: 36, height: 36 }}
                         >
                             <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
                         </div>
@@ -476,7 +476,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     <div className="flex flex-col flex-1 min-w-0 leading-tight">
                         <p
                             className="aura-widget-title text-xs font-semibold truncate"
-                            style={{ color: 'var(--text-primary)' }}
+                            style={{ '--aura-title-color': 'var(--text-primary)' }}
                         >
                             {titleStr || '–'}
                         </p>
@@ -527,7 +527,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                 {showCover && (
                     <div
                         className="aura-widget-icon shrink-0 self-stretch rounded-xl overflow-hidden"
-                        style={{ aspectRatio: '1 / 1' }}
+                        style={{ '--aura-icon-color': 'var(--text-secondary)', aspectRatio: '1 / 1' }}
                     >
                         <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
                     </div>
@@ -539,7 +539,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     <div className="shrink-0 space-y-0.5 min-w-0">
                         <p
                             className="aura-widget-title text-sm font-semibold truncate leading-snug"
-                            style={{ color: 'var(--text-primary)' }}
+                            style={{ '--aura-title-color': 'var(--text-primary)' }}
                         >
                             {titleStr || '–'}
                         </p>

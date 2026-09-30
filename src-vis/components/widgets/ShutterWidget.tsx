@@ -426,7 +426,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                                 <CustomIcon
                                     className="aura-widget-icon"
                                     size={iconSize}
-                                    style={{ color: accentColor, flexShrink: 0 }}
+                                    style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
                                 />
                             ) : (
                                 <ShutterViz
@@ -511,7 +511,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                         <CustomIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: accentColor, flexShrink: 0 }}
+                            style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
                         />
                     ) : (
                         <ShutterViz
@@ -527,7 +527,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title flex-1 text-sm truncate min-w-0"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -662,14 +662,14 @@ export function ShutterWidget({ config }: WidgetProps) {
                                 <CustomIcon
                                     className="aura-widget-icon"
                                     size={iconSize}
-                                    style={{ color: accentColor, flexShrink: 0 }}
+                                    style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
                                 />
                             )}
                             {showTitle && (
                                 <p
                                     className="aura-widget-title text-xs truncate"
                                     style={{
-                                        color: 'var(--text-secondary)',
+                                        '--aura-title-color': 'var(--text-secondary)',
                                         textAlign: titleAlign as React.CSSProperties['textAlign'],
                                         flex: '1',
                                         minWidth: 0,

@@ -122,7 +122,7 @@ export function HttpRequestWidget({ config }: WidgetProps) {
                     <p
                         className="aura-widget-title flex-1 min-w-0 text-sm truncate"
                         style={{
-                            color: 'var(--text-primary)',
+                            '--aura-title-color': 'var(--text-primary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -152,14 +152,14 @@ export function HttpRequestWidget({ config }: WidgetProps) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: buttonColor, flexShrink: 0 }}
+                                style={{ '--aura-icon-color': buttonColor, flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >

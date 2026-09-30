@@ -433,7 +433,14 @@ function StaticCellView({
     // A rule may replace the text outright — the same effect a list row's value has.
     const shown = cond.text ?? content;
     const fallbackColor = cell.type === 'value' && valueColor ? valueColor : 'var(--text-primary)';
-    const textSty = cellTextStyle(cell, fallbackColor, cond);
+    const baseSty = cellTextStyle(cell, fallbackColor, cond);
+    // The title cell is the widget's title: it carries the class custom CSS aims at, and
+    // its colour goes through the hook's variable so a plain `.aura-widget-title` rule wins.
+    const isTitle = cell.type === 'title';
+    const textCls = isTitle ? 'aura-widget-title' : undefined;
+    const textSty: React.CSSProperties = isTitle
+        ? { ...baseSty, color: undefined, '--aura-title-color': baseSty.color as string }
+        : baseSty;
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
     const lc = mainState?.lc;
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
@@ -441,11 +448,15 @@ function StaticCellView({
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
             {cell.showLastChange && lc ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
-                    <span style={textSty}>{shown}</span>
+                    <span className={textCls} style={textSty}>
+                        {shown}
+                    </span>
                     <LastChangeLine lc={lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span style={textSty}>{shown}</span>
+                <span className={textCls} style={textSty}>
+                    {shown}
+                </span>
             )}
         </div>
     );

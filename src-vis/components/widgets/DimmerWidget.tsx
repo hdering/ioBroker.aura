@@ -228,9 +228,12 @@ export function DimmerWidget({ config }: WidgetProps) {
                 extraComponents={{
                     icon: showIcon ? (
                         <CompactIcon
+                            className="aura-widget-icon"
                             size={iconSize}
                             style={{
-                                color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)',
+                                '--aura-icon-color': isOn
+                                    ? 'var(--light-on, var(--accent-yellow))'
+                                    : 'var(--text-secondary)',
                                 flexShrink: 0,
                             }}
                         />
@@ -272,7 +275,9 @@ export function DimmerWidget({ config }: WidgetProps) {
                             className="aura-widget-icon"
                             size={iconSize}
                             style={{
-                                color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)',
+                                '--aura-icon-color': isOn
+                                    ? 'var(--light-on, var(--accent-yellow))'
+                                    : 'var(--text-secondary)',
                                 flexShrink: 0,
                             }}
                         />
@@ -281,7 +286,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                         <span
                             className="aura-widget-title flex-1 text-sm truncate min-w-0"
                             style={{
-                                color: 'var(--text-secondary)',
+                                '--aura-title-color': 'var(--text-secondary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
                             }}
                         >
@@ -355,7 +360,9 @@ export function DimmerWidget({ config }: WidgetProps) {
                                 className="aura-widget-icon"
                                 size={iconSize}
                                 style={{
-                                    color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)',
+                                    '--aura-icon-color': isOn
+                                        ? 'var(--light-on, var(--accent-yellow))'
+                                        : 'var(--text-secondary)',
                                 }}
                             />
                         )}
@@ -363,7 +370,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                             <p
                                 className="aura-widget-title text-xs truncate"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     flex: '1',
                                     minWidth: 0,

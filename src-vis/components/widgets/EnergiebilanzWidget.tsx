@@ -269,7 +269,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                         <WidgetIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: 'var(--text-secondary)' }}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)' }}
                         />
                     )}
                     {config.title && <span className="aura-widget-title">{config.title}</span>}

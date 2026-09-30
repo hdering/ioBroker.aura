@@ -394,7 +394,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                         {showIcon && (
                             <WidgetIcon
                                 size={iconSize}
-                                style={{ color: triggered ? '#ef4444' : 'var(--accent)' }}
+                                style={{ '--aura-icon-color': triggered ? '#ef4444' : 'var(--accent)' }}
                                 className="aura-widget-icon shrink-0"
                             />
                         )}
@@ -402,7 +402,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                             <p
                                 className="aura-widget-title text-xs flex-1 min-w-0 truncate"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >

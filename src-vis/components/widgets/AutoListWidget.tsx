@@ -1701,7 +1701,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                             <HeaderIcon
                                 size={iconSize}
                                 className="aura-widget-icon shrink-0"
-                                style={{ color: 'var(--text-secondary)' }}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)' }}
                             />
                         )}
                         <div className="flex-1 min-w-0">
@@ -1709,7 +1709,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 <p
                                     className="aura-widget-title text-xs font-semibold truncate"
                                     style={{
-                                        color: 'var(--text-secondary)',
+                                        '--aura-title-color': 'var(--text-secondary)',
                                         textAlign: titleAlign as React.CSSProperties['textAlign'],
                                     }}
                                 >
@@ -1811,15 +1811,21 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         const count = effectiveFilter === 'all' ? entries.length : matchedEntries.length;
         return (
             <div className="aura-widget-row relative flex flex-col items-center justify-center h-full gap-1">
-                {showIcon && <HeaderIcon size={iconSize} style={{ color: 'var(--text-secondary)', opacity: 0.7 }} />}
+                {showIcon && (
+                    <HeaderIcon
+                        className="aura-widget-icon"
+                        size={iconSize}
+                        style={{ '--aura-icon-color': 'var(--text-secondary)', opacity: 0.7 }}
+                    />
+                )}
                 <span className="text-xl font-bold tabular-nums leading-none" style={{ color: 'var(--text-primary)' }}>
                     {count}
                 </span>
                 {showTitle && config.title && (
                     <span
-                        className="text-xs truncate max-w-full px-2 text-center"
+                        className="aura-widget-title text-xs truncate max-w-full px-2 text-center"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >

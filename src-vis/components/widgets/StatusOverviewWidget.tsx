@@ -373,7 +373,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                 {showTitle && (
                     <p
                         className="aura-widget-title text-xs font-semibold truncate"
-                        style={{ color: 'var(--text-secondary)' }}
+                        style={{ '--aura-title-color': 'var(--text-secondary)' }}
                     >
                         {config.title}
                     </p>
@@ -440,7 +440,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             {showTitle ? (
                 <p
                     className="aura-widget-title text-xs font-semibold truncate"
-                    style={{ color: 'var(--text-secondary)' }}
+                    style={{ '--aura-title-color': 'var(--text-secondary)' }}
                 >
                     {config.title}
                 </p>

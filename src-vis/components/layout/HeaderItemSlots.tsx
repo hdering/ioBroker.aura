@@ -35,7 +35,7 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
                     onAction();
                 }}
                 className="nodrag aura-click-action-btn aura-header-item pointer-events-auto shrink-0 w-5 h-5 -my-1 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
-                style={{ color: item.color || 'var(--text-secondary)' }}
+                style={{ '--aura-header-item-color': item.color || 'var(--text-secondary)' }}
                 title={t('wf.embedAction')}
                 aria-label={t('wf.embedAction')}
                 data-header-item={item.id}
@@ -50,7 +50,7 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
         <span
             className="aura-header-item inline-flex items-center gap-1 min-w-0 text-xs font-medium tabular-nums"
             style={{
-                color: item.color || 'var(--text-primary)',
+                '--aura-header-item-color': item.color || 'var(--text-primary)',
                 // Own size carries its own line-height — text-xs ships an absolute one
                 // that would clip the descenders of a larger font.
                 ...(item.textSize
@@ -64,17 +64,21 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
                     // Explicit size: scaled by the global font scale like every other px size.
                     <ItemIcon
                         size={item.iconSize}
-                        className="shrink-0"
+                        className="aura-header-item-icon shrink-0"
                         style={{
                             width: `calc(${item.iconSize}px * var(--font-scale, 1))`,
                             height: `calc(${item.iconSize}px * var(--font-scale, 1))`,
-                            color: item.iconColor,
+                            '--aura-header-item-icon-color': item.iconColor,
                         }}
                     />
                 ) : (
-                    <ItemIcon size={13} className="shrink-0" style={{ color: item.iconColor }} />
+                    <ItemIcon
+                        size={13}
+                        className="aura-header-item-icon shrink-0"
+                        style={{ '--aura-header-item-icon-color': item.iconColor }}
+                    />
                 ))}
-            {item.text && <span className="truncate">{item.text}</span>}
+            {item.text && <span className="aura-header-item-text truncate">{item.text}</span>}
         </span>
     );
 }
@@ -93,7 +97,11 @@ function Slot({
     onAction?: () => void;
 }) {
     return (
-        <div className={`flex items-center gap-2 min-w-0 ${className ?? ''}`} style={style} data-header-slot={slot}>
+        <div
+            className={`aura-header-slot aura-header-slot-${slot} flex items-center gap-2 min-w-0 ${className ?? ''}`}
+            style={style}
+            data-header-slot={slot}
+        >
             {items.map((item) => (
                 <HeaderItemView key={item.id} item={item} onAction={onAction} />
             ))}
@@ -148,7 +156,11 @@ export function HeaderRowOne({
         const before = center.filter((i) => i.titleSide === 'before');
         const after = center.filter((i) => i.titleSide !== 'before');
         return (
-            <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1" data-title-align="center">
+            <div
+                className="aura-header-row aura-header-row-1 flex items-center gap-2 min-w-0 w-full"
+                data-header-row="1"
+                data-title-align="center"
+            >
                 <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
                     {lead}
                     {leadSlot}
@@ -179,7 +191,7 @@ export function HeaderRowOne({
     }
     const centered = center.length > 0 || !!centerIcon;
     return (
-        <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1">
+        <div className="aura-header-row aura-header-row-1 flex items-center gap-2 min-w-0 w-full" data-header-row="1">
             <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
                 {lead}
                 {leadSlot}
@@ -206,7 +218,7 @@ export function HeaderRowOne({
             </div>
             {centered && (
                 <div
-                    className="flex items-center justify-center gap-2 min-w-0"
+                    className="aura-header-slot aura-header-slot-r1-center flex items-center justify-center gap-2 min-w-0"
                     style={{ flex: '0 1 auto' }}
                     data-header-slot="r1-center"
                 >
@@ -292,7 +304,7 @@ export function HeaderRowTwo({
     };
     return (
         <div
-            className="gap-2 min-w-0 w-full"
+            className="aura-header-row aura-header-row-2 gap-2 min-w-0 w-full"
             style={
                 centered
                     ? { display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)' }

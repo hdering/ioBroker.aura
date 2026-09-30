@@ -98,7 +98,7 @@ export function HeaderSlotsInline({
         <>
             {left.length > 0 && (
                 <span
-                    className="flex items-center gap-2 min-w-0 shrink"
+                    className="aura-header-slot aura-header-slot-r1-left flex items-center gap-2 min-w-0 shrink"
                     style={part === 'all' ? { order: -1 } : undefined}
                     data-header-slot="r1-left"
                 >
@@ -109,7 +109,7 @@ export function HeaderSlotsInline({
             )}
             {(center.length > 0 || centerIcon) && (
                 <span
-                    className="flex items-center gap-2 min-w-0 pointer-events-auto"
+                    className="aura-header-slot aura-header-slot-r1-center flex items-center gap-2 min-w-0 pointer-events-auto"
                     style={
                         part !== 'all'
                             ? { flex: '0 1 auto' }
@@ -125,7 +125,7 @@ export function HeaderSlotsInline({
             )}
             {right.length > 0 && (
                 <span
-                    className="flex items-center justify-end gap-2 min-w-0 shrink"
+                    className="aura-header-slot aura-header-slot-r1-right flex items-center justify-end gap-2 min-w-0 shrink"
                     style={{ marginLeft: 'auto', maxWidth: part === 'right' ? '100%' : '60%' }}
                     data-header-slot="r1-right"
                 >
@@ -197,7 +197,7 @@ function withCenterIcon(kids: Kids, icon: ReactNode): Kids {
         ...out,
         <span
             key="center-icon"
-            className="flex items-center pointer-events-auto"
+            className="aura-header-slot aura-header-slot-r1-center flex items-center pointer-events-auto"
             style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
             data-header-slot="r1-center"
         >

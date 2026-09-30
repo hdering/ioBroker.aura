@@ -18,7 +18,10 @@ export function ButtonWidget({ config }: WidgetProps) {
     const WidgetIcon = iconName ? getWidgetIcon(iconName, (() => null) as never) : null;
 
     if (layout === 'custom') {
-        const iconEl = showIcon && WidgetIcon ? <WidgetIcon size={iconSize} style={{ color }} /> : null;
+        const iconEl =
+            showIcon && WidgetIcon ? (
+                <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ '--aura-icon-color': color }} />
+            ) : null;
         return (
             <div className="relative w-full h-full">
                 <CustomGridView config={config} value={label} extraComponents={iconEl ? { icon: iconEl } : {}} />
@@ -30,7 +33,11 @@ export function ButtonWidget({ config }: WidgetProps) {
         return (
             <div className="aura-widget-row flex items-center gap-2.5 h-full px-1">
                 {showIcon && WidgetIcon && (
-                    <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />
+                    <WidgetIcon
+                        className="aura-widget-icon"
+                        size={iconSize}
+                        style={{ '--aura-icon-color': color, flexShrink: 0 }}
+                    />
                 )}
                 <span className="aura-widget-action text-sm font-medium truncate" style={{ color: labelColor }}>
                     {label}
@@ -46,7 +53,7 @@ export function ButtonWidget({ config }: WidgetProps) {
         return (
             <div className="aura-widget-row flex items-center justify-center h-full">
                 {showIcon && WidgetIcon ? (
-                    <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color }} />
+                    <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ '--aura-icon-color': color }} />
                 ) : (
                     <span className="aura-widget-action text-sm font-medium" style={{ color: labelColor }}>
                         {label}
@@ -64,7 +71,7 @@ export function ButtonWidget({ config }: WidgetProps) {
                 <p
                     className="aura-widget-title text-xs truncate shrink-0 min-w-0"
                     style={{
-                        color: 'var(--text-secondary)',
+                        '--aura-title-color': 'var(--text-secondary)',
                         textAlign: titleAlign as React.CSSProperties['textAlign'],
                     }}
                 >
@@ -73,7 +80,7 @@ export function ButtonWidget({ config }: WidgetProps) {
             )}
             <div className={`flex flex-col gap-2 flex-1 ${posClass}`}>
                 {showIcon && WidgetIcon && (
-                    <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color }} />
+                    <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ '--aura-icon-color': color }} />
                 )}
                 <span
                     className="aura-widget-action text-sm font-medium text-center leading-tight"

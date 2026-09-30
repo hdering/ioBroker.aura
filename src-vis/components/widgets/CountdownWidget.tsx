@@ -293,7 +293,7 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
 
     // ── Building blocks (also handed to the custom layout) ─────────────────────
     const iconNode = showIcon ? (
-        <span className="shrink-0 flex items-center" style={{ color }}>
+        <span className="aura-widget-icon shrink-0 flex items-center" style={{ '--aura-icon-color': color }}>
             <WidgetIcon size={iconSize} />
         </span>
     ) : null;
@@ -432,7 +432,10 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     const titleNode = showTitle ? (
         <p
             className="aura-widget-title text-xs flex-1 truncate"
-            style={{ color: 'var(--text-primary)', textAlign: titleAlign as React.CSSProperties['textAlign'] }}
+            style={{
+                '--aura-title-color': 'var(--text-primary)',
+                textAlign: titleAlign as React.CSSProperties['textAlign'],
+            }}
         >
             {config.title}
         </p>

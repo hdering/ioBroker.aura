@@ -907,7 +907,7 @@ export function KnobWidget({ config }: WidgetProps) {
                         <TitleIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: 'var(--text-secondary)' }}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)' }}
                         />
                     ),
                 }}
@@ -926,13 +926,13 @@ export function KnobWidget({ config }: WidgetProps) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
                             <p
                                 className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{ color: 'var(--text-secondary)', textAlign: titleAlign }}
+                                style={{ '--aura-title-color': 'var(--text-secondary)', textAlign: titleAlign }}
                             >
                                 {config.title}
                             </p>

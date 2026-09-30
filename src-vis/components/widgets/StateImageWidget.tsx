@@ -35,7 +35,7 @@ function StateDisplay({ cfg, size, className }: { cfg: StateCfg; size: number; c
         );
     }
     const Icon = getWidgetIcon(cfg.icon, CircleDot);
-    return <Icon className={className} size={size} style={{ color: cfg.color, flexShrink: 0 }} />;
+    return <Icon className={className} size={size} style={{ '--aura-icon-color': cfg.color, flexShrink: 0 }} />;
 }
 
 // ── Widget ────────────────────────────────────────────────────────────────────
@@ -122,7 +122,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                         <p
                             className="aura-widget-title font-bold text-sm"
                             style={{
-                                color: 'var(--text-primary)',
+                                '--aura-title-color': 'var(--text-primary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
                             }}
                         >
@@ -149,7 +149,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title flex-1 text-sm truncate"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -187,7 +187,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                     <span
                         className="aura-widget-title text-xs"
                         style={{
-                            color: 'var(--text-secondary)',
+                            '--aura-title-color': 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
@@ -211,7 +211,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                             <p
                                 className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                 style={{
-                                    color: 'var(--text-secondary)',
+                                    '--aura-title-color': 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >

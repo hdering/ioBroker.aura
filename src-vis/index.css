@@ -34,6 +34,29 @@ iframe {
 }
 
 /*
+ * A widget's title, symbol and header items take their default colour from a variable
+ * the widget sets inline (--aura-title-color …), not from an inline `color`: an inline
+ * colour beats every stylesheet rule, so a plain `.aura-widget-title { color: red }`
+ * in the custom CSS never reached them. :where() keeps these at specificity 0 — any
+ * user rule wins. An unset variable leaves the colour inherited, as before.
+ */
+:where(.aura-widget-title) {
+    color: var(--aura-title-color);
+}
+:where(.aura-widget-icon) {
+    color: var(--aura-icon-color);
+}
+:where(.aura-header-item) {
+    color: var(--aura-header-item-color);
+}
+:where(.aura-header-item-icon) {
+    color: var(--aura-header-item-icon-color);
+}
+:where(.aura-group-header) {
+    color: var(--text-secondary);
+}
+
+/*
  * The widget's own title / icon colour and title size (options titleColor, titleSize,
  * iconColor — set in the header dialog, #725). Same hooks as the condition rules
  * below and before them, so a condition that paints the title still wins.
