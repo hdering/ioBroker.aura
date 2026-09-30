@@ -370,7 +370,17 @@ check(
 // ── 4b. Own icon / text size per item (#725) ─────────────────────────────────
 id = await show('value', {
     headerItems: [
-        { id: 'big', source: 'text', text: 'Groß', icon: 'Droplets', iconSize: 28, textSize: 20, slot: 'r1-right' },
+        {
+            id: 'big',
+            source: 'text',
+            text: 'Groß',
+            icon: 'Droplets',
+            iconSize: 28,
+            textSize: 20,
+            color: 'rgb(0, 0, 255)',
+            iconColor: 'rgb(255, 0, 0)',
+            slot: 'r1-right',
+        },
         { id: 'std', source: 'text', text: 'Normal', icon: 'Droplets', slot: 'r1-center' },
     ],
 });
@@ -378,11 +388,22 @@ const sizes = await card(id).evaluate((el) => {
     const m = (hid) => {
         const item = el.querySelector(`[data-header-item="${hid}"]`);
         const svg = item?.querySelector('svg')?.getBoundingClientRect();
-        return { icon: svg ? Math.round(svg.width) : 0, font: item ? parseFloat(getComputedStyle(item).fontSize) : 0 };
+        const svgEl = item?.querySelector('svg');
+        return {
+            icon: svg ? Math.round(svg.width) : 0,
+            font: item ? parseFloat(getComputedStyle(item).fontSize) : 0,
+            iconColor: svgEl ? getComputedStyle(svgEl).color : '',
+            textColor: item ? getComputedStyle(item).color : '',
+        };
     };
     return { big: m('big'), std: m('std') };
 });
 check('iconSize sets the item icon size', sizes.big.icon === 28, JSON.stringify(sizes));
+check(
+    'iconColor and color colour icon and text separately',
+    sizes.big.iconColor === 'rgb(255, 0, 0)' && sizes.big.textColor === 'rgb(0, 0, 255)',
+    JSON.stringify(sizes.big),
+);
 check('textSize sets the item font size', sizes.big.font === 20, JSON.stringify(sizes));
 check(
     'without them the item keeps 13 px / text-xs',

@@ -369,55 +369,73 @@ function ItemRow({
                 </p>
             )}
 
-            <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5" hidden={item.source === 'action'}>
-                    <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
-                        {t('hdr.icon')}
-                    </label>
-                    <button
-                        onClick={() => setIconOpen(true)}
-                        className="px-1.5 h-[26px] rounded-lg hover:opacity-80 flex items-center"
-                        style={inputStyle}
-                        data-header-item-icon=""
-                    >
-                        {item.icon ? <AuraIcon icon={item.icon} width={13} height={13} /> : <Plus size={11} />}
-                    </button>
-                    {item.icon && (
-                        <button
-                            onClick={() => update({ icon: undefined, iconSize: undefined })}
-                            className="hover:opacity-60"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <Trash2 size={11} />
-                        </button>
-                    )}
-                </div>
+            {item.source === 'action' ? (
                 <ColorField label={t('hdr.color')} value={item.color} onChange={(v) => update({ color: v })} />
-            </div>
-
-            {item.source !== 'action' && (
-                <div className="flex items-center gap-3 flex-wrap">
-                    {item.icon && (
-                        <SizeSlider
-                            label={t('hdr.iconSize')}
-                            value={item.iconSize}
-                            fallback={13}
-                            min={8}
-                            max={64}
-                            onChange={(v) => update({ iconSize: v })}
-                            testId="icon"
+            ) : (
+                <>
+                    {/* Icon and text each take their own colour and size; an unset icon
+                        colour follows the text colour. */}
+                    <div className="flex items-center gap-3 flex-wrap" data-header-item-icon-row="">
+                        <div className="flex items-center gap-1.5">
+                            <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                                {t('hdr.icon')}
+                            </label>
+                            <button
+                                onClick={() => setIconOpen(true)}
+                                className="px-1.5 h-[26px] rounded-lg hover:opacity-80 flex items-center"
+                                style={inputStyle}
+                                data-header-item-icon=""
+                            >
+                                {item.icon ? <AuraIcon icon={item.icon} width={13} height={13} /> : <Plus size={11} />}
+                            </button>
+                            {item.icon && (
+                                <button
+                                    onClick={() =>
+                                        update({ icon: undefined, iconSize: undefined, iconColor: undefined })
+                                    }
+                                    className="hover:opacity-60"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <Trash2 size={11} />
+                                </button>
+                            )}
+                        </div>
+                        {item.icon && (
+                            <>
+                                <ColorField
+                                    label={t('hdr.iconColor')}
+                                    value={item.iconColor}
+                                    onChange={(v) => update({ iconColor: v })}
+                                />
+                                <SizeSlider
+                                    label={t('hdr.iconSize')}
+                                    value={item.iconSize}
+                                    fallback={13}
+                                    min={8}
+                                    max={64}
+                                    onChange={(v) => update({ iconSize: v })}
+                                    testId="icon"
+                                />
+                            </>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <ColorField
+                            label={t('hdr.textColor')}
+                            value={item.color}
+                            onChange={(v) => update({ color: v })}
                         />
-                    )}
-                    <SizeSlider
-                        label={t('hdr.textSize')}
-                        value={item.textSize}
-                        fallback={12}
-                        min={8}
-                        max={40}
-                        onChange={(v) => update({ textSize: v })}
-                        testId="text"
-                    />
-                </div>
+                        <SizeSlider
+                            label={t('hdr.textSize')}
+                            value={item.textSize}
+                            fallback={12}
+                            min={8}
+                            max={40}
+                            onChange={(v) => update({ textSize: v })}
+                            testId="text"
+                        />
+                    </div>
+                </>
             )}
 
             {/* Condition (step 4): the item only shows while its clauses hold — same

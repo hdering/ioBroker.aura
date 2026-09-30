@@ -960,6 +960,7 @@ export interface WidgetHeaderItem {
      *  {count} {active}. */
     text?: string;
     icon?: string; // optional Iconify id / Lucide name before the text
+    iconColor?: string; // icon colour (CSS, var(--token), light-dark pair); default = color
     iconSize?: number; // icon size in px (scaled by the global font scale); default 13
     textSize?: number; // text size in px (scaled by the global font scale); default 12 (text-xs)
     color?: string; // text colour (CSS, var(--token), light-dark pair); default var(--text-primary)

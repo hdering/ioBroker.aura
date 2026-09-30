@@ -2687,6 +2687,8 @@ export const de = {
     'hdr.iconSize': 'Größe',
     'hdr.textSize': 'Schriftgröße',
     'hdr.color': 'Farbe',
+    'hdr.iconColor': 'Farbe',
+    'hdr.textColor': 'Textfarbe',
     'hdr.cond': 'Nur anzeigen, wenn …',
     'hdr.moveUp': 'Nach oben',
     'hdr.moveDown': 'Nach unten',

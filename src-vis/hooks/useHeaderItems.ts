@@ -44,6 +44,7 @@ export interface ResolvedHeaderItem {
     text: string;
     icon?: string;
     iconSize?: number;
+    iconColor?: string;
     textSize?: number;
     color?: string;
     /** Source 'action': the click-action icon, drawn as a button that runs the action. */
@@ -155,6 +156,7 @@ export function useHeaderItems(
                 text,
                 icon: item.icon,
                 iconSize: item.iconSize,
+                iconColor: item.iconColor,
                 textSize: item.textSize,
                 color: item.color,
             });

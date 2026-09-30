@@ -2666,6 +2666,8 @@ export const en: Record<TranslationKey, string> = {
     'hdr.iconSize': 'Icon size',
     'hdr.textSize': 'Text size',
     'hdr.color': 'Colour',
+    'hdr.iconColor': 'Colour',
+    'hdr.textColor': 'Text colour',
     'hdr.cond': 'Only show when …',
     'hdr.moveUp': 'Move up',
     'hdr.moveDown': 'Move down',

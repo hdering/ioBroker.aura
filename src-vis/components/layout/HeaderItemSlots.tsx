@@ -68,10 +68,11 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
                         style={{
                             width: `calc(${item.iconSize}px * var(--font-scale, 1))`,
                             height: `calc(${item.iconSize}px * var(--font-scale, 1))`,
+                            color: item.iconColor,
                         }}
                     />
                 ) : (
-                    <ItemIcon size={13} className="shrink-0" />
+                    <ItemIcon size={13} className="shrink-0" style={{ color: item.iconColor }} />
                 ))}
             {item.text && <span className="truncate">{item.text}</span>}
         </span>
