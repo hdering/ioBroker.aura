@@ -1329,6 +1329,8 @@ export const UNIVERSAL_OPTIONS = {
             'Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag "headerRow2"). ' +
             'clauses (+ logic) blenden ein Element nur ein, solange die Bedingung gilt — gleiche Klauseln wie bei ' +
             'Markern, leerer datapoint = eigener Wert, bei Listen auch "{list:active}" usw. ' +
+            'icon setzt ein Symbol vor den Text, iconSize dessen Größe in px (Standard 13), textSize die ' +
+            'Schriftgröße in px (Standard 12); größere Werte machen die Kopfzeile höher. ' +
             'Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen.',
     },
     collapseInEditor: {

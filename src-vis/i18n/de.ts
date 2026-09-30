@@ -2684,6 +2684,8 @@ export const de = {
     'hdr.textHintList':
         'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste, auch als {sum;round(0)}.',
     'hdr.icon': 'Symbol',
+    'hdr.iconSize': 'Symbolgröße',
+    'hdr.textSize': 'Schriftgröße',
     'hdr.color': 'Farbe',
     'hdr.cond': 'Nur anzeigen, wenn …',
     'hdr.moveUp': 'Nach oben',

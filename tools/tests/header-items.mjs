@@ -367,6 +367,29 @@ check(
     (await card(id).locator('[data-header-item="none"]').count()) === 0,
 );
 
+// ── 4b. Own icon / text size per item (#725) ─────────────────────────────────
+id = await show('value', {
+    headerItems: [
+        { id: 'big', source: 'text', text: 'Groß', icon: 'Droplets', iconSize: 28, textSize: 20, slot: 'r1-right' },
+        { id: 'std', source: 'text', text: 'Normal', icon: 'Droplets', slot: 'r1-center' },
+    ],
+});
+const sizes = await card(id).evaluate((el) => {
+    const m = (hid) => {
+        const item = el.querySelector(`[data-header-item="${hid}"]`);
+        const svg = item?.querySelector('svg')?.getBoundingClientRect();
+        return { icon: svg ? Math.round(svg.width) : 0, font: item ? parseFloat(getComputedStyle(item).fontSize) : 0 };
+    };
+    return { big: m('big'), std: m('std') };
+});
+check('iconSize sets the item icon size', sizes.big.icon === 28, JSON.stringify(sizes));
+check('textSize sets the item font size', sizes.big.font === 20, JSON.stringify(sizes));
+check(
+    'without them the item keeps 13 px / text-xs',
+    sizes.std.icon === 13 && sizes.std.font === 12,
+    JSON.stringify(sizes),
+);
+
 // ── 5. Editor: Darstellung → Kopfzeile ───────────────────────────────────────
 const editId = `hi-${++seq}`;
 await page.evaluate(
@@ -415,6 +438,17 @@ opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId
 check(
     'source and text are written',
     opts?.headerItems?.[0]?.source === 'text' && opts.headerItems[0].text === 'PV {demo.pv}',
+);
+check('no icon, no icon size slider', (await editor.locator('[data-header-item-size="icon"]').count()) === 0);
+const textSlider = editor.locator('[data-header-item-size="text"] input[type="range"]').first();
+await textSlider.focus();
+for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+await page.waitForTimeout(300);
+opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);
+check(
+    'the text size slider writes textSize',
+    opts?.headerItems?.[0]?.textSize === 16,
+    JSON.stringify(opts?.headerItems?.[0]),
 );
 await editor.locator('[data-header-item-cond]').first().check();
 await page.waitForTimeout(300);

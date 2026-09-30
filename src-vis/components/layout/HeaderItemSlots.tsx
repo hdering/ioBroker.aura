@@ -49,10 +49,30 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
     return (
         <span
             className="aura-header-item inline-flex items-center gap-1 min-w-0 text-xs font-medium tabular-nums"
-            style={{ color: item.color || 'var(--text-primary)' }}
+            style={{
+                color: item.color || 'var(--text-primary)',
+                // Own size carries its own line-height — text-xs ships an absolute one
+                // that would clip the descenders of a larger font.
+                ...(item.textSize
+                    ? { fontSize: `calc(${item.textSize}px * var(--font-scale, 1))`, lineHeight: 1.25 }
+                    : {}),
+            }}
             data-header-item={item.id}
         >
-            {ItemIcon && <ItemIcon size={13} className="shrink-0" />}
+            {ItemIcon &&
+                (item.iconSize ? (
+                    // Explicit size: scaled by the global font scale like every other px size.
+                    <ItemIcon
+                        size={item.iconSize}
+                        className="shrink-0"
+                        style={{
+                            width: `calc(${item.iconSize}px * var(--font-scale, 1))`,
+                            height: `calc(${item.iconSize}px * var(--font-scale, 1))`,
+                        }}
+                    />
+                ) : (
+                    <ItemIcon size={13} className="shrink-0" />
+                ))}
             {item.text && <span className="truncate">{item.text}</span>}
         </span>
     );

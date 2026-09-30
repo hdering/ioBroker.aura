@@ -49,6 +49,77 @@ function itemSummary(item: WidgetHeaderItem, t: ReturnType<typeof useT>, config:
     return opt ? (opt.detail ? `${t(opt.labelKey)} ${opt.detail}` : t(opt.labelKey)) : t('hdr.src.widget');
 }
 
+/**
+ * A px size as a slider, like the widget symbol's own size under Darstellung. It drags
+ * on a local draft and commits on release — every commit serialises the dashboard.
+ * Unset = the item's default size; ↩ goes back to it.
+ */
+function SizeSlider({
+    label,
+    value,
+    fallback,
+    min,
+    max,
+    onChange,
+    testId,
+}: {
+    label: string;
+    value: number | undefined;
+    fallback: number;
+    min: number;
+    max: number;
+    onChange: (v: number | undefined) => void;
+    testId: string;
+}) {
+    const t = useT();
+    const [draft, setDraft] = useState<number | null>(null);
+    const shown = draft ?? value ?? fallback;
+    const commit = () => {
+        if (draft === null) return;
+        onChange(draft);
+        setDraft(null);
+    };
+    return (
+        <label className="flex items-center gap-1.5 flex-1 min-w-[180px]" data-header-item-size={testId}>
+            <span className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </span>
+            <input
+                type="range"
+                min={min}
+                max={max}
+                step={1}
+                value={shown}
+                onChange={(e) => setDraft(Number(e.target.value))}
+                onPointerUp={commit}
+                onKeyUp={commit}
+                onBlur={commit}
+                className="h-1 flex-1 min-w-0"
+            />
+            <span
+                className="text-[10px] w-9 text-right tabular-nums shrink-0"
+                style={{
+                    color: value === undefined && draft === null ? 'var(--text-secondary)' : 'var(--text-primary)',
+                }}
+            >
+                {shown} px
+            </span>
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    setDraft(null);
+                    onChange(undefined);
+                }}
+                className="text-[10px] px-0.5 hover:opacity-70 shrink-0"
+                style={{ color: 'var(--text-secondary)', visibility: value === undefined ? 'hidden' : undefined }}
+                title={t('common.auto')}
+            >
+                ↩
+            </button>
+        </label>
+    );
+}
+
 function ItemRow({
     item,
     config,
@@ -313,7 +384,7 @@ function ItemRow({
                     </button>
                     {item.icon && (
                         <button
-                            onClick={() => update({ icon: undefined })}
+                            onClick={() => update({ icon: undefined, iconSize: undefined })}
                             className="hover:opacity-60"
                             style={{ color: 'var(--text-secondary)' }}
                         >
@@ -323,6 +394,31 @@ function ItemRow({
                 </div>
                 <ColorField label={t('hdr.color')} value={item.color} onChange={(v) => update({ color: v })} />
             </div>
+
+            {item.source !== 'action' && (
+                <div className="flex items-center gap-3 flex-wrap">
+                    {item.icon && (
+                        <SizeSlider
+                            label={t('hdr.iconSize')}
+                            value={item.iconSize}
+                            fallback={13}
+                            min={8}
+                            max={64}
+                            onChange={(v) => update({ iconSize: v })}
+                            testId="icon"
+                        />
+                    )}
+                    <SizeSlider
+                        label={t('hdr.textSize')}
+                        value={item.textSize}
+                        fallback={12}
+                        min={8}
+                        max={40}
+                        onChange={(v) => update({ textSize: v })}
+                        testId="text"
+                    />
+                </div>
+            )}
 
             {/* Condition (step 4): the item only shows while its clauses hold — same
                 clause editor and value sources as markers (own datapoint, list tokens). */}

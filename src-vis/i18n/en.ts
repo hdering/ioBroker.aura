@@ -2663,6 +2663,8 @@ export const en: Record<TranslationKey, string> = {
     'hdr.textHintList':
         "Placeholders as for markers: {id}, {id;round(1)}, {{ a + b }} — plus the list's {sum} {avg} {min} {max} {count} {active}, also as {sum;round(0)}.",
     'hdr.icon': 'Icon',
+    'hdr.iconSize': 'Icon size',
+    'hdr.textSize': 'Text size',
     'hdr.color': 'Colour',
     'hdr.cond': 'Only show when …',
     'hdr.moveUp': 'Move up',

@@ -43,6 +43,8 @@ export interface ResolvedHeaderItem {
     titleSide?: 'before' | 'after';
     text: string;
     icon?: string;
+    iconSize?: number;
+    textSize?: number;
     color?: string;
     /** Source 'action': the click-action icon, drawn as a button that runs the action. */
     action?: boolean;
@@ -152,6 +154,8 @@ export function useHeaderItems(
                 titleSide: item.titleSide,
                 text,
                 icon: item.icon,
+                iconSize: item.iconSize,
+                textSize: item.textSize,
                 color: item.color,
             });
         }
