@@ -2683,8 +2683,8 @@ export const de = {
     'hdr.textHint': 'Platzhalter wie bei Markern: {id}, {id;round(1)}, {dp} = eigener Wert, {{ a + b }}.',
     'hdr.textHintList':
         'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste, auch als {sum;round(0)}.',
-    'hdr.icon': 'Symbol',
-    'hdr.iconSize': 'Symbolgröße',
+    'hdr.icon': 'Icon',
+    'hdr.iconSize': 'Größe',
     'hdr.textSize': 'Schriftgröße',
     'hdr.color': 'Farbe',
     'hdr.cond': 'Nur anzeigen, wenn …',
