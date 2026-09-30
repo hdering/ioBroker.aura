@@ -7,10 +7,19 @@
  * via the callbacks in props — this component never holds picker state itself.
  */
 import React, { useState } from 'react';
-import { Database, FolderOpen, HelpCircle, Plus, SlidersHorizontal, type LucideIcon } from 'lucide-react';
+import {
+    Database,
+    FolderOpen,
+    HelpCircle,
+    MousePointerClick,
+    Plus,
+    SlidersHorizontal,
+    type LucideIcon,
+} from 'lucide-react';
 import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { CLICKABLE_CELL_TYPES } from '../widgets/CustomGridView';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { EnumJsonSourceSection } from '../config/EnumJsonSourceSection';
@@ -604,6 +613,8 @@ export interface CustomCellEditorProps {
     onOpenDpPicker: (field?: 'dpId' | 'statusDpId') => void;
     onOpenImagePicker: () => void;
     onOpenConditions: () => void;
+    /** Opens the cell's click-action popup (display cells only, issue #729). */
+    onOpenClickAction?: () => void;
 }
 
 // Value-bearing / icon cell types that support per-cell conditional formatting.
@@ -643,6 +654,7 @@ export function CustomCellEditor({
     onOpenDpPicker,
     onOpenImagePicker,
     onOpenConditions,
+    onOpenClickAction,
 }: CustomCellEditorProps) {
     // Only for the small previews in this panel: a colour may be a light/dark
     // pair (#689), and a preview has to show the half that applies right now.
@@ -3309,6 +3321,38 @@ export function CustomCellEditor({
                 </>
             )}
 
+            {/* Per-cell click action (own popup, issue #729) — same look as Bedingungen: neutral until set, accent once set */}
+            {onOpenClickAction && CLICKABLE_CELL_TYPES.has(cell.type) && (
+                <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 10, marginTop: 6 }}>
+                    <button
+                        onClick={onOpenClickAction}
+                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors hover:opacity-90"
+                        style={{
+                            background: cell.clickAction ? 'var(--accent)' : 'var(--app-bg)',
+                            border: `1px solid ${cell.clickAction ? 'var(--accent)' : 'var(--app-border)'}`,
+                            color: cell.clickAction ? '#fff' : 'var(--text-primary)',
+                        }}
+                    >
+                        <span className="flex items-center gap-1.5">
+                            <MousePointerClick size={14} />
+                            Klick-Aktion
+                        </span>
+                        <span
+                            className="text-[10px] px-1.5 py-0.5 rounded-full"
+                            style={{
+                                background: cell.clickAction ? '#ffffff33' : 'var(--app-border)',
+                                color: cell.clickAction ? '#fff' : 'var(--text-secondary)',
+                            }}
+                        >
+                            {cell.clickAction ? 'an' : 'aus'}
+                        </span>
+                    </button>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Klick auf diese Zelle öffnet ein eigenes Popup oder springt zu einem Tab.
+                    </p>
+                </div>
+            )}
+
             {/* Per-cell conditional formatting (own popup) — always last, highlighted */}
             {CELL_CONDITION_TYPES.has(cell.type) && (
                 <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 10, marginTop: 6 }}>
@@ -3316,9 +3360,9 @@ export function CustomCellEditor({
                         onClick={onOpenConditions}
                         className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors hover:opacity-90"
                         style={{
-                            background: cell.conditions?.length ? 'var(--accent)' : 'var(--accent)15',
-                            border: `1px solid ${cell.conditions?.length ? 'var(--accent)' : 'var(--accent)55'}`,
-                            color: cell.conditions?.length ? '#fff' : 'var(--accent)',
+                            background: cell.conditions?.length ? 'var(--accent)' : 'var(--app-bg)',
+                            border: `1px solid ${cell.conditions?.length ? 'var(--accent)' : 'var(--app-border)'}`,
+                            color: cell.conditions?.length ? '#fff' : 'var(--text-primary)',
                         }}
                     >
                         <span className="flex items-center gap-1.5">
@@ -3328,8 +3372,8 @@ export function CustomCellEditor({
                         <span
                             className="text-[10px] px-1.5 py-0.5 rounded-full"
                             style={{
-                                background: cell.conditions?.length ? '#ffffff33' : 'var(--accent)',
-                                color: '#fff',
+                                background: cell.conditions?.length ? '#ffffff33' : 'var(--app-border)',
+                                color: cell.conditions?.length ? '#fff' : 'var(--text-secondary)',
                             }}
                         >
                             {cell.conditions?.length ?? 0}

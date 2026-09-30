@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.72.3",
+    "auraVersion": "0.72.4",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1730,6 +1730,16 @@
             "datetime"
           ],
           "description": "timestamp format (default 'relative')"
+        },
+        "clickAction": {
+          "type": "object",
+          "ref": "ClickAction",
+          "description": "Display cells only (text, value, dp, image, icon, …): what a click on this cell does — same actions as a widget click (popup view, link to tab, …). Unset = the cell is not clickable and a click reaches the widget's own action."
+        },
+        "popup": {
+          "type": "object",
+          "ref": "CellPopupOptions",
+          "description": "Popup settings for the cell's clickAction; each field unset = inherit popup view / global setting."
         }
       }
     },
@@ -1882,6 +1892,47 @@
         "middle",
         "bottom"
       ]
+    },
+    "CellPopupOptions": {
+      "type": "object",
+      "fields": {
+        "title": {
+          "type": "string",
+          "description": "popup heading; empty = widget title"
+        },
+        "hideTitle": {
+          "type": "boolean",
+          "description": "hide the popup's title bar"
+        },
+        "width": {
+          "type": "number",
+          "description": "popup width in px; unset = view/global"
+        },
+        "height": {
+          "type": "number",
+          "description": "popup height in px; unset = view/global"
+        },
+        "autoCloseSec": {
+          "type": "number",
+          "description": "0 = never close automatically, >0 = seconds; unset = view/global"
+        },
+        "transparency": {
+          "type": "number",
+          "description": "popup transparency in % (0 = opaque)"
+        },
+        "backdropDim": {
+          "type": "number",
+          "description": "backdrop dim in % (0 = clear)"
+        },
+        "background": {
+          "type": "string",
+          "description": "popup surface colour (any CSS colour)"
+        },
+        "padding": {
+          "type": "number",
+          "description": "inner padding in px (0…40)"
+        }
+      }
     },
     "ColorThreshold": {
       "type": "array",

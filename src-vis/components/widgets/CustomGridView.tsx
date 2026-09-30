@@ -6,7 +6,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
-import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
+import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef, CellPopupOptions } from '../../types';
 import { resolveImageSource } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
@@ -29,6 +29,9 @@ import type { DateOutputFormat } from '../../utils/dateValue';
 import { useDateValueFields, type DateValueSettings } from '../common/DateValueFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CheckboxControl } from './CheckboxControl';
+import { useRowPopup } from '../../hooks/useRowPopup';
+import { useDashboardStore } from '../../store/dashboardStore';
+import type { RowPopupOptions } from '../../utils/rowClickAction';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
@@ -1700,6 +1703,41 @@ function DatePickerCellView({
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
+/**
+ * Display cells that may carry their own click action (issue #729). The controls
+ * (switch, slider, button, input, …) already own the click, and an empty cell has
+ * nothing to hit.
+ */
+export const CLICKABLE_CELL_TYPES = new Set<CustomCell['type']>([
+    'title',
+    'value',
+    'unit',
+    'text',
+    'dp',
+    'field',
+    'image',
+    'icon',
+    'state-icon',
+    'state-text',
+    'progress',
+    'lastchange',
+]);
+
+const EMPTY_ROW_POPUP_OPTS: RowPopupOptions = {};
+
+function cellPopupOpts(p: CellPopupOptions | undefined): RowPopupOptions | undefined {
+    if (!p) return undefined;
+    return {
+        rowPopupWidth: p.width,
+        rowPopupHeight: p.height,
+        rowPopupAutoCloseSec: p.autoCloseSec,
+        rowPopupTransparency: p.transparency,
+        rowPopupBackdropDim: p.backdropDim,
+        rowPopupBackground: p.background,
+        rowPopupPadding: p.padding,
+    };
+}
+
 interface CustomGridViewProps {
     config: WidgetConfig;
     /** Widget's main display value (formatted string). Pass '' for complex widgets. */
@@ -1738,6 +1776,9 @@ export function CustomGridView({
     const grid = normalizeGrid(config.options?.customGrid, fallback);
     const { cols, rows, cells, colSizes, rowSizes } = grid;
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
+    // Per-cell click actions reuse the list rows' popup machinery (issue #729).
+    const editMode = useDashboardStore((s) => s.editMode);
+    const cellPopup = useRowPopup(config, EMPTY_ROW_POPUP_OPTS, editMode);
     // minmax(0, 1fr) — ohne die 0-Untergrenze würde CSS-Grid die Spalten/Zeilen am min-content
     // der Zellinhalte ausrichten; ein langer Freitext in einer Außenzelle macht dann die Spalte
     // breiter und verschiebt z.B. den Drehregler in der Mittenzelle aus der Mitte.
@@ -1768,128 +1809,144 @@ export function CustomGridView({
             }}
         >
             {cells.map((cell, i) => {
-                switch (cell.type) {
-                    case 'dp':
-                        return (
-                            <DpCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                defaultDecimals={defaultDecimals}
-                                globalNumFmt={globalNumFmt}
-                            />
-                        );
-                    case 'image':
-                        return <ImageCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    case 'component':
-                        return (
-                            <ComponentCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                extraComponents={extraComponents}
-                            />
-                        );
-                    case 'switch':
-                        return (
-                            <SwitchCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                uniformCh={uniformButtonCh}
-                            />
-                        );
-                    case 'slider':
-                        return (
-                            <SliderCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                defaultDecimals={defaultDecimals}
-                                globalNumFmt={globalNumFmt}
-                            />
-                        );
-                    case 'button':
-                        return <ButtonCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    case 'icon':
-                        return (
-                            <IconCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                mainDpId={config.datapoint}
-                            />
-                        );
-                    case 'state-icon':
-                        return <StateIconCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    case 'datepicker':
-                        return <DatePickerCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    case 'stepper':
-                        return (
-                            <StepperCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                defaultDecimals={defaultDecimals}
-                                globalNumFmt={globalNumFmt}
-                            />
-                        );
-                    case 'input':
-                        return <InputCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    case 'progress':
-                        return (
-                            <ProgressCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                defaultDecimals={defaultDecimals}
-                                globalNumFmt={globalNumFmt}
-                            />
-                        );
-                    case 'state-text':
-                        return <StateTextCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    case 'select':
-                        return <SelectCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    case 'lastchange':
-                        return <LastChangeCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
-                    default:
-                        return (
-                            <StaticCellView
-                                key={i}
-                                cell={cell}
-                                index={i}
-                                cols={cols}
-                                rows={rows}
-                                // A title cell is placed by hand, so it normally ignores showTitle
-                                // — but a condition that hides the title has to reach it here too,
-                                // otherwise "Titel zeigen: ausblenden" silently does nothing in a
-                                // custom layout.
-                                title={config.options?.showTitle === false ? '' : config.title}
-                                value={value}
-                                rawValue={rawValue}
-                                unit={unit}
-                                extraFields={extraFields}
-                                valueColor={valueColor}
-                                mainDpId={config.datapoint}
-                                globalNumFmt={globalNumFmt}
-                            />
-                        );
-                }
+                const node = renderCell(cell, i);
+                const click =
+                    cell.clickAction && CLICKABLE_CELL_TYPES.has(cell.type)
+                        ? cellPopup.row(
+                              cell.dpId ? baseDpId(cell.dpId) : (config.datapoint ?? ''),
+                              config.title ?? '',
+                              undefined,
+                              cell.clickAction,
+                              cell.popup?.title,
+                              cell.popup?.hideTitle,
+                              cellPopupOpts(cell.popup),
+                          )
+                        : undefined;
+                if (!click) return node;
+                // display:contents keeps the cell a direct grid item (its own placement
+                // style stays in charge); the click still bubbles through the wrapper.
+                return (
+                    <div
+                        key={i}
+                        className="aura-custom-cell-clickable"
+                        style={{ display: 'contents', cursor: 'pointer' }}
+                        {...click}
+                    >
+                        {node}
+                    </div>
+                );
             })}
+            {cellPopup.node}
         </div>
     );
+
+    function renderCell(cell: CustomCell, i: number): React.ReactNode {
+        switch (cell.type) {
+            case 'dp':
+                return (
+                    <DpCellView
+                        key={i}
+                        cell={cell}
+                        index={i}
+                        cols={cols}
+                        rows={rows}
+                        defaultDecimals={defaultDecimals}
+                        globalNumFmt={globalNumFmt}
+                    />
+                );
+            case 'image':
+                return <ImageCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'component':
+                return (
+                    <ComponentCellView
+                        key={i}
+                        cell={cell}
+                        index={i}
+                        cols={cols}
+                        rows={rows}
+                        extraComponents={extraComponents}
+                    />
+                );
+            case 'switch':
+                return (
+                    <SwitchCellView key={i} cell={cell} index={i} cols={cols} rows={rows} uniformCh={uniformButtonCh} />
+                );
+            case 'slider':
+                return (
+                    <SliderCellView
+                        key={i}
+                        cell={cell}
+                        index={i}
+                        cols={cols}
+                        rows={rows}
+                        defaultDecimals={defaultDecimals}
+                        globalNumFmt={globalNumFmt}
+                    />
+                );
+            case 'button':
+                return <ButtonCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'icon':
+                return (
+                    <IconCellView key={i} cell={cell} index={i} cols={cols} rows={rows} mainDpId={config.datapoint} />
+                );
+            case 'state-icon':
+                return <StateIconCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'datepicker':
+                return <DatePickerCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'stepper':
+                return (
+                    <StepperCellView
+                        key={i}
+                        cell={cell}
+                        index={i}
+                        cols={cols}
+                        rows={rows}
+                        defaultDecimals={defaultDecimals}
+                        globalNumFmt={globalNumFmt}
+                    />
+                );
+            case 'input':
+                return <InputCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'progress':
+                return (
+                    <ProgressCellView
+                        key={i}
+                        cell={cell}
+                        index={i}
+                        cols={cols}
+                        rows={rows}
+                        defaultDecimals={defaultDecimals}
+                        globalNumFmt={globalNumFmt}
+                    />
+                );
+            case 'state-text':
+                return <StateTextCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'select':
+                return <SelectCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'lastchange':
+                return <LastChangeCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            default:
+                return (
+                    <StaticCellView
+                        key={i}
+                        cell={cell}
+                        index={i}
+                        cols={cols}
+                        rows={rows}
+                        // A title cell is placed by hand, so it normally ignores showTitle
+                        // — but a condition that hides the title has to reach it here too,
+                        // otherwise "Titel zeigen: ausblenden" silently does nothing in a
+                        // custom layout.
+                        title={config.options?.showTitle === false ? '' : config.title}
+                        value={value}
+                        rawValue={rawValue}
+                        unit={unit}
+                        extraFields={extraFields}
+                        valueColor={valueColor}
+                        mainDpId={config.datapoint}
+                        globalNumFmt={globalNumFmt}
+                    />
+                );
+        }
+    }
 }

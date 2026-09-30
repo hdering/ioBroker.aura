@@ -150,6 +150,20 @@ Zahlenwerte den Text bzw. das Icon bestimmen.
 Die Skala beschriftet immer Min und Max; zu feine Skalen (z. B. `0`–`255`) werden auf ein rundes Raster
 ausgedünnt. Die Zahlen folgen der Schrittweite, nicht `decimals`.
 
+### Klick-Aktion
+
+Knopf **Klick-Aktion** im Zell-Editor — dieselben Aktionen wie beim Widget-Klick (Popup-View, Tab-Link, …).
+
+| Feld | |
+| --- | --- |
+| `clickAction` | Aktion dieser Zelle; leer = Klick geht an die Aktion des Widgets |
+| `popup` | `title` · `hideTitle` · `width` · `height` · `autoCloseSec` · `transparency` · `backdropDim` · `background` · `padding` |
+
+| Zelltypen | |
+| --- | --- |
+| mit Klick-Aktion | `title` · `value` · `unit` · `text` · `dp` · `field` · `image` · `icon` · `state-icon` · `state-text` · `progress` · `lastchange` |
+| ohne | Bedienelemente (`switch`, `slider`, `button`, `stepper`, `input`, `select`, `datepicker`) · `component` · `empty` |
+
 ## Zellen verschieben & kopieren
 
 ### Mit der Maus

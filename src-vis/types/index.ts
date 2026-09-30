@@ -384,6 +384,24 @@ export interface CustomCell {
     // last-change display (for value-bearing cells)
     showLastChange?: boolean; // show lc timestamp below the cell content
     lastChangeFormat?: 'relative' | 'time' | 'datetime'; // timestamp format (default 'relative')
+    // click action on display cells (issue #729) — see CLICKABLE_CELL_TYPES in CustomGridView
+    /** Display cells only (text, value, dp, image, icon, …): what a click on this cell does — same actions as a widget click (popup view, link to tab, …). Unset = the cell is not clickable and a click reaches the widget's own action. */
+    clickAction?: ClickAction;
+    /** Popup settings for the cell's clickAction; each field unset = inherit popup view / global setting. */
+    popup?: CellPopupOptions;
+}
+
+/** Per-cell popup settings of a Universal-Widget cell (issue #729). */
+export interface CellPopupOptions {
+    title?: string; // popup heading; empty = widget title
+    hideTitle?: boolean; // hide the popup's title bar
+    width?: number; // popup width in px; unset = view/global
+    height?: number; // popup height in px; unset = view/global
+    autoCloseSec?: number; // 0 = never close automatically, >0 = seconds; unset = view/global
+    transparency?: number; // popup transparency in % (0 = opaque)
+    backdropDim?: number; // backdrop dim in % (0 = clear)
+    background?: string; // popup surface colour (any CSS colour)
+    padding?: number; // inner padding in px (0…40)
 }
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */

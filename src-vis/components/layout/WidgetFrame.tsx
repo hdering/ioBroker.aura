@@ -126,6 +126,7 @@ import type {
     ClimateMetric,
     CustomCell,
     CustomGridDef,
+    CellPopupOptions,
     WidgetType,
     ClickAction,
     WidgetLayout,
@@ -6888,6 +6889,7 @@ function WidgetFrameInner({
         null,
     );
     const [customCellCondOpen, setCustomCellCondOpen] = useState(false);
+    const [customCellClickOpen, setCustomCellClickOpen] = useState(false);
     const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
     const [actionIconPickerOpen, setActionIconPickerOpen] = useState(false);
     const [headerEditorOpen, setHeaderEditorOpen] = useState(false);
@@ -19133,6 +19135,7 @@ function WidgetFrameInner({
                                                         }
                                                         onOpenImagePicker={() => setCustomCellImagePickerOpen(true)}
                                                         onOpenConditions={() => setCustomCellCondOpen(true)}
+                                                        onOpenClickAction={() => setCustomCellClickOpen(true)}
                                                     />
                                                 ) : (
                                                     <p
@@ -20906,6 +20909,82 @@ function WidgetFrameInner({
                                         ...grid,
                                         cells: grid.cells.map((c, i) =>
                                             i === idx ? { ...c, conditions: next.length ? next : undefined } : c,
+                                        ),
+                                    };
+                                    onConfigChange({ ...config, options: { ...config.options, customGrid: nextGrid } });
+                                }}
+                            />
+                        </CenteredModal>
+                    );
+                })()}
+
+            {/* Custom-Grid per-cell click action (issue #729) */}
+            {customCellClickOpen &&
+                selectedCustomCell !== null &&
+                (() => {
+                    const fb =
+                        config.type === 'universal'
+                            ? DEFAULT_UNIVERSAL_GRID
+                            : config.type === 'knob'
+                              ? DEFAULT_KNOB_GRID
+                              : DEFAULT_CUSTOM_GRID;
+                    const grid = normalizeGrid(config.options?.customGrid, fb);
+                    const idx = selectedCustomCell;
+                    const cell = grid.cells[idx];
+                    if (!cell) return null;
+                    const p = cell.popup ?? {};
+                    // The editor reads/writes options.clickAction + popup*; a proxy config
+                    // maps them onto the cell. A stored 'none' keeps the widget type's
+                    // default action out of the cell editor.
+                    const proxy: WidgetConfig = {
+                        ...config,
+                        datapoint: cell.dpId || config.datapoint,
+                        options: {
+                            clickAction: cell.clickAction ?? { kind: 'none' },
+                            popupTitle: p.title,
+                            popupHideTitle: p.hideTitle,
+                            popupWidth: p.width,
+                            popupHeight: p.height,
+                            popupAutoCloseSec: p.autoCloseSec,
+                            popupTransparency: p.transparency,
+                            popupBackdropDim: p.backdropDim,
+                            popupBackground: p.background,
+                            popupPadding: p.padding,
+                        },
+                    };
+                    return (
+                        <CenteredModal
+                            title={`Klick-Aktion · Zeile ${Math.floor(idx / grid.cols) + 1}, Spalte ${(idx % grid.cols) + 1}`}
+                            onClose={() => setCustomCellClickOpen(false)}
+                        >
+                            <ClickActionEditor
+                                config={proxy}
+                                onConfigChange={(next) => {
+                                    const o = next.options ?? {};
+                                    const action = o.clickAction as ClickAction | undefined;
+                                    const popup: CellPopupOptions = {
+                                        title: (o.popupTitle as string) || undefined,
+                                        hideTitle: (o.popupHideTitle as boolean) || undefined,
+                                        width: o.popupWidth as number | undefined,
+                                        height: o.popupHeight as number | undefined,
+                                        autoCloseSec: o.popupAutoCloseSec as number | undefined,
+                                        transparency: o.popupTransparency as number | undefined,
+                                        backdropDim: o.popupBackdropDim as number | undefined,
+                                        background: (o.popupBackground as string) || undefined,
+                                        padding: o.popupPadding as number | undefined,
+                                    };
+                                    const hasPopup = Object.values(popup).some((v) => v !== undefined);
+                                    const on = !!action && action.kind !== 'none';
+                                    const nextGrid: CustomGridDef = {
+                                        ...grid,
+                                        cells: grid.cells.map((c, i) =>
+                                            i === idx
+                                                ? {
+                                                      ...c,
+                                                      clickAction: on ? action : undefined,
+                                                      popup: on && hasPopup ? popup : undefined,
+                                                  }
+                                                : c,
                                         ),
                                     };
                                     onConfigChange({ ...config, options: { ...config.options, customGrid: nextGrid } });
