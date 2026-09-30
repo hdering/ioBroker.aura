@@ -75,9 +75,10 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
     // Esc for itself there, so the keydown above never fires — follow its exit
     // instead. Only a transition out closes: a request that was refused never
     // enters, and must not shut the overlay it fell back to. Handing the screen
-    // back is the store's job (setTarget(null)), not this cleanup's: the overlay
-    // remounts when entering fullscreen flips the Dashboard between grid and
-    // phone flow, and must stay fullscreen across that.
+    // back is the store's job (setTarget(null)), not this cleanup's: a cleanup
+    // also runs on any remount, and the overlay must stay fullscreen across it.
+    // (The Dashboard keeps it mounted when entering fullscreen flips between grid
+    // and phone flow, #728, but that is the Dashboard's promise, not this one's.)
     // onClose arrives as a fresh arrow each render; keeping it out of the deps
     // saves re-subscribing on every re-render.
     const ownsScreen = target.ownsScreen === true;

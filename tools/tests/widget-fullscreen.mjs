@@ -285,6 +285,33 @@ const overlay = '[data-widget-fullscreen]';
     await ctx.close();
 }
 
+// ── 6c. Das Overlay übersteht den Zweigwechsel, ohne neu eingehängt zu werden (#728) ───
+// Ein Handy im Querformat kippt beim Ein-/Ausblenden seiner Leisten zwischen Raster
+// und Handy-Fluss. Hing das Overlay im jeweiligen Zweig, wurde es bei jedem Kippen
+// neu eingehängt — ein Diagramm darin lud jedes Mal neu und zeigte fast nur
+// „Keine Daten“. Geprüft wird, dass Overlay und Widget-Karte dieselben Knoten bleiben.
+{
+    const { ctx, page } = await open({ viewport: { width: 851, height: 393 }, hasTouch: true });
+    await page.evaluate(() => window.__auraShot.setFrontend({ mobileBreakpoint: 600 }));
+    await show(page, [widget('fs-flip', 'value', { fullscreenWidget: true })]);
+    await page.locator(btn).first().click();
+    await page.waitForTimeout(400);
+    await page.evaluate(() => {
+        document.querySelector('[data-widget-fullscreen] .aura-widget').__probe728 = true;
+    });
+    for (const mb of [1000, 600, 1000, 600]) {
+        await page.evaluate((m) => window.__auraShot.setFrontend({ mobileBreakpoint: m }), mb);
+        await page.waitForTimeout(150);
+    }
+    const kept = await page.evaluate(() => ({
+        overlays: document.querySelectorAll('[data-widget-fullscreen]').length,
+        same: document.querySelector('[data-widget-fullscreen] .aura-widget')?.__probe728 === true,
+    }));
+    check('Zweigwechsel: genau ein Overlay offen', kept.overlays === 1, JSON.stringify(kept));
+    check('Zweigwechsel: das Widget im Overlay wird nicht neu eingehängt', kept.same, JSON.stringify(kept));
+    await ctx.close();
+}
+
 // ── 7. Touch-Kontext: dauerhaft sichtbar ─────────────────────────────────────────────
 {
     const { ctx, page } = await open({ hasTouch: true, isMobile: true });
