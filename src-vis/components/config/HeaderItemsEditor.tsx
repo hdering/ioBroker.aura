@@ -60,6 +60,7 @@ function SizeSlider({
     fallback,
     min,
     max,
+    step = 1,
     onChange,
     testId,
 }: {
@@ -68,6 +69,7 @@ function SizeSlider({
     fallback: number;
     min: number;
     max: number;
+    step?: number;
     onChange: (v: number | undefined) => void;
     testId: string;
 }) {
@@ -88,7 +90,7 @@ function SizeSlider({
                 type="range"
                 min={min}
                 max={max}
-                step={1}
+                step={step}
                 value={shown}
                 onChange={(e) => setDraft(Number(e.target.value))}
                 onPointerUp={commit}
@@ -117,6 +119,113 @@ function SizeSlider({
                 ↩
             </button>
         </label>
+    );
+}
+
+/** What the widget's own title and symbol allow — Darstellung used to carry these (#725). */
+export interface HeaderHeadProps {
+    iconAllowed: boolean;
+    titleAllowed: boolean;
+    /** The symbol can be chosen (the window contact draws its own). */
+    iconPickable: boolean;
+    /** Writes plain widget options: showIcon, icon, iconSize, showTitle. */
+    onChange: (patch: Record<string, unknown>) => void;
+}
+
+function Toggle({ on, onFlip, attr }: { on: boolean; onFlip: () => void; attr: string }) {
+    return (
+        <button
+            onClick={onFlip}
+            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+            style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+            data-display-toggle={attr}
+        >
+            <span
+                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                style={{ left: on ? '14px' : '2px' }}
+            />
+        </button>
+    );
+}
+
+/**
+ * The widget's own title and symbol: on/off, the symbol and its size. Where they sit
+ * is set on the map above; everything about the header lives in this one dialog.
+ */
+function HeadRows({
+    config,
+    head,
+    defaultIcon,
+}: {
+    config: WidgetConfig;
+    head: HeaderHeadProps;
+    defaultIcon?: LucideIcon;
+}) {
+    const t = useT();
+    const o = config.options ?? {};
+    const [pickerOpen, setPickerOpen] = useState(false);
+    const iconOn = o.showIcon !== false;
+    const titleOn = o.showTitle !== false;
+    const Icon = getWidgetIcon(o.icon as string | undefined, defaultIcon ?? Shapes) ?? Shapes;
+    return (
+        <div
+            className="rounded-xl p-2.5 space-y-2"
+            style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+            data-header-head=""
+        >
+            {head.titleAllowed && (
+                <div className="flex items-center gap-1.5" data-head-title="">
+                    <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                        {t('hdr.chip.title')}
+                    </label>
+                    <Toggle on={titleOn} onFlip={() => head.onChange({ showTitle: !titleOn })} attr="title" />
+                </div>
+            )}
+            {head.iconAllowed && (
+                <div className="flex items-center gap-3 flex-wrap" data-head-icon="">
+                    <div className="flex items-center gap-1.5">
+                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                            {t('hdr.icon')}
+                        </label>
+                        <Toggle on={iconOn} onFlip={() => head.onChange({ showIcon: !iconOn })} attr="icon" />
+                        {iconOn && head.iconPickable && (
+                            <button
+                                onClick={() => setPickerOpen(true)}
+                                className="ml-1.5 w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:opacity-80"
+                                style={inputStyle}
+                                title={(o.icon as string | undefined) ?? t('hdr.pickIcon')}
+                                aria-label={t('hdr.pickIcon')}
+                                data-icon-pick=""
+                            >
+                                <Icon size={15} />
+                            </button>
+                        )}
+                    </div>
+                    {iconOn && (
+                        <SizeSlider
+                            label={t('hdr.iconSize')}
+                            value={o.iconSize as number | undefined}
+                            fallback={20}
+                            min={12}
+                            max={256}
+                            step={4}
+                            onChange={(v) => head.onChange({ iconSize: v })}
+                            testId="main-icon"
+                        />
+                    )}
+                </div>
+            )}
+            {pickerOpen && (
+                <IconPickerModal
+                    current={(o.icon as string | undefined) ?? ''}
+                    onSelect={(name) => {
+                        head.onChange({ icon: name || undefined });
+                        setPickerOpen(false);
+                    }}
+                    onClose={() => setPickerOpen(false)}
+                />
+            )}
+        </div>
     );
 }
 
@@ -531,6 +640,7 @@ export function HeaderItemsEditor({
     hasClickAction = false,
     iconFixed = false,
     defaultIcon,
+    head,
     onChange,
     onLayoutChange,
 }: {
@@ -542,6 +652,8 @@ export function HeaderItemsEditor({
     iconFixed?: boolean;
     /** The type's own symbol, for a widget without options.icon. */
     defaultIcon?: LucideIcon;
+    /** Title and symbol settings (on/off, symbol, size). Absent: not shown. */
+    head?: HeaderHeadProps;
     onChange: (items: WidgetHeaderItem[]) => void;
     /** Moves title / symbol (titleAlign, iconPlace). Absent: the two tiles are not shown. */
     onLayoutChange?: (patch: HeaderLayoutPatch) => void;
@@ -775,6 +887,10 @@ export function HeaderItemsEditor({
                     </p>
                 )}
             </div>
+
+            {head && (head.iconAllowed || head.titleAllowed) && (
+                <HeadRows config={config} head={head} defaultIcon={defaultIcon} />
+            )}
 
             {items.length === 0 && (
                 <p className="text-xs text-center py-2" style={{ color: 'var(--text-secondary)' }}>

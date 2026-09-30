@@ -1196,7 +1196,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.mobileKeepGridHint':
         'By default widgets are stacked in a single column on mobile. When enabled, the side-by-side arrangement from the normal view is kept, just scaled down.',
     'wf.edit.position': 'Position',
-    'wf.edit.placeInHeaderHint': 'Where title and icon sit, plus extra values',
+    'wf.edit.placeInHeaderHint': 'Title and icon (show, icon, size, position), plus extra values',
     'wf.edit.iconPlace.lead': 'Left',
     'wf.edit.iconPlace.beforeTitle': 'Before title',
     'wf.edit.iconPlace.afterTitle': 'After title',
@@ -2614,7 +2614,7 @@ export const en: Record<TranslationKey, string> = {
     'hdr.chip.moveTitle': 'Move the title',
     'hdr.chip.moveIcon': 'Move the icon',
     'hdr.chip.titleHere': 'Title here',
-    'hdr.chip.hidden': 'Hidden under Appearance',
+    'hdr.chip.hidden': 'Hidden — switch it back on below',
     'hdr.iconFixedHint':
         'This layout draws the icon in a fixed spot when expanded; the position applies to the folded header.',
     'hdr.centerHint':
@@ -2666,6 +2666,7 @@ export const en: Record<TranslationKey, string> = {
     'hdr.iconSize': 'Icon size',
     'hdr.textSize': 'Text size',
     'hdr.color': 'Colour',
+    'hdr.pickIcon': 'Choose icon',
     'hdr.iconColor': 'Colour',
     'hdr.textColor': 'Text colour',
     'hdr.cond': 'Only show when …',

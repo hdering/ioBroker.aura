@@ -131,7 +131,13 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 
 ## Kopfzeile
 
-`Bearbeiten` → **Darstellung** → `Kopfzeile` → `Werte hinzufügen…`. Zusätzliche Werte neben dem Titel, aufgeklappt in der Titelzeile des Widgets, eingeklappt in der Kopfzeile.
+`Bearbeiten` → **Darstellung** → `Kopfzeile` → `Bearbeiten…`. Titel und Icon des Widgets sowie zusätzliche Werte neben dem Titel, aufgeklappt in der Titelzeile des Widgets, eingeklappt in der Kopfzeile.
+
+| Titel / Icon | |
+| --- | --- |
+| Titel | anzeigen an/aus |
+| Icon | anzeigen an/aus, Icon, Größe (Standard 20 px) |
+| Position | Titel bzw. Icon in der Übersicht antippen oder ziehen, dann den Platz antippen |
 
 ![](./assets/kopfzeile-aufgeklappt.png)
 
@@ -152,7 +158,8 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 | Option | |
 | --- | --- |
 | Anzeigen | `immer` (Standard), `nur eingeklappt`, `nur aufgeklappt` |
-| Symbol, Farbe | je Element |
+| Icon | Icon, Farbe, Größe (Standard 13 px); ohne eigene Farbe wie der Text |
+| Text | Textfarbe, Schriftgröße (Standard 12 px) |
 | Nur anzeigen, wenn … | Bedingung wie bei [Markern](#marker-sichtbarkeit): leerer Datenpunkt = eigener Wert, bei Listen auch `Liste: Anzahl aktiv` usw. Ist sie nicht erfüllt, verschwindet das Element (eine leere Zeile 2 mit) |
 
 Mehrere Elemente auf einem Platz stehen nebeneinander, Reihenfolge per Pfeil. Zu lange Werte werden gekürzt, der Titel zuerst. Ein Tipp auf einen Platz in der Übersicht legt dort ein neues Element an. In Layouts ohne eigene Titelzeile (z. B. `Kompakt`, `Minimal`, `Custom`) stehen die Werte auf der Höhe des Titels, Zeile 2 unter dem Inhalt. Liegt der Titel in einer gefüllten Kachel (Schalter, Fensterkontakt, Binärsensor, Zustandsbild im Layout `Kachel`), steht Zeile 1 über der Kachel.

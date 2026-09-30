@@ -442,27 +442,47 @@ for (const [type, opts] of [
     const editor = page.locator('[data-header-items-editor]');
     const cell = (slot) => editor.locator(`[data-header-slot-add="${slot}"]`);
 
-    // Darstellung only switches title and icon on/off; the position lives in the dialog.
+    // Everything about title and icon lives in the header dialog (#725); Darstellung
+    // only opens it, with the hint what is in there.
     check('Darstellung: no alignment buttons any more', (await dlg.locator('button:text-is("Mitte")').count()) === 0);
-    // Icon | Titel side by side in one framed group, picker and size in the icon column,
-    // the header dialog right below with the hint that title and icon are placed there.
     const group = dlg.locator('[data-head-group]');
-    check('Darstellung: icon, title and header in one group', (await group.count()) === 1);
+    check('Darstellung: header in one group', (await group.count()) === 1);
     check(
-        'Darstellung: picker and size sit in the icon column',
-        (await group.locator('[data-icon-col] [data-icon-pick]').count()) === 1 &&
-            (await group.locator('[data-icon-col] [data-icon-size]').count()) === 1,
+        'Darstellung: no icon / title controls of its own',
+        (await dlg.locator('[data-icon-pick], [data-display-toggle]').count()) === 0,
     );
     check(
-        'Darstellung: the header row says where title and icon are placed',
+        'Darstellung: the header row says what is set there',
         (await group.locator('[data-header-position-hint]').count()) === 1,
     );
-    const pickBox = await group.locator('[data-icon-pick]').boundingBox();
-    check('Darstellung: the icon picker is a small button', pickBox && pickBox.width <= 32, JSON.stringify(pickBox));
     if (process.env.SHOTS) await dlg.screenshot({ path: `${process.env.SHOTS}/darstellung.png` });
-    const posLink = group.locator('[data-header-items-open]');
-    await posLink.click();
+    await group.locator('[data-header-items-open]').click();
     await editor.waitFor({ timeout: 5000 });
+
+    const head = editor.locator('[data-header-head]');
+    check(
+        'editor: title and icon rows with toggle, picker and size',
+        (await head.locator('[data-display-toggle="title"]').count()) === 1 &&
+            (await head.locator('[data-display-toggle="icon"]').count()) === 1 &&
+            (await head.locator('[data-icon-pick]').count()) === 1 &&
+            (await head.locator('[data-header-item-size="main-icon"]').count()) === 1,
+    );
+    const pickBox = await head.locator('[data-icon-pick]').boundingBox();
+    check('editor: the icon picker is a small button', pickBox && pickBox.width <= 32, JSON.stringify(pickBox));
+    const mainSlider = head.locator('[data-header-item-size="main-icon"] input[type="range"]');
+    await mainSlider.focus();
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(300);
+    check(
+        'editor: the icon size slider writes iconSize',
+        (await opts())?.iconSize === 24,
+        String((await opts())?.iconSize),
+    );
+    await head.locator('[data-display-toggle="title"]').click();
+    await page.waitForTimeout(300);
+    check('editor: the title toggle writes showTitle', (await opts())?.showTitle === false);
+    await head.locator('[data-display-toggle="title"]').click();
+    await page.waitForTimeout(300);
 
     check('editor: map marks the title as centred', (await editor.locator('[data-title-centered]').count()) === 1);
     check(

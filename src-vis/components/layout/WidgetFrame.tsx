@@ -6845,7 +6845,6 @@ function WidgetFrameInner({
         idx: 0,
         field: 'latDp',
     });
-    const [iconPickerOpen, setIconPickerOpen] = useState(false);
     const [iconPickerTrueOpen, setIconPickerTrueOpen] = useState(false);
     const [iconPickerFalseOpen, setIconPickerFalseOpen] = useState(false);
     const [wcIconPickerState, setWcIconPickerState] = useState<'closed' | 'tilted' | 'open' | null>(null);
@@ -9000,17 +8999,9 @@ function WidgetFrameInner({
                         const o = config.options ?? {};
                         const setO = (patch: Record<string, unknown>) =>
                             onConfigChange({ ...config, options: { ...o, ...patch } });
-                        const titleOn = o.showTitle !== false;
-                        const iconOn = o.showIcon !== false;
                         const fsOn = o.fullscreenWidget === true;
                         const collapsedOn = o.defaultCollapsed === true;
                         const collapseEditorOn = o.collapseInEditor === true;
-                        const currentIconName = o.icon as string | undefined;
-                        // Without an own icon the button shows the type's default one.
-                        const CurrentIcon = currentIconName
-                            ? getWidgetIcon(currentIconName, (() => null) as unknown as LucideIcon)
-                            : (WIDGET_BY_TYPE[config.type as WidgetType]?.Icon ?? null);
-                        const displayIconSize = draftIconSize ?? ((o.iconSize as number) || 20);
                         return (
                             <details
                                 className="group rounded-lg px-3 py-3"
@@ -9059,180 +9050,6 @@ function WidgetFrameInner({
                                         style={{ border: '1px solid var(--app-border)' }}
                                         data-head-group=""
                                     >
-                                        {/* Icon | Titel side by side, the icon's picker and size below —
-                                        where they sit is set in the header dialog right after (#676). */}
-                                        {(() => {
-                                            const iconAllowed =
-                                                config.type !== 'stateimage' && config.type !== 'mirror';
-                                            const titleAllowed =
-                                                config.type !== 'mediaplayer' && config.type !== 'mirror';
-                                            if (!iconAllowed && !titleAllowed) return null;
-                                            const toggle = (on: boolean, flip: () => void, attr: string) => (
-                                                <button
-                                                    onClick={flip}
-                                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                    style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
-                                                    data-display-toggle={attr}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: on ? '14px' : '2px' }}
-                                                    />
-                                                </button>
-                                            );
-                                            return (
-                                                <>
-                                                    <div className="grid grid-cols-2 gap-x-4" data-head-toggles="">
-                                                        {iconAllowed ? (
-                                                            <div className="space-y-2 min-w-0" data-icon-col="">
-                                                                <div className="flex items-center justify-between gap-2">
-                                                                    <span
-                                                                        className="text-[11px]"
-                                                                        style={{ color: 'var(--text-primary)' }}
-                                                                    >
-                                                                        Icon
-                                                                    </span>
-                                                                    {toggle(
-                                                                        iconOn,
-                                                                        () => setO({ showIcon: !iconOn }),
-                                                                        'icon',
-                                                                    )}
-                                                                </div>
-                                                                {iconAllowed && iconOn && (
-                                                                    <div
-                                                                        className="flex items-center gap-2"
-                                                                        data-icon-row=""
-                                                                    >
-                                                                        {config.type !== 'windowcontact' && (
-                                                                            <>
-                                                                                <button
-                                                                                    onClick={() =>
-                                                                                        setIconPickerOpen(true)
-                                                                                    }
-                                                                                    className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg transition-colors hover:opacity-80"
-                                                                                    style={{
-                                                                                        background: 'var(--app-bg)',
-                                                                                        border: '1px solid var(--app-border)',
-                                                                                        color: 'var(--text-primary)',
-                                                                                    }}
-                                                                                    title={
-                                                                                        currentIconName ??
-                                                                                        'Icon auswählen…'
-                                                                                    }
-                                                                                    aria-label="Icon auswählen"
-                                                                                    data-icon-pick=""
-                                                                                >
-                                                                                    {CurrentIcon ? (
-                                                                                        <CurrentIcon size={15} />
-                                                                                    ) : (
-                                                                                        <span
-                                                                                            className="text-[10px]"
-                                                                                            style={{
-                                                                                                color: 'var(--text-secondary)',
-                                                                                            }}
-                                                                                        >
-                                                                                            …
-                                                                                        </span>
-                                                                                    )}
-                                                                                </button>
-                                                                                {iconPickerOpen && (
-                                                                                    <IconPickerModal
-                                                                                        current={currentIconName ?? ''}
-                                                                                        onSelect={(name) =>
-                                                                                            onConfigChange({
-                                                                                                ...config,
-                                                                                                options: {
-                                                                                                    ...o,
-                                                                                                    icon:
-                                                                                                        name ||
-                                                                                                        undefined,
-                                                                                                },
-                                                                                            })
-                                                                                        }
-                                                                                        onClose={() =>
-                                                                                            setIconPickerOpen(false)
-                                                                                        }
-                                                                                    />
-                                                                                )}
-                                                                            </>
-                                                                        )}
-                                                                        <label
-                                                                            className="flex items-center gap-2 flex-1 min-w-0"
-                                                                            title="Icon-Größe"
-                                                                            data-icon-size=""
-                                                                        >
-                                                                            <span
-                                                                                className="text-[10px] shrink-0"
-                                                                                style={{
-                                                                                    color: 'var(--text-secondary)',
-                                                                                }}
-                                                                            >
-                                                                                Größe
-                                                                            </span>
-                                                                            <input
-                                                                                type="range"
-                                                                                min={12}
-                                                                                max={256}
-                                                                                step={4}
-                                                                                value={displayIconSize}
-                                                                                onChange={(e) =>
-                                                                                    setDraftIconSize(
-                                                                                        Number(e.target.value),
-                                                                                    )
-                                                                                }
-                                                                                onPointerUp={(e) => {
-                                                                                    onConfigChange({
-                                                                                        ...config,
-                                                                                        options: {
-                                                                                            ...o,
-                                                                                            iconSize: Number(
-                                                                                                (
-                                                                                                    e.target as HTMLInputElement
-                                                                                                ).value,
-                                                                                            ),
-                                                                                        },
-                                                                                    });
-                                                                                    setDraftIconSize(null);
-                                                                                }}
-                                                                                className="h-1 flex-1 min-w-0"
-                                                                                style={{ accentColor: 'var(--accent)' }}
-                                                                            />
-                                                                            <span
-                                                                                className="text-[10px] tabular-nums w-10 text-right shrink-0"
-                                                                                style={{ color: 'var(--text-primary)' }}
-                                                                            >
-                                                                                {displayIconSize} px
-                                                                            </span>
-                                                                        </label>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        ) : (
-                                                            <span />
-                                                        )}
-                                                        {titleAllowed && (
-                                                            <div
-                                                                className="flex items-start justify-between gap-2 pl-4"
-                                                                style={{ borderLeft: '1px solid var(--app-border)' }}
-                                                                data-title-col=""
-                                                            >
-                                                                <span
-                                                                    className="text-[11px]"
-                                                                    style={{ color: 'var(--text-primary)' }}
-                                                                >
-                                                                    Titel
-                                                                </span>
-                                                                {toggle(
-                                                                    titleOn,
-                                                                    () => setO({ showTitle: !titleOn }),
-                                                                    'title',
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </>
-                                            );
-                                        })()}
                                         {/* Header items (issue #676): extra values in the header row.
                                         The editor is too large for this panel, so it opens as
                                         its own popup. */}
@@ -9241,10 +9058,6 @@ function WidgetFrameInner({
                                                 const hdrCount = headerItems(o).length;
                                                 return (
                                                     <>
-                                                        <div
-                                                            className="h-px"
-                                                            style={{ background: 'var(--app-border)' }}
-                                                        />
                                                         <div className="flex items-center justify-between gap-2">
                                                             <div className="min-w-0">
                                                                 <label
@@ -9298,6 +9111,14 @@ function WidgetFrameInner({
                                                                     defaultIcon={
                                                                         WIDGET_BY_TYPE[config.type as WidgetType]?.Icon
                                                                     }
+                                                                    // Title and symbol themselves (#725) — Darstellung
+                                                                    // only opens this dialog now.
+                                                                    head={{
+                                                                        iconAllowed: config.type !== 'stateimage',
+                                                                        titleAllowed: config.type !== 'mediaplayer',
+                                                                        iconPickable: config.type !== 'windowcontact',
+                                                                        onChange: (patch) => setO(patch),
+                                                                    }}
                                                                     onLayoutChange={(patch) => setO({ ...patch })}
                                                                     onChange={(next) =>
                                                                         setO({

@@ -1207,7 +1207,7 @@ export const de = {
     'wf.edit.group.mobileKeepGridHint':
         'Standardmäßig werden Widgets auf dem Smartphone untereinander gestapelt. Aktiviert bleibt die nebeneinander-Anordnung wie in der normalen Ansicht erhalten, nur verkleinert.',
     'wf.edit.position': 'Position',
-    'wf.edit.placeInHeaderHint': 'Position von Titel und Icon sowie zusätzliche Werte',
+    'wf.edit.placeInHeaderHint': 'Titel und Icon (anzeigen, Icon, Größe, Position) sowie zusätzliche Werte',
     'wf.edit.iconPlace.lead': 'Links',
     'wf.edit.iconPlace.beforeTitle': 'Vor Titel',
     'wf.edit.iconPlace.afterTitle': 'Hinter Titel',
@@ -2627,16 +2627,16 @@ export const de = {
         'Aufgeklappt stehen die Elemente in der Titelzeile des Widgets, eingeklappt in der Kopfzeile. In Layouts ohne eigene Titelzeile stehen sie auf der Höhe des Titels, Zeile 2 unter dem Inhalt.',
     'hdr.slot.r1-left': 'Zeile 1 links',
     'hdr.mapHintTiles':
-        'Tipp auf einen Platz legt dort ein neues Element an. Titel und Symbol antippen oder ziehen, um sie zu verschieben.',
+        'Tipp auf einen Platz legt dort ein neues Element an. Titel und Icon antippen oder ziehen, um sie zu verschieben.',
     'hdr.pickHint.title': 'Titel verschieben: einen Platz antippen. In Zeile 2 wird die Karte eine Zeile höher.',
-    'hdr.pickHint.icon': 'Symbol verschieben: eine der markierten Stellen antippen.',
+    'hdr.pickHint.icon': 'Icon verschieben: eine der markierten Stellen antippen.',
     'hdr.chip.title': 'Titel',
     'hdr.chip.moveTitle': 'Titel verschieben',
-    'hdr.chip.moveIcon': 'Symbol verschieben',
+    'hdr.chip.moveIcon': 'Icon verschieben',
     'hdr.chip.titleHere': 'Titel hierher',
-    'hdr.chip.hidden': 'Unter Darstellung ausgeblendet',
+    'hdr.chip.hidden': 'Ausgeblendet — unten wieder einschalten',
     'hdr.iconFixedHint':
-        'In diesem Layout sitzt das Symbol aufgeklappt an festem Platz; die Position gilt für die eingeklappte Kopfzeile.',
+        'In diesem Layout sitzt das Icon aufgeklappt an festem Platz; die Position gilt für die eingeklappte Kopfzeile.',
     'hdr.centerHint':
         'Der Titel ist zentriert: Er steht in der Mitte der Karte, Elemente auf „Zeile 1 Mitte“ direkt daneben – links, rechts oder darunter, je Element einstellbar.',
     'hdr.titleSide': 'Lage zum zentrierten Titel',
@@ -2687,6 +2687,7 @@ export const de = {
     'hdr.iconSize': 'Größe',
     'hdr.textSize': 'Schriftgröße',
     'hdr.color': 'Farbe',
+    'hdr.pickIcon': 'Icon auswählen',
     'hdr.iconColor': 'Farbe',
     'hdr.textColor': 'Textfarbe',
     'hdr.cond': 'Nur anzeigen, wenn …',
