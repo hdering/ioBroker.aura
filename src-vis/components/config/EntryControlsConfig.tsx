@@ -847,7 +847,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                         onChange={(v) => onUpdate({ sliderReadOnly: v || undefined })}
                     />
                     <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        Die Einheit stammt aus dem Feld „Einheit“ des Eintrags; ohne Angabe steht „%“ daneben.
+                        Die Einheit stammt aus dem Feld {'„Einheit“'} des Eintrags; ohne Angabe steht {'„%“'} daneben.
                     </p>
                 </div>
             )}

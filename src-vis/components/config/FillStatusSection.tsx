@@ -275,8 +275,8 @@ export function FillStatusSection({
 
             <p className="text-[10px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
                 Alle drei Datenpunkte werden nur gelesen. Eine vorzeichenbehaftete Leistung deckt Laden und Entladen ab
-                — oben „größer 0“, unten „kleiner 0“. Ein <code>UNREACH</code>-Datenpunkt meldet die Störung, nicht die
-                Verbindung — dort „falsch / 0“ wählen. Das Custom-Layout zeigt keinen Status.
+                — oben {'„größer 0“'}, unten {'„kleiner 0“'}. Ein <code>UNREACH</code>-Datenpunkt meldet die Störung,
+                nicht die Verbindung — dort {'„falsch / 0“'} wählen. Das Custom-Layout zeigt keinen Status.
             </p>
 
             {iconPicker && (

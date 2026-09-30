@@ -1805,7 +1805,7 @@ function ClimateConfig({
             )}
             {extraInChart && (
                 <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                    Weitere Werte mit „im Diagramm“ erscheinen zusätzlich.
+                    Weitere Werte mit {'„im Diagramm“'} erscheinen zusätzlich.
                 </p>
             )}
             {chartOn && (
