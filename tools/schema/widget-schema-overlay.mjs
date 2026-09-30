@@ -1192,6 +1192,24 @@ export const EXTRA_OPTIONS = {
  * `ts` is the TypeScript type, resolved by the generator like any other.
  */
 export const UNIVERSAL_OPTIONS = {
+    titleColor: {
+        ts: 'string',
+        description:
+            'Eigene Farbe des Widget-Titels (CSS-Farbe, var(--token) oder light-dark-Paar), aufgeklappt und ' +
+            'eingeklappt. Leer = Farbe des Widgets. Eine Bedingung, die den Titel färbt, gewinnt. Nicht bei group.',
+    },
+    titleSize: {
+        ts: 'number',
+        description:
+            'Eigene Schriftgröße des Widget-Titels in px (mit der globalen Schriftskalierung). Leer = Größe des ' +
+            'Widgets. Ein größerer Titel kann die Kopfzeile höher machen. Nicht bei group.',
+    },
+    iconColor: {
+        ts: 'string',
+        description:
+            'Eigene Farbe des Widget-Icons (CSS-Farbe, var(--token) oder light-dark-Paar). Leer = Farbe des ' +
+            'Widgets (oft vom Zustand abhängig). Eine Bedingung, die das Icon färbt, gewinnt. Nicht bei group.',
+    },
     conditions: {
         ts: 'WidgetCondition[]',
         description:

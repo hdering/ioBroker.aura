@@ -411,6 +411,29 @@ check(
     JSON.stringify(sizes),
 );
 
+// ── 4c. Own title / icon look of the widget (#725) ───────────────────────────
+for (const folded of [false, true]) {
+    const tag = folded ? 'folded' : 'expanded';
+    id = await show('value', {
+        defaultCollapsed: folded,
+        titleColor: 'rgb(0, 128, 0)',
+        titleSize: 22,
+        iconColor: 'rgb(200, 0, 0)',
+    });
+    const look = await card(id).evaluate((el) => {
+        const title = el.querySelector('.aura-widget-title');
+        const icon = el.querySelector('.aura-widget-icon');
+        return {
+            titleColor: title ? getComputedStyle(title).color : '',
+            titleSize: title ? parseFloat(getComputedStyle(title).fontSize) : 0,
+            iconColor: icon ? getComputedStyle(icon).color : '',
+        };
+    });
+    check(`${tag}: titleColor paints the title`, look.titleColor === 'rgb(0, 128, 0)', JSON.stringify(look));
+    check(`${tag}: titleSize sizes the title`, look.titleSize === 22, JSON.stringify(look));
+    check(`${tag}: iconColor paints the icon`, look.iconColor === 'rgb(200, 0, 0)', JSON.stringify(look));
+}
+
 // ── 5. Editor: Darstellung → Kopfzeile ───────────────────────────────────────
 const editId = `hi-${++seq}`;
 await page.evaluate(
@@ -479,6 +502,26 @@ await editor.locator('[data-header-item-cond]').first().uncheck();
 await page.waitForTimeout(300);
 opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);
 check('…and removes it again', opts?.headerItems?.[0]?.clauses === undefined);
+const head = editor.locator('[data-header-head]');
+check(
+    'the head block sits above the slot map',
+    await (async () => {
+        const h = await head.boundingBox();
+        const m = await editor.locator('[data-header-slot-add="r1-left"]').boundingBox();
+        return !!h && !!m && h.y + h.height <= m.y;
+    })(),
+);
+check(
+    'title and icon offer colour and size',
+    (await head.locator('[data-head-title] [data-header-item-size="title"]').count()) === 1 &&
+        (await head.locator('[data-head-icon] [data-header-item-size="main-icon"]').count()) === 1,
+);
+const titleSlider = head.locator('[data-header-item-size="title"] input[type="range"]');
+await titleSlider.focus();
+for (let i = 0; i < 2; i++) await page.keyboard.press('ArrowRight');
+await page.waitForTimeout(300);
+opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);
+check('the title size slider writes titleSize', opts?.titleSize === 16, String(opts?.titleSize));
 await editor.locator('[data-header-item-delete]').first().click();
 await page.waitForTimeout(300);
 opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);

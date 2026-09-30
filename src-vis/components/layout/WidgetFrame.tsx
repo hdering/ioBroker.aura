@@ -6522,6 +6522,9 @@ const DISPLAY_OPTION_KEYS = [
     'showIcon',
     'icon',
     'iconSize',
+    'iconColor',
+    'titleColor',
+    'titleSize',
     'titleAlign',
     'iconPlace',
     'titleRow',
@@ -7133,6 +7136,27 @@ function WidgetFrameInner({
             ].filter(Boolean),
         )
         .join(' ');
+    // The widget's own title / icon look (#725). Not on a group — its children sit inside
+    // the same box and would inherit it — nor on the section title, which draws these
+    // options itself.
+    const ownLookOn = config.type !== 'group' && config.type !== 'header';
+    const ownOpts = renderConfig.options ?? {};
+    const ownTitleColor = ownLookOn ? (ownOpts.titleColor as string | undefined) || undefined : undefined;
+    const ownTitleSize = ownLookOn ? Number(ownOpts.titleSize) || undefined : undefined;
+    const ownIconColor = ownLookOn ? (ownOpts.iconColor as string | undefined) || undefined : undefined;
+    const ownClasses = [
+        ownTitleColor ? 'aura-own-title-color' : '',
+        ownTitleSize ? 'aura-own-title-size' : '',
+        ownIconColor ? 'aura-own-icon-color' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+    const ownVars: Record<string, string | undefined> = {
+        '--own-title-color': ownTitleColor,
+        // Scaled by the global font scale like every other explicit px size.
+        '--own-title-size': ownTitleSize ? `calc(${ownTitleSize}px * var(--font-scale, 1))` : undefined,
+        '--own-icon-color': ownIconColor,
+    };
     const partVars = Object.fromEntries(
         Object.entries(conditionResult.parts).flatMap(([part, st]) => [
             ...(st.color ? [[`--cond-${part}-color`, st.color]] : []),
@@ -7152,6 +7176,7 @@ function WidgetFrameInner({
             '--text-primary': overrides?.textPrimary,
             '--text-secondary': overrides?.textSecondary,
             '--accent': overrides?.accent,
+            ...ownVars,
             // Condition-driven overrides (higher priority, applied on top)
             ...conditionResult.cssVars,
             ...partVars,
@@ -7615,7 +7640,7 @@ function WidgetFrameInner({
     return (
         <div
             ref={focusRef}
-            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''}`}
+            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${ownClasses} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''}`}
             onClick={handleWidgetClick}
             onContextMenu={
                 editMode
@@ -9121,6 +9146,7 @@ function WidgetFrameInner({
                                                                         iconAllowed: config.type !== 'stateimage',
                                                                         titleAllowed: config.type !== 'mediaplayer',
                                                                         iconPickable: config.type !== 'windowcontact',
+                                                                        styleAllowed: config.type !== 'group',
                                                                         onChange: (patch) => setO(patch),
                                                                     }}
                                                                     onLayoutChange={(patch) => setO({ ...patch })}

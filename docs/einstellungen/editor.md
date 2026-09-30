@@ -135,9 +135,11 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 
 | Titel / Icon | |
 | --- | --- |
-| Titel | anzeigen an/aus |
-| Icon | anzeigen an/aus, Icon, Größe (Standard 20 px) |
-| Position | Titel bzw. Icon in der Übersicht antippen oder ziehen, dann den Platz antippen |
+| Icon | anzeigen an/aus, Icon, Farbe, Größe (Standard 20 px) |
+| Titel | anzeigen an/aus, Farbe, Größe (leer = Größe des Widgets) |
+| Position | Titel bzw. Icon in der Übersicht antippen oder ziehen, dann den Platz antippen — das Icon auf jeden der sechs Plätze |
+
+Eine Bedingung, die Titel oder Icon färbt, geht der eigenen Farbe vor. Bei der Gruppe keine eigene Farbe/Größe.
 
 ![](./assets/kopfzeile-aufgeklappt.png)
 

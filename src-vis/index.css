@@ -34,6 +34,22 @@ iframe {
 }
 
 /*
+ * The widget's own title / icon colour and title size (options titleColor, titleSize,
+ * iconColor — set in the header dialog, #725). Same hooks as the condition rules
+ * below and before them, so a condition that paints the title still wins.
+ */
+.aura-own-title-color .aura-widget-title {
+    color: var(--own-title-color) !important;
+}
+.aura-own-title-size .aura-widget-title {
+    font-size: var(--own-title-size) !important;
+    line-height: normal !important;
+}
+.aura-own-icon-color .aura-widget-icon {
+    color: var(--own-icon-color) !important;
+}
+
+/*
  * A condition rule may paint ONE element of a widget instead of the whole card.
  * Every widget marks its title, icon and value with these classes, so the rule
  * reaches them from the frame root without a line of code per widget type. The

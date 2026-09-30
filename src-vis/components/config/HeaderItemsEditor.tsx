@@ -51,6 +51,48 @@ function itemSummary(item: WidgetHeaderItem, t: ReturnType<typeof useT>, config:
 }
 
 /**
+ * One settings line — title, icon, an item's icon, an item's text — on a shared grid,
+ * so switch, symbol, colour and size stand in one column in every line (#725):
+ *
+ *   label | switch | symbol | colour | size
+ *
+ * An empty cell keeps its width, so a line without a switch still lines up.
+ */
+const lineGrid: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: '64px 28px 56px 220px minmax(140px, 1fr)',
+    columnGap: 12,
+    alignItems: 'center',
+};
+
+function SettingsLine({
+    label,
+    toggle,
+    symbol,
+    colorCell,
+    sizeCell,
+    ...rest
+}: {
+    label: ReactNode;
+    toggle?: ReactNode;
+    symbol?: ReactNode;
+    colorCell?: ReactNode;
+    sizeCell?: ReactNode;
+} & React.HTMLAttributes<HTMLDivElement>) {
+    return (
+        <div style={lineGrid} {...rest}>
+            <span className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </span>
+            <span className="flex items-center">{toggle}</span>
+            <span className="flex items-center gap-1.5">{symbol}</span>
+            <span className="min-w-0">{colorCell}</span>
+            <span className="min-w-0">{sizeCell}</span>
+        </div>
+    );
+}
+
+/**
  * A px size as a slider, like the widget symbol's own size under Darstellung. It drags
  * on a local draft and commits on release — every commit serialises the dashboard.
  * Unset = the item's default size; ↩ goes back to it.
@@ -64,6 +106,7 @@ function SizeSlider({
     step = 1,
     onChange,
     testId,
+    autoText,
 }: {
     label: string;
     value: number | undefined;
@@ -73,6 +116,8 @@ function SizeSlider({
     step?: number;
     onChange: (v: number | undefined) => void;
     testId: string;
+    /** Shown instead of the px value while unset — for a size the widget picks itself. */
+    autoText?: string;
 }) {
     const t = useT();
     const [draft, setDraft] = useState<number | null>(null);
@@ -83,7 +128,7 @@ function SizeSlider({
         setDraft(null);
     };
     return (
-        <label className="flex items-center gap-1.5 flex-1 min-w-[180px]" data-header-item-size={testId}>
+        <label className="flex items-center gap-1.5 min-w-0" data-header-item-size={testId}>
             <span className={labelCls} style={{ color: 'var(--text-secondary)' }}>
                 {label}
             </span>
@@ -105,7 +150,7 @@ function SizeSlider({
                     color: value === undefined && draft === null ? 'var(--text-secondary)' : 'var(--text-primary)',
                 }}
             >
-                {shown} px
+                {autoText && value === undefined && draft === null ? autoText : `${shown} px`}
             </span>
             <button
                 onClick={(e) => {
@@ -129,7 +174,9 @@ export interface HeaderHeadProps {
     titleAllowed: boolean;
     /** The symbol can be chosen (the window contact draws its own). */
     iconPickable: boolean;
-    /** Writes plain widget options: showIcon, icon, iconSize, showTitle. */
+    /** Own colour / size for title and icon (not on a group — its children would inherit them). */
+    styleAllowed?: boolean;
+    /** Writes plain widget options: showIcon, icon, iconSize, iconColor, showTitle, titleColor, titleSize. */
     onChange: (patch: Record<string, unknown>) => void;
 }
 
@@ -167,6 +214,7 @@ function HeadRows({
     const [pickerOpen, setPickerOpen] = useState(false);
     const iconOn = o.showIcon !== false;
     const titleOn = o.showTitle !== false;
+    const styled = head.styleAllowed !== false;
     const Icon = getWidgetIcon(o.icon as string | undefined, defaultIcon ?? Shapes) ?? Shapes;
     return (
         <div
@@ -174,25 +222,17 @@ function HeadRows({
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
             data-header-head=""
         >
-            {head.titleAllowed && (
-                <div className="flex items-center gap-1.5" data-head-title="">
-                    <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
-                        {t('hdr.chip.title')}
-                    </label>
-                    <Toggle on={titleOn} onFlip={() => head.onChange({ showTitle: !titleOn })} attr="title" />
-                </div>
-            )}
             {head.iconAllowed && (
-                <div className="flex items-center gap-3 flex-wrap" data-head-icon="">
-                    <div className="flex items-center gap-1.5">
-                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
-                            {t('hdr.icon')}
-                        </label>
-                        <Toggle on={iconOn} onFlip={() => head.onChange({ showIcon: !iconOn })} attr="icon" />
-                        {iconOn && head.iconPickable && (
+                <SettingsLine
+                    data-head-icon=""
+                    label={t('hdr.icon')}
+                    toggle={<Toggle on={iconOn} onFlip={() => head.onChange({ showIcon: !iconOn })} attr="icon" />}
+                    symbol={
+                        iconOn &&
+                        head.iconPickable && (
                             <button
                                 onClick={() => setPickerOpen(true)}
-                                className="ml-1.5 w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:opacity-80"
+                                className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:opacity-80"
                                 style={inputStyle}
                                 title={(o.icon as string | undefined) ?? t('hdr.pickIcon')}
                                 aria-label={t('hdr.pickIcon')}
@@ -200,21 +240,65 @@ function HeadRows({
                             >
                                 <Icon size={15} />
                             </button>
-                        )}
-                    </div>
-                    {iconOn && (
-                        <SizeSlider
-                            label={t('hdr.iconSize')}
-                            value={o.iconSize as number | undefined}
-                            fallback={20}
-                            min={12}
-                            max={256}
-                            step={4}
-                            onChange={(v) => head.onChange({ iconSize: v })}
-                            testId="main-icon"
-                        />
-                    )}
-                </div>
+                        )
+                    }
+                    colorCell={
+                        iconOn &&
+                        styled && (
+                            <ColorField
+                                label={t('hdr.iconColor')}
+                                value={o.iconColor as string | undefined}
+                                onChange={(v) => head.onChange({ iconColor: v })}
+                            />
+                        )
+                    }
+                    sizeCell={
+                        iconOn && (
+                            <SizeSlider
+                                label={t('hdr.iconSize')}
+                                value={o.iconSize as number | undefined}
+                                fallback={20}
+                                min={12}
+                                max={256}
+                                step={4}
+                                onChange={(v) => head.onChange({ iconSize: v })}
+                                testId="main-icon"
+                            />
+                        )
+                    }
+                />
+            )}
+            {head.titleAllowed && (
+                <SettingsLine
+                    data-head-title=""
+                    label={t('hdr.chip.title')}
+                    toggle={<Toggle on={titleOn} onFlip={() => head.onChange({ showTitle: !titleOn })} attr="title" />}
+                    colorCell={
+                        titleOn &&
+                        styled && (
+                            <ColorField
+                                label={t('hdr.iconColor')}
+                                value={o.titleColor as string | undefined}
+                                onChange={(v) => head.onChange({ titleColor: v })}
+                            />
+                        )
+                    }
+                    sizeCell={
+                        titleOn &&
+                        styled && (
+                            <SizeSlider
+                                label={t('hdr.iconSize')}
+                                value={Number(o.titleSize) || undefined}
+                                fallback={14}
+                                min={8}
+                                max={48}
+                                onChange={(v) => head.onChange({ titleSize: v })}
+                                testId="title"
+                                autoText={t('common.auto')}
+                            />
+                        )
+                    }
+                />
             )}
             {pickerOpen && (
                 <IconPickerModal
@@ -480,43 +564,58 @@ function ItemRow({
             )}
 
             {item.source === 'action' ? (
-                <ColorField label={t('hdr.color')} value={item.color} onChange={(v) => update({ color: v })} />
+                <SettingsLine
+                    label={t('hdr.icon')}
+                    colorCell={
+                        <ColorField label={t('hdr.color')} value={item.color} onChange={(v) => update({ color: v })} />
+                    }
+                />
             ) : (
                 <>
                     {/* Icon and text each take their own colour and size; an unset icon
-                        colour follows the text colour. */}
-                    <div className="flex items-center gap-3 flex-wrap" data-header-item-icon-row="">
-                        <div className="flex items-center gap-1.5">
-                            <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
-                                {t('hdr.icon')}
-                            </label>
-                            <button
-                                onClick={() => setIconOpen(true)}
-                                className="px-1.5 h-[26px] rounded-lg hover:opacity-80 flex items-center"
-                                style={inputStyle}
-                                data-header-item-icon=""
-                            >
-                                {item.icon ? <AuraIcon icon={item.icon} width={13} height={13} /> : <Plus size={11} />}
-                            </button>
-                            {item.icon && (
-                                <button
-                                    onClick={() =>
-                                        update({ icon: undefined, iconSize: undefined, iconColor: undefined })
-                                    }
-                                    className="hover:opacity-60"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    <Trash2 size={11} />
-                                </button>
-                            )}
-                        </div>
-                        {item.icon && (
+                        colour follows the text colour. Same order as the widget's own
+                        icon and title above. */}
+                    <SettingsLine
+                        data-header-item-icon-row=""
+                        label={t('hdr.icon')}
+                        symbol={
                             <>
+                                <button
+                                    onClick={() => setIconOpen(true)}
+                                    className="w-7 h-7 shrink-0 rounded-lg hover:opacity-80 flex items-center justify-center"
+                                    style={inputStyle}
+                                    data-header-item-icon=""
+                                >
+                                    {item.icon ? (
+                                        <AuraIcon icon={item.icon} width={13} height={13} />
+                                    ) : (
+                                        <Plus size={11} />
+                                    )}
+                                </button>
+                                {item.icon && (
+                                    <button
+                                        onClick={() =>
+                                            update({ icon: undefined, iconSize: undefined, iconColor: undefined })
+                                        }
+                                        className="hover:opacity-60"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        <Trash2 size={11} />
+                                    </button>
+                                )}
+                            </>
+                        }
+                        colorCell={
+                            item.icon && (
                                 <ColorField
                                     label={t('hdr.iconColor')}
                                     value={item.iconColor}
                                     onChange={(v) => update({ iconColor: v })}
                                 />
+                            )
+                        }
+                        sizeCell={
+                            item.icon && (
                                 <SizeSlider
                                     label={t('hdr.iconSize')}
                                     value={item.iconSize}
@@ -526,25 +625,31 @@ function ItemRow({
                                     onChange={(v) => update({ iconSize: v })}
                                     testId="icon"
                                 />
-                            </>
-                        )}
-                    </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <ColorField
-                            label={t('hdr.textColor')}
-                            value={item.color}
-                            onChange={(v) => update({ color: v })}
-                        />
-                        <SizeSlider
-                            label={t('hdr.textSize')}
-                            value={item.textSize}
-                            fallback={12}
-                            min={8}
-                            max={40}
-                            onChange={(v) => update({ textSize: v })}
-                            testId="text"
-                        />
-                    </div>
+                            )
+                        }
+                    />
+                    <SettingsLine
+                        data-header-item-text-row=""
+                        label={t('hdr.src.text')}
+                        colorCell={
+                            <ColorField
+                                label={t('hdr.iconColor')}
+                                value={item.color}
+                                onChange={(v) => update({ color: v })}
+                            />
+                        }
+                        sizeCell={
+                            <SizeSlider
+                                label={t('hdr.iconSize')}
+                                value={item.textSize}
+                                fallback={12}
+                                min={8}
+                                max={40}
+                                onChange={(v) => update({ textSize: v })}
+                                testId="text"
+                            />
+                        }
+                    />
                 </>
             )}
 

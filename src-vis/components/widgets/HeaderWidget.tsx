@@ -46,6 +46,8 @@ export function HeaderWidget({ config }: Props) {
     // The icon sits in the title line and shares its colour today (--header-text); a
     // coloured title next to a theme-coloured icon would just look like a bug.
     const headerText = titleColor ?? 'var(--header-text, var(--text-primary))';
+    // Own icon colour (#725); without one the icon keeps following the title.
+    const iconColor = (opts.iconColor as string) || undefined;
 
     // ── Bindings in the subtitle ──────────────────────────────────────────────
     // The subtitle carries the same binding layer as free HTML (utils/htmlTemplate,
@@ -105,7 +107,7 @@ export function HeaderWidget({ config }: Props) {
                         <WidgetIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ color: titleColor ?? 'var(--text-secondary)', flexShrink: 0 }}
+                            style={{ color: iconColor ?? titleColor ?? 'var(--text-secondary)', flexShrink: 0 }}
                         />
                     )}
                     {showTitle && (
@@ -140,7 +142,7 @@ export function HeaderWidget({ config }: Props) {
                     <WidgetIcon
                         className="aura-widget-icon"
                         size={iconSize}
-                        style={{ color: headerText, flexShrink: 0 }}
+                        style={{ color: iconColor ?? headerText, flexShrink: 0 }}
                     />
                 )}
                 <div className="flex flex-col min-w-0 flex-1">
@@ -177,7 +179,7 @@ export function HeaderWidget({ config }: Props) {
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ color: headerText, flexShrink: 0 }}
+                                style={{ color: iconColor ?? headerText, flexShrink: 0 }}
                             />
                         )}
                         {showTitle && (
