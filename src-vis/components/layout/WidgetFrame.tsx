@@ -115,7 +115,7 @@ import { useHeaderItems } from '../../hooks/useHeaderItems';
 import { HeaderRowOne, HeaderRowTwo } from './HeaderItemSlots';
 import { HeaderSlotsContext, type HeaderRow, type HeaderSlotsValue, type IconPlace } from './HeaderSlotsContext';
 import { HeaderItemsEditor } from '../config/HeaderItemsEditor';
-import { groupBySlot, hasSecondRow, headerItemVisible, headerItems } from '../../utils/headerItems';
+import { groupBySlot, hasSecondRow, headerItemVisible, headerItems, isRowTwoPlace } from '../../utils/headerItems';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -7478,6 +7478,8 @@ function WidgetFrameInner({
     const collapsedTitleRow2 = collapsedSource.options?.titleRow === 2;
     const collapsedIconPlace = (collapsedSource.options?.iconPlace as string | undefined) ?? 'lead';
     const collapsedIconBeside = collapsedIconPlace === 'beforeTitle' || collapsedIconPlace === 'afterTitle';
+    // A symbol set onto row 2 (#725) stands there in its own column.
+    const collapsedIconRow2 = isRowTwoPlace(collapsedIconPlace) ? collapsedIconPlace : undefined;
     const collapsedIconEl = collapsedShowIcon ? (
         <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
     ) : null;
@@ -7904,7 +7906,11 @@ function WidgetFrameInner({
                             lead={
                                 <ChevronDown size={16} className="shrink-0" style={{ transform: 'rotate(-90deg)' }} />
                             }
-                            icon={collapsedTitleRow2 && collapsedIconBeside ? null : collapsedIconEl}
+                            icon={
+                                (collapsedTitleRow2 && collapsedIconBeside) || collapsedIconRow2
+                                    ? null
+                                    : collapsedIconEl
+                            }
                             iconPlace={collapsedIconPlace}
                             title={collapsedTitleRow2 ? undefined : collapsedTitleEl}
                             trailing={
@@ -7934,6 +7940,8 @@ function WidgetFrameInner({
                             items={collapsedHeaderItems}
                             onAction={onHeaderAction}
                             titleAlign={collapsedTitleAlign as string}
+                            icon={collapsedIconRow2 ? collapsedIconEl : undefined}
+                            iconSlot={collapsedIconRow2}
                             title={
                                 collapsedTitleRow2 ? (
                                     <>
@@ -9043,13 +9051,9 @@ function WidgetFrameInner({
                                     </div>
                                 </summary>
                                 <div className="mt-2.5 space-y-2.5">
-                                    {/* Icon, Titel, the icon's picker/size and the header dialog belong
-                                        together (#676): one framed group, lines between the rows. */}
-                                    <div
-                                        className="rounded-lg px-2.5 py-2 space-y-2"
-                                        style={{ border: '1px solid var(--app-border)' }}
-                                        data-head-group=""
-                                    >
+                                    {/* The header row: title, icon and header items are all set in
+                                        its dialog (#725), so it is a plain row like the others. */}
+                                    <div className="space-y-2" data-head-group="">
                                         {/* Header items (issue #676): extra values in the header row.
                                         The editor is too large for this panel, so it opens as
                                         its own popup. */}

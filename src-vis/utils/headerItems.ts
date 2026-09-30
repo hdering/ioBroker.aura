@@ -429,6 +429,28 @@ export function groupBySlot<T extends { slot: WidgetHeaderSlot }>(items: T[]): S
     return out;
 }
 
+/**
+ * Where the widget's own symbol stands in the header (options.iconPlace). 'lead' where
+ * the widget put it (left end of row 1), 'beforeTitle' / 'afterTitle' right beside the
+ * title wherever that is, 'trail' far right in row 1, 'r1-center' in the middle of row 1
+ * (beside a centred title: in front of it), 'r2-*' on the second row (#725).
+ */
+export type IconPlace =
+    | 'lead'
+    | 'beforeTitle'
+    | 'afterTitle'
+    | 'trail'
+    | 'r1-center'
+    | 'r2-left'
+    | 'r2-center'
+    | 'r2-right';
+
+export type RowTwoIconPlace = 'r2-left' | 'r2-center' | 'r2-right';
+
+/** The symbol stands on the second row — that row then exists (and costs its height). */
+export const isRowTwoPlace = (p: string | undefined): p is RowTwoIconPlace =>
+    p === 'r2-left' || p === 'r2-center' || p === 'r2-right';
+
 /** True when anything sits on the second row — only then does the row exist. */
 export function hasSecondRow<T extends { slot: WidgetHeaderSlot }>(items: T[]): boolean {
     return items.some((i) => i.slot.startsWith('r2-'));

@@ -289,9 +289,13 @@
         "lead",
         "beforeTitle",
         "afterTitle",
-        "trail"
+        "trail",
+        "r1-center",
+        "r2-left",
+        "r2-center",
+        "r2-right"
       ],
-      "description": "Wo die Titelzeile das Widget-Symbol zeigt: \"lead\" links außen (Standard), \"beforeTitle\" direkt vor dem Titel, \"afterTitle\" direkt dahinter, \"trail\" ganz rechts (hinter den Kopfzeilen-Werten). Gilt aufgeklappt in Layouts mit eigener Titelzeile (meist \"default\") und in der eingeklappten Kopfzeile; bei zentriertem Titel wird Symbol + Titel gemeinsam zentriert."
+      "description": "Wo die Titelzeile das Widget-Symbol zeigt: \"lead\" links außen (Standard), \"beforeTitle\" direkt vor dem Titel, \"afterTitle\" direkt dahinter, \"trail\" ganz rechts (hinter den Kopfzeilen-Werten), \"r1-center\" in der Mitte von Zeile 1 (neben den Elementen auf r1-center; bei zentriertem Titel direkt davor), \"r2-left\"/\"r2-center\"/\"r2-right\" in der zweiten Kopfzeile (steht der Titel dort in derselben Spalte, direkt vor ihm). Ein Symbol auf r2-* öffnet Zeile 2 und kostet wie ein Element dort eine Kopfzeile Höhe (Zuschlag \"headerRow2\"). Gilt aufgeklappt in Layouts mit eigener Titelzeile (meist \"default\") und in der eingeklappten Kopfzeile; bei zentriertem Titel wird Symbol + Titel gemeinsam zentriert."
     },
     "titleRow": {
       "description": "2 = der Titel steht in der zweiten Kopfzeile (links/Mitte/rechts nach titleAlign, zwischen den Elementen auf r2-*); ein Symbol mit iconPlace \"beforeTitle\"/\"afterTitle\" wandert mit, \"lead\"/\"trail\" bleibt in Zeile 1. Kostet wie ein Element auf r2-* eine Kopfzeile Höhe (Zuschlag \"headerRow2\", beides zusammen nur einmal). Weglassen = Zeile 1. Wirkt in Layouts mit eigener Titelzeile und in der eingeklappten Kopfzeile."

@@ -14,7 +14,7 @@
  */
 import type { CSSProperties, ReactNode } from 'react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { groupBySlot, hasSecondRow } from '../../utils/headerItems';
+import { groupBySlot, hasSecondRow, isRowTwoPlace, type RowTwoIconPlace } from '../../utils/headerItems';
 import type { ResolvedHeaderItem } from '../../hooks/useHeaderItems';
 import { useT } from '../../i18n';
 
@@ -131,7 +131,13 @@ export function HeaderRowOne({
     const right = slots['r1-right'];
     const leadSlot =
         left.length > 0 ? <Slot items={left} slot="r1-left" style={{ flex: '0 1 auto' }} onAction={onAction} /> : null;
-    const place = title ? iconPlace : iconPlace === 'trail' ? 'trail' : 'lead';
+    // Without a title in this row only the far right and the middle keep their meaning;
+    // a symbol on row 2 is HeaderRowTwo's. Beside a centred title, the middle is in
+    // front of it.
+    let place = title ? iconPlace : iconPlace === 'trail' || iconPlace === 'r1-center' ? iconPlace : 'lead';
+    if (place === 'r1-center' && title && align === 'center') place = 'beforeTitle';
+    if (isRowTwoPlace(iconPlace)) icon = null;
+    const centerIcon = place === 'r1-center' ? icon : null;
     const leadIcon = place === 'lead' ? icon : null;
     const beforeIcon = place === 'beforeTitle' ? icon : null;
     const afterIcon = place === 'afterTitle' ? icon : null;
@@ -171,7 +177,7 @@ export function HeaderRowOne({
             </div>
         );
     }
-    const centered = center.length > 0;
+    const centered = center.length > 0 || !!centerIcon;
     return (
         <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1">
             <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
@@ -199,13 +205,16 @@ export function HeaderRowOne({
                 )}
             </div>
             {centered && (
-                <Slot
-                    items={center}
-                    slot="r1-center"
-                    className="justify-center"
+                <div
+                    className="flex items-center justify-center gap-2 min-w-0"
                     style={{ flex: '0 1 auto' }}
-                    onAction={onAction}
-                />
+                    data-header-slot="r1-center"
+                >
+                    {centerIcon}
+                    {center.map((item) => (
+                        <HeaderItemView key={item.id} item={item} onAction={onAction} />
+                    ))}
+                </div>
             )}
             {(centered || right.length > 0) && (
                 <Slot
@@ -226,6 +235,8 @@ export function HeaderRowTwo({
     items,
     title,
     titleAlign,
+    icon,
+    iconSlot,
     onAction,
 }: {
     items: ResolvedHeaderItem[];
@@ -233,9 +244,13 @@ export function HeaderRowTwo({
     title?: ReactNode;
     /** Where the title stands in the row: left, center or right. */
     titleAlign?: string;
+    /** The widget's symbol set onto this row (iconPlace 'r2-*', #725) — in front of a title in the same column. */
+    icon?: ReactNode;
+    iconSlot?: RowTwoIconPlace;
     onAction?: () => void;
 }) {
-    if (!title && !hasSecondRow(items)) return null;
+    const iconCol = icon && iconSlot ? iconSlot.slice(3) : null;
+    if (!title && !iconCol && !hasSecondRow(items)) return null;
     const slots = groupBySlot(items);
     const titleCol = !title ? null : titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'right' : 'left';
     const titleBox = title ? (
@@ -246,18 +261,32 @@ export function HeaderRowTwo({
     // With a centre item (or the title in the middle) the outer columns are equal, so
     // the centre is the middle; without one, left and right take what they need and
     // a lone item is not capped at a third of the row.
-    const centered = slots['r2-center'].length > 0 || titleCol === 'center';
+    const centered = slots['r2-center'].length > 0 || titleCol === 'center' || iconCol === 'center';
     const column = (slot: 'r2-left' | 'r2-center' | 'r2-right', justify: string, style?: CSSProperties) => {
         const list = slots[slot];
         const here = titleCol === slot.slice(3);
+        const iconHere = iconCol === slot.slice(3);
         const itemsEl = list.length ? (
             <Slot items={list} slot={slot} className={justify} style={{ flex: '0 1 auto' }} onAction={onAction} />
         ) : null;
-        if (!here) return <Slot items={list} slot={slot} className={justify} style={style} onAction={onAction} />;
+        if (!here && !iconHere)
+            return <Slot items={list} slot={slot} className={justify} style={style} onAction={onAction} />;
+        // Symbol in front of the title; on the right both follow the items, so the
+        // symbol alone stands at the far right as 'trail' does in row 1.
+        const head = (
+            <>
+                {iconHere && (
+                    <span className="flex items-center shrink-0" data-icon-in-row2="">
+                        {icon}
+                    </span>
+                )}
+                {here && titleBox}
+            </>
+        );
         return (
             <div className={`flex items-center gap-2 min-w-0 ${justify}`} style={style}>
-                {slot === 'r2-right' ? itemsEl : titleBox}
-                {slot === 'r2-right' ? titleBox : itemsEl}
+                {slot === 'r2-right' ? itemsEl : head}
+                {slot === 'r2-right' ? head : itemsEl}
             </div>
         );
     };

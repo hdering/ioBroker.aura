@@ -1297,10 +1297,14 @@ export const UNIVERSAL_OPTIONS = {
             'externer Link für URLs, Mauszeiger für Popups.',
     },
     iconPlace: {
-        ts: "'lead' | 'beforeTitle' | 'afterTitle' | 'trail'",
+        ts: "'lead' | 'beforeTitle' | 'afterTitle' | 'trail' | 'r1-center' | 'r2-left' | 'r2-center' | 'r2-right'",
         description:
             'Wo die Titelzeile das Widget-Symbol zeigt: "lead" links außen (Standard), "beforeTitle" direkt ' +
-            'vor dem Titel, "afterTitle" direkt dahinter, "trail" ganz rechts (hinter den Kopfzeilen-Werten). ' +
+            'vor dem Titel, "afterTitle" direkt dahinter, "trail" ganz rechts (hinter den Kopfzeilen-Werten), ' +
+            '"r1-center" in der Mitte von Zeile 1 (neben den Elementen auf r1-center; bei zentriertem Titel direkt ' +
+            'davor), "r2-left"/"r2-center"/"r2-right" in der zweiten Kopfzeile (steht der Titel dort in derselben ' +
+            'Spalte, direkt vor ihm). Ein Symbol auf r2-* öffnet Zeile 2 und kostet wie ein Element dort eine ' +
+            'Kopfzeile Höhe (Zuschlag "headerRow2"). ' +
             'Gilt aufgeklappt in Layouts mit eigener Titelzeile (meist "default") und in der eingeklappten ' +
             'Kopfzeile; bei zentriertem Titel wird Symbol + Titel gemeinsam zentriert.',
     },

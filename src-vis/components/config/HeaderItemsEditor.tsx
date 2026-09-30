@@ -15,6 +15,7 @@ import {
     headerSourceCtx,
     newHeaderItem,
     widgetValueOptions,
+    type IconPlace,
 } from '../../utils/headerItems';
 import type {
     WidgetHeaderItem,
@@ -619,12 +620,12 @@ function ItemRow({
 /** Title and symbol placement — plain widget options the map writes. */
 export interface HeaderLayoutPatch {
     titleAlign?: 'left' | 'center' | 'right';
-    iconPlace?: 'beforeTitle' | 'afterTitle' | 'trail';
+    iconPlace?: Exclude<IconPlace, 'lead'>;
     titleRow?: 2;
 }
 
 type Picked = 'title' | 'icon' | null;
-type IconPlaceKey = 'lead' | 'beforeTitle' | 'afterTitle' | 'trail';
+type IconPlaceKey = IconPlace;
 const SLOT_ALIGN: Record<WidgetHeaderSlot, 'left' | 'center' | 'right'> = {
     'r1-left': 'left',
     'r1-center': 'center',
@@ -790,15 +791,29 @@ export function HeaderItemsEditor({
     /** The symbol at a place: the tile itself, or a drop mark while it is being moved. */
     const iconAt = (place: IconPlaceKey) => {
         if (!movable) return null;
-        if (iconPlace === place) return chip('icon');
+        if (iconPlace === place || (place === 'beforeTitle' && iconPlace === titleSlot)) return chip('icon');
+        // A slot place in the title's own cell is 'beforeTitle' there.
+        if (place === titleSlot) return null;
         return iconTarget(place);
     };
+
+    /** Where the symbol goes when its whole cell is tapped: that cell's place, in front of the title in the title's. */
+    const cellIconPlace = (slot: WidgetHeaderSlot): IconPlaceKey =>
+        slot === 'r1-left'
+            ? 'lead'
+            : slot === titleSlot
+              ? 'beforeTitle'
+              : slot === 'r1-right'
+                ? 'trail'
+                : (slot as IconPlaceKey);
 
     const cellContent = (slot: WidgetHeaderSlot): ReactNode[] => {
         const list = bySlot[slot];
         const parts: ReactNode[] = [];
         const titleGroup =
             movable && slot === titleSlot ? [iconAt('beforeTitle'), chip('title'), iconAt('afterTitle')] : [];
+        // The symbol can go to every cell (#725): its own place there, or right beside
+        // the title in the title's cell.
         if (slot === 'r1-left') parts.push(summary(list), iconAt('lead'), ...titleGroup);
         else if (slot === 'r1-center' && titleGroup.length)
             parts.push(
@@ -806,17 +821,20 @@ export function HeaderItemsEditor({
                 ...titleGroup,
                 summary(list.filter((it) => it.titleSide !== 'before')),
             );
+        else if (slot === 'r1-center') parts.push(iconAt('r1-center'), summary(list));
         else if (slot === 'r1-right') parts.push(...titleGroup, summary(list), iconAt('trail'));
-        else if (slot === 'r2-right') parts.push(summary(list), ...titleGroup);
-        else parts.push(...titleGroup, summary(list));
+        else if (slot === 'r2-right') parts.push(summary(list), ...(titleGroup.length ? titleGroup : [iconAt(slot)]));
+        else parts.push(...(titleGroup.length ? titleGroup : [iconAt(slot as IconPlaceKey)]), summary(list));
         if (!list.length && !parts.some(Boolean)) parts.push(plus);
         return parts;
     };
 
     const slotCell = (slot: WidgetHeaderSlot) => {
         const titleTarget = picked === 'title' && slot !== titleSlot;
+        const iconTargetCell = picked === 'icon';
         const act = () => {
             if (titleTarget) moveTitle(slot);
+            else if (iconTargetCell) moveIcon(cellIconPlace(slot));
             else if (picked) setPicked(null);
             else add(slot);
         };
@@ -833,11 +851,12 @@ export function HeaderItemsEditor({
                     }
                 }}
                 onDragOver={(e) => {
-                    if (titleTarget) e.preventDefault();
+                    if (titleTarget || iconTargetCell) e.preventDefault();
                 }}
                 onDrop={(e) => {
                     e.preventDefault();
                     if (titleTarget) moveTitle(slot);
+                    else if (iconTargetCell) moveIcon(cellIconPlace(slot));
                 }}
                 className="min-w-0 rounded-lg px-2 py-1.5 text-left hover:opacity-80 cursor-pointer select-none"
                 style={{
@@ -863,6 +882,10 @@ export function HeaderItemsEditor({
 
     return (
         <div className="p-3 space-y-3" onMouseDown={(e) => e.stopPropagation()} data-header-items-editor="">
+            {head && (head.iconAllowed || head.titleAllowed) && (
+                <HeadRows config={config} head={head} defaultIcon={defaultIcon} />
+            )}
+
             <div className="space-y-1">
                 <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }} data-header-map-hint="">
                     {picked === 'title'
@@ -887,10 +910,6 @@ export function HeaderItemsEditor({
                     </p>
                 )}
             </div>
-
-            {head && (head.iconAllowed || head.titleAllowed) && (
-                <HeadRows config={config} head={head} defaultIcon={defaultIcon} />
-            )}
 
             {items.length === 0 && (
                 <p className="text-xs text-center py-2" style={{ color: 'var(--text-secondary)' }}>

@@ -29,7 +29,7 @@ import {
     type ReactNode,
 } from 'react';
 import type { ResolvedHeaderItem } from '../../hooks/useHeaderItems';
-import { groupBySlot, hasSecondRow } from '../../utils/headerItems';
+import { groupBySlot, hasSecondRow, isRowTwoPlace, type IconPlace } from '../../utils/headerItems';
 import { HeaderItemView, HeaderRowTwo } from './HeaderItemSlots';
 
 /** 't2': a TitleRow drew the title in row 2 (options.titleRow 2) — row 2 is its. */
@@ -49,7 +49,7 @@ export interface HeaderSlotsValue {
     titleInRow2?: boolean;
 }
 
-export type IconPlace = 'lead' | 'beforeTitle' | 'afterTitle' | 'trail';
+export type { IconPlace } from '../../utils/headerItems';
 
 export const HeaderSlotsContext = createContext<HeaderSlotsValue | null>(null);
 
@@ -74,13 +74,16 @@ function useRegister(ctx: HeaderSlotsValue | null, row: HeaderRow, active = true
  */
 export function HeaderSlotsInline({
     part = 'all',
+    icon,
 }: {
     part?: 'all' | 'left' | 'before' | 'after' | 'right';
+    /** The widget's symbol set to the middle of row 1 (iconPlace 'r1-center'), before the centre items. */
+    icon?: ReactNode;
 }): ReactNode {
     const ctx = useContext(HeaderSlotsContext);
     useRegister(ctx, 'r1');
-    if (!ctx?.items.length) return null;
-    const slots = groupBySlot(ctx.items);
+    if (!ctx?.items.length && !icon) return null;
+    const slots = groupBySlot(ctx?.items ?? []);
     const left = part === 'all' || part === 'left' ? slots['r1-left'] : [];
     const center =
         part === 'right' || part === 'left'
@@ -89,7 +92,8 @@ export function HeaderSlotsInline({
               ? slots['r1-center']
               : slots['r1-center'].filter((i) => (i.titleSide === 'before') === (part === 'before'));
     const right = part === 'all' || part === 'right' ? slots['r1-right'] : [];
-    if (!left.length && !center.length && !right.length) return null;
+    const centerIcon = part === 'all' ? icon : null;
+    if (!left.length && !center.length && !right.length && !centerIcon) return null;
     return (
         <>
             {left.length > 0 && (
@@ -99,11 +103,11 @@ export function HeaderSlotsInline({
                     data-header-slot="r1-left"
                 >
                     {left.map((item) => (
-                        <HeaderItemView key={item.id} item={item} onAction={ctx.onAction} />
+                        <HeaderItemView key={item.id} item={item} onAction={ctx?.onAction} />
                     ))}
                 </span>
             )}
-            {center.length > 0 && (
+            {(center.length > 0 || centerIcon) && (
                 <span
                     className="flex items-center gap-2 min-w-0 pointer-events-auto"
                     style={
@@ -113,8 +117,9 @@ export function HeaderSlotsInline({
                     }
                     data-header-slot="r1-center"
                 >
+                    {centerIcon}
                     {center.map((item) => (
-                        <HeaderItemView key={item.id} item={item} onAction={ctx.onAction} />
+                        <HeaderItemView key={item.id} item={item} onAction={ctx?.onAction} />
                     ))}
                 </span>
             )}
@@ -125,7 +130,7 @@ export function HeaderSlotsInline({
                     data-header-slot="r1-right"
                 >
                     {right.map((item) => (
-                        <HeaderItemView key={item.id} item={item} onAction={ctx.onAction} />
+                        <HeaderItemView key={item.id} item={item} onAction={ctx?.onAction} />
                     ))}
                 </span>
             )}
@@ -171,6 +176,36 @@ function liftWrappers(kids: ReturnType<typeof Children.toArray>, depth = 0): Ret
     });
 }
 
+type Kids = ReactNode[];
+
+/**
+ * Puts the symbol into the middle of row 1: into the row's `<HeaderSlotsInline />`
+ * (beside the centre items), or — a row without one — onto the middle of the row
+ * the same way the centre items sit there.
+ */
+function withCenterIcon(kids: Kids, icon: ReactNode): Kids {
+    let placed = false;
+    const out = kids.map((k) => {
+        if (!placed && isValidElement(k) && k.type === HeaderSlotsInline) {
+            placed = true;
+            return cloneElement(k as ReactElement<{ icon?: ReactNode }>, { icon });
+        }
+        return k;
+    });
+    if (placed) return out;
+    return [
+        ...out,
+        <span
+            key="center-icon"
+            className="flex items-center pointer-events-auto"
+            style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
+            data-header-slot="r1-center"
+        >
+            {icon}
+        </span>,
+    ];
+}
+
 /**
  * A widget's title row (issue #676). Takes the row's children as they are —
  * icon, title, `<HeaderSlotsInline />`, the widget's own controls — and only
@@ -184,8 +219,9 @@ function liftWrappers(kids: ReturnType<typeof Children.toArray>, depth = 0): Ret
  * title instead of lying on top of it.
  *
  * The symbol (`aura-widget-icon`) moves to options.iconPlace: 'lead' (where the
- * widget put it), 'beforeTitle' / 'afterTitle' (right beside the title) or 'trail'
- * (far right) — for every alignment.
+ * widget put it), 'beforeTitle' / 'afterTitle' (right beside the title), 'trail'
+ * (far right), 'r1-center' (middle of row 1) or 'r2-left' / 'r2-center' / 'r2-right'
+ * (second row, which the row then draws itself) — for every alignment (#725).
  *
  * The title is the child that is or holds the element with class
  * `aura-widget-title` (or `data-title-slot`); a wrapper round icon and title is
@@ -194,9 +230,11 @@ function liftWrappers(kids: ReturnType<typeof Children.toArray>, depth = 0): Ret
  */
 export function TitleRow({ align, children, ...rest }: { align?: string } & HTMLAttributes<HTMLDivElement>): ReactNode {
     const ctx = useContext(HeaderSlotsContext);
-    const place = ctx?.iconPlace ?? 'lead';
     const centered = align === 'center';
     const toRow2 = ctx?.titleRow === 2;
+    let place: IconPlace = ctx?.iconPlace ?? 'lead';
+    // A centred title IS the middle of row 1 — the symbol goes right in front of it.
+    if (place === 'r1-center' && centered && !toRow2) place = 'beforeTitle';
     let kids = liftWrappers(Children.toArray(children));
     // The symbol moves as one piece — the widget still draws it (state colour, clicks).
     const iconAt = place === 'lead' ? -1 : kids.findIndex((k) => holds(k, isIcon) && !holds(k, isTitle));
@@ -204,13 +242,60 @@ export function TitleRow({ align, children, ...rest }: { align?: string } & HTML
     if (icon) kids = kids.filter((_, i) => i !== iconAt);
     const titleAt = kids.findIndex((k) => holds(k, isTitle));
     const inRow2 = toRow2 && titleAt >= 0;
-    useRegister(ctx, 't2', inRow2);
-    useRegister(ctx, 'r2', inRow2);
+    const iconRow2 = !!icon && isRowTwoPlace(place);
+    // Title or symbol on row 2: this row draws row 2 itself, HeaderSlotsRow2 steps back.
+    useRegister(ctx, 't2', inRow2 || iconRow2);
+    useRegister(ctx, 'r2', inRow2 || iconRow2);
     if (inRow2 && ctx) return titleInRowTwo({ ctx, kids, icon, place, titleAt, align, rest });
+    if (iconRow2 && ctx && isRowTwoPlace(place)) {
+        return (
+            <div className="flex flex-col gap-1 min-w-0" style={{ alignSelf: 'stretch' }} data-icon-row="2">
+                {rowOne({ kids, icon: null, place: 'lead', titleAt, centered, align, rest })}
+                <HeaderRowTwo items={ctx.items} icon={icon} iconSlot={place} onAction={ctx.onAction} />
+            </div>
+        );
+    }
     if (!centered && place === 'lead') return <div {...rest}>{children}</div>;
+    return rowOne({ kids, icon, place, titleAt, centered, align, rest });
+}
+
+/** Row 1 of a TitleRow: the title laid out by its alignment, the symbol at its place. */
+function rowOne({
+    kids: kidsIn,
+    icon: iconIn,
+    place: placeIn,
+    titleAt,
+    centered,
+    align,
+    rest,
+}: {
+    kids: Kids;
+    icon: Kids[number] | null;
+    place: IconPlace;
+    titleAt: number;
+    centered: boolean;
+    align?: string;
+    rest: HTMLAttributes<HTMLDivElement>;
+}): ReactNode {
+    let kids = kidsIn;
+    let icon = iconIn;
+    let place = placeIn;
+    if (icon && place === 'r1-center') {
+        kids = withCenterIcon(kids, icon);
+        icon = null;
+        place = 'lead';
+    }
+    if (!icon && !centered) return <div {...rest}>{kids}</div>;
     if (titleAt < 0) {
-        // No title: only "far right" still means something.
-        if (!icon || place !== 'trail') return <div {...rest}>{children}</div>;
+        // No title: only "far right" still means something; otherwise the symbol leads.
+        if (!icon) return <div {...rest}>{kids}</div>;
+        if (place !== 'trail')
+            return (
+                <div {...rest}>
+                    {icon}
+                    {kids}
+                </div>
+            );
         return (
             <div {...rest} data-icon-place={place}>
                 {kids}
@@ -293,9 +378,10 @@ export function TitleRow({ align, children, ...rest }: { align?: string } & HTML
 
 /**
  * options.titleRow 2: row 1 keeps everything but the title (a symbol at the far
- * left or right stays there), row 2 carries the title — with a symbol set beside
- * it — at its alignment, among the row-2 items. Both rows in one column, so a
- * parent that spreads its children moves them together.
+ * left, the middle or the right stays there), row 2 carries the title — with a symbol
+ * set beside it — at its alignment, among the row-2 items; a symbol set onto row 2
+ * stands in its own column there. Both rows in one column, so a parent that spreads
+ * its children moves them together.
  */
 function titleInRowTwo({
     ctx,
@@ -307,8 +393,8 @@ function titleInRowTwo({
     rest,
 }: {
     ctx: HeaderSlotsValue;
-    kids: ReturnType<typeof Children.toArray>;
-    icon: ReturnType<typeof Children.toArray>[number] | null;
+    kids: Kids;
+    icon: Kids[number] | null;
     place: IconPlace;
     titleAt: number;
     align?: string;
@@ -326,7 +412,7 @@ function titleInRowTwo({
     );
     // The title's place in row 1 becomes a spacer, so the widget's own controls
     // still sit at the right end.
-    const rowOne = [
+    const plainRowOne: Kids = [
         ...kids.slice(0, titleAt),
         <div key="title-spacer" style={{ flex: '1 1 0' }} />,
         ...kids.slice(titleAt + 1),
@@ -336,20 +422,30 @@ function titleInRowTwo({
             </span>
         ) : null,
     ];
+    const centerIcon = !!icon && place === 'r1-center';
+    const rowOneKids = centerIcon ? withCenterIcon(plainRowOne, icon) : plainRowOne;
     const r1Items = ctx.items.some((i) => i.slot.startsWith('r1-'));
     const r1Content = kids.some((k, i) => i !== titleAt && !(isValidElement(k) && k.type === HeaderSlotsInline));
-    const showRowOne = r1Items || r1Content || (!!icon && place === 'trail');
+    const showRowOne = r1Items || r1Content || (!!icon && (place === 'trail' || centerIcon));
+    const rowTwoIcon = icon && isRowTwoPlace(place) ? place : undefined;
     return (
         <div className="flex flex-col gap-1 min-w-0" style={{ alignSelf: 'stretch' }} data-title-row="2">
             {showRowOne ? (
                 <div {...rest} data-icon-place={place}>
-                    {rowOne}
+                    {rowOneKids}
                 </div>
             ) : (
                 // Nothing on row 1 but the slots: they still register (and stay empty).
                 kids.filter((k) => isValidElement(k) && k.type === HeaderSlotsInline)
             )}
-            <HeaderRowTwo items={ctx.items} title={title} titleAlign={align} onAction={ctx.onAction} />
+            <HeaderRowTwo
+                items={ctx.items}
+                title={title}
+                titleAlign={align}
+                icon={rowTwoIcon ? icon : undefined}
+                iconSlot={rowTwoIcon}
+                onAction={ctx.onAction}
+            />
         </div>
     );
 }

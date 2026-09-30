@@ -164,6 +164,10 @@ async function iconSpot(id) {
         const c = card.getBoundingClientRect();
         const r = card.querySelector('[data-header-slot="r1-right"]')?.getBoundingClientRect();
         return {
+            iconMidOffset: Math.round((i.left + i.width / 2 - (c.left + c.width / 2)) * 10) / 10,
+            rowDy: Math.round(Math.abs(i.top + i.height / 2 - (t.top + t.height / 2))),
+            below: i.top >= t.bottom - 1,
+            inRow2: !!iconEl.closest('[data-header-row="2"]'),
             gapBefore: Math.round(t.left - i.right),
             gapAfter: Math.round(i.left - t.right),
             fromLeft: Math.round(i.left - c.left),
@@ -215,6 +219,43 @@ for (const align of ['left', 'center']) {
         const ok = place === 'lead' ? !!m && m.gapBefore >= 0 && m.fromLeft < 50 : !!m && PLACE_OK[place](m);
         check(`folded/${align}/${place}: symbol in place`, ok, JSON.stringify(m));
     }
+}
+
+// ── iconPlace anywhere (#725): middle of row 1 and the three row-2 places ────
+const SLOT_OK = {
+    'r1-center': (m) => m.rowDy <= 4 && Math.abs(m.iconMidOffset) <= 3,
+    'r2-left': (m) => m.inRow2 && m.below && m.fromLeft < 40,
+    'r2-center': (m) => m.inRow2 && m.below && Math.abs(m.iconMidOffset) <= 3,
+    'r2-right': (m) => m.inRow2 && m.below && m.fromRight < 40,
+};
+for (const [type, opts] of [
+    ['switch', {}],
+    ['list', { entries: [{ id: 'demo.sw', label: 'Ofen' }], hideFilterButton: true }],
+    ['switch', { defaultCollapsed: true, collapsible: true }],
+]) {
+    const tag = opts.defaultCollapsed ? 'folded' : type;
+    for (const align of ['left', 'center', 'right']) {
+        for (const place of Object.keys(SLOT_OK)) {
+            const id = await show(type, { ...opts, titleAlign: align, iconPlace: place, headerItems: RIGHT });
+            const m = await iconSpot(id);
+            // Beside a centred title the middle of row 1 is right in front of it.
+            const ok =
+                place === 'r1-center' && align === 'center'
+                    ? !!m && PLACE_OK.beforeTitle(m) && Math.abs(m.groupOffset) <= 1.5
+                    : !!m && SLOT_OK[place](m);
+            check(`${tag}/${align}/${place}: symbol in place`, ok, JSON.stringify(m));
+        }
+    }
+}
+// Symbol and title on row 2 in the same column: symbol right in front of the title.
+{
+    const id = await show('switch', { titleAlign: 'left', titleRow: 2, iconPlace: 'r2-left' });
+    const m = await iconSpot(id);
+    check(
+        'titleRow 2 + r2-left: symbol in front of the title',
+        !!m && m.inRow2 && PLACE_OK.beforeTitle(m),
+        JSON.stringify(m),
+    );
 }
 
 // ── r1-left: items at the left end of the title row ─────────────────────────
@@ -512,7 +553,7 @@ for (const [type, opts] of [
     const marks = await editor.locator('[data-icon-target]').evaluateAll((els) => els.map((e) => e.dataset.iconTarget));
     check(
         'editor: picking the symbol shows the other places',
-        marks.sort().join() === 'afterTitle,beforeTitle,trail',
+        marks.sort().join() === 'afterTitle,beforeTitle,r1-center,r2-center,r2-left,r2-right,trail',
         marks.join(),
     );
     await editor.locator('[data-icon-target="trail"]').click();
@@ -523,6 +564,22 @@ for (const [type, opts] of [
         'editor: symbol tile now in the right cell',
         (await cell('r1-right').locator('[data-header-chip="icon"]').count()) === 1,
     );
+    // Row 2 (#725): a mark there, or a tap on the whole cell.
+    await editor.locator('[data-header-chip="icon"]').click();
+    await editor.locator('[data-icon-target="r2-center"]').click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check('editor: symbol onto row 2 writes iconPlace r2-center', o?.iconPlace === 'r2-center', String(o?.iconPlace));
+    check(
+        'editor: symbol tile now in the row-2 centre cell',
+        (await cell('r2-center').locator('[data-header-chip="icon"]').count()) === 1,
+    );
+    await editor.locator('[data-header-chip="icon"]').click();
+    await cell('r2-right').click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check('editor: a tap on a cell puts the symbol there', o?.iconPlace === 'r2-right', String(o?.iconPlace));
+    check('editor: …and adds no item', (o?.headerItems ?? []).length === 1, JSON.stringify(o?.headerItems));
     await editor.locator('[data-header-chip="icon"]').click();
     await editor.locator('[data-icon-target="afterTitle"]').click();
     await page.waitForTimeout(300);
