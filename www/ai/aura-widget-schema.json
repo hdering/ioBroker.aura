@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.72.4",
+    "auraVersion": "0.73.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -5968,7 +5968,8 @@
       "options": {
         "adapterFilter": {
           "type": "string",
-          "default": ""
+          "default": "",
+          "description": "Instanz-Vorfilter im Backend, kommagetrennt: \"aura, admin\" = alle Instanzen dieser Adapter, \"aura.0\" = genau diese Instanz. Leer = alle."
         },
         "bufferSize": {
           "type": "number"
@@ -5977,6 +5978,11 @@
           "type": "boolean",
           "default": false,
           "description": "Dichtere Darstellung mit kleineren Zeilen."
+        },
+        "defaultQuery": {
+          "type": "string",
+          "default": "",
+          "description": "Vorbelegung des Freitext-Filters (Teilstring in Meldung oder Quelle, ohne Groß/Klein). Das Widget startet gefiltert; der Betrachter kann den Text im Suchfeld ändern oder leeren."
         },
         "icon": {
           "type": "string",
