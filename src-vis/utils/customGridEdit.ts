@@ -4,8 +4,6 @@ import type { CustomCell, CustomGridDef } from '../types';
 // row-major, so shifting one line means rebuilding the cell array; spans that
 // cross the edited line grow or shrink with it, the track-size arrays follow.
 
-export const CUSTOM_GRID_MAX = 20;
-
 const EMPTY: CustomCell = { type: 'empty' };
 
 function spliceSizes(sizes: string[] | undefined, at: number, remove: number, insert?: string): string[] | undefined {
@@ -31,7 +29,6 @@ function spanOnDelete(start: number, span: number | undefined, at: number): numb
 /** Insert an empty row before row index `at` (0..rows). */
 export function insertGridRow(grid: CustomGridDef, at: number): CustomGridDef {
     const { cols, rows, cells } = grid;
-    if (rows >= CUSTOM_GRID_MAX) return grid;
     const pos = Math.max(0, Math.min(rows, at));
     const next: CustomCell[] = [];
     for (let r = 0; r <= rows; r++) {
@@ -57,7 +54,6 @@ export function insertGridRow(grid: CustomGridDef, at: number): CustomGridDef {
 /** Insert an empty column before column index `at` (0..cols). */
 export function insertGridCol(grid: CustomGridDef, at: number): CustomGridDef {
     const { cols, rows, cells } = grid;
-    if (cols >= CUSTOM_GRID_MAX) return grid;
     const pos = Math.max(0, Math.min(cols, at));
     const next: CustomCell[] = [];
     for (let r = 0; r < rows; r++) {

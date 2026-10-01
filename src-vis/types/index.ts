@@ -409,8 +409,8 @@ export type CustomGrid = CustomCell[];
 
 /** New custom-grid format with variable dimensions. */
 export interface CustomGridDef {
-    cols: number; // 1..20
-    rows: number; // 1..20
+    cols: number; // >= 1
+    rows: number; // >= 1
     cells: CustomCell[]; // length = cols*rows, row-major (index = row*cols + col)
     /** Optional per-column CSS grid-template-columns track sizes (e.g. 'auto', '1fr', '60px'). Length must equal cols. */
     colSizes?: string[];

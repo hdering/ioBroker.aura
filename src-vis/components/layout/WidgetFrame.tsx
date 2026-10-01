@@ -133,7 +133,6 @@ import type {
 } from '../../types';
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
 import {
-    CUSTOM_GRID_MAX,
     deleteGridCol,
     deleteGridRow,
     gridLineHasContent,
@@ -18722,8 +18721,8 @@ function WidgetFrameInner({
                                     });
                                 };
                                 const setDims = (nextCols: number, nextRows: number) => {
-                                    const c = Math.max(1, Math.min(20, nextCols));
-                                    const r = Math.max(1, Math.min(20, nextRows));
+                                    const c = Math.max(1, Math.floor(nextCols));
+                                    const r = Math.max(1, Math.floor(nextRows));
                                     const need = c * r;
                                     const nextCells: CustomCell[] = [];
                                     for (let row = 0; row < r; row++) {
@@ -18861,7 +18860,6 @@ function WidgetFrameInner({
                                                     <input
                                                         type="number"
                                                         min={1}
-                                                        max={20}
                                                         step={1}
                                                         value={cols}
                                                         onChange={(e) => setDims(Number(e.target.value) || 1, rows)}
@@ -18879,7 +18877,6 @@ function WidgetFrameInner({
                                                     <input
                                                         type="number"
                                                         min={1}
-                                                        max={20}
                                                         step={1}
                                                         value={rows}
                                                         onChange={(e) => setDims(cols, Number(e.target.value) || 1)}
@@ -20509,8 +20506,6 @@ function WidgetFrameInner({
                     const hasClip = !!cellClipboard;
                     const row = Math.floor(idx / g.cols);
                     const col = idx % g.cols;
-                    const canAddRow = g.rows < CUSTOM_GRID_MAX;
-                    const canAddCol = g.cols < CUSTOM_GRID_MAX;
                     const MENU_W = 200;
                     const MENU_H = 400;
                     const left = Math.min(customCellContextMenu.x, window.innerWidth - MENU_W - 8);
@@ -20614,14 +20609,10 @@ function WidgetFrameInner({
                             <div style={{ height: 1, background: 'var(--app-border)', margin: '4px 6px' }} />
                             {(
                                 [
-                                    ['Zeile darüber einfügen', canAddRow, () => editGridLine('insert', 'row', row)],
-                                    [
-                                        'Zeile darunter einfügen',
-                                        canAddRow,
-                                        () => editGridLine('insert', 'row', row + 1),
-                                    ],
-                                    ['Spalte links einfügen', canAddCol, () => editGridLine('insert', 'col', col)],
-                                    ['Spalte rechts einfügen', canAddCol, () => editGridLine('insert', 'col', col + 1)],
+                                    ['Zeile darüber einfügen', true, () => editGridLine('insert', 'row', row)],
+                                    ['Zeile darunter einfügen', true, () => editGridLine('insert', 'row', row + 1)],
+                                    ['Spalte links einfügen', true, () => editGridLine('insert', 'col', col)],
+                                    ['Spalte rechts einfügen', true, () => editGridLine('insert', 'col', col + 1)],
                                     null,
                                     [`Zeile ${row + 1} löschen`, g.rows > 1, () => requestGridLineDelete('row', row)],
                                     [`Spalte ${col + 1} löschen`, g.cols > 1, () => requestGridLineDelete('col', col)],

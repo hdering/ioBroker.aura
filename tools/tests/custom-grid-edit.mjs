@@ -23,8 +23,9 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { insertGridRow, insertGridCol, deleteGridRow, deleteGridCol, gridLineHasContent, CUSTOM_GRID_MAX } =
-    await import(pathToFileURL(bundle).href);
+const { insertGridRow, insertGridCol, deleteGridRow, deleteGridCol, gridLineHasContent } = await import(
+    pathToFileURL(bundle).href
+);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -71,9 +72,9 @@ const spanCol = { cols: 3, rows: 1, cells: [t('a', { colSpan: 3 }), E, E] };
 eq('insert inside a column span grows it', insertGridCol(spanCol, 2).cells[0].colSpan, 4);
 eq('delete inside a column span shrinks it', deleteGridCol(spanCol, 2).cells[0].colSpan, 2);
 
-// Limit and content check
-const full = { cols: 1, rows: CUSTOM_GRID_MAX, cells: Array.from({ length: CUSTOM_GRID_MAX }, () => E) };
-eq('no row past the limit', insertGridRow(full, 0), full);
+// No upper limit (#735); content check
+const big = { cols: 1, rows: 30, cells: Array.from({ length: 30 }, () => E) };
+eq('row past the former limit of 20', insertGridRow(big, 0).rows, 31);
 eq('row with content', gridLineHasContent(g2, 'row', 1), true);
 eq('empty row', gridLineHasContent(insertGridRow(g2, 0), 'row', 0), false);
 eq('empty column', gridLineHasContent(insertGridCol(g2, 1), 'col', 1), false);
