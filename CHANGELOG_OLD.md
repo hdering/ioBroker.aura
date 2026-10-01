@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.66.0 (2026-09-20)
+- JSON table - HTML columns get a width mode: own width, fill the column, or proportional (the longest value fills the column, shorter ones keep their ratio); bars built with `cellspacing` keep their gaps again ([#677](https://github.com/hdering/ioBroker.aura/issues/677))
+- Select field - in the editor the entry list's value column now grows with the longest value, so text values stay readable instead of being cut off; the same applies to the Universal widget's select cell ([#679](https://github.com/hdering/ioBroker.aura/issues/679))
+- 🌟 **New feature:** Colors - every color field now offers the theme colors and can hold one color per brightness, so an icon tuned for the light design no longer disappears on the dark one ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
+- 🌟 **New feature:** Fill level - a second status datapoint for discharging, with its own condition, effect, icon and color (orange by default), so a signed battery power can show charging in green and discharging in orange from the same datapoint ([#691](https://github.com/hdering/ioBroker.aura/issues/691))
+
 ## 0.65.1 (2026-09-20)
 - 🌟 **New feature:** List / Dynamic list - sort criteria can now compare a datapoint's last change or last update instead of its value, including the datapoint chosen for the second line; the "own value order" sort mode was dropped ([#687](https://github.com/hdering/ioBroker.aura/issues/687))
 
