@@ -1315,6 +1315,19 @@
           "description": "CSS color; '' / undefined = theme default",
           "color": true
         },
+        "bg": {
+          "type": "string",
+          "description": "cell background (CSS color, may carry alpha, e.g. #00000080); '' / undefined = none. A matched condition's bg replaces it",
+          "color": true
+        },
+        "bgMode": {
+          "type": "string",
+          "enum": [
+            "cell",
+            "content"
+          ],
+          "description": "where `bg` sits: 'cell' fills the whole grid cell (default), 'content' hugs the text as a label (title/value/unit/text/field/dp/state-text/lastchange cells; others always fill the cell)"
+        },
         "conditions": {
           "type": "array",
           "items": {
@@ -1818,7 +1831,7 @@
         },
         "bg": {
           "type": "string",
-          "description": "element background (the whole cell / row, never the bar of a progress cell)",
+          "description": "element background (the whole cell / row, never the bar of a progress cell; on a cell with bgMode 'content' only its label)",
           "color": true
         },
         "bold": {
@@ -3451,7 +3464,7 @@
         },
         "bg": {
           "type": "string",
-          "description": "element background (the whole cell / row, never the bar of a progress cell)",
+          "description": "element background (the whole cell / row, never the bar of a progress cell; on a cell with bgMode 'content' only its label)",
           "color": true
         },
         "bold": {
