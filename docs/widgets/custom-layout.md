@@ -39,6 +39,14 @@ Klick auf eine Zelle öffnet den Zell-Editor (Schriftgröße, Farbe, Ausrichtung
 | `progress` | Balken für einen Zahlenwert zwischen `min` und `max` (nur Anzeige) |
 | `component` | Widget-Komponente (z. B. Temperatur-Balken bei Wetter) |
 
+| Hintergrund | |
+| --- | --- |
+| Farbe | mit Transparenz, z. B. halb durchsichtig über einem Foto im Bild-Widget |
+| Ganze Zelle | füllt die Rasterzelle (Standard) |
+| Nur hinter dem Inhalt | Schild hinter dem Text — `title` · `value` · `unit` · `text` · `field` · `dp` · `state-text` · `lastchange` |
+
+Eine zutreffende Bedingung mit Hintergrund ersetzt die feste Farbe an derselben Stelle.
+
 Die Balkenfarbe von `progress` und `slider` (mit `barStyle`) ist `color`, sonst die Akzentfarbe. Eine zutreffende
 Zell-Bedingung mit `color` färbt den Balken mit — `bg` färbt dagegen die ganze Zelle, nie den Balken.
 

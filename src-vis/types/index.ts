@@ -284,6 +284,8 @@ export interface CustomCell {
     bold?: boolean;
     italic?: boolean;
     color?: string; // CSS color; '' / undefined = theme default
+    bg?: string; // cell background (CSS color, may carry alpha, e.g. #00000080); '' / undefined = none. A matched condition's bg replaces it
+    bgMode?: 'cell' | 'content'; // where `bg` sits: 'cell' fills the whole grid cell (default), 'content' hugs the text as a label (title/value/unit/text/field/dp/state-text/lastchange cells; others always fill the cell)
     conditions?: CellConditionRule[]; // per-cell conditional formatting (Universal Widget) — reacts to the cell's own or a foreign DP value
     align?: CustomCellAlign; // default: 'left'
     valign?: CustomCellValign; // default: 'middle'
@@ -854,7 +856,7 @@ export interface CellConditionRule {
     target?: ElementConditionTarget;
     // Effects applied when the rule matches (undefined = no override):
     color?: string; // text / icon color — and the fill of a progress or bar-style slider cell
-    bg?: string; // element background (the whole cell / row, never the bar of a progress cell)
+    bg?: string; // element background (the whole cell / row, never the bar of a progress cell; on a cell with bgMode 'content' only its label)
     bold?: boolean;
     italic?: boolean;
     icon?: string; // icon override (icon / state-icon cells, list row icon)

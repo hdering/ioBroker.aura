@@ -19,7 +19,7 @@ import {
 import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { CLICKABLE_CELL_TYPES } from '../widgets/CustomGridView';
+import { CLICKABLE_CELL_TYPES, CONTENT_BG_TYPES } from '../widgets/CustomGridView';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { EnumJsonSourceSection } from '../config/EnumJsonSourceSection';
@@ -3214,6 +3214,54 @@ export function CustomCellEditor({
                             Theme
                         </button>
                     </div>
+
+                    {/* Background (#732) — e.g. a semi-transparent label over a photo */}
+                    <div className="flex items-center gap-2">
+                        <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            Hintergrund
+                        </label>
+                        <ColorPicker
+                            value={cell.bg || '#00000080'}
+                            unset={!cell.bg}
+                            onChange={(v) => onChange({ bg: v })}
+                            className="w-8 h-7 rounded cursor-pointer border-0 p-0"
+                            style={{ background: 'none' }}
+                        />
+                        {cell.bg && (
+                            <button
+                                onClick={() => onChange({ bg: undefined, bgMode: undefined })}
+                                className="text-[10px] px-2 py-0.5 rounded"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                Keiner
+                            </button>
+                        )}
+                    </div>
+                    {cell.bg && CONTENT_BG_TYPES.has(cell.type) && (
+                        <div className="flex gap-1">
+                            {(['cell', 'content'] as const).map((m) => {
+                                const active = (cell.bgMode ?? 'cell') === m;
+                                return (
+                                    <button
+                                        key={m}
+                                        onClick={() => onChange({ bgMode: m === 'cell' ? undefined : m })}
+                                        className="flex-1 text-[10px] py-1 rounded"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {m === 'cell' ? 'Ganze Zelle' : 'Nur hinter dem Inhalt'}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     {/* Horizontal align */}
                     <div>

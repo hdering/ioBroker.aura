@@ -141,7 +141,31 @@ function cellWrapStyle(cell: CustomCell, index: number, cols: number, rows: numb
         gridColumn: colSpan > 1 ? `${col} / span ${colSpan}` : col,
         position: colSpan > 1 || rowSpan > 1 ? 'relative' : undefined,
         zIndex: colSpan > 1 || rowSpan > 1 ? 1 : undefined,
+        ...(cell.bg && !hugsContent(cell) ? { background: cell.bg, borderRadius: 6 } : null),
     };
+}
+
+/** Text-like cells whose background may hug the content as a label instead of filling the cell (#732). */
+export const CONTENT_BG_TYPES = new Set<CustomCell['type']>([
+    'title',
+    'value',
+    'unit',
+    'text',
+    'field',
+    'dp',
+    'state-text',
+    'lastchange',
+]);
+
+function hugsContent(cell: CustomCell): boolean {
+    return cell.bgMode === 'content' && CONTENT_BG_TYPES.has(cell.type);
+}
+
+/** Label background around the content of a hugging cell — a matched condition's bg wins. */
+function contentBgStyle(cell: CustomCell, cond: CellCondResult): React.CSSProperties | null {
+    if (!hugsContent(cell)) return null;
+    const bg = cond.bg || cell.bg;
+    return bg ? { background: bg, borderRadius: 6, padding: '0.1em 0.45em' } : null;
 }
 
 function emptyCellStyle(index: number, cols: number): React.CSSProperties {
@@ -149,7 +173,7 @@ function emptyCellStyle(index: number, cols: number): React.CSSProperties {
 }
 
 /** Merge a matched per-cell condition's background into the cell wrapper style. */
-function withCondBg(base: React.CSSProperties, cond: CellCondResult): React.CSSProperties {
+function withCondBg(base: React.CSSProperties, cond: CellCondResult, cell?: CustomCell): React.CSSProperties {
     // Also the single place a cell's pulse/blink is applied: every cell type wraps
     // itself with this, so the effect needs no threading through each of them.
     const animation =
@@ -158,8 +182,10 @@ function withCondBg(base: React.CSSProperties, cond: CellCondResult): React.CSSP
             : cond.effect === 'blink'
               ? 'blink 1s step-end infinite'
               : undefined;
-    if (!cond.bg && !animation) return base;
-    return { ...base, ...(cond.bg ? { background: cond.bg, borderRadius: 6 } : null), animation };
+    // A hugging cell paints the condition's bg on its label (contentBgStyle), not the cell.
+    const bg = cell && hugsContent(cell) ? undefined : cond.bg;
+    if (!bg && !animation) return base;
+    return { ...base, ...(bg ? { background: bg, borderRadius: 6 } : null), animation };
 }
 
 function alignItemsFromCell(cell: CustomCell): React.CSSProperties['alignItems'] {
@@ -241,17 +267,26 @@ function DpCellView({
         (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals, numFmt) : String(tValue));
     const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const labelBg = contentBgStyle(cell, cond);
     const textSty = cellTextStyle(cell, 'var(--text-primary)', cond);
-    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
+    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
     return (
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
             {cond.hide ? null : cell.showLastChange ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        alignItems: alignItemsFromCell(cell),
+                        ...labelBg,
+                    }}
+                >
                     <span style={textSty}>{content}</span>
                     <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span style={textSty}>{content}</span>
+                <span style={{ ...textSty, ...labelBg }}>{content}</span>
             )}
         </div>
     );
@@ -280,8 +315,8 @@ function LastChangeCellView({
         return () => clearInterval(id);
     }, [fmt, lc]);
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-    const textSty = cellTextStyle(cell, 'var(--text-primary)', cond);
-    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
+    const textSty = { ...cellTextStyle(cell, 'var(--text-primary)', cond), ...contentBgStyle(cell, cond) };
+    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
     return (
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
             {!cond.hide && <span style={textSty}>{lc ? formatLastChange(lc, fmt) : '–'}</span>}
@@ -444,20 +479,29 @@ function StaticCellView({
     const textSty: React.CSSProperties = isTitle
         ? { ...baseSty, color: undefined, '--aura-title-color': baseSty.color as string }
         : baseSty;
-    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
+    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
+    const labelBg = contentBgStyle(cell, cond);
     const lc = mainState?.lc;
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
             {cell.showLastChange && lc ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        alignItems: alignItemsFromCell(cell),
+                        ...labelBg,
+                    }}
+                >
                     <span className={textCls} style={textSty}>
                         {shown}
                     </span>
                     <LastChangeLine lc={lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span className={textCls} style={textSty}>
+                <span className={textCls} style={{ ...textSty, ...labelBg }}>
                     {shown}
                 </span>
             )}
@@ -1499,17 +1543,26 @@ function StateTextCellView({
     const color = truthy ? cell.trueColor || cell.color || '#22c55e' : cell.falseColor || cell.color || '#64748b';
     // A matched per-cell condition takes precedence over the true/false color.
     const textSty = { ...cellTextStyle(cell, color, cond), color: cond.color || color };
-    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
+    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
+    const labelBg = contentBgStyle(cell, cond);
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
             {cell.showLastChange ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
+                <div
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        alignItems: alignItemsFromCell(cell),
+                        ...labelBg,
+                    }}
+                >
                     <span style={textSty}>{label}</span>
                     <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span style={textSty}>{label}</span>
+                <span style={{ ...textSty, ...labelBg }}>{label}</span>
             )}
         </div>
     );
