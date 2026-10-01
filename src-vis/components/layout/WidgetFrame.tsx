@@ -14586,7 +14586,7 @@ function WidgetFrameInner({
                                                 className="text-[11px] mb-1 block"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                Freitext-Filter vorbelegen{' '}
+                                                Suchfeld vorbelegen{' '}
                                                 <span className="opacity-60">(im Frontend änderbar, | = oder)</span>
                                             </label>
                                             <input
