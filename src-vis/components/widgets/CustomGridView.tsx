@@ -1835,8 +1835,11 @@ export function CustomGridView({
     // minmax(0, 1fr) — ohne die 0-Untergrenze würde CSS-Grid die Spalten/Zeilen am min-content
     // der Zellinhalte ausrichten; ein langer Freitext in einer Außenzelle macht dann die Spalte
     // breiter und verschiebt z.B. den Drehregler in der Mittenzelle aus der Mitte.
-    const gridTemplateColumns = colSizes ? colSizes.join(' ') : `repeat(${cols}, minmax(0, 1fr))`;
-    const gridTemplateRows = rowSizes ? rowSizes.join(' ') : `repeat(${rows}, minmax(0, 1fr))`;
+    // Ratio tracks get the same 0 floor, otherwise a 0.25fr separator row next to a text row
+    // stays at its content's min height and the ratio no longer holds (issue #737).
+    const track = (s: string) => (/^\s*\d*\.?\d+fr\s*$/.test(s) ? `minmax(0, ${s.trim()})` : s);
+    const gridTemplateColumns = colSizes ? colSizes.map(track).join(' ') : `repeat(${cols}, minmax(0, 1fr))`;
+    const gridTemplateRows = rowSizes ? rowSizes.map(track).join(' ') : `repeat(${rows}, minmax(0, 1fr))`;
     // When custom row sizes are used, anchor content at top instead of CSS-grid's default
     // "stretch" which distributes free space across auto rows (causing huge gaps).
     const alignContent = rowSizes ? 'start' : undefined;

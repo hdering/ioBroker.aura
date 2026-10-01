@@ -416,7 +416,7 @@ export interface CustomGridDef {
     cells: CustomCell[]; // length = cols*rows, row-major (index = row*cols + col)
     /** Optional per-column CSS grid-template-columns track sizes (e.g. 'auto', '1fr', '60px'). Length must equal cols. */
     colSizes?: string[];
-    /** Optional per-row CSS grid-template-rows track sizes (e.g. 'auto', '1fr', '40px'). Length must equal rows. */
+    /** Optional per-row CSS grid-template-rows track sizes (e.g. 'auto', '1fr', '0.25fr', '40px'). Length must equal rows. 'Nfr' = share of the widget height (1fr / 0.25fr / 1fr gives a thin separator row), 'auto' = as tall as the content. */
     rowSizes?: string[];
 }
 

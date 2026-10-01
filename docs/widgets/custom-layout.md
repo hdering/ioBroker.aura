@@ -13,6 +13,7 @@ Größe per Spinner. Zellen werden zeilenweise gelesen (oben links → unten rec
 | Spalten | 1–20 | |
 | Zeilen | 1–20 | |
 | Spaltenbreiten | Verhältnis (`2` / `1` …) oder **auto** | `auto` = so breit wie der Inhalt |
+| Zeilenhöhen | Verhältnis (`1` / `0,25` / `1` …) oder **auto** | `auto` = so hoch wie der Inhalt; kleiner Wert = Trennzeile |
 | `colSizes` / `rowSizes` | `auto` · `1fr` · `60px` … | Track-Größe pro Spalte/Zeile |
 | `colSpan` / `rowSpan` | 1–n | Zelle über mehrere Spalten/Zeilen ziehen |
 

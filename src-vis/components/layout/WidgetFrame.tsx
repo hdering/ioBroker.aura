@@ -18987,6 +18987,90 @@ function WidgetFrameInner({
                                                 </div>
                                             )}
 
+                                            {/* Per-row height, same model as the columns: fr ratio of the widget
+                                            height (e.g. 1 / 0.25 / 1 makes a thin separator row) or 'auto' = as
+                                            tall as the cell content (issue #737). */}
+                                            {rows > 1 && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Zeilenhöhen (Verhältnis / auto)
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {Array.from({ length: rows }, (_, ri) => {
+                                                            const cur = grid.rowSizes?.[ri] ?? '1fr';
+                                                            const isAuto = cur.trim() === 'auto';
+                                                            const num = parseFloat(cur) || 1;
+                                                            const setRow = (size: string) => {
+                                                                const arr = Array.from({ length: rows }, (_, k) =>
+                                                                    k === ri ? size : (grid.rowSizes?.[k] ?? '1fr'),
+                                                                );
+                                                                const allEqualFr =
+                                                                    arr.every((s) => s === arr[0]) &&
+                                                                    arr[0].endsWith('fr');
+                                                                writeGrid({
+                                                                    ...grid,
+                                                                    rowSizes: allEqualFr ? undefined : arr,
+                                                                });
+                                                            };
+                                                            return (
+                                                                <div
+                                                                    key={ri}
+                                                                    className="flex-1 min-w-0 flex flex-col gap-1"
+                                                                >
+                                                                    <input
+                                                                        type="number"
+                                                                        min={0.25}
+                                                                        step={0.25}
+                                                                        value={isAuto ? '' : num}
+                                                                        disabled={isAuto}
+                                                                        placeholder="auto"
+                                                                        title={`Zeile ${ri + 1}`}
+                                                                        onChange={(e) =>
+                                                                            setRow(
+                                                                                `${Math.max(0.25, Number(e.target.value) || 1)}fr`,
+                                                                            )
+                                                                        }
+                                                                        className={inputCls}
+                                                                        style={{
+                                                                            ...inputSty,
+                                                                            opacity: isAuto ? 0.5 : 1,
+                                                                        }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setRow(isAuto ? '1fr' : 'auto')}
+                                                                        title={`Zeile ${ri + 1}: Höhe = Inhalt`}
+                                                                        className="text-[10px] rounded-md py-0.5"
+                                                                        style={{
+                                                                            background: isAuto
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                            color: isAuto
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                            border: `1px solid ${isAuto ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                        }}
+                                                                    >
+                                                                        {rows > 8 ? 'A' : 'auto'}
+                                                                    </button>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    <p
+                                                        className="text-[10px] mt-1"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                    >
+                                                        Verhältnis der Zeilenhöhen, von oben nach unten – z.&nbsp;B. 1 /
+                                                        0,25 / 1 ergibt eine schmale Trennzeile. <b>auto</b> = so hoch
+                                                        wie der Inhalt.
+                                                    </p>
+                                                </div>
+                                            )}
+
                                             {/* Cell picker — dynamic grid (drag&drop move, Ctrl/Option+drag copy, right-click menu) */}
                                             <div
                                                 style={{
