@@ -315,6 +315,46 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     ],
 };
 
+// ── Custom grid: row height control, leading column of the cell picker (#737) ──
+function RowSizeControl({ row, size, onChange }: { row: number; size: string; onChange: (size: string) => void }) {
+    const isAuto = size.trim() === 'auto';
+    const num = parseFloat(size) || 1;
+    return (
+        <div className="flex flex-col justify-center gap-0.5 min-w-0">
+            <input
+                type="number"
+                min={0.25}
+                step={0.25}
+                value={isAuto ? '' : num}
+                disabled={isAuto}
+                placeholder="auto"
+                title={`Zeile ${row}: Höhe (Verhältnis)`}
+                onChange={(e) => onChange(`${Math.max(0.25, Number(e.target.value) || 1)}fr`)}
+                className="w-full text-[11px] rounded px-1 py-0.5 focus:outline-none"
+                style={{
+                    background: 'var(--app-bg)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--app-border)',
+                    opacity: isAuto ? 0.5 : 1,
+                }}
+            />
+            <button
+                type="button"
+                onClick={() => onChange(isAuto ? '1fr' : 'auto')}
+                title={`Zeile ${row}: Höhe = Inhalt`}
+                className="text-[9px] rounded leading-tight py-px"
+                style={{
+                    background: isAuto ? 'var(--accent)' : 'var(--app-bg)',
+                    color: isAuto ? '#fff' : 'var(--text-secondary)',
+                    border: `1px solid ${isAuto ? 'var(--accent)' : 'var(--app-border)'}`,
+                }}
+            >
+                auto
+            </button>
+        </div>
+    );
+}
+
 // ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
 let cellClipboardData: CustomCell | null = null;
 const cellClipboardListeners = new Set<() => void>();
@@ -18909,7 +18949,11 @@ function WidgetFrameInner({
                                                     >
                                                         Spaltenbreiten (Verhältnis / auto)
                                                     </label>
-                                                    <div className="flex gap-1">
+                                                    {/* indented past the row-height column of the cell picker so each field sits above its column */}
+                                                    <div
+                                                        className="flex gap-1"
+                                                        style={rows > 1 ? { paddingLeft: 56 } : undefined}
+                                                    >
                                                         {Array.from({ length: cols }, (_, ci) => {
                                                             const cur = grid.colSizes?.[ci] ?? '1fr';
                                                             const isAuto = cur.trim() === 'auto';
@@ -18987,95 +19031,15 @@ function WidgetFrameInner({
                                                 </div>
                                             )}
 
-                                            {/* Per-row height, same model as the columns: fr ratio of the widget
-                                            height (e.g. 1 / 0.25 / 1 makes a thin separator row) or 'auto' = as
-                                            tall as the cell content (issue #737). */}
-                                            {rows > 1 && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Zeilenhöhen (Verhältnis / auto)
-                                                    </label>
-                                                    <div className="flex gap-1">
-                                                        {Array.from({ length: rows }, (_, ri) => {
-                                                            const cur = grid.rowSizes?.[ri] ?? '1fr';
-                                                            const isAuto = cur.trim() === 'auto';
-                                                            const num = parseFloat(cur) || 1;
-                                                            const setRow = (size: string) => {
-                                                                const arr = Array.from({ length: rows }, (_, k) =>
-                                                                    k === ri ? size : (grid.rowSizes?.[k] ?? '1fr'),
-                                                                );
-                                                                const allEqualFr =
-                                                                    arr.every((s) => s === arr[0]) &&
-                                                                    arr[0].endsWith('fr');
-                                                                writeGrid({
-                                                                    ...grid,
-                                                                    rowSizes: allEqualFr ? undefined : arr,
-                                                                });
-                                                            };
-                                                            return (
-                                                                <div
-                                                                    key={ri}
-                                                                    className="flex-1 min-w-0 flex flex-col gap-1"
-                                                                >
-                                                                    <input
-                                                                        type="number"
-                                                                        min={0.25}
-                                                                        step={0.25}
-                                                                        value={isAuto ? '' : num}
-                                                                        disabled={isAuto}
-                                                                        placeholder="auto"
-                                                                        title={`Zeile ${ri + 1}`}
-                                                                        onChange={(e) =>
-                                                                            setRow(
-                                                                                `${Math.max(0.25, Number(e.target.value) || 1)}fr`,
-                                                                            )
-                                                                        }
-                                                                        className={inputCls}
-                                                                        style={{
-                                                                            ...inputSty,
-                                                                            opacity: isAuto ? 0.5 : 1,
-                                                                        }}
-                                                                    />
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => setRow(isAuto ? '1fr' : 'auto')}
-                                                                        title={`Zeile ${ri + 1}: Höhe = Inhalt`}
-                                                                        className="text-[10px] rounded-md py-0.5"
-                                                                        style={{
-                                                                            background: isAuto
-                                                                                ? 'var(--accent)'
-                                                                                : 'var(--app-bg)',
-                                                                            color: isAuto
-                                                                                ? '#fff'
-                                                                                : 'var(--text-secondary)',
-                                                                            border: `1px solid ${isAuto ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                        }}
-                                                                    >
-                                                                        {rows > 8 ? 'A' : 'auto'}
-                                                                    </button>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                    <p
-                                                        className="text-[10px] mt-1"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                    >
-                                                        Verhältnis der Zeilenhöhen, von oben nach unten – z.&nbsp;B. 1 /
-                                                        0,25 / 1 ergibt eine schmale Trennzeile. <b>auto</b> = so hoch
-                                                        wie der Inhalt.
-                                                    </p>
-                                                </div>
-                                            )}
-
                                             {/* Cell picker — dynamic grid (drag&drop move, Ctrl/Option+drag copy, right-click menu) */}
+                                            {/* With more than one row, a narrow leading column carries each row's
+                                            height — fr ratio of the widget height (1 / 0.25 / 1 = thin separator
+                                            row) or 'auto' = as tall as the content — right next to its row (#737). */}
                                             <div
                                                 style={{
                                                     display: 'grid',
-                                                    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                                                    gridTemplateColumns:
+                                                        rows > 1 ? `52px repeat(${cols}, 1fr)` : `repeat(${cols}, 1fr)`,
                                                     gap: 4,
                                                 }}
                                             >
@@ -19114,7 +19078,31 @@ function WidgetFrameInner({
                                                         );
                                                         writeGrid({ ...grid, cells: nextCells });
                                                     };
-                                                    return (
+                                                    const rowCtl = rows > 1 && col === 1 && (
+                                                        <RowSizeControl
+                                                            key={`rs${row}`}
+                                                            row={row}
+                                                            size={grid.rowSizes?.[row - 1] ?? '1fr'}
+                                                            onChange={(size) => {
+                                                                const arr = Array.from({ length: rows }, (_, k) =>
+                                                                    k === row - 1
+                                                                        ? size
+                                                                        : (grid.rowSizes?.[k] ?? '1fr'),
+                                                                );
+                                                                // Only an all-equal *ratio* template is the same as no
+                                                                // template at all — all-'auto' must stay stored.
+                                                                const allEqualFr =
+                                                                    arr.every((v) => v === arr[0]) &&
+                                                                    arr[0].endsWith('fr');
+                                                                writeGrid({
+                                                                    ...grid,
+                                                                    rowSizes: allEqualFr ? undefined : arr,
+                                                                });
+                                                            }}
+                                                        />
+                                                    );
+                                                    return [
+                                                        rowCtl,
                                                         <button
                                                             key={i}
                                                             draggable={canDrag}
@@ -19211,8 +19199,8 @@ function WidgetFrameInner({
                                                             <span style={{ fontSize: 9, opacity: 0.6 }}>
                                                                 {row}/{col}
                                                             </span>
-                                                        </button>
-                                                    );
+                                                        </button>,
+                                                    ];
                                                 })}
                                             </div>
                                             <p
@@ -19221,6 +19209,14 @@ function WidgetFrameInner({
                                             >
                                                 Rechtsklick auf eine Zelle: Zeile oder Spalte an dieser Stelle einfügen
                                                 bzw. löschen.
+                                                {rows > 1 && (
+                                                    <>
+                                                        {' '}
+                                                        Links je Zeile die Höhe als Verhältnis – z.&nbsp;B. 1 / 0,25 / 1
+                                                        ergibt eine schmale Trennzeile; <b>auto</b> = so hoch wie der
+                                                        Inhalt.
+                                                    </>
+                                                )}
                                             </p>
 
                                             {/* Per-cell editor */}

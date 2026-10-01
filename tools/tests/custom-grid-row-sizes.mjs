@@ -66,9 +66,22 @@ const dlg = page.locator('.aura-widget-edit-modal');
 await dlg.waitFor({ timeout: 10000 });
 
 const grid = () => page.evaluate(() => window.__auraShot.widgetOptions('grs1')?.customGrid);
-check('editor offers one height field per row', (await dlg.locator('input[title^="Zeile "]').count()) === 3);
+check(
+    'editor offers one height field per row, left of the row',
+    (await dlg.locator('input[title$=": Höhe (Verhältnis)"]').count()) === 3,
+);
 
-await dlg.locator('input[title="Zeile 2"]').fill('0.25');
+{
+    const inp = await dlg.locator('input[title="Zeile 2: Höhe (Verhältnis)"]').boundingBox();
+    const c21 = await dlg.locator('button:has(> span:text-is("2/1"))').boundingBox();
+    const midIn = inp.y + inp.height / 2;
+    check(
+        'row 2 field sits left of cell 2/1, within its height',
+        inp.x + inp.width <= c21.x && midIn >= c21.y - 4 && midIn <= c21.y + c21.height + 4,
+        JSON.stringify({ inp, c21 }),
+    );
+}
+await dlg.locator('input[title="Zeile 2: Höhe (Verhältnis)"]').fill('0.25');
 await page.waitForTimeout(300);
 let g = await grid();
 check('rowSizes stored', JSON.stringify(g?.rowSizes) === '["1fr","0.25fr","1fr"]', JSON.stringify(g?.rowSizes));
@@ -90,7 +103,7 @@ h = await rowHeights();
 check('auto row is smaller than the ratio row', h[2] < h[0], h.join(' / '));
 
 await dlg.locator('button[title="Zeile 3: Höhe = Inhalt"]').click();
-await dlg.locator('input[title="Zeile 2"]').fill('1');
+await dlg.locator('input[title="Zeile 2: Höhe (Verhältnis)"]').fill('1');
 await page.waitForTimeout(300);
 g = await grid();
 check('all-equal ratios drop rowSizes again', g?.rowSizes === undefined, JSON.stringify(g?.rowSizes));
