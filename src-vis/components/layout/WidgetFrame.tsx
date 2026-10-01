@@ -14587,13 +14587,13 @@ function WidgetFrameInner({
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
                                                 Freitext-Filter vorbelegen{' '}
-                                                <span className="opacity-60">(im Frontend änderbar)</span>
+                                                <span className="opacity-60">(im Frontend änderbar, | = oder)</span>
                                             </label>
                                             <input
                                                 type="text"
                                                 value={(o.defaultQuery as string) ?? ''}
                                                 onChange={(e) => set({ defaultQuery: e.target.value })}
-                                                placeholder="z.B. Beschattung"
+                                                placeholder="z.B. Beschattung | Beleuchtung"
                                                 className={lCls}
                                                 style={lSty}
                                             />

@@ -201,7 +201,11 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     // Filter + slice. `out` is built newest→oldest; we flip back to chronological
     // order only when the user wants oldest-first display.
     const visible = useMemo(() => {
-        const lc = query.trim().toLowerCase();
+        // "Beschattung | Beleuchtung" = OR of the parts; empty parts are ignored.
+        const terms = query
+            .split('|')
+            .map((t) => t.trim().toLowerCase())
+            .filter(Boolean);
         const out: LogEntry[] = [];
         const buf = bufferRef.current;
         for (let i = buf.length - 1; i >= 0 && out.length < visibleLimit; i--) {
@@ -209,7 +213,11 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
             const sev = normalizeSeverity(e.severity);
             if (!levels.has(sev)) continue;
             if (selectedAdapters.size > 0 && !selectedAdapters.has(adapterFromSource(e.from))) continue;
-            if (lc && !e.message.toLowerCase().includes(lc) && !e.from.toLowerCase().includes(lc)) continue;
+            if (terms.length > 0) {
+                const msg = e.message.toLowerCase();
+                const from = e.from.toLowerCase();
+                if (!terms.some((t) => msg.includes(t) || from.includes(t))) continue;
+            }
             out.push(e);
         }
         return newestFirst ? out : out.reverse();
@@ -403,7 +411,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Freitext-Filter…"
+                        placeholder="Freitext-Filter… (a | b = oder)"
                         className="flex-1 bg-transparent text-xs focus:outline-none"
                         style={{ color: 'var(--text-primary)' }}
                     />

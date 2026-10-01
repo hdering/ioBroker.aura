@@ -733,7 +733,7 @@ export const WIDGET_OPTION_NOTES = {
         },
         defaultQuery: {
             description:
-                'Vorbelegung des Freitext-Filters (Teilstring in Meldung oder Quelle, ohne Groß/Klein). Das Widget startet gefiltert; der Betrachter kann den Text im Suchfeld ändern oder leeren.',
+                'Vorbelegung des Freitext-Filters (Teilstring in Meldung oder Quelle, ohne Groß/Klein; mehrere Begriffe mit "|" oder-verknüpft, z. B. "Beschattung | Beleuchtung"). Das Widget startet gefiltert; der Betrachter kann den Text im Suchfeld ändern oder leeren.',
         },
     },
     weather: {
