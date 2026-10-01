@@ -651,6 +651,10 @@ export const WIDGET_OPTION_NOTES = {
         streamUrlMode: { description: 'Woher die Stream-Adresse kommt: fest oder aus einem Datenpunkt.' },
         streamUrl: { description: 'Feste Stream-Adresse.' },
         streamUrlDp: { description: 'Datenpunkt, der die Stream-Adresse liefert.' },
+        refreshInterval: {
+            description:
+                'Bild alle n Sekunden neu laden (Snapshot-Kamera). 0 = Livestream. MJPEG-Adressen (.mjpeg/.mjpg, /mjpeg/, ?action=stream) laufen immer live, das Intervall wird dann ignoriert.',
+        },
         streamTimeout: { description: 'Abbruch, wenn der Stream nach so vielen Sekunden kein Bild liefert.' },
         videoRatio: { description: 'Seitenverhältnis des Bildes.' },
         fitMode: { description: 'Wie das Bild in die Kachel eingepasst wird.' },

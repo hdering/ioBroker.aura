@@ -142,6 +142,19 @@ function detectMode(url: string): StreamMode {
     return 'img';
 }
 
+/**
+ * MJPEG streams (`.../stream.mjpeg`, `/mjpg/video.mjpg`, mjpg-streamer's `?action=stream`)
+ * animate on their own. Reloading them on an interval would tear the connection down
+ * every few seconds and look like a slow snapshot camera, so they always run live.
+ */
+export function isMjpegStreamUrl(url: string): boolean {
+    if (!url) return false;
+    const [rawPath, query = ''] = url.toLowerCase().split('?');
+    const path = rawPath.replace(/\/+$/, '');
+    if (/\.(mjpe?g)$/.test(path) || /\/(mjpe?g|mjpeg_stream|mjpegstream)(\/|$)/.test(path)) return true;
+    return /(^|&)action=stream(&|$)/.test(query);
+}
+
 const DEFAULT_LABELS: Partial<Record<CameraSlotType, string>> = {
     battery: 'Akku',
     temperature: 'Temperatur',
@@ -775,7 +788,8 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const { value: dpStreamUrl } = useDatapoint(streamUrlDp);
     const staticStreamUrl = (opts.streamUrl as string) ?? '';
     const streamUrl = streamUrlDp && dpStreamUrl != null && dpStreamUrl !== '' ? String(dpStreamUrl) : staticStreamUrl;
-    const refreshInterval = (opts.refreshInterval as number) ?? 5;
+    const configuredRefresh = (opts.refreshInterval as number) ?? 5;
+    const refreshInterval = isMjpegStreamUrl(streamUrl) ? 0 : configuredRefresh;
     const fitMode = (opts.fitMode as 'cover' | 'contain') ?? 'cover';
     const showTimestamp = (opts.showTimestamp as boolean) ?? true;
     const wakeUpDp = (opts.wakeUpDp as string) ?? '';
