@@ -216,6 +216,7 @@
     "test:title-descender": "node tools/tests/title-descender-clip.mjs",
     "test:list-enums": "node tools/tests/list-enum-filter.mjs",
     "test:camera-actions": "node tools/tests/camera-actions.mjs",
+    "test:camera-player-state": "node tools/tests/camera-player-state.mjs",
     "test:condition-refresh": "node tools/tests/condition-refresh.mjs",
     "test:dp-vars": "node tools/tests/dp-vars.mjs",
     "test:name-pattern": "node tools/tests/name-pattern.mjs",

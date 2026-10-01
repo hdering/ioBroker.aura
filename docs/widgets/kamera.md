@@ -41,7 +41,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `streamUrlMode` | `static` | `static` · `datapoint` |
 | `streamUrl` | — | feste Stream-/Snapshot-URL |
 | `streamUrlDp` | — | Datenpunkt mit URL (nur `datapoint`) |
-| `refreshInterval` | `5` | Sekunden pro Snapshot (`0` = LIVE/MJPEG) |
+| `refreshInterval` | `5` | Sekunden pro Snapshot (`0` = LIVE); MJPEG-URLs (`.mjpeg`, `/mjpeg/`, `?action=stream`) laufen immer live |
 | `fitMode` | `cover` | `cover` · `contain` |
 | `showTimestamp` | `true` | Zeitstempel einblenden |
 | `reloadOnWake` | `true` | Stream nach Display-Standby neu laden |
@@ -60,14 +60,18 @@ Play-Button. `reloadOnWake` lädt den Stream beim Aufwachen neu und umgeht das.
 
 ### Wake-up
 
-Aktiviert die Kamera erst bei Bedarf über einen Steuer-Datenpunkt und schaltet sie nach Ablauf wieder ab.
+Startet den Stream erst bei Bedarf und schaltet ihn nach Ablauf wieder ab — mit Steuer-Datenpunkt
+oder ohne, wenn der Player die Kamera selbst startet (eusec „Livestreams bei Bedarf starten“).
 
 | Option | Standard | |
 | --- | --- | --- |
 | `wakeUpDp` | — | Wake-up-Datenpunkt (`boolean`) |
-| `wakeUpMode` | `onClick` | `onClick` · `onView` (ohne `wakeUpDp` immer `auto`) |
-| `wakeUpDelay` | `3` | Sekunden bis der Stream nach dem Wecken bereit ist |
+| `wakeUpMode` | `onClick` | `onClick` · `onView`; ohne `wakeUpDp` zusätzlich `auto` (Standard, sofort laden) |
+| `wakeUpDelay` | `3` | Sekunden bis der Stream nach dem Wecken bereit ist (nur mit `wakeUpDp`) |
 | `streamTimeout` | `60` | Sekunden bis Auto-Abschaltung (`0` = aus) |
+
+Player-Status (eusec `stream.html`): Meldet die Player-Seite `waiting` oder `playing`, ruht der
+Timeout; bei `error`/`paused` läuft er neu an. `waiting` blendet „Station überträgt gerade „…““ ein.
 
 ### Anzeige
 

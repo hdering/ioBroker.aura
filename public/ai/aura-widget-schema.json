@@ -7501,7 +7501,7 @@
         "streamTimeout": {
           "type": "number",
           "default": 60,
-          "description": "Abbruch, wenn der Stream nach so vielen Sekunden kein Bild liefert."
+          "description": "Stream nach so vielen Sekunden wieder schließen (nur bei wakeUpDp oder wakeUpMode onClick/onView). Meldet eine Player-Seite (eusec stream.html) \"waiting\" oder \"playing\", ruht der Timeout."
         },
         "streamUrl": {
           "type": "string",
@@ -7527,7 +7527,7 @@
         "wakeUpDelay": {
           "type": "number",
           "default": 3,
-          "description": "Wartezeit nach dem Aufwecken in Sekunden, bevor der Stream startet."
+          "description": "Wartezeit nach dem Aufwecken in Sekunden, bevor der Stream startet. Nur mit wakeUpDp."
         },
         "wakeUpDp": {
           "type": "string",
@@ -7538,7 +7538,7 @@
         "wakeUpMode": {
           "type": "string",
           "ref": "WakeUpMode",
-          "description": "\"onClick\" weckt beim Antippen, \"onView\" beim Sichtbarwerden."
+          "description": "\"onClick\" lädt den Stream erst beim Antippen, \"onView\" beim Sichtbarwerden, \"auto\" sofort. Mit wakeUpDp nur onClick/onView. Ohne wakeUpDp eignet sich onClick für Player, die die Kamera selbst starten (eusec), dann ohne Wartezeit."
         }
       }
     },

@@ -12669,61 +12669,71 @@ function WidgetFrameInner({
                                                 </button>
                                             </div>
                                         </div>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {(o.wakeUpDp as string) ? 'Wake-Up Auslöser' : 'Stream starten'}
+                                            </label>
+                                            <select
+                                                value={
+                                                    (o.wakeUpMode as string) === 'onView'
+                                                        ? 'onView'
+                                                        : (o.wakeUpMode as string) === 'onClick' ||
+                                                            (o.wakeUpDp as string)
+                                                          ? 'onClick'
+                                                          : 'auto'
+                                                }
+                                                onChange={(e) => set({ wakeUpMode: e.target.value })}
+                                                className={cCls}
+                                                style={cSty}
+                                            >
+                                                {!(o.wakeUpDp as string) && (
+                                                    <option value="auto">Sofort beim Anzeigen</option>
+                                                )}
+                                                <option value="onClick">Manuell (bei Klick)</option>
+                                                <option value="onView">Bei Sicht (Viewport)</option>
+                                            </select>
+                                        </div>
                                         {(o.wakeUpDp as string) && (
-                                            <>
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Wake-Up Auslöser
-                                                    </label>
-                                                    <select
-                                                        value={
-                                                            (o.wakeUpMode as string) === 'onView' ? 'onView' : 'onClick'
-                                                        }
-                                                        onChange={(e) => set({ wakeUpMode: e.target.value })}
-                                                        className={cCls}
-                                                        style={cSty}
-                                                    >
-                                                        <option value="onClick">Manuell (bei Klick)</option>
-                                                        <option value="onView">Bei Sicht (Viewport)</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Wartezeit nach Wake-Up (Sek.)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={1}
-                                                        max={30}
-                                                        value={(o.wakeUpDelay as number) ?? 3}
-                                                        onChange={(e) => set({ wakeUpDelay: Number(e.target.value) })}
-                                                        className={cCls}
-                                                        style={cSty}
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Stream-Timeout (Sek., 0 = deaktiviert)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        value={(o.streamTimeout as number) ?? 60}
-                                                        onChange={(e) => set({ streamTimeout: Number(e.target.value) })}
-                                                        className={cCls}
-                                                        style={cSty}
-                                                    />
-                                                </div>
-                                            </>
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Wartezeit nach Wake-Up (Sek.)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    max={30}
+                                                    value={(o.wakeUpDelay as number) ?? 3}
+                                                    onChange={(e) => set({ wakeUpDelay: Number(e.target.value) })}
+                                                    className={cCls}
+                                                    style={cSty}
+                                                />
+                                            </div>
+                                        )}
+                                        {((o.wakeUpDp as string) ||
+                                            (o.wakeUpMode as string) === 'onClick' ||
+                                            (o.wakeUpMode as string) === 'onView') && (
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Stream-Timeout (Sek., 0 = deaktiviert)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={(o.streamTimeout as number) ?? 60}
+                                                    onChange={(e) => set({ streamTimeout: Number(e.target.value) })}
+                                                    className={cCls}
+                                                    style={cSty}
+                                                />
+                                            </div>
                                         )}
 
                                         {/* ── Standard layout: video ratio + info rows ── */}

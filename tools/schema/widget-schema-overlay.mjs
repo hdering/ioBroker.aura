@@ -655,12 +655,20 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Bild alle n Sekunden neu laden (Snapshot-Kamera). 0 = Livestream. MJPEG-Adressen (.mjpeg/.mjpg, /mjpeg/, ?action=stream) laufen immer live, das Intervall wird dann ignoriert.',
         },
-        streamTimeout: { description: 'Abbruch, wenn der Stream nach so vielen Sekunden kein Bild liefert.' },
+        streamTimeout: {
+            description:
+                'Stream nach so vielen Sekunden wieder schließen (nur bei wakeUpDp oder wakeUpMode onClick/onView). Meldet eine Player-Seite (eusec stream.html) "waiting" oder "playing", ruht der Timeout.',
+        },
         videoRatio: { description: 'Seitenverhältnis des Bildes.' },
         fitMode: { description: 'Wie das Bild in die Kachel eingepasst wird.' },
         wakeUpDp: { description: 'Datenpunkt, der die Kamera aufweckt.' },
-        wakeUpMode: { description: '"onClick" weckt beim Antippen, "onView" beim Sichtbarwerden.' },
-        wakeUpDelay: { description: 'Wartezeit nach dem Aufwecken in Sekunden, bevor der Stream startet.' },
+        wakeUpMode: {
+            description:
+                '"onClick" lädt den Stream erst beim Antippen, "onView" beim Sichtbarwerden, "auto" sofort. Mit wakeUpDp nur onClick/onView. Ohne wakeUpDp eignet sich onClick für Player, die die Kamera selbst starten (eusec), dann ohne Wartezeit.',
+        },
+        wakeUpDelay: {
+            description: 'Wartezeit nach dem Aufwecken in Sekunden, bevor der Stream startet. Nur mit wakeUpDp.',
+        },
         showTimestamp: { description: 'Zeitstempel im Bild anzeigen.' },
         infoItems: { description: 'Zusätzliche Werte, die über dem Bild eingeblendet werden.' },
         cameraTemplate: { description: 'Vorlage für eine bekannte Kameramarke.' },

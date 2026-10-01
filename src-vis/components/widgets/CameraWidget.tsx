@@ -132,6 +132,25 @@ type StreamMode = 'img' | 'iframe' | 'rtsp-hint';
 type WakeUpMode = 'auto' | 'onView' | 'onClick';
 type StopReason = 'initial' | 'timeout' | 'error';
 
+/**
+ * Player pages that report their state to the embedding page. The eusec adapter's
+ * go2rtc player (`stream.html?src=<serial>`) posts
+ * `{ type: 'eusec-stream', src, state, detail }` via `window.parent.postMessage`.
+ */
+type PlayerState = 'waiting' | 'playing' | 'paused' | 'error';
+interface PlayerStatus {
+    state: PlayerState;
+    detail?: string;
+}
+const PLAYER_STATES: readonly PlayerState[] = ['waiting', 'playing', 'paused', 'error'];
+
+function parsePlayerMessage(data: unknown): PlayerStatus | null {
+    if (!data || typeof data !== 'object') return null;
+    const d = data as { type?: unknown; state?: unknown; detail?: unknown };
+    if (d.type !== 'eusec-stream' || !PLAYER_STATES.includes(d.state as PlayerState)) return null;
+    return { state: d.state as PlayerState, detail: typeof d.detail === 'string' ? d.detail : undefined };
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function detectMode(url: string): StreamMode {
@@ -496,10 +515,29 @@ interface StreamViewProps {
     wakeNonce: number;
     /** Only relevant for `.html` streams, which render in an iframe. (issues #527/#529) */
     interactionMode: IframeInteractionMode;
+    /** Last state the embedded player page reported, null when it never did. */
+    playerStatus: PlayerStatus | null;
+    onPlayerStatus: (status: PlayerStatus) => void;
 }
 
 function StreamView(p: StreamViewProps) {
     const placeholderBg = p.transparent ? 'transparent' : 'var(--app-bg)';
+    const frameRef = useRef<HTMLIFrameElement>(null);
+    const onPlayerStatusRef = useRef(p.onPlayerStatus);
+    onPlayerStatusRef.current = p.onPlayerStatus;
+
+    // Only this view's own iframe counts — the fullscreen copy has its own listener.
+    useEffect(() => {
+        if (p.mode !== 'iframe') return;
+        const handler = (e: MessageEvent) => {
+            if (!frameRef.current || e.source !== frameRef.current.contentWindow) return;
+            const status = parsePlayerMessage(e.data);
+            if (status) onPlayerStatusRef.current(status);
+        };
+        window.addEventListener('message', handler);
+        return () => window.removeEventListener('message', handler);
+    }, [p.mode]);
+
     if (!p.streamUrl) {
         return (
             <div
@@ -541,6 +579,7 @@ function StreamView(p: StreamViewProps) {
             {p.mode === 'iframe' ? (
                 <>
                     <iframe
+                        ref={frameRef}
                         key={`${p.streamUrl}#${p.wakeNonce}`}
                         src={p.streamUrl}
                         title={p.title || 'Kamera'}
@@ -566,6 +605,15 @@ function StreamView(p: StreamViewProps) {
                     onLoad={p.onLoad}
                     style={{ width: '100%', height: '100%', objectFit: p.fitMode, display: 'block' }}
                 />
+            )}
+
+            {p.mode === 'iframe' && p.playerStatus?.state === 'waiting' && p.playerStatus.detail && (
+                <div
+                    className="absolute bottom-1 left-1/2 -translate-x-1/2 max-w-[90%] px-2 py-0.5 rounded text-[10px] truncate pointer-events-none"
+                    style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', zIndex: 2 }}
+                >
+                    Station überträgt gerade „{p.playerStatus.detail}“
+                </div>
             )}
 
             {hasError && (
@@ -684,7 +732,8 @@ function FullscreenPortal({ svProps, onClose }: { svProps: StreamViewProps; onCl
 // ── StreamCell ────────────────────────────────────────────────────────────────
 
 interface StreamCellProps extends StreamViewProps {
-    wakeUpDp: string;
+    /** Stream loads on demand (wake-up DP and/or click/view trigger) instead of right away. */
+    needsWake: boolean;
     wakeUpMode: WakeUpMode;
     waking: boolean;
     streamReady: boolean;
@@ -694,7 +743,7 @@ interface StreamCellProps extends StreamViewProps {
 }
 
 function StreamCell({
-    wakeUpDp,
+    needsWake,
     wakeUpMode,
     waking,
     streamReady,
@@ -705,7 +754,6 @@ function StreamCell({
     ...svProps
 }: StreamCellProps) {
     const wakeBg = svProps.transparent ? 'transparent' : 'var(--app-bg)';
-    const needsWake = !!wakeUpDp && !!svProps.streamUrl;
 
     // ── onClick: not yet active or stream ended ──────────────────────────────────
     if (needsWake && wakeUpMode === 'onClick' && !waking && !streamReady) {
@@ -795,8 +843,18 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const wakeUpDp = (opts.wakeUpDp as string) ?? '';
     const wakeUpDelay = (opts.wakeUpDelay as number) ?? 3;
     // When a wake-up DP is configured, never auto-start. Treat stored 'auto' as 'onClick'.
+    // Without one the stream starts right away unless a trigger is chosen — a player page
+    // that starts the camera itself (eusec "start livestreams on demand") then only loads
+    // on tap instead of waking the camera for every open view.
     const _rawWakeUpMode = opts.wakeUpMode as WakeUpMode | undefined;
-    const wakeUpMode: WakeUpMode = wakeUpDp ? (_rawWakeUpMode === 'onView' ? 'onView' : 'onClick') : 'auto';
+    const wakeUpMode: WakeUpMode = wakeUpDp
+        ? _rawWakeUpMode === 'onView'
+            ? 'onView'
+            : 'onClick'
+        : _rawWakeUpMode === 'onClick' || _rawWakeUpMode === 'onView'
+          ? _rawWakeUpMode
+          : 'auto';
+    const onDemand = wakeUpMode !== 'auto';
     const streamTimeout = (opts.streamTimeout as number) ?? 60;
     const reloadOnWake = (opts.reloadOnWake as boolean) ?? true;
     const videoRatio = (opts.videoRatio as number) ?? 60;
@@ -836,12 +894,15 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const [streamReady, setStreamReady] = useState(false);
     const [stopReason, setStopReason] = useState<StopReason>('initial');
     const [streamSecondsLeft, setStreamSecondsLeft] = useState<number | null>(null);
+    const [playerStatus, setPlayerStatus] = useState<PlayerStatus | null>(null);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const wakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const consecutiveErrRef = useRef(0);
+    const streamReadyRef = useRef(false);
+    streamReadyRef.current = streamReady;
     const wakeUpDpRef = useRef(wakeUpDp);
     const wakeUpDelayRef = useRef(wakeUpDelay);
     const streamTimeoutCfgRef = useRef(streamTimeout);
@@ -900,24 +961,42 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         setWaking(false);
         setStreamReady(false);
         setStopReason(reason);
+        setPlayerStatus(null);
     }
 
     function doWake() {
-        if (!wakeUpDpRef.current) return;
         if (wakeTimerRef.current) clearTimeout(wakeTimerRef.current);
         clearCountdown();
-        setStateDirect(wakeUpDpRef.current, true);
-        setWaking(true);
-        setStreamReady(false);
         setStopReason('initial');
+        setPlayerStatus(null);
         consecutiveErrRef.current = 0;
-        wakeTimerRef.current = setTimeout(() => {
+        const start = () => {
             setWaking(false);
             setStreamReady(true);
             if (streamTimeoutCfgRef.current > 0) {
                 startCountdown(streamTimeoutCfgRef.current);
             }
-        }, wakeUpDelayRef.current * 1000);
+        };
+        // Without a wake-up DP the player starts the camera itself — nothing to wait for.
+        if (!wakeUpDpRef.current) {
+            start();
+            return;
+        }
+        setStateDirect(wakeUpDpRef.current, true);
+        setWaking(true);
+        setStreamReady(false);
+        wakeTimerRef.current = setTimeout(start, wakeUpDelayRef.current * 1000);
+    }
+
+    // The timeout only runs while the player reports neither 'playing' nor 'waiting':
+    // a camera queued behind another one on the HomeBase, or one slow to wake, would
+    // otherwise time out before the first picture. Pages that never report keep the
+    // plain countdown from doWake().
+    function handlePlayerStatus(status: PlayerStatus) {
+        setPlayerStatus(status);
+        if (!streamReadyRef.current || streamTimeoutCfgRef.current <= 0) return;
+        if (status.state === 'playing' || status.state === 'waiting') clearCountdown();
+        else if (!countdownRef.current) startCountdown(streamTimeoutCfgRef.current);
     }
 
     // Countdown reaches 0 → auto-sleep
@@ -929,34 +1008,24 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     // ── Wake-up effects ────────────────────────────────────────────────────────────
 
     useEffect(() => {
-        // No wake-up DP + URL present → stream always ready (no on-demand control needed).
-        if (!wakeUpDp && streamUrl) {
+        // No trigger → stream always ready (no on-demand control needed).
+        if (!onDemand && streamUrl) {
             setStreamReady(true);
             return;
         }
-        // URL missing or wake-up DP configured but URL not yet loaded → ensure not ready.
-        if (!streamUrl || !wakeUpDp) {
-            setStreamReady(false);
-            return;
-        }
-        // Both wake-up DP and URL are present → use wake-up mode.
-        if (wakeUpMode !== 'auto') {
-            setStreamReady(false);
-            return;
-        }
-        doWake();
+        // URL missing, or the stream waits for its click/view trigger.
+        setStreamReady(false);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [wakeUpDp, streamUrl, wakeUpMode]);
+
+    useEffect(() => {
+        if (!streamUrl || wakeUpMode !== 'onClick') return;
         return () => doSleep();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [wakeUpDp, streamUrl, wakeUpMode]);
 
     useEffect(() => {
-        if (!wakeUpDp || !streamUrl || wakeUpMode !== 'onClick') return;
-        return () => doSleep();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [wakeUpDp, streamUrl, wakeUpMode]);
-
-    useEffect(() => {
-        if (!wakeUpDp || !streamUrl || wakeUpMode !== 'onView') return;
+        if (!streamUrl || wakeUpMode !== 'onView') return;
         const el = containerRef.current;
         if (!el) return;
         // Skip the initial callback that fires synchronously when observe() is called.
@@ -1016,7 +1085,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
 
     function handleStreamError() {
         setLoadError(true);
-        if (!wakeUpDp) return;
+        if (!onDemand) return;
         consecutiveErrRef.current++;
         if (consecutiveErrRef.current >= MAX_ERRORS) {
             doSleep('error');
@@ -1029,7 +1098,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     }
 
     // ── Shared props ────────────────────────────────────────────────────────────────
-    const needsWake = !!wakeUpDp && !!streamUrl;
+    const needsWake = onDemand && !!streamUrl;
 
     const svProps: StreamViewProps = {
         streamUrl,
@@ -1049,11 +1118,13 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         transparent,
         wakeNonce,
         interactionMode,
+        playerStatus,
+        onPlayerStatus: handlePlayerStatus,
     };
 
     const scProps: StreamCellProps = {
         ...svProps,
-        wakeUpDp,
+        needsWake,
         wakeUpMode,
         waking,
         streamReady,
