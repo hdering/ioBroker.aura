@@ -78,9 +78,7 @@ export function Dashboard({
     sectionId,
 }: DashboardProps) {
     const activeLayout = useActiveLayout();
-    const { updateWidget, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
-    // One stable callback for every frame — an inline arrow would defeat WidgetFrame's memo.
-    const handleConfigChange = useCallback((cfg: WidgetConfig) => updateWidget(cfg.id, cfg), [updateWidget]);
+    const { updateWidget, updateWidgetById, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
 
     // Resolve the section whose tabs this dashboard renders. The frontend passes an
     // explicit layoutId + sectionId (its layout may differ from the admin editor's
@@ -230,6 +228,18 @@ export function Dashboard({
     // In frontend view, use provided override; otherwise use the active section
     const tabs = viewTabs ?? section.tabs;
     const activeTabId = viewActiveTabId ?? section.activeTabId;
+
+    // One stable callback for every frame — an inline arrow would defeat WidgetFrame's memo.
+    // The frontend shows its own layout/tab (URL-driven), not the store's active ones, so
+    // updateWidget (active layout → active section → active tab) would miss the widget and
+    // drop the edit — a timer event or master toggle never stuck (#731). There the widget
+    // is looked up by id in the rendered layout (visited tabs stay mounted, too).
+    const frontendView = !!viewTabs;
+    const handleConfigChange = useCallback(
+        (cfg: WidgetConfig) =>
+            frontendView ? updateWidgetById(cfg.id, cfg, effectiveLayoutId) : updateWidget(cfg.id, cfg),
+        [frontendView, effectiveLayoutId, updateWidget, updateWidgetById],
+    );
 
     // Track which tabs have ever been activated. Only those get their widgets
     // mounted — pre-mounting all tabs would defeat lazy widget chunks (echarts,

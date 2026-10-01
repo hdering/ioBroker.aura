@@ -52,6 +52,7 @@
     "test:edit-history": "node tools/tests/edit-history.mjs",
     "test:edit-history-ui": "node tools/tests/edit-history-ui.mjs",
     "test:editor-drop-perf": "node tools/tests/editor-drop-perf.mjs",
+    "test:frontend-widget-edit-tab": "node tools/tests/frontend-widget-edit-tab.mjs",
     "test:admin-undo-sweep": "node tools/tests/admin-undo-sweep.mjs",
     "test:edit-history-reload": "node tools/tests/edit-history-reload.mjs",
     "test:config-guard": "node tools/tests/config-guard.mjs",

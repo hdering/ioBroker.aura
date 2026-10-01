@@ -20,7 +20,8 @@ interface Props {
 }
 
 export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_POPUP_PADDING }: Props) {
-    const updateWidget = useDashboardStore((s) => s.updateWidget);
+    // By id, not updateWidget: the target may sit on any tab, not the store's active one (#731).
+    const updateWidgetById = useDashboardStore((s) => s.updateWidgetById);
     // Grid pitch — read here (before any early return) so the hook order stays stable.
     const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
     const gridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
@@ -133,7 +134,7 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
                         // the widget's real dashboard position. restoreDualDeep puts
                         // the light/dark pairs back: the body spreads the RESOLVED
                         // config, so without it the other half would be lost (#689).
-                        updateWidget(target.id, { options: restoreDualDeep(next, target).options });
+                        updateWidgetById(target.id, { options: restoreDualDeep(next, target).options });
                     }}
                 />
             </Suspense>

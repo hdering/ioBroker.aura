@@ -561,6 +561,10 @@ interface DashboardState {
     addWidgetToLayoutTab: (layoutId: string, tabId: string, widget: WidgetConfig) => void;
     removeWidgetFromLayoutTab: (layoutId: string, tabId: string, widgetId: string) => void;
     updateWidgetInLayoutTab: (layoutId: string, tabId: string, widgetId: string, config: Partial<WidgetConfig>) => void;
+    /** Patch a widget by id wherever it sits — every section/tab of `layoutId`, or of
+     *  every layout when omitted. For views that render their own layout/tab instead of
+     *  the store's active ones (frontend, popup embeds), where updateWidget misses (#731). */
+    updateWidgetById: (widgetId: string, config: Partial<WidgetConfig>, layoutId?: string) => void;
 
     setEditMode: (editMode: boolean) => void;
 
@@ -1184,6 +1188,30 @@ export const useDashboardStore = create<DashboardState>()(
                             ),
                         })),
                     })),
+                })),
+
+            updateWidgetById: (widgetId, config, layoutId) =>
+                set((s) => ({
+                    layouts: s.layouts.map((l) =>
+                        layoutId && l.id !== layoutId
+                            ? l
+                            : {
+                                  ...l,
+                                  sections: l.sections.map((sec) => ({
+                                      ...sec,
+                                      tabs: sec.tabs.map((t) =>
+                                          t.widgets.some((w) => w.id === widgetId)
+                                              ? {
+                                                    ...t,
+                                                    widgets: t.widgets.map((w) =>
+                                                        w.id === widgetId ? { ...w, ...config } : w,
+                                                    ),
+                                                }
+                                              : t,
+                                      ),
+                                  })),
+                              },
+                    ),
                 })),
 
             updateWidgetInLayoutTab: (layoutId, tabId, widgetId, config) =>

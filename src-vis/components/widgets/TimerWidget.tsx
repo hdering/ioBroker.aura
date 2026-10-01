@@ -33,9 +33,12 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
  * poll. Calling saveToIoBroker() arms the `isSavingRecently` window (5 s)
  * that suppresses our own echo and prevents the rollback.
  *
- * Scoped to aura-dashboard: an unscoped save from the read-only frontend also
- * pushes whatever this browser holds for theme/groups/popup-config, which can
- * roll the admin's config back to this device's copy.
+ * Scoped to the stores a timer lives in: aura-dashboard, plus aura-group-defs
+ * for a timer inside a group / panels widget — without it that edit was never
+ * sent and the next echo rolled it back (#731). Only keys this tab actually
+ * edited are written (saveToIoBroker skips clean ones). An unscoped save from
+ * the read-only frontend would also push whatever this browser holds for
+ * theme/popup-config, rolling the admin's config back to this device's copy.
  *
  * Frontend only. In the editor the toggle is one more unsaved edit under the
  * save bar; flushing there would push every other unsaved change with it.
@@ -43,7 +46,7 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 function flushDashboard() {
     try {
         saveAll();
-        saveToIoBroker({ only: ['aura-dashboard'] });
+        saveToIoBroker({ only: ['aura-dashboard', 'aura-group-defs'] });
     } catch {
         /* offline / not configured */
     }
