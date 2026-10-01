@@ -1207,12 +1207,12 @@
         "cols": {
           "type": "number",
           "required": true,
-          "description": "1..20"
+          "description": ">= 1"
         },
         "rows": {
           "type": "number",
           "required": true,
-          "description": "1..20"
+          "description": ">= 1"
         },
         "cells": {
           "type": "array",
@@ -7486,7 +7486,7 @@
         "refreshInterval": {
           "type": "number",
           "default": 5,
-          "description": "Neuladen alle n Sekunden. 0 = nie."
+          "description": "Bild alle n Sekunden neu laden (Snapshot-Kamera). 0 = Livestream. MJPEG-Adressen (.mjpeg/.mjpg, /mjpeg/, ?action=stream) laufen immer live, das Intervall wird dann ignoriert."
         },
         "reloadOnWake": {
           "type": "boolean",
