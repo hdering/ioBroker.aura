@@ -89,7 +89,13 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     const [levels, setLevels] = useState<Set<Severity>>(defaultLevels);
     // Runtime adapter filter — multi-select. Empty set = show all adapters.
     const [selectedAdapters, setSelectedAdapters] = useState<Set<string>>(new Set());
-    const [query, setQuery] = useState('');
+    // Configured free-text filter preset — the viewer starts filtered on it and can
+    // still edit or clear the search field. A changed preset resets the field.
+    const defaultQuery = (o.defaultQuery as string) ?? '';
+    const [query, setQuery] = useState(defaultQuery);
+    useEffect(() => {
+        setQuery(defaultQuery);
+    }, [defaultQuery]);
     const [paused, setPaused] = useState(false);
     const [autoScroll, setAutoScroll] = useState(true);
 

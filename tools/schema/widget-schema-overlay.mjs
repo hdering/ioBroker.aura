@@ -726,6 +726,16 @@ export const WIDGET_OPTION_NOTES = {
         allowClear: { description: 'Taste zum Leeren des Archivs anzeigen.' },
         layoutFilter: { description: 'Nur Meldungen dieses Layouts zeigen. Leer = alle.' },
     },
+    adapterlogs: {
+        adapterFilter: {
+            description:
+                'Instanz-Vorfilter im Backend, kommagetrennt: "aura, admin" = alle Instanzen dieser Adapter, "aura.0" = genau diese Instanz. Leer = alle.',
+        },
+        defaultQuery: {
+            description:
+                'Vorbelegung des Freitext-Filters (Teilstring in Meldung oder Quelle, ohne Groß/Klein). Das Widget startet gefiltert; der Betrachter kann den Text im Suchfeld ändern oder leeren.',
+        },
+    },
     weather: {
         dataSource: { description: '"online" holt die Daten selbst, "adapter" liest sie aus adapterLocationPath.' },
         adapterLocationPath: { description: 'Objektpfad eines Wetteradapters, z. B. "daswetter.0.NextHours".' },

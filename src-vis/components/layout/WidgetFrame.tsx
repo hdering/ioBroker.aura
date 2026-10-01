@@ -14581,6 +14581,23 @@ function WidgetFrameInner({
                                                 style={lSty}
                                             />
                                         </div>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Freitext-Filter vorbelegen{' '}
+                                                <span className="opacity-60">(im Frontend änderbar)</span>
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={(o.defaultQuery as string) ?? ''}
+                                                onChange={(e) => set({ defaultQuery: e.target.value })}
+                                                placeholder="z.B. Beschattung"
+                                                className={lCls}
+                                                style={lSty}
+                                            />
+                                        </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
                                                 <label
