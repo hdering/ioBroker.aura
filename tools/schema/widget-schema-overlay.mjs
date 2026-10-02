@@ -989,6 +989,10 @@ export const WIDGET_OPTION_NOTES = {
     },
     trashSchedule: {
         hiddenNames: { description: 'Tonnen, die nicht angezeigt werden.' },
+        maxEntries: {
+            description:
+                'Höchstens so viele Abholtermine anzeigen (die nächsten, nach ausgeblendeten Tonnen). 0 = alle.',
+        },
         iconMap: { description: 'Zuordnung von Tonnennamen zu Icons.' },
         showNames: { description: 'Tonnennamen anzeigen.' },
         showDays: { description: 'Verbleibende Tage anzeigen.' },

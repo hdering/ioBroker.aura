@@ -43,6 +43,7 @@ Pro Tonne (aus dem aktuellen DP-Wert) lassen sich Icon und Sichtbarkeit setzen.
 | `showDate` | `true` | nächsten Termin anzeigen |
 | `dateFormat` | `dd.MM.` | `dd.MM.` · `dd.MM.yyyy` · `EE dd.MM.` |
 | `hiddenNames` | `[]` | ausgeblendete Tonnen-Namen |
+| `maxEntries` | `0` | höchstens so viele nächste Termine; `0` = alle |
 | `iconMap` | `{}` | Zuordnung Tonnen-Name → Icon |
 
 ### Größen

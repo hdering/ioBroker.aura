@@ -14017,6 +14017,11 @@
           "default": 36,
           "description": "Größe einer Tonnenkachel im Listenlayout in px."
         },
+        "maxEntries": {
+          "type": "number",
+          "default": 0,
+          "description": "Höchstens so viele Abholtermine anzeigen (die nächsten, nach ausgeblendeten Tonnen). 0 = alle."
+        },
         "nameFontSize": {
           "type": "number",
           "default": 10,

@@ -343,6 +343,7 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
     const dateFontSize = (o.dateFontSize as number | undefined) ?? 9;
     const binSizeOpt = o.binSize as number | undefined;
     const listBinSize = (o.listBinSize as number | undefined) ?? 36;
+    const maxEntries = (o.maxEntries as number | undefined) ?? 0;
 
     const all = parseEntries(value);
 
@@ -377,7 +378,8 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
         );
     }
 
-    const visible = all.filter((e) => !hiddenNames.includes(e.name)).sort((a, b) => a.daysLeft - b.daysLeft);
+    const sorted = all.filter((e) => !hiddenNames.includes(e.name)).sort((a, b) => a.daysLeft - b.daysLeft);
+    const visible = maxEntries > 0 ? sorted.slice(0, maxEntries) : sorted;
 
     if (visible.length === 0) {
         return (
@@ -544,6 +546,7 @@ export function TrashScheduleConfig({
     const dateFontSize = (o.dateFontSize as number | undefined) ?? 9;
     const binSizeOpt = (o.binSize as number | undefined) ?? 0;
     const listBinSize = (o.listBinSize as number | undefined) ?? 36;
+    const maxEntries = (o.maxEntries as number | undefined) ?? 0;
 
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
@@ -783,6 +786,21 @@ export function TrashScheduleConfig({
                                 style={{ left: showDate ? '18px' : '2px' }}
                             />
                         </button>
+                    </div>
+
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Max. Anzahl Einträge (0 = alle)
+                        </label>
+                        <input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={maxEntries}
+                            onChange={(e) => setO({ maxEntries: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                            className={iCls}
+                            style={iSty}
+                        />
                     </div>
 
                     {showDate && (
