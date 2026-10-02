@@ -122,6 +122,15 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.75.0 (2026-10-02)
+- Shutter - the up/stop/down buttons work again in the card itself; in a flat card the value and slider row covered them, so only the popup reacted ([#739](https://github.com/hdering/ioBroker.aura/issues/739))
+- 🌟 **New feature:** Trash schedule - new option to limit the number of entries shown, e.g. only the next 3 pickups ([#736](https://github.com/hdering/ioBroker.aura/issues/736))
+- 🌟 **New feature:** Universal widget - text cells can run vertically: turned 90° clockwise, 90° counter-clockwise or as upright stacked letters ([#734](https://github.com/hdering/ioBroker.aura/issues/734))
+- 🌟 **New feature:** Timer - holiday and vacation lists accept date ranges ("2026-07-20/2026-08-07" or {"from","to"}) next to single days, and a plain true/false datapoint; examples in the settings are collapsed ([#738](https://github.com/hdering/ioBroker.aura/issues/738))
+- 🌟 **New feature:** Advanced chart - series can be shifted back in time to compare periods, e.g. last year's monthly consumption next to this year's bars; "+ Add previous-year series" creates one in a click ([#730](https://github.com/hdering/ioBroker.aura/issues/730))
+- Dynamic list - removed datapoints no longer come back with the next automatic sync: with a filter set they are added to the exclude list, and "Delete all" clears the stored filter
+
+
 ### 0.74.0 (2026-10-01)
 - 🌟 **New feature:** Adapter logs - the search field can be preset in the widget settings; the frontend starts filtered and the text can still be changed; several terms separated by "|" match any of them ([#727](https://github.com/hdering/ioBroker.aura/issues/727))
 - Camera - MJPEG stream URLs (e.g. `.../stream.mjpeg`) now always play live; the refresh interval no longer reloads them every few seconds
@@ -244,12 +253,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Colors - switching a color field between "Uniform" and "Light / dark" now keeps the colors of the other mode, so picking one uniform color no longer discards the light/dark pair ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
 
 
-### 0.67.0 (2026-09-21)
-- 🌟 **New feature:** Tablet mode - between the mobile and a new tablet breakpoint (measured on the window width), widgets flow into a configurable number of columns (default 2) that fill the width instead of scrolling or being cut off; the editor's tablet panel shows those columns and lets you drag each widget into a column or make it full width (unassigned widgets alternate in the mobile order), and the section menu gets its own tablet placement (automatic = the docked sidebar becomes a hamburger) ([#413](https://github.com/hdering/ioBroker.aura/issues/413))
-- 🌟 **New feature:** Settings - Frontend design page rebuilt around the three scope chains: the tab rows are now "Global", "Global → Layout" and "Global → Layout → Section", every group stays visible at every scope (locked rows explain why and jump up), a scope bar says what is being edited, own values are orange in the tree, on the tabs and on the control itself, each setting shows where it is inherited from or overridden below, and a "Levels" dialog lists one setting across all layouts and sections; browser sync, my themes, behavior and the wizard limit became groups of their own
-- 🌟 **New feature:** Getting started - a new documentation guide walks through the first setup in order (target device, global basics, guidelines, grid and breakpoints, layouts and sections, first widgets, mobile check, device assignment, backup), the admin overview opens with a dismissible card linking to it and to each step's admin page, and an empty dashboard tab now links to the admin area and to the guide
-
-
 ## License
 
 MIT License
@@ -261,6 +264,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
