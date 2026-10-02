@@ -477,6 +477,66 @@
       ]
     },
     {
+      "id": "vorjahr",
+      "title": "Verbrauch mit Vorjahreswerten daneben",
+      "when": "Monats- oder Tagesverbrauch soll mit demselben Zeitraum des Vorjahres verglichen werden.",
+      "instead": "einem Skript, das die Vorjahreswerte als JSON in einen eigenen Datenpunkt schreibt",
+      "notes": [
+        "Zweite Serie auf denselben Datenpunkt mit timeShift 1 und timeShiftUnit \"year\" — sie liest die History ein Jahr zurück und legt sie über den aktuellen Zeitraum.",
+        "Gleiche aggregate/deltaBucket wie die aktuelle Serie, dann stehen die Balken je Monat nebeneinander.",
+        "stack aus lassen, sonst werden die Jahre addiert. Eine gedämpfte Farbe hält das aktuelle Jahr vorn.",
+        "Andere Vergleiche gehen genauso: timeShiftUnit \"day\" = gestern, \"week\" = Vorwoche.",
+        "Die versetzte Serie wird nicht live aktualisiert; bei echartRange \"total\" wirkt der Versatz nicht."
+      ],
+      "widgets": [
+        {
+          "id": "w-vorjahr",
+          "type": "echart",
+          "title": "Heizung pro Monat",
+          "datapoint": "%dp.stromzaehler%",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 5
+          },
+          "options": {
+            "echartMode": "timeseries",
+            "echartRange": "1y",
+            "autoHistoryInstance": true,
+            "echartShowLegend": true,
+            "echartLeftUnit": "kWh",
+            "decimals": 0,
+            "echartSeries": [
+              {
+                "id": "s-1",
+                "name": "Dieses Jahr",
+                "datapointId": "%dp.stromzaehler%",
+                "chartType": "bar",
+                "color": "var(--accent)",
+                "aggregate": "delta",
+                "deltaBucket": "month",
+                "yAxisIndex": 0
+              },
+              {
+                "id": "s-2",
+                "name": "Vorjahr",
+                "datapointId": "%dp.stromzaehler%",
+                "chartType": "bar",
+                "color": "#94a3b8",
+                "aggregate": "delta",
+                "deltaBucket": "month",
+                "timeShift": 1,
+                "timeShiftUnit": "year",
+                "yAxisIndex": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "verlauf",
       "title": "Verlauf mit zwei Größen auf zwei Achsen",
       "when": "Zwei Messreihen, die zusammengehören, aber nicht dieselbe Einheit haben.",
