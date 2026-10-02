@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { discoverDatapoints, loadFilterOptions } from '../components/widgets/AutoListWidget';
+import { discoverDatapoints, hasDiscoveryFilter, loadFilterOptions } from '../components/widgets/AutoListWidget';
 import type { AutoListEntry, AutoListOptions, DiscoveredDp } from '../components/widgets/AutoListWidget';
 import type { EnumFilterOption } from '../utils/enumFilter';
 
@@ -151,6 +151,40 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
         return firstNewId ?? entries[0]?.id;
     };
 
+    /**
+     * Removes entries from the list. With a stored filter the periodic sync would
+     * re-add them a few minutes later, so they also go onto the exclude list —
+     * persisted right away, and mirrored into the draft so the next apply() keeps them.
+     */
+    const removeEntries = (ids: string[]) => {
+        const drop = new Set(ids);
+        const entries = (opts.entries ?? []).filter((e) => !drop.has(e.id));
+        if (!hasDiscoveryFilter(opts)) {
+            setOpts({ entries });
+            return;
+        }
+        setExcludeIds((prev) => [...new Set([...prev, ...ids])]);
+        setSelected((prev) => new Set([...prev].filter((id) => !drop.has(id))));
+        setOpts({ entries, excludeIds: [...new Set([...(opts.excludeIds ?? []), ...ids])] });
+    };
+
+    /**
+     * Empties the list. Excluding every id would leave a later search with nothing to
+     * find, so the stored filter is dropped instead — the sync stops, while the draft in
+     * the search tab stays for a fresh search.
+     */
+    const removeAllEntries = () =>
+        setOpts({
+            entries: [],
+            filterAdapters: undefined,
+            filterRoles: undefined,
+            filterIdPattern: undefined,
+            filterRooms: undefined,
+            filterFuncs: undefined,
+            filterEnums: undefined,
+            filterTypes: undefined,
+        });
+
     const toggle = (id: string) =>
         setSelected((prev) => {
             const s = new Set(prev);
@@ -206,6 +240,8 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
         resetSearch,
         search,
         apply,
+        removeEntries,
+        removeAllEntries,
         toggle,
         canSearch,
     };

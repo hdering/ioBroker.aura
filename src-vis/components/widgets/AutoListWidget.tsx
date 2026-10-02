@@ -396,6 +396,30 @@ export async function loadFilterOptions(): Promise<{
     };
 }
 
+/** True when the stored filter makes the periodic sync re-add matching datapoints. */
+export function hasDiscoveryFilter(
+    opts: Pick<
+        AutoListOptions,
+        | 'filterRoles'
+        | 'filterIdPattern'
+        | 'filterRooms'
+        | 'filterFuncs'
+        | 'filterEnums'
+        | 'filterTypes'
+        | 'filterAdapters'
+    >,
+): boolean {
+    return !!(
+        opts.filterRoles ||
+        opts.filterIdPattern ||
+        opts.filterRooms ||
+        opts.filterFuncs ||
+        opts.filterEnums ||
+        opts.filterTypes ||
+        opts.filterAdapters
+    );
+}
+
 export async function discoverDatapoints(
     opts: Pick<
         AutoListOptions,
@@ -1385,15 +1409,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const runSync = useCallback(async () => {
-        const hasFilter =
-            opts.filterRoles ||
-            opts.filterIdPattern ||
-            opts.filterRooms ||
-            opts.filterFuncs ||
-            opts.filterEnums ||
-            opts.filterTypes ||
-            opts.filterAdapters;
-        if (!hasFilter) return;
+        if (!hasDiscoveryFilter(opts)) return;
         setSyncing(true);
         try {
             const found = await discoverDatapoints(opts);

@@ -121,7 +121,8 @@ export const KEY_DESCRIPTIONS = {
     filterRelevant: 'Nur Datenpunkte anzeigen, die als bedienbar/relevant erkannt wurden.',
     filterPresets: 'Eigene Filter-Schaltflächen über der Liste.',
     filterMode: 'Welche Einträge die Liste beim Öffnen zeigt.',
-    excludeIds: 'Diese Datenpunkt-Ids auslassen.',
+    excludeIds:
+        'Diese Datenpunkt-Ids auslassen. Bei gesetztem Filter hier eintragen, was aus entries entfernt wird – sonst fügt der regelmäßige Abgleich es wieder hinzu.',
     excludeIdPatterns: 'Datenpunkte auslassen, deren Id dazu passt (Text oder /regex/, kommagetrennt).',
     sortBy: 'Sortierschlüssel: none, label, value oder "sub:<Feld>" für eine Zweitzeile.',
     sortBy2: 'Zweiter Sortierschlüssel bei Gleichstand.',

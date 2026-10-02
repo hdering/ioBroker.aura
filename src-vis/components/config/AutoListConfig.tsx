@@ -112,7 +112,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
         [nameEntryKey, ownSubDpKey, opts.subDpTemplate, resolvedNames],
     );
 
-    const removeEntry = (id: string) => setOpts({ entries: (opts.entries ?? []).filter((e) => e.id !== id) });
+    const removeEntry = (id: string) => discovery.removeEntries([id]);
 
     const updateEntry = (id: string, patch: Partial<AutoListEntry>) =>
         setOpts({ entries: (opts.entries ?? []).map((e) => (e.id === id ? { ...e, ...patch } : e)) });
@@ -129,7 +129,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 resolvedNames={resolvedNames}
                 entriesTabIndex={3}
                 onRemove={removeEntry}
-                onRemoveAll={() => setOpts({ entries: [] })}
+                onRemoveAll={discovery.removeAllEntries}
                 emptyState={'Noch keine Datenpunkte – im Tab „Suchen & Filter“ welche finden.'}
                 renderDetail={(id) => (
                     <AutoEntryDetail
