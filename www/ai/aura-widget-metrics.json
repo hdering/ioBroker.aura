@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-09-24",
+    "measured": "2026-10-02",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1810,9 +1810,9 @@
       ]
     },
     "shutter": {
-      "minPx": 120,
+      "minPx": 114,
       "minRowsDefaultGrid": 5,
-      "fontScalePx": 13.3,
+      "fontScalePx": 40,
       "atWidthPx": 160,
       "modifiers": [
         {
@@ -1836,7 +1836,7 @@
           },
           "basePx": 20,
           "fontScalePx": {
-            "basePx": 20
+            "basePx": 13.3
           }
         }
       ]
