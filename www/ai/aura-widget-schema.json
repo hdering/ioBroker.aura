@@ -6623,7 +6623,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Diese Datenpunkt-Ids auslassen."
+          "description": "Diese Datenpunkt-Ids auslassen. Bei gesetztem Filter hier eintragen, was aus entries entfernt wird – sonst fügt der regelmäßige Abgleich es wieder hinzu."
         },
         "falseText": {
           "type": "string",
@@ -13320,7 +13320,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Diese Datenpunkt-Ids auslassen."
+          "description": "Diese Datenpunkt-Ids auslassen. Bei gesetztem Filter hier eintragen, was aus entries entfernt wird – sonst fügt der regelmäßige Abgleich es wieder hinzu."
         },
         "filterAdapters": {
           "type": "string",
