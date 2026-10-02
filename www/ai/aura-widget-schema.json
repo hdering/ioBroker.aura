@@ -13838,7 +13838,7 @@
         },
         "holidaysDp": {
           "type": "string",
-          "description": "Datenpunkt mit Feiertagen: JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" oder {from,to} (inklusive) – oder Boolean (true = heute).",
+          "description": "Datenpunkt für Feiertagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" und {from,to} (inklusive).",
           "datapoint": true
         },
         "showAddButton": {
@@ -13872,7 +13872,7 @@
         },
         "vacationDp": {
           "type": "string",
-          "description": "Datenpunkt mit Urlaubstagen: JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" oder {from,to} (inklusive) – oder Boolean (true = heute).",
+          "description": "Datenpunkt für Urlaubstagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" und {from,to} (inklusive).",
           "datapoint": true
         },
         "value": {
