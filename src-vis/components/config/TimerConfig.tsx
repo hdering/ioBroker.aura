@@ -38,21 +38,24 @@ const hintStyle: React.CSSProperties = { color: 'var(--text-secondary)', opacity
 
 // Example DP values for the special-day lists — collapsed by default to keep the panel short.
 const HOLIDAY_EXAMPLES: { title: string; value: string }[] = [
-    { title: 'Einzelne Tage', value: '[\n  "2026-01-01",\n  "2026-04-03",\n  "2026-12-25",\n  "2026-12-26"\n]' },
-    { title: 'Mit Zeitraum', value: '[\n  "2026-01-01",\n  "2026-12-24/2026-12-26"\n]' },
     { title: 'Boolean (z. B. feiertage.0.heute.boolean)', value: 'true' },
+    {
+        title: 'JSON – einzelne Tage',
+        value: '[\n  "2026-01-01",\n  "2026-04-03",\n  "2026-12-25",\n  "2026-12-26"\n]',
+    },
+    { title: 'JSON – mit Zeitraum', value: '[\n  "2026-01-01",\n  "2026-12-24/2026-12-26"\n]' },
 ];
 const VACATION_EXAMPLES: { title: string; value: string }[] = [
+    { title: 'Boolean – Schalter „Urlaubsmodus“', value: 'true' },
     {
-        title: 'Zeiträume (Start/Ende, inklusive)',
+        title: 'JSON – Zeiträume (Start/Ende, inklusive)',
         value: '[\n  "2026-07-20/2026-08-07",\n  "2026-10-26/2026-10-30"\n]',
     },
-    { title: 'Gemischt mit Einzeltagen', value: '[\n  "2026-05-15",\n  "2026-07-20/2026-08-07"\n]' },
+    { title: 'JSON – gemischt mit Einzeltagen', value: '[\n  "2026-05-15",\n  "2026-07-20/2026-08-07"\n]' },
     {
-        title: 'Zeitraum als Objekt (praktisch in Skripten)',
+        title: 'JSON – Zeitraum als Objekt (praktisch in Skripten)',
         value: '[\n  { "from": "2026-07-20", "to": "2026-08-07" }\n]',
     },
-    { title: 'Boolean-Schalter „Urlaubsmodus“', value: 'true' },
 ];
 
 function SpecialDayExamples({ examples }: { examples: { title: string; value: string }[] }) {
@@ -328,17 +331,23 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                     <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
                         Sondertage (optional)
                     </p>
-                    <p className={hintCls} style={hintStyle}>
-                        {
-                            'Quell-DPs für die Filter „Feiertage“ / „Urlaub“ / „ohne Sondertage“. Der DP-Wert ist ein JSON-Array aus Tagen '
-                        }
-                        <code className="font-mono">YYYY-MM-DD</code>
-                        {' und Zeiträumen '}
-                        <code className="font-mono">YYYY-MM-DD/YYYY-MM-DD</code>
-                        {' (beide Enden inklusive) – oder ein Boolean: '}
-                        <code className="font-mono">true</code>
-                        {' = heute.'}
-                    </p>
+                    <div className={hintCls} style={hintStyle}>
+                        <p>
+                            Quell-DPs für die Filter „Feiertage“ / „Urlaub“ / „ohne Sondertage“. Der DP-Wert ist{' '}
+                            <b>entweder</b>:
+                        </p>
+                        <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
+                            <li>
+                                <b>Boolean</b> – <code className="font-mono">true</code> = heute ist Sondertag,{' '}
+                                <code className="font-mono">false</code> = nicht
+                            </li>
+                            <li>
+                                <b>oder JSON-Array</b> – Tage <code className="font-mono">YYYY-MM-DD</code> und
+                                Zeiträume <code className="font-mono">YYYY-MM-DD/YYYY-MM-DD</code> (beide Enden
+                                inklusive), beliebig gemischt
+                            </li>
+                        </ul>
+                    </div>
 
                     <div>
                         <label className={labelCls} style={labelStyle}>

@@ -73,24 +73,32 @@ Beim Auslöser-Typ **Zeitraum** schreibt der Scheduler am Ende den invertierten 
 
 Wenn nicht gesetzt, sind die Filter „Nur Feiertage" / „Nur Urlaub" / „Ohne Sondertage" wirkungslos.
 
-| DP-Wert | Bedeutung |
-| --- | --- |
-| `"YYYY-MM-DD"` | einzelner Tag |
-| `"YYYY-MM-DD/YYYY-MM-DD"` | Zeitraum, beide Enden inklusive |
-| `{ "from": "YYYY-MM-DD", "to": "YYYY-MM-DD" }` | Zeitraum, beide Enden inklusive |
-| `[ … ]` | JSON-Array, obige Einträge beliebig gemischt |
-| `true` / `false` | Boolean: `true` = heute ist Sondertag |
+Der DP-Wert ist **entweder** ein Boolean **oder** ein JSON-Array:
+
+| Variante | DP-Wert | Bedeutung |
+| --- | --- | --- |
+| **Boolean** | `true` / `false` | `true` = heute ist Sondertag, `false` = nicht |
+| **JSON-Array** | `[ … ]` | Liste aus den folgenden Einträgen, beliebig gemischt |
+| ↳ Tag | `"YYYY-MM-DD"` | einzelner Tag |
+| ↳ Zeitraum | `"YYYY-MM-DD/YYYY-MM-DD"` | beide Enden inklusive |
+| ↳ Zeitraum | `{ "from": "YYYY-MM-DD", "to": "YYYY-MM-DD" }` | beide Enden inklusive |
 
 <details>
 <summary>Beispiele</summary>
 
-Feiertage, einzeln:
+**Boolean** — z. B. `feiertage.0.heute.boolean` oder ein eigener Schalter „Urlaubsmodus“:
+
+```json
+true
+```
+
+**JSON** — Feiertage, einzeln:
 
 ```json
 ["2026-01-01", "2026-04-03", "2026-12-25", "2026-12-26"]
 ```
 
-Urlaub als Zeiträume, gemischt mit einem Einzeltag:
+**JSON** — Urlaub als Zeiträume, gemischt mit einem Einzeltag:
 
 ```json
 [
@@ -100,24 +108,18 @@ Urlaub als Zeiträume, gemischt mit einem Einzeltag:
 ]
 ```
 
-Zeitraum als Objekt (praktisch in Skripten):
+**JSON** — Zeitraum als Objekt (praktisch in Skripten):
 
 ```json
 [{ "from": "2026-12-28", "to": "2027-01-02" }]
-```
-
-Boolean — z. B. `feiertage.0.heute.boolean` oder ein eigener Schalter „Urlaubsmodus“:
-
-```json
-true
 ```
 
 </details>
 
 | Option | Standard | |
 | --- | --- | --- |
-| `holidaysDp` | — | DP mit Feiertagsliste |
-| `vacationDp` | — | DP mit Urlaubsliste |
+| `holidaysDp` | — | DP für Feiertage (Boolean oder JSON-Array) |
+| `vacationDp` | — | DP für Urlaub (Boolean oder JSON-Array) |
 
 ## Ereignis-Editor (Anwender)
 

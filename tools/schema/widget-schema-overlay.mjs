@@ -927,11 +927,11 @@ export const WIDGET_OPTION_NOTES = {
         stateBaseId: { description: 'Objektpfad, unter dem der Adapter die Schaltzeiten ablegt.' },
         holidaysDp: {
             description:
-                'Datenpunkt mit Feiertagen: JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" oder {from,to} (inklusive) – oder Boolean (true = heute).',
+                'Datenpunkt für Feiertagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" und {from,to} (inklusive).',
         },
         vacationDp: {
             description:
-                'Datenpunkt mit Urlaubstagen: JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" oder {from,to} (inklusive) – oder Boolean (true = heute).',
+                'Datenpunkt für Urlaubstagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" und {from,to} (inklusive).',
         },
         showMasterSwitch: { description: 'Hauptschalter der Zeitschaltuhr anzeigen.' },
         showAddButton: { description: 'Taste zum Anlegen einer Schaltzeit anzeigen.' },
