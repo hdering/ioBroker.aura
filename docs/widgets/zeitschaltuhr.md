@@ -14,8 +14,8 @@ Kein Haupt-Datenpunkt am Widget. Stattdessen Widget-Optionen (Admin):
 | --- | --- | --- | --- |
 | `targetDp` | ja | beliebig | Datenpunkt, der beim Auslösen geschrieben wird |
 | `value` | ja | `string` | wird automatisch als `boolean` · `number` · `string` geparst |
-| `holidaysDp` | nein | `string` (JSON) | Feiertage als `["YYYY-MM-DD", …]` |
-| `vacationDp` | nein | `string` (JSON) | Urlaubstage als `["YYYY-MM-DD", …]` |
+| `holidaysDp` | nein | `string` (JSON) · `boolean` | Feiertage — Format siehe [Sondertage](#sondertage-optional) |
+| `vacationDp` | nein | `string` (JSON) · `boolean` | Urlaubstage — Format siehe [Sondertage](#sondertage-optional) |
 
 Pro Widget legt der Adapter zwei States unter `aura.0.timers.<widget-id>` an: `config` (JSON aller Ereignisse) und `enabled` (Master). Der Backend-Scheduler liest aus diesen States.
 
@@ -71,16 +71,48 @@ Beim Auslöser-Typ **Zeitraum** schreibt der Scheduler am Ende den invertierten 
 
 ### Sondertage (optional)
 
-DP liefert ein JSON-Array von Datumsangaben. Wenn nicht gesetzt, sind die Filter „Nur Feiertage" / „Nur Urlaub" / „Ohne Sondertage" wirkungslos.
+Wenn nicht gesetzt, sind die Filter „Nur Feiertage" / „Nur Urlaub" / „Ohne Sondertage" wirkungslos.
+
+| DP-Wert | Bedeutung |
+| --- | --- |
+| `"YYYY-MM-DD"` | einzelner Tag |
+| `"YYYY-MM-DD/YYYY-MM-DD"` | Zeitraum, beide Enden inklusive |
+| `{ "from": "YYYY-MM-DD", "to": "YYYY-MM-DD" }` | Zeitraum, beide Enden inklusive |
+| `[ … ]` | JSON-Array, obige Einträge beliebig gemischt |
+| `true` / `false` | Boolean: `true` = heute ist Sondertag |
+
+<details>
+<summary>Beispiele</summary>
+
+Feiertage, einzeln:
+
+```json
+["2026-01-01", "2026-04-03", "2026-12-25", "2026-12-26"]
+```
+
+Urlaub als Zeiträume, gemischt mit einem Einzeltag:
 
 ```json
 [
-  "2026-01-01",
-  "2026-04-03",
-  "2026-12-25",
-  "2026-12-26"
+  "2026-05-15",
+  "2026-07-20/2026-08-07",
+  "2026-10-26/2026-10-30"
 ]
 ```
+
+Zeitraum als Objekt (praktisch in Skripten):
+
+```json
+[{ "from": "2026-12-28", "to": "2027-01-02" }]
+```
+
+Boolean — z. B. `feiertage.0.heute.boolean` oder ein eigener Schalter „Urlaubsmodus“:
+
+```json
+true
+```
+
+</details>
 
 | Option | Standard | |
 | --- | --- | --- |

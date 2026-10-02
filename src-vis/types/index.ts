@@ -196,8 +196,8 @@ export interface TimerWidgetOptions {
     targetDp?: string; // datapoint written when an event fires (admin-set)
     value?: string; // value written (parsed to bool/number/string)
     allowEventValue?: boolean; // when true, frontend modal shows per-event value field (overrides widget value)
-    holidaysDp?: string; // optional DP (JSON array of YYYY-MM-DD strings) — special days
-    vacationDp?: string; // optional DP (JSON array of YYYY-MM-DD strings) — vacation days
+    holidaysDp?: string; // optional DP — JSON array of days "YYYY-MM-DD" / ranges "A/B" or {from,to}, or boolean (true = today)
+    vacationDp?: string; // optional DP — same format as holidaysDp, for vacation days
     stateBaseId?: string; // the timers.<widgetId> base path used by the backend scheduler
 }
 

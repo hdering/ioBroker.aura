@@ -36,6 +36,54 @@ const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' };
 const hintCls = 'text-[10px] mt-0.5';
 const hintStyle: React.CSSProperties = { color: 'var(--text-secondary)', opacity: 0.7 };
 
+// Example DP values for the special-day lists — collapsed by default to keep the panel short.
+const HOLIDAY_EXAMPLES: { title: string; value: string }[] = [
+    { title: 'Einzelne Tage', value: '[\n  "2026-01-01",\n  "2026-04-03",\n  "2026-12-25",\n  "2026-12-26"\n]' },
+    { title: 'Mit Zeitraum', value: '[\n  "2026-01-01",\n  "2026-12-24/2026-12-26"\n]' },
+    { title: 'Boolean (z. B. feiertage.0.heute.boolean)', value: 'true' },
+];
+const VACATION_EXAMPLES: { title: string; value: string }[] = [
+    {
+        title: 'Zeiträume (Start/Ende, inklusive)',
+        value: '[\n  "2026-07-20/2026-08-07",\n  "2026-10-26/2026-10-30"\n]',
+    },
+    { title: 'Gemischt mit Einzeltagen', value: '[\n  "2026-05-15",\n  "2026-07-20/2026-08-07"\n]' },
+    {
+        title: 'Zeitraum als Objekt (praktisch in Skripten)',
+        value: '[\n  { "from": "2026-07-20", "to": "2026-08-07" }\n]',
+    },
+    { title: 'Boolean-Schalter „Urlaubsmodus“', value: 'true' },
+];
+
+function SpecialDayExamples({ examples }: { examples: { title: string; value: string }[] }) {
+    return (
+        <details className="mt-1">
+            <summary className="text-[10px] cursor-pointer select-none" style={{ color: 'var(--text-secondary)' }}>
+                Beispiele
+            </summary>
+            <div className="mt-1 space-y-1">
+                {examples.map((ex) => (
+                    <div key={ex.title}>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                            {ex.title}
+                        </p>
+                        <pre
+                            className="text-[10px] px-2 py-1 rounded-md font-mono whitespace-pre-wrap"
+                            style={{
+                                background: 'var(--app-surface)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            {ex.value}
+                        </pre>
+                    </div>
+                ))}
+            </div>
+        </details>
+    );
+}
+
 export function TimerConfig({ config, onConfigChange }: Props) {
     const o = config.options ?? {};
     const targetDp = (o.targetDp as string | undefined) ?? '';
@@ -282,10 +330,14 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                     </p>
                     <p className={hintCls} style={hintStyle}>
                         {
-                            'Quell-DPs für die Filter „Feiertage“ / „Urlaub“ / „ohne Sondertage“. Der DP-Wert muss ein JSON-Array mit Datumsangaben im Format '
+                            'Quell-DPs für die Filter „Feiertage“ / „Urlaub“ / „ohne Sondertage“. Der DP-Wert ist ein JSON-Array aus Tagen '
                         }
                         <code className="font-mono">YYYY-MM-DD</code>
-                        {' sein.'}
+                        {' und Zeiträumen '}
+                        <code className="font-mono">YYYY-MM-DD/YYYY-MM-DD</code>
+                        {' (beide Enden inklusive) – oder ein Boolean: '}
+                        <code className="font-mono">true</code>
+                        {' = heute.'}
                     </p>
 
                     <div>
@@ -314,20 +366,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                 <Database size={13} />
                             </button>
                         </div>
-                        <pre
-                            className="text-[10px] mt-1 px-2 py-1 rounded-md font-mono whitespace-pre-wrap"
-                            style={{
-                                background: 'var(--app-surface)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >{`Beispiel:
-[
-  "2026-01-01",
-  "2026-04-03",
-  "2026-12-25",
-  "2026-12-26"
-]`}</pre>
+                        <SpecialDayExamples examples={HOLIDAY_EXAMPLES} />
                     </div>
 
                     <div>
@@ -356,19 +395,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                 <Database size={13} />
                             </button>
                         </div>
-                        <pre
-                            className="text-[10px] mt-1 px-2 py-1 rounded-md font-mono whitespace-pre-wrap"
-                            style={{
-                                background: 'var(--app-surface)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >{`Beispiel:
-[
-  "2026-07-20",
-  "2026-07-21",
-  "2026-07-22"
-]`}</pre>
+                        <SpecialDayExamples examples={VACATION_EXAMPLES} />
                     </div>
 
                     <p className={hintCls} style={hintStyle}>

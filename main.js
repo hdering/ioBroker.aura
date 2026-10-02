@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS } = require('./lib/countdowns');
+const { parseSpecialDays } = require('./lib/specialDays');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
 const { mergeRenderReport, renderReportEntry } = require('./lib/mcp/auraConfig');
@@ -3854,14 +3855,12 @@ class Aura extends utils.Adapter {
     }
 
     async _resolveSpecialDays(dp) {
-        if (!dp) return new Set();
+        if (!dp) return parseSpecialDays(null);
         try {
             const st = await this.getForeignStateAsync(dp);
-            if (!st || st.val == null) return new Set();
-            const arr = typeof st.val === 'string' ? JSON.parse(st.val) : st.val;
-            return new Set(Array.isArray(arr) ? arr.map(String) : []);
+            return parseSpecialDays(st ? st.val : null);
         } catch {
-            return new Set();
+            return parseSpecialDays(null);
         }
     }
 

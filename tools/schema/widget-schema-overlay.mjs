@@ -924,8 +924,14 @@ export const WIDGET_OPTION_NOTES = {
         value: { description: 'Wert, den eine Schaltzeit ohne eigenen Wert schreibt.' },
         allowEventValue: { description: 'Je Schaltzeit einen eigenen Wert erlauben.' },
         stateBaseId: { description: 'Objektpfad, unter dem der Adapter die Schaltzeiten ablegt.' },
-        holidaysDp: { description: 'Datenpunkt, der einen Feiertag meldet.' },
-        vacationDp: { description: 'Datenpunkt, der Urlaub meldet.' },
+        holidaysDp: {
+            description:
+                'Datenpunkt mit Feiertagen: JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" oder {from,to} (inklusive) – oder Boolean (true = heute).',
+        },
+        vacationDp: {
+            description:
+                'Datenpunkt mit Urlaubstagen: JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" oder {from,to} (inklusive) – oder Boolean (true = heute).',
+        },
         showMasterSwitch: { description: 'Hauptschalter der Zeitschaltuhr anzeigen.' },
         showAddButton: { description: 'Taste zum Anlegen einer Schaltzeit anzeigen.' },
         showAstroSymbol: { description: 'Sonnensymbol bei astronomischen Zeiten anzeigen.' },

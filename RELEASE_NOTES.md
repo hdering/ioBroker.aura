@@ -9,3 +9,4 @@
 - Shutter - the up/stop/down buttons work again in the card itself; in a flat card the value and slider row covered them, so only the popup reacted (#739)
 - Trash schedule - new option to limit the number of entries shown, e.g. only the next 3 pickups (#736)
 - Universal widget - text cells can run vertically: turned 90° clockwise, 90° counter-clockwise or as upright stacked letters (#734)
+- Timer - holiday and vacation lists accept date ranges ("2026-07-20/2026-08-07" or {"from","to"}) next to single days, and a plain true/false datapoint; examples in the settings are collapsed (#738)
