@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useMemo, useState } from 'react';
 import { ChevronUp, ChevronDown, Square, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -13,6 +13,16 @@ import { TILT_SLIDER_WIDTH, TiltButton, TiltPopover, TiltSlider, TiltStepButtons
 import { clampPct, rawToTiltPct, tiltPctToRaw, tiltRange } from '../../utils/shutterTilt';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
+const BTN_GAP = 4; // gap-1
+const MIN_ICON = 8;
+const btnPad = (iconSz: number) => Math.max(2, Math.round(iconSz / 4));
+/** Largest icon size (up to `iconSz`) whose three stacked buttons fit into `availH`. */
+function fitIconSize(iconSz: number, availH: number): number {
+    let sz = iconSz;
+    while (sz > MIN_ICON && 3 * (sz + 2 * btnPad(sz) + 2) + 2 * BTN_GAP > availH) sz--;
+    return sz;
+}
+
 function BtnRow({
     onUp,
     onStop,
@@ -20,6 +30,7 @@ function BtnRow({
     iconSz = 16,
     vertical = false,
     extra,
+    reserveBottom = 0,
 }: {
     onUp: () => void;
     onStop: () => void;
@@ -28,8 +39,26 @@ function BtnRow({
     vertical?: boolean;
     /** Tilt control riding along in the same row/column. */
     extra?: React.ReactNode;
+    /** Space kept free below a vertical column (status badges sit bottom-right). */
+    reserveBottom?: number;
 }) {
-    const pad = Math.max(2, Math.round(iconSz / 4));
+    // A vertical column may get less height than three buttons in a flat card.
+    // Overflowing it slid the lower buttons under the value/slider row, which then
+    // swallowed their clicks (#739) - so the icons shrink to fit instead.
+    const colRef = useRef<HTMLDivElement>(null);
+    const [availH, setAvailH] = useState<number | null>(null);
+    const fitColumn = vertical && !extra;
+    useLayoutEffect(() => {
+        const el = colRef.current;
+        if (!fitColumn || !el) return;
+        const update = () => setAvailH(el.clientHeight);
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [fitColumn]);
+    if (fitColumn && availH !== null) iconSz = fitIconSize(iconSz, availH);
+    const pad = btnPad(iconSz);
     const radius = Math.max(4, Math.round(iconSz / 2));
     const dirStyle = (dir: 'up' | 'stop' | 'down'): React.CSSProperties => ({
         background: `var(--blind-${dir}-bg, var(--app-bg))`,
@@ -42,7 +71,11 @@ function BtnRow({
         justifyContent: 'center',
     });
     return (
-        <div className={`aura-widget-action flex ${vertical ? 'flex-col' : ''} gap-1`}>
+        <div
+            ref={colRef}
+            className={`aura-widget-action flex ${vertical ? 'flex-col relative z-10 min-h-0' : ''} gap-1`}
+            style={reserveBottom ? { marginBottom: reserveBottom } : undefined}
+        >
             <button onClick={onUp} className="hover:opacity-80 transition-opacity" style={dirStyle('up')}>
                 <ChevronUp size={iconSz} />
             </button>
@@ -652,6 +685,11 @@ export function ShutterWidget({ config }: WidgetProps) {
     }
 
     // ── DEFAULT ───────────────────────────────────────────────────────────────
+    const badgeCount =
+        opts.showStatusBadges !== false
+            ? [opts.batteryDp, opts.unreachDp, opts.lockDp].filter((v) => typeof v === 'string' && v).length
+            : 0;
+    const badgesWidth = badgeCount > 0 ? badgeCount * 18 + (badgeCount - 1) * 2 + 4 : 0;
     return (
         <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
             <HeaderGroup>
@@ -692,72 +730,86 @@ export function ShutterWidget({ config }: WidgetProps) {
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>
+            {/* The button column spans graphic, value and slider: next to the graphic
+                alone it had too little height and its lower buttons slid under the
+                value row, which swallowed their clicks (#739). */}
             <div className="flex gap-2 flex-1 min-h-0">
-                {tiltSliderSide === 'left' && tiltColumn}
-                <ShutterViz
-                    closedFrac={closedFrac}
-                    accentColor={accentColor}
-                    isMoving={isMoving}
-                    tiltFrac={tiltFrac}
-                    className="flex-1"
-                />
-                {tiltSliderSide === 'right' && tiltColumn}
-                {showControls && (
-                    <BtnRow onUp={openFully} onStop={stop} onDown={closeFully} iconSz={buttonSize} vertical />
-                )}
-            </div>
-            {(showValue || showSlider || tiltControl === 'slider-h' || tiltBottom) &&
-                (() => {
-                    // Reserve right space on the slider row so the bottom-right StatusBadges don't overlap the slider thumb at 100%.
-                    const showBadges = opts.showStatusBadges !== false;
-                    const badgeCount = showBadges
-                        ? [opts.batteryDp, opts.unreachDp, opts.lockDp].filter((v) => typeof v === 'string' && v).length
-                        : 0;
-                    const badgesWidth = badgeCount > 0 ? badgeCount * 18 + (badgeCount - 1) * 2 + 4 : 0;
-                    const hasSlider = showSlider || tiltControl === 'slider-h';
-                    return (
-                        <div style={hasSlider && badgesWidth > 0 ? { paddingRight: badgesWidth } : undefined}>
-                            {showValue && (
-                                <div className="aura-widget-value flex justify-between items-baseline mb-1">
-                                    <span
-                                        className="text-[11px]"
-                                        style={{ color: isMoving ? 'var(--accent-yellow)' : 'var(--text-secondary)' }}
-                                    >
-                                        {statusText}
-                                    </span>
-                                    <span
-                                        className="font-bold"
-                                        style={{ color: valueColor, fontSize: valueSize, lineHeight: 1 }}
-                                    >
-                                        {displayPct}%
-                                    </span>
-                                </div>
-                            )}
-                            {(showSlider || tiltBottom) && (
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1 min-w-0">{showSlider ? slider : null}</div>
-                                    {tiltBottom}
-                                </div>
-                            )}
-                            {tiltControl === 'slider-h' && (
-                                <div className="aura-widget-tilt flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                        {tiltLabel}
-                                    </span>
-                                    {tiltSliderEl(false)}
-                                    {showTiltValue && (
-                                        <span
-                                            className="text-[10px] tabular-nums shrink-0 text-right"
-                                            style={{ color: 'var(--text-secondary)', minWidth: '4ch' }}
-                                        >
-                                            {tiltPctText}
-                                        </span>
+                <div className="flex flex-col gap-2 flex-1 min-w-0 min-h-0">
+                    <div className="flex gap-2 flex-1 min-h-0">
+                        {tiltSliderSide === 'left' && tiltColumn}
+                        <ShutterViz
+                            closedFrac={closedFrac}
+                            accentColor={accentColor}
+                            isMoving={isMoving}
+                            tiltFrac={tiltFrac}
+                            className="flex-1"
+                        />
+                        {tiltSliderSide === 'right' && tiltColumn}
+                    </div>
+                    {(showValue || showSlider || tiltControl === 'slider-h' || tiltBottom) &&
+                        (() => {
+                            // Reserve right space on the slider row so the bottom-right StatusBadges don't overlap the slider thumb at 100%.
+                            const hasSlider = showSlider || tiltControl === 'slider-h';
+                            return (
+                                <div style={hasSlider && badgesWidth > 0 ? { paddingRight: badgesWidth } : undefined}>
+                                    {showValue && (
+                                        <div className="aura-widget-value flex justify-between items-baseline mb-1">
+                                            <span
+                                                className="text-[11px]"
+                                                style={{
+                                                    color: isMoving ? 'var(--accent-yellow)' : 'var(--text-secondary)',
+                                                }}
+                                            >
+                                                {statusText}
+                                            </span>
+                                            <span
+                                                className="font-bold"
+                                                style={{ color: valueColor, fontSize: valueSize, lineHeight: 1 }}
+                                            >
+                                                {displayPct}%
+                                            </span>
+                                        </div>
+                                    )}
+                                    {(showSlider || tiltBottom) && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 min-w-0">{showSlider ? slider : null}</div>
+                                            {tiltBottom}
+                                        </div>
+                                    )}
+                                    {tiltControl === 'slider-h' && (
+                                        <div className="aura-widget-tilt flex items-center gap-2 mt-1">
+                                            <span
+                                                className="text-[10px] shrink-0"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {tiltLabel}
+                                            </span>
+                                            {tiltSliderEl(false)}
+                                            {showTiltValue && (
+                                                <span
+                                                    className="text-[10px] tabular-nums shrink-0 text-right"
+                                                    style={{ color: 'var(--text-secondary)', minWidth: '4ch' }}
+                                                >
+                                                    {tiltPctText}
+                                                </span>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    );
-                })()}
+                            );
+                        })()}
+                </div>
+                {showControls && (
+                    <BtnRow
+                        onUp={openFully}
+                        onStop={stop}
+                        onDown={closeFully}
+                        iconSz={buttonSize}
+                        vertical
+                        reserveBottom={badgeCount > 0 ? 20 : 0}
+                    />
+                )}
+            </div>
             <StatusBadges config={config} />
             {tiltPopover}
         </div>

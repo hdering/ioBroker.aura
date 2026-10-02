@@ -229,6 +229,7 @@
     "test:datepicker": "node tools/tests/datepicker-picker.mjs",
     "test:datepicker-clear": "node tools/tests/datepicker-clear.mjs",
     "test:shutter-tilt": "node tools/tests/shutter-tilt.mjs",
+    "test:shutter-buttons": "node tools/tests/shutter-buttons-hit.mjs",
     "test:chart-delta": "node tools/tests/chart-delta-reset.mjs",
     "test:chart-day-picker": "node tools/tests/chart-day-picker.mjs",
     "test:chart-day-exit": "node tools/tests/chart-day-mode-exit.mjs",
