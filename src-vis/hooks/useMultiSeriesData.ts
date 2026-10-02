@@ -139,6 +139,53 @@ export interface EChartSeriesConfig {
     decimals?: number;
     /** Thousands separator of this series' numbers, unset = follow the chart-wide setting. */
     numberFormat?: NumberFormat;
+    /**
+     * Comparison series (issue #730): read the history this many `timeShiftUnit`s further back and
+     * draw it over the current window — e.g. 1 year = last year's monthly consumption next to this
+     * year's bars. Unset / 0 = no shift. The shifted series is a frozen view: no live updates, its
+     * "current" value is its newest point. Ignored for a `total` window and for JSON series.
+     */
+    timeShift?: number;
+    /** Unit of `timeShift` (default `year`). Calendar steps, so a month back lands on the same day. */
+    timeShiftUnit?: TimeShiftUnit;
+}
+
+/** Calendar unit a comparison series is shifted by — see `EChartSeriesConfig.timeShift`. */
+export type TimeShiftUnit = 'hour' | 'day' | 'week' | 'month' | 'year';
+
+/**
+ * Move `ts` by `amount` calendar units (negative = into the past). Days, weeks, months and years
+ * step along the local calendar rather than in fixed milliseconds, so a year back from 1 March is
+ * 1 March again and a day back across a DST switch keeps the wall-clock time. A day that doesn't
+ * exist in the target month (31 → February) rolls over the way `Date` does.
+ */
+export function shiftTime(ts: number, amount: number, unit: TimeShiftUnit): number {
+    if (!amount) return ts;
+    if (unit === 'hour') return ts + amount * 3_600_000;
+    const d = new Date(ts);
+    if (unit === 'day') d.setDate(d.getDate() + amount);
+    else if (unit === 'week') d.setDate(d.getDate() + amount * 7);
+    else if (unit === 'month') d.setMonth(d.getMonth() + amount);
+    else d.setFullYear(d.getFullYear() + amount);
+    return d.getTime();
+}
+
+/** The shift of a comparison series in whole units back, or null when the series isn't shifted. */
+export function seriesTimeShift(s: EChartSeriesConfig): { amount: number; unit: TimeShiftUnit } | null {
+    const amount = Math.round(Number(s.timeShift) || 0);
+    if (amount <= 0 || s.source === 'json') return null;
+    return { amount, unit: s.timeShiftUnit ?? 'year' };
+}
+
+/** Start of the bucket right after the one `ts` falls into. */
+export function nextBucketStart(ts: number, bucket: DeltaBucket): number {
+    const d = new Date(bucketStart(ts, bucket));
+    if (bucket === 'hour') d.setHours(d.getHours() + 1);
+    else if (bucket === 'day') d.setDate(d.getDate() + 1);
+    else if (bucket === 'week') d.setDate(d.getDate() + 7);
+    else if (bucket === 'month') d.setMonth(d.getMonth() + 1);
+    else d.setFullYear(d.getFullYear() + 1);
+    return d.getTime();
 }
 
 /**
@@ -983,6 +1030,8 @@ export function useMultiSeriesData(
             s.jsonAxisPath,
             s.valueFactor,
             s.valueOffset,
+            seriesTimeShift(s)?.amount,
+            seriesTimeShift(s)?.unit,
         ]),
     );
 
@@ -1008,7 +1057,9 @@ export function useMultiSeriesData(
     useEffect(() => {
         if (!connected || series.length === 0) return;
         // A window pinned to a past day is a frozen view — there is nothing new to read.
-        const live = series.some((s) => !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()));
+        const live = series.some(
+            (s) => !seriesTimeShift(s) && !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()),
+        );
         if (!live) return;
         const shortest = Math.min(...series.map((s) => windowMs(s)));
         const interval = shortest <= 3_600_000 ? 60_000 : shortest <= 86_400_000 ? 300_000 : 900_000;
@@ -1117,6 +1168,11 @@ export function useMultiSeriesData(
             // `total` = everything the adapter holds. Its length is unknown up front, so the window
             // is probed first and the fetch below is sized from the result.
             const isTotal = !hasAbsWindow && range === 'total';
+            // A comparison series reads an earlier window and is moved forward onto this one
+            // (issue #730). "Since recording started" has no earlier counterpart.
+            const shift = isTotal ? null : seriesTimeShift(s);
+            const back = (ts: number) => (shift ? shiftTime(ts, -shift.amount, shift.unit) : ts);
+            const fwd = (ts: number) => (shift ? shiftTime(ts, shift.amount, shift.unit) : ts);
 
             /**
              * Fetch and publish one series over a known window. `rangeMs` is the NOMINAL span the
@@ -1140,13 +1196,19 @@ export function useMultiSeriesData(
                 // difference against the reading the counter had when the window opened. A `total`
                 // window has nothing before it — bucketDeltas then differences the first bucket
                 // against its own lowest reading, which is what "since recording started" means.
-                const deltaWindowStart = isDelta ? bucketStart(start, bucket) : start;
-                const fetchStart = isDelta ? prevBucketStart(start, bucket) : start;
+                // Everything up to the bucketing runs in the QUERIED (shifted) time; the timestamps
+                // move forward onto the displayed window right after. A shifted delta series reads
+                // its trailing bucket to the end — last year's October in full, not up to today's
+                // date — capped at now for a shift shorter than one bucket.
+                const qStart = back(start);
+                const qEnd = shift && isDelta ? Math.min(nextBucketStart(back(end), bucket), Date.now()) : back(end);
+                const deltaWindowStart = isDelta ? bucketStart(qStart, bucket) : qStart;
+                const fetchStart = isDelta ? prevBucketStart(qStart, bucket) : qStart;
 
                 getHistoryDirect(s.datapointId, {
                     instance,
                     start: fetchStart,
-                    end,
+                    end: qEnd,
                     step,
                     // `delta` never reaches the adapter — it is differenced client-side. An hourly
                     // step comes back as `max`, a counter's reading at the step's end, with any
@@ -1179,14 +1241,29 @@ export function useMultiSeriesData(
                             // derive from `data` (issue #540). A delta series is differenced on the
                             // magnitude — its sign goes onto the finished bars (issue #594).
                             .map((e): [number, number] => [
-                                e.ts,
+                                // Delta buckets are cut in the queried time, so their calendar edges
+                                // stay intact; plain points move onto the displayed window here.
+                                isDelta ? e.ts : fwd(e.ts),
                                 isDelta ? deltaMagnitude(s, e.num) : seriesValue(s, e.num),
                             ])
                             .sort((a, b) => a[0] - b[0]);
 
                         if (isDelta) {
                             const { sign } = deltaTransform(s);
-                            const { points, lastBucket, lastBase } = bucketDeltas(data, bucket, deltaWindowStart);
+                            const res = bucketDeltas(data, bucket, deltaWindowStart);
+                            const { lastBase } = res;
+                            // A shifted bucket start is snapped back onto the bucket grid: a week a
+                            // year back does not start on a Monday a year later. The reading at the
+                            // very end of the read-to-the-end bucket opens the NEXT one — a bar past
+                            // the displayed window, dropped here.
+                            const lastShown = bucketStart(end, bucket);
+                            const points: [number, number][] = shift
+                                ? res.points
+                                      .map(([b, v]): [number, number] => [bucketStart(fwd(b), bucket), v])
+                                      .filter(([b]) => b <= lastShown)
+                                : res.points;
+                            // A comparison series never grows a live bar.
+                            const lastBucket = shift ? null : res.lastBucket;
                             // Same edge trim as below, but applied to the finished bars: the run-up
                             // bucket has already served its purpose as the difference baseline.
                             const bars = (
@@ -1252,8 +1329,9 @@ export function useMultiSeriesData(
                         }
 
                         // A pinned PAST day is a frozen view: its "current" is that day's last value,
-                        // never the live state.
-                        if (hasAbsWindow && (s.historyEnd as number) < Date.now()) {
+                        // never the live state. So is a comparison series — the live state belongs
+                        // to the present, not to last year.
+                        if (shift || (hasAbsWindow && (s.historyEnd as number) < Date.now())) {
                             const current = data.length > 0 ? data[data.length - 1][1] : null;
                             setResultsMap((prev) => {
                                 const next = new Map(prev);
@@ -1343,7 +1421,9 @@ export function useMultiSeriesData(
             .filter(
                 (s) =>
                     !!s.datapointId &&
-                    (s.source === 'json' || !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now())),
+                    (s.source === 'json' ||
+                        // A comparison series shows the past — the live value is not part of it.
+                        (!seriesTimeShift(s) && !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()))),
             )
             .map((s) => {
                 if (s.source === 'json') {

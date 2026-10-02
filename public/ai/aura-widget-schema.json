@@ -2347,6 +2347,15 @@
           "type": "string",
           "ref": "NumberFormat",
           "description": "Thousands separator of this series' numbers, unset = follow the chart-wide setting."
+        },
+        "timeShift": {
+          "type": "number",
+          "description": "Comparison series (issue #730): read the history this many `timeShiftUnit`s further back and draw it over the current window — e.g. 1 year = last year's monthly consumption next to this year's bars. Unset / 0 = no shift. The shifted series is a frozen view: no live updates, its \"current\" value is its newest point. Ignored for a `total` window and for JSON series."
+        },
+        "timeShiftUnit": {
+          "type": "string",
+          "ref": "TimeShiftUnit",
+          "description": "Unit of `timeShift` (default `year`). Calendar steps, so a month back lands on the same day."
         }
       }
     },
@@ -2372,6 +2381,16 @@
         "month",
         "year",
         "auto"
+      ]
+    },
+    "TimeShiftUnit": {
+      "type": "string",
+      "enum": [
+        "hour",
+        "day",
+        "week",
+        "month",
+        "year"
       ]
     },
     "GroupActionType": {

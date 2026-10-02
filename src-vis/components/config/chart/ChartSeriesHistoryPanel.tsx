@@ -1,5 +1,5 @@
 import { useT } from '../../../i18n';
-import type { EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
+import type { EChartSeriesConfig, TimeShiftUnit } from '../../../hooks/useMultiSeriesData';
 import { inputCls, inputStyle, type SeriesAdapterState } from './chartShared';
 
 /**
@@ -15,6 +15,7 @@ export function ChartSeriesHistoryPanel({
     update,
     onDetect,
     isBool = false,
+    onAddComparison,
 }: {
     s: EChartSeriesConfig;
     adState?: SeriesAdapterState;
@@ -23,6 +24,8 @@ export function ChartSeriesHistoryPanel({
     onDetect: () => void;
     /** Boolean datapoint: an unset aggregation means `max`, not `average` (issue #718). */
     isBool?: boolean;
+    /** Add a copy of this series shifted one year back, right below it (issue #730). */
+    onAddComparison?: () => void;
 }) {
     const t = useT();
     const isTpl = (s.datapointId ?? '').includes('{{');
@@ -170,6 +173,58 @@ export function ChartSeriesHistoryPanel({
                     <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                         {s.deltaBucket === 'auto' ? t('echart.bucketAutoHint') : t('echart.deltaHint')}
                     </p>
+                </div>
+            )}
+            {s.datapointId && (
+                <div className="mt-1.5">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.timeShift')}
+                    </label>
+                    <div className="flex gap-1.5">
+                        <input
+                            type="number"
+                            min={0}
+                            step={1}
+                            value={s.timeShift ?? 0}
+                            onChange={(e) => {
+                                const n = Math.max(0, Math.round(Number(e.target.value) || 0));
+                                update({
+                                    timeShift: n > 0 ? n : undefined,
+                                    timeShiftUnit: n > 0 ? (s.timeShiftUnit ?? 'year') : undefined,
+                                });
+                            }}
+                            className={inputCls}
+                            style={{ ...inputStyle, width: '5rem', flex: 'none' }}
+                            data-testid="echart-time-shift"
+                        />
+                        <select
+                            value={s.timeShiftUnit ?? 'year'}
+                            disabled={!s.timeShift}
+                            onChange={(e) => update({ timeShiftUnit: e.target.value as TimeShiftUnit })}
+                            className={inputCls}
+                            style={inputStyle}
+                            data-testid="echart-time-shift-unit"
+                        >
+                            <option value="hour">{t('echart.shiftHour')}</option>
+                            <option value="day">{t('echart.shiftDay')}</option>
+                            <option value="week">{t('echart.shiftWeek')}</option>
+                            <option value="month">{t('echart.shiftMonth')}</option>
+                            <option value="year">{t('echart.shiftYear')}</option>
+                        </select>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.timeShiftHint')}
+                    </p>
+                    {!s.timeShift && onAddComparison && (
+                        <button
+                            onClick={onAddComparison}
+                            className="text-[11px] mt-1 hover:opacity-80"
+                            style={{ color: 'var(--accent)' }}
+                            data-testid="echart-add-comparison"
+                        >
+                            {t('echart.addPrevYear')}
+                        </button>
+                    )}
                 </div>
             )}
         </div>

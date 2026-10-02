@@ -9,6 +9,8 @@ import {
     useAutoHistoryInstances,
     rangeToMs,
     parseTimeLabel,
+    seriesTimeShift,
+    shiftTime,
     type EChartSeriesConfig,
     type EChartTimeRange,
     type JsonAxisBounds,
@@ -1351,7 +1353,19 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     const raw = p.value[1];
                     const dispVal =
                         typeof raw === 'number' ? fmtWithUnit(raw, echartSeries[p.seriesIndex], unit, '\u202F') : raw;
-                    return `${p.marker} ${p.seriesName}: <b>${dispVal}</b>${shareOf(
+                    // A comparison series is drawn over the current window — name the period its
+                    // value actually comes from (issue #730).
+                    const shift = echartSeries[p.seriesIndex] ? seriesTimeShift(echartSeries[p.seriesIndex]) : null;
+                    const period =
+                        shift && activeRange !== 'total'
+                            ? ` <span style="opacity:.6">(${tooltipTimeLabel(
+                                  shiftTime(ts, -shift.amount, shift.unit),
+                                  axisBucket,
+                                  tooltipExtent,
+                                  dateLocale,
+                              )})</span>`
+                            : '';
+                    return `${p.marker} ${p.seriesName}${period}: <b>${dispVal}</b>${shareOf(
                         p.seriesIndex,
                         typeof raw === 'number' ? raw : null,
                     )}`;

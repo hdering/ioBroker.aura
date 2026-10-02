@@ -44,6 +44,7 @@ export function ChartSeriesDetail({
     onDatapointChange,
     onDetect,
     onWidgetOption,
+    onAddComparison,
 }: {
     s: EChartSeriesConfig;
     isComparison: boolean;
@@ -70,6 +71,8 @@ export function ChartSeriesDetail({
     onDatapointChange: (id: string) => void;
     onDetect: () => void;
     onWidgetOption: (patch: Record<string, unknown>) => void;
+    /** Add a copy of this series shifted one year back (issue #730). */
+    onAddComparison?: () => void;
 }) {
     const t = useT();
     const [pickerOpen, setPickerOpen] = useState(false);
@@ -578,6 +581,7 @@ export function ChartSeriesDetail({
                             update={update}
                             onDetect={onDetect}
                             isBool={isBoolDp}
+                            onAddComparison={isComparison ? undefined : onAddComparison}
                         />
                     )}
                 </>

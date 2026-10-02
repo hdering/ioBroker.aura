@@ -171,6 +171,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].stack`         | `false`      | Serie auf die anderen gestapelten Serien derselben Y-Achse addieren (siehe unten)                                                                                                                                  |
 | `echartSeries[].aggregate`     | `average`    | `average` · `minmax` · `max` · `min` · `total` · `delta` · `none` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen), `delta` siehe unten |
 | `echartSeries[].deltaBucket`   | `hour`       | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta`                                                                                                                           |
+| `echartSeries[].timeShift`     | `0`          | Zeitversatz für Vergleichsserien: liest die History so viele Einheiten zurück und legt sie über den aktuellen Zeitraum (siehe unten)                                                                                 |
+| `echartSeries[].timeShiftUnit` | `year`       | `hour` · `day` · `week` · `month` · `year` — Einheit von `timeShift`                                                                                                                                               |
 | `echartSeries[].lineWidth`     | `2`          | Linienstärke 0–4, `0` = keine Linie (nur Linie/Fläche)                                                                                                                                                             |
 | `echartSeries[].stackOutline`  | `false`      | Kontur eines gestapelten Bandes zeichnen (nur gestapelte Fläche)                                                                                                                                                   |
 | `echartSeries[].areaOpacity`   | Auto         | Deckkraft der Fläche in Prozent 10–100 (nur Fläche); Auto = gestapelt 100 %, einzeln 20 %                                                                                                                          |
@@ -284,6 +286,22 @@ Bilder dazu: [Beispiele](#beispiele).
 | bis 180 Tage | pro Woche   |
 | bis 1 Jahr   | pro Monat   |
 | darüber      | pro Jahr    |
+
+### Vorjahresvergleich
+
+Zweite Serie auf denselben Datenpunkt mit `timeShift: 1` · `timeShiftUnit: year` — im Editor per **+ Vorjahres-Serie anlegen** unter „Zeitversatz (Vergleich)“.
+
+![](./assets/diagramm-erweitert/bsp-vorjahr.png)
+
+| Thema                   | Verhalten                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------ |
+| Lage der Balken         | gleiche Zeiteinheit wie die aktuelle Serie → Balken je Monat/Tag nebeneinander             |
+| Stapeln                 | aus lassen, sonst werden die Jahre addiert                                                 |
+| Laufender Bucket        | wird beim Vorjahr vollständig gelesen (ganzer Oktober des Vorjahres, nicht nur bis heute)  |
+| Live-Werte              | keine — die versetzte Serie zeigt nur History                                              |
+| Tooltip                 | nennt hinter dem Seriennamen den Zeitraum, aus dem der Wert stammt                         |
+| Andere Vergleiche       | `day` = gestern, `week` = Vorwoche, `month` = Vormonat                                     |
+| Zeitraum `Gesamt`       | Versatz wirkt nicht                                                                        |
 
 ### JSON-Quelle
 

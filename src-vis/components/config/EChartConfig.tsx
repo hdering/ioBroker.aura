@@ -255,6 +255,27 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
         setSeries([...series, newSeries]);
     };
 
+    /**
+     * Previous-year comparison (issue #730): a copy of the series that reads its history one year
+     * back, inserted right below it — same datapoint, adapter and aggregation, never stacked (two
+     * years summed up mean nothing), in a muted colour so the current year stays in front.
+     */
+    const addComparisonSeries = (id: string) => {
+        const idx = series.findIndex((s) => s.id === id);
+        if (idx < 0) return;
+        const src = series[idx];
+        const copy: EChartSeriesConfig = {
+            ...src,
+            id: generateId(),
+            name: `${src.name} (${t('echart.prevYearSuffix')})`,
+            color: '#94a3b8',
+            stack: undefined,
+            timeShift: 1,
+            timeShiftUnit: 'year',
+        };
+        setSeries([...series.slice(0, idx + 1), copy, ...series.slice(idx + 1)]);
+    };
+
     const removeSeries = (id: string) => {
         setSeries(series.filter((s) => s.id !== id));
     };
@@ -491,6 +512,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 onDatapointChange={(dpId) => changeSeriesDatapoint(s.id, dpId)}
                                 onDetect={() => refreshAdapters(s.id, s.datapointId)}
                                 onWidgetOption={setO}
+                                onAddComparison={() => addComparisonSeries(s.id)}
                             />
                         );
                     }}

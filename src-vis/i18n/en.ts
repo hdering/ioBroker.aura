@@ -1802,6 +1802,16 @@ export const en: Record<TranslationKey, string> = {
         'Follows the active time range: up to 1 day per hour, up to 45 days per day, up to 180 days per week, up to 1 year per month, beyond that per year. Also follows a range switch made in the frontend.',
     'echart.deltaHint':
         'For meters: plots the increase per time unit instead of the meter reading. Fits ever-rising meters (electricity, water, gas) as well as day counters that fall back to 0 at midnight (e.g. a PV day yield). Meter swaps, rollovers and stray readings are not booked as consumption.',
+    'echart.timeShift': 'Time shift (comparison)',
+    'echart.timeShiftHint':
+        'Reads the values this far back and lays them over the current range, e.g. 1 year = last year\'s values next to the current ones. 0 = no shift. Not updated live; has no effect on "Total".',
+    'echart.shiftHour': 'Hours',
+    'echart.shiftDay': 'Days',
+    'echart.shiftWeek': 'Weeks',
+    'echart.shiftMonth': 'Months',
+    'echart.shiftYear': 'Years',
+    'echart.addPrevYear': '+ Add previous-year series',
+    'echart.prevYearSuffix': 'previous year',
     'echart.visibleRanges': 'Time ranges shown in frontend',
     'echart.dayNavToggle': 'Day navigation in frontend (◀ Today ▶)',
     'echart.dayNavDefaultToggle': 'Open on today (00:00–24:00) instead of the rolling range',

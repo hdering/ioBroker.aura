@@ -1820,6 +1820,16 @@ export const de = {
         'Richtet sich nach dem aktiven Zeitraum: bis 1 Tag pro Stunde, bis 45 Tage pro Tag, bis 180 Tage pro Woche, bis 1 Jahr pro Monat, darüber pro Jahr. Wechselt mit, wenn im Frontend umgeschaltet wird.',
     'echart.deltaHint':
         'Für Zähler: zeigt den Zuwachs je Zeiteinheit statt des Zählerstands. Passt für fortlaufende Zähler (Strom, Wasser, Gas) ebenso wie für Tageszähler, die um Mitternacht auf 0 zurückspringen (z.B. PV-Tagesertrag). Zählerwechsel, Überlauf und Ausreißer werden nicht als Verbrauch gewertet.',
+    'echart.timeShift': 'Zeitversatz (Vergleich)',
+    'echart.timeShiftHint':
+        'Liest die Werte so weit zurück und legt sie über den aktuellen Zeitraum, z.B. 1 Jahr = Vorjahreswerte neben den aktuellen. 0 = kein Versatz. Ohne Live-Aktualisierung; bei „Gesamt“ wirkungslos.',
+    'echart.shiftHour': 'Stunden',
+    'echart.shiftDay': 'Tage',
+    'echart.shiftWeek': 'Wochen',
+    'echart.shiftMonth': 'Monate',
+    'echart.shiftYear': 'Jahre',
+    'echart.addPrevYear': '+ Vorjahres-Serie anlegen',
+    'echart.prevYearSuffix': 'Vorjahr',
     'echart.visibleRanges': 'Sichtbare Zeitbereiche im Frontend',
     'echart.dayNavToggle': 'Tages-Navigation im Frontend (◀ Heute ▶)',
     'echart.dayNavDefaultToggle': 'Beim Laden auf den heutigen Tag stellen (00:00–24:00)',

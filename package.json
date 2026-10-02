@@ -232,6 +232,8 @@
     "test:shutter-tilt": "node tools/tests/shutter-tilt.mjs",
     "test:shutter-buttons": "node tools/tests/shutter-buttons-hit.mjs",
     "test:chart-delta": "node tools/tests/chart-delta-reset.mjs",
+    "test:chart-time-shift": "node tools/tests/chart-time-shift.mjs",
+    "test:chart-prev-year": "node tools/tests/chart-prev-year.mjs",
     "test:chart-day-picker": "node tools/tests/chart-day-picker.mjs",
     "test:chart-day-exit": "node tools/tests/chart-day-mode-exit.mjs",
     "test:chart-zero-line": "node tools/tests/chart-zero-line.mjs",
