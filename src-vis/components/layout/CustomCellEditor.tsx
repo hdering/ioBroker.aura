@@ -3366,6 +3366,58 @@ export function CustomCellEditor({
                             })}
                         </div>
                     </div>
+
+                    {/* Textrichtung (#734) */}
+                    {CONTENT_BG_TYPES.has(cell.type) && (
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                Textrichtung
+                            </label>
+                            <div className="grid grid-cols-4 gap-1">
+                                {(
+                                    [
+                                        ['horizontal', 'Waagrecht', 'Normal von links nach rechts'],
+                                        [
+                                            'vertical-cw',
+                                            '↻ 90°',
+                                            'Im Uhrzeigersinn gedreht, liest sich von oben nach unten',
+                                        ],
+                                        [
+                                            'vertical-ccw',
+                                            '↺ 90°',
+                                            'Gegen den Uhrzeigersinn gedreht, liest sich von unten nach oben',
+                                        ],
+                                        ['stacked', 'Gestapelt', 'Buchstaben aufrecht untereinander'],
+                                    ] as const
+                                ).map(([v, label, hint]) => {
+                                    const active = (cell.textDirection ?? 'horizontal') === v;
+                                    return (
+                                        <button
+                                            key={v}
+                                            title={hint}
+                                            onClick={() =>
+                                                onChange({ textDirection: v === 'horizontal' ? undefined : v })
+                                            }
+                                            className="text-[10px] py-1 rounded"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {(cell.textDirection ?? 'horizontal') !== 'horizontal' && (
+                                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                    Senkrechter Text braucht Höhe – Zelle über mehrere Zeilen spannen oder die Zeile
+                                    höher machen.
+                                </p>
+                            )}
+                        </div>
+                    )}
                 </>
             )}
 

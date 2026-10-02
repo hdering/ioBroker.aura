@@ -291,6 +291,7 @@ export interface CustomCell {
     valign?: CustomCellValign; // default: 'middle'
     allowOverflow?: boolean; // allow text to overflow into adjacent cells
     wrap?: boolean; // wrap long text onto multiple lines instead of ellipsis (default false)
+    textDirection?: 'horizontal' | 'vertical-cw' | 'vertical-ccw' | 'stacked'; // text cells (title/value/unit/text/field/dp/state-text/lastchange): 'vertical-cw' turned 90° clockwise (reads top to bottom), 'vertical-ccw' 90° counter-clockwise (reads bottom to top), 'stacked' upright letters one below the other; default 'horizontal'. Vertical text needs cell height (rowSpan or a taller row); align/valign stay physical (left/right, top/bottom of the cell)
     colSpan?: number; // 'component' type: how many grid columns to span (1..cols)
     rowSpan?: number; // analog colSpan, vertical
     imageUrl?: string; // 'image' type: static URL or base64 data URI (fallback when dpId is empty)

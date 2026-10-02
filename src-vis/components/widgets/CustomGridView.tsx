@@ -104,10 +104,18 @@ function cellTextStyle(cell: CustomCell, defaultColor: string, cond?: CellCondRe
         // grows to (near) full cell width when wrapping, so the container's
         // justify-content no longer visibly centers it and the lines fall back to
         // the default left alignment.
-        textAlign: cell.align === 'right' ? 'right' : cell.align === 'center' ? 'center' : 'left',
+        // Vertical text runs top/bottom, so its lines follow the vertical alignment (#734).
+        textAlign: isVerticalText(cell)
+            ? verticalStart(cell)
+            : cell.align === 'right'
+              ? 'right'
+              : cell.align === 'center'
+                ? 'center'
+                : 'left',
         // 1.3 (not 1.15) so descenders (g, j, p, q, y) aren't clipped by overflow:hidden.
         lineHeight: 1.3,
-        paddingBottom: '0.1em',
+        // Descenders point to the block end — the bottom, or the left side of turned text.
+        ...(isVerticalText(cell) ? { paddingBlockEnd: '0.1em' } : { paddingBottom: '0.1em' }),
         position: cell.allowOverflow ? 'relative' : undefined,
         zIndex: cell.allowOverflow ? 1 : undefined,
     };
@@ -161,11 +169,48 @@ function hugsContent(cell: CustomCell): boolean {
     return cell.bgMode === 'content' && CONTENT_BG_TYPES.has(cell.type);
 }
 
+/** Text cells set to run vertically (#734) — the same text-like types that may hug their background. */
+function isVerticalText(cell: CustomCell): boolean {
+    return !!cell.textDirection && cell.textDirection !== 'horizontal' && CONTENT_BG_TYPES.has(cell.type);
+}
+
+/**
+ * Where vertical text sits along its own (vertical) line, from the cell's valign.
+ * The line starts at the top, except for counter-clockwise text: that is the
+ * clockwise layout turned by 180°, so its start ends up at the bottom.
+ */
+function verticalStart(cell: CustomCell): 'start' | 'end' | 'center' {
+    const valign = cell.valign ?? 'middle';
+    if (valign === 'middle') return 'center';
+    const top = cell.textDirection === 'vertical-ccw' ? 'end' : 'start';
+    return valign === 'top' ? top : top === 'start' ? 'end' : 'start';
+}
+
+/**
+ * Writing mode for the outermost content element of a vertical text cell.
+ * writing-mode (not a plain rotate) so the box itself turns upright and the grid
+ * cell keeps its size; counter-clockwise is clockwise turned by 180° because
+ * `sideways-lr` is missing on older WebViews.
+ */
+function textDirBlockStyle(cell: CustomCell): React.CSSProperties | null {
+    if (!isVerticalText(cell)) return null;
+    const base: React.CSSProperties = { maxHeight: '100%', minHeight: 0 };
+    switch (cell.textDirection) {
+        case 'vertical-ccw':
+            return { ...base, writingMode: 'vertical-rl', transform: 'rotate(180deg)' };
+        case 'stacked':
+            return { ...base, writingMode: 'vertical-lr', textOrientation: 'upright' };
+        default:
+            return { ...base, writingMode: 'vertical-rl' };
+    }
+}
+
 /** Label background around the content of a hugging cell — a matched condition's bg wins. */
 function contentBgStyle(cell: CustomCell, cond: CellCondResult): React.CSSProperties | null {
     if (!hugsContent(cell)) return null;
     const bg = cond.bg || cell.bg;
-    return bg ? { background: bg, borderRadius: 6, padding: '0.1em 0.45em' } : null;
+    // Logical padding: the wide side follows the text, also when it runs vertically (#734).
+    return bg ? { background: bg, borderRadius: 6, paddingBlock: '0.1em', paddingInline: '0.45em' } : null;
 }
 
 function emptyCellStyle(index: number, cols: number): React.CSSProperties {
@@ -189,6 +234,11 @@ function withCondBg(base: React.CSSProperties, cond: CellCondResult, cell?: Cust
 }
 
 function alignItemsFromCell(cell: CustomCell): React.CSSProperties['alignItems'] {
+    // In vertical text the column's cross axis runs top/bottom.
+    if (isVerticalText(cell)) {
+        const s = verticalStart(cell);
+        return s === 'center' ? 'center' : s === 'start' ? 'flex-start' : 'flex-end';
+    }
     return cell.align === 'center' ? 'center' : cell.align === 'right' ? 'flex-end' : 'flex-start';
 }
 
@@ -280,13 +330,14 @@ function DpCellView({
                         gap: 1,
                         alignItems: alignItemsFromCell(cell),
                         ...labelBg,
+                        ...textDirBlockStyle(cell),
                     }}
                 >
                     <span style={textSty}>{content}</span>
                     <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span style={{ ...textSty, ...labelBg }}>{content}</span>
+                <span style={{ ...textSty, ...labelBg, ...textDirBlockStyle(cell) }}>{content}</span>
             )}
         </div>
     );
@@ -319,7 +370,9 @@ function LastChangeCellView({
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
     return (
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
-            {!cond.hide && <span style={textSty}>{lc ? formatLastChange(lc, fmt) : '–'}</span>}
+            {!cond.hide && (
+                <span style={{ ...textSty, ...textDirBlockStyle(cell) }}>{lc ? formatLastChange(lc, fmt) : '–'}</span>
+            )}
         </div>
     );
 }
@@ -493,6 +546,7 @@ function StaticCellView({
                         gap: 1,
                         alignItems: alignItemsFromCell(cell),
                         ...labelBg,
+                        ...textDirBlockStyle(cell),
                     }}
                 >
                     <span className={textCls} style={textSty}>
@@ -501,7 +555,7 @@ function StaticCellView({
                     <LastChangeLine lc={lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span className={textCls} style={{ ...textSty, ...labelBg }}>
+                <span className={textCls} style={{ ...textSty, ...labelBg, ...textDirBlockStyle(cell) }}>
                     {shown}
                 </span>
             )}
@@ -1556,13 +1610,14 @@ function StateTextCellView({
                         gap: 1,
                         alignItems: alignItemsFromCell(cell),
                         ...labelBg,
+                        ...textDirBlockStyle(cell),
                     }}
                 >
                     <span style={textSty}>{label}</span>
                     <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span style={{ ...textSty, ...labelBg }}>{label}</span>
+                <span style={{ ...textSty, ...labelBg, ...textDirBlockStyle(cell) }}>{label}</span>
             )}
         </div>
     );

@@ -165,6 +165,7 @@
     "test:custom-grid-edit": "node tools/tests/custom-grid-edit.mjs",
     "test:custom-grid-edit-ui": "node tools/tests/custom-grid-edit-ui.mjs",
     "test:custom-grid-row-sizes": "node tools/tests/custom-grid-row-sizes.mjs",
+    "test:custom-grid-text-direction": "node tools/tests/custom-grid-text-direction.mjs",
     "test:tablet-order-ui": "node tools/tests/tablet-order-panel.mjs",
     "test:mobile-embed": "node tools/tests/mobile-embed-aspect.mjs",
     "test:header-subtitle": "node tools/tests/header-subtitle.mjs",

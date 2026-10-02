@@ -48,6 +48,17 @@ Klick auf eine Zelle öffnet den Zell-Editor (Schriftgröße, Farbe, Ausrichtung
 
 Eine zutreffende Bedingung mit Hintergrund ersetzt die feste Farbe an derselben Stelle.
 
+| Textrichtung (`textDirection`) | |
+| --- | --- |
+| `horizontal` | Waagrecht (Standard) |
+| `vertical-cw` | ↻ 90° — liest sich von oben nach unten |
+| `vertical-ccw` | ↺ 90° — liest sich von unten nach oben |
+| `stacked` | Buchstaben aufrecht untereinander |
+
+Gilt für `title` · `value` · `unit` · `text` · `field` · `dp` · `state-text` · `lastchange`. Ausrichtung bleibt auf die Zelle bezogen (links/rechts, oben/unten). Senkrechter Text braucht Höhe: `rowSpan` oder eine höhere Zeile.
+
+![](./assets/custom-layout/text-direction.png)
+
 Die Balkenfarbe von `progress` und `slider` (mit `barStyle`) ist `color`, sonst die Akzentfarbe. Eine zutreffende
 Zell-Bedingung mit `color` färbt den Balken mit — `bg` färbt dagegen die ganze Zelle, nie den Balken.
 

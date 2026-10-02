@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Shutter - the up/stop/down buttons work again in the card itself; in a flat card the value and slider row covered them, so only the popup reacted (#739)
 - Trash schedule - new option to limit the number of entries shown, e.g. only the next 3 pickups (#736)
+- Universal widget - text cells can run vertically: turned 90° clockwise, 90° counter-clockwise or as upright stacked letters (#734)
