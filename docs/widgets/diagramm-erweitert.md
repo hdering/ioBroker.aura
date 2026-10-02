@@ -171,7 +171,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].stack`         | `false`      | Serie auf die anderen gestapelten Serien derselben Y-Achse addieren (siehe unten)                                                                                                                                  |
 | `echartSeries[].aggregate`     | `average`    | `average` · `minmax` · `max` · `min` · `total` · `delta` · `none` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen), `delta` siehe unten |
 | `echartSeries[].deltaBucket`   | `hour`       | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta`                                                                                                                           |
-| `echartSeries[].timeShift`     | `0`          | Zeitversatz für Vergleichsserien: liest die History so viele Einheiten zurück und legt sie über den aktuellen Zeitraum (siehe unten)                                                                                 |
+| `echartSeries[].timeShift`     | `0`          | „Werte von früher zeigen“: die Serie zeigt die Werte von vor n Einheiten, eingezeichnet über dem aktuellen Zeitraum (siehe unten)                                                                                 |
 | `echartSeries[].timeShiftUnit` | `year`       | `hour` · `day` · `week` · `month` · `year` — Einheit von `timeShift`                                                                                                                                               |
 | `echartSeries[].lineWidth`     | `2`          | Linienstärke 0–4, `0` = keine Linie (nur Linie/Fläche)                                                                                                                                                             |
 | `echartSeries[].stackOutline`  | `false`      | Kontur eines gestapelten Bandes zeichnen (nur gestapelte Fläche)                                                                                                                                                   |
@@ -289,7 +289,9 @@ Bilder dazu: [Beispiele](#beispiele).
 
 ### Vorjahresvergleich
 
-Zweite Serie auf denselben Datenpunkt mit `timeShift: 1` · `timeShiftUnit: year` — im Editor per **+ Vorjahres-Serie anlegen** unter „Zeitversatz (Vergleich)“.
+Eine Serie kann statt der aktuellen Werte die Werte **von früher** zeigen — eingezeichnet an der Stelle des heutigen Zeitraums. Bei „1 Jahr zurück“ steht neben dem Balken für Januar 2026 der Balken für Januar 2025.
+
+Dafür eine zweite Serie auf denselben Datenpunkt mit `timeShift: 1` · `timeShiftUnit: year` — im Editor per **+ Vorjahres-Serie anlegen** unter „Werte von früher zeigen (Vergleich)“. Die erste Serie bleibt auf 0.
 
 ![](./assets/diagramm-erweitert/bsp-vorjahr.png)
 

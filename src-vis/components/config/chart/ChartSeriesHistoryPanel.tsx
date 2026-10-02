@@ -9,6 +9,12 @@ import { inputCls, inputStyle, type SeriesAdapterState } from './chartShared';
  * A template datapoint (`{{dp}}`) can't be resolved to an object, so no adapter can be detected
  * for it; that case gets a free-text instance field instead of the dropdown.
  */
+/** "vor 1 Jahr" / "vor 3 Monaten" — singular and plural differ in more than an -s. */
+function shiftAgo(t: ReturnType<typeof useT>, n: number, unit: TimeShiftUnit): string {
+    const key = `echart.ago_${unit}_${n === 1 ? 'one' : 'other'}` as Parameters<typeof t>[0];
+    return t(key, { n });
+}
+
 export function ChartSeriesHistoryPanel({
     s,
     adState,
@@ -180,7 +186,7 @@ export function ChartSeriesHistoryPanel({
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.timeShift')}
                     </label>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 items-center">
                         <input
                             type="number"
                             min={0}
@@ -211,7 +217,21 @@ export function ChartSeriesHistoryPanel({
                             <option value="month">{t('echart.shiftMonth')}</option>
                             <option value="year">{t('echart.shiftYear')}</option>
                         </select>
+                        <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.shiftBack')}
+                        </span>
                     </div>
+                    {/* What the setting does right now, in words — the bare number and unit don't
+                        say which values end up in the chart. */}
+                    <p
+                        className="text-[11px] mt-1 font-medium"
+                        style={{ color: s.timeShift ? 'var(--accent)' : 'var(--text-secondary)' }}
+                        data-testid="echart-time-shift-state"
+                    >
+                        {s.timeShift
+                            ? t('echart.timeShiftOn', { ago: shiftAgo(t, s.timeShift, s.timeShiftUnit ?? 'year') })
+                            : t('echart.timeShiftOff')}
+                    </p>
                     <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.timeShiftHint')}
                     </p>

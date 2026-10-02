@@ -216,9 +216,20 @@ check('a live reading leaves the comparison bars alone', JSON.stringify(after?.[
     const unit = dlg.locator('[data-testid=echart-time-shift-unit]');
     check('the copy shows its shift', (await dlg.locator('[data-testid=echart-time-shift]').inputValue()) === '1');
     check('and offers no second copy of itself', (await add.count()) === 0);
+    check(
+        'the state line says which values are shown',
+        (await dlg.locator('[data-testid=echart-time-shift-state]').textContent()).includes('vor 1 Jahr (Vorjahr)'),
+        await dlg.locator('[data-testid=echart-time-shift-state]').textContent(),
+    );
     await unit.selectOption('week');
     await ed.waitForTimeout(300);
     check('the unit writes through', (await edOpts()).echartSeries[1].timeShiftUnit === 'week');
+    check(
+        'and the state line follows it',
+        (await dlg.locator('[data-testid=echart-time-shift-state]').textContent()).includes('vor 1 Woche'),
+        await dlg.locator('[data-testid=echart-time-shift-state]').textContent(),
+    );
+    if (process.env.SHOT) await dlg.screenshot({ path: process.env.SHOT });
     await dlg.locator('[data-testid=echart-time-shift]').fill('0');
     await ed.waitForTimeout(300);
     {
