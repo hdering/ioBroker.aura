@@ -1354,6 +1354,16 @@
           "type": "boolean",
           "description": "wrap long text onto multiple lines instead of ellipsis (default false)"
         },
+        "textDirection": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "vertical-cw",
+            "vertical-ccw",
+            "stacked"
+          ],
+          "description": "text cells (title/value/unit/text/field/dp/state-text/lastchange): 'vertical-cw' turned 90° clockwise (reads top to bottom), 'vertical-ccw' 90° counter-clockwise (reads bottom to top), 'stacked' upright letters one below the other; default 'horizontal'. Vertical text needs cell height (rowSpan or a taller row); align/valign stay physical (left/right, top/bottom of the cell)"
+        },
         "colSpan": {
           "type": "number",
           "description": "'component' type: how many grid columns to span (1..cols)"
