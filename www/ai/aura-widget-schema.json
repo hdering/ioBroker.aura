@@ -8605,6 +8605,143 @@
         }
       }
     },
+    "devicecard": {
+      "label": "Gerätekarte",
+      "group": "layout",
+      "addMode": "free",
+      "hint": "Einmal aufbauen, für viele gleiche Geräte verwenden – nur der Datenpunkt ist je Karte verschieden. Änderungen am Aufbau gelten für alle Karten",
+      "defaultSize": {
+        "w": 12,
+        "h": 7
+      },
+      "layouts": [
+        "default"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "badges",
+        "clickAction",
+        "clickActionIcon",
+        "clickActionIconName",
+        "clickActionIconPosition",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "customGrid",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenScreen",
+        "fullscreenWidget",
+        "headerItems",
+        "icon",
+        "iconColor",
+        "iconPlace",
+        "iconSize",
+        "showIcon",
+        "showTitle",
+        "styleOverride",
+        "textLines",
+        "titleAlign",
+        "titleColor",
+        "titleRow",
+        "titleSize",
+        "transparency",
+        "transparent"
+      ],
+      "options": {
+        "autoShrink": {
+          "type": "boolean",
+          "default": false,
+          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
+        },
+        "defId": {
+          "type": "string",
+          "description": "Verweis auf den Aufbau (Kinderliste) in aura-group-defs — wie bei group, aber GETEILT: jede Gerätekarte mit derselben defId zeigt dieselben Kinder, nur mit ihrem eigenen Datenpunkt. Für ein weiteres gleiches Gerät eine Karte mit derselben defId und anderem `datapoint` anlegen, ohne groupDefs. Eine neue defId nur für einen neuen Aufbau (dann mit groupDefs)."
+        },
+        "groupActionType": {
+          "type": "string",
+          "ref": "GroupActionType",
+          "description": "Which kind of group control to show. Default 'switch'.",
+          "default": "switch"
+        },
+        "groupDimmerOnValue": {
+          "type": "number",
+          "description": "Value written to dimmer/level DPs on \"all on\" (off always writes 0). Default 100."
+        },
+        "groupExcludeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Keys (list entry id / group child id) explicitly excluded from the group action."
+        },
+        "groupIncludeNumbers": {
+          "type": "boolean",
+          "description": "Include plain numeric DPs (value.*) in group actions. Default false."
+        },
+        "groupNumberOffValue": {
+          "type": "number",
+          "description": "Value written to numeric DPs on \"all off\" when included. Default 0."
+        },
+        "groupNumberOnValue": {
+          "type": "number",
+          "description": "Value written to numeric DPs on \"all on\" when included. Default 1."
+        },
+        "groupPulseDelay": {
+          "type": "number",
+          "description": "Delay (ms) before the reset write. Default 500."
+        },
+        "groupPulseLabel": {
+          "type": "string",
+          "description": "Caption for the Taster button."
+        },
+        "groupPulseReset": {
+          "type": "boolean",
+          "description": "Write a reset value after a delay. Default false."
+        },
+        "groupPulseResetValue": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "description": "Reset value. Default false."
+        },
+        "groupPulseValue": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "description": "Value the Taster action writes to every target. Default true."
+        },
+        "groupSwitch": {
+          "type": "boolean",
+          "description": "Show the group action control in the header / title bar.",
+          "default": false
+        },
+        "groupSwitchStyle": {
+          "type": "string",
+          "enum": [
+            "slide",
+            "checkbox"
+          ],
+          "description": "Shape of the 'switch' action: 'slide' = tri-state toggle (default), 'checkbox' = tick box (a dash marks the mixed state)."
+        },
+        "mobileLayout": {
+          "type": "string",
+          "default": "stack",
+          "enum": [
+            "stack",
+            "keep"
+          ],
+          "description": "Smartphone: \"stack\" (Standard) stapelt die Kinder untereinander, \"keep\" behält das Raster verkleinert bei."
+        }
+      }
+    },
     "dimmer": {
       "label": "Dimmer",
       "group": "control",
@@ -10094,7 +10231,8 @@
       "options": {
         "autoShrink": {
           "type": "boolean",
-          "default": false
+          "default": false,
+          "description": "Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet („ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern."
         },
         "defId": {
           "type": "string",
@@ -10172,7 +10310,12 @@
         },
         "mobileLayout": {
           "type": "string",
-          "default": "stack"
+          "default": "stack",
+          "enum": [
+            "stack",
+            "keep"
+          ],
+          "description": "Smartphone: \"stack\" (Standard) stapelt die Kinder untereinander, \"keep\" behält das Raster verkleinert bei."
         }
       }
     },
