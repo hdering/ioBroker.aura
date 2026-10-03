@@ -14,6 +14,7 @@ import {
 } from '../store/persistManager';
 import { applyRemote, isRemoteRawSeen, rehydrateAll, rememberRemoteRaw } from '../utils/configLoader';
 import { invalidateHistoryKey } from '../store/editHistory';
+import { carryProtectedContent, requestVaultRefresh } from '../utils/protectedCarryOver';
 
 /** True when this key's storage copy belongs to an admin with unsaved edits. */
 function adminOwnsStorage(key: SyncStoreKey, readOnly: boolean): boolean {
@@ -41,6 +42,7 @@ export function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean)
     // flushed directly to localStorage and must not be overwritten by a slightly
     // stale remote copy.
     let remoteStr = raw;
+    let carried = false;
     if (key === 'aura-dashboard') {
         try {
             const parsed = JSON.parse(remoteStr) as Record<string, unknown>;
@@ -60,6 +62,10 @@ export function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean)
                             : l.sections;
                         return { ...l, activeSectionId: cur.activeSectionId, sections };
                     });
+                    // The editor holds PIN-protected views with their content; the
+                    // adapter's redacted copy would empty them until the vault merge
+                    // refills them, unmounting every widget in between (#740).
+                    if (!readOnly) carried = carryProtectedContent(state.layouts as unknown[], current.layouts);
                 }
                 parsed.state = state;
                 remoteStr = JSON.stringify(parsed);
@@ -78,6 +84,9 @@ export function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean)
         applyRemote(key, remoteStr, true);
         return true;
     }
+    // The carried content is this editor's; content another device saved is only in
+    // the vault — read it even when the filled copy equals ours and is skipped below.
+    if (carried) requestVaultRefresh();
     if (remoteStr === localStorage.getItem(key)) return false;
     applyRemote(key, remoteStr, readOnly);
     return true;

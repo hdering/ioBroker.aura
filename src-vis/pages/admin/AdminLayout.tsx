@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore, logout, adminToken, verifyAdminSession } from '../../store/authStore';
 import { vaultRead, vaultSetMcp } from '../../utils/pinApi';
+import { onVaultRefreshRequest } from '../../utils/protectedCarryOver';
 import { useMcpReleaseStore } from '../../store/mcpReleaseStore';
 import { useThemeStore } from '../../store/themeStore';
 import { getTheme, ADMIN_DARK_THEME } from '../../themes';
@@ -139,8 +140,9 @@ function useFrontendUrl(): string {
  * The editor can only edit a PIN-protected view if it has the real content, which
  * the adapter keeps server-side. Once logged in (Bearer token), pull it from the
  * vault and merge it onto the redacted stubs. Self-healing: it re-runs whenever a
- * stub reappears — e.g. after a save, when the adapter re-serves the redacted
- * config and useConfigSync applies it — and idempotently stops once none remain.
+ * stub reappears and idempotently stops once none remain. After a save the adapter
+ * re-serves the redacted config; useConfigSync fills those stubs from the editor's
+ * own copy and requests this read instead (#740).
  */
 function useProtectedContentMerge(connected: boolean) {
     const sessionActive = useAuthStore((s) => s.sessionActive);
@@ -152,10 +154,24 @@ function useProtectedContentMerge(connected: boolean) {
         () => layouts.some((l) => l.sections.some((sec) => sec.pinProtected || sec.tabs.some((t) => t.pinProtected))),
         [layouts],
     );
+    // A remote copy whose stubs useConfigSync filled with the editor's own content
+    // (#740) leaves no stub behind — it asks for this read explicitly instead.
+    const refreshWantedRef = useRef(false);
+    const [refreshTick, setRefreshTick] = useState(0);
+    useEffect(
+        () =>
+            onVaultRefreshRequest(() => {
+                refreshWantedRef.current = true;
+                setRefreshTick((n) => n + 1);
+            }),
+        [],
+    );
     useEffect(() => {
-        if (!connected || !sessionActive || !hasStub || busyRef.current) return;
+        if (!connected || !sessionActive || busyRef.current) return;
+        if (!hasStub && !refreshWantedRef.current) return;
         const token = adminToken();
         if (!token) return;
+        refreshWantedRef.current = false;
         busyRef.current = true;
         vaultRead(token)
             .then((sections) => {
@@ -183,8 +199,10 @@ function useProtectedContentMerge(connected: boolean) {
             })
             .finally(() => {
                 busyRef.current = false;
+                // A request that came in while this read ran gets its own read.
+                if (refreshWantedRef.current) setRefreshTick((n) => n + 1);
             });
-    }, [connected, sessionActive, hasStub, merge, setReleases]);
+    }, [connected, sessionActive, hasStub, refreshTick, merge, setReleases]);
 }
 
 /**
