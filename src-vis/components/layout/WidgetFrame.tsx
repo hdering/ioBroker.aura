@@ -6587,6 +6587,59 @@ const DISPLAY_OPTION_KEYS = [
     'autoHeight',
 ] as const;
 
+// Picker targets that read and write one plain option key. Shared by the picker's
+// pre-selection and its onSelect so the two can't drift apart (#746).
+const PICKER_OPTION_KEYS = {
+    actualDatapoint: 'actualDatapoint',
+    localTempDatapoint: 'localTempDatapoint',
+    shutter_activityDp: 'activityDp',
+    shutter_directionDp: 'directionDp',
+    shutter_stopDp: 'stopDp',
+    shutter_openDp: 'openDp',
+    shutter_closeDp: 'closeDp',
+    shutter_actualPositionDp: 'actualPositionDp',
+    shutter_tiltDp: 'tiltDp',
+    shutter_actualTiltDp: 'actualTiltDp',
+    dimmer_switchDp: 'switchDp',
+    light_switchDp: 'switchDp',
+    light_brightnessDp: 'brightnessDp',
+    light_hueDp: 'hueDp',
+    light_saturationDp: 'saturationDp',
+    light_rDp: 'rDp',
+    light_gDp: 'gDp',
+    light_bDp: 'bDp',
+    light_colorDp: 'colorDp',
+    light_colorHexDp: 'colorHexDp',
+    light_temperatureDp: 'temperatureDp',
+    light_effectDp: 'effectDp',
+    scale_minDp: 'minDatapoint',
+    scale_maxDp: 'maxDatapoint',
+    fill_chargeDp: 'chargeDatapoint',
+    fill_dischargeDp: 'dischargeDatapoint',
+    fill_connectedDp: 'connectedDatapoint',
+    gauge_pointer2Dp: 'pointer2Datapoint',
+    gauge_pointer3Dp: 'pointer3Datapoint',
+    wc_lockDp: 'lockDp',
+    windowcontact_batteryDp: 'batteryDp',
+    status_batteryDp: 'batteryDp',
+    status_unreachDp: 'unreachDp',
+    camera_wakeUpDp: 'wakeUpDp',
+    camera_urlDp: 'streamUrlDp',
+    climate_humidityDp: 'humidityDatapoint',
+    climate_targetDp: 'targetDatapoint',
+    climate_pressureDp: 'pressureDatapoint',
+    iframe_urlDp: 'iframeUrlDp',
+    image_dp: 'imageDatapoint',
+    http_response_dp: 'responseDatapoint',
+    html_dp: 'htmlDatapoint',
+    chips_checkDp: 'checkDp',
+    carousel_checkDp: 'checkDp',
+    panels_activeDp: 'activeDp',
+} as const;
+type PickerOptionTarget = keyof typeof PICKER_OPTION_KEYS;
+const isPickerOptionTarget = (t: string): t is PickerOptionTarget =>
+    Object.prototype.hasOwnProperty.call(PICKER_OPTION_KEYS, t);
+
 function WidgetFrameInner({
     config,
     editMode,
@@ -6809,59 +6862,15 @@ function WidgetFrameInner({
         }
     };
     const [pickerTarget, setPickerTarget] = useState<
+        | PickerOptionTarget
         | 'datapoint'
         | 'universal-dp'
-        | 'actualDatapoint'
-        | 'localTempDatapoint'
-        | 'shutter_activityDp'
-        | 'shutter_directionDp'
-        | 'shutter_stopDp'
-        | 'shutter_openDp'
-        | 'shutter_closeDp'
-        | 'shutter_actualPositionDp'
-        | 'shutter_tiltDp'
-        | 'shutter_actualTiltDp'
-        | 'dimmer_switchDp'
-        | 'gauge_pointer2Dp'
-        | 'gauge_pointer3Dp'
-        | 'scale_minDp'
-        | 'scale_maxDp'
-        | 'fill_chargeDp'
-        | 'fill_dischargeDp'
-        | 'fill_connectedDp'
-        | 'windowcontact_batteryDp'
-        | 'wc_lockDp'
-        | 'status_batteryDp'
-        | 'status_unreachDp'
-        | 'camera_wakeUpDp'
-        | 'camera_urlDp'
         | 'camera_slot'
-        | 'html_dp'
         | 'mp_dp'
         | 'mp_chip'
         | 'sl_action'
         | 'chips_chip'
-        | 'chips_checkDp'
         | 'carousel_item'
-        | 'carousel_checkDp'
-        | 'panels_activeDp'
-        | 'http_response_dp'
-        | 'climate_humidityDp'
-        | 'climate_targetDp'
-        | 'climate_pressureDp'
-        | 'iframe_urlDp'
-        | 'image_dp'
-        | 'light_switchDp'
-        | 'light_brightnessDp'
-        | 'light_hueDp'
-        | 'light_saturationDp'
-        | 'light_rDp'
-        | 'light_gDp'
-        | 'light_bDp'
-        | 'light_colorDp'
-        | 'light_colorHexDp'
-        | 'light_temperatureDp'
-        | 'light_effectDp'
         | 'weather_adapterPath'
         | 'map_marker'
         | 'map_quickview'
@@ -20042,235 +20051,47 @@ function WidgetFrameInner({
                             ? ['boolean']
                             : undefined
                     }
-                    currentValue={
-                        pickerTarget === 'datapoint' || pickerTarget === 'universal-dp'
-                            ? config.datapoint
-                            : pickerTarget === 'map_marker'
-                              ? (((config.options?.markers as Array<Record<string, unknown>>)?.[mapMarkerPicker.idx]?.[
-                                    mapMarkerPicker.field
-                                ] as string) ?? '')
-                              : pickerTarget === 'map_quickview'
-                                ? (((config.options?.quickViews as Array<Record<string, unknown>>)?.[
-                                      mapQuickViewPicker.idx
-                                  ]?.[mapQuickViewPicker.field] as string) ?? '')
-                                : pickerTarget === 'localTempDatapoint'
-                                  ? ((config.options?.localTempDatapoint as string) ?? '')
-                                  : pickerTarget === 'weather_adapterPath'
-                                    ? ((config.options?.adapterLocationPath as string) ?? '')
-                                    : pickerTarget === 'shutter_activityDp'
-                                      ? ((config.options?.activityDp as string) ?? '')
-                                      : pickerTarget === 'shutter_directionDp'
-                                        ? ((config.options?.directionDp as string) ?? '')
-                                        : pickerTarget === 'shutter_stopDp'
-                                          ? ((config.options?.stopDp as string) ?? '')
-                                          : pickerTarget === 'shutter_openDp'
-                                            ? ((config.options?.openDp as string) ?? '')
-                                            : pickerTarget === 'shutter_actualPositionDp'
-                                              ? ((config.options?.actualPositionDp as string) ?? '')
-                                              : pickerTarget === 'shutter_tiltDp'
-                                                ? ((config.options?.tiltDp as string) ?? '')
-                                                : pickerTarget === 'shutter_actualTiltDp'
-                                                  ? ((config.options?.actualTiltDp as string) ?? '')
-                                                  : pickerTarget === 'shutter_closeDp'
-                                                    ? ((config.options?.closeDp as string) ?? '')
-                                                    : pickerTarget === 'dimmer_switchDp'
-                                                      ? ((config.options?.switchDp as string) ?? '')
-                                                      : pickerTarget === 'light_switchDp'
-                                                        ? ((config.options?.switchDp as string) ?? '')
-                                                        : pickerTarget === 'light_brightnessDp'
-                                                          ? ((config.options?.brightnessDp as string) ?? '')
-                                                          : pickerTarget === 'light_hueDp'
-                                                            ? ((config.options?.hueDp as string) ?? '')
-                                                            : pickerTarget === 'light_saturationDp'
-                                                              ? ((config.options?.saturationDp as string) ?? '')
-                                                              : pickerTarget === 'light_rDp'
-                                                                ? ((config.options?.rDp as string) ?? '')
-                                                                : pickerTarget === 'light_gDp'
-                                                                  ? ((config.options?.gDp as string) ?? '')
-                                                                  : pickerTarget === 'light_bDp'
-                                                                    ? ((config.options?.bDp as string) ?? '')
-                                                                    : pickerTarget === 'light_colorDp'
-                                                                      ? ((config.options?.colorDp as string) ?? '')
-                                                                      : pickerTarget === 'light_temperatureDp'
-                                                                        ? ((config.options?.temperatureDp as string) ??
-                                                                          '')
-                                                                        : pickerTarget === 'light_effectDp'
-                                                                          ? ((config.options?.effectDp as string) ?? '')
-                                                                          : pickerTarget === 'gauge_pointer2Dp'
-                                                                            ? ((config.options
-                                                                                  ?.pointer2Datapoint as string) ?? '')
-                                                                            : pickerTarget === 'gauge_pointer3Dp'
-                                                                              ? ((config.options
-                                                                                    ?.pointer3Datapoint as string) ??
-                                                                                '')
-                                                                              : pickerTarget ===
-                                                                                  'windowcontact_batteryDp'
-                                                                                ? ((config.options
-                                                                                      ?.batteryDp as string) ?? '')
-                                                                                : pickerTarget === 'wc_lockDp'
-                                                                                  ? ((config.options
-                                                                                        ?.lockDp as string) ?? '')
-                                                                                  : pickerTarget === 'status_batteryDp'
-                                                                                    ? ((config.options
-                                                                                          ?.batteryDp as string) ?? '')
-                                                                                    : pickerTarget ===
-                                                                                        'status_unreachDp'
-                                                                                      ? ((config.options
-                                                                                            ?.unreachDp as string) ??
-                                                                                        '')
-                                                                                      : pickerTarget ===
-                                                                                          'camera_wakeUpDp'
-                                                                                        ? ((config.options
-                                                                                              ?.wakeUpDp as string) ??
-                                                                                          '')
-                                                                                        : pickerTarget ===
-                                                                                            'camera_urlDp'
-                                                                                          ? ((config.options
-                                                                                                ?.streamUrlDp as string) ??
-                                                                                            '')
-                                                                                          : pickerTarget === 'html_dp'
-                                                                                            ? ((config.options
-                                                                                                  ?.htmlDatapoint as string) ??
-                                                                                              '')
-                                                                                            : pickerTarget ===
-                                                                                                'image_dp'
-                                                                                              ? ((config.options
-                                                                                                    ?.imageDatapoint as string) ??
-                                                                                                '')
-                                                                                              : pickerTarget === 'mp_dp'
-                                                                                                ? ((config.options?.[
-                                                                                                      mpPickerKey
-                                                                                                  ] as string) ?? '')
-                                                                                                : pickerTarget ===
-                                                                                                    'mp_chip'
-                                                                                                  ? (() => {
-                                                                                                        const chips =
-                                                                                                            (config
-                                                                                                                .options
-                                                                                                                ?.chips as Array<{
-                                                                                                                dp: string;
-                                                                                                            }>) ?? [];
-                                                                                                        return (
-                                                                                                            chips[
-                                                                                                                mpChipIdx
-                                                                                                            ]?.dp ?? ''
-                                                                                                        );
-                                                                                                    })()
-                                                                                                  : pickerTarget ===
-                                                                                                      'chips_chip'
-                                                                                                    ? (() => {
-                                                                                                          const chips =
-                                                                                                              (config
-                                                                                                                  .options
-                                                                                                                  ?.chips as Array<{
-                                                                                                                  dp: string;
-                                                                                                              }>) ?? [];
-                                                                                                          return (
-                                                                                                              chips[
-                                                                                                                  chipsChipIdx
-                                                                                                              ]?.dp ??
-                                                                                                              ''
-                                                                                                          );
-                                                                                                      })()
-                                                                                                    : pickerTarget ===
-                                                                                                        'chips_checkDp'
-                                                                                                      ? ((config.options
-                                                                                                            ?.checkDp as string) ??
-                                                                                                        '')
-                                                                                                      : pickerTarget ===
-                                                                                                          'carousel_item'
-                                                                                                        ? (() => {
-                                                                                                              const items =
-                                                                                                                  (config
-                                                                                                                      .options
-                                                                                                                      ?.items as Array<{
-                                                                                                                      dp: string;
-                                                                                                                  }>) ??
-                                                                                                                  [];
-                                                                                                              return (
-                                                                                                                  items[
-                                                                                                                      carouselItemIdx
-                                                                                                                  ]
-                                                                                                                      ?.dp ??
-                                                                                                                  ''
-                                                                                                              );
-                                                                                                          })()
-                                                                                                        : pickerTarget ===
-                                                                                                            'carousel_checkDp'
-                                                                                                          ? ((config
-                                                                                                                .options
-                                                                                                                ?.checkDp as string) ??
-                                                                                                            '')
-                                                                                                          : pickerTarget ===
-                                                                                                              'http_response_dp'
-                                                                                                            ? ((config
-                                                                                                                  .options
-                                                                                                                  ?.responseDatapoint as string) ??
-                                                                                                              '')
-                                                                                                            : pickerTarget ===
-                                                                                                                'iframe_urlDp'
-                                                                                                              ? ((config
-                                                                                                                    .options
-                                                                                                                    ?.iframeUrlDp as string) ??
-                                                                                                                '')
-                                                                                                              : pickerTarget ===
-                                                                                                                  'sl_action'
-                                                                                                                ? (() => {
-                                                                                                                      const acts =
-                                                                                                                          (config
-                                                                                                                              .options
-                                                                                                                              ?.actions as Array<{
-                                                                                                                              dp: string;
-                                                                                                                          }>) ??
-                                                                                                                          [];
-                                                                                                                      return (
-                                                                                                                          acts[
-                                                                                                                              slActionIdx
-                                                                                                                          ]
-                                                                                                                              ?.dp ??
-                                                                                                                          ''
-                                                                                                                      );
-                                                                                                                  })()
-                                                                                                                : pickerTarget ===
-                                                                                                                    'camera_slot'
-                                                                                                                  ? (() => {
-                                                                                                                        const key =
-                                                                                                                            (config.layout ??
-                                                                                                                                'minimal') ===
-                                                                                                                            'default'
-                                                                                                                                ? 'infoItems'
-                                                                                                                                : 'customSlots';
-                                                                                                                        const arr =
-                                                                                                                            (config
-                                                                                                                                .options?.[
-                                                                                                                                key
-                                                                                                                            ] as CameraSlot[]) ??
-                                                                                                                            [];
-                                                                                                                        return (
-                                                                                                                            arr[
-                                                                                                                                cameraSlotPickerIdx
-                                                                                                                            ]
-                                                                                                                                ?.datapoint ??
-                                                                                                                            ''
-                                                                                                                        );
-                                                                                                                    })()
-                                                                                                                  : pickerTarget ===
-                                                                                                                      'scale_minDp'
-                                                                                                                    ? ((config
-                                                                                                                          .options
-                                                                                                                          ?.minDatapoint as string) ??
-                                                                                                                      '')
-                                                                                                                    : pickerTarget ===
-                                                                                                                        'scale_maxDp'
-                                                                                                                      ? ((config
-                                                                                                                            .options
-                                                                                                                            ?.maxDatapoint as string) ??
-                                                                                                                        '')
-                                                                                                                      : ((config
-                                                                                                                            .options
-                                                                                                                            ?.actualDatapoint as string) ??
-                                                                                                                        '')
-                    }
+                    currentValue={(() => {
+                        const opts = config.options ?? {};
+                        if (pickerTarget === 'datapoint' || pickerTarget === 'universal-dp') return config.datapoint;
+                        if (isPickerOptionTarget(pickerTarget))
+                            return (opts[PICKER_OPTION_KEYS[pickerTarget]] as string) ?? '';
+                        const at = <T,>(key: string, idx: number) => (opts[key] as T[] | undefined)?.[idx];
+                        switch (pickerTarget) {
+                            case 'map_marker':
+                                return (
+                                    (at<Record<string, unknown>>('markers', mapMarkerPicker.idx)?.[
+                                        mapMarkerPicker.field
+                                    ] as string) ?? ''
+                                );
+                            case 'map_quickview':
+                                return (
+                                    (at<Record<string, unknown>>('quickViews', mapQuickViewPicker.idx)?.[
+                                        mapQuickViewPicker.field
+                                    ] as string) ?? ''
+                                );
+                            case 'weather_adapterPath':
+                                return (opts.adapterLocationPath as string) ?? '';
+                            case 'mp_dp':
+                                return (opts[mpPickerKey] as string) ?? '';
+                            case 'mp_chip':
+                                return at<{ dp?: string }>('chips', mpChipIdx)?.dp ?? '';
+                            case 'chips_chip':
+                                return at<{ dp?: string }>('chips', chipsChipIdx)?.dp ?? '';
+                            case 'carousel_item':
+                                return at<{ dp?: string }>('items', carouselItemIdx)?.dp ?? '';
+                            case 'sl_action':
+                                return at<{ dp?: string }>('actions', slActionIdx)?.dp ?? '';
+                            case 'camera_slot':
+                                return (
+                                    at<CameraSlot>(
+                                        (config.layout ?? 'minimal') === 'default' ? 'infoItems' : 'customSlots',
+                                        cameraSlotPickerIdx,
+                                    )?.datapoint ?? ''
+                                );
+                        }
+                        return '';
+                    })()}
                     onSelect={(id, unit, name, role, dpType) => {
                         if (pickerTarget === 'datapoint' && config.type === 'clock') {
                             // Clock: the DP is only an optional time source — never run type
@@ -20464,92 +20285,17 @@ function WidgetFrameInner({
                             // Universal widget has no inherent main DP — set it plainly,
                             // never auto-detect/switch the widget type (that path is for 'datapoint').
                             onConfigChange({ ...config, datapoint: id });
-                        } else if (pickerTarget === 'localTempDatapoint') {
-                            onConfigChange({ ...config, options: { ...config.options, localTempDatapoint: id } });
+                        } else if (isPickerOptionTarget(pickerTarget)) {
+                            onConfigChange({
+                                ...config,
+                                options: { ...config.options, [PICKER_OPTION_KEYS[pickerTarget]]: id },
+                            });
                         } else if (pickerTarget === 'weather_adapterPath') {
                             // User can pick any sub-state of the location device — strip down
                             // to the location prefix (everything before ".weather.").
                             const idx = id.indexOf('.weather.');
                             const prefix = idx > 0 ? id.slice(0, idx) : id;
                             onConfigChange({ ...config, options: { ...config.options, adapterLocationPath: prefix } });
-                        } else if (pickerTarget === 'shutter_activityDp') {
-                            onConfigChange({ ...config, options: { ...config.options, activityDp: id } });
-                        } else if (pickerTarget === 'shutter_directionDp') {
-                            onConfigChange({ ...config, options: { ...config.options, directionDp: id } });
-                        } else if (pickerTarget === 'shutter_stopDp') {
-                            onConfigChange({ ...config, options: { ...config.options, stopDp: id } });
-                        } else if (pickerTarget === 'shutter_openDp') {
-                            onConfigChange({ ...config, options: { ...config.options, openDp: id } });
-                        } else if (pickerTarget === 'shutter_closeDp') {
-                            onConfigChange({ ...config, options: { ...config.options, closeDp: id } });
-                        } else if (pickerTarget === 'shutter_actualPositionDp') {
-                            onConfigChange({ ...config, options: { ...config.options, actualPositionDp: id } });
-                        } else if (pickerTarget === 'shutter_tiltDp') {
-                            onConfigChange({ ...config, options: { ...config.options, tiltDp: id } });
-                        } else if (pickerTarget === 'shutter_actualTiltDp') {
-                            onConfigChange({ ...config, options: { ...config.options, actualTiltDp: id } });
-                        } else if (pickerTarget === 'dimmer_switchDp') {
-                            onConfigChange({ ...config, options: { ...config.options, switchDp: id } });
-                        } else if (pickerTarget === 'light_switchDp') {
-                            onConfigChange({ ...config, options: { ...config.options, switchDp: id } });
-                        } else if (pickerTarget === 'light_brightnessDp') {
-                            onConfigChange({ ...config, options: { ...config.options, brightnessDp: id } });
-                        } else if (pickerTarget === 'light_hueDp') {
-                            onConfigChange({ ...config, options: { ...config.options, hueDp: id } });
-                        } else if (pickerTarget === 'light_saturationDp') {
-                            onConfigChange({ ...config, options: { ...config.options, saturationDp: id } });
-                        } else if (pickerTarget === 'light_rDp') {
-                            onConfigChange({ ...config, options: { ...config.options, rDp: id } });
-                        } else if (pickerTarget === 'light_gDp') {
-                            onConfigChange({ ...config, options: { ...config.options, gDp: id } });
-                        } else if (pickerTarget === 'light_bDp') {
-                            onConfigChange({ ...config, options: { ...config.options, bDp: id } });
-                        } else if (pickerTarget === 'light_colorDp') {
-                            onConfigChange({ ...config, options: { ...config.options, colorDp: id } });
-                        } else if (pickerTarget === 'light_colorHexDp') {
-                            onConfigChange({ ...config, options: { ...config.options, colorHexDp: id } });
-                        } else if (pickerTarget === 'light_temperatureDp') {
-                            onConfigChange({ ...config, options: { ...config.options, temperatureDp: id } });
-                        } else if (pickerTarget === 'light_effectDp') {
-                            onConfigChange({ ...config, options: { ...config.options, effectDp: id } });
-                        } else if (pickerTarget === 'scale_minDp') {
-                            onConfigChange({ ...config, options: { ...config.options, minDatapoint: id } });
-                        } else if (pickerTarget === 'scale_maxDp') {
-                            onConfigChange({ ...config, options: { ...config.options, maxDatapoint: id } });
-                        } else if (pickerTarget === 'fill_chargeDp') {
-                            onConfigChange({ ...config, options: { ...config.options, chargeDatapoint: id } });
-                        } else if (pickerTarget === 'fill_dischargeDp') {
-                            onConfigChange({ ...config, options: { ...config.options, dischargeDatapoint: id } });
-                        } else if (pickerTarget === 'fill_connectedDp') {
-                            onConfigChange({ ...config, options: { ...config.options, connectedDatapoint: id } });
-                        } else if (pickerTarget === 'gauge_pointer2Dp') {
-                            onConfigChange({ ...config, options: { ...config.options, pointer2Datapoint: id } });
-                        } else if (pickerTarget === 'gauge_pointer3Dp') {
-                            onConfigChange({ ...config, options: { ...config.options, pointer3Datapoint: id } });
-                        } else if (pickerTarget === 'wc_lockDp') {
-                            onConfigChange({ ...config, options: { ...config.options, lockDp: id } });
-                        } else if (pickerTarget === 'windowcontact_batteryDp' || pickerTarget === 'status_batteryDp') {
-                            onConfigChange({ ...config, options: { ...config.options, batteryDp: id } });
-                        } else if (pickerTarget === 'status_unreachDp') {
-                            onConfigChange({ ...config, options: { ...config.options, unreachDp: id } });
-                        } else if (pickerTarget === 'camera_wakeUpDp') {
-                            onConfigChange({ ...config, options: { ...config.options, wakeUpDp: id } });
-                        } else if (pickerTarget === 'camera_urlDp') {
-                            onConfigChange({ ...config, options: { ...config.options, streamUrlDp: id } });
-                        } else if (pickerTarget === 'climate_humidityDp') {
-                            onConfigChange({ ...config, options: { ...config.options, humidityDatapoint: id } });
-                        } else if (pickerTarget === 'climate_targetDp') {
-                            onConfigChange({ ...config, options: { ...config.options, targetDatapoint: id } });
-                        } else if (pickerTarget === 'climate_pressureDp') {
-                            onConfigChange({ ...config, options: { ...config.options, pressureDatapoint: id } });
-                        } else if (pickerTarget === 'iframe_urlDp') {
-                            onConfigChange({ ...config, options: { ...config.options, iframeUrlDp: id } });
-                        } else if (pickerTarget === 'image_dp') {
-                            onConfigChange({ ...config, options: { ...config.options, imageDatapoint: id } });
-                        } else if (pickerTarget === 'http_response_dp') {
-                            onConfigChange({ ...config, options: { ...config.options, responseDatapoint: id } });
-                        } else if (pickerTarget === 'html_dp') {
-                            onConfigChange({ ...config, options: { ...config.options, htmlDatapoint: id } });
                         } else if (pickerTarget === 'mp_dp') {
                             onConfigChange({ ...config, options: { ...config.options, [mpPickerKey]: id } });
                         } else if (pickerTarget === 'mp_chip') {
@@ -20560,16 +20306,10 @@ function WidgetFrameInner({
                             const chips = [...((config.options?.chips as Array<Record<string, unknown>>) ?? [])];
                             chips[chipsChipIdx] = { ...chips[chipsChipIdx], dp: id };
                             onConfigChange({ ...config, options: { ...config.options, chips } });
-                        } else if (pickerTarget === 'chips_checkDp') {
-                            onConfigChange({ ...config, options: { ...config.options, checkDp: id } });
                         } else if (pickerTarget === 'carousel_item') {
                             const items = [...((config.options?.items as Array<Record<string, unknown>>) ?? [])];
                             items[carouselItemIdx] = { ...items[carouselItemIdx], dp: id };
                             onConfigChange({ ...config, options: { ...config.options, items } });
-                        } else if (pickerTarget === 'carousel_checkDp') {
-                            onConfigChange({ ...config, options: { ...config.options, checkDp: id } });
-                        } else if (pickerTarget === 'panels_activeDp') {
-                            onConfigChange({ ...config, options: { ...config.options, activeDp: id } });
                         } else if (pickerTarget === 'map_marker') {
                             const mk = [...((config.options?.markers as Array<Record<string, unknown>>) ?? [])];
                             if (mk[mapMarkerPicker.idx]) {
@@ -20594,8 +20334,6 @@ function WidgetFrameInner({
                             const arr = [...((config.options?.[key] as CameraSlot[]) ?? [])];
                             arr[cameraSlotPickerIdx] = { ...arr[cameraSlotPickerIdx], datapoint: id };
                             onConfigChange({ ...config, options: { ...config.options, [key]: arr } });
-                        } else {
-                            onConfigChange({ ...config, options: { ...config.options, actualDatapoint: id } });
                         }
                     }}
                     onClose={() => setPickerTarget(null)}

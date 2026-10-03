@@ -12,3 +12,4 @@
 - Universal widget - a dropdown cell whose entries do not include the current value now shows a dash instead of the raw value (#744)
 
 - Shutter - quick-select buttons for fixed positions, optionally with a slat angle (#745)
+- Datapoint picker - the setpoint, humidity and pressure fields of the climate widget (and the battery fill and panel fields) now open the picker on their own datapoint instead of the temperature (#746)
