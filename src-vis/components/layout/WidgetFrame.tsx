@@ -192,6 +192,7 @@ import { useConditionStyle, notifyHiddenState } from '../../hooks/useConditionSt
 import { widgetSourceCtx } from '../../utils/conditionSources';
 import { applyConditionSet, stripRenderOverrides } from '../../utils/conditionSet';
 import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
+import { useColorBindings } from '../../hooks/useColorBindings';
 import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import { useRenderTransform } from '../../contexts/RenderTransformContext';
 import {
@@ -7104,18 +7105,23 @@ function WidgetFrameInner({
     // of those again, so a rule that currently paints a different icon can never
     // persist it into the layout.
     const dark = useIsDarkTheme();
-    const renderConfig = useMemo(
+    const dualConfig = useMemo(
         () => resolveDualDeep(applyConditionSet(baseConfig, resolvedTitle, conditionResult.set), dark),
         [baseConfig, resolvedTitle, conditionResult.set, dark],
     );
+    // Colours bound to a datapoint (#747) — after the pair, so a bound half works too.
+    const { value: renderConfig, restore: restoreColorBindings } = useColorBindings(dualConfig);
     const onBodyConfigChange = useCallback(
         // restoreDualDeep first: the body spreads the config it was HANDED, so
         // without it a cell drag would write today's half back over the pair and
         // lose the other colour. Only on this path — the config panel edits the
-        // raw value, where collapsing a pair on purpose has to stick.
+        // raw value, where collapsing a pair on purpose has to stick. The colour
+        // bindings go back in before that, for the same reason.
         (next: WidgetConfig) =>
-            onConfigChange(stripRenderOverrides(restoreDualDeep(next, config), config, renderConfig)),
-        [onConfigChange, config, renderConfig],
+            onConfigChange(
+                stripRenderOverrides(restoreDualDeep(restoreColorBindings(next, config), config), config, renderConfig),
+            ),
+        [onConfigChange, config, renderConfig, restoreColorBindings],
     );
     // Which override slots this widget type honours — the editor offers only these.
     const conditionSlots = useMemo(() => conditionSlotsFor(config.type), [config.type]);

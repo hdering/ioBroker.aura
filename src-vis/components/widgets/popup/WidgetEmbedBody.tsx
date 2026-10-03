@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
@@ -9,6 +9,7 @@ import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { useResolvedTitle } from '../DynamicTitle';
 import { DEFAULT_POPUP_PADDING } from '../../../store/popupConfigStore';
 import { resolveDualDeep, restoreDualDeep } from '../../../utils/dualColor';
+import { useColorBindings } from '../../../hooks/useColorBindings';
 import { useIsDarkTheme } from '../../../contexts/BrightnessContext';
 
 interface Props {
@@ -36,6 +37,9 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
     // WidgetFrame, which is where they are normally collapsed. Also read before
     // the early returns, for the same hook-order reason.
     const dark = useIsDarkTheme();
+    // Then the colours bound to a datapoint (#747), on the half that applies.
+    const dualTarget = useMemo(() => resolveDualDeep(target, dark), [target, dark]);
+    const { value: boundTarget, restore: restoreColorBindings } = useColorBindings(dualTarget);
 
     if (targetId && !allWidgets.find((w) => w.id === targetId)) {
         return (
@@ -65,14 +69,11 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
         );
     }
 
-    const embedConfig: WidgetConfig = resolveDualDeep(
-        {
-            ...target,
-            title: resolvedTitle,
-            gridPos: { x: 0, y: 0, w: 6, h: 6 },
-        },
-        dark,
-    );
+    const embedConfig: WidgetConfig = {
+        ...boundTarget,
+        title: resolvedTitle,
+        gridPos: { x: 0, y: 0, w: 6, h: 6 },
+    };
 
     // Honour the click-action's configured popup size so the embedded widget fills
     // the popup instead of collapsing to the 500px default. The outer popup shell
@@ -134,7 +135,9 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
                         // the widget's real dashboard position. restoreDualDeep puts
                         // the light/dark pairs back: the body spreads the RESOLVED
                         // config, so without it the other half would be lost (#689).
-                        updateWidgetById(target.id, { options: restoreDualDeep(next, target).options });
+                        updateWidgetById(target.id, {
+                            options: restoreDualDeep(restoreColorBindings(next, target), target).options,
+                        });
                     }}
                 />
             </Suspense>

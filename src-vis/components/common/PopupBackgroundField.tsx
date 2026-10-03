@@ -38,6 +38,8 @@ export function PopupBackgroundField({ label, value, onChange, inheritLabel, inl
     const picker = (
         <ColorPicker
             value={value ?? currentSurface()}
+            // Not a widget option — nothing would resolve a datapoint binding here (#747).
+            binding={false}
             unset={!value}
             onChange={(v) => onChange(v)}
             title={label}

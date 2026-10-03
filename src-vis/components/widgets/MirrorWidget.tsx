@@ -1,8 +1,9 @@
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { AlertTriangle, CopyPlus } from 'lucide-react';
 import type { WidgetConfig, WidgetProps } from '../../types';
 import { getWidgetMap } from './widgetMap';
 import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
+import { useColorBindings } from '../../hooks/useColorBindings';
 import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
@@ -54,6 +55,9 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
     // frame, so its light/dark colour pairs are still unresolved (#689). Read before
     // the early returns (hook order).
     const dark = useIsDarkTheme();
+    // Then the colours bound to a datapoint (#747), on the half that applies.
+    const dualTarget = useMemo(() => resolveDualDeep(target, dark), [target, dark]);
+    const { value: boundTarget, restore: restoreColorBindings } = useColorBindings(dualTarget);
 
     if (!targetId) {
         return editMode ? (
@@ -105,10 +109,7 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
     }
 
     // Take the source's content but keep the mirror's own placement.
-    const mirroredConfig: WidgetConfig = resolveDualDeep(
-        { ...target, title: resolvedTitle, gridPos: config.gridPos },
-        dark,
-    );
+    const mirroredConfig: WidgetConfig = { ...(boundTarget ?? target), title: resolvedTitle, gridPos: config.gridPos };
 
     return (
         <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
@@ -121,7 +122,9 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
                     // the whole config back would clobber the source's real position.
                     // restoreDualDeep: the body spreads the RESOLVED config, so without
                     // it the other half of a light/dark pair would be lost (#689).
-                    updateWidget(target.id, { options: restoreDualDeep(next, target).options });
+                    updateWidget(target.id, {
+                        options: restoreDualDeep(restoreColorBindings(next, target), target).options,
+                    });
                 }}
                 // Let the mirror's frame overlay show the source's last-change
                 // for sources that self-report it (e.g. calendar).

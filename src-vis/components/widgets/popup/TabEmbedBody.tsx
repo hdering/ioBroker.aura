@@ -7,6 +7,7 @@ import { useConditionStyle, type ConditionResult } from '../../../hooks/useCondi
 import { widgetSourceCtx } from '../../../utils/conditionSources';
 import { getWidgetMap } from '../widgetMap';
 import { useDualResolved } from '../../../hooks/useDualResolved';
+import { useColorBindings } from '../../../hooks/useColorBindings';
 import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import { ContentAutoHeightBlockedContext } from '../../../hooks/useContentAutoHeight';
@@ -173,7 +174,9 @@ function PopupWidgetCell({
     // Light/dark colour pairs are collapsed here for the same reason: this cell
     // renders the widget without a WidgetFrame, which is where that normally
     // happens (#689).
-    const rendered = useDualResolved(resolvedTitle === w.title ? w : { ...w, title: resolvedTitle });
+    const dualRendered = useDualResolved(resolvedTitle === w.title ? w : { ...w, title: resolvedTitle });
+    // Colours bound to a datapoint (#747) — after the pair, so a bound half works too.
+    const { value: rendered, restore: restoreColorBindings } = useColorBindings(dualRendered);
 
     const effectClass =
         cond.effect === 'pulse'
@@ -212,7 +215,7 @@ function PopupWidgetCell({
                         key={`r${refreshNonce}`}
                         config={rendered}
                         editMode={false}
-                        onConfigChange={onConfigChange}
+                        onConfigChange={(next) => onConfigChange(restoreColorBindings(next, w))}
                     />
                 </Suspense>
             ) : (

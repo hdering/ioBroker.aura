@@ -14,6 +14,7 @@
  *   `#RRGGBBAA`                    once alpha < 100 (valid CSS, chart libs take it)
  *   `var(--accent)`                a theme colour — follows light/dark by itself
  *   `light-dark(#111, #eee)`       one colour per brightness (#689)
+ *   `{dp.id}` / `[[dp.id]]`        the colour a datapoint holds (#747), also as a half
  *
  * The last two are resolved before they reach a widget (utils/dualColor.ts,
  * utils/cssColor.ts), so nothing downstream has to know about them.
@@ -26,6 +27,8 @@ import { createThrottle } from '../../utils/throttleCommit';
 import { useEscapeLayer } from '../../utils/escapeStack';
 import { makeDual, splitDual } from '../../utils/dualColor';
 import { PICKER_TOKENS } from '../../themes';
+import { colorBindingRef, dpColorToCss } from '../../utils/colorBinding';
+import { useTemplateStates } from '../../hooks/useTemplateValues';
 
 interface Props {
     /** Current color: `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()/rgba()`, a CSS var or a light/dark pair. */
@@ -42,6 +45,12 @@ interface Props {
      * (#640), so a pair inside one of them would be a second, conflicting switch.
      */
     dual?: boolean;
+    /**
+     * Accept a datapoint binding (`{id}` / `[[id]]`) instead of a colour (#747).
+     * Defaults to `dual`: the places that turn pairs off (theme editor, tab bar)
+     * are not widget options, and only widget options get bindings resolved.
+     */
+    binding?: boolean;
     /**
      * Nothing is configured — paint the "no colour" glyph instead of `value`.
      * A field that falls back to a theme colour would otherwise show that fallback
@@ -155,9 +164,14 @@ function isCompleteColor(raw: string): boolean {
     return false;
 }
 
-/** What a half of the value looks like painted — a token paints itself. */
-function cssOf(part: string, alphaEnabled: boolean, fallback: string): string {
+/** Live colours of the bound halves, by datapoint ref. */
+type BoundColors = Record<string, string>;
+
+/** What a half of the value looks like painted — a token paints itself, a binding its datapoint. */
+function cssOf(part: string, alphaEnabled: boolean, fallback: string, bound: BoundColors = {}): string {
     if (isThemeToken(part)) return part;
+    const ref = colorBindingRef(part);
+    if (ref) return bound[ref] || fallback;
     const { hex6, alpha } = parseColor(part, fallback);
     return combineColor(hex6, alphaEnabled ? alpha : 100);
 }
@@ -174,6 +188,7 @@ export function ColorPicker({
     fallback = '#888888',
     alpha: alphaEnabled = true,
     dual = true,
+    binding,
     unset,
     title,
     className,
@@ -248,13 +263,22 @@ export function ColorPicker({
 
     const current = live ?? value;
     const parts = splitDual(current);
+
+    // A bound half paints the datapoint's colour right now, in the swatch and the popover.
+    const bindingEnabled = binding ?? dual;
+    const boundRefs = bindingEnabled
+        ? [colorBindingRef(parts.light), colorBindingRef(parts.dark)].filter((r): r is string => !!r)
+        : [];
+    const boundStates = useTemplateStates(boundRefs);
+    const bound: BoundColors = {};
+    for (const ref of boundRefs) bound[ref] = dpColorToCss(boundStates[ref]?.val);
     // A colour picked in this session is a colour, whatever the parent still says.
     const showUnset = unset && live === null;
 
     // A pair is shown split along the diagonal: light half top-left, dark half
     // bottom-right — the same reading order as the two tabs in the popover.
-    const lightCss = cssOf(parts.light, alphaEnabled, fallback);
-    const darkCss = cssOf(parts.dark, alphaEnabled, fallback);
+    const lightCss = cssOf(parts.light, alphaEnabled, fallback, bound);
+    const darkCss = cssOf(parts.dark, alphaEnabled, fallback, bound);
     const swatchStyle: React.CSSProperties = parts.isPair
         ? { backgroundImage: `linear-gradient(to bottom right, ${lightCss} 0 50%, ${darkCss} 50% 100%)` }
         : { background: lightCss };
@@ -295,6 +319,8 @@ export function ColorPicker({
                     fallback={fallback}
                     alphaEnabled={alphaEnabled}
                     dualEnabled={dual}
+                    bindingEnabled={bindingEnabled}
+                    bound={bound}
                     stash={stashRef.current}
                     onChange={(v) => {
                         setLive(v);
@@ -323,6 +349,8 @@ function ColorPopover({
     fallback,
     alphaEnabled,
     dualEnabled,
+    bindingEnabled,
+    bound,
     stash,
     onChange,
     onSettle,
@@ -334,6 +362,10 @@ function ColorPopover({
     fallback: string;
     alphaEnabled: boolean;
     dualEnabled: boolean;
+    /** Accept `{id}` / `[[id]]` in the text field. */
+    bindingEnabled: boolean;
+    /** Live colours of the bound halves, by datapoint ref. */
+    bound: BoundColors;
     /** The colours of the mode that is currently NOT stored — see ColorPicker. */
     stash: { pair: { light: string; dark: string } | null; solid: string | null };
     /** Throttled on its way to the config - fine to call on every pointer move. */
@@ -406,8 +438,11 @@ function ColorPopover({
     const [pairMode, setPairMode] = useState(parts.isPair);
     const [side, setSide] = useState<'light' | 'dark'>('light');
     const active = pairMode ? (side === 'dark' ? parts.dark : parts.light) : parts.light;
-    const token = isThemeToken(active);
-    const { hex6, alpha } = parseColor(active, fallback);
+    const activeRef = bindingEnabled ? colorBindingRef(active) : null;
+    // A binding is kept as written, like a token — the hex below only feeds the
+    // native picker and the slider, from the datapoint's current colour.
+    const token = isThemeToken(active) || activeRef !== null;
+    const { hex6, alpha } = parseColor(activeRef ? bound[activeRef] || fallback : active, fallback);
 
     /** Write one half back, keeping the other — or the plain value when unpaired. */
     const emit = (part: string) => {
@@ -439,15 +474,20 @@ function ColorPopover({
     // slider, a theme colour or a switch to the other half.
     useEffect(() => {
         if (editingRef.current) return;
-        if (isThemeToken(active)) setHexText(active);
+        if (token) setHexText(active);
         else setHexText(alphaEnabled && alpha < 100 ? combineColor(hex6, alpha) : hex6);
-    }, [active, hex6, alpha, alphaEnabled]);
+    }, [active, hex6, alpha, alphaEnabled, token]);
 
     const commitHex = (raw: string) => {
         const v = (raw ?? '').trim();
         // A token is a colour in its own right — flattening it to hex would throw
         // away exactly the thing that makes it follow the theme.
         if (isThemeToken(v)) {
+            emit(v);
+            return;
+        }
+        // Same for a datapoint binding — its colour is whatever the datapoint holds.
+        if (bindingEnabled && colorBindingRef(v)) {
             emit(v);
             return;
         }
@@ -605,6 +645,17 @@ function ColorPopover({
                     }}
                 />
             </div>
+            {bindingEnabled && (
+                <div className="mt-1 text-[10px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                    {activeRef ? (
+                        <>Aktuell: {bound[activeRef] || 'kein Farbwert im Datenpunkt'}</>
+                    ) : (
+                        <>
+                            Auch ein Datenpunkt ist möglich: <code>{'{id}'}</code> oder <code>{'[[id]]'}</code>
+                        </>
+                    )}
+                </div>
+            )}
             {/* A theme colour has no hex to fade: mixing in an alpha would turn the
                 token into a fixed colour and undo the reason it was picked. */}
             {alphaEnabled && !token && (

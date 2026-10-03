@@ -73,6 +73,23 @@ Der Wechsel zwischen *Einheitlich* und *Hell / Dunkel* merkt sich die Farben des
 
 Die Helligkeit ist die des gerade gerenderten Themes — ein Layout mit hellem Design auf einer dunklen Installation nimmt die helle Hälfte.
 
+## Farbe aus Datenpunkt
+
+| Eingabe im Textfeld | Beispiel |
+| --- | --- |
+| `{<id>}` | `{wled.0.seg.0.col}` |
+| `[[<id>]]` | `[[wled.0.seg.0.col]]` |
+| als Hälfte eines Paars | `light-dark(#000000, {wled.0.col})` |
+
+| Wert im Datenpunkt | Beispiel |
+| --- | --- |
+| Hex mit/ohne `#` | `#ff8800`, `ff8800` |
+| Kanäle | `255,136,0`, `[255,136,0]`, `{"r":255,"g":136,"b":0}` |
+| Ganzzahl | `16746496` (0xRRGGBB) |
+| CSS | `rgb(…)`, `hsl(…)`, `red` |
+
+Gilt für jede Farboption im Widget, nicht für Theme, Tab-Leiste und Popup-Hintergrund. Kein gültiger Wert → Standardfarbe. Die ID darf kein Komma und keine Klammer enthalten.
+
 ## Raster
 
 Widgets liegen auf einem feinen Grid. Die Zellgröße ist pro Layout konfigurierbar (`gridRowHeight`, `gridSnapX`, `gridGap`); in den Doku-Screenshots gilt `gridRowHeight = 20`, `gridGap = 10`. Widget-Größen (`gridPos.w`/`gridPos.h`) sind Vielfache dieser Zelleinheiten.

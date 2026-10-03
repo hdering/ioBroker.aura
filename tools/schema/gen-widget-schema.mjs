@@ -806,6 +806,11 @@ async function build() {
                     '"light-dark(#1e3a8a, #93c5fd)". The frontend picks the half that matches the theme being ' +
                     'rendered. Use it when a fixed colour would vanish on one of the two designs; a pair whose ' +
                     'halves are equal is pointless — write the single colour instead.',
+                'A colour option may also take its colour FROM A DATAPOINT: the whole value is "{<state id>}" or ' +
+                    '"[[<state id>]]", e.g. "{wled.0.seg.0.col}" — also as one half of a pair: ' +
+                    '"light-dark(#000000, {wled.0.col})". The state may hold "#rrggbb", "rrggbb", "r,g,b", ' +
+                    '"[r,g,b]", {"r","g","b"} or an integer 0xRRGGBB; anything else falls back to the default ' +
+                    'colour. Only a value that is ENTIRELY the binding counts, and the id must be an existing state.',
             ],
         },
         widgetConfig: {

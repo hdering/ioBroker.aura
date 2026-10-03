@@ -246,6 +246,8 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
                 colours and the light/dark pair all live in it (#689). */}
             <ColorPicker
                 value={value || '#ef4444'}
+                // Not a widget option — nothing would resolve a datapoint binding here (#747).
+                binding={false}
                 unset={!value}
                 onChange={(v) => onChange(v)}
                 title="Farbe wählen"

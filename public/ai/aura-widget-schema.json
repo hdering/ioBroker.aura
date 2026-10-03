@@ -13,7 +13,8 @@
       "Names referenced as \"ref\" are defined under types.",
       "A missing \"description\" means the key is only documented by its name, type and default.",
       "An option marked \"color\": true takes any CSS colour — \"#rrggbb\", \"#rrggbbaa\", \"rgb(...)\" — or a theme token like \"var(--accent)\", which follows the light or dark design by itself and is the better answer whenever no exact colour is required.",
-      "A colour option may also carry ONE COLOUR PER BRIGHTNESS: \"light-dark(<hell>, <dunkel>)\", e.g. \"light-dark(#1e3a8a, #93c5fd)\". The frontend picks the half that matches the theme being rendered. Use it when a fixed colour would vanish on one of the two designs; a pair whose halves are equal is pointless — write the single colour instead."
+      "A colour option may also carry ONE COLOUR PER BRIGHTNESS: \"light-dark(<hell>, <dunkel>)\", e.g. \"light-dark(#1e3a8a, #93c5fd)\". The frontend picks the half that matches the theme being rendered. Use it when a fixed colour would vanish on one of the two designs; a pair whose halves are equal is pointless — write the single colour instead.",
+      "A colour option may also take its colour FROM A DATAPOINT: the whole value is \"{<state id>}\" or \"[[<state id>]]\", e.g. \"{wled.0.seg.0.col}\" — also as one half of a pair: \"light-dark(#000000, {wled.0.col})\". The state may hold \"#rrggbb\", \"rrggbb\", \"r,g,b\", \"[r,g,b]\", {\"r\",\"g\",\"b\"} or an integer 0xRRGGBB; anything else falls back to the default colour. Only a value that is ENTIRELY the binding counts, and the id must be an existing state."
     ]
   },
   "widgetConfig": {
