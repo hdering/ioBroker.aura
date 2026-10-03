@@ -127,6 +127,7 @@
     "test:enum-confirm": "node tools/tests/enum-confirm.mjs",
     "test:switch-checkbox": "node tools/tests/switch-checkbox.mjs",
     "test:enum-select-size": "node tools/tests/enum-select-size.mjs",
+    "test:select-cell-foreign-value": "node tools/tests/select-cell-foreign-value.mjs",
     "test:jsontable-fill": "node tools/tests/jsontable-html-fill.mjs",
     "test:jsontable-rows": "node tools/tests/jsontable-row-height.mjs",
     "test:jsontable-format": "node tools/tests/jsontable-cell-format.mjs",

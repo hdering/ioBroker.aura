@@ -1719,9 +1719,9 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                 <div className="min-w-0" style={{ flex: showLabel ? '0 1 auto' : '1 1 auto' }}>
                     <HtmlSelect
                         fullWidth
-                        // A value no entry covers still has to be readable — the
-                        // closed dropdown prints it instead of an empty dash.
-                        placeholder={fallback}
+                        // No placeholder: a value no entry covers shows the dash,
+                        // as in the Auswahlfeld widget. Cells sharing one DP with
+                        // different entry lists must not echo each other's value (#744).
                         value={current?.value ?? ''}
                         onPick={onPick}
                         entries={entries.map((e) => ({
