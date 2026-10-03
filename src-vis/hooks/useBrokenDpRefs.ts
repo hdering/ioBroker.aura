@@ -9,6 +9,8 @@ import { NS } from '../utils/namespace';
 import { baseDpId } from '../utils/dpRef';
 import { CLIMATE_PROFILES, MODE_PLACEHOLDER, applyModeSlug, getProfile } from '../utils/climateProfiles';
 import type { WidgetConfig } from '../types';
+import { hostsGroupDef } from '../utils/groupTypes';
+import { buildPopupSubMap, substituteWidget } from '../utils/popupPlaceholders';
 
 export interface BrokenRef {
     widgetId: string;
@@ -93,8 +95,7 @@ function collectRefs(widget: WidgetConfig, location: string, routeTo: string | u
     return refs;
 }
 
-const isGroupHost = (w: WidgetConfig): boolean =>
-    (w.type === 'group' || w.type === 'panels') && typeof w.options?.defId === 'string';
+const isGroupHost = (w: WidgetConfig): boolean => hostsGroupDef(w);
 
 function collectAllRefs(): BrokenRef[] {
     const out: BrokenRef[] = [];
@@ -112,6 +113,19 @@ function collectAllRefs(): BrokenRef[] {
     // can neither locate nor fix.
     type ParentLoc = { parent: WidgetConfig; route: string; locationPrefix: string };
     const defIdToParent = new Map<string, ParentLoc>();
+    // Device card defs (#743) are checked once per card with `{{dp}}` & co. resolved
+    // against that card's datapoint — not as a bare def, where the placeholders
+    // would be skipped and the fixed DPs counted once more.
+    const cardDefs = new Set<string>();
+    const collectCard = (card: WidgetConfig, location: string, route: string): void => {
+        if (card.type !== 'devicecard' || !hostsGroupDef(card)) return;
+        cardDefs.add(card.options.defId);
+        const vars = buildPopupSubMap(card, card.datapoint);
+        const where = `${location} · in ${card.title || card.type}`;
+        for (const child of defs[card.options.defId] ?? []) {
+            out.push(...collectRefs(substituteWidget(child, vars), where, route));
+        }
+    };
     // First-wins (Map.has guard) keeps the deep-link stable when a defId is
     // referenced from multiple hosts, and doubles as cycle protection while
     // recursing through nested group defs.
@@ -137,6 +151,7 @@ function collectAllRefs(): BrokenRef[] {
                             locationPrefix: `${locationPrefix}${tab.name}`,
                         });
                     }
+                    collectCard(w, `${locationPrefix}${tab.name}`, route);
                     out.push(...collectRefs(w, `${locationPrefix}${tab.name}`, route));
                 }
             }
@@ -148,6 +163,7 @@ function collectAllRefs(): BrokenRef[] {
         for (const w of v.widgets) {
             const route = `/admin/popups/${encodeURIComponent(v.id)}?focus=${encodeURIComponent(w.id)}`;
             if (isGroupHost(w)) mapDefTree(w.options!.defId as string, { parent: w, route, locationPrefix });
+            collectCard(w, locationPrefix, route);
             out.push(...collectRefs(w, locationPrefix, route));
         }
     }
@@ -155,6 +171,7 @@ function collectAllRefs(): BrokenRef[] {
     for (const [defId, children] of Object.entries(defs)) {
         const parentLoc = defIdToParent.get(defId);
         if (!parentLoc) continue; // orphaned def — not reachable from any dashboard/popup
+        if (cardDefs.has(defId)) continue; // checked per card above
         const location = `${parentLoc.locationPrefix} · in ${parentLoc.parent.title || parentLoc.parent.type}`;
         for (const w of children) {
             out.push(...collectRefs(w, location, parentLoc.route));

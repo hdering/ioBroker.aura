@@ -194,7 +194,8 @@ import { applyConditionSet, stripRenderOverrides } from '../../utils/conditionSe
 import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
 import { useColorBindings } from '../../hooks/useColorBindings';
 import { useIsDarkTheme } from '../../contexts/BrightnessContext';
-import { useRenderTransform } from '../../contexts/RenderTransformContext';
+import { runtimeId, useRenderTransform, useRuntimeScope } from '../../contexts/RenderTransformContext';
+import { isGroupType } from '../../utils/groupTypes';
 import {
     getSources,
     extractCalNames,
@@ -213,6 +214,7 @@ import { TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
 import { getWidgetMap } from '../widgets/widgetMap';
 import { PROBE_SKIP_TYPES, ProbeBox, useIsProbe } from '../../utils/probeContext';
 import { MirrorConfig } from '../config/MirrorConfig';
+import { DeviceCardConfig } from '../config/DeviceCardConfig';
 import { AirControlConfig } from '../config/AirControlConfig';
 import { WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
 import { BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
@@ -6535,7 +6537,7 @@ function CarouselEditPanel({
  *  both hold child widgets that must stay selectable, draggable and reachable
  *  (a panel stack also needs its slide arrows to switch between them). Their
  *  children are locked individually, and the write lock still covers them. */
-const LOCK_PASSTHROUGH_TYPES = new Set(['group', 'panels']);
+const LOCK_PASSTHROUGH_TYPES = new Set(['group', 'panels', 'devicecard']);
 
 /** The section the editor works in — useActiveSection's resolution on a raw state. */
 function activeSectionState(s: ReturnType<typeof useDashboardStore.getState>) {
@@ -6811,18 +6813,29 @@ function WidgetFrameInner({
         makeHeaderStyle(layoutHeaderColor.get(layoutId) ?? 'var(--accent)');
     const popupHeaderStyle = makeHeaderStyle('var(--accent-green)');
 
+    // Display-only rewrite from the surrounding editor or container (popup-view preview
+    // datapoint, device card #743): resolves `{{dp}}` & co. It goes in before the
+    // conditions and badges, so their clauses resolve the same way as the body, and
+    // comes off again with the other overrides on every write (stripRenderOverrides).
+    const renderTransform = useRenderTransform();
+    const baseConfig = useMemo(() => (renderTransform ? renderTransform(config) : config), [config, renderTransform]);
+    // Inside a device card every child exists once per card under the same id — the
+    // runtime registries below key on `rid` so the copies don't share a verdict (#743).
+    const runtimeScope = useRuntimeScope();
+    const rid = runtimeId(config.id, runtimeScope);
+
     // Stable reference: never create a new [] on every render (would cause infinite effect loop)
-    const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
+    const conditions = (baseConfig.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
 
     // Value sources conditions / badges may reference without naming a DP:
     // the widget's main datapoint and — for list widgets — its entries.
-    const sourceCtx = useMemo(() => widgetSourceCtx(config), [config]);
+    const sourceCtx = useMemo(() => widgetSourceCtx(baseConfig), [baseConfig]);
 
     // Evaluate conditions against live ioBroker values
-    const conditionResult = useConditionStyle(conditions, config.id, sourceCtx);
+    const conditionResult = useConditionStyle(conditions, rid, sourceCtx);
 
     // Badges (overlay indicators) — stable reference like conditions above
-    const badges = (config.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
+    const badges = (baseConfig.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
     const resolvedBadges = useBadges(badges, sourceCtx);
 
     // Register/release this widget in the panel coordinator.
@@ -6833,9 +6846,9 @@ function WidgetFrameInner({
     // registry, causing the widget to never settle in either container.
     useEffect(() => {
         return () => {
-            releasePanel(config.id);
+            releasePanel(rid);
         };
-    }, [config.id]);
+    }, [rid]);
 
     // Keep the reflow-hidden registry in sync. The *removal* verdict is gated by
     // edit mode (the editor must keep every widget mounted); the raw condition
@@ -6843,12 +6856,12 @@ function WidgetFrameInner({
     // editor too. useLayoutEffect fires synchronously before paint → no flicker.
     useLayoutEffect(() => {
         notifyHiddenState(
-            config.id,
+            rid,
             !editMode && conditionResult.hidden,
             conditionResult.reflow,
             conditionResult.hidden && conditionResult.reflow,
         );
-    }, [config.id, editMode, conditionResult.hidden, conditionResult.reflow]);
+    }, [rid, editMode, conditionResult.hidden, conditionResult.reflow]);
 
     const openPanelFor = (panel: typeof openPanel) => {
         if (panel === null) {
@@ -6856,9 +6869,9 @@ function WidgetFrameInner({
             setShowMoveMenu(false);
             setShowCopyMenu(false);
             setShowGroupTypePicker(false);
-            releasePanel(config.id);
+            releasePanel(rid);
         } else {
-            claimPanel(config.id, () => setOpenPanel(null));
+            claimPanel(rid, () => setOpenPanel(null));
             setOpenPanel(panel);
         }
     };
@@ -7087,15 +7100,12 @@ function WidgetFrameInner({
             : getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
     // Bumped by a condition rule with "reload widget" — mixed into the body's key so
     // embedded documents (iframe, camera, image) actually re-fetch (issue #537).
-    const refreshNonce = useWidgetRefreshNonce(config.id);
+    const refreshNonce = useWidgetRefreshNonce(rid);
     // `[[dp]]` tokens in the name resolve here, at the render boundary, so every widget
     // type shows live values without wiring anything up itself. Only the rendered copy
     // is substituted — the edit dialog and every onConfigChange keep the raw title.
     // A condition's title override goes in first, so it may carry live tokens too.
-    // Display-only rewrite from the surrounding editor (popup-view preview datapoint):
-    // it goes in before the condition set and comes off again with the other overrides.
-    const renderTransform = useRenderTransform();
-    const baseConfig = useMemo(() => (renderTransform ? renderTransform(config) : config), [config, renderTransform]);
+    // baseConfig already carries the render transform (see above the conditions).
     const resolvedTitle = useResolvedTitle(conditionResult.set.title ?? baseConfig.title);
     // The body renders from a derived config: resolved title plus whatever the
     // matching rules override (icon, size, value text — issue #96), and every
@@ -7117,10 +7127,16 @@ function WidgetFrameInner({
         // lose the other colour. Only on this path — the config panel edits the
         // raw value, where collapsing a pair on purpose has to stick. The colour
         // bindings go back in before that, for the same reason.
-        (next: WidgetConfig) =>
-            onConfigChange(
-                stripRenderOverrides(restoreDualDeep(restoreColorBindings(next, config), config), config, renderConfig),
-            ),
+        (next: WidgetConfig) => {
+            const out = stripRenderOverrides(
+                restoreDualDeep(restoreColorBindings(next, config), config),
+                config,
+                renderConfig,
+            );
+            // A render transform may hand the body a runtime id (device card, #743);
+            // the parent matches writes by the real one.
+            onConfigChange(out.id === config.id ? out : { ...out, id: config.id });
+        },
         [onConfigChange, config, renderConfig, restoreColorBindings],
     );
     // Which override slots this widget type honours — the editor offers only these.
@@ -7197,7 +7213,7 @@ function WidgetFrameInner({
     // The widget's own title / icon look (#725). Not on a group — its children sit inside
     // the same box and would inherit it — nor on the section title, which draws these
     // options itself.
-    const ownLookOn = config.type !== 'group' && config.type !== 'header';
+    const ownLookOn = !isGroupType(config.type) && config.type !== 'header';
     const ownOpts = renderConfig.options ?? {};
     const ownTitleColor = ownLookOn ? (ownOpts.titleColor as string | undefined) || undefined : undefined;
     const ownTitleSize = ownLookOn ? Number(ownOpts.titleSize) || undefined : undefined;
@@ -7341,7 +7357,7 @@ function WidgetFrameInner({
     // background, border, radius and the usual inner padding. Every other header style
     // drops the card and draws straight onto the dashboard, so only those are "bare".
     const isBareHeader = isHeader && (config.layout ?? 'default') !== 'framed';
-    const isGroup = config.type === 'group';
+    const isGroup = isGroupType(config.type);
     const isButton = config.type === 'button';
     const isTransparent = !!config.options?.transparent;
     // A group with title + icon off and no master switch renders no header bar.
@@ -7402,16 +7418,15 @@ function WidgetFrameInner({
     useEffect(() => {
         void ensureDatapointCache().then(() => setDpCacheReady(true));
     }, []);
-    const groupActionCandidates =
-        config.type === 'group'
-            ? groupGroupCandidates(groupChildren, groupActionType, (t) => WIDGET_BY_TYPE[t as WidgetType]?.label)
-            : config.type === 'list' || config.type === 'autolist'
-              ? listGroupCandidates(
-                    (config.options?.entries as Parameters<typeof listGroupCandidates>[0]) ?? [],
-                    groupActionType,
-                    (id) => lookupDatapointEntry(id)?.name,
-                )
-              : [];
+    const groupActionCandidates = isGroupType(config.type)
+        ? groupGroupCandidates(groupChildren, groupActionType, (t) => WIDGET_BY_TYPE[t as WidgetType]?.label)
+        : config.type === 'list' || config.type === 'autolist'
+          ? listGroupCandidates(
+                (config.options?.entries as Parameters<typeof listGroupCandidates>[0]) ?? [],
+                groupActionType,
+                (id) => lookupDatapointEntry(id)?.name,
+            )
+          : [];
     void dpCacheReady; // referenced so the checklist re-renders once names load
     const activeLayoutIdCtx = useActiveLayoutId();
     const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
@@ -7442,7 +7457,7 @@ function WidgetFrameInner({
             titled,
             groupCellSize,
             groupGridGap,
-            useAutoHeightStore.getState().groupHeaders[config.id],
+            useAutoHeightStore.getState().groupHeaders[rid],
         );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
     };
@@ -7473,7 +7488,7 @@ function WidgetFrameInner({
             titled,
             groupCellSize,
             groupGridGap,
-            useAutoHeightStore.getState().groupHeaders[config.id],
+            useAutoHeightStore.getState().groupHeaders[rid],
         );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
         setShowGroupTypePicker(false);
@@ -7499,15 +7514,15 @@ function WidgetFrameInner({
     // the collapse store; absent it, the widget starts collapsed (that is what the
     // option means).
     const frameCollapsible =
-        framingType !== 'group' &&
+        !isGroupType(framingType) &&
         collapsibleWidget(config.type, config.options, { editMode, inGroup, fullscreen, probe: isProbe });
     const initCollapse = useWidgetCollapseStore((s) => s.init);
     const toggleCollapse = useWidgetCollapseStore((s) => s.toggle);
     const collapsedMap = useWidgetCollapseStore((s) => s.collapsed);
     useEffect(() => {
-        if (frameCollapsible) initCollapse(config.id, true);
-    }, [config.id, frameCollapsible, initCollapse]);
-    const isCollapsed = frameCollapsible && isCollapsedNow(collapsedMap, config.id);
+        if (frameCollapsible) initCollapse(rid, true);
+    }, [rid, frameCollapsible, initCollapse]);
+    const isCollapsed = frameCollapsible && isCollapsedNow(collapsedMap, rid);
     const collapsePos = collapsePosition(config.options);
 
     // ── Click-action icon (issues #527, #702) ─────────────────────────────────
@@ -7545,12 +7560,12 @@ function WidgetFrameInner({
     useEffect(() => {
         const el = collapsedHeaderEl.current;
         if (!isCollapsed || !el) return;
-        const report = () => setCollapsedHeader(config.id, Math.ceil(el.getBoundingClientRect().height));
+        const report = () => setCollapsedHeader(rid, Math.ceil(el.getBoundingClientRect().height));
         report();
         const ro = new ResizeObserver(report);
         ro.observe(el);
         return () => ro.disconnect();
-    }, [isCollapsed, config.id, setCollapsedHeader]);
+    }, [isCollapsed, rid, setCollapsedHeader]);
     // A mirror folds to its SOURCE's icon and title — its own are empty.
     const collapsedSource = mirrorLcSource ?? renderConfig;
     const collapsedMeta = WIDGET_BY_TYPE[collapsedSource.type as WidgetType];
@@ -7685,7 +7700,7 @@ function WidgetFrameInner({
     const isNoPad =
         !isCollapsed &&
         (isBareHeader ||
-            framingType === 'group' ||
+            isGroupType(framingType) ||
             framingType === 'panels' ||
             framingType === 'iframe' ||
             framingType === 'map' ||
@@ -7977,7 +7992,7 @@ function WidgetFrameInner({
                     onClick={(e) => {
                         // Never let the toggle bubble to a widget-level click action.
                         e.stopPropagation();
-                        toggleCollapse(config.id);
+                        toggleCollapse(rid);
                     }}
                 >
                     <div
@@ -8264,7 +8279,7 @@ function WidgetFrameInner({
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
-                        toggleCollapse(config.id);
+                        toggleCollapse(rid);
                     }}
                     className="nodrag aura-collapse-btn absolute w-7 h-7 flex items-center justify-center rounded-md transition-opacity"
                     style={{
@@ -9211,7 +9226,7 @@ function WidgetFrameInner({
                                                                         iconAllowed: config.type !== 'stateimage',
                                                                         titleAllowed: config.type !== 'mediaplayer',
                                                                         iconPickable: config.type !== 'windowcontact',
-                                                                        styleAllowed: config.type !== 'group',
+                                                                        styleAllowed: !isGroupType(config.type),
                                                                         onChange: (patch) => setO(patch),
                                                                     }}
                                                                     onLayoutChange={(patch) => setO({ ...patch })}
@@ -9409,7 +9424,7 @@ function WidgetFrameInner({
                                                     />
                                                 </button>
                                             </div>
-                                            {collapsedOn && config.type !== 'group' && (
+                                            {collapsedOn && !isGroupType(config.type) && (
                                                 <div className="flex items-center gap-2">
                                                     <label
                                                         className="text-[11px] shrink-0"
@@ -9444,7 +9459,7 @@ function WidgetFrameInner({
                                             )}
                                             <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                                                 {t(
-                                                    config.type === 'group'
+                                                    isGroupType(config.type)
                                                         ? 'wf.edit.group.defaultCollapsedHint'
                                                         : 'wf.edit.defaultCollapsedHint',
                                                 )}
@@ -9941,7 +9956,7 @@ function WidgetFrameInner({
                     }
 
                     {/* ─── Group action — own card, outside (above) the widget-specific box ── */}
-                    {(config.type === 'list' || config.type === 'autolist' || config.type === 'group') && (
+                    {(config.type === 'list' || config.type === 'autolist' || isGroupType(config.type)) && (
                         <div
                             className="space-y-2.5 rounded-lg px-3 py-3"
                             style={{
@@ -9960,7 +9975,7 @@ function WidgetFrameInner({
                     )}
 
                     {/* ─── Group settings — own card (group only) ───────────────────────── */}
-                    {config.type === 'group' &&
+                    {isGroupType(config.type) &&
                         (() => {
                             const o = config.options ?? {};
                             const autoShrink = !!o.autoShrink;
@@ -10575,6 +10590,7 @@ function WidgetFrameInner({
                             config.type !== 'calendar' &&
                             config.type !== 'header' &&
                             config.type !== 'group' &&
+                            config.type !== 'devicecard' &&
                             config.type !== 'button' &&
                             config.type !== 'evcc' &&
                             config.type !== 'echart' &&
@@ -11444,6 +11460,9 @@ function WidgetFrameInner({
                         )}
                         {config.type === 'echart' && <EChartConfig config={config} onConfigChange={onConfigChange} />}
                         {config.type === 'mirror' && <MirrorConfig config={config} onConfigChange={onConfigChange} />}
+                        {config.type === 'devicecard' && (
+                            <DeviceCardConfig config={config} onConfigChange={onConfigChange} />
+                        )}
                         {config.type === 'aircontrol' && (
                             <AirControlConfig config={config} onConfigChange={onConfigChange} />
                         )}
@@ -21083,7 +21102,7 @@ function WidgetFrameInner({
 // the dashboard's incidental re-renders used to heal — so these two keep
 // re-rendering with the dashboard exactly as before. tools/tests/group-fit.mjs
 // pins that behaviour: with them memoised it flipped 19 constellations.
-const ALWAYS_RENDER_TYPES = new Set<string>(['group', 'panels']);
+const ALWAYS_RENDER_TYPES = new Set<string>(['group', 'panels', 'devicecard']);
 
 function frameEqual(prev: WidgetFrameProps, next: WidgetFrameProps): boolean {
     if (ALWAYS_RENDER_TYPES.has(next.config.type)) return false;

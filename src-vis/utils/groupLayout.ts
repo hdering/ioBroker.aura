@@ -115,3 +115,22 @@ export function withContentHeights(
     });
     return changed ? next : children;
 }
+
+/**
+ * The measured content heights of a group's children, keyed by child id — what
+ * withContentHeights reads. Inside a device card (#743) each child measures under
+ * its per-card runtime id (`${scope}~${id}`), so the map is re-keyed for it.
+ */
+export function heightsForScope(
+    children: WidgetConfig[],
+    heights: Record<string, number>,
+    scope: string | null | undefined,
+): Record<string, number> {
+    if (!scope) return heights;
+    const out: Record<string, number> = {};
+    for (const c of children) {
+        const px = heights[`${scope}~${c.id}`];
+        if (px !== undefined) out[c.id] = px;
+    }
+    return out;
+}

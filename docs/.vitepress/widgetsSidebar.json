@@ -228,6 +228,10 @@
         "link": "/widgets/gruppe"
       },
       {
+        "text": "Gerätekarte",
+        "link": "/widgets/geraetekarte"
+      },
+      {
         "text": "Menü",
         "link": "/widgets/menue"
       },

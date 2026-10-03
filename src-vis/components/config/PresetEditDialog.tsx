@@ -11,6 +11,7 @@ import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { WidgetFrame } from '../layout/WidgetFrame';
+import { hostsGroupDef } from '../../utils/groupTypes';
 
 const DEFAULT_MARGIN = 10;
 const clone = (w: WidgetConfig) => JSON.parse(JSON.stringify(w)) as WidgetConfig;
@@ -79,7 +80,7 @@ export function PresetEditDialog({ preset, onClose }: { preset: WidgetPreset; on
 
     const handleSave = () => {
         let groupDefs: Record<string, WidgetConfig[]> | undefined;
-        if ((draft.type === 'group' || draft.type === 'panels') && draft.options?.defId) {
+        if (hostsGroupDef(draft)) {
             const out: Record<string, WidgetConfig[]> = {};
             collectGroupDefs([draft], useGroupDefsStore.getState().defs, out);
             if (Object.keys(out).length > 0) groupDefs = JSON.parse(JSON.stringify(out));

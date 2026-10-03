@@ -4,6 +4,7 @@ import { historyAttached } from './editHistory';
 import { useDashboardStore } from './dashboardStore';
 import { usePopupConfigStore } from './popupConfigStore';
 import type { WidgetConfig } from '../types';
+import { hostsGroupDef } from '../utils/groupTypes';
 
 export interface GroupDefsState {
     defs: Record<string, WidgetConfig[]>;
@@ -94,7 +95,7 @@ export function newGroupDefId(): string {
 /** Collect all defIds reachable from a widget list (recursively follows nested groups). */
 function collectDefIds(widgets: WidgetConfig[], defs: Record<string, WidgetConfig[]>, out: Set<string>): void {
     for (const w of widgets) {
-        if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
+        if (hostsGroupDef(w)) {
             const defId = w.options.defId as string;
             if (!out.has(defId)) {
                 out.add(defId);

@@ -10,6 +10,7 @@ import { CalendarWidget } from './CalendarWidget';
 import { HeaderWidget } from './HeaderWidget';
 // GroupWidget imports WidgetFrame (circular) — safe because it's only used inside render functions
 import { GroupWidget } from './GroupWidget';
+import { DeviceCardWidget } from './DeviceCardWidget';
 import { EvccWidget } from './EvccWidget';
 import { WeatherWidget } from './WeatherWidget';
 import { GaugeWidget } from './GaugeWidget';
@@ -126,6 +127,7 @@ export function getWidgetMap() {
         mirror: MirrorWidget,
         messages: MessagesWidget,
         menu: MenuWidget,
+        devicecard: DeviceCardWidget,
         // `satisfies` makes a missing widget type a build error instead of a
         // "Unbekannter Widget-Typ" notice in mirrors, popups and tab embeds.
     } as const satisfies Record<WidgetType, unknown>;

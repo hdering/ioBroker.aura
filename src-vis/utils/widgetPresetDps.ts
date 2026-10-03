@@ -1,6 +1,7 @@
 import type { WidgetConfig, CustomCell } from '../types';
 import { WIDGET_BY_TYPE } from '../widgetRegistry';
 import { isDpOptionKey } from './dpOptionKeys';
+import { DEF_HOST_TYPES } from './groupTypes';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Datapoint slot collection for Widget-Designer presets.
@@ -199,7 +200,7 @@ export function collectDpSlots(widget: WidgetConfig, groupDefs?: Record<string, 
             }
 
             // Recurse into group / panels children.
-            if ((cfg.type === 'group' || cfg.type === 'panels') && typeof opts.defId === 'string') {
+            if (DEF_HOST_TYPES.has(cfg.type) && typeof opts.defId === 'string') {
                 const defId = opts.defId;
                 if (groupDefs && groupDefs[defId] && !visitedDefs.has(defId)) {
                     visitedDefs.add(defId);

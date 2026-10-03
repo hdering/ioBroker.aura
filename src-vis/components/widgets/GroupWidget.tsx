@@ -30,11 +30,12 @@ import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
-import { GROUP_GAP, groupRowHeight, groupRows, withContentHeights } from '../../utils/groupLayout';
+import { GROUP_GAP, groupRowHeight, groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { usesContentAutoHeight } from '../../utils/autoHeight';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
+import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
 import { copyWidget } from '../../utils/widgetCopy';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
@@ -95,7 +96,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // They still need to be rendered somewhere so their conditions keep being
     // evaluated — see the off-screen container at the bottom of this component.
     const reflowHiddenIds = useReflowHiddenIds();
-    const reflowHiddenChildren = !editMode ? children.filter((c) => reflowHiddenIds.has(c.id)) : [];
+    // Inside a device card the children register under a per-card runtime id (#743).
+    const scope = useRuntimeScope();
+    const isReflowHidden = (c: WidgetConfig) => reflowHiddenIds.has(runtimeId(c.id, scope));
+    const reflowHiddenChildren = !editMode ? children.filter(isReflowHidden) : [];
     // Both views lay the children out packed upward. The frontend drops the
     // reflow-hidden ones first; the editor keeps every child (they stay editable)
     // but still packs them, because the inner grid runs with compactType
@@ -108,11 +112,14 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const cellSize = groupSettings.gridRowHeight ?? 20;
     const gridGap = groupSettings.gridGap ?? 10;
     const widgetPad = groupSettings.widgetPadding ?? 16;
-    const contentHeights = useAutoHeightStore((s) => s.heights);
+    const allContentHeights = useAutoHeightStore((s) => s.heights);
+    // withContentHeights reads by child id — inside a scope the heights sit under the runtime id.
+    const contentHeights = useMemo(
+        () => heightsForScope(children, allContentHeights, scope),
+        [scope, children, allContentHeights],
+    );
     const sized = withContentHeights(children, contentHeights, widgetPad, cellSize, gridGap);
-    const gridChildren = !editMode
-        ? verticalCompact(sized.filter((c) => !reflowHiddenIds.has(c.id)))
-        : verticalCompact(sized);
+    const gridChildren = !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized);
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
     // autoShrink groups keep their own scroll-based height logic and the classic

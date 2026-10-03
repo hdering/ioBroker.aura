@@ -34,7 +34,9 @@ import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
-import { groupRows, withContentHeights } from '../../utils/groupLayout';
+import { groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
+import { isGroupType } from '../../utils/groupTypes';
+import { runtimeId } from '../../contexts/RenderTransformContext';
 import { flowBands, flowModeFor } from '../../utils/flowOrder';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridScaleContext } from '../../contexts/GridScaleContext';
@@ -117,7 +119,7 @@ export function Dashboard({
      *  folding needs the widget's `collapseInEditor` as well — see collapsibleWidget. */
     const collapsedItemNow = useCallback(
         (w: WidgetConfig, source: WidgetConfig) => {
-            const cfg = source.type === 'group' ? source : w;
+            const cfg = isGroupType(source.type) ? source : w;
             return (
                 collapsibleWidget(cfg.type, cfg.options as Record<string, unknown> | undefined, { editMode }) &&
                 isCollapsedNow(groupCollapsed, cfg.id)
@@ -127,14 +129,14 @@ export function Dashboard({
     );
     /** Same, for a non-group frame only (the group has its own height path). */
     const frameCollapsedNow = useCallback(
-        (w: WidgetConfig, source: WidgetConfig) => source.type !== 'group' && collapsedItemNow(w, source),
+        (w: WidgetConfig, source: WidgetConfig) => !isGroupType(source.type) && collapsedItemNow(w, source),
         [collapsedItemNow],
     );
     /** True for a group that actually holds children — i.e. one whose height is
      *  derived from its content instead of the stored gridPos.h. */
     const hasGroupChildren = useCallback(
         (w?: WidgetConfig) => {
-            if (w?.type !== 'group') return false;
+            if (!w || !isGroupType(w.type)) return false;
             const defId = w.options?.defId as string | undefined;
             return !!defId && (groupDefs[defId]?.length ?? 0) > 0;
         },
@@ -710,7 +712,7 @@ export function Dashboard({
                                                 // minimal/compact already center, so they keep a fixed height.
                                                 const autoHeight =
                                                     frameCollapsedNow(w, ew) ||
-                                                    ew.type === 'group' ||
+                                                    isGroupType(ew.type) ||
                                                     ew.type === 'mediaplayer' ||
                                                     (ew.type === 'weather' &&
                                                         wl !== 'custom' &&
@@ -948,7 +950,10 @@ export function Dashboard({
                                                           )
                                                         : undefined;
                                                 const gw = mirrorTarget ?? w;
-                                                const isGroup = gw.type === 'group';
+                                                const isGroup = isGroupType(gw.type);
+                                                // A device card's children measure and hide under a per-card
+                                                // runtime id (#743) — the card renders them under its own id.
+                                                const childScope = gw.type === 'devicecard' ? gw.id : null;
                                                 const autoShrink = isGroup && !!gw.options?.autoShrink;
                                                 const defId = isGroup
                                                     ? (gw.options?.defId as string | undefined)
@@ -957,7 +962,11 @@ export function Dashboard({
                                                 const groupChildren = defId
                                                     ? withContentHeights(
                                                           groupDefs[defId] ?? [],
-                                                          autoHeights,
+                                                          heightsForScope(
+                                                              groupDefs[defId] ?? [],
+                                                              autoHeights,
+                                                              childScope,
+                                                          ),
                                                           widgetPadding,
                                                           cellSize,
                                                           MARGIN,
@@ -1038,7 +1047,7 @@ export function Dashboard({
                                                 //    the fold, reachable via the group's inner scrollbar.
                                                 if (autoShrink && groupChildren.length > 0) {
                                                     const visible = groupChildren.filter(
-                                                        (c) => !conditionReflowIds.has(c.id),
+                                                        (c) => !conditionReflowIds.has(runtimeId(c.id, childScope)),
                                                     );
                                                     if (visible.length > 0 && visible.length < groupChildren.length) {
                                                         const fitLayout = editMode ? visible : verticalCompact(visible);
@@ -1073,7 +1082,7 @@ export function Dashboard({
                                                 // children shrink it, the user's stretch (see above) stays on top.
                                                 if (!editMode && hugGroup) {
                                                     const visible = groupChildren.filter(
-                                                        (c) => !conditionReflowIds.has(c.id),
+                                                        (c) => !conditionReflowIds.has(runtimeId(c.id, childScope)),
                                                     );
                                                     const hugVisible =
                                                         visible.length === groupChildren.length

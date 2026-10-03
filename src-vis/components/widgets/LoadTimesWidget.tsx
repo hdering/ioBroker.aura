@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { Activity, Info, X, RefreshCw, RotateCcw } from 'lucide-react';
+import { DEF_HOST_TYPES } from '../../utils/groupTypes';
 import { sendToDirect, useIoBroker, getObjectViewDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { resetBreakdown } from '../../utils/perfBreakdown';
 import { useConnectionStore } from '../../store/connectionStore';
@@ -103,8 +104,7 @@ function buildWidgetLocationMap(
         seen.add(defId);
         for (const k of defs[defId] ?? []) {
             map.set(k.id, loc);
-            if (k.type === 'group' || k.type === 'panels')
-                addChildren(k.options?.defId as string | undefined, loc, seen);
+            if (DEF_HOST_TYPES.has(k.type)) addChildren(k.options?.defId as string | undefined, loc, seen);
         }
     };
     for (const l of layouts) {
@@ -119,8 +119,7 @@ function buildWidgetLocationMap(
                 };
                 for (const w of tab.widgets) {
                     map.set(w.id, loc);
-                    if (w.type === 'group' || w.type === 'panels')
-                        addChildren(w.options?.defId as string | undefined, loc, new Set());
+                    if (DEF_HOST_TYPES.has(w.type)) addChildren(w.options?.defId as string | undefined, loc, new Set());
                 }
             }
         }

@@ -40,7 +40,7 @@ const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border
  * item-owned instance of one would come back empty from a backup. Referencing a
  * group that lives on a dashboard is fine — that one is saved with its tab.
  */
-const NO_OWN_INSTANCE = new Set<WidgetType>(['group', 'panels']);
+const NO_OWN_INSTANCE = new Set<WidgetType>(['group', 'panels', 'devicecard']);
 
 function ChoiceRow<T extends string>({
     value,

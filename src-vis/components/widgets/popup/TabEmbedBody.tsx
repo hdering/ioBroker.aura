@@ -75,7 +75,7 @@ function mergedOptionsPatch(
 
 /** Widget types that carry their own chrome / fill their box, so the popup card
  *  wrapper must not add padding (mirrors WidgetFrame's isNoPad set). */
-const NO_PAD_TYPES = new Set(['header', 'group', 'panels', 'iframe', 'map', 'echartsPreset']);
+const NO_PAD_TYPES = new Set(['header', 'group', 'devicecard', 'panels', 'iframe', 'map', 'echartsPreset']);
 
 /**
  * Card background/border/radius for a popup-view widget, mirroring WidgetFrame so

@@ -59,6 +59,8 @@ Ein Tab mit dem Slug `active` bekäme über `.aura-tab-<slug>` ebenfalls `.aura-
 | `.aura-zoom-ctl` | Zoom-Tasten im iFrame-Widget (Option `iframeZoomControls`) |
 | `.aura-badge-corner` | Badge-Overlay in der Kartenecke |
 | `.aura-textwrap` | Karte mit aktivem Textumbruch (Option „Textumbruch") |
+| `.aura-devicecard-link` | Editor: farbiger Rahmen verknüpfter [Gerätekarten](../widgets/geraetekarte) |
+| `.aura-devicecard-badge` | Editor: Hinweis „Aufbau geteilt mit …“ auf dem Rahmen einer Gerätekarte |
 
 ## Kopfzeile des Widgets
 

@@ -158,7 +158,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_create_layout`                  | Neues Layout mit eigener URL anlegen, mit Bereich und Tab                                                      | write        |
 | `aura_popups` / `aura_popup`          | Popup-Ansichten auflisten / eine lesen                                                                         | read         |
 | `aura_write_popup`                    | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`)                                                    | write        |
-| `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen                                                       | read/write   |
+| `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal/Gerätekarte lesen bzw. ersetzen                                           | read/write   |
 | `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab, im Popup oder in einer Gruppe                                            | write        |
 | `aura_update_widgets`                 | Mehrere Widgets in einem Schreibvorgang ändern — eine Prüfung des Endzustands, eine Sicherung                  | write        |
 | `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen    | write        |
@@ -1161,7 +1161,7 @@ Jede Zeile der Antwort trägt jetzt ihre Klasse (`measure.js`, `heightClass`):
 | `fills`    | füllt die Karte, über der Mindesthöhe ist `h` frei                 | mediaplayer, echart, value, map  |
 | `content`  | feste Inhaltshöhe — zu wenig heißt Scrollbalken                    | list, jsontable, weather         |
 | `runtime`  | Zeilen entstehen erst zur Laufzeit, planbar nur mit `maxRows`      | autolist, timer, calendar        |
-| `children` | die Höhe kommt von den Kindern                                     | group, panels, universal, mirror |
+| `children` | die Höhe kommt von den Kindern                                     | group, devicecard, panels, universal, mirror |
 | `source`   | Inhalt kommt von außen (Instanz, freies HTML) und **kann** überlaufen | evcc, aircontrol, html        |
 
 Ein Test hält die Liste vollständig: jeder Typ im Schema muss einer Klasse
@@ -2057,3 +2057,22 @@ Text. Eine belegte Zeile 2 macht die eingeklappte Karte eine Kopfzeile höher;
 die gespeicherte Höhe bleibt die des aufgeklappten Widgets.
 `npm run test:header-items-logic` prüft die Werte ohne Browser,
 `npm run test:header-items` die Kopfzeile gegen den Dev-Server.
+
+## Gerätekarte: geteilte Kinder (#743)
+
+`devicecard` ist eine Gruppe, deren Kinder **geteilt** sind: alle Karten mit derselben
+`options.defId` zeigen dieselbe Kinderliste aus `aura-group-defs`. Platzhalter in den
+Kindern (`{{dp}}`, `{{parent}}`, `{{parent2}}`, `{{name}}`, eigene String-Optionen der
+Karte als `{{key}}`) werden pro Karte gegen deren `datapoint` aufgelöst.
+
+| Fall | Was das Modell schreibt |
+| --- | --- |
+| Neuer Aufbau | Karte mit neuer `defId` + `groupDefs` |
+| Weiteres gleiches Gerät | Karte mit **derselben** `defId`, anderem `datapoint`, **ohne** `groupDefs` |
+| Aufbau ändern | `aura_write_group` auf die `defId` — wirkt auf alle Karten |
+
+- Schema: `OPTION_INHERITS` im Overlay faltet die Gruppen-Optionen in `devicecard`
+  ein — der Extraktor folgt dem Import von `GroupWidget` bewusst nicht.
+- Rezept `geraetekarte` (`lib/mcp/recipes.js`) bringt als erstes Rezept `groupDefs` mit;
+  `renderRecipe` gibt sie als eigenen Block aus, der Rezept-Test validiert die Kinder mit.
+- Platzhalter-Datenpunkte überspringen `validate.js`/`dpFit.js` ohnehin (`TEMPLATE`).

@@ -97,6 +97,14 @@ export function stripRenderOverrides(next: WidgetConfig, raw: WidgetConfig, deri
         if (key in rOpts) opts[key] = rOpts[key];
         else delete opts[key];
     }
+    // A render transform may drop an option the body never saw — a datapoint whose
+    // `{{token}}` did not resolve (popupPlaceholders dropUnresolvedDps). The body
+    // cannot have removed it on purpose, so it goes back in (device card, #743).
+    for (const key of Object.keys(rOpts)) {
+        if (key in dOpts || key in nOpts) continue;
+        opts ??= { ...nOpts };
+        opts[key] = rOpts[key];
+    }
     if (opts) out = { ...out, options: opts };
     return out;
 }

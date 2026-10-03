@@ -38,6 +38,7 @@ import {
     DROP_KEYS,
     EXTRA_OPTIONS,
     UNIVERSAL_OPTIONS,
+    OPTION_INHERITS,
 } from './widget-schema-overlay.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -699,6 +700,14 @@ async function build() {
         );
         perWidget[meta.type] = { meta, options };
         staleNotes.push(...stale);
+    }
+    // A widget that renders another widget's component (the device card is a
+    // GroupWidget inside two contexts) reads that widget's options too — the walk
+    // above stops at other widget files on purpose, so they are folded in here.
+    for (const [type, base] of Object.entries(OPTION_INHERITS)) {
+        if (perWidget[type] && perWidget[base]) {
+            perWidget[type].options = { ...perWidget[base].options, ...perWidget[type].options };
+        }
     }
 
     // Hoist option keys that most widgets share (showTitle, iconSize, …) into a

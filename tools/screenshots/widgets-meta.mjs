@@ -208,4 +208,10 @@ export const WIDGETS = [
       runtime: null, customShots: true, defaultGrid: { w: 8, h: 4 },
       hero: 'assets/spiegel/runtime.png',
       configShot: 'assets/spiegel/config.png' },
+    // Bilder aus tools/screenshots/devicecard.mjs (mehrere Karten + geteilter Aufbau).
+    { type: 'devicecard', slug: 'geraetekarte', label: 'Gerätekarte', group: 'layout',
+      hint: 'Einmal aufbauen, für viele gleiche Geräte verwenden – nur der Datenpunkt ist je Karte verschieden. Änderungen am Aufbau gelten für alle Karten.',
+      runtime: null, customShots: true, defaultGrid: { w: 12, h: 7 },
+      hero: 'assets/geraetekarte/runtime.png',
+      configShot: 'assets/geraetekarte/config.png' },
 ];

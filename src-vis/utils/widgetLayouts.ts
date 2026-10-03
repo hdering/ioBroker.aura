@@ -59,6 +59,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     echartsPreset: ['default'],
     chips: ['default'],
     group: ['default'],
+    devicecard: ['default'],
     carousel: ['default'],
     panels: ['default'],
     trash: ['default'],

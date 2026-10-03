@@ -1487,6 +1487,53 @@
           }
         }
       ]
+    },
+    {
+      "id": "geraetekarte",
+      "title": "Gleiche Geräte: eine Gerätekarte, beliebig oft",
+      "when": "Mehrere gleiche Geräte (Thermostate, Fenster, Steckdosen), die jeweils dieselbe Kachel bekommen sollen.",
+      "instead": "dieselbe Gruppe oder Liste pro Gerät von Hand nachbauen und jede Änderung N-mal nachziehen",
+      "notes": [
+        "type \"devicecard\" ist eine Gruppe mit GETEILTEM Aufbau: alle Karten mit derselben defId zeigen dieselben Kinder.",
+        "Die Kinder nennen ihre Datenpunkte mit Platzhaltern. Aufgelöst wird gegen den `datapoint` der jeweiligen Karte: {{dp}} = der Datenpunkt selbst, {{parent}} = der Strang darüber, {{parent2}} eine Ebene höher, {{name}} = letztes Segment.",
+        "Weitere Geräte: nur eine Karte mit derselben defId und anderem `datapoint` in die widgets — ohne groupDefs. groupDefs nur beim ersten Anlegen des Aufbaus (oder für eine neue defId) mitschicken.",
+        "Der Kartentitel darf Platzhalter enthalten ({{name}}), meist ist ein fester Titel je Karte klarer.",
+        "Eine Änderung an einem Kind gilt für alle Karten. Soll ein Gerät abweichen: im Editor „Als eigene Karte abspalten“."
+      ],
+      "widgets": [
+        {
+          "id": "w-karte-bad",
+          "type": "devicecard",
+          "title": "Bad",
+          "datapoint": "%dp.thermostat.bad.ist%",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 8,
+            "h": 6
+          },
+          "options": {
+            "defId": "gdef-thermostat",
+            "showIcon": false
+          }
+        },
+        {
+          "id": "w-karte-kueche",
+          "type": "devicecard",
+          "title": "Küche",
+          "datapoint": "%dp.thermostat.kueche.ist%",
+          "gridPos": {
+            "x": 8,
+            "y": 0,
+            "w": 8,
+            "h": 6
+          },
+          "options": {
+            "defId": "gdef-thermostat",
+            "showIcon": false
+          }
+        }
+      ]
     }
   ]
 }

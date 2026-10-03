@@ -6,6 +6,7 @@ import { freshWidgetId } from './widgetCopy';
 import { newPresetId } from '../store/widgetPresetsStore';
 import { useConfigStore } from '../store/configStore';
 import { anonymizePayload, anyAnonymize, type AnonymizeOptions } from './anonymizeExport';
+import { hostsGroupDef } from './groupTypes';
 
 export type { AnonymizeOptions } from './anonymizeExport';
 
@@ -138,7 +139,7 @@ export function collectGroupDefs(
     out: Record<string, WidgetConfig[]>,
 ): void {
     for (const w of widgets) {
-        if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
+        if (hostsGroupDef(w)) {
             const defId = w.options.defId as string;
             if (!(defId in out) && allDefs[defId]) {
                 out[defId] = allDefs[defId];
@@ -151,7 +152,7 @@ export function collectGroupDefs(
 export function exportWidget(config: WidgetConfig, anon?: AnonymizeOptions) {
     const payload: Record<string, unknown> = { ...config };
 
-    if ((config.type === 'group' || config.type === 'panels') && config.options?.defId) {
+    if (hostsGroupDef(config)) {
         const allDefs = useGroupDefsStore.getState().defs;
         const groupDefs: Record<string, WidgetConfig[]> = {};
         collectGroupDefs([config], allDefs, groupDefs);
@@ -177,7 +178,7 @@ export function importGroupDefs(config: WidgetConfig, importedDefs: Record<strin
 
     function remapChildren(children: WidgetConfig[]): WidgetConfig[] {
         return children.map((child) => {
-            if ((child.type === 'group' || child.type === 'panels') && child.options?.defId) {
+            if (hostsGroupDef(child)) {
                 const oldDefId = child.options.defId as string;
                 const newDefId = idMap[oldDefId] ?? oldDefId;
                 return { ...child, options: { ...child.options, defId: newDefId } };
@@ -244,7 +245,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
     function remapWidgets(widgets: WidgetConfig[]): WidgetConfig[] {
         return widgets.map((w) => {
             const newId = freshWidgetId(w.id);
-            if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
+            if (hostsGroupDef(w)) {
                 const newDefId = defIdMap[w.options.defId as string] ?? (w.options.defId as string);
                 return { ...w, id: newId, options: { ...w.options, defId: newDefId } };
             }
@@ -291,7 +292,7 @@ function makeGroupDefRemapper(
     const idRemap = (widgets: WidgetConfig[]): WidgetConfig[] =>
         widgets.map((w) => {
             const newId = freshWidgetId(w.id);
-            if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
+            if (hostsGroupDef(w)) {
                 const newDefId = defIdMap[w.options.defId as string] ?? (w.options.defId as string);
                 return { ...w, id: newId, options: { ...w.options, defId: newDefId } };
             }
@@ -561,7 +562,7 @@ export function buildPresetFromWidget(
     meta: { name: string; icon?: string; category?: string },
 ): WidgetPreset {
     const groupDefs: Record<string, WidgetConfig[]> = {};
-    if ((widget.type === 'group' || widget.type === 'panels') && widget.options?.defId) {
+    if (hostsGroupDef(widget)) {
         collectGroupDefs([widget], useGroupDefsStore.getState().defs, groupDefs);
     }
     return {
@@ -603,7 +604,7 @@ export function instantiatePreset(preset: WidgetPreset): InstantiatedPreset {
         children.map((raw) => {
             const child = JSON.parse(JSON.stringify(raw)) as WidgetConfig;
             child.id = freshWidgetId(child.id);
-            if ((child.type === 'group' || child.type === 'panels') && child.options?.defId) {
+            if (hostsGroupDef(child)) {
                 const oldDefId = child.options.defId as string;
                 child.options = { ...child.options, defId: idMap[oldDefId] ?? oldDefId };
             }
@@ -615,7 +616,7 @@ export function instantiatePreset(preset: WidgetPreset): InstantiatedPreset {
         groupDefs[idMap[oldId]] = remapChildren(children);
     }
 
-    if ((widget.type === 'group' || widget.type === 'panels') && widget.options?.defId) {
+    if (hostsGroupDef(widget)) {
         const oldDefId = widget.options.defId as string;
         widget.options = { ...widget.options, defId: idMap[oldDefId] ?? oldDefId };
     }

@@ -2192,6 +2192,7 @@
     "loadtimes": "Zeilen entstehen erst zur Laufzeit",
     "menu": "Höhe folgt den Menüeinträgen des Dashboards",
     "html": "freies HTML",
-    "adapterstatus": "Zeilen entstehen erst zur Laufzeit"
+    "adapterstatus": "Zeilen entstehen erst zur Laufzeit",
+    "devicecard": "Höhe ergibt sich aus den Kindern (wie group, groupRows)"
   }
 }

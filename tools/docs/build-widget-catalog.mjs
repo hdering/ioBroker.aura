@@ -104,6 +104,10 @@ const OPTION_SEED = {
         { key: 'showIcons', type: 'boolean', default: 'true', note: 'Icons stammen aus Bereich/Tab, nicht aus dem Widget' },
         { key: 'showLabels', type: 'boolean', default: 'true' },
     ],
+    geraetekarte: [
+        { key: 'datapoint', type: 'datapoint', default: '—', note: 'Grundlage der Platzhalter {{dp}} {{parent}} {{name}} der Kinder' },
+        { key: 'defId', type: 'string', default: 'neu', note: 'geteilter Aufbau: gleiche defId = gleiche Kinder' },
+    ],
     spiegel: [
         { key: 'targetWidgetId', type: 'string', default: '—', note: 'ID des Quell-Widgets; Inhalt, Titel und Werte kommen live von dort' },
         { key: 'transparent', type: 'boolean', default: 'false', note: 'Rahmen des Spiegels; beim Auswählen von der Quelle übernommen' },

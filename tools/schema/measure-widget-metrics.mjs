@@ -922,6 +922,7 @@ const SKIP = {
     image: 'Höhe folgt dem Bild',
     map: 'Karte füllt jede Höhe',
     group: 'Höhe ergibt sich aus den Kindern (groupRows)',
+    devicecard: 'Höhe ergibt sich aus den Kindern (wie group, groupRows)',
     panels: 'Höhe ergibt sich aus den Kindern',
     universal: 'Höhe ergibt sich aus den Kindern',
     mirror: 'spiegelt ein anderes Widget',

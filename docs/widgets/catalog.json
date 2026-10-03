@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-09-10",
+  "generatedAt": "2026-10-03",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -125,6 +125,30 @@
       "screenshots": {
         "hero": "assets/dimmer/runtime.png",
         "config": "assets/dimmer/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "countdown",
+      "slug": "countdown",
+      "label": "Countdown",
+      "group": "control",
+      "hint": "Restzeit hh:mm:ss mit Start/Pause/Stopp und ±-Tasten – läuft im Adapter und schaltet am Ende einen Datenpunkt.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default",
+        "compact",
+        "custom"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/countdown/runtime.png",
+        "config": "assets/countdown/config.png",
         "shots": {}
       }
     },
@@ -1868,6 +1892,41 @@
       "screenshots": {
         "hero": "assets/spiegel/runtime.png",
         "config": "assets/spiegel/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "devicecard",
+      "slug": "geraetekarte",
+      "label": "Gerätekarte",
+      "group": "layout",
+      "hint": "Einmal aufbauen, für viele gleiche Geräte verwenden – nur der Datenpunkt ist je Karte verschieden. Änderungen am Aufbau gelten für alle Karten.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 7
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [
+        {
+          "key": "datapoint",
+          "type": "datapoint",
+          "default": "—",
+          "note": "Grundlage der Platzhalter {{dp}} {{parent}} {{name}} der Kinder"
+        },
+        {
+          "key": "defId",
+          "type": "string",
+          "default": "neu",
+          "note": "geteilter Aufbau: gleiche defId = gleiche Kinder"
+        }
+      ],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/geraetekarte/runtime.png",
+        "config": "assets/geraetekarte/config.png",
         "shots": {}
       }
     }

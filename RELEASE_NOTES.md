@@ -14,3 +14,4 @@
 - Shutter - quick-select buttons for fixed positions, optionally with a slat angle (#745)
 - Datapoint picker - the setpoint, humidity and pressure fields of the climate widget (and the battery fill and panel fields) now open the picker on their own datapoint instead of the temperature (#746)
 - Colors - every widget color can be taken from a datapoint: enter {id} or [[id]] in the color picker, also as the light or dark half of a pair (e.g. WLED colors for icons) (#747)
+- New widget "Device card" - build a card once with {{dp}}/{{parent}} placeholders and reuse it for any number of identical devices; copies share the layout, so a change applies to all cards, and linked cards get the same colored frame in the editor (#743)

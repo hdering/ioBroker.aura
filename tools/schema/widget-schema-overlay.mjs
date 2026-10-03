@@ -178,6 +178,19 @@ export const KEY_DESCRIPTIONS = {
 
 /** Per-widget prose for a key the generator already found. */
 export const WIDGET_OPTION_NOTES = {
+    group: {
+        autoShrink: {
+            description:
+                'Die Gruppe schrumpft auf ihre sichtbaren Kinder, wenn eine Bedingung Kinder ausblendet ' +
+                '(„ausblenden + nachrücken“). Aus = Höhe folgt allen Kindern.',
+        },
+        mobileLayout: {
+            enum: ['stack', 'keep'],
+            description:
+                'Smartphone: "stack" (Standard) stapelt die Kinder untereinander, "keep" behält das Raster ' +
+                'verkleinert bei.',
+        },
+    },
     jsontable: {
         sortRules: {
             description:
@@ -1131,6 +1144,11 @@ const AUTO_HEIGHT_OPTION = { autoHeight: { type: 'boolean', default: false } };
  * Keys the readers cannot see. Group and panels keep their children in a
  * separate store, so the component never reads them off `options`.
  */
+export const OPTION_INHERITS = {
+    // DeviceCardWidget renders GroupWidget — every group option works on a card (#743).
+    devicecard: 'group',
+};
+
 export const EXTRA_OPTIONS = {
     list: { ...AUTO_HEIGHT_OPTION },
     autolist: { ...AUTO_HEIGHT_OPTION },
@@ -1210,6 +1228,16 @@ export const EXTRA_OPTIONS = {
         defId: {
             type: 'string',
             description: 'Verweis auf die Kinderliste je Panel-Slide, analog zum Gruppen-Widget.',
+        },
+    },
+    devicecard: {
+        defId: {
+            type: 'string',
+            description:
+                'Verweis auf den Aufbau (Kinderliste) in aura-group-defs — wie bei group, aber GETEILT: jede ' +
+                'Gerätekarte mit derselben defId zeigt dieselben Kinder, nur mit ihrem eigenen Datenpunkt. Für ' +
+                'ein weiteres gleiches Gerät eine Karte mit derselben defId und anderem `datapoint` anlegen, ' +
+                'ohne groupDefs. Eine neue defId nur für einen neuen Aufbau (dann mit groupDefs).',
         },
     },
 

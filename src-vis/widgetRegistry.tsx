@@ -61,6 +61,7 @@ import {
     CopyPlus,
     Menu,
     BellRing,
+    IdCard,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType, ConditionSlot } from './types';
@@ -504,6 +505,22 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'layout',
         mock: { t: 'Gruppe', v: '' },
         hint: 'Mehrere Widgets in einem gemeinsamen Rahmen gruppieren',
+    },
+    {
+        // A group whose children resolve {{dp}} & co. against the card's own
+        // datapoint and are shared by every copy of the card (#743).
+        type: 'devicecard',
+        label: 'Gerätekarte',
+        shortLabel: 'Gerätekarte',
+        Icon: IdCard,
+        iconName: 'IdCard',
+        color: '#8b5cf6',
+        defaultW: 12,
+        defaultH: 7,
+        addMode: 'free',
+        widgetGroup: 'layout',
+        mock: { t: 'Gerätekarte', v: '' },
+        hint: 'Einmal aufbauen, für viele gleiche Geräte verwenden – nur der Datenpunkt ist je Karte verschieden. Änderungen am Aufbau gelten für alle Karten',
     },
     {
         type: 'button',

@@ -326,6 +326,17 @@ function installScreenshotApi(): void {
             withSuppressedDirty(() => useGroupDefsStore.setState({ defs, hydrated: true }));
         },
 
+        /** The STORED children of one group def — what an edit inside a group or a
+         *  device card wrote back, placeholders and all (#743). */
+        groupDefChildren(defId: string): WidgetConfig[] | null {
+            return useGroupDefsStore.getState().defs[defId] ?? null;
+        },
+
+        /** Every stored group def id — tells a detached device card's fresh def apart. */
+        groupDefIds(): string[] {
+            return Object.keys(useGroupDefsStore.getState().defs);
+        },
+
         /** Turn on fabricated history so chart/echart widgets render curves
          *  (pass false to restore the real getHistory path). */
         enableHistory(on = true): void {

@@ -45,7 +45,9 @@ const UNIVERSAL = ['conditions', 'badges', 'clickAction', 'transparent', 'transp
  * key has to be checked.
  */
 function readsOption(src, key) {
-    for (const prefix of ['config.options?.', 'config.options.']) {
+    // `baseConfig` is the frame's config after the render transform (popup-view
+    // preview, device card #743) - conditions and badges are read off it.
+    for (const prefix of ['config.options?.', 'config.options.', 'baseConfig.options?.']) {
         const needle = prefix + key;
         for (let i = src.indexOf(needle); i >= 0; i = src.indexOf(needle, i + 1)) {
             const after = src[i + needle.length];

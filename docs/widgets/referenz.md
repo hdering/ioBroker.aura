@@ -10,6 +10,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | --- | --- | --- | --- |
 | [Rollladen](./rollladen) | `shutter` | `default` · `compact` · `minimal` · `custom` | 9×6 |
 | [Dimmer](./dimmer) | `dimmer` | `default` · `compact` · `minimal` · `custom` | 11×6 |
+| [Countdown](./countdown) | `countdown` | `default` · `compact` · `custom` | 12×6 |
 | [Schieberegler](./schieberegler) | `slider` | `default` · `custom` | 11×5 |
 | [Thermostat](./thermostat) | `thermostat` | `default` · `compact` · `minimal` · `dial` · `custom` | 11×7 |
 | [Wert-Anzeige](./wert-anzeige) | `value` | `default` · `card` · `compact` · `minimal` · `custom` | 11×5 |
@@ -68,6 +69,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Panels](./panels) | `panels` | `default` | 12×6 |
 | [Menü](./menue) | `menu` | `default` | 12×2 |
 | [Spiegel](./spiegel) | `mirror` | `default` | 8×4 |
+| [Gerätekarte](./geraetekarte) | `devicecard` | `default` | 12×7 |
 
 ## Detaillierte Optionen
 
@@ -161,6 +163,13 @@ Bislang formal erfasst (weitere folgen; alle Optionen stehen auf der jeweiligen 
 | `transparent` | `boolean` | `false` | Rahmen des Spiegels; beim Auswählen von der Quelle übernommen |
 | `transparency` | `number` | `—` | wie transparent |
 | `styleOverride` | `Record<string,string>` | `—` | wie transparent |
+
+### Gerätekarte `devicecard`
+
+| Option | Typ | Standard | |
+| --- | --- | --- | --- |
+| `datapoint` | `datapoint` | `—` | Grundlage der Platzhalter {{dp}} {{parent}} {{name}} der Kinder |
+| `defId` | `string` | `neu` | geteilter Aufbau: gleiche defId = gleiche Kinder |
 
 ## Querschnitts-Optionen
 

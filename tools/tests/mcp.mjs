@@ -3620,7 +3620,8 @@ check('every recipe validates against the real widget schema', () => {
     // schema moves under them — a renamed option has to fail here, not in a user's
     // dashboard.
     for (const recipe of RECIPES) {
-        for (const widget of recipe.widgets) {
+        const children = Object.values(recipe.groupDefs ?? {}).flat();
+        for (const widget of [...recipe.widgets, ...children]) {
             const { errors, warnings } = validateWidget(widget, schema, {});
             assert.deepEqual(errors, [], `${recipe.id}/${widget.id}: ${errors.join(' | ')}`);
             assert.deepEqual(warnings, [], `${recipe.id}/${widget.id}: ${warnings.join(' | ')}`);
@@ -3656,6 +3657,7 @@ check('a recipe carries no datapoint id that could pass for a real one', () => {
     };
     for (const recipe of RECIPES) {
         walk(recipe.widgets, recipe.id);
+        walk(recipe.groupDefs ?? {}, recipe.id);
         // Entry ids of a static list ARE the datapoint, so they fall under the same rule.
         for (const widget of recipe.widgets) {
             for (const entry of widget.options?.entries ?? []) {

@@ -94,7 +94,8 @@ export type WidgetType =
     | 'energiebilanz'
     | 'mirror'
     | 'menu'
-    | 'messages';
+    | 'messages'
+    | 'devicecard';
 
 /**
  * Every layout any widget offers. `segments` / `wave` / `bar` belong to the fill
