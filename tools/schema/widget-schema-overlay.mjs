@@ -820,7 +820,11 @@ export const WIDGET_OPTION_NOTES = {
         echartCurrentAlign: { description: 'Ausrichtung des Aktuell-Blocks.' },
         echartShowValues: { description: 'Werte an den Datenpunkten beschriften.' },
         echartShowStackPercent: { description: 'Bei gestapelten Reihen zusätzlich den Prozentanteil beschriften.' },
-        echartShowLegend: { description: 'Legende anzeigen.' },
+        echartShowLegend: {
+            description:
+                'Legende anzeigen; ein Klick auf einen Eintrag blendet die Reihe aus. Im Modus comparison ' +
+                'standardmäßig aus (die Balken stehen dort schon an der x-Achse).',
+        },
         echartShowGridLines: { description: 'Gitternetz einzeichnen.' },
         echartAnimation: { description: 'Übergänge animieren.' },
         echartShowXAxis: { description: 'X-Achse anzeigen.' },

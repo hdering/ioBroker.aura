@@ -135,7 +135,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const isComparison = echartMode === 'comparison';
     const isJson = echartMode === 'json';
     const jsonTimeAxis = (o.echartJsonTimeAxis as boolean | undefined) ?? false;
-    const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
+    const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? !isComparison;
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     const echartShowYAxisRight = (o.echartShowYAxisRight as boolean | undefined) ?? true;
     // The right-axis switch only means something once a series actually sits on that axis.

@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Editor - saving no longer closes the "Edit widget" dialog on a tab in a PIN-protected section (#740)
 - Groups - "Fit height to content" now works for widgets inside a group; the group grows and shrinks with the list (#741)
+- Advanced chart - comparison mode can show a legend; clicking an entry hides that bar (#742)

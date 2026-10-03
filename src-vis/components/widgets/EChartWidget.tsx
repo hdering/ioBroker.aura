@@ -201,7 +201,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     /** The unfilled part of the gauge arc. */
     const onCanvasTrack = trackColor ?? '#333';
 
-    const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
+    // Comparison mode names its bars on the x axis, so it only draws a legend when asked to (issue #742).
+    const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? o.echartMode !== 'comparison';
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
     const echartLeftMin = o.echartLeftMin as number | string | undefined;
@@ -845,14 +846,21 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Comparison mode: categorical bar chart — each series = one bar with its current value
     if (echartMode === 'comparison') {
         const categories = echartSeries.map((s) => s.name);
-        // One bar per series, so the per-series label switch has to sit on the data item — the
-        // series-level label below covers all bars at once (issue #584).
-        const values = echartSeries.map((s, idx) => ({
-            value: seriesCurrent(idx, s.id),
+        const values = echartSeries.map((s, idx) => seriesCurrent(idx, s.id));
+        const hasData = values.some((v) => v !== null);
+        // Every series is an echarts series of its own that only fills its own category, so the
+        // legend can switch single bars off (issue #742). One shared stack keeps each bar centred
+        // and full width in its slot instead of squeezing n bars side by side.
+        const compSeries = echartSeries.map((s, idx) => ({
+            type: 'bar',
+            name: s.name,
+            stack: 'comparison',
             itemStyle: { color: colorAt(idx) },
+            data: values.map((v, i) => (i === idx ? v : null)),
             label: valueLabel(echartLeftUnit, { series: s }),
+            labelLayout: valueLabelLayout,
         }));
-        const hasData = values.some((v) => v.value !== null);
+        const compLegendNames = echartSeries.map((s) => s.name);
 
         const compOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
@@ -863,23 +871,31 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 borderColor: 'var(--app-border, #333)',
                 textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
                 formatter: (params: unknown) => {
-                    const items = params as { name: string; value: number; marker: string; dataIndex: number }[];
-                    if (!items?.length) return '';
-                    return items
-                        .map((p) => {
-                            // One bar per series: the data index IS the series index.
-                            const dispVal =
-                                typeof p.value === 'number' ? fmtSeries(p.value, echartSeries[p.dataIndex]) : p.value;
-                            return `${p.marker} ${p.name}: <b>${dispVal}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}</b>`;
-                        })
-                        .join('<br/>');
+                    const items = params as {
+                        seriesName: string;
+                        value: number | null;
+                        marker: string;
+                        seriesIndex: number;
+                    }[];
+                    // Every category holds one bar; the other series sit there as empty items.
+                    const p = items?.find((it) => it.value !== null && it.value !== undefined);
+                    if (!p) return '';
+                    const dispVal =
+                        typeof p.value === 'number' ? fmtSeries(p.value, echartSeries[p.seriesIndex]) : p.value;
+                    return `${p.marker} ${p.seriesName}: <b>${dispVal}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}</b>`;
                 },
             },
-            legend: { show: false },
+            legend: echartShowLegend
+                ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: LEGEND_TOP }
+                : { show: false },
             grid: {
                 left: AXIS_GAP,
                 right: AXIS_GAP,
-                top: labelsAbove ? valueLabelGridTop(16, false) : 16,
+                top: echartShowLegend
+                    ? gridTop(compLegendNames, true)
+                    : labelsAbove
+                      ? valueLabelGridTop(16, false)
+                      : 16,
                 bottom: AXIS_GAP_V,
                 containLabel: true,
             },
@@ -906,14 +922,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 ...(leftMin !== undefined ? { min: leftMin } : {}),
                 ...(leftMax !== undefined ? { max: leftMax } : {}),
             },
-            series: [
-                {
-                    type: 'bar',
-                    data: values,
-                    label: valueLabel(echartLeftUnit),
-                    labelLayout: valueLabelLayout,
-                },
-            ],
+            series: compSeries,
         };
 
         let mergedComp = compOption;
