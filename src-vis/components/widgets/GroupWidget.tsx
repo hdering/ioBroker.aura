@@ -30,7 +30,9 @@ import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
-import { GROUP_GAP, groupRowHeight, groupRows } from '../../utils/groupLayout';
+import { GROUP_GAP, groupRowHeight, groupRows, withContentHeights } from '../../utils/groupLayout';
+import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
+import { usesContentAutoHeight } from '../../utils/autoHeight';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import { copyWidget } from '../../utils/widgetCopy';
@@ -100,9 +102,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // 'vertical' there and would draw them packed anyway — reading the stored
     // positions for the fill maths made the editor disagree with the frontend
     // about the group's height as soon as anything sat below a gap (#680).
+    // Children with content auto-height (#741) run on the row count derived from
+    // their measured content — see withContentHeights.
+    const groupSettings = useEffectiveSettings(useActiveLayoutId());
+    const cellSize = groupSettings.gridRowHeight ?? 20;
+    const gridGap = groupSettings.gridGap ?? 10;
+    const widgetPad = groupSettings.widgetPadding ?? 16;
+    const contentHeights = useAutoHeightStore((s) => s.heights);
+    const sized = withContentHeights(children, contentHeights, widgetPad, cellSize, gridGap);
     const gridChildren = !editMode
-        ? verticalCompact(children.filter((c) => !reflowHiddenIds.has(c.id)))
-        : verticalCompact(children);
+        ? verticalCompact(sized.filter((c) => !reflowHiddenIds.has(c.id)))
+        : verticalCompact(sized);
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
     // autoShrink groups keep their own scroll-based height logic and the classic
@@ -134,9 +144,6 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // global value was unset, where the old 80px fallback was 4x the real pitch):
     // the box was sized for one pitch and the children laid out on another, so
     // the group overflowed and showed its inner scrollbar.
-    const groupSettings = useEffectiveSettings(useActiveLayoutId());
-    const cellSize = groupSettings.gridRowHeight ?? 20;
-    const gridGap = groupSettings.gridGap ?? 10;
     const dashboardIsMobile = useDashboardMobile();
     const gridScale = useGridScale();
     const [isDragOver, setIsDragOver] = useState(false);
@@ -326,7 +333,8 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const computeH = (next: WidgetConfig[]) => {
         if (next.length === 0) return config.gridPos.h;
         // Packed, like the grid draws them — see gridChildren (#680).
-        const maxBottom = Math.max(...verticalCompact(next).map((c) => c.gridPos.y + c.gridPos.h));
+        const fitted = withContentHeights(next, contentHeights, widgetPad, cellSize, gridGap);
+        const maxBottom = Math.max(...verticalCompact(fitted).map((c) => c.gridPos.y + c.gridPos.h));
         return groupRows(maxBottom, hasHeaderContent, showTitle && !!config.title, cellSize, gridGap);
     };
 
@@ -422,16 +430,20 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     opacity: 0,
                 }}
             >
-                {reflowHiddenChildren.map((c) => (
-                    <WidgetFrame
-                        key={c.id}
-                        config={c}
-                        editMode={false}
-                        onRemove={onRemove}
-                        onConfigChange={updateChild}
-                        inGroup
-                    />
-                ))}
+                {/* No content auto-height off-screen: the 1px box would report a
+                    meaningless height for a child that is hidden anyway. */}
+                <ContentAutoHeightBlockedContext.Provider value={true}>
+                    {reflowHiddenChildren.map((c) => (
+                        <WidgetFrame
+                            key={c.id}
+                            config={c}
+                            editMode={false}
+                            onRemove={onRemove}
+                            onConfigChange={updateChild}
+                            inGroup
+                        />
+                    ))}
+                </ContentAutoHeightBlockedContext.Provider>
             </div>
         ) : null;
 
@@ -566,7 +578,12 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             {sorted.map((child) => (
                                 <div
                                     key={child.id}
-                                    style={{ height: child.gridPos.h * cellSize + (child.gridPos.h - 1) * gridGap }}
+                                    // An auto-height child takes its natural height in the stack.
+                                    style={
+                                        usesContentAutoHeight(child)
+                                            ? undefined
+                                            : { height: child.gridPos.h * cellSize + (child.gridPos.h - 1) * gridGap }
+                                    }
                                 >
                                     <WidgetFrame
                                         config={child}
@@ -591,7 +608,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const layout = gridChildren.map((c) => {
         const x = Math.min(c.gridPos.x, cols - 1);
         const w = Math.min(c.gridPos.w, cols - x);
-        return { i: c.id, x, y: c.gridPos.y, w, h: c.gridPos.h };
+        // An auto-height child's rows are derived (#741): pin them so the editor
+        // only resizes its width, like the same widget on the tab.
+        const lock = editMode && usesContentAutoHeight(c) ? { minH: c.gridPos.h, maxH: c.gridPos.h } : {};
+        return { i: c.id, x, y: c.gridPos.y, w, h: c.gridPos.h, ...lock };
     });
 
     return (
@@ -649,15 +669,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             const updated = children.map((c) => {
                                 const pos = newLayout.find((l) => l.i === c.id);
                                 if (!pos) return c;
+                                // A derived (auto-height) h is never written back.
+                                const h = usesContentAutoHeight(c) ? c.gridPos.h : pos.h;
                                 if (
                                     pos.x === c.gridPos.x &&
                                     pos.y === c.gridPos.y &&
                                     pos.w === c.gridPos.w &&
-                                    pos.h === c.gridPos.h
+                                    h === c.gridPos.h
                                 )
                                     return c;
                                 changed = true;
-                                return { ...c, gridPos: { x: pos.x, y: pos.y, w: pos.w, h: pos.h } };
+                                return { ...c, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                             });
                             if (changed) {
                                 setChildren(updated);
@@ -670,15 +692,17 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             const updated = children.map((c) => {
                                 const pos = newLayout.find((l) => l.i === c.id);
                                 if (!pos) return c;
+                                // A derived (auto-height) h is never written back.
+                                const h = usesContentAutoHeight(c) ? c.gridPos.h : pos.h;
                                 if (
                                     pos.x === c.gridPos.x &&
                                     pos.y === c.gridPos.y &&
                                     pos.w === c.gridPos.w &&
-                                    pos.h === c.gridPos.h
+                                    h === c.gridPos.h
                                 )
                                     return c;
                                 changed = true;
-                                return { ...c, gridPos: { x: pos.x, y: pos.y, w: pos.w, h: pos.h } };
+                                return { ...c, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                             });
                             if (changed) {
                                 setChildren(updated);

@@ -38,7 +38,7 @@ export const KEY_DESCRIPTIONS = {
     colorThresholds: 'Schwellenwerte, die den Wert je nach Höhe einfärben.',
     autoHeight:
         'Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird ' +
-        'dann ignoriert. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count) und nicht als Kind einer Gruppe. Adapter-Logs: ' +
+        'dann ignoriert – auch als Kind einer Gruppe, die dann mitwächst. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count). Adapter-Logs: ' +
         'Höhe wächst bis visibleLimit Zeilen.',
     confirmAction: 'Vor dem Schalten eine Rückfrage anzeigen.',
     confirmText: 'Text der Rückfrage. Leer = Standardtext.',

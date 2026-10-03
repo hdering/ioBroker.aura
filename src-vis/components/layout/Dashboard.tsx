@@ -34,7 +34,7 @@ import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
-import { groupRows } from '../../utils/groupLayout';
+import { groupRows, withContentHeights } from '../../utils/groupLayout';
 import { flowBands, flowModeFor } from '../../utils/flowOrder';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridScaleContext } from '../../contexts/GridScaleContext';
@@ -953,7 +953,16 @@ export function Dashboard({
                                                 const defId = isGroup
                                                     ? (gw.options?.defId as string | undefined)
                                                     : undefined;
-                                                const groupChildren = defId ? (groupDefs[defId] ?? []) : [];
+                                                // Auto-height children run on their measured rows (#741).
+                                                const groupChildren = defId
+                                                    ? withContentHeights(
+                                                          groupDefs[defId] ?? [],
+                                                          autoHeights,
+                                                          widgetPadding,
+                                                          cellSize,
+                                                          MARGIN,
+                                                      )
+                                                    : [];
 
                                                 // A non-autoShrink group hugs its children (equal GROUP_GAP spacing on
                                                 // all sides, no trailing row) in both views — see groupRows / GroupWidget.

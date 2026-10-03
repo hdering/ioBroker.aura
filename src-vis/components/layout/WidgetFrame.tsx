@@ -47,7 +47,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge, getTabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
-import { groupRows } from '../../utils/groupLayout';
+import { groupRows, withContentHeights } from '../../utils/groupLayout';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { supportsAutoHeight } from '../../utils/autoHeight';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
@@ -6607,9 +6607,10 @@ function WidgetFrameInner({
     // types that must stay clickable while designing — a group and a panel
     // stack hold child widgets that have to remain selectable and draggable.
     const editorLock = useAdminPrefsStore((s) => s.lockWidgets) && editMode;
-    // Content auto-height is off inside a group, and wherever an outer container
-    // (popup view) already switched it off.
-    const autoHeightBlocked = useContext(ContentAutoHeightBlockedContext) || !!inGroup;
+    // Content auto-height is off wherever an outer container (popup view) already
+    // switched it off. Inside a group it works: the group derives the child's rows
+    // from the measured height (utils/groupLayout withContentHeights, #741).
+    const autoHeightBlocked = useContext(ContentAutoHeightBlockedContext);
     const pointerLocked = editorLock && !LOCK_PASSTHROUGH_TYPES.has(config.type);
     useEffect(() => {
         if (!isFocused) return;
@@ -7409,7 +7410,14 @@ function WidgetFrameInner({
         if (!groupDefId || groupChildren.length === 0) return;
         // The explicit way back to the hug after a stretch (#680) — packed, like the
         // grid draws the children and like Dashboard / GroupWidget measure them.
-        const maxBottom = Math.max(...verticalCompact(groupChildren).map((c) => c.gridPos.y + c.gridPos.h));
+        const fitted = withContentHeights(
+            groupChildren,
+            useAutoHeightStore.getState().heights,
+            effectiveSettings.widgetPadding ?? 16,
+            groupCellSize,
+            groupGridGap,
+        );
+        const maxBottom = Math.max(...verticalCompact(fitted).map((c) => c.gridPos.y + c.gridPos.h));
         const hasHeader = !isHeaderlessGroup;
         const titled = config.options?.showTitle !== false && !!config.title;
         const newH = groupRows(
@@ -9323,9 +9331,9 @@ function WidgetFrameInner({
                                                 </div>
                                             );
                                         })()}
-                                    {/* Fit height to content (utils/autoHeight AUTO_HEIGHT_TYPES). Not
-                                        inside a group: its children are laid out on the group's pitch. */}
-                                    {supportsAutoHeight(config.type, config.layout) && !inGroup && (
+                                    {/* Fit height to content (utils/autoHeight AUTO_HEIGHT_TYPES). In a
+                                        group too: the group sizes the child from it (#741). */}
+                                    {supportsAutoHeight(config.type, config.layout) && (
                                         <>
                                             <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                             <div className="flex items-center justify-between">

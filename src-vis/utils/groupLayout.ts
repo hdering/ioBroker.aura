@@ -1,3 +1,6 @@
+import type { WidgetConfig } from '../types';
+import { usesContentAutoHeight } from './autoHeight';
+
 // Shared layout math for group widgets.
 //
 // A group's children live on the outer grid pitch, but the group also wants a
@@ -72,4 +75,43 @@ export function groupRows(
     // Smallest whole row count that covers the content: P(h) = h*cellSize +
     // (h-1)*margin, so h = ceil((content+margin)/pitch) gives P(h) >= contentPx.
     return Math.max(1, Math.ceil((contentPx + margin) / (cellSize + margin)));
+}
+
+/**
+ * Group children with "Höhe automatisch an Inhalt anpassen" (#741): the child
+ * reports its content px to autoHeightStore like on the tab, and its row count on
+ * the group's inner grid is derived from that instead of the stored gridPos.h.
+ * Every place that lays the children out or sizes the group box (GroupWidget,
+ * Dashboard's hug, the group panel's fit) runs on these derived rows, so the
+ * group grows and shrinks with the list. Without a measurement yet (first paint,
+ * popup cells, condition-hidden children) the stored h stays.
+ *
+ * @param children the group's children
+ * @param heights  autoHeightStore.heights (child id → content px)
+ * @param padding  widget padding (px) — the child's frame adds it top and bottom
+ * @param cellSize outer grid row height (px)
+ * @param margin   outer grid gap (px)
+ */
+export function withContentHeights(
+    children: WidgetConfig[],
+    heights: Record<string, number>,
+    padding: number,
+    cellSize: number,
+    margin: number,
+): WidgetConfig[] {
+    let changed = false;
+    const rowPx = groupRowHeight(cellSize, margin);
+    const next = children.map((c) => {
+        if (!usesContentAutoHeight(c)) return c;
+        const px = heights[c.id];
+        if (!px || px <= 0) return c;
+        // Frame chrome: padding top+bottom plus the 1px border on each side. A
+        // child of h rows is h·rowPx + (h-1)·GROUP_GAP tall.
+        const total = px + padding * 2 + 2;
+        const h = Math.max(1, Math.ceil((total + GROUP_GAP) / (rowPx + GROUP_GAP)));
+        if (h === c.gridPos.h) return c;
+        changed = true;
+        return { ...c, gridPos: { ...c.gridPos, h } };
+    });
+    return changed ? next : children;
 }
