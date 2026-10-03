@@ -10,3 +10,5 @@
 - Groups - "Fit height to content" now works for widgets inside a group; the group grows and shrinks with the list (#741)
 - Advanced chart - comparison mode can show a legend; clicking an entry hides that bar (#742)
 - Universal widget - a dropdown cell whose entries do not include the current value now shows a dash instead of the raw value (#744)
+
+- Shutter - quick-select buttons for fixed positions, optionally with a slat angle (#745)

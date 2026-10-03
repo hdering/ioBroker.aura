@@ -501,6 +501,13 @@ export const WIDGET_OPTION_NOTES = {
         reapplyTiltAfterMove: { description: 'Lamellen nach einer Fahrt erneut auf den eingestellten Wert setzen.' },
         buttonSize: { description: 'Größe der Auf/Stopp/Zu-Tasten in px.' },
         sliderHeight: { description: 'Höhe des Positionsreglers in px.' },
+        positionPresets: {
+            description:
+                'Schnellwahl-Tasten mit festen Positionen (#745), z. B. [{ pos: 30, label: "Beschattung", tilt: 50 }]. ' +
+                'pos liest sich wie die Anzeige (bei showClosedPercent also % geschlossen); tilt nur mit tiltDp, ' +
+                'leer = Lamellen bleiben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im ' +
+                'custom-Layout als Baustein "presets"; compact/minimal zeigen sie nicht.',
+        },
     },
     dimmer: {
         valueFactor: {

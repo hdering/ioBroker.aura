@@ -29,7 +29,7 @@ Eine Zeile mit Icon, Titel, Prozentwert und Tastenreihe — für Listen mit viel
 Auf-Taste, Prozentwert und Stop/Ab-Tasten zentriert — für sehr kleine Zellen.
 
 ### Custom
-Icon, Position, Status, Neigung und Auf-/Stop-/Ab-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Komponenten: `slider`, `tilt-slider-v`, `tilt-slider-h`, `btn-tilt`, `btn-tilt-open`, `btn-tilt-close`; Feld `tilt`.
+Icon, Position, Status, Neigung und Auf-/Stop-/Ab-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Komponenten: `slider`, `tilt-slider-v`, `tilt-slider-h`, `btn-tilt`, `btn-tilt-open`, `btn-tilt-close`, `presets`; Feld `tilt`.
 
 ## Einstellungen
 
@@ -62,6 +62,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `invertPosition` | `false` | Positionswert invertieren (`0`↔`100`) |
 | `sendOnRelease` | `true` | Regler-Wert erst beim Loslassen schreiben (sonst live) |
 | `positionLivePreview` | `false` | Grafik und Prozentwert folgen dem Positionsregler schon beim Ziehen |
+| `positionPresets` | — | Schnellwahl-Tasten unter dem Regler (Default-Layout, Custom-Komponente `presets`): Liste aus `pos` (%, gelesen wie die Anzeige), optional `label` und `tilt` (% Lamellen, nur mit `tiltDp`) |
 
 ### Lamellen / Neigung
 

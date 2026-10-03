@@ -122,6 +122,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-shutter-slider` | Rollladen-Regler |
 | `.aura-shutter-pos` | Positionswert in Prozent |
 | `.aura-shutter-tilt` / `.aura-widget-tilt` | Lamellenwert bzw. Lamellen-Block |
+| `.aura-shutter-presets` | Schnellwahl-Zeile des Rollladens (Tasten: `.aura-preset-button`, aktive mit `[aria-pressed="true"]`) |
 | `.aura-select-control` | Auswahlfeld |
 | `.aura-preset-button` | Voreinstellungs-Chip |
 | `.aura-state-display` | Status-Pille |

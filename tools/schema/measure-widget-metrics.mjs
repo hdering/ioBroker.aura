@@ -901,6 +901,15 @@ const MIN_MODIFIERS = {
             options: { presets: [300, 900, 3600] },
         },
     ],
+    // Same for the shutter's quick-select row under the slider (#745).
+    shutter: [
+        {
+            key: 'positionPresets',
+            label: 'Schnellwahl-Tasten (positionPresets)',
+            when: { path: 'positionPresets', nonEmpty: true },
+            options: { positionPresets: [{ pos: 0 }, { pos: 50 }, { pos: 100 }] },
+        },
+    ],
 };
 
 /**

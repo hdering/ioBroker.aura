@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useMemo, useState } from 're
 import { ChevronUp, ChevronDown, Square, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import type { WidgetProps } from '../../types';
+import type { ShutterPreset, WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { StatusBadges } from './StatusBadges';
@@ -88,6 +88,25 @@ function BtnRow({
             {extra}
         </div>
     );
+}
+
+/** Valid presets only; a bare number (as an AI might write it) counts as `{ pos }`. */
+function readPresets(raw: unknown): ShutterPreset[] {
+    if (!Array.isArray(raw)) return [];
+    const out: ShutterPreset[] = [];
+    const num = (v: unknown) => (v === '' || v === null || v === undefined ? NaN : Number(v));
+    for (const item of raw) {
+        const p: Partial<ShutterPreset> = typeof item === 'number' ? { pos: item } : (item ?? {});
+        const pos = num(p.pos);
+        if (!Number.isFinite(pos)) continue;
+        const tilt = num(p.tilt);
+        out.push({
+            pos: clampPct(pos),
+            label: typeof p.label === 'string' ? p.label : undefined,
+            tilt: Number.isFinite(tilt) ? clampPct(tilt) : undefined,
+        });
+    }
+    return out;
 }
 
 export function ShutterWidget({ config }: WidgetProps) {
@@ -190,18 +209,18 @@ export function ShutterWidget({ config }: WidgetProps) {
     useEffect(() => () => window.clearTimeout(reapplyTimerRef.current), []);
 
     /** Remember the wanted slat angle and, without an activity DP, re-send it later. */
-    const keepTiltAcrossMove = () => {
+    const keepTiltAcrossMove = (wanted?: number) => {
         if (!tiltActive) return;
-        preMoveTiltRef.current = dragTilt ?? tiltPct;
+        preMoveTiltRef.current = wanted ?? dragTilt ?? tiltPct;
         if (!reapplyTilt || hasActivityDp) return;
         const target = preMoveTiltRef.current;
         window.clearTimeout(reapplyTimerRef.current);
         reapplyTimerRef.current = window.setTimeout(() => writeTiltRaw(target), 3000);
     };
 
-    const writePos = (p: number) => {
+    const writePos = (p: number, wantedTilt?: number) => {
         preMoveRawRef.current = rawPos; // snapshot before command
-        keepTiltAcrossMove();
+        keepTiltAcrossMove(wantedTilt);
         const raw = (opts.invertPosition as boolean) ? 100 - p : p;
         setValue(raw);
     };
@@ -293,6 +312,56 @@ export function ShutterWidget({ config }: WidgetProps) {
         writeTilt(clampPct(v));
     };
     const stepTilt = (dir: 1 | -1) => pickTilt(Math.round(tiltSliderPct + dir * tiltStep));
+
+    // ── Quick-select presets ──────────────────────────────────────────────────
+    // A preset's percentage reads like the displayed one, so "30" means what the
+    // widget would show as 30 % — closed or open, depending on showClosedPercent.
+    const presets = useMemo(() => readPresets(opts.positionPresets), [opts.positionPresets]);
+    const applyPreset = (p: ShutterPreset) => {
+        setDragPos(null);
+        const tilt = tiltActive ? p.tilt : undefined;
+        // Slats first: HmIP blinds expect LEVEL_2 before LEVEL and then drive
+        // both in one go. Actuators that reset the slats on a drive are covered
+        // by reapplyTiltAfterMove, which now holds the preset's angle.
+        if (tilt !== undefined) {
+            setDragTilt(null);
+            writeTiltRaw(tilt);
+        }
+        writePos(showClosedPercent ? 100 - p.pos : p.pos, tilt);
+    };
+    const presetActive = (p: ShutterPreset) =>
+        Math.abs((showClosedPercent ? 100 - pos : pos) - p.pos) < 1 &&
+        (!tiltActive || p.tilt === undefined || Math.abs(tiltPct - p.tilt) < 2);
+    const presetRow =
+        presets.length > 0 ? (
+            <div
+                className="aura-widget-action aura-shutter-presets nodrag flex gap-1 flex-wrap"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {presets.map((p, i) => {
+                    const active = !isMoving && presetActive(p);
+                    const pctText = `${Math.round(p.pos)}%`;
+                    return (
+                        <button
+                            key={i}
+                            onClick={() => applyPreset(p)}
+                            title={
+                                (p.label ? `${p.label}: ${pctText}` : pctText) +
+                                (tiltActive && p.tilt !== undefined ? ` · ${tiltLabel} ${Math.round(p.tilt)}%` : '')
+                            }
+                            aria-pressed={active}
+                            className="aura-preset-button px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80 active:scale-95 transition-all"
+                            style={{
+                                background: active ? 'var(--accent)' : 'var(--app-border)',
+                                color: active ? '#fff' : 'var(--text-primary)',
+                            }}
+                        >
+                            {p.label || pctText}
+                        </button>
+                    );
+                })}
+            </div>
+        ) : null;
 
     const customIconName = opts.icon as string | undefined;
     const CustomIcon = customIconName ? getWidgetIcon(customIconName, Square) : null;
@@ -525,6 +594,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                                 <ChevronsDownUp size={buttonSize} />
                             </button>
                         ) : null,
+                        presets: presetRow,
                         'battery-icon': batteryIcon,
                         'reach-icon': reachIcon,
                         'status-badges': statusBadges,
@@ -746,10 +816,11 @@ export function ShutterWidget({ config }: WidgetProps) {
                         />
                         {tiltSliderSide === 'right' && tiltColumn}
                     </div>
-                    {(showValue || showSlider || tiltControl === 'slider-h' || tiltBottom) &&
+                    {(showValue || showSlider || tiltControl === 'slider-h' || tiltBottom || presetRow) &&
                         (() => {
-                            // Reserve right space on the slider row so the bottom-right StatusBadges don't overlap the slider thumb at 100%.
-                            const hasSlider = showSlider || tiltControl === 'slider-h';
+                            // Reserve right space on the slider row so the bottom-right StatusBadges don't overlap the slider thumb at 100%
+                            // (or the last preset button).
+                            const hasSlider = showSlider || tiltControl === 'slider-h' || !!presetRow;
                             return (
                                 <div style={hasSlider && badgesWidth > 0 ? { paddingRight: badgesWidth } : undefined}>
                                     {showValue && (
@@ -795,6 +866,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                                             )}
                                         </div>
                                     )}
+                                    {presetRow && <div className="mt-2">{presetRow}</div>}
                                 </div>
                             );
                         })()}

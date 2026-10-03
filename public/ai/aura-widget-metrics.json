@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-02",
+    "measured": "2026-10-03",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1815,6 +1815,18 @@
       "fontScalePx": 40,
       "atWidthPx": 160,
       "modifiers": [
+        {
+          "key": "positionPresets",
+          "label": "Schnellwahl-Tasten (positionPresets)",
+          "when": {
+            "path": "positionPresets",
+            "nonEmpty": true
+          },
+          "basePx": 60,
+          "fontScalePx": {
+            "basePx": 26.7
+          }
+        },
         {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",

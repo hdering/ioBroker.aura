@@ -130,6 +130,7 @@ import type {
     WidgetType,
     ClickAction,
     WidgetLayout,
+    ShutterPreset,
 } from '../../types';
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
 import {
@@ -16804,6 +16805,108 @@ function WidgetFrameInner({
                                                 </div>
                                             </>
                                         )}
+
+                                        {/* ── Schnellwahl (#745) ──────────────────────────────────── */}
+                                        {(() => {
+                                            const list = Array.isArray(o.positionPresets)
+                                                ? (o.positionPresets as ShutterPreset[])
+                                                : [];
+                                            const setList = (next: ShutterPreset[]) =>
+                                                setO({ positionPresets: next.length ? next : undefined });
+                                            const patch = (i: number, p: Partial<ShutterPreset>) =>
+                                                setList(list.map((x, j) => (j === i ? { ...x, ...p } : x)));
+                                            const numIn = (
+                                                value: number | undefined,
+                                                onNum: (v: number | undefined) => void,
+                                                ph: string,
+                                                title: string,
+                                            ) => (
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    max={100}
+                                                    step={1}
+                                                    value={value ?? ''}
+                                                    placeholder={ph}
+                                                    title={title}
+                                                    onChange={(e) =>
+                                                        onNum(
+                                                            e.target.value === '' ? undefined : Number(e.target.value),
+                                                        )
+                                                    }
+                                                    className="w-14 shrink-0 text-xs rounded-lg px-1.5 py-1.5 focus:outline-none tabular-nums"
+                                                    style={sInputStyle}
+                                                />
+                                            );
+                                            return (
+                                                <div
+                                                    className="pt-2 mt-1 space-y-1.5"
+                                                    style={{ borderTop: '1px solid var(--app-border)' }}
+                                                >
+                                                    <label
+                                                        className="text-[11px] font-medium block"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                    >
+                                                        Schnellwahl
+                                                    </label>
+                                                    {list.map((p, i) => (
+                                                        <div key={i} className="flex items-center gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={p.label ?? ''}
+                                                                placeholder="Name"
+                                                                onChange={(e) =>
+                                                                    patch(i, { label: e.target.value || undefined })
+                                                                }
+                                                                className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                                                style={sInputStyle}
+                                                            />
+                                                            {numIn(
+                                                                p.pos,
+                                                                (v) => patch(i, { pos: v ?? 0 }),
+                                                                '%',
+                                                                'Position in %',
+                                                            )}
+                                                            {tiltOn &&
+                                                                numIn(
+                                                                    p.tilt,
+                                                                    (v) => patch(i, { tilt: v }),
+                                                                    'Lam.',
+                                                                    'Lamellen in % (leer = unverändert)',
+                                                                )}
+                                                            <button
+                                                                onClick={() => setList(list.filter((_, j) => j !== i))}
+                                                                className="p-1 rounded hover:opacity-70 shrink-0"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                                title="Entfernen"
+                                                            >
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => setList([...list, { pos: 50 }])}
+                                                        className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] hover:opacity-80"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-secondary)',
+                                                            border: '1px dashed var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <Plus size={12} /> Schnellwahl hinzufügen
+                                                    </button>
+                                                    <p className="text-[10px]" style={hint}>
+                                                        Tasten mit festen Positionen. Der Prozentwert gilt wie die
+                                                        Anzeige
+                                                        {(o.showClosedPercent ?? false)
+                                                            ? ' (% geschlossen)'
+                                                            : ' (% offen)'}
+                                                        {tiltOn ? '; Lamellen leer = Winkel bleibt.' : '.'} Sichtbar im
+                                                        Standard-Layout und als Baustein im eigenen Layout.
+                                                    </p>
+                                                </div>
+                                            );
+                                        })()}
 
                                         {/* Größen */}
                                         {(() => {

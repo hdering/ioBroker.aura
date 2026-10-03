@@ -113,6 +113,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'btn-tilt', label: 'Lamellen-Popover' },
         { key: 'btn-tilt-open', label: 'Lamellen öffnen' },
         { key: 'btn-tilt-close', label: 'Lamellen schließen' },
+        { key: 'presets', label: 'Schnellwahl' },
         { key: 'battery-icon', label: 'Batterie-Icon' },
         { key: 'reach-icon', label: 'Erreichbarkeit-Icon' },
         { key: 'status-badges', label: 'Status-Badges (alle)' },
