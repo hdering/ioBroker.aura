@@ -8971,8 +8971,7 @@
         },
         "echartShowLegend": {
           "type": "boolean",
-          "default": true,
-          "description": "Legende anzeigen."
+          "description": "Legende anzeigen; ein Klick auf einen Eintrag blendet die Reihe aus. Im Modus comparison standardmäßig aus (die Balken stehen dort schon an der x-Achse)."
         },
         "echartShowStackPercent": {
           "type": "boolean",
