@@ -122,6 +122,17 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.76.0 (2026-10-03)
+- Editor - saving no longer closes the "Edit widget" dialog on a tab in a PIN-protected section ([#740](https://github.com/hdering/ioBroker.aura/issues/740))
+- 🌟 **New feature:** Groups - "Fit height to content" now works for widgets inside a group; the group grows and shrinks with the list ([#741](https://github.com/hdering/ioBroker.aura/issues/741))
+- 🌟 **New feature:** Advanced chart - comparison mode can show a legend; clicking an entry hides that bar ([#742](https://github.com/hdering/ioBroker.aura/issues/742))
+- Universal widget - a dropdown cell whose entries do not include the current value now shows a dash instead of the raw value ([#744](https://github.com/hdering/ioBroker.aura/issues/744))
+- Shutter - quick-select buttons for fixed positions, optionally with a slat angle ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+- 🌟 **New feature:** Datapoint picker - the setpoint, humidity and pressure fields of the climate widget (and the battery fill and panel fields) now open the picker on their own datapoint instead of the temperature ([#746](https://github.com/hdering/ioBroker.aura/issues/746))
+- 🌟 **New feature:** Colors - every widget color can be taken from a datapoint: enter {id} or [[id]] in the color picker, also as the light or dark half of a pair (e.g. WLED colors for icons) ([#747](https://github.com/hdering/ioBroker.aura/issues/747))
+- 🌟 **New feature:** New widget "Device card" - build a card once with {{dp}}/{{parent}} placeholders and reuse it for any number of identical devices; copies share the layout, so a change applies to all cards, and linked cards get the same colored frame in the editor ([#743](https://github.com/hdering/ioBroker.aura/issues/743))
+
+
 ### 0.75.0 (2026-10-02)
 - Shutter - the up/stop/down buttons work again in the card itself; in a flat card the value and slider row covered them, so only the popup reacted ([#739](https://github.com/hdering/ioBroker.aura/issues/739))
 - 🌟 **New feature:** Trash schedule - new option to limit the number of entries shown, e.g. only the next 3 pickups ([#736](https://github.com/hdering/ioBroker.aura/issues/736))
@@ -249,10 +260,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** PIN protection - the padlock on a locked section or tab can now be hidden ([#692](https://github.com/hdering/ioBroker.aura/issues/692))
 
 
-### 0.67.1 (2026-09-21)
-- Colors - switching a color field between "Uniform" and "Light / dark" now keeps the colors of the other mode, so picking one uniform color no longer discards the light/dark pair ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
-
-
 ## License
 
 MIT License
@@ -264,6 +271,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
