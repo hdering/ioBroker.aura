@@ -81,7 +81,7 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 | Empfehlung | Eigene Web-Instanz nur für Aura (z. B. `web.1` auf eigenem Port), dann laufen die anderen Visualisierungen auf `:8082` ungestört |
 | Socket | Die Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte |
 | Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs |
-| Aura gestoppt | `/aura/` zeigt „Aura is not reachable“; die Web-Instanz läuft weiter |
+| Aura gestoppt | `/aura/` zeigt „Aura läuft nicht“ und lädt von selbst neu, sobald Aura wieder läuft; die Web-Instanz läuft weiter |
 | Instanz-Links | Zusätzlicher Link „Aura (web adapter)“ in der Instanzliste |
 
 ## Client-ID
