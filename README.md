@@ -122,6 +122,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.77.0 (2026-10-04)
+- 🌟 **New feature:** Settings - optional web adapter extension: Aura can additionally be opened as <web-port>/aura/, e.g. from the ioBroker Visu App or the cloud adapter; off by default, port 8095 keeps working
+- Settings - the chosen socket backend instance is no longer cleared on every adapter start
+
+
 ### 0.76.0 (2026-10-03)
 - Editor - saving no longer closes the "Edit widget" dialog on a tab in a PIN-protected section ([#740](https://github.com/hdering/ioBroker.aura/issues/740))
 - 🌟 **New feature:** Groups - "Fit height to content" now works for widgets inside a group; the group grows and shrinks with the list ([#741](https://github.com/hdering/ioBroker.aura/issues/741))
@@ -256,10 +261,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Colors - a light/dark colour pair now survives the entry, cell and table colour fields, and setting only the dark half no longer paints both themes ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
 
 
-### 0.67.2 (2026-09-21)
-- 🌟 **New feature:** PIN protection - the padlock on a locked section or tab can now be hidden ([#692](https://github.com/hdering/ioBroker.aura/issues/692))
-
-
 ## License
 
 MIT License
@@ -271,6 +272,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

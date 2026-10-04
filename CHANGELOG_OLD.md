@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.67.2 (2026-09-21)
+- 🌟 **New feature:** PIN protection - the padlock on a locked section or tab can now be hidden ([#692](https://github.com/hdering/ioBroker.aura/issues/692))
+
 ## 0.67.1 (2026-09-21)
 - Colors - switching a color field between "Uniform" and "Light / dark" now keeps the colors of the other mode, so picking one uniform color no longer discards the light/dark pair ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
 

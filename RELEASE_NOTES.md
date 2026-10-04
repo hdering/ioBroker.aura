@@ -6,5 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Settings - optional web adapter extension: Aura can additionally be opened as <web-port>/aura/, e.g. from the ioBroker Visu App or the cloud adapter; off by default, port 8095 keeps working (#714) (#688)
-- Settings - the chosen socket backend instance is no longer cleared on every adapter start
