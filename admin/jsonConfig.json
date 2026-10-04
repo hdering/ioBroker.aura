@@ -2,32 +2,11 @@
   "i18n": true,
   "type": "panel",
   "items": {
-    "_urlHeader": {
-      "type": "header",
-      "text": "Custom URL (optional)",
-      "size": 2,
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "customUrl": {
-      "type": "text",
-      "label": "Base URL",
-      "placeholder": "https://your-domain.com",
-      "help": "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:<port>).",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
     "_serverHeader": {
       "type": "header",
       "text": {
-        "en": "Frontend configuration",
-        "de": "Frontend-Konfiguration"
+        "en": "Aura server (own port)",
+        "de": "Aura-Server (eigener Port)"
       },
       "size": 2,
       "xs": 12,
@@ -55,169 +34,11 @@
       "lg": 4,
       "xl": 4
     },
-    "socketUrl": {
+    "customUrl": {
       "type": "text",
-      "label": {
-        "en": "ioBroker socket URL (override)",
-        "de": "ioBroker Socket-URL (Override)"
-      },
-      "help": {
-        "en": "Override the socket URL injected into the frontend. Leave empty for auto-detection (http(s)://<host>:<socketPort>). Set this when using a reverse proxy — e.g. 'https://your-domain.com' if nginx proxies /socket.io/ and /echarts/ to the web adapter port.",
-        "de": "Überschreibt die in das Frontend injizierte Socket-URL. Leer lassen für automatische Erkennung (http(s)://<Host>:<socketPort>). Setzen bei Reverse-Proxy — z.B. 'https://deine-domain.de' wenn nginx /socket.io/ und /echarts/ zum Web-Adapter-Port weiterleitet."
-      },
+      "label": "Base URL",
       "placeholder": "https://your-domain.com",
-      "xs": 12,
-      "sm": 12,
-      "md": 6,
-      "lg": 4,
-      "xl": 4
-    },
-    "socketInstance": {
-      "type": "selectSendTo",
-      "command": "listSocketBackends",
-      "manual": true,
-      "noTranslation": true,
-      "label": {
-        "en": "Data connection (socket backend)",
-        "de": "Datenverbindung (Socket-Backend)"
-      },
-      "help": {
-        "en": "Where Aura gets live values and adapter files from: the web or socketio instance its server forwards the socket, /webfs and /echarts to. Port, bind address and HTTPS are then taken from that instance — the fields below are no longer needed. \"automatic\" looks the instance up by the port below. The list is only filled while this instance runs.",
-        "de": "Von hier holt Aura Live-Werte und Adapter-Dateien: die Web- oder socketio-Instanz, an die der Aura-Server Socket, /webfs und /echarts weiterleitet. Port, Bind-Adresse und HTTPS kommen dann aus dieser Instanz – die Felder darunter entfallen. „Automatisch“ sucht die Instanz über den Port darunter. Die Liste wird nur gefüllt, solange diese Instanz läuft."
-      },
-      "xs": 12,
-      "sm": 12,
-      "md": 4,
-      "lg": 4,
-      "xl": 4
-    },
-    "socketPort": {
-      "type": "number",
-      "label": {
-        "en": "ioBroker socket port",
-        "de": "ioBroker Socket-Port"
-      },
-      "help": {
-        "en": "Port of the iobroker.web instance that provides the socket.io connection (default: 8082).",
-        "de": "Port der iobroker.web-Instanz, die die socket.io-Verbindung bereitstellt (Standard: 8082)."
-      },
-      "min": 1024,
-      "max": 65535,
-      "default": 8082,
-      "hidden": "!!data.socketInstance",
-      "xs": 12,
-      "sm": 12,
-      "md": 4,
-      "lg": 4,
-      "xl": 4
-    },
-    "socketSecure": {
-      "type": "checkbox",
-      "label": {
-        "en": "Web adapter uses HTTPS",
-        "de": "Web-Adapter nutzt HTTPS"
-      },
-      "help": {
-        "en": "Enable if the iobroker.web instance at the socket port has HTTPS activated. Aura will then connect internally via wss/https (self-signed certificates are accepted).",
-        "de": "Aktivieren wenn die iobroker.web-Instanz am Socket-Port HTTPS aktiviert hat. Aura verbindet dann intern über wss/https (selbstsignierte Zertifikate werden akzeptiert)."
-      },
-      "hidden": "!!data.socketInstance",
-      "xs": 12,
-      "sm": 12,
-      "md": 4,
-      "lg": 4,
-      "xl": 4
-    },
-    "backendCheckHint": {
-      "type": "staticText",
-      "text": {
-        "en": "A wrong backend is the most common cause of \"aura does not work\": a blank dashboard, widgets with a load error, images that stay empty. The check below says in plain words what is wrong — and its report is what to paste into a forum post or a GitHub issue. Aura also runs it at every start and writes the result to the log and to info.backendCheck.",
-        "de": "Ein falsch eingestelltes Backend ist die häufigste Ursache für „aura geht nicht“: leeres Dashboard, Widgets mit Ladefehler, Bilder die leer bleiben. Die Prüfung unten sagt im Klartext, was nicht stimmt — und ihr Bericht ist genau das, was in einen Forumsbeitrag oder ein GitHub-Issue gehört. Aura führt sie außerdem bei jedem Start aus und schreibt das Ergebnis ins Log und nach info.backendCheck."
-      },
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "backendCheckRun": {
-      "type": "sendTo",
-      "command": "checkBackend",
-      "label": {
-        "en": "Check backend",
-        "de": "Backend prüfen"
-      },
-      "variant": "contained",
-      "icon": "search",
-      "useNative": true,
-      "showProcess": true,
-      "timeout": 20000,
-      "help": {
-        "en": "Tests the instance, the socket connection and the file delivery live. The instance must be running.",
-        "de": "Prüft Instanz, Socket-Verbindung und Dateiauslieferung live. Die Instanz muss dafür laufen."
-      },
-      "xs": 12,
-      "sm": 12,
-      "md": 4,
-      "lg": 4,
-      "xl": 4
-    },
-    "backendCheckReport": {
-      "type": "text",
-      "readOnly": true,
-      "copyToClipboard": true,
-      "noClearButton": true,
-      "minRows": 6,
-      "maxRows": 24,
-      "label": {
-        "en": "Check report",
-        "de": "Prüfbericht"
-      },
-      "hidden": "!data.backendCheckReport",
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "_webExtHeader": {
-      "type": "header",
-      "text": {
-        "en": "Web adapter extension (/aura/)",
-        "de": "Web-Adapter-Erweiterung (/aura/)"
-      },
-      "size": 2,
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "webExtHint": {
-      "type": "staticText",
-      "text": {
-        "en": "Optional. Makes Aura additionally reachable as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), which is what the ioBroker Visu App and the cloud adapter can open. Aura keeps running on its own port above as well; dashboards, PINs and settings are the same on both ways. The chosen web instance restarts every time this Aura instance is started, stopped or its settings are saved — so a separate web instance used only for Aura (e.g. web.1 on its own port) is recommended, then your other visualisations on :8082 are never interrupted. That web instance needs its integrated socket (the default) — the dashboard uses it for live values.",
-        "de": "Optional. Macht Aura zusätzlich als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – so kann die ioBroker Visu App bzw. der Cloud-Adapter Aura öffnen. Aura läuft außerdem weiter auf dem eigenen Port oben; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird – empfohlen ist deshalb eine eigene Web-Instanz nur für Aura (z. B. web.1 auf eigenem Port), dann werden die anderen Visualisierungen auf :8082 nie unterbrochen. Diese Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards."
-      },
-      "xs": 12,
-      "sm": 12,
-      "md": 12,
-      "lg": 12,
-      "xl": 12
-    },
-    "webInstance": {
-      "type": "selectSendTo",
-      "command": "listWebInstances",
-      "manual": true,
-      "noTranslation": true,
-      "label": {
-        "en": "Also reachable via web instance (/aura/)",
-        "de": "Zusätzlich erreichbar über Web-Instanz (/aura/)"
-      },
-      "help": {
-        "en": "Only for the Visu App / cloud. Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",
-        "de": "Nur für Visu App / Cloud. Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft."
-      },
+      "help": "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:<port>).",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -227,8 +48,8 @@
     "_tlsHeader": {
       "type": "header",
       "text": {
-        "en": "HTTPS / TLS",
-        "de": "HTTPS / TLS"
+        "en": "HTTPS / TLS of the Aura server",
+        "de": "HTTPS / TLS des Aura-Servers"
       },
       "size": 2,
       "xs": 12,
@@ -290,6 +111,189 @@
         "de": "Kettenzertifikat"
       },
       "hidden": "!data.secure",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
+    "_socketHeader": {
+      "type": "header",
+      "text": {
+        "en": "Data connection to ioBroker (socket backend)",
+        "de": "Datenverbindung zu ioBroker (Socket-Backend)"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "socketInstance": {
+      "type": "selectSendTo",
+      "command": "listSocketBackends",
+      "manual": true,
+      "noTranslation": true,
+      "label": {
+        "en": "Data connection (socket backend)",
+        "de": "Datenverbindung (Socket-Backend)"
+      },
+      "help": {
+        "en": "Where Aura gets live values and adapter files from: the web or socketio instance its server forwards the socket, /webfs and /echarts to. Port, bind address and HTTPS are then taken from that instance — the fields below are no longer needed. \"automatic\" looks the instance up by the port below. The list is only filled while this instance runs.",
+        "de": "Von hier holt Aura Live-Werte und Adapter-Dateien: die Web- oder socketio-Instanz, an die der Aura-Server Socket, /webfs und /echarts weiterleitet. Port, Bind-Adresse und HTTPS kommen dann aus dieser Instanz – die Felder darunter entfallen. „Automatisch“ sucht die Instanz über den Port darunter. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
+    },
+    "socketPort": {
+      "type": "number",
+      "label": {
+        "en": "ioBroker socket port",
+        "de": "ioBroker Socket-Port"
+      },
+      "help": {
+        "en": "Port of the iobroker.web instance that provides the socket.io connection (default: 8082).",
+        "de": "Port der iobroker.web-Instanz, die die socket.io-Verbindung bereitstellt (Standard: 8082)."
+      },
+      "min": 1024,
+      "max": 65535,
+      "default": 8082,
+      "hidden": "!!data.socketInstance",
+      "xs": 12,
+      "sm": 12,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
+    },
+    "socketSecure": {
+      "type": "checkbox",
+      "label": {
+        "en": "Web adapter uses HTTPS",
+        "de": "Web-Adapter nutzt HTTPS"
+      },
+      "help": {
+        "en": "Enable if the iobroker.web instance at the socket port has HTTPS activated. Aura will then connect internally via wss/https (self-signed certificates are accepted).",
+        "de": "Aktivieren wenn die iobroker.web-Instanz am Socket-Port HTTPS aktiviert hat. Aura verbindet dann intern über wss/https (selbstsignierte Zertifikate werden akzeptiert)."
+      },
+      "hidden": "!!data.socketInstance",
+      "xs": 12,
+      "sm": 12,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
+    },
+    "socketUrl": {
+      "type": "text",
+      "label": {
+        "en": "ioBroker socket URL (override)",
+        "de": "ioBroker Socket-URL (Override)"
+      },
+      "help": {
+        "en": "Override the socket URL injected into the frontend. Leave empty for auto-detection (http(s)://<host>:<socketPort>). Set this when using a reverse proxy — e.g. 'https://your-domain.com' if nginx proxies /socket.io/ and /echarts/ to the web adapter port.",
+        "de": "Überschreibt die in das Frontend injizierte Socket-URL. Leer lassen für automatische Erkennung (http(s)://<Host>:<socketPort>). Setzen bei Reverse-Proxy — z.B. 'https://deine-domain.de' wenn nginx /socket.io/ und /echarts/ zum Web-Adapter-Port weiterleitet."
+      },
+      "placeholder": "https://your-domain.com",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4,
+      "newLine": true
+    },
+    "backendCheckHint": {
+      "type": "staticText",
+      "text": {
+        "en": "A wrong backend is the most common cause of \"aura does not work\": a blank dashboard, widgets with a load error, images that stay empty. The check below says in plain words what is wrong — and its report is what to paste into a forum post or a GitHub issue. Aura also runs it at every start and writes the result to the log and to info.backendCheck.",
+        "de": "Ein falsch eingestelltes Backend ist die häufigste Ursache für „aura geht nicht“: leeres Dashboard, Widgets mit Ladefehler, Bilder die leer bleiben. Die Prüfung unten sagt im Klartext, was nicht stimmt — und ihr Bericht ist genau das, was in einen Forumsbeitrag oder ein GitHub-Issue gehört. Aura führt sie außerdem bei jedem Start aus und schreibt das Ergebnis ins Log und nach info.backendCheck."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "backendCheckRun": {
+      "type": "sendTo",
+      "command": "checkBackend",
+      "label": {
+        "en": "Check backend",
+        "de": "Backend prüfen"
+      },
+      "variant": "contained",
+      "icon": "search",
+      "useNative": true,
+      "showProcess": true,
+      "timeout": 20000,
+      "help": {
+        "en": "Tests the instance, the socket connection and the file delivery live. The instance must be running.",
+        "de": "Prüft Instanz, Socket-Verbindung und Dateiauslieferung live. Die Instanz muss dafür laufen."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
+    },
+    "backendCheckReport": {
+      "type": "text",
+      "readOnly": true,
+      "copyToClipboard": true,
+      "noClearButton": true,
+      "minRows": 6,
+      "maxRows": 24,
+      "label": {
+        "en": "Check report",
+        "de": "Prüfbericht"
+      },
+      "hidden": "!data.backendCheckReport",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "_webExtHeader": {
+      "type": "header",
+      "text": {
+        "en": "Also reachable via the web adapter (/aura/)",
+        "de": "Zusätzlich erreichbar über den Web-Adapter (/aura/)"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "webExtHint": {
+      "type": "staticText",
+      "text": {
+        "en": "Optional. Makes Aura additionally reachable as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), which is what the ioBroker Visu App and the cloud adapter can open. Aura keeps running on its own port above as well; dashboards, PINs and settings are the same on both ways. The chosen web instance restarts every time this Aura instance is started, stopped or its settings are saved — so a separate web instance used only for Aura (e.g. web.1 on its own port) is recommended, then your other visualisations on :8082 are never interrupted. That web instance needs its integrated socket (the default) — the dashboard uses it for live values.",
+        "de": "Optional. Macht Aura zusätzlich als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – so kann die ioBroker Visu App bzw. der Cloud-Adapter Aura öffnen. Aura läuft außerdem weiter auf dem eigenen Port oben; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird – empfohlen ist deshalb eine eigene Web-Instanz nur für Aura (z. B. web.1 auf eigenem Port), dann werden die anderen Visualisierungen auf :8082 nie unterbrochen. Diese Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "webInstance": {
+      "type": "selectSendTo",
+      "command": "listWebInstances",
+      "manual": true,
+      "noTranslation": true,
+      "label": {
+        "en": "Also reachable via web instance (/aura/)",
+        "de": "Zusätzlich erreichbar über Web-Instanz (/aura/)"
+      },
+      "help": {
+        "en": "Only for the Visu App / cloud. Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",
+        "de": "Nur für Visu App / Cloud. Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+      },
       "xs": 12,
       "sm": 12,
       "md": 6,

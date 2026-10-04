@@ -69,7 +69,7 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 
 | Schritt | ioBroker-Admin → Instanzen → Aura (Schraubenschlüssel) |
 | --- | --- |
-| 1. Web-Instanz wählen | Abschnitt **Web-Adapter-Erweiterung (/aura/)** → **Zusätzlich erreichbar über Web-Instanz (/aura/)** |
+| 1. Web-Instanz wählen | Abschnitt **Zusätzlich erreichbar über den Web-Adapter (/aura/)** → **Zusätzlich erreichbar über Web-Instanz (/aura/)** |
 | 2. Speichern | Aura und die gewählte Web-Instanz starten neu |
 | 3. Aufrufen | `http://<iobroker-ip>:<web-port>/aura/` – Adminbereich unter `…/aura/#/admin` |
 
