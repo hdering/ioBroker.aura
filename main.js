@@ -635,7 +635,35 @@ function parseAdapterAssetPath(p) {
 
 const WWW_DIR = path.join(__dirname, 'www');
 
-function serveStatic(pathname, res, host, isSecure, socketUrlOverride, namespace, base = '/') {
+/**
+ * Where a page path that is not Aura's root sends the browser: back to the root,
+ * as a RELATIVE location, so it also lands right behind a reverse proxy that
+ * mounts Aura below a sub-path, or behind the web adapter extension.
+ *
+ * The frontend loads its files relative to the page (`./assets/…`), so it only
+ * works at its root; the router lives in the hash, which the browser keeps
+ * across the redirect. `/aura/#/view/x` → `../` → `/#/view/x`.
+ *
+ * @param {string} pathname the path as Aura's server sees it (prefix stripped)
+ * @param {string} [search] the query, kept (`?client=…`)
+ * @returns {string} the relative location
+ */
+function rootRedirect(pathname, search = '') {
+    const depth = Math.max(0, (pathname.match(/\//g) || []).length - 1);
+    return (depth ? '../'.repeat(depth) : './') + (search || '');
+}
+
+function serveStatic(
+    pathname,
+    res,
+    host,
+    isSecure,
+    socketUrlOverride,
+    namespace,
+    base = '/',
+    search = '',
+    method = 'GET',
+) {
     const rel = pathname === '/' ? 'index.html' : pathname.slice(1);
     const abs = path.join(WWW_DIR, rel);
     if (!abs.startsWith(WWW_DIR)) {
@@ -673,6 +701,14 @@ function serveStatic(pathname, res, host, isSecure, socketUrlOverride, namespace
             if (path.extname(pathname)) {
                 res.writeHead(404);
                 res.end('Not found');
+                return;
+            }
+            // Any other page path: the relative assets would resolve below it and
+            // 404 (0.77.0: a bookmarked `…/aura/` from the old web extension days),
+            // so send the browser to the root instead of serving index.html here.
+            if (method === 'GET' || method === 'HEAD') {
+                res.writeHead(302, { Location: rootRedirect(pathname, search), 'Cache-Control': 'no-store' });
+                res.end();
                 return;
             }
             fs.readFile(path.join(WWW_DIR, 'index.html'), (err2, idx) => {
@@ -1831,7 +1867,17 @@ class Aura extends utils.Adapter {
             }
 
             const isSecure = req.socket.encrypted === true || req.headers['x-forwarded-proto'] === 'https';
-            serveStatic(pathname, res, req.headers.host, isSecure, this.config.socketUrl || '', this.namespace, base);
+            serveStatic(
+                pathname,
+                res,
+                req.headers.host,
+                isSecure,
+                this.config.socketUrl || '',
+                this.namespace,
+                base,
+                parsedUrl.search,
+                req.method,
+            );
         };
 
         let server;
@@ -4970,6 +5016,7 @@ if (require.main !== module) {
     module.exports.rewriteHtml = rewriteHtml;
     module.exports.rewriteCss = rewriteCss;
     module.exports.serveStatic = serveStatic;
+    module.exports.rootRedirect = rootRedirect;
     module.exports.Aura = Aura;
 } else {
     new Aura();

@@ -411,6 +411,38 @@ function upgrade(path) {
     check('index.html behind the extension: base injected', behind.body.includes('window.__AURA_BASE__="/aura/"'));
     check('… no socket URL (the web adapter socket is used)', !behind.body.includes('__AURA_SOCKET_URL__'));
     check('… namespace still injected', behind.body.includes('window.__AURA_NAMESPACE__="aura.1"'));
+
+    // 0.77.0 regression: a page path other than the root (a bookmarked `…/aura/`)
+    // got index.html, whose relative assets then 404ed below that path.
+    const { rootRedirect } = main;
+    eq('rootRedirect /aura/', rootRedirect('/aura/'), '../');
+    eq('rootRedirect /aura (no slash)', rootRedirect('/aura'), './');
+    eq('rootRedirect keeps the query', rootRedirect('/a/b/c', '?client=x'), '../../?client=x');
+    const deep = await new Promise((resolve) => {
+        const res = {
+            writeHead(status, headers) {
+                this.status = status;
+                this.headers = headers;
+            },
+            end() {
+                resolve({ status: this.status, location: this.headers?.Location });
+            },
+        };
+        serveStatic('/aura/', res, 'h', false, '', 'aura.0', '/', '?client=t', 'GET');
+    });
+    eq('a page path other than the root redirects to the root', deep, { status: 302, location: '../?client=t' });
+    const asset = await new Promise((resolve) => {
+        const res = {
+            writeHead(status) {
+                this.status = status;
+            },
+            end() {
+                resolve(this.status);
+            },
+        };
+        serveStatic('/aura/assets/x.js', res, 'h', false, '', 'aura.0', '/', '', 'GET');
+    });
+    eq('a missing asset stays a 404', asset, 404);
 }
 
 web.close();

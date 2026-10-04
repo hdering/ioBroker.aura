@@ -57,7 +57,7 @@ const aura = http.createServer((req, res) => {
         res.end('{}');
         return;
     }
-    serveStatic(url.pathname, res, req.headers.host, false, '', 'aura.0', requestBase(req));
+    serveStatic(url.pathname, res, req.headers.host, false, '', 'aura.0', requestBase(req), url.search, req.method);
 });
 const auraPort = await listen(aura);
 
@@ -128,6 +128,27 @@ async function visit(label, url, expectBase) {
         'port 8095: nothing claimed a prefix',
         auraSeen.every((s) => s.base === '/'),
     );
+    // A bookmarked page path below the root (`…/aura/` from the old web extension
+    // days) must land at the root with query and hash intact, not load index.html
+    // whose relative assets 404 there (0.77.0).
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await page.goto(`http://127.0.0.1:${auraPort}/aura/?client=t#/admin`, { waitUntil: 'load' });
+    await page
+        .waitForFunction(() => (document.getElementById('root')?.childElementCount ?? 0) > 0, null, { timeout: 15000 })
+        .catch(() => {});
+    await page.waitForTimeout(3000);
+    const u = new URL(page.url());
+    check(
+        'port 8095: /aura/ redirects to the root, query and hash kept',
+        u.pathname === '/' && u.search === '?client=t' && u.hash.startsWith('#/admin'),
+        page.url(),
+    );
+    check(
+        'port 8095: … and the app starts there',
+        await page.evaluate(() => (document.getElementById('root')?.childElementCount ?? 0) > 0),
+    );
+    await ctx.close();
 }
 
 // ── 2. Behind the web adapter extension ─────────────────────────────────────
