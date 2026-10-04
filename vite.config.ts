@@ -306,8 +306,12 @@ function ioBrokerDevPlugin(): Plugin {
   };
 }
 
-// VITE_BASE is set to '/aura/' by the build:adapter script
-const base = process.env.VITE_BASE ?? '/';
+// Relative asset URLs ('./assets/…'): the same build is served at the root of
+// Aura's own server (port 8095) and under '/aura/' behind the optional web
+// adapter extension (lib/webExtension.js). Chunks resolve against the URL of the
+// module that imports them, so neither path is baked in. The dev server treats a
+// relative base as '/'.
+const base = process.env.VITE_BASE ?? './';
 
 export default defineConfig({
   base,

@@ -19,6 +19,7 @@ import { CustomGridView } from './CustomGridView';
 import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import { NS } from '../../utils/namespace';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { auraUrl } from '../../utils/basePath';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
 
@@ -424,7 +425,7 @@ function isImportant(ev: CalEventTagged, keywords: string[], usePriority: boolea
 /** Single attempt – rejects on timeout or adapter error. */
 function fetchIcalTextOnce(url: string, ttlSeconds: number): Promise<string> {
     if (import.meta.env.DEV) {
-        return fetch(`/proxy/ical?url=${encodeURIComponent(url)}`).then((res) => {
+        return fetch(auraUrl(`/proxy/ical?url=${encodeURIComponent(url)}`)).then((res) => {
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             return res.text();
         });

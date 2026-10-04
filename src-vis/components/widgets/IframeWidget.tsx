@@ -18,6 +18,7 @@ import {
     writeDeviceZoom,
 } from '../../utils/iframeZoom';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { auraUrl } from '../../utils/basePath';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -32,7 +33,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const staticUrl = (opts.iframeUrl as string) ?? '';
     const rawUrl = iframeUrlDp && dpUrl != null && dpUrl !== '' ? String(dpUrl) : staticUrl;
     const useProxy = !!(opts.useProxy as boolean);
-    const url = useProxy && rawUrl ? `/proxy?url=${encodeURIComponent(rawUrl)}` : rawUrl;
+    const url = useProxy && rawUrl ? auraUrl(`/proxy?url=${encodeURIComponent(rawUrl)}`) : rawUrl;
     const keepAlive = (opts.keepAlive as boolean) ?? false;
     const reloadOnWake = (opts.reloadOnWake as boolean) ?? false;
     const interactionMode = resolveIframeInteractionMode(opts);

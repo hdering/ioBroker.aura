@@ -1,3 +1,5 @@
+import { auraUrl } from './basePath';
+
 /**
  * Icons from installed ioBroker icon adapters (#716) — the id format.
  *
@@ -84,7 +86,9 @@ export function adapterIconFile(id: string): string {
 
 /** Same-origin URL of the file (`/adapter-icons/file/…`), every segment encoded. */
 export function adapterIconUrl(ref: AdapterIconRef): string {
-    return `/adapter-icons/file/${encodeURIComponent(ref.adapter)}/${ref.path.split('/').map(encodeURIComponent).join('/')}`;
+    return auraUrl(
+        `/adapter-icons/file/${encodeURIComponent(ref.adapter)}/${ref.path.split('/').map(encodeURIComponent).join('/')}`,
+    );
 }
 
 /** True when the icon follows the text colour (and with it every colour rule). */

@@ -19,6 +19,7 @@ import { isRelevantDp } from '../../utils/dpRelevance';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { getSocket } from '../../hooks/useIoBroker';
 import { useEscapeLayer } from '../../utils/escapeStack';
+import { auraUrl } from '../../utils/basePath';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1070,7 +1071,7 @@ function FileModeBody({
     }, [currentPath, roots]);
 
     const handleFileSelect = (entryPath: string, mime: string | null, size: number | null) => {
-        const url = `/fs/read?path=${encodeURIComponent(entryPath)}`;
+        const url = auraUrl(`/fs/read?path=${encodeURIComponent(entryPath)}`);
         if (showPreview) {
             setPreviewEntry({ path: entryPath, mime });
         } else {
@@ -1080,7 +1081,7 @@ function FileModeBody({
 
     const handleConfirmPreview = () => {
         if (!previewEntry) return;
-        const url = `/fs/read?path=${encodeURIComponent(previewEntry.path)}`;
+        const url = auraUrl(`/fs/read?path=${encodeURIComponent(previewEntry.path)}`);
         const entryName = previewEntry.path.split('/').pop() ?? '';
         const entry = listing?.entries.find((e) => e.name === entryName);
         onSelect({
@@ -1313,7 +1314,7 @@ function FileModeBody({
                         ) : (
                             (() => {
                                 const mime = previewEntry.mime || '';
-                                const url = `/fs/read?path=${encodeURIComponent(previewEntry.path)}`;
+                                const url = auraUrl(`/fs/read?path=${encodeURIComponent(previewEntry.path)}`);
                                 const entryName = previewEntry.path.split('/').pop() ?? '';
                                 const entry = listing?.entries.find((e) => e.name === entryName);
                                 return (

@@ -4,6 +4,7 @@ import type { ioBrokerState, ObjectViewResult } from '../types';
 import { version as appVersion } from '../../package.json';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { NS } from '../utils/namespace';
+import { BEHIND_WEB_EXTENSION } from '../utils/basePath';
 
 interface IoBrokerSocket {
     connected: boolean;
@@ -245,8 +246,12 @@ export function prefetchStates(ids: string[], onProgress?: (loaded: number, tota
 // Determine initial socket URL:
 // - Dev: Vite dev server proxies /socket.io → configured ioBroker (no CORS), use same origin
 // - Prod: injected by aura server as window.__AURA_SOCKET_URL__, or persisted in localStorage
+// - Behind the web adapter extension (`<web-port>/aura/`): the page's own origin IS the
+//   web adapter, so its socket is used directly — the same one every other visu uses,
+//   and the only one that is reachable through the cloud / the Visu App.
 function getInitialUrl(): string {
     if (import.meta.env.DEV) return window.location.origin;
+    if (BEHIND_WEB_EXTENSION) return window.location.origin;
     // Injected by the aura HTTP server into index.html — points to iobroker.web socket port
     const injected = (window as unknown as Record<string, unknown>)['__AURA_SOCKET_URL__'];
     if (injected && typeof injected === 'string') return injected;

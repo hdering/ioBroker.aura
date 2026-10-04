@@ -258,14 +258,35 @@ const STRIP_HEADERS = new Set([
 
 const PROXY_TIMEOUT_MS = 15_000;
 
-function rewriteHtml(html, baseUrl) {
+/**
+ * The path prefix a request came in under: `/aura/` when the web adapter
+ * extension (lib/webExtension.js) forwarded it, `/` on Aura's own port. The
+ * extension strips the prefix from the URL and names it in `X-Aura-Base`; every
+ * URL Aura writes into a response (index.html, proxied pages, redirects) has to
+ * carry it again, or the browser asks the web adapter's root for it.
+ *
+ * Only the shape is checked — the header changes nothing but the paths written
+ * back to the same client, so a forged one only breaks that client's own page.
+ *
+ * @param {import('node:http').IncomingMessage} req the request
+ * @returns {string} `/` or `/<segment>/…/`
+ */
+function requestBase(req) {
+    const raw = req && req.headers ? req.headers['x-aura-base'] : undefined;
+    const v = Array.isArray(raw) ? raw[0] : raw;
+    return typeof v === 'string' && /^\/(?:[A-Za-z0-9._-]+\/)*$/.test(v) ? v : '/';
+}
+
+function rewriteHtml(html, baseUrl, base = '/') {
+    const proxyPath = `${base}proxy`;
+    const proxyWsPath = `${base}proxyws`;
     function toProxy(url) {
         if (!url) return url;
         const trimmed = url.trim();
         if (/^(data:|javascript:|blob:|mailto:|tel:|#)/.test(trimmed)) return url;
         try {
             const abs = new URL(trimmed, baseUrl).toString();
-            return `/proxy?url=${encodeURIComponent(abs)}`;
+            return `${proxyPath}?url=${encodeURIComponent(abs)}`;
         } catch {
             return url;
         }
@@ -307,18 +328,19 @@ function rewriteHtml(html, baseUrl) {
     const wsProto = targetOrigin.startsWith('https:') ? 'wss:' : 'ws:';
     const wsSnippet =
         `<script>(function(){` +
-        `var tgt=${JSON.stringify(targetOrigin)},tgtNP=${JSON.stringify(tgtNoProto)},wsp=${JSON.stringify(wsProto)};` +
+        `var tgt=${JSON.stringify(targetOrigin)},tgtNP=${JSON.stringify(tgtNoProto)},wsp=${JSON.stringify(wsProto)},` +
+        `pp=${JSON.stringify(proxyPath)},pw=${JSON.stringify(proxyWsPath)};` +
         `history.replaceState(history.state,'','/');` +
         `function rw(u){` +
         `try{` +
         `var s=String(u);` +
-        `if(s.startsWith('/proxy'))return u;` +
+        `if(s.startsWith(pp))return u;` +
         `if(s.charAt(0)==='/'&&s.charAt(1)!=='/'){` +
-        `return '/proxy?url='+encodeURIComponent(tgt+s);` +
+        `return pp+'?url='+encodeURIComponent(tgt+s);` +
         `}` +
         `var a=new URL(s,location.href);` +
-        `if((a.origin===location.origin&&!a.pathname.startsWith('/proxy'))||a.origin===tgt){` +
-        `return '/proxy?url='+encodeURIComponent(tgt+a.pathname+a.search+a.hash);` +
+        `if((a.origin===location.origin&&!a.pathname.startsWith(pp))||a.origin===tgt){` +
+        `return pp+'?url='+encodeURIComponent(tgt+a.pathname+a.search+a.hash);` +
         `}` +
         `}catch(e){}` +
         `return u;` +
@@ -327,9 +349,9 @@ function rewriteHtml(html, baseUrl) {
         `window.WebSocket=function(u,p){` +
         `try{` +
         `var a=new URL(u.replace(/^wss?:/,'https:'),location.href);` +
-        `if(a.pathname==='/proxyws')return new _W(u,p);` +
+        `if(a.pathname===pw)return new _W(u,p);` +
         `if(a.origin===location.origin||a.origin===tgt){` +
-        `u='/proxyws?url='+encodeURIComponent(wsp+tgtNP+a.pathname+(a.search||''));` +
+        `u=pw+'?url='+encodeURIComponent(wsp+tgtNP+a.pathname+(a.search||''));` +
         `}` +
         `}catch(e){}` +
         `return new _W(u,p);` +
@@ -367,7 +389,7 @@ function rewriteHtml(html, baseUrl) {
         `var form=e.target;` +
         `if(!form||form.tagName!=='FORM')return;` +
         `var act=form.getAttribute('action')||'';` +
-        `if(act.indexOf('/proxy')===0)return;` +
+        `if(act.indexOf(pp)===0)return;` +
         `var abs=form.action;` +
         `var rh=rw(abs);` +
         `if(rh!==abs){e.preventDefault();form.setAttribute('action',rh);form.submit();}` +
@@ -399,12 +421,12 @@ function rewriteHtml(html, baseUrl) {
     return out;
 }
 
-function rewriteCss(css, baseUrl) {
+function rewriteCss(css, baseUrl, base = '/') {
     function toProxy(url) {
         const trimmed = url.replace(/^['"]|['"]$/g, '').trim();
         if (!trimmed || /^(data:|#)/.test(trimmed)) return url;
         try {
-            return `'${`/proxy?url=${encodeURIComponent(new URL(trimmed, baseUrl).toString())}`}'`;
+            return `'${`${base}proxy?url=${encodeURIComponent(new URL(trimmed, baseUrl).toString())}`}'`;
         } catch {
             return url;
         }
@@ -613,7 +635,7 @@ function parseAdapterAssetPath(p) {
 
 const WWW_DIR = path.join(__dirname, 'www');
 
-function serveStatic(pathname, res, host, isSecure, socketUrlOverride, namespace) {
+function serveStatic(pathname, res, host, isSecure, socketUrlOverride, namespace, base = '/') {
     const rel = pathname === '/' ? 'index.html' : pathname.slice(1);
     const abs = path.join(WWW_DIR, rel);
     if (!abs.startsWith(WWW_DIR)) {
@@ -631,7 +653,13 @@ function serveStatic(pathname, res, host, isSecure, socketUrlOverride, namespace
             socketUrl = `${proto}://${host || 'localhost'}`;
         }
         const ns = namespace || 'aura.0';
-        const injection = `<script>window.__AURA_SOCKET_URL__=${JSON.stringify(socketUrl)};window.__AURA_NAMESPACE__=${JSON.stringify(ns)}</script>`;
+        // Behind the web adapter extension the page's own origin is the web adapter,
+        // whose socket the frontend uses directly (see getInitialUrl) — the host this
+        // server sees there is the forwarder's, not one the browser could reach.
+        const injection =
+            base === '/'
+                ? `<script>window.__AURA_SOCKET_URL__=${JSON.stringify(socketUrl)};window.__AURA_NAMESPACE__=${JSON.stringify(ns)}</script>`
+                : `<script>window.__AURA_BASE__=${JSON.stringify(base)};window.__AURA_NAMESPACE__=${JSON.stringify(ns)}</script>`;
         const html = data.toString('utf8').replace('</head>', `${injection}</head>`);
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         res.end(html, 'utf8');
@@ -1011,8 +1039,38 @@ class Aura extends utils.Adapter {
         return resolveTarget({
             objects: objs,
             socketPort: this.config.socketPort || 8082,
-            webInstance: this.config.webInstance,
+            webInstance: this.config.socketInstance,
         });
+    }
+
+    /**
+     * Admin link to the frontend behind the web adapter extension, or null while
+     * it is off. Also says in the log when the chosen web instance cannot load it.
+     *
+     * @returns {Promise<string|null>} e.g. `http://%ip%:8082/aura/`
+     */
+    async _webExtensionLink() {
+        const id = String(this.config.webInstance || '').trim();
+        if (!id) return null;
+        let obj = null;
+        try {
+            obj = await this.getForeignObjectAsync(`system.adapter.${id}`);
+        } catch {
+            /* reported below */
+        }
+        if (!obj || obj.type !== 'instance') {
+            this.log.warn(`aura: web adapter extension — instance "${id}" does not exist, /aura/ is not served`);
+            return null;
+        }
+        if (!obj.common?.enabled) {
+            this.log.warn(`aura: web adapter extension — "${id}" is disabled, /aura/ is not served`);
+        } else {
+            this.log.info(
+                `aura: web adapter extension on — also reachable as <${id}>/aura/ (that instance restarts whenever this instance is started, stopped or reconfigured)`,
+            );
+        }
+        const n = obj.native || {};
+        return `${n.secure ? 'https' : 'http'}://%ip%:${n.port || 8082}/aura/`;
     }
 
     // ── server-side PIN / admin security ────────────────────────────────────────
@@ -1471,6 +1529,7 @@ class Aura extends utils.Adapter {
                 return;
             }
             const { pathname } = parsedUrl;
+            const base = requestBase(req);
 
             // Discovery probes must never reach the SPA fallback. An unknown path
             // without a file extension is answered with index.html and status 200,
@@ -1551,7 +1610,7 @@ class Aura extends utils.Adapter {
                     if ((proxyRes.statusCode === 301 || proxyRes.statusCode === 302) && proxyRes.headers.location) {
                         const absLocation = new URL(proxyRes.headers.location, targetUrl.toString()).toString();
                         const rh = buildHeaders(proxyRes.headers);
-                        rh['location'] = `/proxy?url=${encodeURIComponent(absLocation)}`;
+                        rh['location'] = `${base}proxy?url=${encodeURIComponent(absLocation)}`;
                         res.writeHead(proxyRes.statusCode, rh);
                         res.end();
                         return;
@@ -1570,8 +1629,8 @@ class Aura extends utils.Adapter {
                                 const enc = charset.toLowerCase() === 'utf-8' ? 'utf8' : 'latin1';
                                 let text = buf.toString(enc);
                                 text = isHtml
-                                    ? rewriteHtml(text, targetUrl.toString())
-                                    : rewriteCss(text, targetUrl.toString());
+                                    ? rewriteHtml(text, targetUrl.toString(), base)
+                                    : rewriteCss(text, targetUrl.toString(), base);
                                 res.writeHead(proxyRes.statusCode || 200, resHeaders);
                                 res.end(text, enc);
                             })
@@ -1772,7 +1831,7 @@ class Aura extends utils.Adapter {
             }
 
             const isSecure = req.socket.encrypted === true || req.headers['x-forwarded-proto'] === 'https';
-            serveStatic(pathname, res, req.headers.host, isSecure, this.config.socketUrl || '', this.namespace);
+            serveStatic(pathname, res, req.headers.host, isSecure, this.config.socketUrl || '', this.namespace, base);
         };
 
         let server;
@@ -3747,6 +3806,9 @@ class Aura extends utils.Adapter {
                 frontend: { link: frontendLink, name: makeName('Aura Frontend') },
                 backend: { link: backendLink, name: makeName('Aura Backend') },
             };
+            // Web adapter extension on: the same frontend under `<web-port>/aura/`.
+            const webLink = await this._webExtensionLink();
+            if (webLink) wantLinks.web = { link: webLink, name: makeName('Aura (web adapter)') };
             try {
                 const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
                 if (obj) {
@@ -3754,7 +3816,8 @@ class Aura extends utils.Adapter {
                     const curLinks = obj.common.localLinks || {};
                     if (
                         curLinks?.frontend?.link !== wantLinks.frontend.link ||
-                        curLinks?.backend?.link !== wantLinks.backend.link
+                        curLinks?.backend?.link !== wantLinks.backend.link ||
+                        curLinks?.web?.link !== wantLinks.web?.link
                     ) {
                         obj.common.localLinks = wantLinks;
                         changed = true;
@@ -3781,13 +3844,25 @@ class Aura extends utils.Adapter {
                         );
                     }
 
-                    // Migration: clear legacy webInstance so iobroker.web stops tracking aura
-                    if (obj.native?.webInstance !== undefined) {
-                        delete obj.native.webInstance;
+                    // Migration: `webInstance` switches the web adapter extension
+                    // (lib/webExtension.js) and names the ONE web instance that loads
+                    // it. `*` is left over from before 0.9.91, when every web instance
+                    // loaded the old extension and restarted on every Aura start/stop.
+                    if (obj.native?.webInstance === '*') {
+                        obj.native.webInstance = '';
                         changed = true;
                         this.log.info(
-                            'aura: cleared legacy webInstance — iobroker.web will no longer restart on aura stop',
+                            'aura: cleared legacy webInstance "*" — the web adapter extension stays off until a web instance is chosen',
                         );
+                    }
+                    // The socket backend choice (#519) briefly lived in `webInstance`
+                    // as well; a socketio/ws instance there can only be that.
+                    const legacy = String(obj.native?.webInstance || '');
+                    if (legacy && !/^web\.\d+$/.test(legacy)) {
+                        if (!obj.native.socketInstance) obj.native.socketInstance = legacy;
+                        obj.native.webInstance = '';
+                        changed = true;
+                        this.log.info(`aura: moved socket backend "${legacy}" from webInstance to socketInstance`);
                     }
                     if (changed) {
                         await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
@@ -4258,6 +4333,33 @@ class Aura extends utils.Adapter {
             // ── Backend self-check (config dialog) ────────────────────────────
             // Fills the dropdown of web/socketio instances. The label carries the
             // port, because that is the number people get wrong.
+            // Web instances the extension can be loaded into (Aura settings →
+            // "Web adapter extension"). Empty value = extension off.
+            if (msg.command === 'listWebInstances') {
+                let objects = {};
+                try {
+                    objects = await this.getForeignObjectsAsync('system.adapter.web.*', 'instance');
+                } catch {
+                    /* an empty list still leaves "off" */
+                }
+                const options = Object.values(objects || {})
+                    .filter((o) => o && o.type === 'instance' && /^system\.adapter\.web\.\d+$/.test(o._id))
+                    .map((o) => {
+                        const id = o._id.slice('system.adapter.'.length);
+                        const n = o.native || {};
+                        const flags = [n.secure ? 'HTTPS' : '', o.common?.enabled ? '' : 'disabled']
+                            .filter(Boolean)
+                            .join(', ');
+                        return {
+                            value: id,
+                            label: `${id} — port ${n.port || '?'}${flags ? `, ${flags}` : ''}`,
+                        };
+                    })
+                    .sort((a, b) => a.value.localeCompare(b.value, undefined, { numeric: true }));
+                reply([{ value: '', label: 'off (only port of this instance)' }, ...options]);
+                return;
+            }
+
             if (msg.command === 'listSocketBackends') {
                 let objects = {};
                 try {
@@ -4864,6 +4966,10 @@ if (require.main !== module) {
     module.exports = (options) => new Aura(options);
     module.exports.sanitizeClientId = sanitizeClientId;
     module.exports.parseAdapterAssetPath = parseAdapterAssetPath;
+    module.exports.requestBase = requestBase;
+    module.exports.rewriteHtml = rewriteHtml;
+    module.exports.rewriteCss = rewriteCss;
+    module.exports.serveStatic = serveStatic;
     module.exports.Aura = Aura;
 } else {
     new Aura();

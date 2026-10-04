@@ -23,6 +23,7 @@ Installation der Instanz: siehe [README](https://github.com/hdering/ioBroker.aur
 | --- | --- |
 | Dashboard | `http://<iobroker-ip>:8095/` |
 | Adminbereich | `http://<iobroker-ip>:8095/#/admin` |
+| Über eine Web-Instanz (Visu App, Cloud) | `http://<iobroker-ip>:8082/aura/` – nur mit eingeschalteter [Web-Adapter-Erweiterung](../einstellungen/settings.md#web-adapter-erweiterung-visu-app) |
 | Erster Aufruf | Legt den Admin-PIN fest (min. 4 Zeichen); die Anmeldung gilt 8 Stunden |
 | Ausgangszustand | Ein Layout „Standard“ mit einem Bereich und einem leeren Tab |
 

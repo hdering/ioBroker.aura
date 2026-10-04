@@ -11,6 +11,7 @@ import { usePopupConfigStore } from '../../../../store/popupConfigStore';
 import { useGroupDefsStore } from '../../../../store/groupDefsStore';
 import { collectLayoutIconIds } from '../../../../utils/iconInventory';
 import { preloadIconIds, type PreloadResult } from '../../../../utils/iconPreload';
+import { auraUrl } from '../../../../utils/basePath';
 
 const ICON_KEYS: (keyof LayoutSettings)[] = ['iconsOffline'];
 
@@ -29,7 +30,7 @@ async function fetchCacheStatus(ids: readonly string[]): Promise<CacheStatus> {
     const out: CacheStatus = { cached: [], missing: [] };
     for (let i = 0; i < ids.length; i += STATUS_CHUNK) {
         const chunk = ids.slice(i, i + STATUS_CHUNK);
-        const res = await fetch(`/icons/status?icons=${encodeURIComponent(chunk.join(','))}`, {
+        const res = await fetch(auraUrl(`/icons/status?icons=${encodeURIComponent(chunk.join(','))}`), {
             cache: 'no-store',
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

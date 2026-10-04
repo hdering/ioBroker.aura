@@ -136,7 +136,7 @@ const REPORTED = {
 
     const gone = staticFindings({
         target: resolveTarget({ objects: REPORTED, socketPort: 8082, webInstance: 'web.7' }),
-        config: { socketPort: 8082, webInstance: 'web.7' },
+        config: { socketPort: 8082, socketInstance: 'web.7' },
     });
     check('a picked instance that vanished is an error', byId(gone, 'instance-missing')?.level === 'error');
     check('with the real ones offered', byId(gone, 'instance-missing').hint.includes('web.0'));
@@ -147,7 +147,7 @@ const REPORTED = {
             socketPort: 8082,
             webInstance: 'web.0',
         }),
-        config: { socketPort: 8082, webInstance: 'web.0' },
+        config: { socketPort: 8082, socketInstance: 'web.0' },
     });
     check('a disabled picked instance is an error', byId(off, 'instance-disabled')?.level === 'error');
 

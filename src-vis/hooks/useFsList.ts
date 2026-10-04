@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { auraUrl } from '../utils/basePath';
 
 export interface FsRoot {
     label: string;
@@ -43,7 +44,7 @@ export function useFsRoots(): { roots: FsRoot[]; loading: boolean; error: string
             return;
         }
         setLoading(true);
-        fetchJson<FsRoot[]>('/fs/roots')
+        fetchJson<FsRoot[]>(auraUrl('/fs/roots'))
             .then((data) => {
                 rootsCache = data;
                 rootsCacheTime = Date.now();
@@ -79,7 +80,7 @@ export function useFsList(fsPath: string | null): {
             return;
         }
         setLoading(true);
-        fetchJson<FsListing>(`/fs/list?path=${encodeURIComponent(fsPath)}`)
+        fetchJson<FsListing>(auraUrl(`/fs/list?path=${encodeURIComponent(fsPath)}`))
             .then((data) => {
                 listCache.set(fsPath, { data, fetchedAt: Date.now() });
                 setListing(data);

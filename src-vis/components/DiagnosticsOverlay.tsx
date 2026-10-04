@@ -14,6 +14,7 @@
  */
 import { useCallback, useEffect, useState } from 'react';
 import { listIcons } from '@iconify/react';
+import { auraUrl } from '../utils/basePath';
 
 /** `?diag=1` — also accepted after the hash, since the app is hash-routed and a
  *  pasted link often ends up as `…/#/dashboard?diag=1`. */
@@ -473,7 +474,7 @@ async function collectLoopSuspect(ranked: [string, number][], total: number, per
 /** Ask the adapter for a known icon, so a broken /icons/ route shows up as what
  *  it is instead of as "the icons do not work". */
 async function probeIconEndpoint(): Promise<string> {
-    const url = '/icons/mdi.json?icons=garage';
+    const url = auraUrl('/icons/mdi.json?icons=garage');
     const started = Date.now();
     try {
         const res = await fetch(url, { headers: { Accept: 'application/json' } });

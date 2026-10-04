@@ -1,3 +1,5 @@
+import { auraUrl } from './basePath';
+
 /**
  * Client for Aura's server-side security API (main.js → lib/security/apiHandler).
  *
@@ -9,7 +11,7 @@
  * 404 and the UI degrades to "not configured" / "unlock failed".
  */
 
-const API_BASE = '/api/aura';
+const API_BASE = auraUrl('/api/aura');
 
 export interface UnlockResult {
     content: unknown;

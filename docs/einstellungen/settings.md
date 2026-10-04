@@ -63,6 +63,26 @@ node -e 'const f="security.json",fs=require("fs");const d=JSON.parse(fs.readFile
 | Ohne `node` | `security.json` im Editor öffnen, `"admin":{…}` durch `"admin":null` und `"serverSecret":"…"` durch `"serverSecret":null` ersetzen (meldet alle ab) |
 | Rückgängig | `security.json.bak` zurück nach `security.json` kopieren, Instanz neu starten |
 
+## Web-Adapter-Erweiterung (Visu App)
+
+Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für die ioBroker Visu App oder den Cloud-Adapter. Standard: aus.
+
+| Schritt | ioBroker-Admin → Instanzen → Aura (Schraubenschlüssel) |
+| --- | --- |
+| 1. Web-Instanz wählen | Abschnitt **Web-Adapter-Erweiterung (/aura/)** → **In Web-Instanz laden** |
+| 2. Speichern | Aura und die gewählte Web-Instanz starten neu |
+| 3. Aufrufen | `http://<iobroker-ip>:<web-port>/aura/` – Adminbereich unter `…/aura/#/admin` |
+
+| Hinweis | |
+| --- | --- |
+| Port 8095 | Läuft unverändert weiter; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben |
+| Neustarts | Die gewählte Web-Instanz startet bei jedem Start, Stopp und Speichern der Aura-Instanz neu – andere Web-Instanzen nicht |
+| Empfehlung | Eigene Web-Instanz nur für Aura (z. B. `web.1` auf eigenem Port), dann laufen die anderen Visualisierungen auf `:8082` ungestört |
+| Socket | Die Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte |
+| Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs |
+| Aura gestoppt | `/aura/` zeigt „Aura is not reachable“; die Web-Instanz läuft weiter |
+| Instanz-Links | Zusätzlicher Link „Aura (web adapter)“ in der Instanzliste |
+
 ## Client-ID
 
 Jedes Gerät bekommt eine ID; darüber wird es einzeln angesprochen:

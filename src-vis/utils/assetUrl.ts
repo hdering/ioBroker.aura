@@ -1,6 +1,8 @@
+import { auraUrl } from './basePath';
+
 export function resolveAssetUrl(value: string): string {
     if (value.startsWith('aura-file:')) {
-        return `/fs/read?path=${encodeURIComponent(value.slice('aura-file:'.length))}`;
+        return auraUrl(`/fs/read?path=${encodeURIComponent(value.slice('aura-file:'.length))}`);
     }
     return value;
 }
@@ -30,7 +32,7 @@ export function proxifyIfMixed(url: string): string {
     if (typeof window === 'undefined') return url;
     if (window.location.protocol !== 'https:') return url;
     if (!/^http:\/\//i.test(url)) return url;
-    return `/proxy?url=${encodeURIComponent(url)}`;
+    return auraUrl(`/proxy?url=${encodeURIComponent(url)}`);
 }
 
 /** Paths aura's own HTTP server answers itself — these must never be rerouted
@@ -86,8 +88,8 @@ export function resolveImageSource(raw: unknown): string {
     if (/^(https?:)?\/\//i.test(v)) return proxifyIfMixed(v);
     if (v.startsWith('aura-file:')) return resolveAssetUrl(v);
     if (looksLikeBase64(v)) return `data:${base64Mime(v)};base64,${v}`;
-    if (v.startsWith('/')) return AURA_LOCAL_PATH.test(v) ? v : `/webfs${v}`;
-    return `/webfs/${v}`;
+    if (v.startsWith('/')) return auraUrl(AURA_LOCAL_PATH.test(v) ? v : `/webfs${v}`);
+    return auraUrl(`/webfs/${v}`);
 }
 
 /**

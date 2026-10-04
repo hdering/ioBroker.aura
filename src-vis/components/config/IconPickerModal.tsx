@@ -10,6 +10,7 @@ import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useOverlayZ } from '../../contexts/OverlayZContext';
 import { useEscapeLayer } from '../../utils/escapeStack';
 import { useT } from '../../i18n';
+import { auraUrl } from '../../utils/basePath';
 
 // ── Props ──────────────────────────────────────────────────────────────────────
 interface IconPickerModalProps {
@@ -72,7 +73,7 @@ function fetchIconifySets(): Promise<IconifySet[]> {
     if (!iconifySetsPromise) {
         // No catalogue, no Iconify group: listing sets that cannot be opened
         // only produced empty grids (#716).
-        iconifySetsPromise = fetch('/icons/collections')
+        iconifySetsPromise = fetch(auraUrl('/icons/collections'))
             .then((r) => (r.ok ? r.json() : {}))
             .then(
                 (
@@ -110,7 +111,7 @@ function fetchCollection(prefix: string): Promise<CollectionData> {
             collectionPromises.delete(prefix); // try again on the next visit
             return { names: [], categories: {}, failed: true };
         };
-        p = fetch(`/icons/collection?prefix=${encodeURIComponent(prefix)}`)
+        p = fetch(auraUrl(`/icons/collection?prefix=${encodeURIComponent(prefix)}`))
             .then((r) => (r.ok ? r.json() : null))
             .then((data: { uncategorized?: string[]; categories?: Record<string, string[]> } | null) => {
                 if (!data) return failed();
@@ -129,14 +130,14 @@ function fetchCollection(prefix: string): Promise<CollectionData> {
 /** Every Iconify id the adapter's disk cache answers — what a device without
  *  internet can show. Asked fresh per picker, the cache grows while browsing. */
 function fetchCachedIds(): Promise<Set<string>> {
-    return fetch('/icons/status?all=1')
+    return fetch(auraUrl('/icons/status?all=1'))
         .then((r) => (r.ok ? r.json() : { ids: [] }))
         .then((d: { ids?: string[] }) => new Set(Array.isArray(d?.ids) ? d.ids : []))
         .catch(() => new Set<string>());
 }
 
 function fetchAdapterSets(): Promise<AdapterSet[]> {
-    return fetch('/adapter-icons/sets')
+    return fetch(auraUrl('/adapter-icons/sets'))
         .then((r) => (r.ok ? r.json() : { sets: [] }))
         .then((d: { sets?: AdapterSet[] }) => (Array.isArray(d?.sets) ? d.sets : []))
         .catch(() => []);
@@ -148,7 +149,7 @@ const adapterTitles = new Map<string, Record<string, string>>();
 function fetchAdapterList(set: string): Promise<string[]> {
     let p = adapterLists.get(set);
     if (!p) {
-        p = fetch(`/adapter-icons/list?set=${encodeURIComponent(set)}`)
+        p = fetch(auraUrl(`/adapter-icons/list?set=${encodeURIComponent(set)}`))
             .then((r) => (r.ok ? r.json() : { icons: [] }))
             .then((d: { icons?: string[]; titles?: Record<string, string> }) => {
                 adapterTitles.set(set, d?.titles && typeof d.titles === 'object' ? d.titles : {});
@@ -460,7 +461,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         setOnlineLoading(true);
         const scope = sourceKind === 'iconify' ? `&prefixes=${encodeURIComponent(sourceId)}` : '';
         const timer = setTimeout(() => {
-            fetch(`/icons/search?query=${encodeURIComponent(q)}&limit=200${scope}`, { signal: ctrl.signal })
+            fetch(auraUrl(`/icons/search?query=${encodeURIComponent(q)}&limit=200${scope}`), { signal: ctrl.signal })
                 .then((r) => r.json())
                 .then((data) => {
                     const ids = Array.isArray(data?.icons) ? (data.icons as string[]) : [];

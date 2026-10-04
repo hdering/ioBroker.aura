@@ -8,6 +8,7 @@ import { contentPositionClass } from '../../utils/widgetUtils';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CustomGridView } from './CustomGridView';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { auraUrl } from '../../utils/basePath';
 
 type RequestStatus = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -43,7 +44,7 @@ export function HttpRequestWidget({ config }: WidgetProps) {
                 init.body = body;
                 init.headers = { 'Content-Type': contentType };
             }
-            const proxyUrl = `/proxy?url=${encodeURIComponent(url)}`;
+            const proxyUrl = auraUrl(`/proxy?url=${encodeURIComponent(url)}`);
             const res = await fetch(proxyUrl, init);
             const text = await res.text();
             if (responseDatapoint) setState(responseDatapoint, text);

@@ -22,6 +22,7 @@
  */
 import { addAPIProvider, addCollection, getIcon, listIcons } from '@iconify/react';
 import type { IconifyIcon } from '@iconify/react';
+import { auraUrl } from './basePath';
 
 export { lucidePascalToIconify } from './iconId';
 
@@ -79,7 +80,7 @@ export function isIconsOfflineActive(): boolean {
  *  bundled fallback instead of waiting for hosts it can never reach. */
 addAPIProvider('', {
     resources: offlineAtBoot ? [''] : ['', 'https://api.iconify.design'],
-    path: '/icons/',
+    path: auraUrl('/icons/'),
     rotate: 6000,
     timeout: offlineAtBoot ? 4000 : 12000,
 });

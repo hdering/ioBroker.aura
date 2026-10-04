@@ -1,3 +1,5 @@
+import { auraUrl } from './basePath';
+
 /**
  * Geo helpers for the Map widget.
  */
@@ -81,7 +83,7 @@ export async function geocodeAddress(address: string): Promise<LatLon | null> {
             // Go through Aura's same-origin /proxy (dev + prod) to sidestep any CORS
             // concern and pipe the JSON response through unchanged.
             const target = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=1`;
-            const res = await fetch(`/proxy?url=${encodeURIComponent(target)}`);
+            const res = await fetch(auraUrl(`/proxy?url=${encodeURIComponent(target)}`));
             // Don't cache transient failures (e.g. 429/5xx) — allow a later retry.
             if (!res.ok) return null;
             const data = (await res.json()) as { features?: Array<{ geometry?: { coordinates?: number[] } }> };
