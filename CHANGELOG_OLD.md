@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.67.4 (2026-09-22)
+- 🌟 **New feature:** JSON table - a column can now format its value: show a timestamp as date/time, convert it by factor/offset, and set its decimal places ([#697](https://github.com/hdering/ioBroker.aura/issues/697))
+- Date picker - clearing the field now clears the datapoint, in the widget, in a Universal cell and in a list row ([#695](https://github.com/hdering/ioBroker.aura/issues/695))
+- 🌟 **New feature:** Date picker - the input fields now take a font size and a text colour; in a Universal cell the cell's colour and bold/italic reach them too ([#696](https://github.com/hdering/ioBroker.aura/issues/696))
+- Settings - each auto-backup now shows the Aura version that wrote it, and carries that version in its file name ([#694](https://github.com/hdering/ioBroker.aura/issues/694))
+
 ## 0.67.3 (2026-09-21)
 - Colors - a light/dark colour pair now survives the entry, cell and table colour fields, and setting only the dark half no longer paints both themes ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
 

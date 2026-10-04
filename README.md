@@ -122,6 +122,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.77.2 (2026-10-04)
+- Adapter log - startup and routine status messages moved from info to debug, so the log stays quiet unless something needs attention
+
+
 ### 0.77.1 (2026-10-04)
 - 🌟 **New feature:** "Show last change" can now show the last update instead (datapoint written, even with the same value) — in the widget display settings, carousel items, list entries, dynamic lists and custom cells
 - Opening Aura below a path other than its root (e.g. an old .../aura/ bookmark) loads the dashboard again instead of a blank page - it now redirects to the root (regression in 0.77.0)
@@ -255,13 +259,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Popups - charts in the popup view editor now show the real history of a widget that opens the view (or a datapoint of your choice) instead of a sample curve; the source is picked in the bar below the editor toolbar
 
 
-### 0.67.4 (2026-09-22)
-- 🌟 **New feature:** JSON table - a column can now format its value: show a timestamp as date/time, convert it by factor/offset, and set its decimal places ([#697](https://github.com/hdering/ioBroker.aura/issues/697))
-- Date picker - clearing the field now clears the datapoint, in the widget, in a Universal cell and in a list row ([#695](https://github.com/hdering/ioBroker.aura/issues/695))
-- 🌟 **New feature:** Date picker - the input fields now take a font size and a text colour; in a Universal cell the cell's colour and bold/italic reach them too ([#696](https://github.com/hdering/ioBroker.aura/issues/696))
-- Settings - each auto-backup now shows the Aura version that wrote it, and carries that version in its file name ([#694](https://github.com/hdering/ioBroker.aura/issues/694))
-
-
 ## License
 
 MIT License
@@ -273,6 +270,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
