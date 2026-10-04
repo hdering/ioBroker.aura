@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.67.3 (2026-09-21)
+- Colors - a light/dark colour pair now survives the entry, cell and table colour fields, and setting only the dark half no longer paints both themes ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
+
 ## 0.67.2 (2026-09-21)
 - 🌟 **New feature:** PIN protection - the padlock on a locked section or tab can now be hidden ([#692](https://github.com/hdering/ioBroker.aura/issues/692))
 
