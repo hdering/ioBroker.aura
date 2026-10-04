@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.76.0",
+    "auraVersion": "0.77.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1755,6 +1755,14 @@
           ],
           "description": "timestamp format (default 'relative')"
         },
+        "lastChangeSource": {
+          "type": "string",
+          "enum": [
+            "lastChange",
+            "lastUpdate"
+          ],
+          "description": "which timestamp the last-change line and the lastchange cell show: 'lastChange' = when the value last changed (lc, default), 'lastUpdate' = when the datapoint was last written, even with the same value (ts)"
+        },
         "clickAction": {
           "type": "object",
           "ref": "ClickAction",
@@ -3181,6 +3189,14 @@
         "showLastChange": {
           "type": "boolean",
           "description": "Show last-change timestamp under this entry."
+        },
+        "lastChangeSource": {
+          "type": "string",
+          "enum": [
+            "lastChange",
+            "lastUpdate"
+          ],
+          "description": "Which timestamp that line shows: 'lastChange' (lc, default) or 'lastUpdate' (ts)."
         },
         "clickAction": {
           "tsType": "RowClickSetting",
@@ -5910,6 +5926,14 @@
         },
         "showLastChange": {
           "type": "boolean"
+        },
+        "lastChangeSource": {
+          "type": "string",
+          "enum": [
+            "lastChange",
+            "lastUpdate"
+          ],
+          "description": "Which timestamp the last-change line shows: 'lastChange' (lc, default) or 'lastUpdate' (ts)."
         }
       }
     },
@@ -6634,6 +6658,14 @@
           "description": "Größe des Zeilen-Icons in px.",
           "default": 13
         },
+        "entryLastChangeSource": {
+          "type": "string",
+          "enum": [
+            "lastChange",
+            "lastUpdate"
+          ],
+          "description": "Zeitstempel der Zeile bei showEntryLastChange: 'lastChange' (lc, Standard) oder 'lastUpdate' (ts, letzte Aktualisierung)."
+        },
         "excludeIdPatterns": {
           "type": "string",
           "description": "Datenpunkte auslassen, deren Id dazu passt (Text oder /regex/, kommagetrennt)."
@@ -6808,7 +6840,11 @@
         "lastChangePosition": {
           "type": "string",
           "default": "left",
-          "description": "Wo die letzte Änderung steht: left oder right."
+          "description": "Wo die letzte Änderung steht: left, center oder right."
+        },
+        "lastChangeSource": {
+          "type": "string",
+          "description": "Welcher Zeitstempel bei showLastChange erscheint: 'lastChange' (Standard) = letzte Wertänderung (lc), 'lastUpdate' = letzte Aktualisierung (ts), auch wenn der Wert gleich blieb."
         },
         "maxRows": {
           "type": "number",
@@ -11592,7 +11628,11 @@
         "lastChangePosition": {
           "type": "string",
           "default": "left",
-          "description": "Wo die letzte Änderung steht: left oder right."
+          "description": "Wo die letzte Änderung steht: left, center oder right."
+        },
+        "lastChangeSource": {
+          "type": "string",
+          "description": "Welcher Zeitstempel bei showLastChange erscheint: 'lastChange' (Standard) = letzte Wertänderung (lc), 'lastUpdate' = letzte Aktualisierung (ts), auch wenn der Wert gleich blieb."
         },
         "nameFilters": {
           "type": "array",
