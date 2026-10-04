@@ -99,6 +99,7 @@
         }
         setTimeout(function () {
           if (ioReady()) return; // library arrived, boot is progressing
+          if (window.__auraBootBlocked) return; // bootGuard already explains the page
           var boot = document.getElementById('aura-boot');
           if (!boot || boot.classList.contains('hidden')) return; // app already painted
           var text = document.getElementById('aura-boot-text');

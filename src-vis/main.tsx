@@ -1,3 +1,6 @@
+// First, before anything with side effects: refuses to start when the page did not
+// come from Aura's own server (see bootGuard.ts).
+import './bootGuard';
 import { StrictMode, Suspense, type ComponentType } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom';

@@ -13,6 +13,7 @@
 import { createRequire } from 'node:module';
 import { join } from 'node:path';
 import http from 'node:http';
+import fs from 'node:fs';
 import { chromium } from 'playwright';
 
 const require = createRequire(import.meta.url);
@@ -156,6 +157,79 @@ async function visit(label, url, expectBase) {
         'behind the extension: /aura redirects to /aura/',
         bare.statusCode === 301 && bare.headers.location === '/aura/',
     );
+}
+
+// ── 3. Aura stopped: the web adapter serves the uploaded www/ copy itself ──────
+// Without the extension the web adapter answers /aura/ from the file storage —
+// the same files, but no server injects anything. The app must not start half
+// (dashboard from the cache, no data) but say what is wrong, and reload once
+// Aura answers again.
+{
+    let auraUp = false;
+    const wwwDir = join(process.cwd(), 'www');
+    const storage = http.createServer((req, res) => {
+        const url = new URL(req.url, 'http://x');
+        if (!url.pathname.startsWith('/aura/')) {
+            res.writeHead(404);
+            res.end();
+            return;
+        }
+        const rel = url.pathname.slice('/aura/'.length) || 'index.html';
+        if (auraUp && rel === 'index.html') {
+            serveStatic('/', res, req.headers.host, false, '', 'aura.0', '/aura/');
+            return;
+        }
+        fs.readFile(join(wwwDir, rel), (err, data) => {
+            if (err) {
+                res.writeHead(404);
+                res.end();
+                return;
+            }
+            const ct = rel.endsWith('.js') ? 'application/javascript' : rel.endsWith('.css') ? 'text/css' : 'text/html';
+            res.writeHead(200, { 'Content-Type': ct });
+            res.end(data);
+        });
+    });
+    const storagePort = await listen(storage);
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    const calls = [];
+    page.on('request', (r) => calls.push(new URL(r.url()).pathname));
+    await page.goto(`http://127.0.0.1:${storagePort}/aura/`, { waitUntil: 'load' });
+    await page.waitForTimeout(1500);
+    const state = await page.evaluate(() => ({
+        text: document.getElementById('aura-boot-text')?.textContent ?? '',
+        detail: document.getElementById('aura-boot-diag')?.hidden === false,
+        mounted: (document.getElementById('root')?.childElementCount ?? 0) > 0,
+        blocked: window.__auraBootBlocked === true,
+    }));
+    check(
+        'without Aura: the splash says Aura is not running',
+        /Aura (läuft nicht|is not running)/.test(state.text),
+        state.text,
+    );
+    check('without Aura: the explanation is shown', state.detail);
+    check('without Aura: the app did not start', !state.mounted && state.blocked, JSON.stringify(state));
+    const appCalls = calls.filter((p) => /\/(icons|api|fs|adapter-icons)\//.test(p));
+    check('without Aura: no app requests', appCalls.length === 0, appCalls.join(', '));
+    auraUp = true;
+    await page
+        .waitForFunction(() => (document.getElementById('root')?.childElementCount ?? 0) > 0, null, {
+            timeout: 20000,
+        })
+        .catch(() => {});
+    const back = await page.evaluate(() => ({
+        mounted: (document.getElementById('root')?.childElementCount ?? 0) > 0,
+        base: window.__AURA_BASE__ ?? null,
+    }));
+    check(
+        'Aura back: the page reloads by itself and starts',
+        back.mounted && back.base === '/aura/',
+        JSON.stringify(back),
+    );
+    await ctx.close();
+    storage.close();
+    storage.closeAllConnections();
 }
 
 await browser.close();
