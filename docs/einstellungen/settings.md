@@ -69,12 +69,13 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 
 | Schritt | ioBroker-Admin → Instanzen → Aura (Schraubenschlüssel) |
 | --- | --- |
-| 1. Web-Instanz wählen | Abschnitt **Web-Adapter-Erweiterung (/aura/)** → **In Web-Instanz laden** |
+| 1. Web-Instanz wählen | Abschnitt **Web-Adapter-Erweiterung (/aura/)** → **Zusätzlich erreichbar über Web-Instanz (/aura/)** |
 | 2. Speichern | Aura und die gewählte Web-Instanz starten neu |
 | 3. Aufrufen | `http://<iobroker-ip>:<web-port>/aura/` – Adminbereich unter `…/aura/#/admin` |
 
 | Hinweis | |
 | --- | --- |
+| Datenverbindung | Das Feld **Datenverbindung (Socket-Backend)** weiter oben ist etwas anderes: von dort holt Aura Live-Werte und Adapter-Dateien – wird immer gebraucht, auch ohne Erweiterung |
 | Port 8095 | Läuft unverändert weiter; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben |
 | Neustarts | Die gewählte Web-Instanz startet bei jedem Start, Stopp und Speichern der Aura-Instanz neu – andere Web-Instanzen nicht |
 | Empfehlung | Eigene Web-Instanz nur für Aura (z. B. `web.1` auf eigenem Port), dann laufen die anderen Visualisierungen auf `:8082` ungestört |

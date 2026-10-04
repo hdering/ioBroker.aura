@@ -78,12 +78,12 @@
       "manual": true,
       "noTranslation": true,
       "label": {
-        "en": "web instance",
-        "de": "web-Instanz"
+        "en": "Data connection (socket backend)",
+        "de": "Datenverbindung (Socket-Backend)"
       },
       "help": {
-        "en": "The iobroker.web instance aura talks to. Port, bind address and HTTPS are then taken from that instance — the fields below are no longer needed. \"automatic\" keeps the old behaviour and looks the instance up by the port below. The list is only filled while this instance runs.",
-        "de": "Die iobroker.web-Instanz, mit der aura spricht. Port, Bind-Adresse und HTTPS kommen dann aus dieser Instanz — die Felder darunter entfallen. „Automatisch“ behält das bisherige Verhalten bei und sucht die Instanz über den Port darunter. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+        "en": "Where Aura gets live values and adapter files from: the web or socketio instance its server forwards the socket, /webfs and /echarts to. Port, bind address and HTTPS are then taken from that instance — the fields below are no longer needed. \"automatic\" looks the instance up by the port below. The list is only filled while this instance runs.",
+        "de": "Von hier holt Aura Live-Werte und Adapter-Dateien: die Web- oder socketio-Instanz, an die der Aura-Server Socket, /webfs und /echarts weiterleitet. Port, Bind-Adresse und HTTPS kommen dann aus dieser Instanz – die Felder darunter entfallen. „Automatisch“ sucht die Instanz über den Port darunter. Die Liste wird nur gefüllt, solange diese Instanz läuft."
       },
       "xs": 12,
       "sm": 12,
@@ -211,12 +211,12 @@
       "manual": true,
       "noTranslation": true,
       "label": {
-        "en": "Load into web instance",
-        "de": "In Web-Instanz laden"
+        "en": "Also reachable via web instance (/aura/)",
+        "de": "Zusätzlich erreichbar über Web-Instanz (/aura/)"
       },
       "help": {
-        "en": "Empty = off. The list is only filled while this instance runs.",
-        "de": "Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+        "en": "Only for the Visu App / cloud. Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",
+        "de": "Nur für Visu App / Cloud. Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft."
       },
       "xs": 12,
       "sm": 12,
