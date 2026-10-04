@@ -277,6 +277,8 @@ function upgrade(path) {
 // ── 5. Lifecycle ─────────────────────────────────────────────────────────────
 {
     eq('start page tile', ext.welcomePage().link, 'aura/');
+    // The web adapter's start page drops entries without a relative localLink.
+    eq('start page tile: localLink (else the start page hides it)', ext.welcomePage().localLink, 'aura/');
     check(
         'the start is logged with the target',
         logs.some((l) => l.includes(`127.0.0.1:${auraPort}`)),
