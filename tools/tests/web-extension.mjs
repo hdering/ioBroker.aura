@@ -297,6 +297,40 @@ function upgrade(path) {
     );
 }
 
+// ── 5b. HTTP/2 (the web adapter serves HTTPS as HTTP/2) ──────────────────────
+{
+    const h = WebExtension.forwardHeaders(
+        {
+            headers: {
+                ':method': 'GET',
+                ':path': '/aura/',
+                ':authority': '192.168.188.140:8082',
+                ':scheme': 'https',
+                cookie: 'a=b',
+            },
+            socket: { remoteAddress: '192.168.1.5' },
+        },
+        true,
+    );
+    eq(
+        'HTTP/2: no pseudo-headers forwarded',
+        Object.keys(h).filter((k) => k.startsWith(':')),
+        [],
+    );
+    eq('HTTP/2: Host taken from :authority', h.host, '192.168.188.140:8082');
+    eq('HTTP/2: X-Forwarded-Host too', h['x-forwarded-host'], '192.168.188.140:8082');
+    eq('HTTP/2: proto https', h['x-forwarded-proto'], 'https');
+    let thrown = null;
+    for (const k of Object.keys(h)) {
+        try {
+            http.validateHeaderName(k);
+        } catch (e) {
+            thrown = e.code;
+        }
+    }
+    eq('HTTP/2: every header name valid for HTTP/1', thrown, null);
+}
+
 // ── 6. Multihost: Aura on another host ───────────────────────────────────────
 {
     const app2 = express();
