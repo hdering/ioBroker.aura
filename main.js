@@ -993,10 +993,10 @@ class Aura extends utils.Adapter {
             return;
         }
 
-        this.log.info(`[calendar] fetch request id=${req.id} url=${req.url}`);
+        this.log.debug(`[calendar] fetch request id=${req.id} url=${req.url}`);
         try {
             const content = await fetchUrl(req.url);
-            this.log.info(`[calendar] fetch ok: ${content.length} bytes (id=${req.id})`);
+            this.log.debug(`[calendar] fetch ok: ${content.length} bytes (id=${req.id})`);
             cache[req.url] = { content, fetchedAt: now };
             await this.setStateAsync('calendar.cache', JSON.stringify(cache), true);
             await this.setStateAsync('calendar.response', JSON.stringify({ id: req.id, content }), true);
@@ -1154,7 +1154,7 @@ class Aura extends utils.Adapter {
         } catch (e) {
             this.log.warn(`aura: PIN vault init could not read config.dashboard — ${e.message}`);
         }
-        this.log.info(`aura: PIN vault ready (${dir})`);
+        this.log.debug(`aura: PIN vault ready (${dir})`);
     }
 
     /**
@@ -1222,7 +1222,7 @@ class Aura extends utils.Adapter {
         this.vault.save(data);
         const outValue = writeStateConfig(parsed, publicConfig, wrapped);
         await this.setStateAsync('config.dashboard', { val: JSON.stringify(outValue), ack: true });
-        this.log.info(
+        this.log.debug(
             `aura: config.dashboard redacted — ${Object.keys(sections).length} protected view(s) held server-side`,
         );
     }
@@ -1403,7 +1403,7 @@ class Aura extends utils.Adapter {
                 if (f.level === 'error') this.log.error(line);
                 else this.log.warn(line);
             }
-            if (result.level === 'ok') this.log.info('aura: backend check passed');
+            if (result.level === 'ok') this.log.debug('aura: backend check passed');
             else {
                 this.log.info(
                     'aura: open the aura instance settings and press "Check backend" for the full report ' +
@@ -1463,7 +1463,7 @@ class Aura extends utils.Adapter {
             const proto = socketSecure ? 'https' : 'http';
             const mode = backend.pureWs ? 'pure-ws (iobroker.ws)' : 'socket.io';
             const extra = backend.conflicts.length ? ` (other matches ignored: ${backend.conflicts.join(', ')})` : '';
-            this.log.info(
+            this.log.debug(
                 `aura: socket.io backend ${proto}://${socketHostPort} (via ${backend.id}, ${mode}, X-Forwarded-For ${socketSendForwardedFor ? 'on' : 'off'})${extra}`,
             );
         } else {
@@ -2211,7 +2211,7 @@ class Aura extends utils.Adapter {
         });
         await this._ensureClientMessageDps(cId);
         await this._ensureIdleReturnDps(cId);
-        this.log.info(`[clients] completed object tree for ${cId}`);
+        this.log.debug(`[clients] completed object tree for ${cId}`);
         return true;
     }
 
@@ -3099,7 +3099,7 @@ class Aura extends utils.Adapter {
     }
 
     async onReady() {
-        this.log.info('aura adapter started');
+        this.log.debug('aura adapter started');
 
         await this.migratePlainMcpToken();
         await this._initPinVault();
@@ -3284,26 +3284,26 @@ class Aura extends utils.Adapter {
         // Migration runs BEFORE the channel is created because
         // setObjectNotExistsAsync would no-op on an existing state object of the
         // same id (legacy v0.9.161/0.9.162 left config.themeMode as a state).
-        this.log.info('[themeMode] init: starting DP setup');
+        this.log.debug('[themeMode] init: starting DP setup');
         let themeModeSeed = null;
         try {
             const seedFrom = async (legacyId) => {
                 const legacy = await this.getObjectAsync(legacyId);
                 if (!legacy) {
-                    this.log.info(`[themeMode] legacy '${legacyId}': not found`);
+                    this.log.debug(`[themeMode] legacy '${legacyId}': not found`);
                     return null;
                 }
-                this.log.info(
+                this.log.debug(
                     `[themeMode] legacy '${legacyId}': found, type=${legacy.type}, common.type=${legacy.common && legacy.common.type}`,
                 );
                 if (legacy.type !== 'state') {
-                    this.log.info(`[themeMode] legacy '${legacyId}': not a state — leaving as is`);
+                    this.log.debug(`[themeMode] legacy '${legacyId}': not a state — leaving as is`);
                     return null;
                 }
                 const cur = await this.getStateAsync(legacyId);
-                this.log.info(`[themeMode] legacy '${legacyId}': current val=${cur && JSON.stringify(cur.val)}`);
+                this.log.debug(`[themeMode] legacy '${legacyId}': current val=${cur && JSON.stringify(cur.val)}`);
                 await this.delObjectAsync(legacyId);
-                this.log.info(`[themeMode] legacy '${legacyId}': deleted`);
+                this.log.debug(`[themeMode] legacy '${legacyId}': deleted`);
                 const v = cur && cur.val;
                 if (v === 'dark' || v === 'light') return v;
                 if (v === true) return 'dark';
@@ -3311,7 +3311,7 @@ class Aura extends utils.Adapter {
                 return null;
             };
             themeModeSeed = (await seedFrom('config.darkMode')) ?? (await seedFrom('config.themeMode'));
-            this.log.info(`[themeMode] migration seed = ${JSON.stringify(themeModeSeed)}`);
+            this.log.debug(`[themeMode] migration seed = ${JSON.stringify(themeModeSeed)}`);
         } catch (e) {
             this.log.warn(`[themeMode] legacy cleanup threw: ${e && e.stack ? e.stack : e}`);
         }
@@ -3320,7 +3320,7 @@ class Aura extends utils.Adapter {
         for (const id of ['config.themeMode', 'config.themeMode.frontend', 'config.themeMode.adminUi']) {
             try {
                 const obj = await this.getObjectAsync(id);
-                this.log.info(
+                this.log.debug(
                     `[themeMode] pre-create '${id}': ${obj ? `exists (type=${obj.type}, common.type=${obj.common && obj.common.type})` : 'does NOT exist'}`,
                 );
             } catch (e) {
@@ -3329,7 +3329,7 @@ class Aura extends utils.Adapter {
         }
 
         try {
-            this.log.info('[themeMode] creating channel config.themeMode');
+            this.log.debug('[themeMode] creating channel config.themeMode');
             await this.setObjectNotExistsAsync('config.themeMode', {
                 type: 'channel',
                 common: { name: 'Theme mode overrides (frontend & admin independently)' },
@@ -3359,7 +3359,7 @@ class Aura extends utils.Adapter {
                 // empty → Objects browser shows the DP missing while post-create logs
                 // 'exists'). extendObject always issues a write, so the DP is guaranteed
                 // to persist, and it folds in the stale-role ('level.mode.color') fix.
-                this.log.info(`[themeMode] upserting state ${subId}`);
+                this.log.debug(`[themeMode] upserting state ${subId}`);
                 await this.extendObjectAsync(subId, { type: 'state', common, native: {} });
             } catch (e) {
                 this.log.error(`[themeMode] create/migrate ${subId} threw: ${e && e.stack ? e.stack : e}`);
@@ -3377,11 +3377,11 @@ class Aura extends utils.Adapter {
                 const cur = await this.getStateAsync('config.themeMode.admin');
                 const v = cur && (cur.val === 'dark' || cur.val === 'light') ? cur.val : '';
                 if (v) {
-                    this.log.info(`[themeMode] migrating config.themeMode.admin → adminUi (val='${v}')`);
+                    this.log.debug(`[themeMode] migrating config.themeMode.admin → adminUi (val='${v}')`);
                     await this.setStateAsync('config.themeMode.adminUi', v, true);
                 }
                 await this.delObjectAsync('config.themeMode.admin');
-                this.log.info('[themeMode] removed legacy hidden config.themeMode.admin');
+                this.log.debug('[themeMode] removed legacy hidden config.themeMode.admin');
             }
         } catch (e) {
             this.log.warn(`[themeMode] admin→adminUi migration threw: ${e && e.stack ? e.stack : e}`);
@@ -3391,7 +3391,7 @@ class Aura extends utils.Adapter {
         for (const id of ['config.themeMode', 'config.themeMode.frontend', 'config.themeMode.adminUi']) {
             try {
                 const obj = await this.getObjectAsync(id);
-                this.log.info(
+                this.log.debug(
                     `[themeMode] post-create '${id}': ${obj ? `exists (type=${obj.type}, common.type=${obj.common && obj.common.type})` : 'STILL MISSING'}`,
                 );
             } catch (e) {
@@ -3401,19 +3401,19 @@ class Aura extends utils.Adapter {
 
         if (themeModeSeed) {
             try {
-                this.log.info(`[themeMode] seeding frontend with '${themeModeSeed}'`);
+                this.log.debug(`[themeMode] seeding frontend with '${themeModeSeed}'`);
                 await this.setStateAsync('config.themeMode.frontend', themeModeSeed, true);
             } catch (e) {
                 this.log.warn(`[themeMode] frontend seed threw: ${e && e.stack ? e.stack : e}`);
             }
             try {
-                this.log.info(`[themeMode] seeding admin with '${themeModeSeed}'`);
+                this.log.debug(`[themeMode] seeding admin with '${themeModeSeed}'`);
                 await this.setStateAsync('config.themeMode.adminUi', themeModeSeed, true);
             } catch (e) {
                 this.log.warn(`[themeMode] admin seed threw: ${e && e.stack ? e.stack : e}`);
             }
         }
-        this.log.info('[themeMode] init: done');
+        this.log.debug('[themeMode] init: done');
 
         const configStates = [
             { id: 'config.theme', name: 'Theme configuration' },
@@ -3687,7 +3687,7 @@ class Aura extends utils.Adapter {
                 if (!st) continue;
                 this._ingestTimerState(fullId, st.val);
             }
-            this.log.info(`[timers] loaded ${this._timerState.size} timer widget(s)`);
+            this.log.debug(`[timers] loaded ${this._timerState.size} timer widget(s)`);
         } catch (e) {
             this.log.warn(`[timers] initial scan failed: ${e.message}`);
         }
@@ -3697,7 +3697,7 @@ class Aura extends utils.Adapter {
             () => this._timerTick().catch((e) => this.log.warn(`[timers] tick error: ${e.message}`)),
             this._timerTickMs,
         );
-        this.log.info(`[timers] scheduler tick = ${tickSec}s`);
+        this.log.debug(`[timers] scheduler tick = ${tickSec}s`);
 
         // ── Countdown widget engine (#675) ─────────────────────────────────────
         // The CountdownWidget publishes its config to countdowns.<key>.config and
@@ -3716,7 +3716,7 @@ class Aura extends utils.Adapter {
             const existing = await this.getStatesAsync(`${this.namespace}.countdowns.*`);
             this._ingestCountdownScan(existing || {});
             await this._countdowns.restore();
-            this.log.info(`[countdowns] loaded ${this._countdowns.size} countdown(s)`);
+            this.log.debug(`[countdowns] loaded ${this._countdowns.size} countdown(s)`);
         } catch (e) {
             this.log.warn(`[countdowns] initial scan failed: ${e.message}`);
         }
@@ -3762,7 +3762,7 @@ class Aura extends utils.Adapter {
                 message: 'Aura log relay activated (requireLog=true).',
                 from: this.namespace,
             });
-            this.log.info('[adapter-logs] requireLog active — relay ready');
+            this.log.debug('[adapter-logs] requireLog active — relay ready');
         } catch (e) {
             this.log.warn(`[adapter-logs] requireLog failed: ${e?.message ?? e}`);
         }
@@ -3834,7 +3834,7 @@ class Aura extends utils.Adapter {
             } catch {
                 /* no history yet — ignore */
             }
-            this.log.info(`[perf] load-time metrics ready (${this._perfBuffer.length} historical sample(s))`);
+            this.log.debug(`[perf] load-time metrics ready (${this._perfBuffer.length} historical sample(s))`);
         } catch (e) {
             this.log.warn(`[perf] metrics init failed: ${e?.message ?? e}`);
         }
@@ -3867,7 +3867,7 @@ class Aura extends utils.Adapter {
                     ) {
                         obj.common.localLinks = wantLinks;
                         changed = true;
-                        this.log.info(`localLinks updated to port ${port}${base ? ` (custom URL: ${base})` : ''}`);
+                        this.log.debug(`localLinks updated to port ${port}${base ? ` (custom URL: ${base})` : ''}`);
                     }
                     // The generated client blocks show the token in full so they can
                     // be copied; once they have been stored there is no reason for it
@@ -3922,7 +3922,7 @@ class Aura extends utils.Adapter {
         await this.startHttpServer();
         this._startUpdateCheck();
         this.setState('info.connection', true, true);
-        this.log.info('aura ready');
+        this.log.debug('aura ready');
     }
 
     // ── Timer scheduler helpers ──────────────────────────────────────────────
@@ -4029,7 +4029,7 @@ class Aura extends utils.Adapter {
             if (Number.isFinite(lat) && Number.isFinite(lon)) {
                 this._astroLat = lat;
                 this._astroLon = lon;
-                this.log.info(`[timers] astro location ${lat}, ${lon}`);
+                this.log.debug(`[timers] astro location ${lat}, ${lon}`);
             } else {
                 this.log.warn('[timers] no latitude/longitude in system.config — astro timer events will not fire');
             }
