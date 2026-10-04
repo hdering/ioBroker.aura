@@ -32,6 +32,7 @@ import { pickDual } from '../../utils/dualColor';
 import type { EnumJsonKeys } from '../../utils/enumEntriesJson';
 import { ColorPicker } from '../common/ColorPicker';
 import { BarValueFields } from '../config/BarValueFields';
+import { LastChangeSourcePicker } from '../config/LastChangeSourcePicker';
 
 /** Cell option carrying the field-name override for one JSON field (#615). */
 const ENTRY_KEY_OPTION: Record<keyof EnumJsonKeys, string> = {
@@ -2987,36 +2988,42 @@ export function CustomCellEditor({
 
             {/* Format picker for the dedicated "Letzte Änderung" cell — the timestamp is the content */}
             {cell.type === 'lastchange' && (
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        Format
-                    </label>
-                    <div className="flex gap-1">
-                        {(
-                            [
-                                ['relative', 'Relativ'],
-                                ['time', 'Uhrzeit'],
-                                ['datetime', 'Datum+Zeit'],
-                            ] as const
-                        ).map(([val, lbl]) => {
-                            const active = (cell.lastChangeFormat ?? 'relative') === val;
-                            return (
-                                <button
-                                    key={val}
-                                    onClick={() => onChange({ lastChangeFormat: val })}
-                                    className="flex-1 text-[10px] py-1.5 rounded-lg transition-colors"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    }}
-                                >
-                                    {lbl}
-                                </button>
-                            );
-                        })}
+                <>
+                    <LastChangeSourcePicker
+                        value={cell.lastChangeSource}
+                        onChange={(next) => onChange({ lastChangeSource: next })}
+                    />
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Format
+                        </label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    ['relative', 'Relativ'],
+                                    ['time', 'Uhrzeit'],
+                                    ['datetime', 'Datum+Zeit'],
+                                ] as const
+                            ).map(([val, lbl]) => {
+                                const active = (cell.lastChangeFormat ?? 'relative') === val;
+                                return (
+                                    <button
+                                        key={val}
+                                        onClick={() => onChange({ lastChangeFormat: val })}
+                                        className="flex-1 text-[10px] py-1.5 rounded-lg transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {lbl}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
+                </>
             )}
 
             {/* Last-change timestamp */}
@@ -3047,6 +3054,12 @@ export function CustomCellEditor({
                                 />
                             </button>
                         </div>
+                        {cell.showLastChange && (
+                            <LastChangeSourcePicker
+                                value={cell.lastChangeSource}
+                                onChange={(next) => onChange({ lastChangeSource: next })}
+                            />
+                        )}
                         {cell.showLastChange && (
                             <div>
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>

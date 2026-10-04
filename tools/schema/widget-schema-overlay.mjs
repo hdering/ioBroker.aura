@@ -67,7 +67,9 @@ export const KEY_DESCRIPTIONS = {
     showDate: 'Datum anzeigen.',
     showId: 'Datenpunkt-Id statt/neben dem Namen anzeigen.',
     showLastChange: 'Zeitpunkt der letzten Änderung anzeigen.',
-    lastChangePosition: 'Wo die letzte Änderung steht: left oder right.',
+    lastChangePosition: 'Wo die letzte Änderung steht: left, center oder right.',
+    lastChangeSource:
+        "Welcher Zeitstempel bei showLastChange erscheint: 'lastChange' (Standard) = letzte Wertänderung (lc), 'lastUpdate' = letzte Aktualisierung (ts), auch wenn der Wert gleich blieb.",
     striped: 'Zeilen abwechselnd einfärben.',
     compact: 'Dichtere Darstellung mit kleineren Zeilen.',
     sortable: 'Spalten per Klick auf die Kopfzeile sortierbar machen.',
@@ -1078,6 +1080,10 @@ export const WIDGET_OPTION_NOTES = {
         entryIconColor: { description: 'Farbe des Zeilen-Icons.' },
         entryIconSize: { description: 'Größe des Zeilen-Icons in px.' },
         showEntryLastChange: { description: 'Letzte Änderung je Zeile anzeigen.' },
+        entryLastChangeSource: {
+            description:
+                "Zeitstempel der Zeile bei showEntryLastChange: 'lastChange' (lc, Standard) oder 'lastUpdate' (ts, letzte Aktualisierung).",
+        },
         noRoomLabel: { description: 'Überschrift für Zeilen ohne Raum.' },
         roomHeaderBg: { description: 'Hintergrundfarbe der Raumüberschrift.' },
         roomHeaderColor: { description: 'Textfarbe der Raumüberschrift.' },

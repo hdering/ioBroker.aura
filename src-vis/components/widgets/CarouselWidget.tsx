@@ -22,6 +22,7 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { WidgetClickPopup } from './popup/WidgetClickPopup';
 import type { WidgetProps, ClickAction } from '../../types';
+import { lastChangeTs } from '../../utils/subDpStamp';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 export type CarouselItem = {
@@ -52,6 +53,8 @@ export type CarouselItem = {
     showConfirm?: boolean;
     confirmText?: string;
     showLastChange?: boolean;
+    /** Which timestamp the last-change line shows: 'lastChange' (lc, default) or 'lastUpdate' (ts). */
+    lastChangeSource?: 'lastChange' | 'lastUpdate';
 };
 
 // A real drag must exceed this distance before we suppress the chip onClick.
@@ -770,7 +773,7 @@ function CarouselItemButton({
     const bg = customBg ?? defaultBg(active);
     const color = customText ?? defaultColor(active);
 
-    const ts = itemState ? (itemState.lc > 0 ? itemState.lc : itemState.ts) : 0;
+    const ts = lastChangeTs(itemState, item.lastChangeSource);
     const lastChangeText =
         item.showLastChange && ts > 0
             ? formatLastChange(t as (k: string, v?: Record<string, string | number>) => string, ts)

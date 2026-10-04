@@ -42,6 +42,20 @@ export function stampTs(sub: EntrySubDp, stamp?: DpStamp | null): number {
 }
 
 /**
+ * Which timestamp a "show last change" line prints — the widget frame, carousel
+ * items, list entries and custom cells all offer it. Unset means `lastChange`.
+ */
+export type LastChangeSource = 'lastChange' | 'lastUpdate';
+
+/** The timestamp for a "show last change" line, or 0 when there is none yet. Same
+ *  `lc` → `ts` fallback as {@link stampTs}; `lastUpdate` reads `ts` alone. */
+export function lastChangeTs(stamp?: DpStamp | null, source?: string): number {
+    if (!stamp) return 0;
+    if (source === 'lastUpdate') return stamp.ts || 0;
+    return stamp.lc || stamp.ts || 0;
+}
+
+/**
  * Output format of a timestamp line. Reuses the entry's own time-display setting
  * (`valueTimeFormat`, see TIME_DISPLAY_PRESETS) so date, time and custom token
  * patterns come for free; unset means the relative text ("vor 5 Min").

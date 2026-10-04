@@ -19,7 +19,7 @@ const bundle = join(cache, `aura-subdp-stamp-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: [
-            "export { isStampSub, stampTs, stampFormat, subDpsNeedTick } from './src-vis/utils/subDpStamp.ts';",
+            "export { isStampSub, stampTs, stampFormat, subDpsNeedTick, lastChangeTs } from './src-vis/utils/subDpStamp.ts';",
             "export { resolveSubDpTemplate } from './src-vis/utils/subDpTemplate.ts';",
             "export { formatTimeDisplay, TIME_DISPLAY_PRESETS } from './src-vis/utils/timeDisplay.ts';",
             "export { formatLastChange } from './src-vis/utils/formatLastChange.ts';",
@@ -33,7 +33,7 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { isStampSub, stampTs, stampFormat, subDpsNeedTick, resolveSubDpTemplate, formatTimeDisplay } = await import(
+const { isStampSub, stampTs, stampFormat, subDpsNeedTick, lastChangeTs, resolveSubDpTemplate, formatTimeDisplay } = await import(
     pathToFileURL(bundle).href
 );
 rmSync(bundle, { force: true });
@@ -70,6 +70,13 @@ eq('a value slot reads no timestamp', stampTs({ id: 'a' }, stale), 0);
 eq('lastChange falls back to ts when lc is 0', stampTs({ id: 'a', source: 'lastChange' }, { ts: 42, lc: 0 }), 42);
 eq('no state yet yields 0', stampTs({ id: 'a', source: 'lastChange' }, null), 0);
 eq('an empty state yields 0', stampTs({ id: 'a', source: 'lastChange' }, {}), 0);
+
+// The "show last change" toggles (frame, carousel, list entries, custom cells) pick
+// lc or ts through lastChangeTs — unset must stay lc so old configs read the same.
+eq('show-last-change defaults to lc', lastChangeTs(stale), 1_700_000_000_000);
+eq('show-last-change lastUpdate reads ts', lastChangeTs(stale, 'lastUpdate'), 1_700_000_900_000);
+eq('show-last-change falls back to ts when lc is 0', lastChangeTs({ ts: 42, lc: 0 }), 42);
+eq('show-last-change without a state yields 0', lastChangeTs(null, 'lastUpdate'), 0);
 
 // ── 3. Format defaults to the relative text ──
 eq('an unset format means relative', stampFormat({ id: 'a', source: 'lastChange' }), 'relative');

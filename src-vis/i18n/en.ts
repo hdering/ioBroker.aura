@@ -1154,6 +1154,11 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.hideName': 'Hide Name',
     'wf.edit.titlePosition': 'Title Position',
     'wf.edit.showLastChange': 'Show Last Change',
+    'wf.edit.lastChangeSource': 'Timestamp',
+    'wf.edit.lcSource.lastChange': 'Change',
+    'wf.edit.lcSource.lastUpdate': 'Update',
+    'wf.edit.lcSourceHint.lastChange': 'When the value last changed (lc)',
+    'wf.edit.lcSourceHint.lastUpdate': 'When the datapoint was last written, even with the same value (ts)',
     'wf.edit.fullscreenWidget': 'Fullscreen button',
     'wf.edit.fullscreenScreen': 'Fill the screen',
     'wf.edit.fullscreenScreenHint':

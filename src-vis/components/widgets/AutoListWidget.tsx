@@ -44,7 +44,7 @@ import { GroupActionControl } from './GroupActionControl';
 import { CheckboxControl } from './CheckboxControl';
 import { EntrySubLine, subCondKey, useRelativeTick, type EntrySubDp } from './EntrySubLine';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
-import { isStampSub, subDpsNeedTick } from '../../utils/subDpStamp';
+import { isStampSub, lastChangeTs, subDpsNeedTick } from '../../utils/subDpStamp';
 import { resolveSubDpTemplate } from '../../utils/subDpTemplate';
 import { ListFilterChip } from './ListFilterChip';
 import {
@@ -227,6 +227,8 @@ export interface AutoListOptions
     showDividers?: boolean;
     /** Show last-change timestamp under every entry (global toggle — dynamic list has no per-DP config). */
     showEntryLastChange?: boolean;
+    /** Which timestamp that line shows: 'lastChange' (lc, default) or 'lastUpdate' (ts). */
+    entryLastChangeSource?: 'lastChange' | 'lastUpdate';
     /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
     wrapText?: boolean;
     /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
@@ -1201,7 +1203,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
     const [syncing, setSyncing] = useState(false);
-    const [lastChangedTs, setLastChangedTs] = useState(0);
+    // Newest timestamp across the list's datapoints, for the widget-wide last-change line.
+    const lastChangeSource = config.options?.lastChangeSource as string | undefined;
+    const lastChangedTs = useMemo(
+        () => Object.values(states).reduce((max, s) => (s ? Math.max(max, lastChangeTs(s, lastChangeSource)) : max), 0),
+        [states, lastChangeSource],
+    );
     // Frontend filter is a per-viewer runtime toggle held in local state — it is
     // NOT persisted back to config. The read-only frontend runs useConfigSync with
     // ignoreDirty (remote wins) + a 30 s poll, so any frontend write to valueFilter
@@ -1388,7 +1395,6 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         const unsubs = subIds.map((id) =>
             subscribe(id, (s) => {
                 setStates((prev) => ({ ...prev, [id]: s }));
-                if (s) setLastChangedTs((prev) => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
             }),
         );
         ensureDatapointCache().then((cache) => {
@@ -1900,7 +1906,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 ? entry.activeBg || globalActiveBg
                                                 : entry.inactiveBg || globalInactiveBg) ||
                                                 'var(--app-bg)');
-                                        const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                        const lcTs = showEntryLastChange
+                                            ? lastChangeTs(state, opts.entryLastChangeSource)
+                                            : 0;
                                         const rowProps = rowPopup.row(
                                             entry.id,
                                             label,
@@ -2045,7 +2053,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const stateBg =
                                         rc?.row?.bg ??
                                         (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
-                                    const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                    const lcTs = showEntryLastChange
+                                        ? lastChangeTs(state, opts.entryLastChangeSource)
+                                        : 0;
                                     const rowProps = rowPopup.row(
                                         entry.id,
                                         label,
@@ -2292,7 +2302,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             : stateMatch?.icon
                                               ? getWidgetIcon(stateMatch.icon, null!)
                                               : EntryIcon;
-                                    const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                    const lcTs = showEntryLastChange
+                                        ? lastChangeTs(state, opts.entryLastChangeSource)
+                                        : 0;
                                     const lcText =
                                         lcTs > 0
                                             ? formatLastChange(
@@ -2436,7 +2448,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 const stateBg =
                                     rc?.row?.bg ??
                                     (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
-                                const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                const lcTs = showEntryLastChange ? lastChangeTs(state, opts.entryLastChangeSource) : 0;
                                 const rowProps = rowPopup.row(
                                     entry.id,
                                     label,

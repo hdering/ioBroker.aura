@@ -16,6 +16,8 @@ import { useT, t, keyLabel } from '../../i18n';
 import { RangeChipsEditor } from '../config/RangeChipsEditor';
 import { RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { isCopyDragModifier } from '../../utils/platformKeys';
+import { lastChangeTs } from '../../utils/subDpStamp';
+import { LastChangeSourcePicker } from '../config/LastChangeSourcePicker';
 import {
     X,
     Pencil,
@@ -5525,6 +5527,7 @@ type CarouselItemEdit = {
     showConfirm?: boolean;
     confirmText?: string;
     showLastChange?: boolean;
+    lastChangeSource?: 'lastChange' | 'lastUpdate';
 };
 
 function CarouselEditPanel({
@@ -6429,6 +6432,26 @@ function CarouselEditPanel({
                                         {tHook('carousel.items.showLastChange' as never)}
                                     </span>
                                 </label>
+                                {item.showLastChange && (
+                                    <select
+                                        className={selCls}
+                                        style={sInputStyle}
+                                        value={item.lastChangeSource ?? 'lastChange'}
+                                        onChange={(e) =>
+                                            updateItem(item.id, {
+                                                lastChangeSource:
+                                                    e.target.value === 'lastUpdate' ? 'lastUpdate' : undefined,
+                                            })
+                                        }
+                                    >
+                                        <option value="lastChange">
+                                            {tHook('wf.edit.lcSource.lastChange' as never)}
+                                        </option>
+                                        <option value="lastUpdate">
+                                            {tHook('wf.edit.lcSource.lastUpdate' as never)}
+                                        </option>
+                                    </select>
+                                )}
 
                                 {/* Per-item confirmation */}
                                 <div className="space-y-1 pt-1" style={{ borderTop: '1px dashed var(--app-border)' }}>
@@ -6586,6 +6609,7 @@ const DISPLAY_OPTION_KEYS = [
     'fullscreenPosition',
     'showLastChange',
     'lastChangePosition',
+    'lastChangeSource',
     'lastChangeDatapoint',
     'autoHeight',
 ] as const;
@@ -7164,6 +7188,7 @@ function WidgetFrameInner({
     const lcConfig = mirrorLcSource ?? config;
     const showLastChange = !!lcConfig.options?.showLastChange;
     const lastChangePos = (lcConfig.options?.lastChangePosition as string | undefined) ?? 'left';
+    const lastChangeSource = lcConfig.options?.lastChangeSource as string | undefined;
     const [lastChangedTs, setLastChangedTs] = useState<number>(0);
     const [, forceRedraw] = useState(0);
 
@@ -7183,13 +7208,13 @@ function WidgetFrameInner({
         if (!id) return;
 
         getStateDirect(id).then((s) => {
-            if (s) setLastChangedTs(s.lc > 0 ? s.lc : s.ts);
+            if (s) setLastChangedTs(lastChangeTs(s, lastChangeSource));
         });
 
         return subscribeStateDirect(id, (s) => {
-            if (s) setLastChangedTs(s.lc > 0 ? s.lc : s.ts);
+            if (s) setLastChangedTs(lastChangeTs(s, lastChangeSource));
         });
-    }, [lcConfig.datapoint, lcConfig.options?.lastChangeDatapoint]);
+    }, [lcConfig.datapoint, lcConfig.options?.lastChangeDatapoint, lastChangeSource]);
 
     // Periodically redraw the relative-time string
     useEffect(() => {
@@ -9761,6 +9786,12 @@ function WidgetFrameInner({
                                                     />
                                                 </button>
                                             </div>
+                                            {showLastChange && (
+                                                <LastChangeSourcePicker
+                                                    value={lastChangeSource}
+                                                    onChange={(next) => setO({ lastChangeSource: next })}
+                                                />
+                                            )}
                                             {showLastChange && (
                                                 <div className="flex items-center gap-2">
                                                     <label

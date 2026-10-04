@@ -17,6 +17,7 @@ import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { EntryThresholdsFields } from './EntryThresholdsFields';
 import { isStampSub } from '../../../utils/subDpStamp';
 import { AuraIcon } from '../../common/AuraIcon';
+import { LastChangeSourcePicker } from '../LastChangeSourcePicker';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -365,6 +366,13 @@ export function StaticEntryDetail({
                         />
                     </button>
                 </div>
+                {entry.showLastChange && (
+                    <LastChangeSourcePicker
+                        labelClassName="text-[10px]"
+                        value={entry.lastChangeSource}
+                        onChange={(next) => onUpdate({ lastChangeSource: next })}
+                    />
+                )}
 
                 {/* Klick auf Zeile (Override) */}
                 <RowClickEntryField

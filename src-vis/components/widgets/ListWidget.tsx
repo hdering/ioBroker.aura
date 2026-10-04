@@ -68,7 +68,7 @@ import { ConfirmOverlay } from './ConfirmOverlay';
 import { CheckboxControl } from './CheckboxControl';
 import { EntrySubLine, subCondKey, useRelativeTick, type EntrySubDp } from './EntrySubLine';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
-import { isStampSub, subDpsNeedTick } from '../../utils/subDpStamp';
+import { isStampSub, lastChangeTs, subDpsNeedTick } from '../../utils/subDpStamp';
 import { ListFilterChip } from './ListFilterChip';
 import {
     buildFilterChoices,
@@ -109,6 +109,8 @@ export interface StaticListEntry extends EntryControlConfig {
     fontSize?: number;
     /** Show last-change timestamp under this entry. */
     showLastChange?: boolean;
+    /** Which timestamp that line shows: 'lastChange' (lc, default) or 'lastUpdate' (ts). */
+    lastChangeSource?: 'lastChange' | 'lastUpdate';
     /** Per-row click action. Overrides the list-wide setting; undefined = inherit. */
     clickAction?: RowClickSetting;
     /** Heading of this row's popup. Beats options.rowPopupTitle; unset = the row name. */
@@ -843,7 +845,12 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         ) : null;
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
-    const [lastChangedTs, setLastChangedTs] = useState(0);
+    // Newest timestamp across the list's datapoints, for the widget-wide last-change line.
+    const lastChangeSource = config.options?.lastChangeSource as string | undefined;
+    const lastChangedTs = useMemo(
+        () => Object.values(states).reduce((max, s) => (s ? Math.max(max, lastChangeTs(s, lastChangeSource)) : max), 0),
+        [states, lastChangeSource],
+    );
     // Frontend filter is a per-viewer runtime toggle held in local state — it is
     // NOT persisted back to config. The read-only frontend runs useConfigSync with
     // ignoreDirty (remote wins) + a 30 s poll, so any frontend write to valueFilter
@@ -873,7 +880,6 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         const unsubs = subIds.map((id) =>
             subscribe(id, (s) => {
                 setStates((prev) => ({ ...prev, [id]: s }));
-                if (s) setLastChangedTs((prev) => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
             }),
         );
         ensureDatapointCache().then((cache) => {
@@ -1310,7 +1316,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 'var(--app-bg)';
                             const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
-                            const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            const lcTs = entry.showLastChange
+                                ? lastChangeTs(states[entry.id], entry.lastChangeSource)
+                                : 0;
                             const rowProps = rowPopup.row(
                                 entry.id,
                                 label,
@@ -1442,7 +1450,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
                             const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
-                            const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            const lcTs = entry.showLastChange
+                                ? lastChangeTs(states[entry.id], entry.lastChangeSource)
+                                : 0;
                             const rowProps = rowPopup.row(
                                 entry.id,
                                 label,
@@ -1677,7 +1687,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
 
                             const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
-                            const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            const lcTs = entry.showLastChange
+                                ? lastChangeTs(states[entry.id], entry.lastChangeSource)
+                                : 0;
                             const lcText =
                                 lcTs > 0
                                     ? formatLastChange(
@@ -1814,7 +1826,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
 
                         const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 13;
                         const entryFontSize = entry.fontSize;
-                        const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                        const lcTs = entry.showLastChange ? lastChangeTs(states[entry.id], entry.lastChangeSource) : 0;
                         const rowProps = rowPopup.row(
                             entry.id,
                             label,

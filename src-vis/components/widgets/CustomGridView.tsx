@@ -10,6 +10,7 @@ import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef, CellPopupOpti
 import { resolveImageSource } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { lastChangeTs } from '../../utils/subDpStamp';
 import { SliderScale } from './SliderScale';
 import { stepDecimals } from '../../utils/sliderScale';
 import { applyValueTransform } from '../../utils/valueTransform';
@@ -334,7 +335,10 @@ function DpCellView({
                     }}
                 >
                     <span style={textSty}>{content}</span>
-                    <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+                    <LastChangeLine
+                        lc={lastChangeTs(state, cell.lastChangeSource)}
+                        fmt={cell.lastChangeFormat ?? 'relative'}
+                    />
                 </div>
             ) : (
                 <span style={{ ...textSty, ...labelBg, ...textDirBlockStyle(cell) }}>{content}</span>
@@ -357,7 +361,7 @@ function LastChangeCellView({
 }) {
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
-    const lc = state?.lc;
+    const lc = lastChangeTs(state, cell.lastChangeSource);
     const fmt = cell.lastChangeFormat ?? 'relative';
     const [, setTick] = useState(0);
     useEffect(() => {
@@ -534,7 +538,7 @@ function StaticCellView({
         : baseSty;
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
     const labelBg = contentBgStyle(cell, cond);
-    const lc = mainState?.lc;
+    const lc = lastChangeTs(mainState, cell.lastChangeSource);
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
@@ -634,7 +638,9 @@ function SwitchCellView({
         cond,
     );
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrap} />;
-    const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
+    const lcLine = cell.showLastChange && (
+        <LastChangeLine lc={lastChangeTs(state, cell.lastChangeSource)} fmt={cell.lastChangeFormat ?? 'relative'} />
+    );
     if (cell.controlMode === 'button') {
         const pad = cell.buttonSize ?? 8;
         const label = switchButtonLabel(cell, on);
@@ -951,7 +957,9 @@ function SliderCellView({
         cell.showLastChange ? { ...wrapBase, flexDirection: 'column' as const, gap: 2 } : wrapBase,
         cond,
     );
-    const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
+    const lcLine = cell.showLastChange && (
+        <LastChangeLine lc={lastChangeTs(state, cell.lastChangeSource)} fmt={cell.lastChangeFormat ?? 'relative'} />
+    );
 
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapStyle} />;
 
@@ -1060,7 +1068,12 @@ function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
             >
                 {cond.text ?? cell.text ?? '⏵'}
             </button>
-            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+            {cell.showLastChange && (
+                <LastChangeLine
+                    lc={lastChangeTs(state, cell.lastChangeSource)}
+                    fmt={cell.lastChangeFormat ?? 'relative'}
+                />
+            )}
         </div>
     );
 }
@@ -1125,7 +1138,10 @@ function StateIconCellView({
             {cell.showLastChange ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                     <Icon size={size} style={{ color }} />
-                    <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+                    <LastChangeLine
+                        lc={lastChangeTs(state, cell.lastChangeSource)}
+                        fmt={cell.lastChangeFormat ?? 'relative'}
+                    />
                 </div>
             ) : (
                 <Icon size={size} style={{ color }} />
@@ -1210,7 +1226,12 @@ function StepperCellView({
                         +
                     </button>
                 </div>
-                {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+                {cell.showLastChange && (
+                    <LastChangeLine
+                        lc={lastChangeTs(state, cell.lastChangeSource)}
+                        fmt={cell.lastChangeFormat ?? 'relative'}
+                    />
+                )}
             </div>
         </div>
     );
@@ -1426,7 +1447,12 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
                     onCancel={cancel}
                 />
             )}
-            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+            {cell.showLastChange && (
+                <LastChangeLine
+                    lc={lastChangeTs(state, cell.lastChangeSource)}
+                    fmt={cell.lastChangeFormat ?? 'relative'}
+                />
+            )}
         </div>
     );
 }
@@ -1568,7 +1594,12 @@ function ProgressCellView({
                     bar
                 )}
             </div>
-            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+            {cell.showLastChange && (
+                <LastChangeLine
+                    lc={lastChangeTs(state, cell.lastChangeSource)}
+                    fmt={cell.lastChangeFormat ?? 'relative'}
+                />
+            )}
         </div>
     );
 }
@@ -1614,7 +1645,10 @@ function StateTextCellView({
                     }}
                 >
                     <span style={textSty}>{label}</span>
-                    <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />
+                    <LastChangeLine
+                        lc={lastChangeTs(state, cell.lastChangeSource)}
+                        fmt={cell.lastChangeFormat ?? 'relative'}
+                    />
                 </div>
             ) : (
                 <span style={{ ...textSty, ...labelBg, ...textDirBlockStyle(cell) }}>{label}</span>
@@ -1695,7 +1729,9 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
 
     const wrapSty = withCondBg({ ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' }, cond);
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
-    const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
+    const lcLine = cell.showLastChange && (
+        <LastChangeLine lc={lastChangeTs(state, cell.lastChangeSource)} fmt={cell.lastChangeFormat ?? 'relative'} />
+    );
 
     if (hideSelect) {
         return (
@@ -1804,7 +1840,12 @@ function DatePickerCellView({
                 {dateInput}
                 {timeInput}
             </div>
-            {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
+            {cell.showLastChange && (
+                <LastChangeLine
+                    lc={lastChangeTs(state, cell.lastChangeSource)}
+                    fmt={cell.lastChangeFormat ?? 'relative'}
+                />
+            )}
         </div>
     );
 }

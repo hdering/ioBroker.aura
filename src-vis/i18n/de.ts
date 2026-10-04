@@ -1164,6 +1164,11 @@ export const de = {
     'wf.edit.hideName': 'Name ausblenden',
     'wf.edit.titlePosition': 'Titel-Position',
     'wf.edit.showLastChange': 'Letzte Änderung anzeigen',
+    'wf.edit.lastChangeSource': 'Zeitpunkt',
+    'wf.edit.lcSource.lastChange': 'Änderung',
+    'wf.edit.lcSource.lastUpdate': 'Aktualisierung',
+    'wf.edit.lcSourceHint.lastChange': 'Wann sich der Wert zuletzt geändert hat (lc)',
+    'wf.edit.lcSourceHint.lastUpdate': 'Wann der Datenpunkt zuletzt geschrieben wurde, auch mit gleichem Wert (ts)',
     'wf.edit.fullscreenWidget': 'Vollbild-Knopf',
     'wf.edit.fullscreenScreen': 'Bildschirmfüllend',
     'wf.edit.fullscreenScreenHint':

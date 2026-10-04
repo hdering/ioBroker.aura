@@ -395,6 +395,7 @@ export interface CustomCell {
     // last-change display (for value-bearing cells)
     showLastChange?: boolean; // show lc timestamp below the cell content
     lastChangeFormat?: 'relative' | 'time' | 'datetime'; // timestamp format (default 'relative')
+    lastChangeSource?: 'lastChange' | 'lastUpdate'; // which timestamp the last-change line and the lastchange cell show: 'lastChange' = when the value last changed (lc, default), 'lastUpdate' = when the datapoint was last written, even with the same value (ts)
     // click action on display cells (issue #729) — see CLICKABLE_CELL_TYPES in CustomGridView
     /** Display cells only (text, value, dp, image, icon, …): what a click on this cell does — same actions as a widget click (popup view, link to tab, …). Unset = the cell is not clickable and a click reaches the widget's own action. */
     clickAction?: ClickAction;

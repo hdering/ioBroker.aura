@@ -30,6 +30,7 @@ import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import type { ListStat } from '../../utils/listStats';
 import { AuraIcon } from '../common/AuraIcon';
+import { LastChangeSourcePicker } from './LastChangeSourcePicker';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -431,6 +432,12 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         />
                     </button>
                 </div>
+                {opts.showEntryLastChange && (
+                    <LastChangeSourcePicker
+                        value={opts.entryLastChangeSource}
+                        onChange={(next) => setOpts({ entryLastChangeSource: next })}
+                    />
+                )}
                 {/* ── Layout: Karte – Kartenbreite ── */}
                 {config.layout === 'card' && (
                     <div>
