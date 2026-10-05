@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.68.2 (2026-09-23)
+- Design - every overridden setting of a layout or section now gets the orange marking, including the section menu, tab bar, theme and header title/elements
+
 ## 0.68.1 (2026-09-23)
 - Section menu - the widget preview of a menu element is now as wide as the menu itself (docked sidebar or drawer) instead of the whole editor, the preview window hugs it, and the element uses the bar slot when the menu sits at the top or bottom
 
