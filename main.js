@@ -7,6 +7,10 @@ const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS } = require('./lib/countdowns');
+const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
+
+/** Channel names of aura.<inst>.status.<cat> (Statusübersicht, remembered hints). */
+const STATUS_CATEGORY_NAMES = { battery: 'Batterien', unreach: 'Nicht erreichbar', alarm: 'Rauch- & Wasser-Alarme' };
 const { parseSpecialDays } = require('./lib/specialDays');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
@@ -758,6 +762,17 @@ class Aura extends utils.Adapter {
         if (id.startsWith(`${this.namespace}.timers.`) && state) {
             this._ingestTimerState(id, state.val);
             return;
+        }
+
+        // Statusübersicht: remembered hints (register / cmd)
+        if (id.startsWith(`${this.namespace}.status.`) && state) {
+            await this._onStatusStateChange(id, state);
+            return;
+        }
+        // A datapoint the remembered hints watch. Not returned: another feature may
+        // have subscribed the same id.
+        if (this._statusLatch && state && this._statusSubscribed.has(id)) {
+            this._statusLatch.update(id, state);
         }
 
         // Countdown widget config/cmd (#675)
@@ -3721,6 +3736,12 @@ class Aura extends utils.Adapter {
             this.log.warn(`[countdowns] initial scan failed: ${e.message}`);
         }
 
+        // ── Statusübersicht: remembered hints (lib/statusLatch.js) ──────────────
+        // Widgets announce the datapoints they watch through status.register; the
+        // adapter subscribes them itself, so a weak battery is remembered even
+        // while no browser is open. Entries go out through status.<cat>.list.
+        await this._initStatusLatch();
+
         // ── Live log relay for AdapterLogsWidget ───────────────────────────────────
         // The iobroker.web socket exposed to the frontend cannot deliver `requireLog`
         // events to anonymous users, so we collect logs here. The widget polls
@@ -4324,6 +4345,160 @@ class Aura extends utils.Adapter {
             await this.extendObjectAsync(`${base}.${sub}`, { common: { name: `${want} — ${sub}` } });
         }
         this.log.info(`[countdowns] renamed ${this.namespace}.${base} → "${want}"`);
+    }
+
+    // ── Statusübersicht: remembered hints ───────────────────────────────────────
+    // Glue between the status.* states and lib/statusLatch.js: the engine owns the
+    // entries, this section only reads and writes ioBroker.
+
+    async _initStatusLatch() {
+        this._statusSubscribed = new Set();
+        this._statusWriteChain = Promise.resolve();
+        const queue = (fn) => {
+            this._statusWriteChain = this._statusWriteChain.then(fn).catch((e) => {
+                this.log.warn(`[status] write failed: ${e.message}`);
+            });
+        };
+        this._statusLatch = new StatusLatchEngine({
+            log: this.log,
+            writeList: (cat, list) => queue(() => this.setStateAsync(`status.${cat}.list`, JSON.stringify(list), true)),
+            writeEvent: (cat, evt) => {
+                this.log.info(`[status] ${cat} ${evt.type}${evt.reason ? ` (${evt.reason})` : ''}: ${evt.name}`);
+                queue(() => this.setStateAsync(`status.${cat}.event`, JSON.stringify(evt), true));
+            },
+            writeSources: (cat, sources) =>
+                queue(() => this.setStateAsync(`status.${cat}.sources`, JSON.stringify(sources), true)),
+        });
+        try {
+            await this.setObjectNotExistsAsync('status', {
+                type: 'channel',
+                common: { name: 'Statusübersicht – gemerkte Hinweise' },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync('status.register', {
+                type: 'state',
+                common: {
+                    name: 'Widgets announce the datapoints they watch (JSON)',
+                    type: 'string',
+                    role: 'json',
+                    read: true,
+                    write: true,
+                    def: '',
+                },
+                native: {},
+            });
+            for (const cat of LATCH_CATEGORIES) {
+                await this.setObjectNotExistsAsync(`status.${cat}`, {
+                    type: 'channel',
+                    common: { name: STATUS_CATEGORY_NAMES[cat] || cat },
+                    native: {},
+                });
+                for (const [sub, def] of Object.entries(STATUS_STATE_DEFS)) {
+                    await this.setObjectNotExistsAsync(`status.${cat}.${sub}`, {
+                        type: 'state',
+                        common: { name: `${cat} — ${sub}`, ...def },
+                        native: {},
+                    });
+                }
+                const [list, sources] = await Promise.all([
+                    this.getStateAsync(`status.${cat}.list`),
+                    this.getStateAsync(`status.${cat}.sources`),
+                ]);
+                this._statusLatch.restore(cat, { list: list && list.val, sources: sources && sources.val });
+            }
+            this.subscribeStates('status.*');
+            this._statusLatch.tick();
+            await this._syncStatusSubscriptions(true);
+            this._statusLatchInterval = this.setInterval(() => {
+                if (this._statusLatch.tick()) {
+                    this._syncStatusSubscriptions(false).catch((e) =>
+                        this.log.warn(`[status] resubscribe failed: ${e.message}`),
+                    );
+                }
+            }, 3600 * 1000);
+        } catch (e) {
+            this.log.warn(`[status] init failed: ${e.message}`);
+        }
+    }
+
+    /**
+     * Subscribe what the engine watches, drop what it no longer does, and feed the
+     * current value of every newly watched datapoint once (`all` = every one, at start).
+     *
+     * @param all
+     */
+    async _syncStatusSubscriptions(all) {
+        const want = new Set(this._statusLatch.watchedIds());
+        const fresh = [];
+        for (const id of want) {
+            if (!this._statusSubscribed.has(id)) {
+                this._statusSubscribed.add(id);
+                fresh.push(id);
+                await this.subscribeForeignStatesAsync(id);
+            }
+        }
+        for (const id of [...this._statusSubscribed]) {
+            if (!want.has(id)) {
+                this._statusSubscribed.delete(id);
+                await this.unsubscribeForeignStatesAsync(id);
+            }
+        }
+        const read = all ? [...want] : fresh;
+        // Level datapoints first, so an entry opened by the alert value right after
+        // starts with the current voltage as its minimum.
+        const levels = new Set(this._statusLatch.levelIds());
+        read.sort((a, b) => Number(levels.has(b)) - Number(levels.has(a)));
+        for (const id of read) {
+            try {
+                const st = await this.getForeignStateAsync(id);
+                if (st) {
+                    this._statusLatch.update(id, st);
+                }
+            } catch (e) {
+                this.log.debug(`[status] read ${id} failed: ${e.message}`);
+            }
+        }
+        if (fresh.length) {
+            this.log.debug(`[status] watching ${want.size} datapoint(s), ${fresh.length} new`);
+        }
+    }
+
+    async _onStatusStateChange(id, state) {
+        if (!this._statusLatch || state.ack) {
+            return;
+        }
+        const rel = id.slice(this.namespace.length + 1);
+        if (rel === 'status.register') {
+            let payload;
+            try {
+                payload = JSON.parse(String(state.val || ''));
+            } catch {
+                return;
+            }
+            const list = Array.isArray(payload) ? payload : [payload];
+            let changed = false;
+            for (const p of list) {
+                changed = this._statusLatch.register(p).changed || changed;
+            }
+            if (changed) {
+                await this._syncStatusSubscriptions(false);
+            }
+            await this.setStateAsync('status.register', state.val, true);
+            return;
+        }
+        const m = rel.match(/^status\.([^.]+)\.cmd$/);
+        if (!m || !this._statusLatch.has(m[1])) {
+            return;
+        }
+        const raw = String(state.val ?? '').trim();
+        if (!raw) {
+            return;
+        }
+        const res = this._statusLatch.command(m[1], raw);
+        if (!res.ok) {
+            this.log.info(`[status] ${m[1]}: ${res.errors.join('; ')}`);
+        }
+        await this.setStateAsync(`status.${m[1]}.cmd`, raw, true);
     }
 
     // ── onMessage: frontend → backend RPC (adapter-status widget) ───────────────
@@ -4979,6 +5154,10 @@ class Aura extends utils.Adapter {
             }
             if (this._countdowns) {
                 this._countdowns.dispose();
+            }
+            if (this._statusLatchInterval) {
+                this.clearInterval(this._statusLatchInterval);
+                this._statusLatchInterval = null;
             }
             if (this._idleReturnInterval) {
                 this.clearInterval(this._idleReturnInterval);

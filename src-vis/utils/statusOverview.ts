@@ -185,6 +185,31 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     showMore?: boolean; // show the "+N weitere" row when maxRows cuts the list off (default true)
     showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt)
     showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
+    /**
+     * Categories whose rows show "seit …" (default ['window']). Windows/doors count the
+     * time since they opened; batteries and reachability the time since the datapoint
+     * last changed. Remembered hints (latch) always show the day of their first report.
+     */
+    sinceCategories?: CategoryKey[];
+    /**
+     * Buttons at the end of a row (layouts Standard and Kompakt). Each writes a value
+     * to a datapoint; placeholders from the row fill target and value.
+     */
+    rowActions?: StatusRowAction[];
+    /** Remember weak batteries until they are closed ("Gewechselt"), even when LOWBAT goes back to false. Needs the AURA adapter. */
+    latchBattery?: boolean;
+    /** Remember unreachable devices until they are acknowledged ("Quittieren"). Needs the AURA adapter. */
+    latchUnreach?: boolean;
+    /** Remember smoke/water alarms that went off until they are acknowledged ("Quittieren"), even after the sensor is quiet again. Needs the AURA adapter. */
+    latchAlarm?: boolean;
+    /** Recheck after closing, in days (default 7): a new report in that time reopens the entry ("trotz Wechsel am …"). */
+    latchRecheckDays?: number;
+    /** How long "Später" puts an entry back, in days (default 2). */
+    latchSnoozeDays?: number;
+    /** Batteries: close automatically when the voltage (OPERATING_VOLTAGE) or the percent value clearly jumps up (default false). */
+    latchAutoClose?: boolean;
+    /** Ask before "Gewechselt"/"Quittieren" — the first tap arms the button, the second closes (default true). */
+    latchConfirm?: boolean;
     autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     showAllClear?: boolean; // show the „Alles in Ordnung“ panel when nothing needs attention (default true)
@@ -206,6 +231,8 @@ export interface StatusItem {
     deviceId?: string;
     batteryType?: string;
     batteryQuantity?: number;
+    /** Remembered-hint state, set by applyLatch when the category latches. */
+    latch?: LatchInfo;
 }
 
 const HM_ADAPTERS = new Set(['hm-rpc', 'hmip', 'homematic']);
@@ -441,4 +468,320 @@ export function compareItems(a: StatusItem, b: StatusItem, sortBy: 'severity' | 
     }
     if (a.severity !== b.severity) return SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity];
     return a.name.localeCompare(b.name, 'de');
+}
+
+// ── Row actions ─────────────────────────────────────────────────────────────
+
+/** One button in a row of the Statusübersicht. */
+export interface StatusRowAction {
+    label: string; // button text
+    targetDp: string; // datapoint to write — placeholders {id} {device} {serial} {name} {room} allowed
+    value: string; // value to write, same placeholders; "true"/"false" and plain numbers are written typed
+    categories?: CategoryKey[]; // only rows of these categories (unset/empty = every row)
+    confirm?: boolean; // ask first: the first tap arms the button, the second writes (default false)
+    confirmLabel?: string; // text of the armed button (default "Wirklich?")
+}
+
+/** Values a row hands to the {…} placeholders of a row action. */
+export interface RowTemplateCtx {
+    id: string;
+    device: string;
+    name: string;
+    room?: string;
+}
+
+/**
+ * Device id without channel and datapoint — the fallback when no device object is
+ * known: adapter.instance.device (`hm-rpc.1.0020DA499B8F41.0.LOW_BAT` →
+ * `hm-rpc.1.0020DA499B8F41`).
+ */
+export function deviceIdFallback(id: string): string {
+    const parts = id.split('.');
+    return parts.slice(0, Math.min(3, Math.max(1, parts.length - 1))).join('.');
+}
+
+/** Fills {id} {device} {serial} {name} {room} in a row-action template. */
+export function fillRowTemplate(tpl: string, ctx: RowTemplateCtx): string {
+    const serial = ctx.device.split('.').pop() ?? '';
+    return tpl.replace(/\{(id|device|serial|name|room)\}/g, (_, k: string) => {
+        switch (k) {
+            case 'id':
+                return ctx.id;
+            case 'device':
+                return ctx.device;
+            case 'serial':
+                return serial;
+            case 'name':
+                return ctx.name;
+            default:
+                return ctx.room ?? '';
+        }
+    });
+}
+
+/** "true"/"false" → boolean, a plain number → number, anything else stays text. */
+export function typedActionValue(raw: string): boolean | number | string {
+    const s = raw.trim();
+    if (s === 'true') return true;
+    if (s === 'false') return false;
+    if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+    return raw;
+}
+
+/**
+ * Ready-made row buttons the editor offers ("Vorlage hinzufügen"). `{id}` as target
+ * writes the row's own datapoint, so "Licht aus" works as it is; the other two write
+ * to a datapoint of the user's own (`needsDp`) that the editor asks to adjust.
+ */
+export const ROW_ACTION_PRESETS: {
+    key: string;
+    title: string;
+    hint: string;
+    needsDp: boolean;
+    action: StatusRowAction;
+}[] = [
+    {
+        key: 'light-off',
+        title: 'Licht aus',
+        hint: 'Schaltet das Licht der Zeile aus (schreibt false in seinen eigenen Datenpunkt).',
+        needsDp: false,
+        action: { label: 'Aus', targetDp: '{id}', value: 'false', categories: ['light'] },
+    },
+    {
+        key: 'window-remind',
+        title: 'Fenster: Erinnern',
+        hint: 'Schreibt „<Name> (<Raum>) ist offen“ in einen eigenen Datenpunkt – z. B. für ein Skript, das später erinnert.',
+        needsDp: true,
+        action: {
+            label: 'Erinnern',
+            targetDp: '0_userdata.0.Erinnerung',
+            value: '{name} ({room}) ist offen',
+            categories: ['window'],
+        },
+    },
+    {
+        key: 'battery-script',
+        title: 'Batterie: an Skript melden',
+        hint: 'Meldet „gewechselt:<Seriennummer>“ an ein eigenes Batterie-Skript. Mit der Merkliste nicht nötig – dort gibt es „Gewechselt“ schon.',
+        needsDp: true,
+        action: {
+            label: 'Gewechselt',
+            targetDp: '0_userdata.0.Batterien.Befehl',
+            value: 'gewechselt:{serial}',
+            categories: ['battery'],
+            confirm: true,
+        },
+    },
+];
+
+/** The row actions that apply to one category. */
+export function actionsFor(actions: StatusRowAction[] | undefined, cat: CategoryKey): StatusRowAction[] {
+    return (actions ?? []).filter(
+        (a) => a && a.label && a.targetDp && (!a.categories?.length || a.categories.includes(cat)),
+    );
+}
+
+// ── Remembered hints (latch) ────────────────────────────────────────────────
+// The adapter keeps the entries (lib/statusLatch.js); the widget announces what it
+// watches and merges the entries into its live rows.
+
+/** Categories the adapter can remember. */
+export const LATCH_CATEGORIES: CategoryKey[] = ['battery', 'unreach', 'alarm'];
+
+/** One entry of aura.0.status.<cat>.list — mirror of the engine's entry. */
+export interface LatchEntry {
+    id: string;
+    name?: string;
+    room?: string;
+    since?: number;
+    last?: number;
+    count?: number;
+    active?: boolean;
+    snoozedUntil?: number | null;
+    ackedAt?: number | null;
+    closedBy?: string;
+    reopenedAfter?: number;
+    minLevel?: number;
+    unit?: string;
+    unresolved?: boolean;
+}
+
+/** What a row shows of its remembered entry. */
+export interface LatchInfo {
+    since?: number;
+    count: number;
+    active: boolean;
+    snoozedUntil?: number;
+    reopenedAfter?: number;
+}
+
+/** What the widget hands the adapter per watched datapoint. */
+export interface LatchWatch {
+    id: string;
+    kind: 'bool' | 'boolInv' | 'pct';
+    threshold?: number;
+    name?: string;
+    room?: string;
+    levelId?: string;
+    levelUnit?: 'V' | '%';
+}
+
+export function latchEnabled(opts: StatusOverviewOptions, cat: CategoryKey): boolean {
+    if (cat === 'battery') return opts.latchBattery === true && opts.catBattery !== false;
+    if (cat === 'unreach') return opts.latchUnreach === true && opts.catUnreach !== false;
+    if (cat === 'alarm') return opts.latchAlarm === true && opts.catAlarm !== false;
+    return false;
+}
+
+/** The parsed list state, keyed by datapoint id. Garbage → empty. */
+export function parseLatchList(val: unknown): Map<string, LatchEntry> {
+    const out = new Map<string, LatchEntry>();
+    let arr: unknown = val;
+    if (typeof val === 'string') {
+        try {
+            arr = JSON.parse(val);
+        } catch {
+            return out;
+        }
+    }
+    if (!Array.isArray(arr)) return out;
+    for (const e of arr) {
+        if (e && typeof e === 'object' && typeof (e as LatchEntry).id === 'string') out.set((e as LatchEntry).id, e);
+    }
+    return out;
+}
+
+/**
+ * How the adapter has to read a candidate: a percent value against the threshold, a
+ * boolean where true = problem, or a reachable-style boolean where false = problem.
+ */
+export function latchKind(dp: DatapointEntry, cat: CategoryKey, opts: StatusOverviewOptions): LatchWatch['kind'] {
+    const r = (dp.role ?? '').toLowerCase();
+    if (cat === 'battery') return r === 'value.battery' || dp.type === 'number' ? 'pct' : 'bool';
+    if (cat === 'unreach') {
+        const reach = isReachableRole(r) || (opts.offlineInvert === true && matchesOfflineExtra(dp, opts));
+        return reach ? 'boolInv' : 'bool';
+    }
+    return 'bool';
+}
+
+/**
+ * The voltage or percent datapoint next to a boolean low-battery flag, so the adapter
+ * can tell a real battery change from a flag that only went quiet:
+ * OPERATING_VOLTAGE in the same channel, else anywhere under the same device, else a
+ * value.battery under the same device.
+ */
+export function findBatteryLevelDp(
+    dp: DatapointEntry,
+    cache: DatapointEntry[],
+): { id: string; unit: 'V' | '%' } | null {
+    const r = (dp.role ?? '').toLowerCase();
+    if (r === 'value.battery' || dp.type === 'number') return null; // the value itself is the level
+    const parent = dp.id.slice(0, dp.id.lastIndexOf('.'));
+    const device = deviceIdFallback(dp.id);
+    let sameDevice: string | null = null;
+    let pct: string | null = null;
+    for (const c of cache) {
+        if (c.id === dp.id || !c.id.startsWith(`${device}.`)) continue;
+        const lid = c.id.toLowerCase();
+        if (lid.endsWith('.operating_voltage')) {
+            if (c.id.startsWith(`${parent}.`)) return { id: c.id, unit: 'V' };
+            sameDevice ??= c.id;
+        } else if ((c.role ?? '').toLowerCase() === 'value.battery' && c.type === 'number') {
+            pct ??= c.id;
+        }
+    }
+    if (sameDevice) return { id: sameDevice, unit: 'V' };
+    if (pct) return { id: pct, unit: '%' };
+    return null;
+}
+
+/**
+ * Merges a remembered entry into the row the live value produced.
+ *
+ * `live` is evaluateItem's answer WITH includeOk — the healthy row is needed to show a
+ * remembered entry whose datapoint went quiet. Returns the row to show, or null.
+ *
+ *   no entry            → the live row as before (alerts only unless showAll)
+ *   closed entry        → hidden (the live value may still be the stale "low"); in
+ *                         "all" mode it shows as ok
+ *   open entry, alert   → the live row plus what is remembered
+ *   open entry, quiet   → kept as a hint, marked inactive ("bleibt gemerkt")
+ */
+export function applyLatch(
+    live: StatusItem | null,
+    entry: LatchEntry | undefined,
+    base: { id: string; name: string; room?: string; category: CategoryKey },
+    showAll: boolean,
+    now: number,
+): StatusItem | null {
+    const alertLive = !!live && live.severity !== 'ok';
+    if (!entry || entry.unresolved) return alertLive || (showAll && live) ? live : null;
+    if (entry.ackedAt) {
+        if (!showAll || !live) return null;
+        return alertLive ? { ...live, severity: 'ok', color: 'var(--text-secondary)' } : live;
+    }
+    const latch: LatchInfo = {
+        since: entry.since,
+        count: entry.count ?? 1,
+        active: alertLive,
+        ...(entry.snoozedUntil && entry.snoozedUntil > now ? { snoozedUntil: entry.snoozedUntil } : {}),
+        ...(entry.reopenedAfter ? { reopenedAfter: entry.reopenedAfter } : {}),
+    };
+    if (alertLive) return { ...live!, latch };
+    // A remembered alarm stays red: it did go off, even if the sensor is quiet again.
+    const isAlarm = base.category === 'alarm';
+    const label =
+        base.category === 'battery'
+            ? live && /%$/.test(live.label)
+                ? live.label
+                : 'schwach'
+            : isAlarm
+              ? 'Ausgelöst'
+              : 'Offline';
+    return {
+        ...(live ?? base),
+        severity: isAlarm ? 'crit' : 'warn',
+        label,
+        color: isAlarm ? SEVERITY_COLOR.crit : SEVERITY_COLOR.warn,
+        latch,
+    };
+}
+
+/** Counts towards the hint chip: needs attention and is not put back ("Später"). */
+export function countsAsHint(item: StatusItem): boolean {
+    return item.severity !== 'ok' && !item.latch?.snoozedUntil;
+}
+
+/** Small, stable string hash — tells the widget whether its registration changed. */
+export function hashString(s: string): string {
+    let h = 5381;
+    for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+    return (h >>> 0).toString(36);
+}
+
+/** "05.10." — the day of a remembered report. */
+export function formatDay(ts: number): string {
+    const d = new Date(ts);
+    return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`;
+}
+
+/**
+ * The extra facts of a remembered row, in reading order:
+ * "seit 05.10." · "3× gemeldet" · "meldet zurzeit nichts, bleibt gemerkt" ·
+ * "zurückgestellt bis 07.10." · "trotz Wechsel am 01.10."
+ */
+export function latchFacts(item: StatusItem, showSince: boolean): string[] {
+    const l = item.latch;
+    if (!l) return [];
+    const out: string[] = [];
+    if (showSince && l.since) out.push(`seit ${formatDay(l.since)}`);
+    if (l.count > 1) out.push(`${l.count}× ${item.category === 'alarm' ? 'ausgelöst' : 'gemeldet'}`);
+    if (!l.active) out.push('meldet zurzeit nichts, bleibt gemerkt');
+    if (l.snoozedUntil) out.push(`zurückgestellt bis ${formatDay(l.snoozedUntil)}`);
+    if (l.reopenedAfter)
+        out.push(
+            `${item.category === 'battery' ? 'trotz Wechsel' : 'trotz Quittierung'} am ${formatDay(l.reopenedAfter)}`,
+        );
+    return out;
 }

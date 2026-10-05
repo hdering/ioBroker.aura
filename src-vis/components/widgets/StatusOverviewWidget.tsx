@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ShieldCheck,
     TriangleAlert,
@@ -11,7 +11,8 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
-import { useIoBroker } from '../../hooks/useIoBroker';
+import { useIoBroker, setStateDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import { useConfigStore } from '../../store/configStore';
@@ -34,9 +35,25 @@ import {
     isStatusLoading,
     CATEGORY_ORDER,
     SEVERITY_COLOR,
+    LATCH_CATEGORIES,
+    latchEnabled,
+    latchKind,
+    findBatteryLevelDp,
+    parseLatchList,
+    applyLatch,
+    countsAsHint,
+    latchFacts,
+    hashString,
+    actionsFor,
+    fillRowTemplate,
+    typedActionValue,
+    deviceIdFallback,
     type CategoryKey,
+    type LatchEntry,
+    type LatchWatch,
     type StatusItem,
     type StatusOverviewOptions,
+    type StatusRowAction,
 } from '../../utils/statusOverview';
 import { formatItemName, finishItemName, hasLiveToken } from '../../utils/nameFilter';
 import { useDpTokenResolver } from './DynamicTitle';
@@ -74,6 +91,84 @@ const LOADING_GRACE_MS = 20000;
 interface Candidate {
     dp: DatapointEntry;
     cat: CategoryKey;
+    /** Voltage/percent datapoint next to a boolean low-battery flag (for the latch's auto-close). */
+    level?: { id: string; unit: 'V' | '%' } | null;
+}
+
+/** Registrations already sent in this page, per widget+category → hash (no repeat writes). */
+const sentRegistrations = new Map<string, string>();
+/** A registration older than this is renewed, so the adapter does not age it out. */
+const REGISTRATION_REFRESH_MS = 24 * 3600 * 1000;
+
+/** status.<cat>.sources → { [widgetId]: { hash, ts } } (garbage → {}). */
+function parseSources(val: unknown): Record<string, { hash?: string; ts?: number }> {
+    if (typeof val !== 'string' || !val) return {};
+    try {
+        const o = JSON.parse(val);
+        return o && typeof o === 'object' && !Array.isArray(o) ? o : {};
+    } catch {
+        return {};
+    }
+}
+
+/** How long an armed button waits for the confirming second tap. */
+const ARM_MS = 3000;
+
+/**
+ * A small button at the end of a row. With `confirm` the first tap only arms it
+ * (label turns into "Wirklich?") and a second tap within 3 s runs it — touch-friendly,
+ * and no window.confirm, which would block the whole page (and a wall tablet's kiosk).
+ */
+function RowButton({
+    label,
+    title,
+    confirm,
+    confirmLabel,
+    color,
+    disabled,
+    onRun,
+}: {
+    label: string;
+    title?: string;
+    confirm?: boolean;
+    confirmLabel?: string;
+    color: string;
+    disabled?: boolean;
+    onRun: () => void;
+}) {
+    const [armed, setArmed] = useState(false);
+    useEffect(() => {
+        if (!armed) return;
+        const t = setTimeout(() => setArmed(false), ARM_MS);
+        return () => clearTimeout(t);
+    }, [armed]);
+    return (
+        <button
+            type="button"
+            className="aura-status-action shrink-0 rounded px-1.5 text-[10px] font-semibold leading-[14px] border transition-colors"
+            title={title}
+            disabled={disabled}
+            style={{
+                color: armed ? 'var(--widget-bg, var(--app-surface))' : color,
+                background: armed ? color : 'transparent',
+                borderColor: `color-mix(in srgb, ${color} 45%, transparent)`,
+                opacity: disabled ? 0.5 : undefined,
+                pointerEvents: disabled ? 'none' : undefined,
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+                e.stopPropagation();
+                if (confirm && !armed) {
+                    setArmed(true);
+                    return;
+                }
+                setArmed(false);
+                onRun();
+            }}
+        >
+            {armed ? confirmLabel || 'Wirklich?' : label}
+        </button>
+    );
 }
 
 export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
@@ -131,6 +226,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         opts.excludeIdPatterns,
         opts.offlineExtraPatterns,
         opts.offlineInvert,
+        // Only decides whether the voltage neighbours are looked up — unset leaves
+        // the key exactly as it was for every existing widget.
+        ...(opts.latchBattery ? [true] : []),
     ]);
     useEffect(() => {
         let cancelled = false;
@@ -139,11 +237,16 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             if (cancelled) return;
             const hmBatterySerials = collectHmBatterySerials(cache);
             const found: Candidate[] = [];
+            const wantLevel = latchEnabled(opts, 'battery');
             for (const dp of cache) {
                 const cat = categoryOf(dp, opts, hmBatterySerials);
                 if (!cat) continue;
                 if (!passesScope(dp, opts)) continue;
-                found.push({ dp, cat });
+                found.push({
+                    dp,
+                    cat,
+                    ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
+                });
             }
             setCandidates(found);
             setDiscovered(true);
@@ -182,8 +285,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     const batteryCandidates = useMemo(() => candidates.filter((c) => c.cat === 'battery'), [candidates]);
     // Show battery type/quantity next to low batteries by default; opt out with batteryTypeEnabled=false.
     const wantBatteryTypes = opts.batteryTypeEnabled !== false;
-    // Device-id resolution is also needed (without the library) when devices are hidden.
-    const needBatteryMeta = wantBatteryTypes || hiddenDevices.length > 0;
+    // Device-id resolution is also needed (without the library) when devices are hidden,
+    // and for the remembered batteries: the adapter's list and its events name the
+    // device ("Garage Oeffner Golf"), not the LOW_BAT datapoint.
+    const needBatteryMeta = wantBatteryTypes || hiddenDevices.length > 0 || latchEnabled(opts, 'battery');
     const batteryCandKey = batteryCandidates.map((c) => c.dp.id).join(',');
     const overridesKey = JSON.stringify(overrides ?? {});
     useEffect(() => {
@@ -235,27 +340,153 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [batteryCandKey, needBatteryMeta, wantBatteryTypes, overridesKey]);
 
+    // ── Remembered hints (latch) ───────────────────────────────────────────────
+    // The adapter keeps the entries (lib/statusLatch.js), so every browser shows the
+    // same list and a closed entry disappears everywhere at once. Nothing here runs
+    // unless latchBattery/latchUnreach/latchAlarm is switched on.
+    const latchCats = useMemo(() => LATCH_CATEGORIES.filter((c) => latchEnabled(opts, c)), [opts]);
+    const latchCatKey = latchCats.join(',');
+    const [latchLists, setLatchLists] = useState<Partial<Record<CategoryKey, Map<string, LatchEntry>>>>({});
+    useEffect(() => {
+        if (latchCats.length === 0) {
+            setLatchLists({});
+            return;
+        }
+        const unsubs = latchCats.map((cat) => {
+            const id = `${NS}.status.${cat}.list`;
+            const apply = (s: ioBrokerState | null) =>
+                setLatchLists((prev) => ({ ...prev, [cat]: parseLatchList(s?.val) }));
+            getState(id).then(apply);
+            return subscribe(id, apply);
+        });
+        return () => unsubs.forEach((u) => u());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [latchCatKey]);
+
+    // Tell the adapter which datapoints this widget watches, so it remembers them
+    // while no browser is open. Sent only when it changed (or once a day, so the
+    // adapter does not forget a widget that is still there).
+    const prevLatchCats = useRef<string[]>([]);
+    const batteryInfoReady = !needBatteryMeta || batteryCandidates.length === 0 || Object.keys(batteryInfo).length > 0;
+    useEffect(() => {
+        if (!discovered || !batteryInfoReady) return;
+        const source = config.id;
+        if (!source) return;
+        const send = (cat: CategoryKey, watch: LatchWatch[]) => {
+            const payload = {
+                source,
+                cat,
+                settings: { recheckDays: opts.latchRecheckDays ?? 7, autoClose: opts.latchAutoClose === true },
+                watch,
+            };
+            const hash = hashString(JSON.stringify(payload));
+            const key = `${source}:${cat}`;
+            if (sentRegistrations.get(key) === hash) return;
+            sentRegistrations.set(key, hash);
+            const write = () => setStateDirect(`${NS}.status.register`, JSON.stringify({ ...payload, hash }), false);
+            if (watch.length === 0) {
+                write();
+                return;
+            }
+            // Another browser (or an earlier visit) may already have sent the same.
+            getStateDirect(`${NS}.status.${cat}.sources`)
+                .then((s) => {
+                    const known = parseSources(s?.val)[source];
+                    if (known?.hash === hash && Date.now() - (known.ts ?? 0) < REGISTRATION_REFRESH_MS) return;
+                    write();
+                })
+                .catch(write);
+        };
+        for (const cat of latchCats) {
+            const watch: LatchWatch[] = [];
+            for (const c of candidates) {
+                if (c.cat !== cat) continue;
+                const bi = cat === 'battery' ? batteryInfo[c.dp.id] : undefined;
+                if (bi?.deviceId && hiddenSet.has(bi.deviceId)) continue;
+                const kind = latchKind(c.dp, cat, opts);
+                watch.push({
+                    id: c.dp.id,
+                    kind,
+                    ...(kind === 'pct' ? { threshold: opts.batteryThreshold ?? 20 } : {}),
+                    name: bi?.deviceName || c.dp.name,
+                    ...(c.dp.rooms[0] ? { room: c.dp.rooms[0] } : {}),
+                    ...(c.level ? { levelId: c.level.id, levelUnit: c.level.unit } : {}),
+                });
+            }
+            send(cat, watch);
+        }
+        // Switched off while this page was open → withdraw the registration.
+        for (const cat of prevLatchCats.current) {
+            if (!latchCats.includes(cat as CategoryKey)) send(cat as CategoryKey, []);
+        }
+        prevLatchCats.current = latchCats;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        discovered,
+        batteryInfoReady,
+        latchCatKey,
+        candidateKey,
+        batteryInfo,
+        hiddenKey,
+        opts.batteryThreshold,
+        opts.latchRecheckDays,
+        opts.latchAutoClose,
+        config.id,
+    ]);
+
+    // Device ids for the {device}/{serial} placeholders of the row actions. The device
+    // index is shared and cached; it is only loaded when a widget has row actions.
+    const hasRowActions = (opts.rowActions?.length ?? 0) > 0;
+    const [deviceIndex, setDeviceIndex] = useState<Awaited<ReturnType<typeof loadDeviceModelIndex>> | null>(null);
+    useEffect(() => {
+        if (!hasRowActions) return;
+        let cancelled = false;
+        loadDeviceModelIndex().then((idx) => {
+            if (!cancelled) setDeviceIndex(idx);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [hasRowActions]);
+
     // ── Evaluate → attention items ─────────────────────────────────────────────
     const sortBy = opts.sortBy ?? 'severity';
     const showAll = opts.valueFilter === 'all';
     const t = useT();
     const allItems = useMemo<StatusItem[]>(() => {
         const out: StatusItem[] = [];
+        const now = Date.now();
         for (const c of candidates) {
             const s = states[c.dp.id];
             if (s === undefined) continue; // not loaded yet
-            const item = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, s?.lc && s.lc > 0 ? s.lc : s?.ts, showAll);
-            if (!item) continue;
             // Hidden battery devices never appear.
             if (c.cat === 'battery') {
                 const did = batteryInfo[c.dp.id]?.deviceId;
                 if (did && hiddenSet.has(did)) continue;
             }
+            const lc = s?.lc && s.lc > 0 ? s.lc : s?.ts;
+            const latchList = latchLists[c.cat];
+            if (latchList) {
+                // The healthy row is needed too: a remembered entry whose datapoint
+                // went quiet still shows.
+                const live = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, lc, true);
+                const item = applyLatch(
+                    live,
+                    latchList.get(c.dp.id),
+                    { id: c.dp.id, name: c.dp.name, room: c.dp.rooms[0], category: c.cat },
+                    showAll,
+                    now,
+                );
+                if (item) out.push(item);
+                continue;
+            }
+            const item = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, lc, showAll);
+            if (!item) continue;
             out.push(item);
         }
         out.sort((a, b) => compareItems(a, b, sortBy));
         return out;
-    }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet]);
+    }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet, latchLists]);
 
     // ── Row cap ────────────────────────────────────────────────────────────────
     // The rows of this widget appear at runtime out of the discovered datapoints,
@@ -294,7 +525,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     };
 
     // Alerts drive the chip / all-clear; "all" mode additionally lists healthy devices.
-    const total = allItems.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
+    // An entry put back with "Später" stays listed but stops counting — the chip is
+    // what says "something needs doing now".
+    const total = allItems.reduce((n, i) => (countsAsHint(i) ? n + 1 : n), 0);
+    const anyHint = total > 0 || allItems.some((i) => i.severity !== 'ok');
     const hasCrit = allItems.some((i) => i.severity === 'crit');
     // Highlight colour for a device in an attention state (per-category, else per-severity).
     const alertColorFor = (item: StatusItem) =>
@@ -388,7 +622,81 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return bi?.type ? `${bi.quantity > 1 ? `${bi.quantity}× ` : ''}${bi.type}` : null;
     };
 
-    const Row = ({ item }: { item: StatusItem }) => {
+    // "seit …" for live rows: windows by default, batteries/reachability on request.
+    const sinceCats = opts.sinceCategories ?? ['window'];
+    const showSince = opts.showSince !== false;
+
+    /** The placeholder values of one row ({id} {device} {serial} {name} {room}). */
+    const templateCtx = (item: StatusItem) => ({
+        id: item.id,
+        device:
+            batteryInfo[item.id]?.deviceId ||
+            (deviceIndex ? resolveDeviceIdForDp(item.id, deviceIndex) : deviceIdFallback(item.id)),
+        name: labelFor(item),
+        room: item.room,
+    });
+    const runRowAction = (a: StatusRowAction, item: StatusItem) => {
+        const ctx = templateCtx(item);
+        const dp = fillRowTemplate(a.targetDp, ctx).trim();
+        if (!dp) return;
+        setStateDirect(dp, typedActionValue(fillRowTemplate(a.value ?? '', ctx)), false);
+    };
+    const latchCmd = (item: StatusItem, cmd: string) =>
+        setStateDirect(`${NS}.status.${item.category}.cmd`, `${cmd}:${item.id}`, false);
+
+    /** Buttons at the end of a row: the latch's close/snooze, then the configured actions. */
+    const rowButtons = (item: StatusItem, color: string) => {
+        const buttons: React.ReactNode[] = [];
+        const latching = !!latchLists[item.category];
+        if (latching && (item.latch || item.severity !== 'ok')) {
+            const isBattery = item.category === 'battery';
+            const snoozeDays = opts.latchSnoozeDays ?? 2;
+            buttons.push(
+                <RowButton
+                    key="latch-ack"
+                    label={isBattery ? 'Gewechselt' : 'Quittieren'}
+                    title={isBattery ? 'Batterie gewechselt – Hinweis schließen' : 'Hinweis schließen'}
+                    confirm={opts.latchConfirm !== false}
+                    color={color}
+                    disabled={editMode}
+                    onRun={() => latchCmd(item, 'ack')}
+                />,
+            );
+            if (item.latch && !item.latch.snoozedUntil) {
+                buttons.push(
+                    <RowButton
+                        key="latch-snooze"
+                        label="Später"
+                        title={`Zurückstellen um ${snoozeDays} ${snoozeDays === 1 ? 'Tag' : 'Tage'}`}
+                        color="var(--text-secondary)"
+                        disabled={editMode}
+                        onRun={() => latchCmd(item, `snooze`)}
+                    />,
+                );
+            }
+        }
+        actionsFor(opts.rowActions, item.category).forEach((a, i) =>
+            buttons.push(
+                <RowButton
+                    key={`a${i}`}
+                    label={a.label}
+                    confirm={a.confirm}
+                    confirmLabel={a.confirmLabel}
+                    color={color}
+                    disabled={editMode}
+                    onRun={() => runRowAction(a, item)}
+                />,
+            ),
+        );
+        return buttons;
+    };
+
+    /** Remembered, but quiet right now or put back — shown muted in every layout. */
+    const isMuted = (item: StatusItem) => !!item.latch && (!item.latch.active || !!item.latch.snoozedUntil);
+
+    // A plain function, not a component: an inline component is a new type on every
+    // render, and the remount would drop an armed confirm button mid-tap.
+    const renderRow = (item: StatusItem) => {
         const batteryLabel = batteryLabelFor(item);
         const color = alertColorFor(item);
         const customBg = alertBgFor(item);
@@ -396,29 +704,49 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         const { Icon } = CATEGORY_META[item.category];
         const sub = [
             opts.showRoom !== false ? item.room : null,
-            opts.showSince !== false && item.category === 'window' && item.lc ? formatSince(item.lc) : null,
+            !item.latch && showSince && sinceCats.includes(item.category) && item.lc ? formatSince(item.lc) : null,
+            ...latchFacts(item, showSince),
         ]
             .filter(Boolean)
             .join(' · ');
         const rowProps = rowPopup.row(item.id, labelFor(item));
+        // A remembered entry that reports nothing right now, or one put back with
+        // "Später", stays in the list — muted, so the live problems stand out.
+        const muted = isMuted(item);
+        const buttons = rowButtons(item, color);
         return (
             <div
-                className="flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0"
+                key={item.id}
+                className={`flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0${buttons.length ? ' flex-wrap' : ''}`}
+                data-latch={item.latch ? (muted ? 'muted' : 'active') : undefined}
                 style={{
                     ...(alert
-                        ? { background: customBg ?? `color-mix(in srgb, ${color} 12%, transparent)` }
+                        ? {
+                              background: muted
+                                  ? `color-mix(in srgb, ${color} 5%, transparent)`
+                                  : (customBg ?? `color-mix(in srgb, ${color} 12%, transparent)`),
+                          }
                         : undefined),
                     // Left (default) keeps name and value pushed apart; centring/right-aligning
                     // only works once the label stops eating the free space (flex-1 below).
                     justifyContent: alignFlex,
                     cursor: rowProps ? 'pointer' : undefined,
+                    opacity: muted ? 0.65 : undefined,
+                    // Buttons: when the row is too narrow they wrap to a line of their own
+                    // instead of squeezing the device name out of the row.
+                    rowGap: buttons.length ? 2 : undefined,
                 }}
                 {...rowProps}
             >
                 <Icon size={14} className="shrink-0" style={{ color }} />
                 <span
                     className={`${isAligned ? '' : 'flex-1 '}min-w-0 truncate text-xs`}
-                    style={{ color: 'var(--text-primary)' }}
+                    style={{
+                        color: 'var(--text-primary)',
+                        // The name keeps ~8rem before the buttons give way (flex-wrap above).
+                        ...(buttons.length && !isAligned ? { flex: '1 1 8rem' } : {}),
+                    }}
+                    title={item.latch && sub ? `${labelFor(item)} · ${sub}` : undefined}
                 >
                     {labelFor(item)}
                     {sub && <span className="ml-1 opacity-50">· {sub}</span>}
@@ -431,6 +759,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         </span>
                     )}
                 </span>
+                {buttons.length > 0 && <span className="flex items-center gap-1 shrink-0 ml-auto">{buttons}</span>}
             </div>
         );
     };
@@ -454,7 +783,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // ── all-clear (the intended normal state) — only when filtering to alerts ────
     // Defined before the layout branches so every layout can show it instead of an
     // empty body when there is nothing to report.
-    const allClear = total === 0 && !showAll && !opts.showOkCategories && !loading;
+    const allClear = !anyHint && !showAll && !opts.showOkCategories && !loading;
     const allClearBlock =
         opts.showAllClear === false ? null : (
             <div
@@ -536,6 +865,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                         : 'var(--app-bg)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--widget-border)'}`,
                                     cursor: rowProps ? 'pointer' : undefined,
+                                    opacity: isMuted(item) ? 0.65 : undefined,
                                 }}
                                 {...rowProps}
                             >
@@ -595,6 +925,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                     color: alert ? color : 'var(--text-primary)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 34%, transparent)` : 'var(--widget-border)'}`,
                                     cursor: rowProps ? 'pointer' : undefined,
+                                    opacity: isMuted(item) ? 0.65 : undefined,
                                 }}
                                 {...rowProps}
                             >
@@ -627,12 +958,12 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             ) : (
                 <div className={`${scrollCls} pr-0.5`}>
                     {layout === 'compact'
-                        ? items.map((item) => <Row key={item.id} item={item} />)
+                        ? items.map((item) => renderRow(item))
                         : // default: grouped by category
                           enabledCats.map((cat) => {
                               const catItems = items.filter((i) => i.category === cat);
                               if (catItems.length === 0 && !opts.showOkCategories) return null;
-                              const catAlerts = catItems.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
+                              const catAlerts = catItems.reduce((n, i) => (countsAsHint(i) ? n + 1 : n), 0);
                               const { Icon, label } = CATEGORY_META[cat];
                               return (
                                   <div key={cat} className="mb-1.5 last:mb-0">
@@ -661,9 +992,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                               <ShieldCheck size={11} style={{ color: SEVERITY_COLOR.ok }} />
                                           )}
                                       </div>
-                                      {catItems.map((item) => (
-                                          <Row key={item.id} item={item} />
-                                      ))}
+                                      {catItems.map((item) => renderRow(item))}
                                   </div>
                               );
                           })}

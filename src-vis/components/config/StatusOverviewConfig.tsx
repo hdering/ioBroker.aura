@@ -16,6 +16,7 @@ import { ColorPicker } from '../common/ColorPicker';
 import { ConfigModal } from './ConfigModal';
 import { NameDisplayFields } from './NameDisplayFields';
 import { RowClickSection } from './RowClickSection';
+import { StatusRowActionsEditor } from './StatusRowActionsEditor';
 
 // Lazy so the ~battery admin page stays out of the config chunk until opened.
 const AdminBatteries = lazy(() =>
@@ -38,6 +39,24 @@ function BatteryAssignModal({ onClose }: { onClose: () => void }) {
         </ConfigModal>
     );
 }
+
+/** Short German category names for summaries. */
+const CAT_SHORT: Record<CategoryKey, string> = {
+    window: 'Fenster & Türen',
+    battery: 'Batterien',
+    light: 'Lichter',
+    alarm: 'Alarme',
+    unreach: 'Erreichbarkeit',
+};
+
+/** The categories the Merkliste can remember, in panel order, and their option keys. */
+const LATCH_TOGGLES: { cat: 'battery' | 'unreach' | 'alarm'; label: string; short: string }[] = [
+    { cat: 'battery', label: 'Schwache Batterien merken', short: 'Batterien' },
+    { cat: 'unreach', label: 'Nicht erreichbare Geräte merken', short: 'Erreichbarkeit' },
+    { cat: 'alarm', label: 'Ausgelöste Rauch- & Wasser-Alarme merken', short: 'Alarme' },
+];
+const LATCH_KEY = { battery: 'latchBattery', unreach: 'latchUnreach', alarm: 'latchAlarm' } as const;
+const CAT_KEY = { battery: 'catBattery', unreach: 'catUnreach', alarm: 'catAlarm' } as const;
 
 interface Props {
     config: WidgetConfig;
@@ -112,6 +131,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         onConfigChange({ ...config, options: { ...config.options, ...patch } });
 
     const [showBatteries, setShowBatteries] = useState(false);
+    const [showActions, setShowActions] = useState(false);
 
     // Reachability escape hatch is global (device-level), not per-widget.
     const offlineExtraPatterns = useConfigStore((s) => s.frontend.offlineExtraPatterns);
@@ -169,6 +189,13 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     }, [scopeKey]);
 
     const lightScope = o.lightRoleScope ?? 'light';
+
+    // Merkliste: which categories are on (a switched-off category cannot be remembered).
+    const catOn = (cat: keyof typeof CAT_KEY) => o[CAT_KEY[cat]] !== false;
+    const latchOn = (cat: keyof typeof LATCH_KEY) => o[LATCH_KEY[cat]] === true;
+    const latchActive = LATCH_TOGGLES.filter(({ cat }) => catOn(cat) && latchOn(cat)).map((t) => t.short);
+    const latchSummary = latchActive.length ? `an: ${latchActive.join(', ')}` : 'aus';
+    const rowActionCount = (o.rowActions ?? []).filter((a) => a.label && a.targetDp).length;
 
     // Default highlight colour per category (severity): crit = red, warn = amber.
     const DEFAULT_CAT_HEX: Record<CategoryKey, string> = {
@@ -563,10 +590,47 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     <Toggle
                         checked={o.showSince !== false}
                         onChange={(v) => set({ showSince: v })}
-                        label={'Bei Fenster/Türen „seit …“ anzeigen'}
+                        label={'„seit …“ anzeigen'}
                     />
+                    {o.showSince !== false && (
+                        <div className="flex flex-wrap gap-1">
+                            {(['window', 'battery', 'unreach'] as CategoryKey[]).map((cat) => {
+                                const cur = o.sinceCategories ?? ['window'];
+                                const on = cur.includes(cat);
+                                const label =
+                                    cat === 'window'
+                                        ? 'Fenster & Türen'
+                                        : cat === 'battery'
+                                          ? 'Batterien'
+                                          : 'Erreichbarkeit';
+                                return (
+                                    <button
+                                        key={cat}
+                                        onClick={() => {
+                                            const next = on ? cur.filter((c) => c !== cat) : [...cur, cat];
+                                            // ['window'] is the default — store nothing for it.
+                                            set({
+                                                sinceCategories:
+                                                    next.length === 1 && next[0] === 'window' ? undefined : next,
+                                            });
+                                        }}
+                                        className="text-[11px] rounded-full px-2 py-0.5"
+                                        style={{
+                                            background: on ? 'var(--accent)' : 'transparent',
+                                            color: on ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                     <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        Raum und Öffnungsdauer stehen hinter dem Gerätenamen (nur Layout Standard und Kompakt).
+                        Raum und Dauer stehen hinter dem Gerätenamen (nur Layout Standard und Kompakt). Fenster/Türen
+                        zählen ab dem Öffnen, Batterien und Erreichbarkeit ab der letzten Änderung des Datenpunkts.
+                        Gemerkte Hinweise zeigen den Tag der ersten Meldung.
                     </p>
                     <Toggle
                         checked={!!o.showOkCategories}
@@ -621,6 +685,183 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     )}
                 </div>
             </details>
+
+            {/* ── Merkliste (collapsed by default) — its own section: it spans several
+                categories. The summary says what is on, so it reads closed too. ── */}
+            {(o.catBattery !== false || o.catUnreach !== false || o.catAlarm !== false) && (
+                <details
+                    className="aura-status-merkliste group pt-1"
+                    style={{ borderTop: '1px solid var(--app-border)' }}
+                >
+                    <summary className="flex items-center justify-between gap-2 cursor-pointer list-none">
+                        <span className={sectionTitleCls} style={labelStyle}>
+                            Merkliste
+                        </span>
+                        <span className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[11px] truncate" style={labelStyle}>
+                                {latchSummary}
+                            </span>
+                            <ChevronDown
+                                size={13}
+                                className="shrink-0 transition-transform group-open:rotate-180"
+                                style={{ color: 'var(--text-secondary)' }}
+                            />
+                        </span>
+                    </summary>
+                    <div className="space-y-2 mt-2">
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Ein Hinweis bleibt stehen, bis er erledigt ist – auch wenn das Gerät zwischendurch wieder
+                            „ok“ meldet: eine Batterie, deren LOWBAT bei Kälte kurz auf true springt, ein Gerät, das
+                            nachts kurz weg war, ein Rauchmelder, der ausgelöst hat. Geschlossen wird mit „Gewechselt“
+                            bzw. „Quittieren“ in der Zeile, „Später“ stellt zurück. Der Adapter führt die Liste für alle
+                            Geräte.
+                        </p>
+                        {LATCH_TOGGLES.map(({ cat, label }) => {
+                            const enabled = catOn(cat);
+                            return (
+                                <div
+                                    key={cat}
+                                    data-latch-toggle={cat}
+                                    title={enabled ? undefined : 'Kategorie ist ausgeschaltet'}
+                                    style={enabled ? undefined : { opacity: 0.4, pointerEvents: 'none' }}
+                                >
+                                    <Toggle
+                                        checked={enabled && latchOn(cat)}
+                                        onChange={(v) => set({ [LATCH_KEY[cat]]: v || undefined })}
+                                        label={label}
+                                    />
+                                </div>
+                            );
+                        })}
+                        {(o.latchBattery || o.latchUnreach || o.latchAlarm) && (
+                            <>
+                                {o.latchBattery && (
+                                    <>
+                                        <Toggle
+                                            checked={!!o.latchAutoClose}
+                                            onChange={(v) => set({ latchAutoClose: v || undefined })}
+                                            label="Batterie automatisch schließen, wenn die Spannung deutlich steigt"
+                                        />
+                                        <p
+                                            className="text-[11px]"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                                        >
+                                            Mit OPERATING_VOLTAGE: mindestens 0,3 V und 25 % über dem tiefsten Wert. Mit
+                                            Prozentwert: mindestens 40 % und 30 Punkte darüber.
+                                        </p>
+                                    </>
+                                )}
+                                <div className="flex gap-3">
+                                    <div className="flex-1">
+                                        <label className={labelCls} style={labelStyle}>
+                                            „Später“ stellt zurück um (Tage)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={60}
+                                            value={o.latchSnoozeDays ?? 2}
+                                            onChange={(e) =>
+                                                set({
+                                                    latchSnoozeDays: e.target.value
+                                                        ? Number(e.target.value)
+                                                        : undefined,
+                                                })
+                                            }
+                                            className={inputCls}
+                                            style={inputStyle}
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <label className={labelCls} style={labelStyle}>
+                                            Nachkontrolle nach Schließen (Tage)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={90}
+                                            value={o.latchRecheckDays ?? 7}
+                                            onChange={(e) =>
+                                                set({
+                                                    latchRecheckDays:
+                                                        e.target.value === '' ? undefined : Number(e.target.value),
+                                                })
+                                            }
+                                            className={inputCls}
+                                            style={inputStyle}
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                    Meldet ein Gerät in der Nachkontrolle erneut, öffnet sich der Eintrag wieder („trotz
+                                    Wechsel am …“). Es zählt nur eine Meldung, die mindestens 10 Minuten nach dem
+                                    Schließen kommt.
+                                </p>
+                                <Toggle
+                                    checked={o.latchConfirm !== false}
+                                    onChange={(v) => set({ latchConfirm: v ? undefined : false })}
+                                    label="Vor „Gewechselt“/„Quittieren“ zweimal tippen"
+                                />
+                            </>
+                        )}
+                    </div>
+                </details>
+            )}
+
+            {/* ── Row buttons (collapsed by default, next to the row click) ── */}
+            <details
+                className="aura-status-row-actions group pt-1"
+                style={{ borderTop: '1px solid var(--app-border)' }}
+            >
+                <summary className="flex items-center justify-between gap-2 cursor-pointer list-none">
+                    <span className={sectionTitleCls} style={labelStyle}>
+                        Zeilen-Aktionen
+                    </span>
+                    <span className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[11px] truncate" style={labelStyle}>
+                            {rowActionCount
+                                ? `${rowActionCount} ${rowActionCount === 1 ? 'Knopf' : 'Knöpfe'}`
+                                : 'keine'}
+                        </span>
+                        <ChevronDown
+                            size={13}
+                            className="shrink-0 transition-transform group-open:rotate-180"
+                            style={{ color: 'var(--text-secondary)' }}
+                        />
+                    </span>
+                </summary>
+                <div className="space-y-2 mt-2">
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Eigene Knöpfe am Zeilenende (Layouts Standard und Kompakt), die einen Wert in einen Datenpunkt
+                        schreiben – z. B. „Aus“ bei einem eingeschalteten Licht oder eine Meldung an ein Skript.
+                        Unabhängig von der Merkliste. Vorlagen gibt es im Editor.
+                    </p>
+                    {(o.rowActions ?? []).map((a, i) => (
+                        <p key={i} className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
+                            <span className="font-semibold">{a.label || '(ohne Beschriftung)'}</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>
+                                {' '}
+                                → {a.targetDp || '–'}
+                                {a.categories?.length
+                                    ? ` · nur ${a.categories.map((c) => CAT_SHORT[c]).join(', ')}`
+                                    : ''}
+                            </span>
+                        </p>
+                    ))}
+                    <button
+                        onClick={() => setShowActions(true)}
+                        className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                    >
+                        Knöpfe bearbeiten →
+                    </button>
+                </div>
+            </details>
+            {showActions && (
+                <ConfigModal title="Zeilen-Aktionen" maxWidth={560} padded onClose={() => setShowActions(false)}>
+                    <StatusRowActionsEditor actions={o.rowActions ?? []} onChange={(v) => set({ rowActions: v })} />
+                </ConfigModal>
+            )}
 
             {/* ── Row click action ── */}
             <RowClickSection config={config} opts={o} onChange={set} />
