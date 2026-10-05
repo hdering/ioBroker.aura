@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.77.3",
+    "version": "0.77.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,18 +108,18 @@
       }
     ],
     "news": {
-      "0.77.3": {
-        "en": "Shutter - quick-select buttons can set only the slat angle, and skip the drive when the blind is already at the preset position (#745)",
-        "de": "Rollladen – Schnellauswahltasten können nur den Lamellenwinkel einstellen und die Fahrt überspringen, wenn sich die Jalousie bereits in der voreingestellten Position befindet (#745)",
-        "ru": "Ставня - кнопками быстрого выбора можно установить только угол наклона ламелей и пропустить ход, когда жалюзи уже находятся в заданном положении (#745)",
-        "pt": "Obturador - os botões de seleção rápida podem definir apenas o ângulo da veneziana e pular o acionamento quando a persiana já estiver na posição predefinida (#745)",
-        "nl": "Rolluik - snelkeuzeknoppen kunnen alleen de lamelhoek instellen en de aandrijving overslaan als de jaloezie al in de vooraf ingestelde positie staat (#745)",
-        "fr": "Volet - les boutons de sélection rapide permettent de régler uniquement l'angle des lamelles et d'ignorer l'entraînement lorsque le store est déjà dans la position prédéfinie (#745)",
-        "it": "Tapparella: i pulsanti di selezione rapida possono impostare solo l'angolo delle lamelle e saltare l'azionamento quando la tenda è già nella posizione preimpostata (#745)",
-        "es": "Obturador: los botones de selección rápida pueden configurar solo el ángulo de las lamas y omitir el avance cuando la persiana ya está en la posición preestablecida (#745)",
-        "pl": "Roleta - przyciski szybkiego wyboru umożliwiają ustawienie tylko kąta lameli i pominięcie napędu, gdy roleta znajdzie się już w zadanej pozycji (#745)",
-        "uk": "Затвор - кнопки швидкого вибору можуть встановлювати лише кут ламелей і пропускати рух, коли жалюзі вже знаходяться в заданому положенні (#745)",
-        "zh-cn": "百叶窗 - 快速选择按钮只能设置百叶窗角度，并在百叶窗已经处于预设位置时跳过驱动(#745)"
+      "0.77.4": {
+        "en": "Release v0.77.4",
+        "de": "Veröffentlichung v0.77.4",
+        "ru": "Релиз v0.77.4",
+        "pt": "Versão v0.77.4",
+        "nl": "Release v0.77.4",
+        "fr": "Version v0.77.4",
+        "it": "Rilascio v0.77.4",
+        "es": "Versión v0.77.4",
+        "pl": "Wydanie v0.77.4",
+        "uk": "Випуск v0.77.4",
+        "zh-cn": "发布 v0.77.4"
       },
       "0.77.2": {
         "en": "Adapter log - startup and routine status messages moved from info to debug, so the log stays quiet unless something needs attention",

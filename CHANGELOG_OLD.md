@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.68.1 (2026-09-23)
+- Section menu - the widget preview of a menu element is now as wide as the menu itself (docked sidebar or drawer) instead of the whole editor, the preview window hugs it, and the element uses the bar slot when the menu sits at the top or bottom
+
 ## 0.68.0 (2026-09-23)
 - 🌟 **New feature:** Room climate - add any number of extra readings (CO2, VOC, dew point, comfort, air quality, brightness, presence) with their own units, colour bands and value labels; dew point, absolute humidity and comfort are calculated from temperature and humidity ([#698](https://github.com/hdering/ioBroker.aura/issues/698))
 - Room climate - the chart can now draw those readings as extra series, on a second y axis where the scale differs ([#698](https://github.com/hdering/ioBroker.aura/issues/698))
