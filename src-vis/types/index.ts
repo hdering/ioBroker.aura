@@ -414,7 +414,32 @@ export interface CellPopupOptions {
     backdropDim?: number; // backdrop dim in % (0 = clear)
     background?: string; // popup surface colour (any CSS colour)
     padding?: number; // inner padding in px (0…40)
+    /** Popup background image; unset = view/global. */
+    backgroundImage?: BackgroundImage;
 }
+
+/**
+ * Background image of a widget card or a popup (issue #442). Painted above the
+ * background colour and below the content, so the colour still shows through
+ * transparent image areas and while the image loads.
+ */
+export interface BackgroundImage {
+    src: string; // image URL, aura-file: path, adapter path (/vis.0/…) or data: URI — same sources as the image widget
+    fit?: BackgroundImageFit; // cover = fill and crop (default), contain = whole image, stretch = distort to fill, repeat = tile at natural size
+    position?: BackgroundImagePosition; // which part stays visible when the image is cropped (default center)
+    dim?: number; // darken the image in % (0…90) so text on it stays legible; default 0
+}
+export type BackgroundImageFit = 'cover' | 'contain' | 'stretch' | 'repeat';
+export type BackgroundImagePosition =
+    | 'center'
+    | 'top'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'top left'
+    | 'top right'
+    | 'bottom left'
+    | 'bottom right';
 
 /** Legacy: 9-element array, row-major (index = row*3 + col). Kept as alias for compat. */
 export type CustomGrid = CustomCell[];
@@ -525,6 +550,7 @@ export type ClickAction =
 // options.popupTransparency?: number – per-click-action popup transparency in % (0 = opaque; undefined = inherit view/global)
 // options.popupBackdropDim?: number – per-click-action backdrop dim in % (0 = clear; undefined = inherit view/global)
 // options.popupBackground?: string – per-click-action popup surface colour (any CSS colour; undefined = inherit view/global/theme)
+// options.popupBackgroundImage?: BackgroundImage – per-click-action popup background image (undefined = inherit view/global)
 // options.popupPadding?: number – per-click-action inner padding in px (0…40; undefined = inherit view/global)
 
 // ── Messages (issue #429) ─────────────────────────────────────────────────────

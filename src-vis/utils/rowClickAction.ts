@@ -1,4 +1,4 @@
-import type { ClickAction } from '../types';
+import type { BackgroundImage, ClickAction } from '../types';
 import { detectWidgetTypeFromRole } from './dpTemplates';
 import { lookupDatapointEntry } from '../hooks/useDatapointList';
 
@@ -42,6 +42,8 @@ export interface RowPopupOptions {
     rowPopupBackground?: string;
     /** Innenabstand des Popups in px (0…40); undefined = View/Global. */
     rowPopupPadding?: number;
+    /** Popup background image; undefined = inherit view/global (issue #442). */
+    rowPopupBackgroundImage?: BackgroundImage;
 }
 
 /**

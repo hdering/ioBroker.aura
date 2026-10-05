@@ -128,6 +128,7 @@ import type {
     ClimateMetric,
     CustomCell,
     CustomGridDef,
+    BackgroundImage,
     CellPopupOptions,
     WidgetType,
     ClickAction,
@@ -216,6 +217,9 @@ import { TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
 import { getWidgetMap } from '../widgets/widgetMap';
 import { PROBE_SKIP_TYPES, ProbeBox, useIsProbe } from '../../utils/probeContext';
 import { MirrorConfig } from '../config/MirrorConfig';
+import { BackgroundImageField } from '../config/BackgroundImageField';
+import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../common/BackgroundImageLayer';
+import { activeBgImage } from '../../utils/backgroundImage';
 import { DeviceCardConfig } from '../config/DeviceCardConfig';
 import { AirControlConfig } from '../config/AirControlConfig';
 import { WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
@@ -7385,6 +7389,10 @@ function WidgetFrameInner({
     const isGroup = isGroupType(config.type);
     const isButton = config.type === 'button';
     const isTransparent = !!config.options?.transparent;
+    // Background image (#442): its own layer above the card colour, so a
+    // transparent card shows the image alone. Not on the bare section title,
+    // which has no card.
+    const bgImage = isBareHeader ? undefined : activeBgImage(config.options?.bgImage);
     // A group with title + icon off and no master switch renders no header bar.
     // In the editor its config controls float in on hover (top-left toolbar) so
     // children can sit flush to the top without a reserved strip. A group that
@@ -7782,6 +7790,7 @@ function WidgetFrameInner({
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',
+                          ...(bgImage ? BG_IMAGE_HOST_STYLE : {}),
                           ...cssOverride,
                           ...(!editMode && conditionResult.hidden && !conditionResult.reflow
                               ? { visibility: 'hidden', pointerEvents: 'none' }
@@ -7805,6 +7814,7 @@ function WidgetFrameInner({
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',
+                          ...(bgImage ? BG_IMAGE_HOST_STYLE : {}),
                           ...cssOverride,
                           ...(!editMode && conditionResult.hidden && !conditionResult.reflow
                               ? { visibility: 'hidden', pointerEvents: 'none' }
@@ -7812,6 +7822,7 @@ function WidgetFrameInner({
                       }
             }
         >
+            {bgImage && <BackgroundImageLayer image={bgImage} />}
             {flashCell !== null && (
                 <style key={flashCell.key}>{`
           .aura-widget-${config.id} .aura-custom-cell-${flashCell.idx} {
@@ -9885,11 +9896,16 @@ function WidgetFrameInner({
                                     Erweitert
                                 </span>
                                 <div className="flex items-center gap-2">
-                                    {overrides && Object.keys(overrides).length > 0 && (
+                                    {((overrides && Object.keys(overrides).length > 0) ||
+                                        !!activeBgImage(config.options?.bgImage)) && (
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                const { styleOverride: _, ...rest } = config.options ?? {};
+                                                const {
+                                                    styleOverride: _,
+                                                    bgImage: _img,
+                                                    ...rest
+                                                } = config.options ?? {};
                                                 onConfigChange({ ...config, options: rest });
                                             }}
                                             className="text-[10px] hover:opacity-70"
@@ -9983,6 +9999,17 @@ function WidgetFrameInner({
                                     </div>
                                 ))}
                             </div>
+                            {/* Not for the bare section title — it draws no card to put an image on. */}
+                            {!(config.type === 'header' && (config.layout ?? 'default') !== 'framed') && (
+                                <div className="mt-2.5">
+                                    <BackgroundImageField
+                                        value={activeBgImage(config.options?.bgImage)}
+                                        onChange={(v) =>
+                                            onConfigChange({ ...config, options: { ...config.options, bgImage: v } })
+                                        }
+                                    />
+                                </div>
+                            )}
                         </details>
                     }
 
@@ -20957,6 +20984,7 @@ function WidgetFrameInner({
                             popupBackdropDim: p.backdropDim,
                             popupBackground: p.background,
                             popupPadding: p.padding,
+                            popupBackgroundImage: p.backgroundImage,
                         },
                     };
                     return (
@@ -20979,6 +21007,7 @@ function WidgetFrameInner({
                                         backdropDim: o.popupBackdropDim as number | undefined,
                                         background: (o.popupBackground as string) || undefined,
                                         padding: o.popupPadding as number | undefined,
+                                        backgroundImage: o.popupBackgroundImage as BackgroundImage | undefined,
                                     };
                                     const hasPopup = Object.values(popup).some((v) => v !== undefined);
                                     const on = !!action && action.kind !== 'none';

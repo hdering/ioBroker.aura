@@ -129,6 +129,19 @@ Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeil
 
 Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer an. Ein- und ausschalten geht auch direkt im Dialog `Klick-Aktion`.
 
+## Hintergrundbild
+
+`Bearbeiten` → **Erweitert** → `Hintergrundbild`. Liegt über der Hintergrundfarbe und unter dem Inhalt; mit `Transparent` zeigt die Karte nur das Bild. `Zurücksetzen` in **Erweitert** entfernt es zusammen mit den Farben.
+
+| Option | |
+| --- | --- |
+| Quelle | URL, Pfad (`/vis.0/…`), `aura-file:` per Datei-Picker oder Data-URI — wie beim [Bild-Widget](../widgets/bild) |
+| Anpassung | `Füllen (zuschneiden)` (Standard), `Ganz zeigen`, `Strecken`, `Kacheln` |
+| Ausrichtung | welcher Teil beim Zuschneiden sichtbar bleibt; Standard `Mitte` |
+| Abdunkeln | `0`–`90 %`, dunkelt nur das Bild ab — für lesbaren Text auf hellen Bildern |
+
+Nicht beim Abschnittstitel ohne Rahmen. Wird mit `Stil kopieren` übertragen. Für Popups: [Popups](./popups).
+
 ## Kopfzeile
 
 `Bearbeiten` → **Darstellung** → `Kopfzeile` → `Bearbeiten…`. Titel und Icon des Widgets sowie zusätzliche Werte neben dem Titel, aufgeklappt in der Titelzeile des Widgets, eingeklappt in der Kopfzeile.

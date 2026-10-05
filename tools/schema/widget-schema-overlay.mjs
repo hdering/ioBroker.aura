@@ -1335,6 +1335,14 @@ export const UNIVERSAL_OPTIONS = {
         ts: 'Record<string, string>',
         description: 'CSS-Variablen nur für dieses Widget, z. B. { "--accent": "#f00" }.',
     },
+    bgImage: {
+        ts: 'BackgroundImage',
+        description:
+            'Hintergrundbild der Karte, liegt über der Hintergrundfarbe und unter dem Inhalt. Mit ' +
+            'transparent: true zeigt die Karte nur das Bild. Quellen wie beim image-Widget (URL, ' +
+            '/vis.0/…-Pfad, aura-file:, data:). Für Text auf hellen Bildern dim setzen (30–50). Nicht beim ' +
+            'Abschnittstitel "header" ohne Layout "framed" — der hat keine Karte.',
+    },
     fullscreenWidget: {
         ts: 'boolean',
         description:

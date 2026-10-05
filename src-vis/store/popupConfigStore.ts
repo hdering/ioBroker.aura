@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage, withSuppressedDirty } from './persistManager';
-import type { ClickAction, ConditionClause, WidgetConfig, WidgetLayout } from '../types';
+import type { BackgroundImage, ClickAction, ConditionClause, WidgetConfig, WidgetLayout } from '../types';
 
 /**
  * Popup appearance defaults. Both values are percentages and follow the same
@@ -62,6 +62,8 @@ export interface PopupView {
     backdropDim?: number;
     /** Popup surface colour for this view: any CSS colour; undefined = inherit global. */
     background?: string;
+    /** Background image for this view; undefined = inherit global (issue #442). */
+    backgroundImage?: BackgroundImage;
     /** Inner padding in px for this view; undefined = inherit global (issue #621). */
     padding?: number;
     // Built-in shipping version. Bump in code when a built-in's contents change;
@@ -251,6 +253,8 @@ interface PopupConfigState {
     globalBackdropDim?: number;
     // Global popup surface colour: undefined = DEFAULT_POPUP_BACKGROUND (issue #611)
     globalPopupBackground?: string;
+    // Global popup background image: undefined = none (issue #442)
+    globalPopupBackgroundImage?: BackgroundImage;
     // Global inner padding in px: undefined = DEFAULT_POPUP_PADDING (issue #621)
     globalPopupPadding?: number;
     // Datapoint-driven popups (issue #523)
@@ -270,6 +274,7 @@ interface PopupConfigState {
     setViewTransparency: (viewId: string, pct: number | undefined) => void;
     setViewBackdropDim: (viewId: string, pct: number | undefined) => void;
     setViewBackground: (viewId: string, color: string | undefined) => void;
+    setViewBackgroundImage: (viewId: string, image: BackgroundImage | undefined) => void;
     setViewPadding: (viewId: string, px: number | undefined) => void;
     addWidgetToView: (viewId: string, widget: WidgetConfig) => void;
     removeWidgetFromView: (viewId: string, widgetId: string) => void;
@@ -280,6 +285,7 @@ interface PopupConfigState {
     setGlobalPopupTransparency: (pct: number | undefined) => void;
     setGlobalBackdropDim: (pct: number | undefined) => void;
     setGlobalPopupBackground: (color: string | undefined) => void;
+    setGlobalPopupBackgroundImage: (image: BackgroundImage | undefined) => void;
     setGlobalPopupPadding: (px: number | undefined) => void;
 
     // DP triggers
@@ -308,6 +314,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             globalPopupTransparency: undefined,
             globalBackdropDim: undefined,
             globalPopupBackground: undefined,
+            globalPopupBackgroundImage: undefined,
             globalPopupPadding: undefined,
             triggers: [],
 
@@ -381,6 +388,9 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             setViewBackground: (viewId, color) =>
                 set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, background: color })) })),
 
+            setViewBackgroundImage: (viewId, image) =>
+                set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, backgroundImage: image })) })),
+
             setViewPadding: (viewId, px) =>
                 set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, padding: px })) })),
 
@@ -391,6 +401,8 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             setGlobalBackdropDim: (pct) => set({ globalBackdropDim: pct }),
 
             setGlobalPopupBackground: (color) => set({ globalPopupBackground: color }),
+
+            setGlobalPopupBackgroundImage: (image) => set({ globalPopupBackgroundImage: image }),
 
             setGlobalPopupPadding: (px) => set({ globalPopupPadding: px }),
 
@@ -479,6 +491,8 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                         transparency: source.transparency,
                         backdropDim: source.backdropDim,
                         background: source.background,
+                        backgroundImage: source.backgroundImage,
+                        padding: source.padding,
                         createdAt: Date.now(),
                     };
                     return { views: [...s.views, copy] };

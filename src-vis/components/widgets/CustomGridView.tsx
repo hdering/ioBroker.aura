@@ -1884,6 +1884,7 @@ function cellPopupOpts(p: CellPopupOptions | undefined): RowPopupOptions | undef
         rowPopupBackdropDim: p.backdropDim,
         rowPopupBackground: p.background,
         rowPopupPadding: p.padding,
+        rowPopupBackgroundImage: p.backgroundImage,
     };
 }
 

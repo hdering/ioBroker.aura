@@ -21,6 +21,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { getObjectViewDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { NS } from '../../utils/namespace';
 import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
+import { BackgroundImageField } from '../../components/config/BackgroundImageField';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { ClickActionEditor } from '../../components/config/ClickActionEditor';
 import { ClauseRow, newClause } from '../../components/config/ConditionEditor';
@@ -1052,6 +1053,8 @@ function GlobalSettingsSection() {
     const setGlobalBackdropDim = usePopupConfigStore((s) => s.setGlobalBackdropDim);
     const globalPopupBackground = usePopupConfigStore((s) => s.globalPopupBackground);
     const setGlobalPopupBackground = usePopupConfigStore((s) => s.setGlobalPopupBackground);
+    const globalPopupBackgroundImage = usePopupConfigStore((s) => s.globalPopupBackgroundImage);
+    const setGlobalPopupBackgroundImage = usePopupConfigStore((s) => s.setGlobalPopupBackgroundImage);
     const globalPopupPadding = usePopupConfigStore((s) => s.globalPopupPadding);
     const setGlobalPopupPadding = usePopupConfigStore((s) => s.setGlobalPopupPadding);
     return (
@@ -1117,6 +1120,13 @@ function GlobalSettingsSection() {
                     unit="px"
                     onChange={setGlobalPopupPadding}
                 />
+                <div className="sm:col-span-3">
+                    <BackgroundImageField
+                        value={globalPopupBackgroundImage}
+                        onChange={setGlobalPopupBackgroundImage}
+                        inheritLabel="leer = kein Bild"
+                    />
+                </div>
                 <p className="text-[11px] sm:col-span-3" style={labelStyle}>
                     Standardwerte für alle Popups. Werden durch View- und Klick-Aktions-Einstellungen überschrieben.
                 </p>

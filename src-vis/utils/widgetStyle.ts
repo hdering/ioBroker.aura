@@ -75,6 +75,7 @@ const EXTRA_STYLE_KEYS = new Set([
     'transparent',
     'transparency',
     'styleOverride',
+    'bgImage',
     'colorThresholds',
     // The on/off twin of `fullscreenPosition`, which the suffix list already catches
     'fullscreenWidget',
@@ -173,6 +174,7 @@ const FRAME_STYLE_KEYS = [
     'transparent',
     'transparency',
     'styleOverride',
+    'bgImage',
     'fullscreenWidget',
     'fullscreenPosition',
     'fullscreenScreen',

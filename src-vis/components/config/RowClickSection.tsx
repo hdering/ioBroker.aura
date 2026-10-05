@@ -1,4 +1,4 @@
-import type { ClickAction, WidgetConfig } from '../../types';
+import type { BackgroundImage, ClickAction, WidgetConfig } from '../../types';
 import { DEFAULT_ROW_CLICK_ACTION, type RowClickSetting, type RowPopupOptions } from '../../utils/rowClickAction';
 import { ClickActionEditor } from './ClickActionEditor';
 
@@ -239,6 +239,7 @@ export function RowClickSection({
                             popupBackdropDim: opts.rowPopupBackdropDim,
                             popupBackground: opts.rowPopupBackground,
                             popupPadding: opts.rowPopupPadding,
+                            popupBackgroundImage: opts.rowPopupBackgroundImage,
                         },
                     }}
                     onConfigChange={(next) => {
@@ -254,6 +255,7 @@ export function RowClickSection({
                             rowPopupBackdropDim: o.popupBackdropDim as number | undefined,
                             rowPopupBackground: o.popupBackground as string | undefined,
                             rowPopupPadding: o.popupPadding as number | undefined,
+                            rowPopupBackgroundImage: o.popupBackgroundImage as BackgroundImage | undefined,
                         });
                     }}
                     hideNone

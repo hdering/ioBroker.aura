@@ -26,6 +26,8 @@ import { HtmlPopupBody } from './HtmlPopupBody';
 import { WidgetEmbedBody } from './WidgetEmbedBody';
 import { DeviceDpsBody } from './DeviceDpsBody';
 import { TabEmbedBody } from './TabEmbedBody';
+import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../common/BackgroundImageLayer';
+import { activeBgImage } from '../../../utils/backgroundImage';
 
 function normalizeAction(action: ClickAction): ClickAction {
     switch (action.kind) {
@@ -139,6 +141,14 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
         globalBackground ??
         DEFAULT_POPUP_BACKGROUND;
 
+    // Background image (issue #442): same three levels. An image of its own on a
+    // level wins; an empty level inherits — there is no "no image" override yet.
+    const globalBackgroundImage = usePopupConfigStore((s) => s.globalPopupBackgroundImage);
+    const backgroundImage =
+        activeBgImage(widget.options?.popupBackgroundImage) ??
+        activeBgImage(view?.backgroundImage) ??
+        activeBgImage(globalBackgroundImage);
+
     // Inner padding between the popup edge and the widgets inside (issue #621):
     // same three levels, then the historical 12px. Handed to every body that draws
     // a box around embedded widgets.
@@ -249,6 +259,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                 className="relative flex flex-col rounded-2xl shadow-2xl overflow-hidden"
                 style={{
                     background,
+                    ...(backgroundImage ? BG_IMAGE_HOST_STYLE : {}),
                     border: `1px solid ${DEFAULT_POPUP_BORDER}`,
                     // Element opacity (not just a translucent surface) so the embedded
                     // widgets — which paint their own --widget-bg cards — turn see-through
@@ -263,6 +274,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                 onPointerMove={effectiveAutoCloseSec > 0 ? armTimer : undefined}
                 onKeyDown={armTimer}
             >
+                {backgroundImage && <BackgroundImageLayer image={backgroundImage} />}
                 {/* Close button — always absolute top-right of popup */}
                 <button
                     onClick={onClose}

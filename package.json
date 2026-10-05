@@ -162,6 +162,7 @@
     "test:cell-background": "node tools/tests/cell-background.mjs",
     "test:popup-persist": "node tools/tests/popup-config-persist.mjs",
     "test:popup-bg": "node tools/tests/popup-background.mjs",
+    "test:bg-image": "node tools/tests/background-image.mjs",
     "test:popup-pad": "node tools/tests/popup-padding.mjs",
     "test:popup-preview": "node tools/tests/popup-editor-preview.mjs",
     "test:mobile-header": "node tools/tests/mobile-header-clip.mjs",

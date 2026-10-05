@@ -135,6 +135,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                         popupBackdropDim: po.rowPopupBackdropDim,
                         popupBackground: po.rowPopupBackground,
                         popupPadding: po.rowPopupPadding,
+                        popupBackgroundImage: po.rowPopupBackgroundImage,
                     },
                 } satisfies WidgetConfig
             }

@@ -11,6 +11,8 @@ import {
     colorOrUndefined,
 } from '../../store/popupConfigStore';
 import { PopupBackgroundField } from '../common/PopupBackgroundField';
+import { BackgroundImageField } from './BackgroundImageField';
+import { activeBgImage } from '../../utils/backgroundImage';
 import { DatapointPicker } from './DatapointPicker';
 import { ImagePathHint } from './ImagePathHint';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
@@ -1120,6 +1122,11 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                         value={popupBackground}
                         onChange={(v) => setOpts({ popupBackground: colorOrUndefined(v) })}
                         inheritLabel="View/Global"
+                    />
+                    <BackgroundImageField
+                        value={activeBgImage(o.popupBackgroundImage)}
+                        onChange={(v) => setOpts({ popupBackgroundImage: v })}
+                        inheritLabel="leer = View/Global"
                     />
                     <div>
                         <label className={labelCls} style={labelStyle}>

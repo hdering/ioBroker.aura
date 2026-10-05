@@ -48,7 +48,7 @@ export function MirrorConfig({ config, onConfigChange }: Props) {
         // Make the mirror start out as a visual clone of the source: adopt its
         // size (w/h — the mirror keeps its own position x/y) and the frame-level
         // appearance options WidgetFrame reads from the mirror's OWN config
-        // (transparent/transparency/styleOverride). The content already comes
+        // (transparent/transparency/styleOverride/bgImage). The content already comes
         // from the source live via MirrorWidget, but those frame options don't —
         // so without copying them a mirror of e.g. a transparent group would
         // still draw a card. Picking "— Kein Widget —" leaves everything as is.
@@ -66,6 +66,7 @@ export function MirrorConfig({ config, onConfigChange }: Props) {
                 transparent: target.options?.transparent,
                 transparency: target.options?.transparency,
                 styleOverride: target.options?.styleOverride,
+                bgImage: target.options?.bgImage,
             },
         });
     };

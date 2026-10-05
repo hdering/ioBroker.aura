@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactGridLayout from 'react-grid-layout/legacy';
-import { ArrowLeft, Database, Plus, Upload } from 'lucide-react';
+import { ArrowLeft, Database, Image as ImageIcon, Plus, Upload } from 'lucide-react';
 import {
     usePopupConfigStore,
     BUILTIN_VIEW_IDS,
@@ -15,6 +15,10 @@ import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { WidgetFrame } from '../../components/layout/WidgetFrame';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
+import { BackgroundImageField } from '../../components/config/BackgroundImageField';
+import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/common/BackgroundImageLayer';
+import { ConfigModal } from '../../components/config/ConfigModal';
+import { activeBgImage } from '../../utils/backgroundImage';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { RenderTransformContext, type RenderTransform } from '../../contexts/RenderTransformContext';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
@@ -110,12 +114,16 @@ export function PopupViewEditor() {
         setViewBackdropDim,
         setViewPadding,
         setViewBackground,
+        setViewBackgroundImage,
     } = usePopupConfigStore();
 
     const globalPopupBackground = usePopupConfigStore((s) => s.globalPopupBackground);
+    const globalPopupBackgroundImage = usePopupConfigStore((s) => s.globalPopupBackgroundImage);
+    const [showBgImage, setShowBgImage] = useState(false);
 
     const isSuperAdmin = useSuperAdmin();
     const view = views.find((v) => v.id === viewId);
+    const previewBgImage = activeBgImage(view?.backgroundImage) ?? activeBgImage(globalPopupBackgroundImage);
     const settings = useEffectiveSettings();
     const cellSize = settings.gridRowHeight ?? 60;
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 60;
@@ -345,6 +353,18 @@ export function PopupViewEditor() {
                         inheritLabel="global"
                         inline
                     />
+                    <button
+                        onClick={() => setShowBgImage(true)}
+                        className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-[11px] hover:opacity-80"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: activeBgImage(view.backgroundImage) ? 'var(--accent)' : 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title="Hintergrundbild dieser View (leer = global)"
+                    >
+                        <ImageIcon size={12} /> Hintergrundbild
+                    </button>
                     <label
                         className="flex items-center gap-1.5 text-[11px]"
                         style={{ color: 'var(--text-secondary)' }}
@@ -566,62 +586,87 @@ export function PopupViewEditor() {
                     </div>
                 )}
 
-                {/* Grid canvas — painted in the popup's own surface colour so the
-                    configured contrast to the widget cards is visible while editing. */}
+                {/* Grid canvas — painted in the popup's own surface colour (and image)
+                    so the configured contrast to the widget cards is visible while
+                    editing. The wrapper carries both, so the image stays put while
+                    the canvas scrolls. */}
                 <div
-                    ref={containerRefCallback}
-                    className="aura-scroll flex-1 overflow-auto p-4"
-                    data-aura-scale=""
-                    style={
-                        {
-                            background: view.background ?? globalPopupBackground ?? DEFAULT_POPUP_BACKGROUND,
-                            // Same widgets as in the popup itself, hence the same font
-                            // scale — an unscaled preview lies about what fits (#668).
-                            '--font-scale': String(settings.fontScale ?? 1),
-                        } as React.CSSProperties
-                    }
+                    className="relative flex-1 min-h-0 flex flex-col"
+                    style={{
+                        background: view.background ?? globalPopupBackground ?? DEFAULT_POPUP_BACKGROUND,
+                        ...(previewBgImage ? BG_IMAGE_HOST_STYLE : {}),
+                    }}
                 >
-                    {widgets.length === 0 ? (
-                        <div
-                            className="flex items-center justify-center h-48 text-sm"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            Noch keine Widgets — füge oben welche hinzu.
-                        </div>
-                    ) : (
-                        containerWidth > 0 && (
-                            <RenderTransformContext.Provider value={renderTransform}>
-                                <ReactGridLayout
-                                    className="layout"
-                                    layout={layout}
-                                    cols={cols}
-                                    rowHeight={cellSize}
-                                    width={containerWidth}
-                                    isDraggable
-                                    isResizable
-                                    draggableCancel=".nodrag"
-                                    onDragStop={syncLayout}
-                                    onResizeStop={syncLayout}
-                                    margin={[MARGIN, MARGIN]}
-                                    containerPadding={[0, 0]}
-                                >
-                                    {widgets.map((w) => (
-                                        <div key={w.id}>
-                                            <WidgetFrame
-                                                config={w}
-                                                editMode
-                                                onRemove={(id) => removeWidgetFromView(viewId, id)}
-                                                onConfigChange={(cfg) => updateWidgetInView(viewId, cfg.id, cfg)}
-                                                onCopy={(copy) => addWidgetToView(viewId, copy)}
-                                            />
-                                        </div>
-                                    ))}
-                                </ReactGridLayout>
-                            </RenderTransformContext.Provider>
-                        )
-                    )}
+                    {previewBgImage && <BackgroundImageLayer image={previewBgImage} />}
+                    <div
+                        ref={containerRefCallback}
+                        className="aura-scroll flex-1 overflow-auto p-4"
+                        data-aura-scale=""
+                        style={
+                            {
+                                // Same widgets as in the popup itself, hence the same font
+                                // scale — an unscaled preview lies about what fits (#668).
+                                '--font-scale': String(settings.fontScale ?? 1),
+                            } as React.CSSProperties
+                        }
+                    >
+                        {widgets.length === 0 ? (
+                            <div
+                                className="flex items-center justify-center h-48 text-sm"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                Noch keine Widgets — füge oben welche hinzu.
+                            </div>
+                        ) : (
+                            containerWidth > 0 && (
+                                <RenderTransformContext.Provider value={renderTransform}>
+                                    <ReactGridLayout
+                                        className="layout"
+                                        layout={layout}
+                                        cols={cols}
+                                        rowHeight={cellSize}
+                                        width={containerWidth}
+                                        isDraggable
+                                        isResizable
+                                        draggableCancel=".nodrag"
+                                        onDragStop={syncLayout}
+                                        onResizeStop={syncLayout}
+                                        margin={[MARGIN, MARGIN]}
+                                        containerPadding={[0, 0]}
+                                    >
+                                        {widgets.map((w) => (
+                                            <div key={w.id}>
+                                                <WidgetFrame
+                                                    config={w}
+                                                    editMode
+                                                    onRemove={(id) => removeWidgetFromView(viewId, id)}
+                                                    onConfigChange={(cfg) => updateWidgetInView(viewId, cfg.id, cfg)}
+                                                    onCopy={(copy) => addWidgetToView(viewId, copy)}
+                                                />
+                                            </div>
+                                        ))}
+                                    </ReactGridLayout>
+                                </RenderTransformContext.Provider>
+                            )
+                        )}
+                    </div>
                 </div>
             </div>
+            {showBgImage && (
+                <ConfigModal
+                    title="Hintergrundbild der View"
+                    maxWidth={480}
+                    maxHeight={320}
+                    padded
+                    onClose={() => setShowBgImage(false)}
+                >
+                    <BackgroundImageField
+                        value={activeBgImage(view.backgroundImage)}
+                        onChange={(v) => setViewBackgroundImage(viewId, v)}
+                        inheritLabel="leer = global"
+                    />
+                </ConfigModal>
+            )}
             {showPreviewPicker && (
                 <DatapointPicker
                     currentValue={customPreviewDp}
