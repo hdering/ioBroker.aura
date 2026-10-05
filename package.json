@@ -343,6 +343,7 @@
     "test:html-template-dblclick": "node tools/tests/html-template-dblclick.mjs",
     "test:iframe-zoom": "node tools/tests/iframe-zoom.mjs",
     "test:iframe-zoom-ui": "node tools/tests/iframe-zoom-ui.mjs",
+    "test:iframe-keepalive": "node tools/tests/iframe-keepalive.mjs",
     "test:header-title-center": "node tools/tests/header-title-center.mjs"
   },
   "dependencies": {

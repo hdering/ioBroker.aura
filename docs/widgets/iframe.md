@@ -24,7 +24,7 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 | Option | Standard | |
 | --- | --- | --- |
 | `interactionMode` | `content` | `action` · `content` · `contentOnly` — siehe unten |
-| `keepAlive` | `false` | iFrame beim Tabwechsel nicht neu laden |
+| `keepAlive` | `false` | Seite bleibt beim Tab-/Bereichswechsel geladen; aus: verborgen verworfen, beim Zurückkehren frisch geladen |
 | `refreshInterval` | `0` | automatisches Neuladen in Sekunden (`0` = aus; bei `keepAlive` ignoriert) |
 | `reloadOnWake` | `false` | nach Display-Standby neu laden (hebt `keepAlive` auf) |
 | `fullscreenButton` | `false` | Vollbild-Button beim Hover einblenden |

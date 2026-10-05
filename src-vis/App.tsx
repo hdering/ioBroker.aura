@@ -49,7 +49,7 @@ import { useT } from './i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { tabletBandActive } from './utils/flowOrder';
 import { deriveHeaderItems } from './utils/menuItems';
-import type { Tab } from './store/dashboardStore';
+import type { Section, Tab } from './store/dashboardStore';
 
 import { discardPendingRam, isScreenshotMode, setFrontendReadOnly } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
@@ -1048,26 +1048,66 @@ export default function App() {
     // The tabs actually rendered: a section unlock swaps in its full tabs, a tab
     // unlock swaps that tab's widgets back in. While still locked, pinTarget wins
     // and PinPrompt renders instead — so this only matters once a view is open.
-    const effectiveTabs = useMemo(() => {
-        if (!section) return tabs;
-        const secEntry = unlockedContent[sectionPinKey(section.id)];
-        const secContent = secEntry?.content as { tabs?: Tab[] } | undefined;
-        let result: Tab[] = Array.isArray(secContent?.tabs) ? (secContent!.tabs as Tab[]) : tabs;
-        result = result.map((tb) => {
-            const entry = unlockedContent[tabPinKey(section.id, tb.id)];
-            if (!entry) return tb;
-            const c = entry.content as Partial<Tab>;
-            return {
-                ...tb,
-                widgets: c.widgets ?? tb.widgets,
-                conditions: c.conditions,
-                badges: c.badges,
-                badgeAggregate: c.badgeAggregate,
-                pinProtected: undefined,
-            };
+    const tabsOfSection = useCallback(
+        (sec: Section): Tab[] => {
+            const secEntry = unlockedContent[sectionPinKey(sec.id)];
+            const secContent = secEntry?.content as { tabs?: Tab[] } | undefined;
+            const base: Tab[] = Array.isArray(secContent?.tabs) ? (secContent!.tabs as Tab[]) : (sec.tabs ?? []);
+            return base.map((tb) => {
+                const entry = unlockedContent[tabPinKey(sec.id, tb.id)];
+                if (!entry) return tb;
+                const c = entry.content as Partial<Tab>;
+                return {
+                    ...tb,
+                    widgets: c.widgets ?? tb.widgets,
+                    conditions: c.conditions,
+                    badges: c.badges,
+                    badgeAggregate: c.badgeAggregate,
+                    pinProtected: undefined,
+                };
+            });
+        },
+        [unlockedContent],
+    );
+    const effectiveTabs = useMemo(() => (section ? tabsOfSection(section) : tabs), [tabs, section, tabsOfSection]);
+
+    // ── Visited sections stay mounted (#65) ─────────────────────────────────
+    // Like visited tabs inside a section (Dashboard's mountedTabIds), a section
+    // the user opened keeps its dashboard mounted, only hidden, while another
+    // section of the same layout shows — a keepAlive iframe would otherwise start
+    // over on its home page after every section switch. Each keeps the tab it was
+    // left on. A section that is (again) behind its PIN drops out; a layout switch
+    // starts over.
+    const [keptSectionIds, setKeptSectionIds] = useState<string[]>([]);
+    const keptLayoutRef = useRef(layout?.id);
+    const lastTabBySectionRef = useRef(new Map<string, string>());
+    useEffect(() => {
+        if (keptLayoutRef.current !== layout?.id) {
+            keptLayoutRef.current = layout?.id;
+            lastTabBySectionRef.current.clear();
+            setKeptSectionIds([]);
+        }
+        if (!section || pinTarget) return;
+        setKeptSectionIds((prev) => (prev.includes(section.id) ? prev : [...prev, section.id]));
+    }, [layout?.id, section, pinTarget]);
+    useEffect(() => {
+        if (section && tabs.some((t) => t.id === activeTabId)) lastTabBySectionRef.current.set(section.id, activeTabId);
+    }, [section, tabs, activeTabId]);
+    const dashboardViews = useMemo(() => {
+        if (!layout) return [];
+        const ids = section && !keptSectionIds.includes(section.id) ? [...keptSectionIds, section.id] : keptSectionIds;
+        return ids.flatMap((id) => {
+            if (section && id === section.id) {
+                return pinTarget ? [] : [{ id, tabs: effectiveTabs, activeTabId, active: true }];
+            }
+            const sec = layout.sections.find((s) => s.id === id);
+            if (!sec || pendingPinTarget(sec, undefined, isPinUnlocked)) return [];
+            const secTabs = tabsOfSection(sec);
+            const last = lastTabBySectionRef.current.get(id);
+            const tabId = secTabs.some((t) => t.id === last) ? last! : (secTabs[0]?.id ?? '');
+            return [{ id, tabs: secTabs, activeTabId: tabId, active: false }];
         });
-        return result;
-    }, [tabs, section, unlockedContent]);
+    }, [layout, section, keptSectionIds, pinTarget, effectiveTabs, activeTabId, isPinUnlocked, tabsOfSection]);
 
     // Verify a code server-side (production) or fall back to the client-side match
     // when the config still carries a plaintext PIN (dev server with no adapter, or
@@ -1425,7 +1465,7 @@ export default function App() {
                     {drawerBarTop && sectionMenuBar}
                     {!tabBarAtBottom && tabBarNode}
                     <div className="flex-1 min-h-0 flex flex-col">
-                        {pinTarget ? (
+                        {pinTarget && (
                             <PinPrompt
                                 key={pinTarget.key}
                                 scope={pinTarget.scope}
@@ -1434,24 +1474,30 @@ export default function App() {
                                 onUnlock={handlePinUnlock}
                                 onCancel={pinEscape ? () => goToView(pinEscape) : undefined}
                             />
-                        ) : (
-                            <FocusedWidgetContext.Provider value={focusWidgetId}>
-                                <Dashboard
-                                    readonly={!shotEditMode}
-                                    editMode={shotEditMode}
-                                    viewTabs={effectiveTabs}
-                                    viewActiveTabId={activeTabId}
-                                    layoutId={layout?.id}
-                                    sectionId={section?.id}
-                                />
-                                {/* Measures a tab NOBODY has open, off-screen, when the
-                                    adapter asks for it (aura_rendered probe:true). Until
-                                    this existed, the one tool that can say what a widget
-                                    really measures had no answer for a tab that had just
-                                    been built — the model had to ask a human to open it. */}
-                                <RenderProbe activeTabId={activeTabId} />
-                            </FocusedWidgetContext.Provider>
                         )}
+                        <FocusedWidgetContext.Provider value={focusWidgetId}>
+                            {/* One dashboard per visited section, in one keyed list so
+                                React keeps each instance across a section switch. */}
+                            {dashboardViews.map((v) => (
+                                <div key={v.id} style={{ display: v.active ? 'contents' : 'none' }}>
+                                    <Dashboard
+                                        readonly={!shotEditMode}
+                                        editMode={v.active && shotEditMode}
+                                        inactive={!v.active}
+                                        viewTabs={v.tabs}
+                                        viewActiveTabId={v.activeTabId}
+                                        layoutId={layout?.id}
+                                        sectionId={v.id}
+                                    />
+                                </div>
+                            ))}
+                            {/* Measures a tab NOBODY has open, off-screen, when the
+                                adapter asks for it (aura_rendered probe:true). Until
+                                this existed, the one tool that can say what a widget
+                                really measures had no answer for a tab that had just
+                                been built — the model had to ask a human to open it. */}
+                            {!pinTarget && <RenderProbe activeTabId={activeTabId} />}
+                        </FocusedWidgetContext.Provider>
                     </div>
                     {tabBarAtBottom && tabBarNode}
                     {drawerBarBottom && sectionMenuBar}

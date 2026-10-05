@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- iFrame - "Keep alive" now keeps the page across tab and section switches, also with "Fill tab"; without it, a hidden iFrame is unloaded and reloads fresh when shown again (#65)

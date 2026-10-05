@@ -19,6 +19,7 @@ import {
 } from '../../utils/iframeZoom';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { auraUrl } from '../../utils/basePath';
+import { useViewVisible } from '../../contexts/ViewVisibleContext';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -35,6 +36,11 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const useProxy = !!(opts.useProxy as boolean);
     const url = useProxy && rawUrl ? auraUrl(`/proxy?url=${encodeURIComponent(rawUrl)}`) : rawUrl;
     const keepAlive = (opts.keepAlive as boolean) ?? false;
+    // Visited tabs/sections stay mounted while hidden. Without keepAlive the frame
+    // is dropped while out of sight — no background traffic — and its next
+    // appearance is a fresh load of the configured URL (#65).
+    const viewVisible = useViewVisible();
+    const unloaded = !keepAlive && !viewVisible;
     const reloadOnWake = (opts.reloadOnWake as boolean) ?? false;
     const interactionMode = resolveIframeInteractionMode(opts);
     const refreshSeconds = (opts.refreshInterval as number) ?? 0;
@@ -95,21 +101,21 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
         setTimedOut(false);
         setHintDismissed(false);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        if (!url) return;
+        if (!url || unloaded) return;
         timeoutRef.current = setTimeout(() => setTimedOut(true), LOAD_TIMEOUT_MS);
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
-    }, [url, tick, wakeNonce]);
+    }, [url, tick, wakeNonce, unloaded]);
 
     useEffect(() => {
         if (intervalRef.current) clearInterval(intervalRef.current);
-        if (!url || refreshSeconds < 1 || keepAlive) return;
+        if (!url || refreshSeconds < 1 || keepAlive || unloaded) return;
         intervalRef.current = setInterval(() => setTick((n) => n + 1), refreshSeconds * 1000);
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
-    }, [url, refreshSeconds, keepAlive]);
+    }, [url, refreshSeconds, keepAlive, unloaded]);
 
     // In `content` mode the embedded page swallows every click, so the frame's own
     // click action needs a host-side button — WidgetFrame renders it on this signal.
@@ -206,24 +212,26 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                 className="aura-widget-value relative flex-1 overflow-hidden group"
                 style={{ borderRadius: 'inherit' }}
             >
-                <iframe
-                    key={iframeKey}
-                    src={url}
-                    sandbox={sandboxAttr}
-                    allow="autoplay; fullscreen; picture-in-picture; web-share"
-                    title={config.title || 'iFrame'}
-                    scrolling={iframeScrollingAttr(interactionMode)}
-                    onLoad={() => {
-                        setLoaded(true);
-                        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-                    }}
-                    style={{
-                        border: 'none',
-                        display: 'block',
-                        ...iframeZoomStyle(zoom),
-                        ...colorSchemeStyle,
-                    }}
-                />
+                {!unloaded && (
+                    <iframe
+                        key={iframeKey}
+                        src={url}
+                        sandbox={sandboxAttr}
+                        allow="autoplay; fullscreen; picture-in-picture; web-share"
+                        title={config.title || 'iFrame'}
+                        scrolling={iframeScrollingAttr(interactionMode)}
+                        onLoad={() => {
+                            setLoaded(true);
+                            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                        }}
+                        style={{
+                            border: 'none',
+                            display: 'block',
+                            ...iframeZoomStyle(zoom),
+                            ...colorSchemeStyle,
+                        }}
+                    />
+                )}
                 {/* Interaction blocker — also the click path for the frame's action */}
                 {interactionMode === 'action' && (
                     <div className="absolute inset-0 z-[1]" style={{ pointerEvents: 'all', cursor: 'default' }} />

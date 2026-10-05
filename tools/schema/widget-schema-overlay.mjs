@@ -266,7 +266,10 @@ export const WIDGET_OPTION_NOTES = {
         iframeUrl: { description: 'Eingebettete Adresse.' },
         iframeUrlDp: { description: 'Datenpunkt, der die Adresse liefert.' },
         useProxy: { description: 'Seite über /proxy?url= laden, wenn sie das Einbetten sonst verbietet.' },
-        keepAlive: { description: 'Seite im Hintergrund geladen lassen statt beim Tabwechsel zu verwerfen.' },
+        keepAlive: {
+            description:
+                'Seite beim Tab- und Bereichswechsel geladen lassen (Zustand bleibt). Aus: verborgen wird sie verworfen und beim Zurückkehren frisch geladen.',
+        },
         sandbox: { description: 'Sandbox einschalten.' },
         fullscreenButton: { description: 'Taste für Vollbild anzeigen.' },
         iframeZoom: {
