@@ -25,11 +25,6 @@ import { createRequire } from 'node:module';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-// The render probe waits for a browser to answer (twelve seconds in the field).
-// Here nobody answers on purpose in one case, so the wait is turned down to keep
-// the suite quick — the tool reads it from the environment for exactly this.
-process.env.AURA_PROBE_WAIT_MS = process.env.AURA_PROBE_WAIT_MS || '1500';
-
 const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -52,7 +47,11 @@ const {
     replaceTabWidgets,
 } = require('../../lib/mcp/auraConfig.js');
 const { handleAuthDiscovery, handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
-const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
+const { LEVELS, levelIndex, setProbeWaitMs, toolsFor } = require('../../lib/mcp/tools.js');
+// The render probe waits for a browser to answer (twelve seconds in the field).
+// Here nobody answers on purpose in one case, so the wait is turned down to keep
+// the suite quick.
+setProbeWaitMs(1500);
 const { RECIPES, findRecipe, renderRecipe, renderRecipeIndex } = require('../../lib/mcp/recipes.js');
 const {
     looksLikeCounter,
