@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-03",
+    "measured": "2026-10-05",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1032,6 +1032,36 @@
           },
           "basePx": 0,
           "perItemPx": 0
+        },
+        {
+          "key": "rowButtons",
+          "label": "Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)",
+          "when": {
+            "any": [
+              {
+                "path": "rowActions[].label",
+                "startsWith": ""
+              },
+              {
+                "path": "latchBattery",
+                "equals": true
+              },
+              {
+                "path": "latchUnreach",
+                "equals": true
+              },
+              {
+                "path": "latchAlarm",
+                "equals": true
+              }
+            ]
+          },
+          "basePx": 0,
+          "perItemPx": 52,
+          "fontScalePx": {
+            "basePx": 0,
+            "perItemPx": 15.3
+          }
         },
         {
           "key": "headerRow2",
