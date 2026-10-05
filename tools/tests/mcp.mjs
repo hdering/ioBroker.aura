@@ -5703,8 +5703,16 @@ check('each kind advertises exactly the fields it really has', () => {
     // A tab button carries conditions, a section menu entry does not, and a layout
     // has neither badges nor an aggregate. Getting this wrong means the value is
     // stored and silently ignored.
-    assert.deepEqual(NODE_FIELDS.layout, ['icon', 'hidden', 'defaultSectionId', 'settings']);
-    assert.deepEqual(NODE_FIELDS.section, ['icon', 'hidden', 'defaultTabId', 'badges', 'badgeAggregate', 'settings']);
+    assert.deepEqual(NODE_FIELDS.layout, ['icon', 'hidden', 'defaultSectionId', 'settings', 'backgroundImage']);
+    assert.deepEqual(NODE_FIELDS.section, [
+        'icon',
+        'hidden',
+        'defaultTabId',
+        'badges',
+        'badgeAggregate',
+        'settings',
+        'backgroundImage',
+    ]);
     assert.deepEqual(NODE_FIELDS.tab, [
         'icon',
         'hideLabel',
@@ -5713,7 +5721,31 @@ check('each kind advertises exactly the fields it really has', () => {
         'conditions',
         'badges',
         'badgeAggregate',
+        'backgroundImage',
     ]);
+});
+
+check('a background image is stored on every level and its shape is checked', () => {
+    const img = { src: '/vis.0/bg/wohnen.jpg', fit: 'cover', dim: 30 };
+    for (const [kind, id] of [
+        ['layout', 'l1'],
+        ['section', 's1'],
+        ['tab', 't1'],
+    ]) {
+        const res = updateNode(LAYOUTS, kind, id, { backgroundImage: img });
+        assert.equal(res.error, undefined, `${kind}: ${res.error}`);
+    }
+    const tab = updateNode(LAYOUTS, 'tab', 't1', { backgroundImage: img });
+    assert.deepEqual(tab.layouts[0].sections[0].tabs[0].backgroundImage, img);
+    assert.match(updateNode(LAYOUTS, 'tab', 't1', { backgroundImage: '/x.jpg' }).error, /ist ein Objekt/);
+    assert.match(updateNode(LAYOUTS, 'tab', 't1', { backgroundImage: { fit: 'cover' } }).error, /src fehlt/);
+    assert.match(
+        updateNode(LAYOUTS, 'tab', 't1', { backgroundImage: { src: 'a.jpg', fit: 'fill' } }).error,
+        /fit "fill"/,
+    );
+    assert.match(updateNode(LAYOUTS, 'tab', 't1', { backgroundImage: { src: 'a.jpg', dim: 95 } }).error, /0 bis 90/);
+    const cleared = updateNode(tab.layouts, 'tab', 't1', { backgroundImage: null });
+    assert.equal(cleared.layouts[0].sections[0].tabs[0].backgroundImage, undefined);
 });
 
 check('a field the kind does not have is refused, with the list of allowed ones', () => {

@@ -15,7 +15,7 @@ Links der Baum aus Layouts und ihren Bereichen, rechts das gewählte Element. Di
 | Im Frontend öffnen         | Layout im Frontend in neuem Tab                                                        |
 | Frontend-Design            | Öffnet den Geltungsbereich des Layouts im Frontend-Design (Abschnitte unten)             |
 | ⋯                          | Duplizieren, Exportieren, Löschen (zweiter Klick bestätigt)                            |
-| Allgemein                  | Name, URL-Slug (erstes Layout = Startseite `#/`), Icon                                 |
+| Allgemein                  | Name, URL-Slug (erstes Layout = Startseite `#/`), Icon, [Hintergrundbild](./editor#hintergrundbild) |
 | Start & Menü               | Standard-Bereich; Sprung zu Bereichs-Menü, Header und Tab-Leiste im Frontend-Design    |
 | Bereiche                   | Reihenfolge = Bereichs-Menü; Standard-Chip, Auge = aus dem Menü ausblenden, ⋯ je Zeile |
 | Neues Layout / Importieren | Anlegen bzw. aus JSON einfügen; das neue Layout wird sofort ausgewählt                |
@@ -29,7 +29,7 @@ Links der Baum aus Layouts und ihren Bereichen, rechts das gewählte Element. Di
 | Kopf               | Brotkrume Layout / Bereich, URL, Standard- und Ausgeblendet-Chip                        |
 | Im Editor öffnen   | Bereich im [Dashboard-Editor](./editor)                                                 |
 | ⋯                  | Duplizieren, in anderes Layout verschieben/kopieren, Exportieren, Löschen               |
-| Allgemein          | Name, URL-Slug (`/s/…`), Icon                                                           |
+| Allgemein          | Name, URL-Slug (`/s/…`), Icon, [Hintergrundbild](./editor#hintergrundbild)               |
 | Sichtbarkeit       | Layout-Standard, aus Menü ausblenden, Menü in diesem Bereich verbergen                  |
 | Tabs               | Reihenfolge = Tab-Leiste; Standard-Tab (Radio), Auge = aus Tab-Leiste ausblenden, Editor |
 | Tab suchen         | Filtert die Liste nach Name oder Slug                                                   |

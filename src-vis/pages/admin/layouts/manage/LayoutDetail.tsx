@@ -41,6 +41,7 @@ import {
     type MenuItem,
 } from './pieces';
 import { layoutHash, layoutIconNode, sectionIconNode } from './LayoutTree';
+import { BackgroundImageButton } from '../../../../components/config/BackgroundImageField';
 
 export function countTabs(layout: DashboardLayout) {
     return layout.sections.reduce((n, s) => n + s.tabs.length, 0);
@@ -62,6 +63,7 @@ export function LayoutDetail({ layout, isFirst, isOnly, onSelect }: LayoutDetail
     const renameLayout = useDashboardStore((s) => s.renameLayout);
     const setLayoutSlug = useDashboardStore((s) => s.setLayoutSlug);
     const setLayoutIcon = useDashboardStore((s) => s.setLayoutIcon);
+    const setLayoutBackgroundImage = useDashboardStore((s) => s.setLayoutBackgroundImage);
     const duplicateLayout = useDashboardStore((s) => s.duplicateLayout);
     const removeLayout = useDashboardStore((s) => s.removeLayout);
     const setDefaultSection = useDashboardStore((s) => s.setDefaultSection);
@@ -269,6 +271,15 @@ export function LayoutDetail({ layout, isFirst, isOnly, onSelect }: LayoutDetail
                                     {t('layouts.changeIcon')}
                                 </Btn>
                             </span>
+                        </FieldBox>
+                    </Field>
+                    <Field label={t('bgImage.label')}>
+                        <FieldBox>
+                            <BackgroundImageButton
+                                value={layout.backgroundImage}
+                                onChange={(v) => setLayoutBackgroundImage(layout.id, v)}
+                                title={t('bgImage.layoutTitle')}
+                            />
                         </FieldBox>
                     </Field>
                 </Card>

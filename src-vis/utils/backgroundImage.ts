@@ -58,3 +58,19 @@ export function bgImageStyle(raw: unknown): CSSProperties | undefined {
         filter: dim > 0 ? `brightness(${1 - dim})` : undefined,
     };
 }
+
+/**
+ * The image behind a tab's widgets: the tab's own, else its section's, else its
+ * layout's — like the settings cascade, the nearest level that sets one wins.
+ */
+export function tabBgImage(
+    layout: { backgroundImage?: unknown } | undefined,
+    section: { backgroundImage?: unknown } | undefined,
+    tab: { backgroundImage?: unknown } | undefined,
+): BackgroundImage | undefined {
+    return (
+        activeBgImage(tab?.backgroundImage) ??
+        activeBgImage(section?.backgroundImage) ??
+        activeBgImage(layout?.backgroundImage)
+    );
+}

@@ -161,7 +161,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal/Gerätekarte lesen bzw. ersetzen                                           | read/write   |
 | `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab, im Popup oder in einer Gruppe                                            | write        |
 | `aura_update_widgets`                 | Mehrere Widgets in einem Schreibvorgang ändern — eine Prüfung des Endzustands, eine Sicherung                  | write        |
-| `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen    | write        |
+| `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen, Hintergrundbild | write        |
 | `aura_icons`                          | Installierte ioBroker-Icon-Adapter und vis-2-Iconsets mit ihren Icons als `iob:<adapter>/<pfad>`-IDs (#716)                      | read         |
 | `aura_find`                           | Widgets nach Datenpunkt, Typ oder Titel finden — über Tabs, Gruppen und Popups, inkl. Datenpunkten in Optionen | read         |
 | `aura_copy_node`                      | Tab, Bereich, Layout oder Popup kopieren bzw. verschieben (`mode:"move"`)                                      | write        |

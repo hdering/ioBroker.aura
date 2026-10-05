@@ -142,6 +142,16 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 
 Nicht beim Abschnittstitel ohne Rahmen. Wird mit `Stil kopieren` übertragen. Für Popups: [Popups](./popups).
 
+Hinter den Widgets eines Tabs, mit denselben Optionen:
+
+| Ebene | Wo |
+| --- | --- |
+| Tab | Editor → Zahnrad am Tab → `Hintergrundbild` |
+| Bereich | Editor → Zahnrad am Bereich, oder [Layouts](./layouts) → Bereich → Allgemein; gilt für Tabs ohne eigenes Bild |
+| Layout | [Layouts](./layouts) → Allgemein; gilt für Tabs, deren Tab und Bereich keins haben |
+
+Das Bild füllt die Fläche zwischen den Leisten und bleibt beim Scrollen stehen. Hinter einer PIN-Abfrage erscheint es erst nach dem Entsperren.
+
 ## Kopfzeile
 
 `Bearbeiten` → **Darstellung** → `Kopfzeile` → `Bearbeiten…`. Titel und Icon des Widgets sowie zusätzliche Werte neben dem Titel, aufgeklappt in der Titelzeile des Widgets, eingeklappt in der Kopfzeile.

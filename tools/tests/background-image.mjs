@@ -255,6 +255,80 @@ check('popup surface becomes a stacking context', isolated === 'isolate', isolat
 const emptyAction = await openPopup({ ...viewAction, popupBackgroundImage: { src: '' } }, view({ src: BLUE }));
 check('an empty click-action source inherits the view', color(emptyAction, '#0000ff'), emptyAction?.slice(0, 60));
 await page.keyboard.press('Escape');
+await settle();
+
+// ── 7. Tab / section / layout: the nearest level wins ─────────────────────────
+// The page image sits in the content area, outside the dashboard's scroller, so
+// it is the one .aura-bg-image that is not inside a widget card.
+const pageLayer = () =>
+    page.evaluate(() => {
+        const el = [...document.querySelectorAll('[data-aura-app="frontend"] .aura-bg-image')].find(
+            (n) => !n.closest('.aura-widget'),
+        );
+        if (!el) return null;
+        return {
+            image: getComputedStyle(el).backgroundImage,
+            host: getComputedStyle(el.parentElement).isolation,
+            scrollsAway: !!el.closest('.aura-scroll'),
+        };
+    });
+const navTab = (name, widgets = []) => ({ id: `tab-${name}`, name, slug: name.toLowerCase(), widgets });
+async function seedNav({ layoutImg, sectionImg, tabImg }) {
+    await page.evaluate(
+        ([l, s, t, w]) =>
+            window.__auraShot.seed({
+                layouts: [
+                    {
+                        id: 'lay-bg',
+                        name: 'Haus',
+                        slug: 'haus',
+                        activeSectionId: 'sec-bg',
+                        ...(l ? { backgroundImage: l } : {}),
+                        sections: [
+                            {
+                                id: 'sec-bg',
+                                name: 'Erdgeschoss',
+                                slug: 'eg',
+                                activeTabId: 'tab-Eins',
+                                ...(s ? { backgroundImage: s } : {}),
+                                tabs: [{ ...w[0], ...(t ? { backgroundImage: t } : {}) }, w[1]],
+                            },
+                        ],
+                    },
+                ],
+            }),
+        [
+            layoutImg ?? null,
+            sectionImg ?? null,
+            tabImg ?? null,
+            [navTab('Eins', [widget('w-on-tab', {})]), navTab('Zwei')],
+        ],
+    );
+    await settle(600);
+}
+
+await seedNav({});
+check('no image anywhere — no page layer', (await pageLayer()) === null);
+
+await seedNav({ layoutImg: { src: RED }, sectionImg: { src: BLUE }, tabImg: { src: GREEN } });
+let pl = await pageLayer();
+check('tab image wins over section and layout', color(pl?.image, '#00ff00'), pl?.image?.slice(0, 50));
+check('page layer host is a stacking context', pl?.host === 'isolate', pl?.host);
+check('page image stays outside the scroller', pl && !pl.scrollsAway);
+// Widgets on the tab still paint above the page image.
+const [wr, wg, wb] = await pixel('w-on-tab', 0.5, 0.85);
+check('widget card paints over the page image', !(wg > 200 && wr < 60 && wb < 60), `${wr},${wg},${wb}`);
+
+await page.locator('.aura-tab-btn', { hasText: 'Zwei' }).click();
+await settle();
+pl = await pageLayer();
+check('a tab without its own image takes the section image', color(pl?.image, '#0000ff'), pl?.image?.slice(0, 50));
+
+await seedNav({ layoutImg: { src: RED } });
+await page.locator('.aura-tab-btn', { hasText: 'Zwei' }).click();
+await settle();
+pl = await pageLayer();
+check('without tab and section image the layout image shows', color(pl?.image, '#ff0000'), pl?.image?.slice(0, 50));
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

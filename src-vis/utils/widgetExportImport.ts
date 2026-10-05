@@ -258,7 +258,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
         setDef(defIdMap[oldId], remapWidgets(children as WidgetConfig[]));
     }
 
-    const { name, slug, icon, hideLabel, disabled, conditions, badges, badgeAggregate } = tab;
+    const { name, slug, icon, hideLabel, disabled, conditions, badges, badgeAggregate, backgroundImage } = tab;
     return {
         name,
         slug: slug ?? name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -269,6 +269,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
         ...(conditions ? { conditions } : {}),
         ...(badges ? { badges } : {}),
         ...(badgeAggregate ? { badgeAggregate } : {}),
+        ...(backgroundImage ? { backgroundImage } : {}),
     };
 }
 
@@ -368,6 +369,7 @@ export function importSection(raw: unknown): Omit<Section, 'id'> | null {
         ...(defaultTabId !== undefined ? { defaultTabId } : {}),
         ...(src.icon ? { icon: src.icon } : {}),
         ...(src.settings ? { settings: src.settings } : {}),
+        ...(src.backgroundImage ? { backgroundImage: src.backgroundImage } : {}),
     };
 }
 
@@ -462,6 +464,7 @@ export function importLayout(raw: unknown): Omit<DashboardLayout, 'id'> | null {
         activeSectionId: sections[0]?.id ?? '',
         ...(layout.icon ? { icon: layout.icon } : {}),
         ...(layout.settings ? { settings: layout.settings } : {}),
+        ...(layout.backgroundImage ? { backgroundImage: layout.backgroundImage } : {}),
     };
 }
 

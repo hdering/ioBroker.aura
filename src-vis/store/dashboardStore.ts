@@ -4,7 +4,7 @@ import { managedStorage, flushKey, withSuppressedDirty } from './persistManager'
 import { useGroupDefsStore, newGroupDefId } from './groupDefsStore';
 import { cloneWidget, finishClone, makeIdDeduper, newCloneScope, remapWidgetRefs } from '../utils/widgetCopy';
 import { slugify } from '../utils/slugify';
-import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate } from '../types';
+import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate, BackgroundImage } from '../types';
 import { KEEP_PIN, type PinRelock } from '../utils/pinLock';
 import type { AllVars } from '../themes';
 
@@ -264,6 +264,8 @@ export interface Tab {
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the tab button - the gate stays, only the badge goes (#692)
     idleReturnExempt?: boolean; // never left automatically by the idle-return timer (#638)
+    /** Background image behind this tab's widgets; unset = the section's, then the layout's (#442). */
+    backgroundImage?: BackgroundImage;
 }
 
 /**
@@ -288,6 +290,8 @@ export interface Section {
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the section menu entry - the gate stays, only the badge goes (#692)
     settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
+    /** Background image for every tab of the section that sets none itself; unset = the layout's (#442). */
+    backgroundImage?: BackgroundImage;
 }
 
 /**
@@ -305,6 +309,8 @@ export interface DashboardLayout {
     icon?: string; // reserved for a future layout switcher
     hidden?: boolean; // reserved (layout-level hide)
     settings?: LayoutSettings; // layout-level overrides; layoutDrawerEnabled lives here
+    /** Background image for every tab of the layout whose tab and section set none (#442). */
+    backgroundImage?: BackgroundImage;
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -445,6 +451,7 @@ interface DashboardState {
     setLayoutSlug: (id: string, slug: string) => void;
     setLayoutIcon: (id: string, icon: string | undefined) => void;
     setLayoutHidden: (id: string, hidden: boolean) => void;
+    setLayoutBackgroundImage: (id: string, image: BackgroundImage | undefined) => void;
     reorderLayouts: (fromIndex: number, toIndex: number) => void;
     setActiveLayout: (id: string) => void;
 
@@ -522,6 +529,7 @@ interface DashboardState {
                 | 'pinLength'
                 | 'badges'
                 | 'badgeAggregate'
+                | 'backgroundImage'
             >
         >,
     ) => void;
@@ -685,6 +693,9 @@ export const useDashboardStore = create<DashboardState>()(
 
             setLayoutHidden: (id, hidden) =>
                 set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, hidden })) })),
+
+            setLayoutBackgroundImage: (id, backgroundImage) =>
+                set((s) => ({ layouts: patchLayout(s.layouts, id, (l) => ({ ...l, backgroundImage })) })),
 
             reorderLayouts: (fromIndex, toIndex) =>
                 set((s) => {

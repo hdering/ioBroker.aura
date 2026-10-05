@@ -78,6 +78,8 @@ import {
     type EscapeTarget,
 } from './utils/pinLock';
 import { pinUnlock } from './utils/pinApi';
+import { tabBgImage } from './utils/backgroundImage';
+import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from './components/common/BackgroundImageLayer';
 
 /** The datapoint that forces a brightness on every device. */
 const THEME_MODE_DP = `${NS}.config.themeMode.frontend`;
@@ -1031,6 +1033,7 @@ export default function App() {
         () => (shotEditMode ? null : pendingPinTarget(section, activeTab, isPinUnlocked)),
         [shotEditMode, section, activeTab, isPinUnlocked],
     );
+    const pageBgImage = pinTarget ? undefined : tabBgImage(layout, section, activeTab);
 
     // Content the server handed back after a successful unlock (RAM-only). Merged
     // over the redacted stubs so the real widgets render once a view is open.
@@ -1464,7 +1467,14 @@ export default function App() {
                     )}
                     {drawerBarTop && sectionMenuBar}
                     {!tabBarAtBottom && tabBarNode}
-                    <div className="flex-1 min-h-0 flex flex-col">
+                    <div
+                        className="flex-1 min-h-0 flex flex-col relative"
+                        style={pageBgImage ? BG_IMAGE_HOST_STYLE : undefined}
+                    >
+                        {/* Behind the dashboard's scroller, not inside it: the image stays
+                            put while the widgets scroll over it (#442). Not behind a PIN
+                            prompt — the tab is not open yet. */}
+                        {pageBgImage && <BackgroundImageLayer image={pageBgImage} />}
                         {pinTarget && (
                             <PinPrompt
                                 key={pinTarget.key}

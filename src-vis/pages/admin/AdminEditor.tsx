@@ -38,6 +38,9 @@ import { flowOrderField, sortForFlow, tabletBandActive, type FlowMode } from '..
 import { FlowSettingsLink, TabletOrderPanel } from './editor/TabletOrderPanel';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
+import { BackgroundImageButton } from '../../components/config/BackgroundImageField';
+import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/common/BackgroundImageLayer';
+import { tabBgImage } from '../../utils/backgroundImage';
 import { KEEP_PIN } from '../../utils/pinLock';
 import { useMcpReleaseStore } from '../../store/mcpReleaseStore';
 import { vaultSetMcp, vaultRemove } from '../../utils/pinApi';
@@ -1319,6 +1322,18 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                 />
                             )}
 
+                            <div className="mt-3">
+                                <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('bgImage.label')}
+                                </label>
+                                <BackgroundImageButton
+                                    value={openSection.backgroundImage}
+                                    onChange={(v) => updateSection(openSection.id, { backgroundImage: v })}
+                                    title={t('bgImage.sectionTitle')}
+                                    inheritLabel={t('bgImage.inheritLayout')}
+                                />
+                            </div>
+
                             {/* ── Badges section (collapsed, like the tab panel) ──────────── */}
                             <div
                                 className="rounded-lg px-2.5 py-2 mt-3"
@@ -1929,6 +1944,17 @@ const TabBar = memo(function TabBar() {
                                     />
                                 </button>
                             </div>
+                            <div>
+                                <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('bgImage.label')}
+                                </label>
+                                <BackgroundImageButton
+                                    value={settingsTab.backgroundImage}
+                                    onChange={(v) => updateTab(settingsTabId, { backgroundImage: v })}
+                                    title={t('bgImage.tabTitle')}
+                                    inheritLabel={t('bgImage.inheritSection')}
+                                />
+                            </div>
 
                             {/* ── PIN gate ────────────────────────────────────────────────── */}
                             <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
@@ -2453,6 +2479,16 @@ export function AdminEditor() {
         return sec.activeTabId;
     });
     const activeSectionForEditor = useActiveSection();
+    // The tab being edited shows its background image like the frontend (#442).
+    const editorBgImage = useDashboardStore((s) => {
+        const l = s.layouts.find((x) => x.id === s.activeLayoutId);
+        const sec = l?.sections.find((x) => x.id === l.activeSectionId) ?? l?.sections[0];
+        return tabBgImage(
+            l,
+            sec,
+            sec?.tabs.find((x) => x.id === sec.activeTabId),
+        );
+    });
     // Stable action references — never cause re-renders
     const setActiveLayout = useDashboardStore((s) => s.setActiveLayout);
     const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
@@ -2748,11 +2784,17 @@ export function AdminEditor() {
                     answers the portal-target queries, which must not land in this box.
                     data-aura-css-scope confines the custom CSS to the preview (#710). */}
                 <div
-                    className="flex-1 min-w-0 flex flex-col overflow-hidden"
+                    className="flex-1 min-w-0 flex flex-col overflow-hidden relative"
                     data-aura-scale=""
                     data-aura-css-scope=""
-                    style={{ '--font-scale': String(editorSettings.fontScale ?? 1) } as React.CSSProperties}
+                    style={
+                        {
+                            '--font-scale': String(editorSettings.fontScale ?? 1),
+                            ...(editorBgImage ? BG_IMAGE_HOST_STYLE : {}),
+                        } as React.CSSProperties
+                    }
                 >
+                    {editorBgImage && <BackgroundImageLayer image={editorBgImage} />}
                     <FocusedWidgetContext.Provider value={focusedWidgetId}>
                         <Dashboard editMode={true} />
                     </FocusedWidgetContext.Provider>

@@ -42,6 +42,7 @@ import {
     type MenuItem,
 } from './pieces';
 import { layoutHash, sectionIconNode } from './LayoutTree';
+import { BackgroundImageButton } from '../../../../components/config/BackgroundImageField';
 import { countWidgets } from './LayoutDetail';
 import { AuraIcon } from '../../../../components/common/AuraIcon';
 
@@ -67,6 +68,7 @@ export function SectionDetail({ layout, section, isFirstLayout, onSelect }: Sect
     const removeSection = useDashboardStore((s) => s.removeSection);
     const moveSectionToLayout = useDashboardStore((s) => s.moveSectionToLayout);
     const updateSectionSettings = useDashboardStore((s) => s.updateSectionSettings);
+    const updateSection = useDashboardStore((s) => s.updateSection);
     const clearSectionSettings = useDashboardStore((s) => s.clearSectionSettings);
 
     const [iconOpen, setIconOpen] = useState(false);
@@ -364,6 +366,19 @@ export function SectionDetail({ layout, section, isFirstLayout, onSelect }: Sect
                                     {t('layouts.changeIcon')}
                                 </Btn>
                             </span>
+                        </FieldBox>
+                    </Field>
+                    <Field label={t('bgImage.label')}>
+                        <FieldBox>
+                            <BackgroundImageButton
+                                value={section.backgroundImage}
+                                onChange={(v) => {
+                                    ensureActive();
+                                    updateSection(section.id, { backgroundImage: v });
+                                }}
+                                title={t('bgImage.sectionTitle')}
+                                inheritLabel={t('bgImage.inheritLayout')}
+                            />
                         </FieldBox>
                     </Field>
                 </Card>
