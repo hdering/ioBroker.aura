@@ -122,6 +122,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.77.3 (2026-10-05)
+- Shutter - quick-select buttons can set only the slat angle, and skip the drive when the blind is already at the preset position ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+
+
 ### 0.77.2 (2026-10-04)
 - Adapter log - startup and routine status messages moved from info to debug, so the log stays quiet unless something needs attention
 
@@ -244,21 +248,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Section menu - the widget preview of a menu element is now as wide as the menu itself (docked sidebar or drawer) instead of the whole editor, the preview window hugs it, and the element uses the bar slot when the menu sits at the top or bottom
 
 
-### 0.68.0 (2026-09-23)
-- 🌟 **New feature:** Room climate - add any number of extra readings (CO2, VOC, dew point, comfort, air quality, brightness, presence) with their own units, colour bands and value labels; dew point, absolute humidity and comfort are calculated from temperature and humidity ([#698](https://github.com/hdering/ioBroker.aura/issues/698))
-- Room climate - the chart can now draw those readings as extra series, on a second y axis where the scale differs ([#698](https://github.com/hdering/ioBroker.aura/issues/698))
-- Settings - the Layouts and Frontend design pages no longer overflow or squeeze their buttons on a phone; their layout/scope tree folds into a bar above the detail
-- List - on a phone the "Manage datapoints" dialog folds the datapoint list into a bar above the editor, so the selected entry can be configured
-- 🌟 **New feature:** Widgets with a click action now show a small icon that runs it, also in the folded header of a collapsed widget; it can be switched off (also right in the click-action dialog), moved to another corner or given its own symbol under Appearance ([#702](https://github.com/hdering/ioBroker.aura/issues/702))
-- 🌟 **New feature:** Widgets can show extra values in their header, expanded and collapsed: a datapoint, a value the widget already has (main value, list sum, average, count, thermostat and room-climate readings, custom-layout cells …), a text with bindings or the click-action icon, beside the title or in a second row, optionally only while a condition holds; set up under Appearance → Header ([#676](https://github.com/hdering/ioBroker.aura/issues/676))
-- Settings - a protected tab or section no longer shows up empty in the editor after an update, and "Remove PIN" works again: a login kept from an older version now asks for the admin password once ([#704](https://github.com/hdering/ioBroker.aura/issues/704))
-- Chart (advanced) - the labels of the first and last point of a JSON chart are no longer cut off at the edge ([#703](https://github.com/hdering/ioBroker.aura/issues/703))
-- Settings - the overview no longer lists the mode-dependent datapoints of an air-conditioner widget (Daikin `{mode}`) as missing; they are only reported when no operation mode has them ([#701](https://github.com/hdering/ioBroker.aura/issues/701))
-- Energy flow (evcc) - supports the new charge modes of evcc 0.316: Off · Smart · Now plus an "always charge" toggle; older evcc versions keep PV and Min+PV ([#700](https://github.com/hdering/ioBroker.aura/issues/700))
-- AI access (MCP) - no longer marked as beta
-- Popups - charts in the popup view editor now show the real history of a widget that opens the view (or a datapoint of your choice) instead of a sample curve; the source is picked in the bar below the editor toolbar
-
-
 ## License
 
 MIT License
@@ -270,6 +259,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,6 +1,6 @@
 {
   "name": "iobroker.aura",
-  "version": "0.77.2",
+  "version": "0.77.3",
   "description": "Modern visualization dashboard for ioBroker",
   "author": "hdering <aura@dering-online.de>",
   "main": "main.js",
@@ -346,7 +346,7 @@
     "test:header-title-center": "node tools/tests/header-title-center.mjs"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.4.1",
+    "@iobroker/adapter-core": "^3.4.3",
     "suncalc": "^2.0.0"
   },
   "devDependencies": {
@@ -357,11 +357,11 @@
     "@iconify/react": "^6.0.2",
     "@iobroker/adapter-dev": "^1.5.0",
     "@iobroker/eslint-config": "^2.3.4",
-    "@iobroker/testing": "^5.2.2",
+    "@iobroker/testing": "^6.3.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@tsconfig/node22": "^22.0.5",
-    "@types/node": "^22",
     "@types/leaflet": "^1.9.12",
+    "@types/node": "^22",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

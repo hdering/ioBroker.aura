@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.77.2",
+    "version": "0.77.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.77.3": {
+        "en": "Shutter - quick-select buttons can set only the slat angle, and skip the drive when the blind is already at the preset position (#745)",
+        "de": "Rollladen – Schnellauswahltasten können nur den Lamellenwinkel einstellen und die Fahrt überspringen, wenn sich die Jalousie bereits in der voreingestellten Position befindet (#745)",
+        "ru": "Ставня - кнопками быстрого выбора можно установить только угол наклона ламелей и пропустить ход, когда жалюзи уже находятся в заданном положении (#745)",
+        "pt": "Obturador - os botões de seleção rápida podem definir apenas o ângulo da veneziana e pular o acionamento quando a persiana já estiver na posição predefinida (#745)",
+        "nl": "Rolluik - snelkeuzeknoppen kunnen alleen de lamelhoek instellen en de aandrijving overslaan als de jaloezie al in de vooraf ingestelde positie staat (#745)",
+        "fr": "Volet - les boutons de sélection rapide permettent de régler uniquement l'angle des lamelles et d'ignorer l'entraînement lorsque le store est déjà dans la position prédéfinie (#745)",
+        "it": "Tapparella: i pulsanti di selezione rapida possono impostare solo l'angolo delle lamelle e saltare l'azionamento quando la tenda è già nella posizione preimpostata (#745)",
+        "es": "Obturador: los botones de selección rápida pueden configurar solo el ángulo de las lamas y omitir el avance cuando la persiana ya está en la posición preestablecida (#745)",
+        "pl": "Roleta - przyciski szybkiego wyboru umożliwiają ustawienie tylko kąta lameli i pominięcie napędu, gdy roleta znajdzie się już w zadanej pozycji (#745)",
+        "uk": "Затвор - кнопки швидкого вибору можуть встановлювати лише кут ламелей і пропускати рух, коли жалюзі вже знаходяться в заданому положенні (#745)",
+        "zh-cn": "百叶窗 - 快速选择按钮只能设置百叶窗角度，并在百叶窗已经处于预设位置时跳过驱动(#745)"
+      },
       "0.77.2": {
         "en": "Adapter log - startup and routine status messages moved from info to debug, so the log stays quiet unless something needs attention",
         "de": "Adapterprotokoll – Startup- und Routinestatusmeldungen wurden von „Info“ in „Debug“ verschoben, sodass das Protokoll still bleibt, es sei denn, etwas erfordert Aufmerksamkeit",
@@ -185,19 +198,6 @@
         "pl": "🌟 Nowa funkcja: Dzienniki adaptera - pole wyszukiwania można wstępnie ustawić w ustawieniach widżetu; frontend zaczyna być filtrowany, a tekst nadal można zmieniać; kilka terminów oddzielonych znakiem „|” dopasuj dowolne z nich (#727)\nKamera — adresy URL strumieni MJPEG (np. `.../stream.mjpeg`) teraz zawsze odtwarzają na żywo; interwał odświeżania nie ładuje już ich ponownie co kilka sekund\n🌟 Nowa funkcja: Uniwersalny widget - siatka nie jest już ograniczona do 20 wierszy i kolumn (#735)\nKamera - strona odtwarzacza, która raportuje swój stan (eusec `stream.html`) wstrzymuje limit czasu strumienia na czas oczekiwania na HomeBase lub odtwarzanie i nadaje nazwę kamerze, z której korzysta stacja; „rozpocznij od dotknięcia” działa teraz także bez punktu danych wybudzania\nFrontend - zmiany dokonane w widżecie na dowolnej karcie innej niż ta ostatnio otwarta w edytorze (zdarzenia timera i przełącznik główny, automatyczna synchronizacja listy, widżety wyświetlane w wyskakującym okienku) zostały po cichu usunięte; znów są zbawieni. Timery wewnątrz grupy również są zapisywane (#731)\n🌟 Nowa funkcja: Układ niestandardowy - każda komórka może mieć kolor tła (z przezroczystością), wypełniając komórkę lub tylko jako etykietę za jej tekstem; utrzymuje czytelność wartości na zdjęciu w widgecie Obraz (#732)\n🌟 Nowa funkcja: Uniwersalny widget - wysokość wierszy można ustawić jako współczynnik na wiersz, podobnie jak szerokość kolumn (np. 1 / 0,25 / 1 dla wiersza cienkiego separatora) lub automatycznie (#737)",
         "uk": "🌟 Нова функція: журнали адаптера - поле пошуку можна попередньо встановити в налаштуваннях віджета; інтерфейс починає фільтруватися, і текст все ще можна змінити; кілька термінів, розділених \"|\" відповідати будь-якому з них (#727)\nКамера – URL-адреси потоку MJPEG (наприклад, `.../stream.mjpeg`) тепер завжди відтворюються в прямому ефірі; інтервал оновлення більше не перезавантажує їх кожні кілька секунд\n🌟 Нова функція: універсальний віджет - сітка більше не обмежена 20 рядками та стовпцями (#735)\nКамера – сторінка програвача, яка повідомляє про свій стан (eusec `stream.html`), призупиняє час очікування потоку, поки він очікує на HomeBase або відтворює, і називає камеру, якою зайнята станція; \"старт при натисканні\" тепер також працює без точки пробудження\nІнтерфейс — зміни, внесені у віджет на будь-якій вкладці, окрім тієї, що була відкрита востаннє в редакторі (події таймера та головний перемикач, автоматична синхронізація списку, віджети, що відображаються у спливаючому вікні), мовчки скидаються; вони знову врятовані. Таймери всередині групи також зберігаються (#731)\n🌟 Нова функція: спеціальний макет - кожна клітинка може мати фоновий колір (з прозорістю), який заповнює клітинку або лише як мітку за її текстом; зберігає значення для читання на фотографії у віджеті зображення (#732)\n🌟 Нова функція: універсальний віджет - висоту рядків можна встановити як співвідношення на рядок, як ширину стовпців (наприклад, 1 / 0,25 / 1 для тонкого рядка роздільника), або автоматично (#737)",
         "zh-cn": "🌟 新功能：适配器日志 - 可以在小部件设置中预设搜索字段；前端开始过滤，文本仍然可以更改；由“|”分隔的多个术语匹配其中任何一个 (#727)\n相机 - MJPEG 流 URL（例如“.../stream.mjpeg”）现在始终实时播放；刷新间隔不再每隔几秒重新加载一次\n🌟 新功能：通用小部件 - 网格不再限制为 20 行和列 (#735)\n摄像头 - 报告其状态的播放器页面 (eusec `stream.html`) 在等待 HomeBase 或播放时暂停流超时，并命名该电台正在使用的摄像头； “点击启动”现在也可以在没有唤醒数据点的情况下工作\n前端 - 除了编辑器中最后打开的选项卡之外的任何选项卡上的小部件中所做的更改（计时器事件和主开关、自动列表同步、弹出窗口中显示的小部件）都会被默默删除；他们又得救了。组内的计时器也被保存(#731)\n🌟 新功能：自定义布局 - 每个单元格可以有背景颜色（具有透明度），填充单元格或仅作为其文本后面的标签；保持图像小部件中照片上的值可读(#732)\n🌟 新功能：通用小部件 - 行高可以设置为每行的比率，如列宽（例如，薄分隔行为 1 / 0.25 / 1），或设置为自动(#737)"
-      },
-      "0.73.0": {
-        "en": "🌟 New feature: Universal widget - each display cell (text, value, image, icon, …) can have its own click action, e.g. a different popup view per cell (#729)",
-        "de": "🌟 Neue Funktion: Universelles Widget – jede Anzeigezelle (Text, Wert, Bild, Symbol, …) kann ihre eigene Klickaktion haben, z.B. eine andere Popup-Ansicht pro Zelle (#729)",
-        "ru": "🌟 Новая функция: Универсальный виджет — каждая ячейка дисплея (текст, значение, изображение, значок и т. д.) может иметь собственное действие при нажатии, например другое всплывающее окно для каждой ячейки (#729)",
-        "pt": "🌟 Novo recurso: Widget universal - cada célula de exibição (texto, valor, imagem, ícone,…) pode ter sua própria ação de clique, por exemplo. uma visualização pop-up diferente por célula (#729)",
-        "nl": "🌟 Nieuwe functie: Universele widget - elke weergavecel (tekst, waarde, afbeelding, pictogram, ...) kan zijn eigen klikactie hebben, b.v. een andere pop-upweergave per cel (#729)",
-        "fr": "🌟 Nouvelle fonctionnalité : Widget universel - chaque cellule d'affichage (texte, valeur, image, icône, …) peut avoir sa propre action de clic, par ex. une vue contextuelle différente par cellule (#729)",
-        "it": "🌟 Nuova funzionalità: widget universale: ogni cella di visualizzazione (testo, valore, immagine, icona, ...) può avere la propria azione di clic, ad es. una visualizzazione popup diversa per cella (#729)",
-        "es": "🌟 Nueva característica: Widget universal: cada celda de visualización (texto, valor, imagen, icono,...) puede tener su propia acción de clic, p. una vista emergente diferente por celda (#729)",
-        "pl": "🌟 Nowa funkcja: Uniwersalny widget - każda wyświetlana komórka (tekst, wartość, obraz, ikona,…) może mieć własną akcję kliknięcia, np. inny widok wyskakującego okienka na komórkę (#729)",
-        "uk": "🌟 Нова функція: універсальний віджет - кожна клітинка дисплея (текст, значення, зображення, піктограма, …) може мати власну дію натискання, напр. різне спливаюче вікно для кожної комірки (#729)",
-        "zh-cn": "🌟 新功能：通用小部件 - 每个显示单元（文本、值、图像、图标等）都可以有自己的点击操作，例如每个单元格有不同的弹出视图 (#729)"
       }
     }
   },
