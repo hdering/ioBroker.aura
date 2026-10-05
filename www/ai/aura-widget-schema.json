@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.77.0",
+    "auraVersion": "0.77.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -12998,7 +12998,7 @@
           "description": "Position schon beim Ziehen des Reglers übernehmen."
         },
         "positionPresets": {
-          "description": "Schnellwahl-Tasten mit festen Positionen (#745), z. B. [{ pos: 30, label: \"Beschattung\", tilt: 50 }]. pos liest sich wie die Anzeige (bei showClosedPercent also % geschlossen); tilt nur mit tiltDp, leer = Lamellen bleiben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im custom-Layout als Baustein \"presets\"; compact/minimal zeigen sie nicht."
+          "description": "Schnellwahl-Tasten mit festen Positionen (#745), z. B. [{ pos: 30, label: \"Beschattung\", tilt: 50 }]. pos liest sich wie die Anzeige (bei showClosedPercent also % geschlossen); tilt nur mit tiltDp, leer = Lamellen bleiben. Ohne pos (nur mit tiltDp) setzt die Taste nur die Lamellen; steht der Behang schon auf pos, wird ebenfalls nur tilt geschrieben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im custom-Layout als Baustein \"presets\"; compact/minimal zeigen sie nicht."
         },
         "reapplyTiltAfterMove": {
           "type": "boolean",
