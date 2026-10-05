@@ -240,7 +240,7 @@ export interface CountdownWidgetOptions {
 
 /** Quick-select button of the shutter widget (`positionPresets`). */
 export interface ShutterPreset {
-    pos: number; // target position in percent, read like the widget's display (showClosedPercent on = percent closed)
+    pos?: number; // target position in percent, read like the widget's display (showClosedPercent on = percent closed); empty = position untouched, only the slats move (needs tilt)
     label?: string; // button text; empty = the percentage
     tilt?: number; // slat angle in percent (0 = closed, 100 = open), only with tiltDp; empty = slats untouched
 }

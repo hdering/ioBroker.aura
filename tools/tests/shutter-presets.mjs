@@ -104,6 +104,22 @@ check(
     (await writes()) === '[{"id":"demo.tilt","val":0.5},{"id":"demo.level","val":0}]',
 );
 
+// ── 4b. Slat-only presets and presets at the current position ───────────────
+await show({ tiltDp: 'demo.tilt', positionPresets: [{ tilt: 70 }, { pos: 40, tilt: 20, label: 'Hier' }] });
+check(
+    'slat-only preset is labelled with the slat text',
+    (await page.locator(`${ROW} button`).first().textContent()) === 'Lamellen 70%',
+);
+await click('Lamellen 70%');
+check('slat-only preset writes only the slats', (await writes()) === '[{"id":"demo.tilt","val":70}]');
+await click('Hier');
+check('preset at the current position writes only the slats', (await writes()) === '[{"id":"demo.tilt","val":20}]');
+await show({ positionPresets: [{ tilt: 70 }, { pos: 10 }] });
+check(
+    'slat-only preset is hidden without a tilt datapoint',
+    JSON.stringify(await page.locator(`${ROW} button`).allTextContents()) === '["10%"]',
+);
+
 // ── 5. Robust input and layouts ──────────────────────────────────────────────
 await show({ positionPresets: [25, { label: 'kaputt' }, { pos: 150 }] });
 check(

@@ -16928,9 +16928,11 @@ function WidgetFrameInner({
                                                             />
                                                             {numIn(
                                                                 p.pos,
-                                                                (v) => patch(i, { pos: v ?? 0 }),
-                                                                '%',
-                                                                'Position in %',
+                                                                (v) => patch(i, { pos: v }),
+                                                                tiltOn ? 'Pos.' : '%',
+                                                                tiltOn
+                                                                    ? 'Position in % (leer = unverändert, nur Lamellen)'
+                                                                    : 'Position in %',
                                                             )}
                                                             {tiltOn &&
                                                                 numIn(
@@ -16966,8 +16968,10 @@ function WidgetFrameInner({
                                                         {(o.showClosedPercent ?? false)
                                                             ? ' (% geschlossen)'
                                                             : ' (% offen)'}
-                                                        {tiltOn ? '; Lamellen leer = Winkel bleibt.' : '.'} Sichtbar im
-                                                        Standard-Layout und als Baustein im eigenen Layout.
+                                                        {tiltOn
+                                                            ? '; Position leer = nur Lamellen, Lamellen leer = Winkel bleibt. Steht der Behang schon auf der Position, wird nur der Winkel geschrieben. Stellt der Aktor die Lamellen beim Fahren zurück, „Nach Fahrt neu setzen“ einschalten.'
+                                                            : '.'}{' '}
+                                                        Sichtbar im Standard-Layout und als Baustein im eigenen Layout.
                                                     </p>
                                                 </div>
                                             );

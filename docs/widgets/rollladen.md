@@ -62,7 +62,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `invertPosition` | `false` | Positionswert invertieren (`0`↔`100`) |
 | `sendOnRelease` | `true` | Regler-Wert erst beim Loslassen schreiben (sonst live) |
 | `positionLivePreview` | `false` | Grafik und Prozentwert folgen dem Positionsregler schon beim Ziehen |
-| `positionPresets` | — | Schnellwahl-Tasten unter dem Regler (Default-Layout, Custom-Komponente `presets`): Liste aus `pos` (%, gelesen wie die Anzeige), optional `label` und `tilt` (% Lamellen, nur mit `tiltDp`) |
+| `positionPresets` | — | Schnellwahl-Tasten unter dem Regler (Default-Layout, Custom-Komponente `presets`): Liste aus `pos` (%, gelesen wie die Anzeige), optional `label` und `tilt` (% Lamellen, nur mit `tiltDp`). Ohne `pos` nur Lamellen; steht der Behang schon auf `pos`, wird nur `tilt` geschrieben |
 
 ### Lamellen / Neigung
 

@@ -90,7 +90,10 @@ function BtnRow({
     );
 }
 
-/** Valid presets only; a bare number (as an AI might write it) counts as `{ pos }`. */
+/**
+ * Valid presets only; a bare number (as an AI might write it) counts as `{ pos }`.
+ * Without `pos` a preset sets only the slats, so it needs a `tilt`.
+ */
 function readPresets(raw: unknown): ShutterPreset[] {
     if (!Array.isArray(raw)) return [];
     const out: ShutterPreset[] = [];
@@ -98,10 +101,10 @@ function readPresets(raw: unknown): ShutterPreset[] {
     for (const item of raw) {
         const p: Partial<ShutterPreset> = typeof item === 'number' ? { pos: item } : (item ?? {});
         const pos = num(p.pos);
-        if (!Number.isFinite(pos)) continue;
         const tilt = num(p.tilt);
+        if (!Number.isFinite(pos) && !Number.isFinite(tilt)) continue;
         out.push({
-            pos: clampPct(pos),
+            pos: Number.isFinite(pos) ? clampPct(pos) : undefined,
             label: typeof p.label === 'string' ? p.label : undefined,
             tilt: Number.isFinite(tilt) ? clampPct(tilt) : undefined,
         });
@@ -316,22 +319,33 @@ export function ShutterWidget({ config }: WidgetProps) {
     // ── Quick-select presets ──────────────────────────────────────────────────
     // A preset's percentage reads like the displayed one, so "30" means what the
     // widget would show as 30 % — closed or open, depending on showClosedPercent.
-    const presets = useMemo(() => readPresets(opts.positionPresets), [opts.positionPresets]);
+    // A slat-only preset (no pos) is pointless without a tilt datapoint.
+    const presets = useMemo(
+        () => readPresets(opts.positionPresets).filter((p) => p.pos !== undefined || tiltActive),
+        [opts.positionPresets, tiltActive],
+    );
     const applyPreset = (p: ShutterPreset) => {
         setDragPos(null);
         const tilt = tiltActive ? p.tilt : undefined;
+        const target = p.pos === undefined ? undefined : showClosedPercent ? 100 - p.pos : p.pos;
+        // Already there: many actuators re-drive on a repeated position and put
+        // the slats into an end position, so only the angle is written.
+        const atTarget = target !== undefined && !isMoving && Math.abs(pos - target) < 1;
         // Slats first: HmIP blinds expect LEVEL_2 before LEVEL and then drive
         // both in one go. Actuators that reset the slats on a drive are covered
         // by reapplyTiltAfterMove, which now holds the preset's angle.
         if (tilt !== undefined) {
             setDragTilt(null);
-            writeTiltRaw(tilt);
+            if (target === undefined || atTarget) writeTilt(tilt);
+            else writeTiltRaw(tilt);
         }
-        writePos(showClosedPercent ? 100 - p.pos : p.pos, tilt);
+        if (target !== undefined && !(atTarget && tilt !== undefined)) writePos(target, tilt);
     };
     const presetActive = (p: ShutterPreset) =>
-        Math.abs((showClosedPercent ? 100 - pos : pos) - p.pos) < 1 &&
+        (p.pos === undefined || Math.abs((showClosedPercent ? 100 - pos : pos) - p.pos) < 1) &&
         (!tiltActive || p.tilt === undefined || Math.abs(tiltPct - p.tilt) < 2);
+    const presetText = (p: ShutterPreset) =>
+        p.pos === undefined ? `${tiltLabel} ${Math.round(p.tilt ?? 0)}%` : `${Math.round(p.pos)}%`;
     const presetRow =
         presets.length > 0 ? (
             <div
@@ -340,14 +354,16 @@ export function ShutterWidget({ config }: WidgetProps) {
             >
                 {presets.map((p, i) => {
                     const active = !isMoving && presetActive(p);
-                    const pctText = `${Math.round(p.pos)}%`;
+                    const pctText = presetText(p);
                     return (
                         <button
                             key={i}
                             onClick={() => applyPreset(p)}
                             title={
                                 (p.label ? `${p.label}: ${pctText}` : pctText) +
-                                (tiltActive && p.tilt !== undefined ? ` · ${tiltLabel} ${Math.round(p.tilt)}%` : '')
+                                (p.pos !== undefined && p.tilt !== undefined
+                                    ? ` · ${tiltLabel} ${Math.round(p.tilt)}%`
+                                    : '')
                             }
                             aria-pressed={active}
                             className="aura-preset-button px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80 active:scale-95 transition-all"

@@ -520,7 +520,8 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Schnellwahl-Tasten mit festen Positionen (#745), z. B. [{ pos: 30, label: "Beschattung", tilt: 50 }]. ' +
                 'pos liest sich wie die Anzeige (bei showClosedPercent also % geschlossen); tilt nur mit tiltDp, ' +
-                'leer = Lamellen bleiben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im ' +
+                'leer = Lamellen bleiben. Ohne pos (nur mit tiltDp) setzt die Taste nur die Lamellen; steht der Behang ' +
+                'schon auf pos, wird ebenfalls nur tilt geschrieben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im ' +
                 'custom-Layout als Baustein "presets"; compact/minimal zeigen sie nicht.',
         },
     },
