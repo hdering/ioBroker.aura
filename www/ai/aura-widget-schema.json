@@ -249,6 +249,11 @@
       "type": "object",
       "description": "CSS-Variablen nur für dieses Widget, z. B. { \"--accent\": \"#f00\" }."
     },
+    "bgImage": {
+      "type": "object",
+      "ref": "BackgroundImage",
+      "description": "Hintergrundbild der Karte, liegt über der Hintergrundfarbe und unter dem Inhalt. Mit transparent: true zeigt die Karte nur das Bild. Quellen wie beim image-Widget (URL, /vis.0/…-Pfad, aura-file:, data:). Für Text auf hellen Bildern dim setzen (30–50). Nicht beim Abschnittstitel \"header\" ohne Layout \"framed\" — der hat keine Karte."
+    },
     "fullscreenWidget": {
       "type": "boolean",
       "description": "Blendet einen Knopf in die Ecke der Karte ein, der das Widget bildschirmfüllend öffnet (Esc oder das Kreuz schließt wieder). Auf Touch-Geräten dauerhaft sichtbar, mit Maus erst beim Überfahren. Nicht bei \"iframe\", \"camera\" und \"echartsPreset\" — die bringen ihr eigenes Vollbild mit (iframe über die Option fullscreenButton)."
@@ -1080,6 +1085,53 @@
         }
       ],
       "description": "Was ein Klick auf das Widget (oder auf eine Listenzeile) auslöst: ein Popup öffnen oder irgendwohin springen. Es gibt bewusst KEINE Variante, die einen Datenpunkt schreibt — wer eine Taste braucht, die einen Wert setzt, nimmt ein Widget, das schreibt: \"chips\" (chips[]: dp + value, die Szenen-/ Aktionsleiste), eine Listenzeile mit displayType \"momentary\" (Taster), \"switch\", \"buttons\" oder \"states\", das \"enum\"-Widget für feste Werte, oder \"httpRequest\" für einen Webhook. popup-dimmer/-thermostat/-switch/-shutter/-mediaplayer sind Altbestand und werden beim Rendern auf popup-view mit der eingebauten View umgeschrieben; neu immer popup-view mit viewId."
+    },
+    "BackgroundImage": {
+      "type": "object",
+      "fields": {
+        "src": {
+          "type": "string",
+          "required": true,
+          "description": "image URL, aura-file: path, adapter path (/vis.0/…) or data: URI — same sources as the image widget"
+        },
+        "fit": {
+          "type": "string",
+          "ref": "BackgroundImageFit",
+          "description": "cover = fill and crop (default), contain = whole image, stretch = distort to fill, repeat = tile at natural size"
+        },
+        "position": {
+          "type": "string",
+          "ref": "BackgroundImagePosition",
+          "description": "which part stays visible when the image is cropped (default center)"
+        },
+        "dim": {
+          "type": "number",
+          "description": "darken the image in % (0…90) so text on it stays legible; default 0"
+        }
+      }
+    },
+    "BackgroundImageFit": {
+      "type": "string",
+      "enum": [
+        "cover",
+        "contain",
+        "stretch",
+        "repeat"
+      ]
+    },
+    "BackgroundImagePosition": {
+      "type": "string",
+      "enum": [
+        "center",
+        "top",
+        "bottom",
+        "left",
+        "right",
+        "top left",
+        "top right",
+        "bottom left",
+        "bottom right"
+      ]
     },
     "WidgetHeaderItem": {
       "type": "object",
@@ -1963,6 +2015,11 @@
         "padding": {
           "type": "number",
           "description": "inner padding in px (0…40)"
+        },
+        "backgroundImage": {
+          "type": "object",
+          "ref": "BackgroundImage",
+          "description": "Popup background image; unset = view/global."
         }
       }
     },
@@ -6007,6 +6064,7 @@
       "commonOptions": [
         "autoHeight",
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -6120,6 +6178,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -6228,6 +6287,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -6415,6 +6475,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -6576,6 +6637,7 @@
       "commonOptions": [
         "autoHeight",
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -6909,6 +6971,11 @@
           "type": "string",
           "description": "Popup surface colour; undefined = inherit view/global/theme."
         },
+        "rowPopupBackgroundImage": {
+          "type": "object",
+          "ref": "BackgroundImage",
+          "description": "Popup background image; undefined = inherit view/global (issue #442)."
+        },
         "rowPopupHeight": {
           "type": "number",
           "description": "Höhe des Zeilen-Popups in px."
@@ -7150,6 +7217,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -7231,6 +7299,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -7305,6 +7374,7 @@
       "commonOptions": [
         "autoHeight",
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -7504,6 +7574,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -7639,6 +7710,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -7796,6 +7868,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -7939,6 +8012,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -8067,6 +8141,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -8306,6 +8381,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -8414,6 +8490,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -8560,6 +8637,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -8659,6 +8737,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -8803,6 +8882,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -8960,6 +9040,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -9211,6 +9292,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -9270,6 +9352,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -9475,6 +9558,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -9609,6 +9693,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -9769,6 +9854,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10036,6 +10122,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10236,6 +10323,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10376,6 +10464,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10458,6 +10547,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10544,6 +10634,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10643,6 +10734,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10766,6 +10858,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10841,6 +10934,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -10983,6 +11077,7 @@
       "commonOptions": [
         "autoHeight",
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -11102,6 +11197,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -11246,6 +11342,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -11448,6 +11545,7 @@
       "commonOptions": [
         "autoHeight",
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -11675,6 +11773,11 @@
           "type": "string",
           "description": "Popup surface colour; undefined = inherit view/global/theme."
         },
+        "rowPopupBackgroundImage": {
+          "type": "object",
+          "ref": "BackgroundImage",
+          "description": "Popup background image; undefined = inherit view/global (issue #442)."
+        },
         "rowPopupHeight": {
           "type": "number",
           "description": "Höhe des Zeilen-Popups in px."
@@ -11880,6 +11983,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -11976,6 +12080,7 @@
       "conditionSlots": [],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -12107,6 +12212,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -12358,6 +12464,7 @@
       "conditionSlots": [],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -12517,6 +12624,7 @@
       "commonOptions": [
         "autoHeight",
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -12627,6 +12735,7 @@
       "conditionSlots": [],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -12674,6 +12783,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -12766,6 +12876,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -12901,6 +13012,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -13105,6 +13217,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -13265,6 +13378,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -13410,6 +13524,7 @@
       "commonOptions": [
         "autoHeight",
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -13595,6 +13710,11 @@
           "type": "string",
           "description": "Popup surface colour; undefined = inherit view/global/theme."
         },
+        "rowPopupBackgroundImage": {
+          "type": "object",
+          "ref": "BackgroundImage",
+          "description": "Popup background image; undefined = inherit view/global (issue #442)."
+        },
         "rowPopupHeight": {
           "type": "number",
           "description": "Höhe des Zeilen-Popups in px."
@@ -13691,6 +13811,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -13860,6 +13981,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -13986,6 +14108,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -14104,6 +14227,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -14162,6 +14286,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -14282,6 +14407,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -14339,6 +14465,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -14432,6 +14559,7 @@
       ],
       "commonOptions": [
         "badges",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
@@ -14612,6 +14740,7 @@
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "bgImage",
         "clickAction",
         "clickActionIcon",
         "clickActionIconName",
