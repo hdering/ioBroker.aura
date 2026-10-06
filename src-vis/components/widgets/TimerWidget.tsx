@@ -35,10 +35,13 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
  *
  * Scoped to the stores a timer lives in: aura-dashboard, plus aura-group-defs
  * for a timer inside a group / panels widget — without it that edit was never
- * sent and the next echo rolled it back (#731). Only keys this tab actually
+ * sent and the next echo rolled it back (#731) — and aura-popup-config for a
+ * timer placed in a popup view, whose edits TabEmbedBody writes back into the
+ * view definition (#750). Only keys this tab actually
  * edited are written (saveToIoBroker skips clean ones). An unscoped save from
  * the read-only frontend would also push whatever this browser holds for
- * theme/popup-config, rolling the admin's config back to this device's copy.
+ * theme and the other stores, rolling the admin's config back to this device's
+ * copy. popup-config is only written when this tab edited it (see above).
  *
  * Frontend only. In the editor the toggle is one more unsaved edit under the
  * save bar; flushing there would push every other unsaved change with it.
@@ -46,7 +49,7 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 function flushDashboard() {
     try {
         saveAll();
-        saveToIoBroker({ only: ['aura-dashboard', 'aura-group-defs'] });
+        saveToIoBroker({ only: ['aura-dashboard', 'aura-group-defs', 'aura-popup-config'] });
     } catch {
         /* offline / not configured */
     }
