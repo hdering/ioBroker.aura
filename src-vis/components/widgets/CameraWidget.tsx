@@ -612,7 +612,7 @@ function StreamView(p: StreamViewProps) {
                     className="absolute bottom-1 left-1/2 -translate-x-1/2 max-w-[90%] px-2 py-0.5 rounded text-[10px] truncate pointer-events-none"
                     style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', zIndex: 2 }}
                 >
-                    Station überträgt gerade „{p.playerStatus.detail}“
+                    Station überträgt gerade {`„${p.playerStatus.detail}“`}
                 </div>
             )}
 

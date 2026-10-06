@@ -333,8 +333,8 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                     </p>
                     <div className={hintCls} style={hintStyle}>
                         <p>
-                            Quell-DPs für die Filter „Feiertage“ / „Urlaub“ / „ohne Sondertage“. Der DP-Wert ist{' '}
-                            <b>entweder</b>:
+                            Quell-DPs für die Filter {'„Feiertage“'} / {'„Urlaub“'} / {'„ohne Sondertage“'}. Der DP-Wert
+                            ist <b>entweder</b>:
                         </p>
                         <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
                             <li>

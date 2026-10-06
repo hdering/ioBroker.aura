@@ -711,10 +711,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     <div className="space-y-2 mt-2">
                         <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                             Ein Hinweis bleibt stehen, bis er erledigt ist – auch wenn das Gerät zwischendurch wieder
-                            „ok“ meldet: eine Batterie, deren LOWBAT bei Kälte kurz auf true springt, ein Gerät, das
-                            nachts kurz weg war, ein Rauchmelder, der ausgelöst hat. Geschlossen wird mit „Gewechselt“
-                            bzw. „Quittieren“ in der Zeile, „Später“ stellt zurück. Der Adapter führt die Liste für alle
-                            Geräte.
+                            {'„ok“'} meldet: eine Batterie, deren LOWBAT bei Kälte kurz auf true springt, ein Gerät, das
+                            nachts kurz weg war, ein Rauchmelder, der ausgelöst hat. Geschlossen wird mit{' '}
+                            {'„Gewechselt“'}
+                            bzw. {'„Quittieren“'} in der Zeile, {'„Später“'} stellt zurück. Der Adapter führt die Liste
+                            für alle Geräte.
                         </p>
                         {LATCH_TOGGLES.map(({ cat, label }) => {
                             const enabled = catOn(cat);
@@ -793,9 +794,9 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                     </div>
                                 </div>
                                 <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                                    Meldet ein Gerät in der Nachkontrolle erneut, öffnet sich der Eintrag wieder („trotz
-                                    Wechsel am …“). Es zählt nur eine Meldung, die mindestens 10 Minuten nach dem
-                                    Schließen kommt.
+                                    Meldet ein Gerät in der Nachkontrolle erneut, öffnet sich der Eintrag wieder (
+                                    {'„trotz Wechsel am …“'}). Es zählt nur eine Meldung, die mindestens 10 Minuten nach
+                                    dem Schließen kommt.
                                 </p>
                                 <Toggle
                                     checked={o.latchConfirm !== false}
@@ -833,7 +834,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                 <div className="space-y-2 mt-2">
                     <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                         Eigene Knöpfe am Zeilenende (Layouts Standard und Kompakt), die einen Wert in einen Datenpunkt
-                        schreiben – z. B. „Aus“ bei einem eingeschalteten Licht oder eine Meldung an ein Skript.
+                        schreiben – z. B. {'„Aus“'} bei einem eingeschalteten Licht oder eine Meldung an ein Skript.
                         Unabhängig von der Merkliste. Vorlagen gibt es im Editor.
                     </p>
                     {(o.rowActions ?? []).map((a, i) => (

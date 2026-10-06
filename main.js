@@ -4425,7 +4425,7 @@ class Aura extends utils.Adapter {
      * Subscribe what the engine watches, drop what it no longer does, and feed the
      * current value of every newly watched datapoint once (`all` = every one, at start).
      *
-     * @param all
+     * @param all - feed the current value of every watched datapoint, not just the new ones
      */
     async _syncStatusSubscriptions(all) {
         const want = new Set(this._statusLatch.watchedIds());
