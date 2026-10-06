@@ -1,5 +1,14 @@
 # Changelog (older entries)
 
+## 0.69.0 (2026-09-24)
+- Custom CSS applied in the dashboard editor now styles only the dashboard preview, not the admin menu around it ([#710](https://github.com/hdering/ioBroker.aura/issues/710))
+- Admin overview - the AI access (MCP) card can be dismissed, like the getting-started card
+- 🌟 **New feature:** JSON table: sort rules like the static list - several columns in a row, compare as number, text, on/off or date (also dd.MM.yyyy), empty cells first or last; a header click still takes over ([#706](https://github.com/hdering/ioBroker.aura/issues/706))
+- 🌟 **New feature:** JSON table: per-column thousands separator next to the decimal places; the "Umrechnung" switch is now called "Zahlenformat" and shows conversion, decimals and separator in one row ([#707](https://github.com/hdering/ioBroker.aura/issues/707))
+- Media player: the volume quick-select buttons (25/50/75/100 %) can be hidden to save a row of height ([#708](https://github.com/hdering/ioBroker.aura/issues/708))
+- 🌟 **New feature:** Chart / Advanced chart: define your own time-range chips for the frontend selector, e.g. only months (1, 2, 3, 6, 12, 24 months, total); custom ranges now also support weeks, months and years ([#709](https://github.com/hdering/ioBroker.aura/issues/709))
+- 🌟 **New feature:** Grid & Mobile - the mobile view can now use 2-4 columns like the tablet view (setting "Mobile columns"); the mobile order panel in the editor then arranges columns and full-width bands; in Frontend design the mobile and tablet settings are grouped side by side, and both order panels link straight to them ([#413](https://github.com/hdering/ioBroker.aura/issues/413))
+
 ## 0.68.2 (2026-09-23)
 - Design - every overridden setting of a layout or section now gets the orange marking, including the section menu, tab bar, theme and header title/elements
 
