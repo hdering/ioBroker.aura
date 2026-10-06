@@ -755,7 +755,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 <div className="flex gap-3">
                                     <div className="flex-1">
                                         <label className={labelCls} style={labelStyle}>
-                                            „Später“ stellt zurück um (Tage)
+                                            {'„Später“'} stellt zurück um (Tage)
                                         </label>
                                         <input
                                             type="number"
