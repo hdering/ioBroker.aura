@@ -360,7 +360,7 @@ Darstellungen der Listen ungenutzt im Schema lagen.
 
 `lib/mcp/recipes.js` hält deshalb fertige, gültige Widgets: Raumliste,
 gemischte Gerätliste, Wertkachel mit Schwellen und Bedingung, Verbrauchsbalken,
-Zwei-Achsen-Verlauf, Statusübersicht, Thermostat-Rundskala, Füllstand, Multiroom-
+Zwei-Achsen-Verlauf, Statusübersicht (auch mit Batterie-Merkliste), Thermostat-Rundskala, Füllstand, Multiroom-
 Audio, bedienbares HTML und ein kompletter Raum-Tab. Jedes Rezept sagt dazu, **wofür** es gedacht ist und
 **welche billigere Bauweise** es ersetzt — das ist der Teil, der die Wahl
 verschiebt. `aura_recipes` ohne `id` listet sie, mit `id` kommt das vollständige
@@ -2076,3 +2076,34 @@ Karte als `{{key}}`) werden pro Karte gegen deren `datapoint` aufgelöst.
 - Rezept `geraetekarte` (`lib/mcp/recipes.js`) bringt als erstes Rezept `groupDefs` mit;
   `renderRecipe` gibt sie als eigenen Block aus, der Rezept-Test validiert die Kinder mit.
 - Platzhalter-Datenpunkte überspringen `validate.js`/`dpFit.js` ohnehin (`TEMPLATE`).
+
+## Statusübersicht: gemerkte Hinweise und Zeilen-Aktionen
+
+Neue Optionen an `statusoverview` (alle aus `StatusOverviewOptions`, Beschreibung am Feld):
+
+| Option | Wirkung |
+| --- | --- |
+| `latchBattery` / `latchUnreach` | Hinweis bleibt, bis er geschlossen wird — der Adapter führt die Liste |
+| `latchRecheckDays` (7) | Nachkontrolle nach dem Schließen; neue Meldung ≥ 10 min danach öffnet wieder |
+| `latchSnoozeDays` (2) | „Später“ |
+| `latchAutoClose` | Schließt bei Spannungssprung (≥ 0,3 V und ≥ 25 %) bzw. Prozent (≥ 40 % und ≥ 30 Punkte) |
+| `latchConfirm` (true) | „Gewechselt“/„Quittieren“ erst nach zweitem Tippen |
+| `rowActions: StatusRowAction[]` | Knöpfe am Zeilenende (default/compact), Platzhalter `{id} {device} {serial} {name} {room}` |
+| `sinceCategories` (`['window']`) | „seit …“ auch für `battery` / `unreach` |
+
+Adapter-Seite (`lib/statusLatch.js`, Verdrahtung in `main.js` `_initStatusLatch`):
+
+| State | Inhalt |
+| --- | --- |
+| `status.register` | Widgets melden ihre Datenpunkte (JSON, `source` = Widget-Id, Hash; nur bei Änderung, sonst 1×/Tag) |
+| `status.<cat>.sources` | zusammengeführte Anmeldungen; ohne Erneuerung nach 30 Tagen vergessen |
+| `status.<cat>.list` | Einträge: id, name, room, since, last, count, active, snoozedUntil, ackedAt, closedBy, reopenedAfter, minLevel, unit |
+| `status.<cat>.cmd` | `ack:` `snooze:[@Tage]` `unsnooze:` `add:[@since]` `remove:` — Text oder JSON (auch Array); `<id>` darf Seriennummer/Geräte-Id sein |
+| `status.<cat>.event` | `new` / `reopened` (mit `ackedAt`) / `closed` (`reason` ack, auto, remove) |
+
+Schema: `RowClickSetting` (`"auto" | ClickAction`) kam als nackter `tsType` heraus. Der
+Generator kennt jetzt „String-Literale + EIN benannter Objekttyp“ → `type: ['string','object']`,
+`enum`, `objectRef`; `validate.js` prüft ein Objekt gegen `objectRef`, `render.js` schreibt
+`"auto" | ClickAction`. `{id}`-artige Platzhalter zählen in `TEMPLATE` als Vorlage, nicht
+als unbekannter Datenpunkt. Rezept `batterie-merkliste`. Tests: `test/status-latch.test.js`,
+`tools/tests/status-overview-latch.mjs`.

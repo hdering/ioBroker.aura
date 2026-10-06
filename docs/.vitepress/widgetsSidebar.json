@@ -194,6 +194,10 @@
         "link": "/widgets/skript-status"
       },
       {
+        "text": "Statusübersicht",
+        "link": "/widgets/statusuebersicht"
+      },
+      {
         "text": "Uhrzeit",
         "link": "/widgets/uhrzeit"
       },

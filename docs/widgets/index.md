@@ -54,6 +54,7 @@
 | [Müllabfuhr](./muellabfuhr) | Nächste Müllabfuhr-Termine vom Trash-Adapter anzeigen. |
 | [Müllabfuhr-Zeitplan](./muellabfuhr-zeitplan) | Detaillierter Müllabfuhr-Kalender (Datenpunkt vom Trash-Adapter). |
 | [Skript-Status](./skript-status) | Liste aller JavaScript-Skripte mit Status, Filter und Start-/Stopp-Aktionen. |
+| [Statusübersicht](./statusuebersicht) | Zeigt von selbst, was Aufmerksamkeit braucht – schwache Batterien, offene Fenster, offline-Geräte; merkt sich Hinweise, bis sie quittiert sind. |
 | [Uhrzeit](./uhrzeit) | Aktuelle Uhrzeit und Datum anzeigen (kein Datenpunkt nötig). |
 | [Wetter](./wetter) | Wetterdaten vom ioBroker-Wetter-Adapter anzeigen. |
 | [Zeitschaltuhr](./zeitschaltuhr) | Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum. |

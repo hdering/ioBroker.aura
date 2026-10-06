@@ -1501,4 +1501,19 @@ export const TYPE_NOTES = {
         '"states", das "enum"-Widget für feste Werte, oder "httpRequest" für einen Webhook. ' +
         'popup-dimmer/-thermostat/-switch/-shutter/-mediaplayer sind Altbestand und werden beim Rendern auf ' +
         'popup-view mit der eingebauten View umgeschrieben; neu immer popup-view mit viewId.',
+    RowClickSetting:
+        'Was ein Klick auf eine Listenzeile auslöst (rowClickAction / clickAction einer Zeile). Nicht gesetzt = ' +
+        'Zeilen sind nicht anklickbar. "auto" leitet das Popup aus der Rolle des Datenpunkts der Zeile ab ' +
+        '(Typ-Vorgabe aus Admin › Popups, sonst die allgemeine Datenpunkt-Ansicht). Ein ClickAction-Objekt ' +
+        'legt die Aktion fest; { kind: "none" } schaltet eine Zeile gezielt ab. Eine Zeile, die einen Wert ' +
+        'schreiben soll, geht so nicht — in der Statusübersicht dafür rowActions, in Listen displayType "momentary".',
+    StatusRowAction:
+        'Ein Knopf am Zeilenende der Statusübersicht (Layouts default und compact). Schreibt `value` nach ' +
+        '`targetDp`; beide dürfen {id} (Datenpunkt der Zeile), {device} (Geräte-Id ohne Kanal/Datenpunkt), ' +
+        '{serial} (letztes Segment der Geräte-Id), {name} und {room} enthalten. Beispiel: targetDp ' +
+        '"0_userdata.0.Batterien.Befehl", value "gewechselt:{serial}", categories ["battery"], confirm true. ' +
+        'targetDp "{id}" schreibt in den Datenpunkt der Zeile selbst: { label: "Aus", targetDp: "{id}", ' +
+        'value: "false", categories: ["light"] } schaltet ein eingeschaltetes Licht direkt aus. Ein Knopf ' +
+        'erscheint nur an Zeilen, die das Widget gerade zeigt (valueFilter "alerts": nur Auffällige), und nur ' +
+        'in den Layouts default und compact.',
 };

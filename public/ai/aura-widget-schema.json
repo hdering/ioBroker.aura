@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.77.4",
+    "auraVersion": "0.78.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2468,6 +2468,17 @@
         "momentary"
       ]
     },
+    "RowClickSetting": {
+      "type": [
+        "string",
+        "object"
+      ],
+      "enum": [
+        "auto"
+      ],
+      "objectRef": "ClickAction",
+      "description": "Was ein Klick auf eine Listenzeile auslöst (rowClickAction / clickAction einer Zeile). Nicht gesetzt = Zeilen sind nicht anklickbar. \"auto\" leitet das Popup aus der Rolle des Datenpunkts der Zeile ab (Typ-Vorgabe aus Admin › Popups, sonst die allgemeine Datenpunkt-Ansicht). Ein ClickAction-Objekt legt die Aktion fest; { kind: \"none\" } schaltet eine Zeile gezielt ab. Eine Zeile, die einen Wert schreiben soll, geht so nicht — in der Statusübersicht dafür rowActions, in Listen displayType \"momentary\"."
+    },
     "ListFilterPreset": {
       "type": "object",
       "fields": {
@@ -3256,7 +3267,11 @@
           "description": "Which timestamp that line shows: 'lastChange' (lc, default) or 'lastUpdate' (ts)."
         },
         "clickAction": {
-          "tsType": "RowClickSetting",
+          "type": [
+            "string",
+            "object"
+          ],
+          "ref": "RowClickSetting",
           "description": "Per-row click action. Overrides the list-wide setting; undefined = inherit."
         },
         "popupTitle": {
@@ -4312,7 +4327,11 @@
           "color": true
         },
         "clickAction": {
-          "tsType": "RowClickSetting",
+          "type": [
+            "string",
+            "object"
+          ],
+          "ref": "RowClickSetting",
           "description": "Per-row click action. Overrides the list-wide setting; undefined = inherit."
         },
         "popupTitle": {
@@ -5773,6 +5792,54 @@
         "bottom-right"
       ]
     },
+    "CategoryKey": {
+      "type": "string",
+      "enum": [
+        "battery",
+        "window",
+        "light",
+        "unreach",
+        "alarm"
+      ]
+    },
+    "StatusRowAction": {
+      "type": "object",
+      "fields": {
+        "label": {
+          "type": "string",
+          "required": true,
+          "description": "button text"
+        },
+        "targetDp": {
+          "type": "string",
+          "required": true,
+          "description": "datapoint to write — placeholders {id} {device} {serial} {name} {room} allowed",
+          "datapoint": true
+        },
+        "value": {
+          "type": "string",
+          "required": true,
+          "description": "value to write, same placeholders; \"true\"/\"false\" and plain numbers are written typed"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "ref": "CategoryKey"
+          },
+          "description": "only rows of these categories (unset/empty = every row)"
+        },
+        "confirm": {
+          "type": "boolean",
+          "description": "ask first: the first tap arms the button, the second writes (default false)"
+        },
+        "confirmLabel": {
+          "type": "string",
+          "description": "text of the armed button (default \"Wirklich?\")"
+        }
+      },
+      "description": "Ein Knopf am Zeilenende der Statusübersicht (Layouts default und compact). Schreibt `value` nach `targetDp`; beide dürfen {id} (Datenpunkt der Zeile), {device} (Geräte-Id ohne Kanal/Datenpunkt), {serial} (letztes Segment der Geräte-Id), {name} und {room} enthalten. Beispiel: targetDp \"0_userdata.0.Batterien.Befehl\", value \"gewechselt:{serial}\", categories [\"battery\"], confirm true. targetDp \"{id}\" schreibt in den Datenpunkt der Zeile selbst: { label: \"Aus\", targetDp: \"{id}\", value: \"false\", categories: [\"light\"] } schaltet ein eingeschaltetes Licht direkt aus. Ein Knopf erscheint nur an Zeilen, die das Widget gerade zeigt (valueFilter \"alerts\": nur Auffällige), und nur in den Layouts default und compact."
+    },
     "EnergyBar": {
       "type": "object",
       "fields": {
@@ -6948,7 +7015,11 @@
           "description": "Schriftgröße der Raumüberschrift in px."
         },
         "rowClickAction": {
-          "tsType": "RowClickSetting",
+          "type": [
+            "string",
+            "object"
+          ],
+          "ref": "RowClickSetting",
           "description": "undefined = off (rows are not clickable). `'auto'` derives from the role."
         },
         "rowConditions": {
@@ -11750,7 +11821,11 @@
           "description": "Publish the filtered count to aura.0.lists.<widgetId>.count"
         },
         "rowClickAction": {
-          "tsType": "RowClickSetting",
+          "type": [
+            "string",
+            "object"
+          ],
+          "ref": "RowClickSetting",
           "description": "undefined = off (rows are not clickable). `'auto'` derives from the role."
         },
         "rowConditions": {
@@ -13506,7 +13581,7 @@
       "label": "Statusübersicht",
       "group": "special",
       "addMode": "free",
-      "hint": "Zeigt automatisch, was Aufmerksamkeit braucht: schwache Batterien, offene Fenster, eingeschaltete Lichter",
+      "hint": "Zeigt automatisch, was Aufmerksamkeit braucht: schwache Batterien, offene Fenster, eingeschaltete Lichter – mit Merkliste, die schwache Batterien bis zum Wechsel festhält",
       "defaultSize": {
         "w": 6,
         "h": 4
@@ -13658,6 +13733,34 @@
           "type": "boolean",
           "description": "also match boolean LOWBAT-style DPs (default true)"
         },
+        "latchAlarm": {
+          "type": "boolean",
+          "description": "Remember smoke/water alarms that went off until they are acknowledged (\"Quittieren\"), even after the sensor is quiet again. Needs the AURA adapter."
+        },
+        "latchAutoClose": {
+          "type": "boolean",
+          "description": "Batteries: close automatically when the voltage (OPERATING_VOLTAGE) or the percent value clearly jumps up (default false)."
+        },
+        "latchBattery": {
+          "type": "boolean",
+          "description": "Remember weak batteries until they are closed (\"Gewechselt\"), even when LOWBAT goes back to false. Needs the AURA adapter."
+        },
+        "latchConfirm": {
+          "type": "boolean",
+          "description": "Ask before \"Gewechselt\"/\"Quittieren\" — the first tap arms the button, the second closes (default true)."
+        },
+        "latchRecheckDays": {
+          "type": "number",
+          "description": "Recheck after closing, in days (default 7): a new report in that time reopens the entry (\"trotz Wechsel am …\")."
+        },
+        "latchSnoozeDays": {
+          "type": "number",
+          "description": "How long \"Später\" puts an entry back, in days (default 2)."
+        },
+        "latchUnreach": {
+          "type": "boolean",
+          "description": "Remember unreachable devices until they are acknowledged (\"Quittieren\"). Needs the AURA adapter."
+        },
         "lightRoleScope": {
           "type": "string",
           "enum": [
@@ -13694,8 +13797,20 @@
           "type": "boolean",
           "description": "for those extra DPs: true = value FALSE means offline (reachable semantics)"
         },
+        "rowActions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "StatusRowAction"
+          },
+          "description": "Buttons at the end of a row (layouts Standard and Kompakt). Each writes a value to a datapoint; placeholders from the row fill target and value."
+        },
         "rowClickAction": {
-          "tsType": "RowClickSetting",
+          "type": [
+            "string",
+            "object"
+          ],
+          "ref": "RowClickSetting",
           "description": "undefined = off (rows are not clickable). `'auto'` derives from the role."
         },
         "rowPopupAutoCloseSec": {
@@ -13766,6 +13881,14 @@
         "showTitle": {
           "type": "boolean",
           "description": "Titelzeile anzeigen."
+        },
+        "sinceCategories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "ref": "CategoryKey"
+          },
+          "description": "Categories whose rows show \"seit …\" (default ['window']). Windows/doors count the time since they opened; batteries and reachability the time since the datapoint last changed. Remembered hints (latch) always show the day of their first report."
         },
         "sortBy": {
           "type": "string",

@@ -864,7 +864,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         addMode: 'free',
         widgetGroup: 'special',
         mock: { t: 'Zuhause', v: '⚠ 3' },
-        hint: 'Zeigt automatisch, was Aufmerksamkeit braucht: schwache Batterien, offene Fenster, eingeschaltete Lichter',
+        hint: 'Zeigt automatisch, was Aufmerksamkeit braucht: schwache Batterien, offene Fenster, eingeschaltete Lichter – mit Merkliste, die schwache Batterien bis zum Wechsel festhält',
     },
     {
         type: 'energiebilanz',

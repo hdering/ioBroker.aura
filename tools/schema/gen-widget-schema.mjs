@@ -324,6 +324,19 @@ function normalizeType(raw, index, types, depth = 0) {
                 ? { type: [...new Set(['string', ...primitives])], enum: uniqueLiterals }
                 : { type: 'string', enum: uniqueLiterals };
         }
+
+        // String literals plus ONE named object type — `RowClickSetting = ClickAction |
+        // 'auto'`. Came out as a bare tsType, so `rowClickAction` had no type at all and
+        // aura_types answered "Keinen Typ RowClickSetting". A string must be one of
+        // `enum`; an object is checked against `objectRef`.
+        const named = parts.filter((p) => !/^'[^']*'$/.test(p));
+        const lits = parts.filter((p) => /^'[^']*'$/.test(p)).map((p) => p.slice(1, -1));
+        if (named.length === 1 && lits.length && /^[A-Za-z_$][\w$]*$/.test(named[0]) && depth < MAX_TYPE_DEPTH) {
+            const obj = normalizeType(named[0], index, types, depth + 1);
+            if (obj.ref && types[obj.ref] && types[obj.ref].type === 'object') {
+                return { type: ['string', 'object'], enum: lits, objectRef: obj.ref };
+            }
+        }
     }
 
     // [number, string] — a fixed-length tuple, e.g. one colour threshold.

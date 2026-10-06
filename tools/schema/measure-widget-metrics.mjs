@@ -639,6 +639,37 @@ const COUNTED = [
                     },
                 }),
             },
+            {
+                // Buttons at the end of a row (rowActions, and „Gewechselt“/„Später“ of
+                // the remembered hints): too narrow for name + buttons, they wrap to a
+                // line of their own. Measured with two buttons on every row — the
+                // latch only puts them on its own categories, so this errs on the
+                // roomy side.
+                key: 'rowButtons',
+                label: 'Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)',
+                when: {
+                    any: [
+                        { path: 'rowActions[].label', startsWith: '' },
+                        { path: 'latchBattery', equals: true },
+                        { path: 'latchUnreach', equals: true },
+                        { path: 'latchAlarm', equals: true },
+                    ],
+                },
+                build: (n) => ({
+                    options: {
+                        maxRows: n,
+                        showMore: false,
+                        catBattery: false,
+                        catLight: false,
+                        catUnreach: false,
+                        catAlarm: false,
+                        rowActions: [
+                            { label: 'Gewechselt', targetDp: '0_userdata.0.x', value: '1' },
+                            { label: 'Später', targetDp: '0_userdata.0.x', value: '2' },
+                        ],
+                    },
+                }),
+            },
         ],
         voids: [
             { path: 'showOkCategories', label: 'showOkCategories (Überschrift auch für leere Kategorien)' },
