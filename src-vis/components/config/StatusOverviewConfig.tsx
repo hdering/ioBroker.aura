@@ -510,6 +510,24 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             <option value="right">Rechtsbündig</option>
                         </select>
                     </div>
+                    {(!config.layout || config.layout === 'default' || config.layout === 'compact') && (
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Zeilenform
+                            </label>
+                            <select
+                                value={o.rowStyle ?? 'standard'}
+                                onChange={(e) =>
+                                    set({ rowStyle: e.target.value === 'twoLine' ? 'twoLine' : undefined })
+                                }
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value="standard">Einzeilig (kompakt)</option>
+                                <option value="twoLine">Zweizeilig mit großen Knöpfen</option>
+                            </select>
+                        </div>
+                    )}
                     {config.layout === 'card' && (
                         <div>
                             <label className={labelCls} style={labelStyle}>

@@ -647,12 +647,19 @@ const COUNTED = [
                 // roomy side.
                 key: 'rowButtons',
                 label: 'Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)',
+                // The two-line row puts its buttons beside both lines — that row is
+                // measured on its own (twoLine below), with the buttons in it.
                 when: {
-                    any: [
-                        { path: 'rowActions[].label', startsWith: '' },
-                        { path: 'latchBattery', equals: true },
-                        { path: 'latchUnreach', equals: true },
-                        { path: 'latchAlarm', equals: true },
+                    all: [
+                        {
+                            any: [
+                                { path: 'rowActions[].label', startsWith: '' },
+                                { path: 'latchBattery', equals: true },
+                                { path: 'latchUnreach', equals: true },
+                                { path: 'latchAlarm', equals: true },
+                            ],
+                        },
+                        { path: 'rowStyle', not: 'twoLine' },
                     ],
                 },
                 build: (n) => ({
@@ -666,6 +673,37 @@ const COUNTED = [
                         rowActions: [
                             { label: 'Gewechselt', targetDp: '0_userdata.0.x', value: '1' },
                             { label: 'Später', targetDp: '0_userdata.0.x', value: '2' },
+                        ],
+                    },
+                }),
+            },
+            {
+                // Dot, name, a muted second line and touch buttons beside them. Measured
+                // with two buttons per row (the remembered battery: „2 Tage später“ and
+                // „Gewechselt“) — without buttons the row is only the two text lines,
+                // which the buttons barely exceed. With one category the heading goes.
+                // At the type's 120 px default width the row breaks into four lines,
+                // a width nobody gives a list with touch buttons — measured at 480 px,
+                // where name and buttons sit side by side (the reference rows truncate,
+                // so their height does not depend on the width).
+                key: 'twoLine',
+                cols: 24,
+                label: 'zweizeilige Zeilen mit großen Knöpfen (rowStyle: "twoLine")',
+                when: { path: 'rowStyle', equals: 'twoLine' },
+                notForVariants: ['card', 'minimal'],
+                perVariant: true,
+                build: (n) => ({
+                    options: {
+                        maxRows: n,
+                        showMore: false,
+                        rowStyle: 'twoLine',
+                        catBattery: false,
+                        catLight: false,
+                        catUnreach: false,
+                        catAlarm: false,
+                        rowActions: [
+                            { label: '2 Tage später', targetDp: '0_userdata.0.x', value: '1' },
+                            { label: 'Gewechselt', targetDp: '0_userdata.0.x', value: '2' },
                         ],
                     },
                 }),
@@ -685,6 +723,9 @@ const COUNTED = [
                 'der Standardbreite (siehe atWidthPx). Auf einer breiteren Karte stehen mehrere in einer ' +
                 'Zeile und die Höhe je Zeile sinkt entsprechend',
             'ohne maxRows ist die Zeilenzahl unbekannt — dann ist diese Rechnung keine Auskunft über die Höhe',
+            'rowStyle "twoLine": gemessen bei 480 px Breite mit Zeilen EINER Kategorie, die dann keine ' +
+                'Überschrift haben. Schmaler (unter etwa 420 px) rutschen die Knöpfe unter den Text — die Zeile ' +
+                'wird dann etwa 45 px höher; ein langer Name oder Hinweis bricht ebenfalls um',
         ],
     },
 ];
@@ -1269,6 +1310,7 @@ function modifierDelta(m, { r, rHigh, ref, refHigh }) {
         when: m.when,
         ...(m.notForVariants ? { notForVariants: m.notForVariants } : {}),
         ...(m.notForTypes ? { notForTypes: m.notForTypes } : {}),
+        ...(m.cols ? { atWidthPx: m.cols * PROBE_GRID.gridSnapX } : {}),
         basePx: denoise(r.basePx - ref.basePx),
         perItemPx: denoise(Math.round((r.perItemPx - ref.perItemPx) * 10) / 10),
         ...(fontScalePx.basePx || fontScalePx.perItemPx ? { fontScalePx } : {}),
@@ -1526,13 +1568,37 @@ for (const spec of COUNTED) {
             if ((m.notForVariants || []).includes(v.key)) {
                 continue;
             }
-            const mr = await line(spec, { cols, counts, build: m.build, layout: v.layout });
-            const mrHigh = await line(spec, { cols, counts, build: m.build, layout: v.layout, fontScale: SCALE_HIGH });
+            const mCols = m.cols ?? cols;
+            const mr = await line(spec, { cols: mCols, counts, build: m.build, layout: v.layout });
+            const mrHigh = await line(spec, {
+                cols: mCols,
+                counts,
+                build: m.build,
+                layout: v.layout,
+                fontScale: SCALE_HIGH,
+            });
             if (mr.error || mrHigh.error) {
                 console.warn(`  skip ${spec.type}/${v.key}/${m.key}: ${mr.error || mrHigh.error}`);
                 continue;
             }
-            const delta = modifierDelta(m, { r: mr, rHigh: mrHigh, ref: r, refHigh: rHigh });
+            // At a width of its own the reference has to be re-measured at that width too.
+            const own = m.cols
+                ? {
+                      ref: await line(spec, { cols: mCols, counts, build, layout: v.layout }),
+                      refHigh: await line(spec, {
+                          cols: mCols,
+                          counts,
+                          build,
+                          layout: v.layout,
+                          fontScale: SCALE_HIGH,
+                      }),
+                  }
+                : { ref: r, refHigh: rHigh };
+            if (own.ref.error || own.refHigh.error) {
+                console.warn(`  skip ${spec.type}/${v.key}/${m.key}: ${own.ref.error || own.refHigh.error}`);
+                continue;
+            }
+            const delta = modifierDelta(m, { r: mr, rHigh: mrHigh, ...own });
             entry.variants[v.key].modifiers = entry.variants[v.key].modifiers ?? [];
             entry.variants[v.key].modifiers.push(delta);
             console.log(
@@ -1557,14 +1623,23 @@ for (const spec of COUNTED) {
             console.warn(`  skip ${spec.type} modifiers: ${ref.error || refHigh.error}`);
             break;
         }
-        const r = await line(spec, { cols, counts, build: m.build });
-        const rHigh = await line(spec, { cols, counts, build: m.build, fontScale: SCALE_HIGH });
-        if (r.error || rHigh.error) {
-            console.warn(`  skip ${spec.type}/${m.key}: ${r.error || rHigh.error}`);
+        // A modifier whose row reflows with the width is measured at its own width
+        // (`cols`), and so is its reference. At the type's width the reference
+        // differs as well (a heading that wraps at 120 px does not at 480 px); a
+        // delta across two widths would carry that into the answer.
+        const mCols = m.cols ?? cols;
+        const r = await line(spec, { cols: mCols, counts, build: m.build });
+        const rHigh = await line(spec, { cols: mCols, counts, build: m.build, fontScale: SCALE_HIGH });
+        const mRef = m.cols ? await line(spec, { cols: mCols, counts, build: spec.build }) : ref;
+        const mRefHigh = m.cols
+            ? await line(spec, { cols: mCols, counts, build: spec.build, fontScale: SCALE_HIGH })
+            : refHigh;
+        if (r.error || rHigh.error || mRef.error || mRefHigh.error) {
+            console.warn(`  skip ${spec.type}/${m.key}: ${r.error || rHigh.error || mRef.error || mRefHigh.error}`);
             continue;
         }
         entry.modifiers = entry.modifiers ?? [];
-        entry.modifiers.push(modifierDelta(m, { r, rHigh, ref, refHigh }));
+        entry.modifiers.push(modifierDelta(m, { r, rHigh, ref: mRef, refHigh: mRefHigh }));
         const d = entry.modifiers[entry.modifiers.length - 1];
         console.log(
             `  ${m.key.padEnd(14)} ${d.basePx >= 0 ? '+' : ''}${d.basePx} px Basis, ` +

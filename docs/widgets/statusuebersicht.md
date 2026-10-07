@@ -14,6 +14,17 @@ Zeigt von selbst, was Aufmerksamkeit braucht: offene Fenster und Türen, schwach
 
 Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default` und `compact`.
 
+## Zeilenform
+
+| `rowStyle` | |
+| --- | --- |
+| `standard` (Vorgabe) | einzeilig, eingefärbte Zeile, kleine Knöpfe |
+| `twoLine` | Punkt in der Farbe der Schwere, Name fett, darunter Messwert und Hinweise, große Knöpfe rechts; keine Kategorie-Überschrift bei nur einer Kategorie |
+
+Gilt für `default` und `compact`.
+
+![Zweizeilige Zeilen](assets/statusuebersicht/row-style-two-line.png)
+
 ## Merkliste
 
 Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz auf `true` und danach wieder auf `false`. Mit der **Merkliste** (eigener Abschnitt unter den Kategorien) bleibt ein solcher Hinweis stehen, bis er geschlossen wird – für Batterien, nicht erreichbare Geräte und ausgelöste Rauch-/Wassermelder.

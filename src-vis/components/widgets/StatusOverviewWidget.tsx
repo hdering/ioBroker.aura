@@ -11,7 +11,7 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
-import { useIoBroker, setStateDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { useIoBroker, setStateDirect, setStateDirectAsync, getStateDirect } from '../../hooks/useIoBroker';
 import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
@@ -169,6 +169,97 @@ function RowButton({
             {armed ? confirmLabel || 'Wirklich?' : label}
         </button>
     );
+}
+
+/** How long an armed button of the two-line row waits for the second tap. */
+const ARM_MS_TWO_LINE = 4000;
+/** A close that the adapter never answers gives the button back after this. */
+const BUSY_MAX_MS = 6000;
+
+/**
+ * The touch-sized button of the two-line row (rowStyle 'twoLine'). `tone` 'confirm'
+ * is the green "Gewechselt"/"Quittieren"; armed it fills green and asks once more.
+ * While the write is out it is disabled and shows "…" — the row then disappears
+ * with the adapter's updated list, in every open browser at once.
+ */
+function TwoLineButton({
+    label,
+    title,
+    confirm,
+    confirmLabel,
+    tone,
+    disabled,
+    onRun,
+}: {
+    label: string;
+    title?: string;
+    confirm?: boolean;
+    confirmLabel?: string;
+    tone: 'neutral' | 'confirm';
+    disabled?: boolean;
+    onRun: () => void | Promise<void>;
+}) {
+    const [armed, setArmed] = useState(false);
+    const [busy, setBusy] = useState(false);
+    useEffect(() => {
+        if (!armed) return;
+        const t = setTimeout(() => setArmed(false), ARM_MS_TWO_LINE);
+        return () => clearTimeout(t);
+    }, [armed]);
+    useEffect(() => {
+        if (!busy) return;
+        const t = setTimeout(() => setBusy(false), BUSY_MAX_MS);
+        return () => clearTimeout(t);
+    }, [busy]);
+    const strong = tone === 'confirm' ? 'var(--accent-green, #22c55e)' : 'var(--accent, var(--text-primary))';
+    const off = disabled || busy;
+    return (
+        <button
+            type="button"
+            className="aura-status-action aura-status-action-lg shrink-0 text-sm leading-tight border transition-colors"
+            title={title}
+            disabled={off}
+            style={{
+                padding: '7px 12px',
+                minHeight: 32,
+                borderRadius: 8,
+                fontWeight: tone === 'confirm' ? 600 : 500,
+                whiteSpace: 'nowrap',
+                color: armed ? '#fff' : tone === 'confirm' ? strong : 'var(--text-primary)',
+                background: armed ? strong : 'transparent',
+                borderColor: armed || tone === 'confirm' ? strong : 'var(--widget-border)',
+                opacity: off ? 0.5 : undefined,
+                pointerEvents: off ? 'none' : undefined,
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+                e.stopPropagation();
+                if (confirm && !armed) {
+                    setArmed(true);
+                    return;
+                }
+                setArmed(false);
+                const r = onRun();
+                if (r && typeof (r as Promise<void>).then === 'function') setBusy(true);
+            }}
+        >
+            {busy ? '…' : armed ? confirmLabel || 'Wirklich?' : label}
+        </button>
+    );
+}
+
+/** "1,2 V" — the remembered level in the German number format. */
+function formatLevel(level: number, unit: string): string {
+    const n = level.toLocaleString('de-DE', { maximumFractionDigits: unit === '%' ? 0 : 2 });
+    return `${n} ${unit}`;
+}
+
+/** Line 2 starts with the reading: "Batterie schwach (1,2 V)", "Batterie bei 3 %", "Geöffnet". */
+function readingFor(item: StatusItem): string {
+    if (item.category !== 'battery' || item.severity === 'ok') return item.label;
+    if (/%$/.test(item.label)) return `Batterie bei ${item.label}`;
+    const l = item.latch;
+    return l?.level !== undefined && l.unit ? `Batterie schwach (${formatLevel(l.level, l.unit)})` : 'Batterie schwach';
 }
 
 export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
@@ -764,6 +855,123 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         );
     };
 
+    // ── Two-line row (rowStyle 'twoLine', layouts Standard and Kompakt) ──────────
+    // Dot · name on line 1 · reading and facts muted on line 2 · touch buttons on the
+    // right. No tinted background and no muting of quiet entries: line 2 says it.
+    const twoLine = opts.rowStyle === 'twoLine';
+    const dotColorFor = (item: StatusItem) => {
+        if (item.severity === 'ok') return 'var(--accent-green, #22c55e)';
+        const own = opts.categoryColors?.[item.category];
+        if (own) return own;
+        // A window row can carry the colour of its readable state (rd.color).
+        if (item.color !== SEVERITY_COLOR.crit && item.color !== SEVERITY_COLOR.warn) return item.color;
+        return item.severity === 'crit' ? 'var(--accent-red, #ef4444)' : 'var(--accent-yellow, #f59e0b)';
+    };
+    const twoLineButtons = (item: StatusItem) => {
+        const buttons: React.ReactNode[] = [];
+        actionsFor(opts.rowActions, item.category).forEach((a, i) =>
+            buttons.push(
+                <TwoLineButton
+                    key={`a${i}`}
+                    label={a.label}
+                    confirm={a.confirm}
+                    confirmLabel={a.confirmLabel}
+                    tone="neutral"
+                    disabled={editMode}
+                    onRun={() => runRowAction(a, item)}
+                />,
+            ),
+        );
+        if (latchLists[item.category] && (item.latch || item.severity !== 'ok')) {
+            const isBattery = item.category === 'battery';
+            const snoozeDays = opts.latchSnoozeDays ?? 2;
+            if (item.latch && !item.latch.snoozedUntil) {
+                buttons.push(
+                    <TwoLineButton
+                        key="latch-snooze"
+                        label={`${snoozeDays} ${snoozeDays === 1 ? 'Tag' : 'Tage'} später`}
+                        title={`Zurückstellen um ${snoozeDays} ${snoozeDays === 1 ? 'Tag' : 'Tage'}`}
+                        tone="neutral"
+                        disabled={editMode}
+                        onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `snooze:${item.id}`)}
+                    />,
+                );
+            }
+            buttons.push(
+                <TwoLineButton
+                    key="latch-ack"
+                    label={isBattery ? 'Gewechselt' : 'Quittieren'}
+                    title={isBattery ? 'Batterie gewechselt – Hinweis schließen' : 'Hinweis schließen'}
+                    confirm={opts.latchConfirm !== false}
+                    confirmLabel={isBattery ? 'Wirklich gewechselt?' : 'Wirklich quittieren?'}
+                    tone="confirm"
+                    disabled={editMode}
+                    onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `ack:${item.id}`)}
+                />,
+            );
+        }
+        return buttons;
+    };
+    const renderTwoLineRow = (item: StatusItem, first: boolean) => {
+        const batteryLabel = batteryLabelFor(item);
+        const sub = [
+            readingFor(item),
+            batteryLabel,
+            opts.showRoom !== false ? item.room : null,
+            !item.latch && showSince && sinceCats.includes(item.category) && item.lc ? formatSince(item.lc) : null,
+            ...latchFacts(item, showSince, true),
+        ]
+            .filter(Boolean)
+            .join(' · ');
+        const rowProps = rowPopup.row(item.id, labelFor(item));
+        const buttons = twoLineButtons(item);
+        return (
+            <div
+                key={item.id}
+                className="aura-status-row-2l flex items-center gap-x-3 gap-y-2 flex-wrap min-w-0"
+                data-latch={item.latch ? (isMuted(item) ? 'muted' : 'active') : undefined}
+                style={{
+                    padding: '10px 0',
+                    borderTop: first ? undefined : '1px solid var(--widget-border)',
+                    cursor: rowProps ? 'pointer' : undefined,
+                }}
+                {...rowProps}
+            >
+                <span
+                    className="shrink-0 rounded-full"
+                    style={{ width: 10, height: 10, background: dotColorFor(item) }}
+                    aria-hidden
+                />
+                <div className="min-w-0" style={{ flex: '1 1 10rem' }}>
+                    <div
+                        className="text-base leading-snug font-semibold break-words"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        {labelFor(item)}
+                    </div>
+                    {sub && (
+                        <div
+                            className="break-words"
+                            style={{
+                                color: 'var(--text-secondary)',
+                                fontSize: 'calc(0.8125rem * var(--font-scale, 1))',
+                                lineHeight: 1.35,
+                                marginTop: 2,
+                            }}
+                        >
+                            {sub}
+                        </div>
+                    )}
+                </div>
+                {buttons.length > 0 && (
+                    <span className="flex items-center gap-2 shrink-0 ml-auto flex-wrap justify-end">{buttons}</span>
+                )}
+            </div>
+        );
+    };
+    const rowsOf = (list: StatusItem[]) =>
+        twoLine ? list.map((item, i) => renderTwoLineRow(item, i === 0)) : list.map((item) => renderRow(item));
+
     const header = (
         <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
             {showTitle ? (
@@ -785,7 +993,18 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // empty body when there is nothing to report.
     const allClear = !anyHint && !showAll && !opts.showOkCategories && !loading;
     const allClearBlock =
-        opts.showAllClear === false ? null : (
+        opts.showAllClear === false ? null : twoLine ? (
+            <div
+                className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center text-center px-2`}
+            >
+                <p className="text-base font-semibold" style={{ color: 'var(--accent-green, #22c55e)' }}>
+                    {opts.allClearText ||
+                        (enabledCats.length === 1 && enabledCats[0] === 'battery'
+                            ? 'Alle Batterien in Ordnung'
+                            : 'Alles in Ordnung')}
+                </p>
+            </div>
+        ) : (
             <div
                 className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center gap-1.5 text-center px-2`}
             >
@@ -957,8 +1176,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                 allClearBlock
             ) : (
                 <div className={`${scrollCls} pr-0.5`}>
-                    {layout === 'compact'
-                        ? items.map((item) => renderRow(item))
+                    {layout === 'compact' || (twoLine && enabledCats.length === 1)
+                        ? // A single category needs no heading in the two-line rows: the chip counts.
+                          rowsOf(items)
                         : // default: grouped by category
                           enabledCats.map((cat) => {
                               const catItems = items.filter((i) => i.category === cat);
@@ -992,7 +1212,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                               <ShieldCheck size={11} style={{ color: SEVERITY_COLOR.ok }} />
                                           )}
                                       </div>
-                                      {catItems.map((item) => renderRow(item))}
+                                      {rowsOf(catItems)}
                                   </div>
                               );
                           })}

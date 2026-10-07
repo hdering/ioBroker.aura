@@ -184,6 +184,12 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     maxRows?: number;
     showMore?: boolean; // show the "+N weitere" row when maxRows cuts the list off (default true)
     showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt)
+    /**
+     * Row shape of the layouts Standard and Kompakt (default 'standard' = one line, tinted row).
+     * 'twoLine': coloured dot, device name bold on line 1, value and facts muted on line 2,
+     * large touch buttons on the right, a rule between the rows.
+     */
+    rowStyle?: 'standard' | 'twoLine';
     showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
     /**
      * Categories whose rows show "seit …" (default ['window']). Windows/doors count the
@@ -613,6 +619,9 @@ export interface LatchInfo {
     active: boolean;
     snoozedUntil?: number;
     reopenedAfter?: number;
+    /** Lowest level the adapter saw while the entry is open (voltage or percent). */
+    level?: number;
+    unit?: string;
 }
 
 /** What the widget hands the adapter per watched datapoint. */
@@ -727,6 +736,7 @@ export function applyLatch(
         active: alertLive,
         ...(entry.snoozedUntil && entry.snoozedUntil > now ? { snoozedUntil: entry.snoozedUntil } : {}),
         ...(entry.reopenedAfter ? { reopenedAfter: entry.reopenedAfter } : {}),
+        ...(Number.isFinite(entry.minLevel) && entry.unit ? { level: entry.minLevel, unit: entry.unit } : {}),
     };
     if (alertLive) return { ...live!, latch };
     // A remembered alarm stays red: it did go off, even if the sensor is quiet again.
@@ -771,13 +781,15 @@ export function formatDay(ts: number): string {
  * "seit 05.10." · "3× gemeldet" · "meldet zurzeit nichts, bleibt gemerkt" ·
  * "zurückgestellt bis 07.10." · "trotz Wechsel am 01.10."
  */
-export function latchFacts(item: StatusItem, showSince: boolean): string[] {
+export function latchFacts(item: StatusItem, showSince: boolean, long = false): string[] {
     const l = item.latch;
     if (!l) return [];
     const out: string[] = [];
-    if (showSince && l.since) out.push(`seit ${formatDay(l.since)}`);
+    // The two-line row has the room for the longer wording.
+    if (showSince && l.since) out.push(`${long ? 'gemeldet seit' : 'seit'} ${formatDay(l.since)}`);
     if (l.count > 1) out.push(`${l.count}× ${item.category === 'alarm' ? 'ausgelöst' : 'gemeldet'}`);
-    if (!l.active) out.push('meldet zurzeit nichts, bleibt gemerkt');
+    if (!l.active)
+        out.push(long ? 'meldet zurzeit nichts, bleibt aber gemerkt' : 'meldet zurzeit nichts, bleibt gemerkt');
     if (l.snoozedUntil) out.push(`zurückgestellt bis ${formatDay(l.snoozedUntil)}`);
     if (l.reopenedAfter)
         out.push(

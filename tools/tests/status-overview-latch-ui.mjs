@@ -448,6 +448,133 @@ const ACTION = {
     await ctx.close();
 }
 
+// ── 7. rowStyle "twoLine": dot, name, muted second line, touch buttons ─────────
+const rows2 = (page) =>
+    page.evaluate(() =>
+        [...document.querySelectorAll('.react-grid-item .aura-status-row-2l')].map((r) => {
+            const lines = r.children[1]?.children ?? [];
+            return {
+                name: lines[0]?.textContent ?? '',
+                sub: lines[1]?.textContent ?? '',
+                latch: r.getAttribute('data-latch'),
+                opacity: getComputedStyle(r).opacity,
+                bg: getComputedStyle(r).backgroundColor,
+                borderTop: getComputedStyle(r).borderTopWidth,
+                nameSize: parseFloat(getComputedStyle(lines[0]).fontSize),
+                buttons: [...r.querySelectorAll('button.aura-status-action')].map((b) => ({
+                    text: b.textContent,
+                    h: Math.round(b.getBoundingClientRect().height),
+                })),
+            };
+        }),
+    );
+{
+    const SHOTS = process.env.AURA_SHOT_DIR;
+    const list = [{ ...LIST[0], minLevel: 1.2, unit: 'V' }, LIST[1]];
+    const { ctx, page } = await open(
+        { latchBattery: true, rowStyle: 'twoLine', rowActions: [ACTION] },
+        list,
+        'default',
+        1400,
+        16,
+    );
+    let r = await rows2(page);
+    const golf = r.find((x) => x.name.includes('Golf'));
+    const griff = r.find((x) => !x.name.includes('Golf'));
+    check('twoLine: both entries as two-line rows', r.length === 2, JSON.stringify(r));
+    check('twoLine: no old one-line rows', (await rows(page)).length === 0);
+    check(
+        'twoLine: no category heading with one category',
+        !(await page.locator('.react-grid-item span.uppercase').count()),
+    );
+    check('twoLine: name 16 px', golf?.nameSize === 16, String(golf?.nameSize));
+    check('twoLine: reading with level', !!golf?.sub.startsWith('Batterie schwach (1,2 V)'), golf?.sub);
+    check('twoLine: room on line 2', !!golf?.sub.includes('Garage'), golf?.sub);
+    check('twoLine: "gemeldet seit"', /gemeldet seit \d\d\.\d\d\./.test(golf?.sub ?? ''), golf?.sub);
+    check('twoLine: count', !!golf?.sub.includes('3× gemeldet'), golf?.sub);
+    check('twoLine: quiet hint', !!golf?.sub.includes('meldet zurzeit nichts, bleibt aber gemerkt'), golf?.sub);
+    check('twoLine: quiet row not dimmed', golf?.opacity === '1', golf?.opacity);
+    check(
+        'twoLine: no tinted background',
+        r.every((x) => x.bg === 'rgba(0, 0, 0, 0)'),
+        JSON.stringify(r.map((x) => x.bg)),
+    );
+    check('twoLine: rule between rows only', r[0].borderTop === '0px' && r[1].borderTop === '1px');
+    check(
+        'twoLine: buttons action, snooze, close',
+        JSON.stringify(golf?.buttons.map((b) => b.text)) === JSON.stringify(['Notiz', '2 Tage später', 'Gewechselt']),
+        JSON.stringify(golf?.buttons),
+    );
+    check('twoLine: buttons ≥ 32 px high', !!golf?.buttons.every((b) => b.h >= 32), JSON.stringify(golf?.buttons));
+    check('twoLine: live entry says "Batterie schwach"', !!griff?.sub.startsWith('Batterie schwach'), griff?.sub);
+    if (SHOTS) {
+        const shot = (name) =>
+            page
+                .locator('.react-grid-item')
+                .first()
+                .screenshot({ path: `${SHOTS}/${name}.png` });
+        await shot('twoline-light');
+        await page.evaluate(() => window.__auraShot.setTheme('dark'));
+        await page.waitForTimeout(300);
+        await shot('twoline-dark');
+        await page.evaluate(() => window.__auraShot.setTheme('light'));
+    }
+
+    // Gewechselt: two taps, the first one only arms (4 s).
+    await page.evaluate(() => window.__auraShot.writes(true));
+    const golfRow = page.locator('.react-grid-item .aura-status-row-2l', { hasText: 'Golf' });
+    const ack = golfRow.locator('button.aura-status-action').last();
+    await ack.click();
+    check('twoLine: first tap writes nothing', (await writes(page)).length === 0);
+    check('twoLine: first tap asks', (await ack.textContent()) === 'Wirklich gewechselt?', await ack.textContent());
+    await page.waitForTimeout(3300);
+    check('twoLine: still armed after 3.3 s', (await ack.textContent()) === 'Wirklich gewechselt?');
+    await page.waitForTimeout(1000);
+    check(
+        'twoLine: armed button resets after 4 s',
+        (await ack.textContent()) === 'Gewechselt',
+        await ack.textContent(),
+    );
+    await ack.click();
+    await ack.click();
+    const w = await writes(page);
+    check(
+        'twoLine: second tap writes ack',
+        w.length === 1 && w[0].id === `${NS}.status.battery.cmd` && w[0].val === `ack:${GOLF}`,
+        JSON.stringify(w),
+    );
+    check('twoLine: busy while the adapter answers', (await ack.textContent()) === '…' && (await ack.isDisabled()));
+
+    // The adapter answers: Golf snoozed.
+    await page.evaluate(
+        ([id, l]) => window.__auraShot.mock({ [id]: l }),
+        [`${NS}.status.battery.list`, JSON.stringify([{ ...list[0], snoozedUntil: now + 2 * DAY }, list[1]])],
+    );
+    await page.waitForTimeout(400);
+    r = await rows2(page);
+    const snoozed = r.find((x) => x.name.includes('Golf'));
+    check(
+        'twoLine: snoozed shows until when',
+        /zurückgestellt bis \d\d\.\d\d\./.test(snoozed?.sub ?? ''),
+        snoozed?.sub,
+    );
+    check(
+        'twoLine: snoozed has no "später" button',
+        !snoozed?.buttons.some((b) => b.text.includes('später')),
+        JSON.stringify(snoozed?.buttons),
+    );
+    await ctx.close();
+}
+{
+    // All clear: green, bold, battery wording.
+    const ctx = await open({ latchBattery: true, rowStyle: 'twoLine' }, [], 'default');
+    await ctx.page.evaluate(([id]) => window.__auraShot.mock({ [id]: false }), [GRIFF]);
+    await ctx.page.waitForTimeout(400);
+    const txt = await ctx.page.locator('.react-grid-item p.font-semibold').last().textContent();
+    check('twoLine: all clear says "Alle Batterien in Ordnung"', txt === 'Alle Batterien in Ordnung', txt);
+    await ctx.ctx.close();
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 await browser.close();
 const failed = results.filter((x) => !x.ok);

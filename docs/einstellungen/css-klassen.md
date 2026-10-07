@@ -163,6 +163,8 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-map-pin` | Markierung im Karten-Widget |
 | `.aura-msg-html` | HTML-Inhalt einer Meldung (Titel und Text) |
 | `.aura-html-fill` | HTML-Zelle der JSON-Tabelle mit `Breite füllen` |
+| `.aura-status-row-2l` | Statusübersicht: zweizeilige Zeile (`rowStyle: twoLine`); `data-latch` trägt `active` · `muted` |
+| `.aura-status-action` · `.aura-status-action-lg` | Statusübersicht: Knopf am Zeilenende, große Form der zweizeiligen Zeile |
 
 ```css
 .aura-group-header {
