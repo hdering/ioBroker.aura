@@ -45,6 +45,8 @@ export interface TimerConfigPayload {
     allowEventValue?: boolean; // when true, backend honors per-event ev.value overrides
     holidaysDp?: string;
     vacationDp?: string;
+    holidaysValue?: string; // exception value while holidaysDp marks today (#757)
+    vacationValue?: string; // exception value while vacationDp marks today (#757)
     title?: string;
 }
 

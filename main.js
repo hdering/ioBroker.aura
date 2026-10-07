@@ -12,6 +12,12 @@ const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./li
 /** Channel names of aura.<inst>.status.<cat> (Statusübersicht, remembered hints). */
 const STATUS_CATEGORY_NAMES = { battery: 'Batterien', unreach: 'Nicht erreichbar', alarm: 'Rauch- & Wasser-Alarme' };
 const { parseSpecialDays } = require('./lib/specialDays');
+const {
+    activeException,
+    suppressedByException,
+    filterPasses: timerFilterPasses,
+    lastDueWrite,
+} = require('./lib/timerException');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
 const { mergeRenderReport, renderReportEntry } = require('./lib/mcp/auraConfig');
@@ -3694,6 +3700,7 @@ class Aura extends utils.Adapter {
         this.subscribeObjects('timers.*');
         this._timerState = new Map(); // widgetId → { enabled, payload }
         this._timerFired = new Set(); // dedupe key → true (cleared at midnight)
+        this._timerException = new Map(); // widgetId → active exception signature or null (#757)
         this._timerLastDay = this._currentDayKey();
         await this._loadAstroLocation();
         try {
@@ -4073,20 +4080,7 @@ class Aura extends utils.Adapter {
     }
 
     async _filterPasses(ev, date, holidays, vacation) {
-        const dayKey = this._currentDayKey(date);
-        if (ev.filter === 'all-days') return true;
-        if (ev.filter === 'no-special') return !holidays.has(dayKey) && !vacation.has(dayKey);
-        if (ev.filter === 'only-holidays') return holidays.has(dayKey);
-        if (ev.filter === 'only-vacation') return vacation.has(dayKey);
-        if (ev.filter === 'blocked') {
-            const minNow = date.getHours() * 60 + date.getMinutes();
-            const from = Number.isFinite(ev.blockFromMin) ? ev.blockFromMin : 0;
-            const to = Number.isFinite(ev.blockToMin) ? ev.blockToMin : 0;
-            // window may wrap midnight if from > to
-            const inWindow = from <= to ? minNow >= from && minNow < to : minNow >= from || minNow < to;
-            return !inWindow;
-        }
-        return true;
+        return timerFilterPasses(ev, date, holidays, vacation);
     }
 
     async _writeTarget(targetDp, baseValue, ev, override) {
@@ -4120,6 +4114,37 @@ class Aura extends utils.Adapter {
         }
     }
 
+    /**
+     * Exception value (#757): write it once when the exception starts (or its
+     * value changes), restore the regular schedule's last write when it ends.
+     * After an adapter start an active exception is written once more; an
+     * exception that ended while the adapter was down is not restored.
+     */
+    async _applyTimerException(widgetId, payload, exc, now, holidays, vacation) {
+        const sig = exc ? `${exc.kind}:${exc.value}` : null;
+        const prev = this._timerException.has(widgetId) ? this._timerException.get(widgetId) : null;
+        if (sig === prev) return;
+        this._timerException.set(widgetId, sig);
+        const label = (kind) => (kind === 'vacation' ? 'vacation exception' : 'holiday exception');
+        if (exc) {
+            await this._writeTarget(payload.targetDp, exc.value, { label: label(exc.kind) });
+            return;
+        }
+        const last = lastDueWrite(payload, now, holidays, vacation, (event, date, offsetMin) =>
+            this._computeAstroDate(event, date, offsetMin),
+        );
+        if (!last) {
+            this.log.info(`[timers] ${label(prev.split(':')[0])} ended — no regular event to restore`);
+            return;
+        }
+        let override;
+        if (last.invert) {
+            const v = this._parseValue(last.baseValue);
+            override = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
+        }
+        await this._writeTarget(payload.targetDp, last.baseValue, last.ev, override);
+    }
+
     async _timerTick() {
         const now = new Date();
         const dayKey = this._currentDayKey(now);
@@ -4142,8 +4167,12 @@ class Aura extends utils.Adapter {
             const holidays = await this._resolveSpecialDays(payload.holidaysDp);
             const vacation = await this._resolveSpecialDays(payload.vacationDp);
 
+            const exc = activeException(payload, holidays, vacation, dayKey);
+            await this._applyTimerException(widgetId, payload, exc, now, holidays, vacation);
+
             for (const ev of payload.events) {
                 if (!ev || !ev.enabled) continue;
+                if (suppressedByException(ev, exc)) continue;
 
                 // Determine candidate fire times for today (or absolute for once/range)
                 const candidates = []; // [{ ts, key, invert? }]
@@ -4812,6 +4841,7 @@ class Aura extends utils.Adapter {
                     results.channel = e?.message || String(e);
                 }
                 this._timerState.delete(widgetId);
+                this._timerException.delete(widgetId);
                 this.log.info(`[timers] deleteTimer ${base} → ${JSON.stringify(results)}`);
                 reply({ ok: true, results });
                 return;

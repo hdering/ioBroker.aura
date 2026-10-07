@@ -963,6 +963,14 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Datenpunkt für Urlaubstagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" und {from,to} (inklusive).',
         },
+        holidaysValue: {
+            description:
+                'Ausnahme-Wert für Feiertage: wird einmal in targetDp geschrieben, sobald holidaysDp den Tag als Feiertag markiert. Solange pausieren alle Schaltzeiten außer denen mit Filter "only-holidays"; endet die Ausnahme, schreibt der Adapter den Wert der zuletzt fälligen regulären Schaltzeit. Leer = aus.',
+        },
+        vacationValue: {
+            description:
+                'Ausnahme-Wert für Urlaub (z. B. Absenktemperatur): wird einmal in targetDp geschrieben, sobald vacationDp den Tag als Urlaub markiert. Solange pausieren alle Schaltzeiten außer denen mit Filter "only-vacation"; endet der Urlaub, schreibt der Adapter den Wert der zuletzt fälligen regulären Schaltzeit. Hat Vorrang vor holidaysValue. Leer = aus.',
+        },
         showMasterSwitch: { description: 'Hauptschalter der Zeitschaltuhr anzeigen.' },
         showAddButton: { description: 'Taste zum Anlegen einer Schaltzeit anzeigen.' },
         showAstroSymbol: { description: 'Sonnensymbol bei astronomischen Zeiten anzeigen.' },

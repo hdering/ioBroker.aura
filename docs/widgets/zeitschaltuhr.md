@@ -16,6 +16,8 @@ Kein Haupt-Datenpunkt am Widget. Stattdessen Widget-Optionen (Admin):
 | `value` | ja | `string` | wird automatisch als `boolean` · `number` · `string` geparst |
 | `holidaysDp` | nein | `string` (JSON) · `boolean` | Feiertage — Format siehe [Sondertage](#sondertage-optional) |
 | `vacationDp` | nein | `string` (JSON) · `boolean` | Urlaubstage — Format siehe [Sondertage](#sondertage-optional) |
+| `holidaysValue` | nein | `string` | Wert an Feiertagen — siehe [Ausnahme-Wert](#ausnahme-wert) |
+| `vacationValue` | nein | `string` | Wert im Urlaub — siehe [Ausnahme-Wert](#ausnahme-wert) |
 
 Pro Widget legt der Adapter zwei States unter `aura.0.timers.<widget-id>` an: `config` (JSON aller Ereignisse) und `enabled` (Master). Der Backend-Scheduler liest aus diesen States.
 
@@ -120,6 +122,21 @@ true
 | --- | --- | --- |
 | `holidaysDp` | — | DP für Feiertage (Boolean oder JSON-Array) |
 | `vacationDp` | — | DP für Urlaub (Boolean oder JSON-Array) |
+| `holidaysValue` | — | Wert, solange `holidaysDp` den Tag als Feiertag markiert |
+| `vacationValue` | — | Wert, solange `vacationDp` den Tag als Urlaub markiert |
+
+### Ausnahme-Wert
+
+Leer = aus. Gesetzt:
+
+| Moment | Verhalten |
+| --- | --- |
+| Ausnahme beginnt | Wert wird einmal in `targetDp` geschrieben (spätestens nach einem Tick) |
+| Ausnahme aktiv | alle Ereignisse pausieren — außer Filter `only-vacation` (Urlaub) bzw. `only-holidays` (Feiertag) |
+| Ausnahme endet | Wert des zuletzt fälligen regulären Ereignisses (bis 7 Tage zurück) wird wieder geschrieben |
+| Urlaub + Feiertag | `vacationValue` hat Vorrang |
+
+Beispiel Heizung: `vacationValue` = `16`, Urlaub als Zeitraum bis einen Tag vor der Rückkehr — am Rückreisetag läuft wieder der normale Heizplan.
 
 ## Ereignis-Editor (Anwender)
 

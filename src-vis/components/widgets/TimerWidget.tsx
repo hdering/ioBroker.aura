@@ -267,6 +267,8 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const allowEventValue = o.allowEventValue === true;
     const holidaysDp = o.holidaysDp as string | undefined;
     const vacationDp = o.vacationDp as string | undefined;
+    const holidaysValue = o.holidaysValue as string | undefined;
+    const vacationValue = o.vacationValue as string | undefined;
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
     const showMaster = o.showMasterSwitch !== false;
@@ -327,6 +329,8 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             allowEventValue,
             holidaysDp,
             vacationDp,
+            holidaysValue,
+            vacationValue,
             title: config.title,
         };
         const serialized = JSON.stringify(payload);
@@ -334,7 +338,18 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             publishTimerConfig(backendKey, config.title || 'Zeitschaltuhr', payload);
             lastPublishedRef.current = serialized;
         }
-    }, [backendKey, config.title, events, targetDp, targetValue, allowEventValue, holidaysDp, vacationDp]);
+    }, [
+        backendKey,
+        config.title,
+        events,
+        targetDp,
+        targetValue,
+        allowEventValue,
+        holidaysDp,
+        vacationDp,
+        holidaysValue,
+        vacationValue,
+    ]);
 
     const lastEnabledRef = useRef<boolean | null>(null);
     useEffect(() => {

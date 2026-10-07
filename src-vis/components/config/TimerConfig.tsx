@@ -87,6 +87,41 @@ function SpecialDayExamples({ examples }: { examples: { title: string; value: st
     );
 }
 
+// Exception value (#757): written once while the special-day DP marks today.
+function ExceptionValueField({
+    value,
+    disabled,
+    placeholder,
+    onChange,
+}: {
+    value: string;
+    disabled: boolean;
+    placeholder: string;
+    onChange: (v: string) => void;
+}) {
+    return (
+        <div className="mt-1.5" style={{ opacity: disabled ? 0.5 : 1 }}>
+            <label className={labelCls} style={labelStyle}>
+                Wert während der Ausnahme (optional)
+            </label>
+            <input
+                type="text"
+                value={value}
+                disabled={disabled}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={placeholder}
+                className={inputCls}
+                style={inputStyle}
+            />
+            <p className={hintCls} style={hintStyle}>
+                Wird einmal geschrieben, sobald der Tag als Sondertag gilt. Bis dahin pausieren alle anderen Ereignisse,
+                außer denen mit genau diesem Filter. Am Ende stellt die Uhr den Wert des zuletzt fälligen Ereignisses
+                wieder her.
+            </p>
+        </div>
+    );
+}
+
 export function TimerConfig({ config, onConfigChange }: Props) {
     const o = config.options ?? {};
     const targetDp = (o.targetDp as string | undefined) ?? '';
@@ -94,6 +129,8 @@ export function TimerConfig({ config, onConfigChange }: Props) {
     const allowEventValue = o.allowEventValue === true;
     const holidaysDp = (o.holidaysDp as string | undefined) ?? '';
     const vacationDp = (o.vacationDp as string | undefined) ?? '';
+    const holidaysValue = (o.holidaysValue as string | undefined) ?? '';
+    const vacationValue = (o.vacationValue as string | undefined) ?? '';
     const showMaster = o.showMasterSwitch !== false;
     const showEvents = o.showEvents !== false;
     const showAdd = o.showAddButton !== false;
@@ -376,6 +413,12 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             </button>
                         </div>
                         <SpecialDayExamples examples={HOLIDAY_EXAMPLES} />
+                        <ExceptionValueField
+                            value={holidaysValue}
+                            disabled={!holidaysDp}
+                            placeholder="z.B. 18"
+                            onChange={(v) => setOpts({ holidaysValue: v || undefined })}
+                        />
                     </div>
 
                     <div>
@@ -405,6 +448,12 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             </button>
                         </div>
                         <SpecialDayExamples examples={VACATION_EXAMPLES} />
+                        <ExceptionValueField
+                            value={vacationValue}
+                            disabled={!vacationDp}
+                            placeholder="z.B. 16"
+                            onChange={(v) => setOpts({ vacationValue: v || undefined })}
+                        />
                     </div>
 
                     <p className={hintCls} style={hintStyle}>

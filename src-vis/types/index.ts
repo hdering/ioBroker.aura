@@ -199,6 +199,8 @@ export interface TimerWidgetOptions {
     allowEventValue?: boolean; // when true, frontend modal shows per-event value field (overrides widget value)
     holidaysDp?: string; // optional DP — JSON array of days "YYYY-MM-DD" / ranges "A/B" or {from,to}, or boolean (true = today)
     vacationDp?: string; // optional DP — same format as holidaysDp, for vacation days
+    holidaysValue?: string; // optional — written once when holidaysDp marks today; regular events pause meanwhile
+    vacationValue?: string; // optional — written once when vacationDp marks today; regular events pause meanwhile
     stateBaseId?: string; // the timers.<widgetId> base path used by the backend scheduler
 }
 
