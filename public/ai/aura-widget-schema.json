@@ -10123,6 +10123,16 @@
           "default": 100,
           "description": "Prozent der Skala, ab dem die Warnfarbe gilt (100 = der Max-Wert). Der Rohwert zählt, nicht der begrenzte."
         },
+        "segmentCount": {
+          "type": "number",
+          "default": 12,
+          "description": "Nur Layout segments: Anzahl der LED-Segmente (2–60, Standard 12) (#756). Mit segmentFillWidth die Mindestanzahl und zugleich die Segmentgröße."
+        },
+        "segmentFillWidth": {
+          "type": "boolean",
+          "default": false,
+          "description": "Nur Layout segments: Länge der Kachel ausfüllen (#756) — statt leerer Ränder kommen weitere Segmente in der Größe von segmentCount dazu (horizontal mehr Spalten, vertikal mehr Zeilen). Nie weniger als segmentCount."
+        },
         "showChargeIcon": {
           "type": "boolean",
           "default": true,

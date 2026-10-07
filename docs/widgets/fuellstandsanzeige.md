@@ -27,7 +27,12 @@ Mit `valuePlacement: inside` steht der Wert im Balken, und der Balken nutzt die 
 ![](./assets/fuellstandsanzeige/bar-inside.png)
 
 ### Segments
-Zwölf LED-Segmente, die je nach Füllstand aufleuchten.
+LED-Segmente, die je nach Füllstand aufleuchten.
+
+| Option | Standard | |
+| --- | --- | --- |
+| Anzahl Segmente | 12 | 2–60 |
+| Breite/Höhe ausfüllen | aus | weitere Segmente gleicher Größe bis zum Kachelrand; nie weniger als die eingestellte Anzahl |
 
 ### Wave
 Behälter mit animierter Wellen-Oberfläche.

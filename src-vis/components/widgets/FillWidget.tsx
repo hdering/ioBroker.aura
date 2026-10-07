@@ -565,6 +565,8 @@ function SegmentsViz({
     colorZones,
     showValue,
     orientation,
+    segmentCount,
+    fillWidth,
 }: Pick<
     TankProps,
     | 'pct'
@@ -578,9 +580,38 @@ function SegmentsViz({
     | 'zones'
     | 'colorZones'
     | 'showValue'
-> & { orientation: Orientation }) {
-    const SEGS = 12;
+> & { orientation: Orientation; segmentCount: number; fillWidth: boolean }) {
     const gap = 3;
+    // Base box the segments are drawn in — the svg scales it to the host with `meet`,
+    // so a box wider (or taller) than this one used to leave empty margins (#756).
+    const BASE_LEN = 220;
+    const vertical = orientation === 'vertical';
+    const baseCross = vertical ? 80 : 70;
+    const baseSegs = Math.max(2, Math.min(60, Math.round(segmentCount) || 12));
+
+    // "Fill width": stretch the box to the host's aspect along the bar and add segments
+    // of the configured size instead of widening them. Never fewer than configured, so
+    // a small tile keeps its compact look.
+    const svgRef = useRef<SVGSVGElement>(null);
+    const [aspect, setAspect] = useState(0);
+    useEffect(() => {
+        const el = svgRef.current;
+        if (!fillWidth || !el) return;
+        const measure = () => {
+            const r = el.getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) setAspect(vertical ? r.height / r.width : r.width / r.height);
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [fillWidth, vertical]);
+
+    const valueRoom = vertical && showValue ? 18 : 0;
+    const fitLen = fillWidth && aspect > 0 ? aspect * baseCross - valueRoom : 0;
+    const totalLen = Math.max(BASE_LEN, fitLen);
+    const pitch = (BASE_LEN + gap) / baseSegs;
+    const SEGS = Math.min(200, Math.max(baseSegs, Math.floor((totalLen + gap) / pitch)));
     const lit = Math.round((pct / 100) * SEGS);
 
     const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
@@ -594,12 +625,12 @@ function SegmentsViz({
         return fillColor;
     };
 
-    if (orientation === 'vertical') {
-        const totalH = 220;
+    if (vertical) {
+        const totalH = totalLen;
         const segW = 56;
         const segH = (totalH - (SEGS - 1) * gap) / SEGS;
         return (
-            <svg viewBox={showValue ? '0 4 80 238' : '0 4 80 220'} style={{ width: '100%', height: '100%' }}>
+            <svg ref={svgRef} viewBox={`0 4 80 ${totalH + valueRoom}`} style={{ width: '100%', height: '100%' }}>
                 {Array.from({ length: SEGS }, (_, i) => {
                     // i=0 top, i=11 bottom; bottom segments = low values → lit first
                     const isLit = i >= SEGS - lit;
@@ -643,11 +674,11 @@ function SegmentsViz({
     }
 
     // ── horizontal ────────────────────────────────────────────────────────────
-    const totalW = 220;
+    const totalW = totalLen;
     const segH = 44;
     const segW = (totalW - (SEGS - 1) * gap) / SEGS;
     return (
-        <svg viewBox="0 0 220 70" style={{ width: '100%', height: '100%' }}>
+        <svg ref={svgRef} viewBox={`0 0 ${totalW} 70`} style={{ width: '100%', height: '100%' }}>
             {Array.from({ length: SEGS }, (_, i) => {
                 const isLit = i < lit;
                 const frac = (i + 0.5) / SEGS;
@@ -1772,6 +1803,8 @@ export function FillWidget({ config }: WidgetProps) {
                             colorZones={colorZones}
                             showValue={showValue}
                             orientation={orientation}
+                            segmentCount={(opts.segmentCount as number) ?? 12}
+                            fillWidth={(opts.segmentFillWidth as boolean) ?? false}
                         />
                         {/* No continuous bar to measure — the badges hang on the whole block. */}
                         {statusLayerFor(null)}

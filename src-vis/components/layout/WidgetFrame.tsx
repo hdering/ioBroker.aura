@@ -13955,6 +13955,78 @@ function WidgetFrameInner({
                                                 />
                                             </div>
                                         )}
+                                        {config.layout === 'segments' && (
+                                            <>
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Anzahl Segmente
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={2}
+                                                        max={60}
+                                                        defaultValue={(o.segmentCount as number) ?? 12}
+                                                        onChange={(e) => {
+                                                            if (e.target.value === '') return;
+                                                            const n = Number(e.target.value);
+                                                            if (!isNaN(n))
+                                                                set({
+                                                                    segmentCount: Math.min(
+                                                                        60,
+                                                                        Math.max(2, Math.round(n)),
+                                                                    ),
+                                                                });
+                                                        }}
+                                                        onBlur={(e) => {
+                                                            const v = Math.min(
+                                                                60,
+                                                                Math.max(2, Math.round(Number(e.target.value)) || 12),
+                                                            );
+                                                            set({ segmentCount: v });
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter')
+                                                                (e.target as HTMLInputElement).blur();
+                                                        }}
+                                                        className={fCls}
+                                                        style={fSty}
+                                                    />
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                        title="Mehr Segmente gleicher Größe statt leerer Ränder; nie weniger als die eingestellte Anzahl"
+                                                    >
+                                                        {(o.orientation ?? 'vertical') === 'vertical'
+                                                            ? 'Höhe ausfüllen'
+                                                            : 'Breite ausfüllen'}
+                                                    </label>
+                                                    <button
+                                                        onClick={() =>
+                                                            set({ segmentFillWidth: !(o.segmentFillWidth ?? false) })
+                                                        }
+                                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                                        style={{
+                                                            background:
+                                                                (o.segmentFillWidth ?? false)
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{
+                                                                left: (o.segmentFillWidth ?? false) ? '18px' : '2px',
+                                                            }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                         <div className="flex items-center justify-between">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                                 Skala anzeigen

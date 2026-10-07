@@ -397,6 +397,17 @@ export const WIDGET_OPTION_NOTES = {
                 'Icon im untersten Abschnitt, also unter der niedrigsten Grenze. Der hat keine Grenze über sich, an der ein Icon hängen könnte.',
         },
         baseBandColor: { description: 'Farbe des untersten Abschnitts. Leer = normale Füllfarbe.' },
+        segmentCount: {
+            description:
+                'Nur Layout segments: Anzahl der LED-Segmente (2–60, Standard 12) (#756). Mit segmentFillWidth ' +
+                'die Mindestanzahl und zugleich die Segmentgröße.',
+        },
+        segmentFillWidth: {
+            description:
+                'Nur Layout segments: Länge der Kachel ausfüllen (#756) — statt leerer Ränder kommen weitere ' +
+                'Segmente in der Größe von segmentCount dazu (horizontal mehr Spalten, vertikal mehr Zeilen). ' +
+                'Nie weniger als segmentCount.',
+        },
         overActive: { description: 'Farbwechsel ab einer Schwelle einschalten.' },
         overThreshold: {
             description:

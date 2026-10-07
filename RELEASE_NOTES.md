@@ -9,3 +9,5 @@
 - Timer - schedule entries added in the frontend are no longer lost when the widget is edited in the admin open in the same browser (#758)
 
 - Timer - optional fixed value for vacation and holiday days: written once when the exception starts, regular events pause meanwhile and the normal schedule is restored when it ends (#757)
+
+- Fill level - LED segments: configurable segment count and a "fill width" option that adds segments to span wide (or tall) tiles (#756)
