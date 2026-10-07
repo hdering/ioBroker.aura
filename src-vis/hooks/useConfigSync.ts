@@ -4,8 +4,9 @@ import { useDashboardStore } from '../store/dashboardStore';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
 import { hydrateWidgetPresets } from '../store/widgetPresetsStore';
 import {
-    isPending,
+    isPendingInThisTab,
     isSavingRecently,
+    storageIsThisTabs,
     discardPendingKey,
     hasDirtyFlag,
     IOBROKER_STATE_MAP,
@@ -87,7 +88,10 @@ export function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean)
     // The carried content is this editor's; content another device saved is only in
     // the vault — read it even when the filled copy equals ours and is skipped below.
     if (carried) requestVaultRefresh();
-    if (remoteStr === localStorage.getItem(key)) return false;
+    // Storage equal to the incoming value only means "already shown" when this tab
+    // put it there — the frontend in the same browser writes its edit to storage
+    // before saving it (#758).
+    if (remoteStr === localStorage.getItem(key) && storageIsThisTabs(key)) return false;
     applyRemote(key, remoteStr, readOnly);
     return true;
 }
@@ -113,7 +117,7 @@ export function useConfigSync(
         const unsubs = (Object.entries(IOBROKER_STATE_MAP) as [SyncStoreKey, string][]).map(([key, stateId]) =>
             subscribeStateDirect(stateId, (state) => {
                 if (!state?.val || !configLoaded.current) return;
-                if (!ignoreDirty && isPending(key)) return;
+                if (!ignoreDirty && isPendingInThisTab(key)) return;
                 const incoming = String(state.val);
                 // Suppress only the byte-identical echo of our own recent write —
                 // a different value within the TTL is a concurrent write from
@@ -147,7 +151,7 @@ export function useConfigSync(
         if (!configLoaded.current) return;
         const pollKeys = (Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[])
             .filter((k) => k !== 'aura-group-defs' && k !== 'aura-widget-presets')
-            .filter((k) => ignoreDirty || !isPending(k));
+            .filter((k) => ignoreDirty || !isPendingInThisTab(k));
         Promise.all(
             pollKeys.map((key) =>
                 getStateDirect(IOBROKER_STATE_MAP[key]).then((state) => {

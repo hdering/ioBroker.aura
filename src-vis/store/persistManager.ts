@@ -430,6 +430,30 @@ export function hydrateFromValue(key: string, raw: string, rehydrate: () => void
     resyncHistoryKey(key);
 }
 
+// ── The other side: an admin tab next to the frontend ────────────────────────
+// The frontend persists an in-place edit (timer events, auto-list sync) to the
+// shared storage before it saves it to ioBroker. For the admin, storage then
+// already equals the incoming state change, and a dirty flag the frontend holds
+// until its write is confirmed looks like the admin's own — the change was
+// dropped, the admin kept its older store and its next save wrote it back
+// (#758). What this tab's stores last read from or wrote to storage tells the
+// two apart.
+const tabStorageCopy = new Map<string, string>();
+
+/** True when storage still holds what this tab's store last read or wrote — false
+ *  once another tab in this browser wrote the key. Keys this tab never persisted
+ *  count as its own. */
+export function storageIsThisTabs(key: string): boolean {
+    const mine = tabStorageCopy.get(key);
+    return mine === undefined || mine === localStorage.getItem(key);
+}
+
+/** isPending for an admin tab's inbound gate: a dirty flag only counts when the
+ *  storage copy it marks is this tab's (see storageIsThisTabs). */
+export function isPendingInThisTab(key: string): boolean {
+    return pending.has(key) || (hasDirtyFlag(key) && storageIsThisTabs(key));
+}
+
 export function discardPendingKey(key: string): void {
     pending.delete(key);
     originals.delete(key);
@@ -1069,7 +1093,13 @@ export async function resetAllConfig(): Promise<void> {
 }
 
 export const managedStorage: StateStorage = {
-    getItem: (name) => hydrationOverride.get(name) ?? localStorage.getItem(name),
+    getItem: (name) => {
+        const override = hydrationOverride.get(name);
+        if (override !== undefined) return override;
+        const value = localStorage.getItem(name);
+        if (value !== null) tabStorageCopy.set(name, value);
+        return value;
+    },
     setItem: (name, value) => {
         // A hydration from a remote value must not land in storage (the popup
         // store's onRehydrateStorage normalises with a set() of its own).
@@ -1083,6 +1113,7 @@ export const managedStorage: StateStorage = {
             return;
         }
         const current = localStorage.getItem(name);
+        tabStorageCopy.set(name, value);
         if (current === value) {
             // No-op write (e.g. Zustand re-persisting the same state after rehydrate).
             // While suppressing dirty (navigation write), don't disturb existing pending
@@ -1148,6 +1179,7 @@ export const managedStorage: StateStorage = {
         } catch {
             /* ignore */
         }
+        tabStorageCopy.delete(name);
         clearDirtyFlag(name);
         pending.delete(name);
         originals.delete(name);
