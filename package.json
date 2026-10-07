@@ -277,6 +277,7 @@
     "test:calendar-auto-height": "node tools/tests/calendar-auto-height.mjs",
     "test:auto-height": "node tools/tests/auto-height-unified.mjs",
     "test:group-child-auto-height": "node tools/tests/group-child-auto-height.mjs",
+    "test:group-child-auto-height-stretch": "node tools/tests/group-child-auto-height-stretch.mjs",
     "test:calendar-custom-editor": "node tools/tests/calendar-custom-editor.mjs",
     "test:calendar-custom-fields": "node tools/tests/calendar-custom-fields.mjs",
     "test:calendar-end-time": "node tools/tests/calendar-end-time.mjs",

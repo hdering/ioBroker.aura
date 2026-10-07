@@ -7,3 +7,10 @@ import { createContext, useContext } from 'react';
 export const GridScaleContext = createContext(1);
 
 export const useGridScale = () => useContext(GridScaleContext);
+
+/** Row height the tab grid really draws when the fluid mode stretches its rows
+ *  (#413 'scale'/'fill'), null on the design pitch. A group derives its children's
+ *  content-sized rows on it like the Dashboard derives the group's hug (#759). */
+export const GridRowHeightContext = createContext<number | null>(null);
+
+export const useStretchedRowHeight = () => useContext(GridRowHeightContext);

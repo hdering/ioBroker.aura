@@ -25,7 +25,7 @@ import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
-import { useGridScale } from '../../contexts/GridScaleContext';
+import { useGridScale, useStretchedRowHeight } from '../../contexts/GridScaleContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { collapsibleWidget } from '../../utils/widgetCollapse';
@@ -118,13 +118,18 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         () => heightsForScope(children, allContentHeights, scope),
         [scope, children, allContentHeights],
     );
-    const sized = withContentHeights(children, contentHeights, widgetPad, cellSize, gridGap);
-    const gridChildren = !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized);
-    const transparent = !!config.options?.transparent;
-    const showTitle = config.options?.showTitle !== false;
     // autoShrink groups keep their own scroll-based height logic and the classic
     // p-1 grid inset — the uniform-fill spacing below applies only to normal groups.
     const autoShrink = !!config.options?.autoShrink;
+    // On a fluid tab with stretched rows the filled box grows with them, so the
+    // content-sized rows are counted on the stretched pitch — the same one the
+    // Dashboard hugs this group on (#759). autoShrink draws on the design pitch.
+    const stretchedRowPx = useStretchedRowHeight();
+    const childRowPx = !autoShrink && stretchedRowPx ? stretchedRowPx : cellSize;
+    const sized = withContentHeights(children, contentHeights, widgetPad, childRowPx, gridGap);
+    const gridChildren = !editMode ? verticalCompact(sized.filter((c) => !isReflowHidden(c))) : verticalCompact(sized);
+    const transparent = !!config.options?.transparent;
+    const showTitle = config.options?.showTitle !== false;
 
     // ── Collapse ────────────────────────────────────────────────────────────────
     // A group with `defaultCollapsed` set is collapsible in the live dashboard:
