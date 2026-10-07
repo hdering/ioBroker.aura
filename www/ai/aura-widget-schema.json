@@ -13864,6 +13864,14 @@
           "type": "number",
           "description": "Breite des Zeilen-Popups in px."
         },
+        "rowStyle": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "twoLine"
+          ],
+          "description": "Row shape of the layouts Standard and Kompakt (default 'standard' = one line, tinted row). 'twoLine': coloured dot, device name bold on line 1, value and facts muted on line 2, large touch buttons on the right, a rule between the rows."
+        },
         "showAllClear": {
           "type": "boolean",
           "description": "show the „Alles in Ordnung“ panel when nothing needs attention (default true)"

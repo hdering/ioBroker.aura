@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-05",
+    "measured": "2026-10-07",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -971,6 +971,27 @@
               "n": 8,
               "px": 250
             }
+          ],
+          "modifiers": [
+            {
+              "key": "twoLine",
+              "label": "zweizeilige Zeilen mit großen Knöpfen (rowStyle: \"twoLine\")",
+              "when": {
+                "path": "rowStyle",
+                "equals": "twoLine"
+              },
+              "notForVariants": [
+                "card",
+                "minimal"
+              ],
+              "atWidthPx": 480,
+              "basePx": 0,
+              "perItemPx": 38.7,
+              "fontScalePx": {
+                "basePx": -10,
+                "perItemPx": 179.7
+              }
+            }
           ]
         },
         "card": {
@@ -1037,22 +1058,30 @@
           "key": "rowButtons",
           "label": "Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)",
           "when": {
-            "any": [
+            "all": [
               {
-                "path": "rowActions[].label",
-                "startsWith": ""
+                "any": [
+                  {
+                    "path": "rowActions[].label",
+                    "startsWith": ""
+                  },
+                  {
+                    "path": "latchBattery",
+                    "equals": true
+                  },
+                  {
+                    "path": "latchUnreach",
+                    "equals": true
+                  },
+                  {
+                    "path": "latchAlarm",
+                    "equals": true
+                  }
+                ]
               },
               {
-                "path": "latchBattery",
-                "equals": true
-              },
-              {
-                "path": "latchUnreach",
-                "equals": true
-              },
-              {
-                "path": "latchAlarm",
-                "equals": true
+                "path": "rowStyle",
+                "not": "twoLine"
               }
             ]
           },
@@ -1061,6 +1090,25 @@
           "fontScalePx": {
             "basePx": 0,
             "perItemPx": 15.3
+          }
+        },
+        {
+          "key": "twoLine",
+          "label": "zweizeilige Zeilen mit großen Knöpfen (rowStyle: \"twoLine\")",
+          "when": {
+            "path": "rowStyle",
+            "equals": "twoLine"
+          },
+          "notForVariants": [
+            "card",
+            "minimal"
+          ],
+          "atWidthPx": 480,
+          "basePx": -25,
+          "perItemPx": 38.7,
+          "fontScalePx": {
+            "basePx": -13.3,
+            "perItemPx": 178.7
           }
         },
         {
@@ -1094,7 +1142,8 @@
         "gemessen mit Zeilen EINER Kategorie: im Layout „default“ zeichnet jede Kategorie, die Zeilen hat, eine Überschrift dazu (und showOkCategories auch die leeren) — je weitere Kategorie eine Zeile mehr",
         "die Zeilen selbst stammen aus der Erkennung: ein langer Gerätename bricht um und macht seine Zeile höher (namePattern/nameFilters kürzen ihn)",
         "die Layouts „card“ und „minimal“ ordnen Kacheln bzw. Pillen nach der BREITE an — gemessen an der Standardbreite (siehe atWidthPx). Auf einer breiteren Karte stehen mehrere in einer Zeile und die Höhe je Zeile sinkt entsprechend",
-        "ohne maxRows ist die Zeilenzahl unbekannt — dann ist diese Rechnung keine Auskunft über die Höhe"
+        "ohne maxRows ist die Zeilenzahl unbekannt — dann ist diese Rechnung keine Auskunft über die Höhe",
+        "rowStyle \"twoLine\": gemessen bei 480 px Breite mit Zeilen EINER Kategorie, die dann keine Überschrift haben. Schmaler (unter etwa 420 px) rutschen die Knöpfe unter den Text — die Zeile wird dann etwa 45 px höher; ein langer Name oder Hinweis bricht ebenfalls um"
       ],
       "voids": [
         {
