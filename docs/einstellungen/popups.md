@@ -64,10 +64,36 @@ Wert: Name oder ID einer Popup-View, oder JSON. Der Datenpunkt wird nach dem Öf
 | `width` | Breite in px; leer = automatisch (max. `600 px`) |
 | `height` | Höhe in px (höchstens `85 %` der Bildschirmhöhe); leer = nach Inhalt |
 
+Breite und Höhe werden auf kleinen Bildschirmen automatisch begrenzt (volle Breite minus Rand, `85 %` der Höhe) — ein `900 px`-Popup bleibt auf dem Handy also bedienbar.
+
+| Beispiel | Wert |
+| --- | --- |
+| View per Name | `Wetter-Details` |
+| View mit Datenpunkt | `{"view":"Gerät","dp":"hm-rpc.0.ABC.1.STATE"}` |
+| Eigener Titel | `{"view":"Gerät","dp":"hm-rpc.0.ABC.1.STATE","title":"Haustür"}` |
+| Breit, Höhe nach Inhalt | `{"view":"Kamera","width":900}` |
+| Feste Größe | `{"view":"Kamera","width":900,"height":700}` |
+| Schmal und hoch | `{"view":"Einkaufsliste","width":360,"height":800}` |
+
 ```js
+// Alle Geräte, nur per Name
 setState('aura.0.popup.open', 'Wetter-Details');
+
+// Popup-View mit Datenpunkt als {{dp}}
 setState('aura.0.popup.open', '{"view":"Gerät","dp":"hm-rpc.0.ABC.1.STATE"}');
-setState('aura.0.popup.open', '{"view":"Kamera","width":900,"height":700}');
+
+// Kamera groß auf dem Wandtablet — nur dieses Gerät
+setState('aura.0.clients.wandtablet.popup.open', JSON.stringify({
+    view: 'Kamera',
+    title: 'Klingel',
+    width: 900,
+    height: 700,
+}));
+
+// Bei Klingeln öffnen
+on({ id: 'hm-rpc.0.ABC.1.PRESS_SHORT', change: 'any' }, () => {
+    setState('aura.0.popup.open', JSON.stringify({ view: 'Kamera', width: 900, height: 700 }));
+});
 ```
 
 ## Popup-Views
