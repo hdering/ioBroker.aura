@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.80.1",
+    "version": "0.80.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.80.2": {
+        "en": "Status overview - the two-line layout uses the standard text sizes, in line with the other widgets",
+        "de": "Statusübersicht – Das zweizeilige Layout verwendet die Standardtextgrößen, passend zu den anderen Widgets",
+        "ru": "Обзор состояния — в двухстрочном макете используются стандартные размеры текста, как и в других виджетах.",
+        "pt": "Visão geral do status - o layout de duas linhas usa tamanhos de texto padrão, alinhados com os outros widgets",
+        "nl": "Statusoverzicht - de tweeregelige lay-out gebruikt de standaard tekstgroottes, in lijn met de andere widgets",
+        "fr": "Aperçu du statut - la mise en page sur deux lignes utilise les tailles de texte standard, conformément aux autres widgets",
+        "it": "Panoramica dello stato: il layout a due righe utilizza le dimensioni del testo standard, in linea con gli altri widget",
+        "es": "Descripción general del estado: el diseño de dos líneas utiliza los tamaños de texto estándar, en línea con los otros widgets",
+        "pl": "Przegląd stanu - dwuliniowy układ wykorzystuje standardowe rozmiary tekstu, podobnie jak pozostałe widżety",
+        "uk": "Огляд статусу - у дворядковому макеті використовуються стандартні розміри тексту відповідно до інших віджетів",
+        "zh-cn": "状态概述 - 两行布局使用标准文本大小，与其他小部件一致"
+      },
       "0.80.1": {
         "en": "Status overview - new layout \"Recently changed\" (history): lists every closed hint the adapter recorded in aura.0.status.<category>.history (survives restarts) with relative date, \"by button\" or \"detected automatically\", how long the battery was weak and how long the previous one lasted; \"Reopen\" takes back a change confirmed by mistake (reopen:<id>@<time> on .cmd); import:<JSON> on .cmd and a one-time takeover of 0_userdata.0.Batterien.Verlauf bring in an older record; retention is set in the instance settings (default 50 changes / 2 years)",
         "de": "Statusübersicht – neues Layout „Kürzlich geändert“ (Verlauf): listet jeden geschlossenen Hinweis auf, den der Adapter in aura.0.status.<category>.history aufgezeichnet hat (überlebt Neustarts), mit relativem Datum, „per Knopfdruck“ oder „automatisch erkannt“, wie lange der Akku schwach war und wie lange der vorherige gehalten hat; „Reopen“ nimmt eine versehentlich bestätigte Änderung zurück (reopen:<id>@<time> on .cmd); import:<JSON> auf .cmd und eine einmalige Übernahme von 0_userdata.0.Batterien.Verlauf bringen einen älteren Datensatz ein; Die Aufbewahrung wird in den Instanzeinstellungen festgelegt (Standard: 50 Änderungen / 2 Jahre).",
@@ -185,19 +198,6 @@
         "pl": "Dziennik adaptera — komunikaty o stanie uruchamiania i rutynowych czynności zostały przeniesione z informacji do debugowania, więc dziennik pozostaje cichy, chyba że coś wymaga uwagi",
         "uk": "Журнал адаптера – повідомлення про стан запуску та регулярні переміщено з інформації до налагодження, тому журнал залишається тихим, якщо щось не потребує уваги",
         "zh-cn": "适配器日志 - 启动和例程状态消息从信息移至调试，因此日志保持安静，除非需要注意某些内容"
-      },
-      "0.77.1": {
-        "en": "🌟 New feature: \"Show last change\" can now show the last update instead (datapoint written, even with the same value) — in the widget display settings, carousel items, list entries, dynamic lists and custom cells\nOpening Aura below a path other than its root (e.g. an old .../aura/ bookmark) loads the dashboard again instead of a blank page - it now redirects to the root (regression in 0.77.0)",
-        "de": "🌟 Neue Funktion: „Letzte Änderung anzeigen“ kann jetzt stattdessen die letzte Aktualisierung anzeigen (geschriebener Datenpunkt, auch mit demselben Wert) – in den Widget-Anzeigeeinstellungen, Karussellelementen, Listeneinträgen, dynamischen Listen und benutzerdefinierten Zellen\nWenn Sie Aura unter einem anderen Pfad als seinem Stammverzeichnis öffnen (z. B. einem alten .../aura/-Lesezeichen), wird das Dashboard anstelle einer leeren Seite erneut geladen – es wird jetzt zum Stammverzeichnis weitergeleitet (Regression in 0.77.0).",
-        "ru": "🌟 Новая функция: «Показать последнее изменение» теперь может отображать последнее обновление (записанную точку данных, даже с тем же значением) — в настройках отображения виджета, элементах карусели, записях списков, динамических списках и настраиваемых ячейках.\nОткрытие Aura по пути, отличному от ее корня (например, старая закладка .../aura/), снова загружает панель управления вместо пустой страницы — теперь она перенаправляется к корню (регрессия в 0.77.0)",
-        "pt": "🌟 Novo recurso: \"Mostrar última alteração\" agora pode mostrar a última atualização (ponto de dados gravado, mesmo com o mesmo valor) — nas configurações de exibição do widget, itens do carrossel, entradas de lista, listas dinâmicas e células personalizadas\nAbrir o Aura abaixo de um caminho diferente de sua raiz (por exemplo, um antigo .../aura/ bookmark) carrega o painel novamente em vez de uma página em branco - agora ele redireciona para a raiz (regressão em 0.77.0)",
-        "nl": "🌟 Nieuwe functie: \"Laatste wijziging weergeven\" kan nu in plaats daarvan de laatste update weergeven (datapunt geschreven, zelfs met dezelfde waarde) - in de weergave-instellingen van de widget, carrouselitems, lijstitems, dynamische lijsten en aangepaste cellen\nAls u Aura opent onder een ander pad dan de hoofdmap (bijvoorbeeld een oude .../aura/bladwijzer), wordt het dashboard opnieuw geladen in plaats van een lege pagina - het wordt nu omgeleid naar de hoofdmap (regressie in 0.77.0)",
-        "fr": "🌟 Nouvelle fonctionnalité : \"Afficher la dernière modification\" peut désormais afficher la dernière mise à jour à la place (point de données écrit, même avec la même valeur) — dans les paramètres d'affichage du widget, les éléments du carrousel, les entrées de liste, les listes dynamiques et les cellules personnalisées\nOuvrir Aura sous un chemin autre que sa racine (par exemple un ancien signet .../aura/) charge à nouveau le tableau de bord au lieu d'une page vierge - il redirige désormais vers la racine (régression dans 0.77.0)",
-        "it": "🌟 Nuova funzionalità: \"Mostra ultima modifica\" ora può mostrare invece l'ultimo aggiornamento (datapoint scritto, anche con lo stesso valore) - nelle impostazioni di visualizzazione del widget, elementi del carosello, voci dell'elenco, elenchi dinamici e celle personalizzate\nL'apertura di Aura sotto un percorso diverso dalla sua radice (ad esempio un vecchio .../aura/ segnalibro) carica nuovamente la dashboard invece di una pagina vuota: ora reindirizza alla radice (regressione in 0.77.0)",
-        "es": "🌟 Nueva característica: \"Mostrar último cambio\" ahora puede mostrar la última actualización (punto de datos escrito, incluso con el mismo valor): en la configuración de visualización del widget, elementos del carrusel, entradas de lista, listas dinámicas y celdas personalizadas\nAl abrir Aura debajo de una ruta distinta a su raíz (por ejemplo, un antiguo marcador .../aura/) se carga el panel nuevamente en lugar de una página en blanco; ahora redirige a la raíz (regresión en 0.77.0)",
-        "pl": "🌟 Nowa funkcja: „Pokaż ostatnią zmianę” może teraz zamiast tego wyświetlać ostatnią aktualizację (zapisany punkt danych, nawet o tej samej wartości) – w ustawieniach wyświetlania widżetu, elementach karuzeli, wpisach list, listach dynamicznych i komórkach niestandardowych\nOtwarcie Aury poniżej ścieżki innej niż jej katalog główny (np. stara .../aura/zakładka) powoduje ponowne załadowanie dashboardu zamiast pustej strony - teraz przekierowuje do katalogu głównego (regresja w wersji 0.77.0)",
-        "uk": "🌟 Нова функція: «Показати останню зміну» тепер може показувати останнє оновлення натомість (записана точка даних, навіть із тим самим значенням) — у налаштуваннях відображення віджетів, елементах каруселі, записах списків, динамічних списках і користувацьких клітинках\nВідкриття Aura нижче шляху, відмінного від його кореня (наприклад, старої .../aura/ закладки), знову завантажує інформаційну панель замість порожньої сторінки - тепер вона переспрямовує до кореня (регресія у 0.77.0)",
-        "zh-cn": "🌟 新功能：“显示最后更改”现在可以显示最后更新（写入的数据点，即使具有相同的值） - 在小部件显示设置、轮播项目、列表条目、动态列表和自定义单元格中\n在根目录以外的路径下打开 Aura（例如旧的 .../aura/ 书签）会再次加载仪表板而不是空白页面 - 它现在重定向到根目录（0.77.0 中的回归）"
       }
     }
   },

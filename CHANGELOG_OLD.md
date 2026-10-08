@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.71.1 (2026-09-28)
+- Icon picker - picking a PNG/GIF adapter icon now asks right away whether it keeps its colours or is drawn in the icon colour, and the current icon's colour setting can be switched later at the bottom of the picker ([#716](https://github.com/hdering/ioBroker.aura/issues/716))
+- 🌟 **New feature:** Universal widget / custom layout - the colour fields of a "State icon" and "Switch" cell now show the colour the cell really draws when none is set, instead of a green that was never applied ([#716](https://github.com/hdering/ioBroker.aura/issues/716))
+- 🌟 **New feature:** Header items - a centred title now stays in the middle of the card when values or buttons sit on the right, and items on "Row 1 centre" sit beside the title instead of covering it - left, right or below, chosen per item; the header editor shows the row that way. Lists keep their header line and divider when only header items are shown, with title and icon off. New "Row 1 left" place. Title and icon are now tiles in the header editor: tap or drag them to move the title (left, centre, right) and the icon (far left, before or after the title, far right), and the title can move to the second row; Appearance only switches them on and off ([#676](https://github.com/hdering/ioBroker.aura/issues/676))
+- Widget editor - Appearance groups icon, title, icon picker/size and the header in one compact block, and gets a reset button like Advanced ([#676](https://github.com/hdering/ioBroker.aura/issues/676))
+- Fill level - the "Bar" layout can show the value inside the bar, which then uses the width the label gave up; orientation and bar size are now settable for this layout too ([#719](https://github.com/hdering/ioBroker.aura/issues/719))
+- Fill level / Universal widget - the bar's fill colour, unfilled area and the value's text colour over each part can be set separately, the same settings in the fill level bar and the progress cell; the progress cell can also show its value beside the bar ([#720](https://github.com/hdering/ioBroker.aura/issues/720))
+
 ## 0.71.0 (2026-09-27)
 - 🌟 **New feature:** Settings - "Fill window width" grid can now also stretch vertically: rows either scale with the width (widgets keep their aspect ratio) or fill the window height; off by default ([#413](https://github.com/hdering/ioBroker.aura/issues/413))
 - 🌟 **New feature:** Widget fullscreen - browser fullscreen no longer drops back right after opening when entering it resizes the window across a layout breakpoint (Firefox on phones in landscape) ([#711](https://github.com/hdering/ioBroker.aura/issues/711))
