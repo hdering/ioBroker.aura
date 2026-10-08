@@ -259,6 +259,7 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 | Effekt | `Pulsieren` · `Blinken` · `Nur Rand pulsiert` |
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
+| Widget deaktivieren | grau hinterlegt, Bedienelemente und Klick-Aktion gesperrt, keine Schreibzugriffe; nur im Frontend |
 
 `Nur Rand pulsiert` lässt den Inhalt lesbar und pulst nur einen Ring um die Karte. Die **Rand-Farbe**
 steht direkt unter der Auswahl; ohne sie nimmt der Ring die Rahmenfarbe der Regel, sonst den Akzent.

@@ -192,6 +192,8 @@ export interface ConditionResult {
     effect: 'pulse' | 'blink' | 'border' | null;
     hidden: boolean; // widget should be hidden
     reflow: boolean; // remove from grid so others slide up
+    /** Greyed out and not operable while a rule with `disableWidget` matches. */
+    disabled: boolean;
 }
 
 /** The half of a ConditionElement that becomes a class on the frame root. */
@@ -223,6 +225,7 @@ const EMPTY_RESULT: ConditionResult = {
     effect: null,
     hidden: false,
     reflow: false,
+    disabled: false,
 };
 
 // Shared "nothing changed" set for every evaluation that is not driven by a live
@@ -275,6 +278,7 @@ function computeResult(
     let effect: 'pulse' | 'blink' | 'border' | null = null;
     let hidden = false;
     let reflow = false;
+    let disabled = false;
     applySourceValues(values, ctx);
     for (const cond of conditions) {
         const matched = evaluateConditionWithSource(cond, values, ctx);
@@ -305,6 +309,8 @@ function computeResult(
                 }
             }
             if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink' | 'border';
+            // Absorbing like hiding: any matching rule that disables wins.
+            if (cond.disableWidget) disabled = true;
         }
         // Hiding is absorbing: once a rule hides the widget, no later rule brings it back.
         if (conditionHides(cond, matched)) {
@@ -321,6 +327,7 @@ function computeResult(
         effect,
         hidden,
         reflow,
+        disabled,
     };
 }
 
@@ -395,6 +402,7 @@ export function useConditionStyle(
                   effect: null,
                   hidden: true,
                   reflow: false,
+                  disabled: false,
               }
             : EMPTY_RESULT;
         condLog('init (cache miss/partial — pessimistic in-place hide)', {
@@ -460,6 +468,7 @@ export function useConditionStyle(
                       effect: null,
                       hidden: true,
                       reflow: false,
+                      disabled: false,
                   }
                 : EMPTY_RESULT;
         };
@@ -581,6 +590,7 @@ export function useConditionStyle(
                     JSON.stringify(prev.parts) === JSON.stringify(next.parts) &&
                     prev.hidden === next.hidden &&
                     prev.reflow === next.reflow &&
+                    prev.disabled === next.disabled &&
                     JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars) &&
                     JSON.stringify(prev.set) === JSON.stringify(next.set)
                 ) {

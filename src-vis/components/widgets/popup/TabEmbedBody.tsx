@@ -31,6 +31,7 @@ const EMPTY_COND: ConditionResult = {
     effect: null,
     hidden: false,
     reflow: false,
+    disabled: false,
 };
 
 /**

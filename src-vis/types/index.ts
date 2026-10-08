@@ -865,6 +865,7 @@ export interface WidgetCondition {
     // (i.e. hides while the condition is false).
     visibilityMode?: 'hideOnMatch' | 'showOnMatch';
     reflow?: boolean; // if hiding: remove from grid so other widgets slide up
+    disableWidget?: boolean; // while the rule matches: grey the widget out and block every click and write
 }
 
 // ── Conditional formatting of a single element ────────────────────────────────

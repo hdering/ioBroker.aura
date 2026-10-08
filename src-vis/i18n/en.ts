@@ -1641,6 +1641,8 @@ export const en: Record<TranslationKey, string> = {
     'cond.showOnMatchTabHint': 'Tab is hidden and appears only when the condition is met',
     'cond.pushOthers': 'Push other widgets up',
     'cond.pushOthersHint': 'Widget is removed from the grid, others fill the space',
+    'cond.disableWidget': 'Disable widget',
+    'cond.disableWidgetHint': 'While the condition matches: greyed out, cannot be operated',
     'cond.rules': 'Condition Rules',
     'cond.rulesHint': 'Colors change when conditions are met',
     'cond.noRules': 'No rules yet. Create a rule to get started.',

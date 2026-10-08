@@ -54,7 +54,7 @@ import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { supportsAutoHeight } from '../../utils/autoHeight';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
-import { WidgetWriteLockContext } from '../../hooks/widgetWriteLock';
+import { WidgetWriteLockContext, useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { SavePresetDialog } from '../config/SavePresetDialog';
@@ -6862,6 +6862,12 @@ function WidgetFrameInner({
 
     // Evaluate conditions against live ioBroker values
     const conditionResult = useConditionStyle(conditions, rid, sourceCtx);
+    // "Widget deaktivieren": greyed out, no click reaches a control, and the write
+    // lock stops what a click is not needed for. A disabled group passes the lock
+    // down to its children, whose own frames would otherwise reset it.
+    const parentWriteLock = useWidgetWriteLock();
+    const condDisabled = !editMode && conditionResult.disabled;
+    const writeLock = editorLock || condDisabled || parentWriteLock;
 
     // Badges (overlay indicators) — stable reference like conditions above
     const badges = (baseConfig.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
@@ -7369,7 +7375,7 @@ function WidgetFrameInner({
     };
 
     const handleWidgetClick = (e: React.MouseEvent) => {
-        if (editMode || !hasClickAction) return;
+        if (editMode || !hasClickAction || condDisabled) return;
         // Portal backdrop clicks bubble through the React tree back here — ignore while popup is open
         if (popupOpen) return;
         // Interactive controls (button, input, …) and rows that open their own popup
@@ -7754,7 +7760,8 @@ function WidgetFrameInner({
     return (
         <div
             ref={focusRef}
-            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${ownClasses} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''}`}
+            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${ownClasses} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''} ${condDisabled ? 'aura-cond-disabled' : ''}`}
+            aria-disabled={condDisabled || undefined}
             onClick={handleWidgetClick}
             onContextMenu={
                 editMode
@@ -7788,7 +7795,7 @@ function WidgetFrameInner({
                               : isCollapsed
                                 ? `${collapsedPadY()}px ${widgetPadding}px`
                                 : widgetPadding,
-                          cursor: !editMode && hasClickAction ? 'pointer' : undefined,
+                          cursor: !editMode && hasClickAction && !condDisabled ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',
                           ...(bgImage ? BG_IMAGE_HOST_STYLE : {}),
@@ -7812,7 +7819,7 @@ function WidgetFrameInner({
                               : isCollapsed
                                 ? `${collapsedPadY()}px ${widgetPadding}px`
                                 : widgetPadding,
-                          cursor: !editMode && hasClickAction ? 'pointer' : undefined,
+                          cursor: !editMode && hasClickAction && !condDisabled ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',
                           ...(bgImage ? BG_IMAGE_HOST_STYLE : {}),
@@ -7824,6 +7831,7 @@ function WidgetFrameInner({
             }
         >
             {bgImage && <BackgroundImageLayer image={bgImage} />}
+            {condDisabled && <div className="aura-cond-disabled-veil" aria-hidden />}
             {flashCell !== null && (
                 <style key={flashCell.key}>{`
           .aura-widget-${config.id} .aura-custom-cell-${flashCell.idx} {
@@ -8110,7 +8118,7 @@ function WidgetFrameInner({
                             <div className="h-full w-full" style={{ background: 'var(--app-bg)', opacity: 0.3 }} />
                         }
                     >
-                        <WidgetWriteLockContext.Provider value={editorLock}>
+                        <WidgetWriteLockContext.Provider value={writeLock}>
                             <HeaderSlotsContext.Provider value={headerSlots}>
                                 {(() => {
                                     const body = (
