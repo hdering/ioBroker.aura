@@ -12,6 +12,7 @@ Zeigt von selbst, was Aufmerksamkeit braucht: offene Fenster und Türen, schwach
 | `card` | Kacheln |
 | `minimal` | Pillen |
 | `count` | nur der Zähler |
+| `history` | Zuletzt gewechselt – geschlossene Hinweise aus dem Adapter-Verlauf, siehe unten |
 
 Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`, `compact` und `twoline`.
 
@@ -54,6 +55,7 @@ Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schl
 | `aura.0.status.<cat>.list` | Adapter → alle | JSON-Liste der Einträge |
 | `aura.0.status.<cat>.cmd` | Widget / Skript → Adapter | Befehle, siehe unten |
 | `aura.0.status.<cat>.event` | Adapter → Skript | `new` · `reopened` · `closed` (JSON) |
+| `aura.0.status.<cat>.history` | Adapter → alle | geschlossene Einträge, neueste zuerst (JSON) |
 | `aura.0.status.<cat>.sources` | Adapter | welche Widgets was beobachten |
 | `aura.0.status.register` | Widget → Adapter | Anmeldung der Widgets |
 
@@ -76,6 +78,8 @@ Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schl
 | `unsnooze:<id>` | Zurückstellen aufheben |
 | `add:<id>` / `add:<id>@2026-09-20` | Eintrag anlegen, optional mit „seit“ |
 | `remove:<id>` | Eintrag löschen, ohne Nachkontrolle |
+| `reopen:<id>@<closedAt>` | Wechsel zurücknehmen: Verlaufseintrag weg, Eintrag wieder offen, Event `reopened` mit `reason: "manual"` |
+| `import:<JSON-Array>` | alten Verlauf übernehmen: `{datenpunkt, ts, seit, name, art}` oder das eigene Format; Doppelte werden übersprungen |
 | `{"cmd":"add","id":"…","since":…,"count":3}` | JSON, auch als Array |
 
 `<id>` ist der Datenpunkt, die Geräte-Id oder nur die Seriennummer (`ack:0020da499b8f41`).
@@ -88,12 +92,65 @@ on({ id: 'aura.0.status.battery.event', change: 'any' }, (obj) => {
     if (e.type === 'reopened') sendTo('telegram.0', `Batterie wieder schwach: ${e.name}`);
 });
 
+// Bestehenden Verlauf übernehmen (0_userdata.0.Batterien.Verlauf holt der Adapter
+// beim Start selbst, solange sein eigener Verlauf leer ist)
+setState('aura.0.status.battery.cmd', `import:${getState('0_userdata.0.Batterien.Verlauf').val}`);
+
 // Bestehende Merkliste übernehmen (Schlüssel = Seriennummer)
 const alt = JSON.parse(getState('0_userdata.0.Batterien.Merkliste').val || '{}');
 setState('aura.0.status.battery.cmd', JSON.stringify(
     Object.entries(alt).map(([serial, v]) => ({ cmd: 'add', id: serial, since: v.since })),
 ));
 ```
+
+## Zuletzt gewechselt
+
+Layout `history`: eine zweite Statusübersicht neben der Merkliste, die zeigt, was geschlossen wurde. Die Daten führt der Adapter (`aura.0.status.<cat>.history`), sie überstehen einen Neustart und sind auf allen Geräten gleich.
+
+![Layout „Zuletzt gewechselt“](assets/statusuebersicht/layout-history.png)
+
+| Zeile | |
+| --- | --- |
+| Name | wie in den anderen Layouts (`namePattern`, `nameFilters`) |
+| vor 3 Tagen | Zeitpunkt des Wechsels – genau im Tooltip |
+| per Knopf / automatisch | „Gewechselt“ getippt bzw. Spannungs-/Prozentsprung erkannt |
+| 3 Wochen schwach | Zeit von der ersten Meldung bis zum Wechsel |
+| hielt 14 Monate | Zeit seit dem vorigen Wechsel desselben Geräts – nur ab dem zweiten |
+| 1,1 V → 1,5 V | Spannung/Prozent vor und nach dem Wechsel, wenn bekannt |
+| ↺ | „Wieder öffnen“ – nach zweitem Tippen zurück in die Merkliste |
+
+| Option | Vorgabe | |
+| --- | --- | --- |
+| `maxRows` | – | höchstens so viele Zeilen, Rest als „+N weitere“; macht die Höhe planbar |
+| `maxAgeDays` | – | nur Wechsel der letzten N Tage |
+| `showReason` | an | per Knopf / automatisch |
+| `showDuration` | an | wie lange schwach |
+| `showLifetime` | an | wie lange die Batterie davor hielt |
+| `showRoom` | an | Raum |
+| `catBattery`, `catUnreach`, `catAlarm` | an | welche Verläufe |
+| `excludeIds`, `excludeIdPatterns`, `filterRooms`, `filterFuncs`, `filterAdapters` | – | wie in den anderen Layouts |
+
+Die Merkliste-Optionen (`latch…`), Zeilen-Aktionen und die Bewertung der Live-Werte wirken in diesem Layout nicht. Die Verlaufs-Instanz meldet nichts beim Adapter an – das tut die Live-Instanz.
+
+| Adapter-Einstellung (Instanz) | Vorgabe | |
+| --- | --- | --- |
+| Gespeicherte Wechsel | 50 | je Kategorie |
+| Wechsel aufbewahren (Tage) | 730 | 0 = unbegrenzt |
+
+Der jeweils letzte Wechsel eines Geräts bleibt immer erhalten, damit der nächste „hielt …“ zeigen kann.
+
+| Feld eines Verlaufseintrags | |
+| --- | --- |
+| `id`, `name`, `room` | Datenpunkt, Gerätename, Raum |
+| `since` | schwach seit (ms) |
+| `closedAt` | gewechselt am (ms) |
+| `reason` | `ack` (Knopf) · `auto` (Sprung erkannt) |
+| `levelBefore`, `levelAfter`, `unit` | Spannung/Prozent vor und nach |
+| `count` | wie oft gemeldet |
+| `prevClosedAt` | voriger Wechsel desselben Geräts (ms) |
+| `imported` | aus einem alten Verlauf übernommen |
+
+**Liste und Verlauf:** Ein geschlossener Eintrag bleibt für die Nachkontrolle (`latchRecheckDays`) mit `ackedAt`/`closedBy` in `list` – nur dort kann eine neue Meldung ihn wieder öffnen („trotz Wechsel am …“). Der Wechsel selbst steht ab dem Schließen in `history` und bleibt dort, wenn der Listeneintrag nach der Nachkontrolle verschwindet.
 
 ## Zeilen-Aktionen
 

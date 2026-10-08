@@ -577,6 +577,47 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             label={'Abgeschnittene Zeilen als „+N weitere“ anzeigen'}
                         />
                     )}
+                    {config.layout === 'history' && (
+                        <>
+                            <div>
+                                <label className={labelCls} style={labelStyle}>
+                                    Nur Wechsel der letzten … Tage (0 = alle)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={3650}
+                                    step={1}
+                                    value={o.maxAgeDays ?? 0}
+                                    onChange={(e) => set({ maxAgeDays: Number(e.target.value) || undefined })}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                                <p
+                                    className="text-[11px] mt-1"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                                >
+                                    „Zuletzt gewechselt“ liest den Verlauf des Adapters (aura.0.status.battery.history).
+                                    Die Merkliste-Optionen gehören an die Live-Übersicht daneben, nicht hierher.
+                                </p>
+                            </div>
+                            <Toggle
+                                checked={o.showReason !== false}
+                                onChange={(v) => set({ showReason: v })}
+                                label={'Kennzeichen „per Knopf“ / „automatisch“'}
+                            />
+                            <Toggle
+                                checked={o.showDuration !== false}
+                                onChange={(v) => set({ showDuration: v })}
+                                label="Wie lange die Batterie schwach war"
+                            />
+                            <Toggle
+                                checked={o.showLifetime !== false}
+                                onChange={(v) => set({ showLifetime: v })}
+                                label={'Laufzeit seit dem vorigen Wechsel („hielt 14 Monate“)'}
+                            />
+                        </>
+                    )}
                     <Toggle
                         checked={o.showCount !== false}
                         onChange={(v) => set({ showCount: v })}

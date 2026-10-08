@@ -10,6 +10,8 @@
  *   - a fresh report inside the recheck window reopens; a stale old value does not
  *   - 1.2 V → 1.5 V closes automatically (when switched on); ±0.1 V does not
  *   - import by serial number (the old script's Merkliste) and by datapoint id
+ *   - every close lands in the history (ack/auto, levels, lifetime link), survives a
+ *     restart, reopen: takes it back, import: takes the old script's Verlauf over
  *
  *   node test/status-latch.test.js
  */
@@ -20,9 +22,10 @@ const { StatusLatchEngine, parseStatusCommand, levelJumped, ACK_GRACE_MS, DAY_MS
 const T0 = Date.UTC(2026, 9, 5, 8, 0, 0);
 const MIN = 60 * 1000;
 
-function makeEngine() {
+function makeEngine(opts = {}) {
     let now = T0;
     const lists = { battery: [], unreach: [], alarm: [] };
+    const histories = { battery: [], unreach: [], alarm: [] };
     const events = [];
     const sources = {};
     const engine = new StatusLatchEngine({
@@ -34,10 +37,15 @@ function makeEngine() {
         writeSources: (cat, src) => {
             sources[cat] = JSON.parse(JSON.stringify(src));
         },
+        writeHistory: (cat, h) => {
+            histories[cat] = h;
+        },
+        ...opts,
     });
     return {
         engine,
         lists,
+        histories,
         events,
         sources,
         advance: (ms) => {
@@ -351,6 +359,180 @@ test('restore from persisted JSON', () => {
     // After a restart the adapter reads the current value once — must not count again.
     b.engine.update(GOLF, { val: true, ts: T0, lc: T0 });
     assert.strictEqual(b.engine.entries('battery')[0].count, 1);
+});
+
+// ── history ─────────────────────────────────────────────────────────────────
+
+test('parse reopen and import', () => {
+    assert.deepStrictEqual(parseStatusCommand(`reopen:${GOLF}@1791459013551`), [
+        { cmd: 'reopen', id: GOLF, closedAt: '1791459013551' },
+    ]);
+    assert.deepStrictEqual(parseStatusCommand('reopen:abc'), [{ cmd: 'reopen', id: 'abc' }]);
+    const imp = parseStatusCommand('import:[{"ts":1,"name":"a@b"}]');
+    assert.strictEqual(imp.length, 1);
+    assert.strictEqual(imp[0].cmd, 'import');
+    assert.strictEqual(imp[0].data, '[{"ts":1,"name":"a@b"}]', 'an @ in the JSON is not a separator');
+});
+
+test('ack writes a history entry; the list entry stays for the recheck', () => {
+    const { engine, lists, histories, events, advance } = makeEngine();
+    register(engine);
+    engine.update(GOLF_V, { val: 1.2, ts: T0 });
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    advance(3 * DAY_MS);
+    engine.command('battery', `ack:${GOLF}`);
+    const h = histories.battery;
+    assert.strictEqual(h.length, 1);
+    assert.strictEqual(h[0].id, GOLF);
+    assert.strictEqual(h[0].name, 'Garage Oeffner Golf');
+    assert.strictEqual(h[0].room, 'Garage');
+    assert.strictEqual(h[0].since, T0);
+    assert.strictEqual(h[0].closedAt, T0 + 3 * DAY_MS);
+    assert.strictEqual(h[0].reason, 'ack');
+    assert.strictEqual(h[0].levelBefore, 1.2);
+    assert.strictEqual(h[0].unit, 'V');
+    assert.strictEqual(h[0].levelAfter, undefined, 'the device has not reported the new battery yet');
+    assert.strictEqual(h[0].prevClosedAt, undefined);
+    assert.ok(lists.battery[0].ackedAt, 'list entry kept (closed) for the recheck');
+    assert.strictEqual(events.at(-1).type, 'closed');
+    assert.strictEqual(events.at(-1).reason, 'ack');
+
+    // The new battery reports later: the history entry gets its level after.
+    advance(MIN);
+    engine.update(GOLF_V, { val: 1.55, ts: T0 + 3 * DAY_MS + MIN });
+    assert.strictEqual(histories.battery[0].levelAfter, 1.55);
+});
+
+test('auto close: reason auto with level before and after', () => {
+    const { engine, histories, events } = makeEngine();
+    register(engine, { autoClose: true });
+    engine.update(GOLF_V, { val: 1.2, ts: T0 });
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    engine.update(GOLF_V, { val: 1.5, ts: T0 + MIN });
+    const h = histories.battery[0];
+    assert.strictEqual(h.reason, 'auto');
+    assert.strictEqual(h.levelBefore, 1.2);
+    assert.strictEqual(h.levelAfter, 1.5);
+    assert.strictEqual(h.unit, 'V');
+    assert.strictEqual(events.at(-1).type, 'closed', 'event unchanged');
+    assert.strictEqual(events.at(-1).reason, 'auto');
+});
+
+test('second change links to the first (lifetime), newest first', () => {
+    const { engine, histories, advance } = makeEngine();
+    register(engine, { recheckDays: 7 });
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    engine.command('battery', `ack:${GOLF}`);
+    const first = histories.battery[0].closedAt;
+    advance(400 * DAY_MS);
+    engine.tick(); // recheck window over → the list entry goes, the history stays
+    assert.strictEqual(engine.entries('battery').length, 0);
+    assert.strictEqual(histories.battery.length, 1);
+    register(engine, { recheckDays: 7 }); // the widget re-registers daily
+    engine.update(GOLF, { val: true, ts: T0 + 400 * DAY_MS, lc: T0 + 400 * DAY_MS });
+    engine.command('battery', `ack:${GOLF}`);
+    assert.strictEqual(histories.battery.length, 2);
+    assert.strictEqual(histories.battery[0].prevClosedAt, first);
+    assert.ok(histories.battery[0].closedAt > histories.battery[1].closedAt);
+});
+
+test('history survives a restart', () => {
+    const a = makeEngine();
+    register(a.engine);
+    a.engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    a.engine.command('battery', `ack:${GOLF}`);
+    const b = makeEngine();
+    b.engine.restore('battery', {
+        list: JSON.stringify(a.lists.battery),
+        sources: JSON.stringify(a.sources.battery),
+        history: JSON.stringify(a.histories.battery),
+    });
+    assert.deepStrictEqual(b.engine.history('battery'), a.histories.battery);
+});
+
+test('reopen takes the change back and opens the list entry again', () => {
+    const { engine, lists, histories, events, advance } = makeEngine();
+    register(engine);
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    advance(MIN);
+    engine.command('battery', `ack:${GOLF}`);
+    const at = histories.battery[0].closedAt;
+    const r = engine.command('battery', `reopen:${GOLF}@${at}`);
+    assert.ok(r.ok, r.errors.join());
+    assert.strictEqual(histories.battery.length, 0);
+    const e = lists.battery.find((x) => x.id === GOLF);
+    assert.strictEqual(e.ackedAt, null, 'open again');
+    assert.strictEqual(e.active, true);
+    assert.strictEqual(e.since, T0, 'keeps when it got weak');
+    const ev = events.at(-1);
+    assert.strictEqual(ev.type, 'reopened');
+    assert.strictEqual(ev.reason, 'manual');
+    assert.strictEqual(ev.ackedAt, at);
+    assert.strictEqual(engine.command('battery', `reopen:${GOLF}@${at}`).ok, false, 'twice → error');
+});
+
+test('reopen after the recheck window rebuilds the list entry', () => {
+    const { engine, lists, histories, advance } = makeEngine();
+    register(engine);
+    engine.update(GOLF_V, { val: 1.1, ts: T0 });
+    engine.update(GOLF, { val: true, ts: T0, lc: T0 });
+    engine.command('battery', `ack:${GOLF}`);
+    advance(30 * DAY_MS);
+    engine.tick();
+    assert.strictEqual(lists.battery.length, 0);
+    engine.command('battery', `reopen:${GOLF}`);
+    assert.strictEqual(histories.battery.length, 0);
+    assert.strictEqual(lists.battery.length, 1);
+    assert.strictEqual(lists.battery[0].active, true);
+    assert.strictEqual(lists.battery[0].minLevel, 1.1);
+});
+
+test('import of the old script record (0_userdata.0.Batterien.Verlauf)', () => {
+    const { engine, histories } = makeEngine();
+    const old = [
+        {
+            ts: 1791459013551,
+            name: 'Kamera Garage',
+            art: 'gewechselt',
+            seit: 1777072802868,
+            datenpunkt: 'eusec.0.T8113N.battery',
+        },
+    ];
+    const r = engine.command('battery', `import:${JSON.stringify(old)}`);
+    assert.ok(r.ok && r.done === 1, JSON.stringify(r));
+    const h = histories.battery[0];
+    assert.strictEqual(h.id, 'eusec.0.T8113N.battery');
+    assert.strictEqual(h.name, 'Kamera Garage');
+    assert.strictEqual(h.closedAt, 1791459013551);
+    assert.strictEqual(new Date(h.closedAt).toISOString().slice(0, 10), '2026-10-08');
+    assert.strictEqual(h.since, 1777072802868);
+    assert.strictEqual(h.reason, 'ack');
+    // Twice → nothing new.
+    engine.command('battery', `import:${JSON.stringify(old)}`);
+    assert.strictEqual(histories.battery.length, 1);
+    // An older record of the same device becomes the predecessor.
+    engine.command('battery', `import:${JSON.stringify([{ ...old[0], ts: 1750000000000 }])}`);
+    assert.strictEqual(histories.battery.length, 2);
+    assert.strictEqual(histories.battery[0].prevClosedAt, 1750000000000);
+});
+
+test('retention: count and age, but the newest entry per id stays', () => {
+    const { engine, histories } = makeEngine({ historyMax: 3, historyDays: 365 });
+    const rec = (id, ts) => ({ datenpunkt: id, ts, name: id });
+    const day = (n) => T0 - n * DAY_MS;
+    engine.command(
+        'battery',
+        `import:${JSON.stringify([
+            rec('a', day(1)),
+            rec('a', day(2)),
+            rec('a', day(3)),
+            rec('a', day(4)),
+            rec('b', day(900)),
+        ])}`,
+    );
+    const ids = histories.battery.map((h) => `${h.id}@${Math.round((T0 - h.closedAt) / DAY_MS)}`);
+    // max 3 kept … plus b's only (and so newest) change, though it is 900 days old.
+    assert.deepStrictEqual(ids, ['a@1', 'a@2', 'a@3', 'b@900']);
 });
 
 console.log(`\n${passed} passed${process.exitCode ? ', some FAILED' : ''}`);

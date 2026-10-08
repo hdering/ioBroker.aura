@@ -31,7 +31,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     camera: ['minimal', 'default', 'custom'],
     fill: ['default', 'battery', 'bar', 'segments', 'wave'],
     trashSchedule: ['default', 'list', 'compact'],
-    statusoverview: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'],
+    statusoverview: ['default', 'compact', 'twoline', 'card', 'minimal', 'count', 'history'],
     messages: ['default', 'count'],
     chart: ['default', 'card'],
     // Both draw their own canvas — `card`/`compact`/`minimal` were never read.
@@ -122,6 +122,7 @@ const LABEL_TEXT: Partial<Record<WidgetLayout, string>> = {
     segments: 'LED-Segmente',
     wave: 'Welle',
     twoline: 'Zweizeilig',
+    history: 'Zuletzt gewechselt',
 };
 
 /** The same layout means something else per widget, so the label does too. */

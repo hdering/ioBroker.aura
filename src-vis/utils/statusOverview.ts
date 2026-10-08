@@ -210,6 +210,17 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     latchAutoClose?: boolean;
     /** Ask before "Gewechselt"/"Quittieren" — the first tap arms the button, the second closes (default true). */
     latchConfirm?: boolean;
+    /**
+     * Layout "history" (Zuletzt gewechselt): only changes of the last N days
+     * (0 / unset = everything the adapter keeps). maxRows caps the rows as usual.
+     */
+    maxAgeDays?: number;
+    /** Layout "history": mark how the hint was closed — by the button or detected automatically (default true). */
+    showReason?: boolean;
+    /** Layout "history": how long the battery was weak before the change ("3 Wochen schwach", default true). */
+    showDuration?: boolean;
+    /** Layout "history": how long the battery before lasted, when the device was changed before ("hielt 14 Monate", default true). */
+    showLifetime?: boolean;
     autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     showAllClear?: boolean; // show the „Alles in Ordnung“ panel when nothing needs attention (default true)
@@ -790,4 +801,155 @@ export function latchFacts(item: StatusItem, showSince: boolean, long = false): 
             `${item.category === 'battery' ? 'trotz Wechsel' : 'trotz Quittierung'} am ${formatDay(l.reopenedAfter)}`,
         );
     return out;
+}
+
+// ── History (layout "history", "Zuletzt gewechselt") ─────────────────────────
+// The adapter records every closed hint in aura.0.status.<cat>.history, newest
+// first (lib/statusLatch.js). The widget only reads it — the record has to survive
+// a restart and look the same on every device.
+
+const DAY_MS = 24 * 3600 * 1000;
+
+/** One entry of aura.0.status.<cat>.history — mirror of the engine's record. */
+export interface HistoryEntry {
+    id: string;
+    name?: string;
+    room?: string;
+    /** When the hint first came up (battery weak since). */
+    since?: number;
+    closedAt: number;
+    /** 'ack' = closed by the button, 'auto' = the level jump was detected. */
+    reason?: 'ack' | 'auto';
+    levelBefore?: number;
+    levelAfter?: number;
+    unit?: string;
+    /** How often the hint came up before it was closed. */
+    count?: number;
+    /** The change before this one of the same datapoint — the battery's lifetime. */
+    prevClosedAt?: number;
+    /** Taken over from the former battery script. */
+    imported?: boolean;
+}
+
+/** A history entry with its category — what the history layout lists. */
+export interface HistoryRow extends HistoryEntry {
+    category: CategoryKey;
+}
+
+/** The parsed history state, newest first. Garbage → []. */
+export function parseHistory(val: unknown): HistoryEntry[] {
+    let arr: unknown = val;
+    if (typeof val === 'string') {
+        try {
+            arr = JSON.parse(val);
+        } catch {
+            return [];
+        }
+    }
+    if (!Array.isArray(arr)) return [];
+    return (arr as HistoryEntry[])
+        .filter((e) => e && typeof e === 'object' && typeof e.id === 'string' && Number.isFinite(e.closedAt))
+        .sort((a, b) => b.closedAt - a.closedAt);
+}
+
+/** The categories the history layout reads: those with a history that are switched on. */
+export function historyCategories(opts: StatusOverviewOptions): CategoryKey[] {
+    return LATCH_CATEGORIES.filter(
+        (c) =>
+            (c === 'battery' && opts.catBattery !== false) ||
+            (c === 'unreach' && opts.catUnreach !== false) ||
+            (c === 'alarm' && opts.catAlarm !== false),
+    );
+}
+
+/**
+ * The same scope filters as the live rows. The datapoint may be gone by now (a
+ * device replaced with its battery) — then the entry's own room and id stand in.
+ */
+export function historyPassesScope(e: HistoryEntry, opts: StatusOverviewOptions, dp?: DatapointEntry): boolean {
+    return passesScope(
+        dp ??
+            ({
+                id: e.id,
+                name: e.name ?? e.id,
+                rooms: e.room ? [e.room] : [],
+                funcs: [],
+            } as unknown as DatapointEntry),
+        opts,
+    );
+}
+
+/** Newest first, within maxAgeDays, then the cap. Returns the rows and how many the cap cut. */
+export function selectHistory(
+    rows: HistoryRow[],
+    opts: StatusOverviewOptions,
+    now: number,
+): { rows: HistoryRow[]; hidden: number } {
+    const maxAge = Number.isFinite(opts.maxAgeDays) && (opts.maxAgeDays as number) > 0 ? opts.maxAgeDays! : 0;
+    const cutoff = maxAge ? now - maxAge * DAY_MS : -Infinity;
+    const all = rows.filter((r) => r.closedAt >= cutoff).sort((a, b) => b.closedAt - a.closedAt);
+    const cap = Number.isFinite(opts.maxRows) && (opts.maxRows as number) > 0 ? Math.floor(opts.maxRows!) : 0;
+    const shown = cap ? all.slice(0, cap) : all;
+    return { rows: shown, hidden: all.length - shown.length };
+}
+
+/** "heute", "gestern", "vor 3 Tagen", "vor 2 Wochen", "vor 5 Monaten", "vor 1 Jahr". */
+export function formatAgo(ts: number, now: number): string {
+    const startOf = (t: number) => {
+        const d = new Date(t);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+    };
+    const days = Math.round((startOf(now) - startOf(ts)) / DAY_MS);
+    if (days <= 0) return 'heute';
+    if (days === 1) return 'gestern';
+    if (days < 14) return `vor ${days} Tagen`;
+    if (days < 60) return `vor ${Math.round(days / 7)} Wochen`;
+    const months = Math.round(days / 30.44);
+    if (months < 12) return `vor ${months} Monaten`;
+    const years = Math.round(days / 365.25);
+    return years === 1 ? 'vor 1 Jahr' : `vor ${years} Jahren`;
+}
+
+/** "3 Tage", "2 Wochen", "14 Monate", "2 Jahre" — a span, rounded to its natural unit. */
+export function formatSpan(ms: number): string {
+    const days = Math.max(0, Math.round(ms / DAY_MS));
+    if (days < 1) return 'weniger als 1 Tag';
+    if (days < 14) return days === 1 ? '1 Tag' : `${days} Tage`;
+    if (days < 60) return `${Math.round(days / 7)} Wochen`;
+    const months = Math.round(days / 30.44);
+    if (months < 24) return `${months} Monate`;
+    return `${Math.round(days / 365.25)} Jahre`;
+}
+
+/** "08.10.2026, 14:03" — the absolute moment behind a relative date (tooltip). */
+export function formatDateTime(ts: number): string {
+    const d = new Date(ts);
+    const p = (n: number) => String(n).padStart(2, '0');
+    return `${p(d.getDate())}.${p(d.getMonth() + 1)}.${d.getFullYear()}, ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/** How long the battery was weak before it was changed (null = unknown). */
+export function weakSpan(e: HistoryEntry): number | null {
+    return Number.isFinite(e.since) && e.since! > 0 && e.since! <= e.closedAt ? e.closedAt - e.since! : null;
+}
+
+/** How long the battery before lasted: from the previous change to this one (null = first change). */
+export function lifetimeSpan(e: HistoryEntry): number | null {
+    return Number.isFinite(e.prevClosedAt) && e.prevClosedAt! < e.closedAt ? e.closedAt - e.prevClosedAt! : null;
+}
+
+/** "1,1 V → 1,5 V" — the levels around the change, when the adapter saw them. */
+export function formatLevels(e: HistoryEntry): string | null {
+    if (!e.unit || (!Number.isFinite(e.levelBefore) && !Number.isFinite(e.levelAfter))) return null;
+    const f = (n: number) =>
+        `${n.toLocaleString('de-DE', { maximumFractionDigits: e.unit === '%' ? 0 : 2 })} ${e.unit}`;
+    if (Number.isFinite(e.levelBefore) && Number.isFinite(e.levelAfter))
+        return `${f(e.levelBefore!)} → ${f(e.levelAfter!)}`;
+    return Number.isFinite(e.levelAfter) ? `jetzt ${f(e.levelAfter!)}` : `zuletzt ${f(e.levelBefore!)}`;
+}
+
+/** The command that takes a change back: "reopen:<id>@<closedAt>" on status.<cat>.cmd. */
+export function reopenCommand(e: HistoryEntry): string {
+    return `reopen:${e.id}@${e.closedAt}`;
 }

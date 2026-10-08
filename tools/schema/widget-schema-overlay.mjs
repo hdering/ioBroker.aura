@@ -577,6 +577,40 @@ export const WIDGET_OPTION_NOTES = {
         falseBase64: { description: 'Eingebettetes Bild (data:-URL) für den falschen Zustand.' },
         falseLabel: { description: 'Beschriftung für den falschen Zustand.' },
     },
+    // Layout "history" (Zuletzt gewechselt) reads the adapter's record of closed
+    // hints instead of live datapoints: the options that judge a live value, draw
+    // a live row or talk to the adapter's latch are dead there — and the history's
+    // own options are dead everywhere else. `onlyLayouts` makes aura_validate say so.
+    statusoverview: Object.fromEntries([
+        ...['maxAgeDays', 'showReason', 'showDuration', 'showLifetime'].map((k) => [k, { onlyLayouts: ['history'] }]),
+        ...[
+            'catWindow',
+            'catLight',
+            'batteryThreshold',
+            'includeLowbatBoolean',
+            'lightRoleScope',
+            'lightsOnlyFunction',
+            'batteryTypeEnabled',
+            'valueFilter',
+            'categoryColors',
+            'categoryBgColors',
+            'contentAlign',
+            'sortBy',
+            'showSince',
+            'sinceCategories',
+            'rowActions',
+            'latchBattery',
+            'latchUnreach',
+            'latchAlarm',
+            'latchRecheckDays',
+            'latchSnoozeDays',
+            'latchAutoClose',
+            'latchConfirm',
+            'showOkCategories',
+            'showAllClear',
+            'allClearText',
+        ].map((k) => [k, { onlyLayouts: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'] }]),
+    ]),
     mediaplayer: {
         // Reported from use: set, accepted by the validator, and without any
         // effect — the player draws its own header and the editor does not even

@@ -432,6 +432,57 @@
       "lg": 4,
       "xl": 4
     },
+    "_statusHistoryHeader": {
+      "type": "header",
+      "text": {
+        "en": "Status overview: battery changes",
+        "de": "Statusübersicht: Batteriewechsel"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "statusHistorySize": {
+      "type": "number",
+      "label": {
+        "en": "Changes kept",
+        "de": "Gespeicherte Wechsel"
+      },
+      "help": {
+        "en": "How many closed hints (battery changes) status.<category>.history keeps. The latest change of each device is always kept, so the next one can show how long the battery lasted. Range: 1-1000. Default: 50.",
+        "de": "Wie viele geschlossene Hinweise (Batteriewechsel) status.<Kategorie>.history behält. Der jeweils letzte Wechsel eines Geräts bleibt immer, damit der nächste die Laufzeit der Batterie zeigen kann. Bereich: 1-1000. Standard: 50."
+      },
+      "min": 1,
+      "max": 1000,
+      "default": 50,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
+    "statusHistoryDays": {
+      "type": "number",
+      "label": {
+        "en": "Keep changes for (days)",
+        "de": "Wechsel aufbewahren (Tage)"
+      },
+      "help": {
+        "en": "Changes older than this are removed (except the latest one per device). 0 = keep forever. Default: 730 (two years).",
+        "de": "Ältere Wechsel werden entfernt (außer dem letzten je Gerät). 0 = unbegrenzt aufbewahren. Standard: 730 (zwei Jahre)."
+      },
+      "min": 0,
+      "max": 3650,
+      "default": 730,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
     "_updateHeader": {
       "type": "header",
       "text": {

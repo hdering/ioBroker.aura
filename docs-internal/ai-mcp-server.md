@@ -2098,8 +2098,9 @@ Adapter-Seite (`lib/statusLatch.js`, Verdrahtung in `main.js` `_initStatusLatch`
 | `status.register` | Widgets melden ihre Datenpunkte (JSON, `source` = Widget-Id, Hash; nur bei Änderung, sonst 1×/Tag) |
 | `status.<cat>.sources` | zusammengeführte Anmeldungen; ohne Erneuerung nach 30 Tagen vergessen |
 | `status.<cat>.list` | Einträge: id, name, room, since, last, count, active, snoozedUntil, ackedAt, closedBy, reopenedAfter, minLevel, unit |
-| `status.<cat>.cmd` | `ack:` `snooze:[@Tage]` `unsnooze:` `add:[@since]` `remove:` — Text oder JSON (auch Array); `<id>` darf Seriennummer/Geräte-Id sein |
-| `status.<cat>.event` | `new` / `reopened` (mit `ackedAt`) / `closed` (`reason` ack, auto, remove) |
+| `status.<cat>.cmd` | `ack:` `snooze:[@Tage]` `unsnooze:` `add:[@since]` `remove:` `reopen:<id>[@closedAt]` `import:<JSON>` — Text oder JSON (auch Array); `<id>` darf Seriennummer/Geräte-Id sein |
+| `status.<cat>.event` | `new` / `reopened` (mit `ackedAt`; nach `reopen:` zusätzlich `reason: "manual"`) / `closed` (`reason` ack, auto, remove) |
+| `status.<cat>.history` | geschlossene Einträge, neueste zuerst: id, name, room, since, closedAt, reason (ack/auto), levelBefore, levelAfter, unit, count, prevClosedAt, imported |
 
 Schema: `RowClickSetting` (`"auto" | ClickAction`) kam als nackter `tsType` heraus. Der
 Generator kennt jetzt „String-Literale + EIN benannter Objekttyp“ → `type: ['string','object']`,
@@ -2107,3 +2108,16 @@ Generator kennt jetzt „String-Literale + EIN benannter Objekttyp“ → `type:
 `"auto" | ClickAction`. `{id}`-artige Platzhalter zählen in `TEMPLATE` als Vorlage, nicht
 als unbekannter Datenpunkt. Rezept `batterie-merkliste`. Tests: `test/status-latch.test.js`,
 `tools/tests/status-overview-latch.mjs`.
+
+### Layout `history` (Zuletzt gewechselt)
+
+Liest `status.<cat>.history` der eingeschalteten Kategorien (`catBattery`/`catUnreach`/`catAlarm`),
+eigene Komponente `StatusHistoryLayout` (der Export `StatusOverviewWidget` verzweigt nach Layout,
+damit ein Layoutwechsel neu mountet). Meldet nichts an — die Latch-Optionen sind dort tot.
+
+| Teil | |
+| --- | --- |
+| Optionen | `maxAgeDays`, `showReason`, `showDuration`, `showLifetime` — `onlyLayouts: ['history']`; die Live-Optionen (catWindow, latch…, rowActions, sortBy …) `onlyLayouts` = die übrigen sechs Layouts (Overlay `WIDGET_OPTION_NOTES.statusoverview`) |
+| Messung | Variante `history` in `COUNTED.statusoverview` mit eigenem `mock` (12 Verlaufseinträge); `line()` nimmt ein Varianten-`mock`. `rowButtons` ist `notForVariants` |
+| Adapter | `list` behält geschlossene Einträge für die Nachkontrolle, `history` hält den Wechsel; Aufbewahrung `statusHistorySize` (50) / `statusHistoryDays` (730), der neueste Eintrag je id bleibt immer; Einmal-Import aus `0_userdata.0.Batterien.Verlauf`, solange `history` leer ist |
+| Tests | `test/status-latch.test.js` (Verlauf, reopen, import, Aufbewahrung), `tools/tests/status-overview-latch.mjs` (Helfer), `npm run test:status-history-ui` (Dev-Server) |

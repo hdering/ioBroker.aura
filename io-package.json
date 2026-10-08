@@ -227,6 +227,8 @@
     "resetAdminPin": false,
     "messageHistorySize": 100,
     "messageRetentionDays": 30,
+    "statusHistorySize": 50,
+    "statusHistoryDays": 730,
     "updateNotify": false,
     "updateNotifyAck": true,
     "mcpEnabled": false,

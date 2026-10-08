@@ -1,5 +1,6 @@
 // Statusübersicht: how the widget merges the adapter's remembered entries into its
-// live rows, and how row actions fill their placeholders.
+// live rows, how row actions fill their placeholders, and what the history layout
+// makes of the adapter's record of closed hints.
 //
 //   node tools/tests/status-overview-latch.mjs
 //
@@ -217,6 +218,70 @@ eq(
     'Garage Oeffner Golf (Garage) ist offen',
 );
 eq('battery script value', m.fillRowTemplate(presets['battery-script'].action.value, ctx), 'gewechselt:0020DA499B8F41');
+
+// ── history layout ───────────────────────────────────────────────────────────
+{
+    const D = 86400000;
+    const NOW = new Date(2026, 9, 8, 15, 0).getTime();
+    eq('ago today', m.formatAgo(NOW - 3600000, NOW), 'heute');
+    eq('ago yesterday', m.formatAgo(NOW - D, NOW), 'gestern');
+    eq('ago days', m.formatAgo(NOW - 3 * D, NOW), 'vor 3 Tagen');
+    eq('ago weeks', m.formatAgo(NOW - 40 * D, NOW), 'vor 6 Wochen');
+    eq('ago months', m.formatAgo(NOW - 150 * D, NOW), 'vor 5 Monaten');
+    eq('ago one year', m.formatAgo(NOW - 400 * D, NOW), 'vor 1 Jahr');
+    eq('ago years', m.formatAgo(NOW - 800 * D, NOW), 'vor 2 Jahren');
+    eq('span day', m.formatSpan(D), '1 Tag');
+    eq('span weeks', m.formatSpan(21 * D), '3 Wochen');
+    eq('span months', m.formatSpan(426 * D), '14 Monate');
+    eq('span years', m.formatSpan(800 * D), '2 Jahre');
+
+    const e = {
+        id: 'a',
+        closedAt: NOW,
+        since: NOW - 21 * D,
+        prevClosedAt: NOW - 426 * D,
+        unit: 'V',
+        levelBefore: 1.1,
+        levelAfter: 1.5,
+    };
+    eq('weak span', m.weakSpan(e), 21 * D);
+    eq('lifetime', m.lifetimeSpan(e), 426 * D);
+    eq('no lifetime on a first change', m.lifetimeSpan({ id: 'a', closedAt: NOW }), null);
+    eq('levels', m.formatLevels(e), '1,1 V → 1,5 V');
+    eq('level before only', m.formatLevels({ ...e, levelAfter: undefined }), 'zuletzt 1,1 V');
+    eq('no levels without a unit', m.formatLevels({ id: 'a', closedAt: NOW }), null);
+    eq('reopen command', m.reopenCommand(e), `reopen:a@${NOW}`);
+
+    eq('parse garbage', m.parseHistory('nope'), []);
+    eq(
+        'parse sorts newest first, drops broken entries',
+        m
+            .parseHistory(JSON.stringify([{ id: 'x', closedAt: 1 }, { id: 'y' }, { id: 'z', closedAt: 5 }]))
+            .map((h) => h.id),
+        ['z', 'x'],
+    );
+    eq('categories: battery/unreach/alarm when on', m.historyCategories({}), ['battery', 'unreach', 'alarm']);
+    eq('categories: only battery', m.historyCategories({ catUnreach: false, catAlarm: false }), ['battery']);
+
+    const rows = [0, 1, 2, 3].map((i) => ({
+        id: `r${i}`,
+        category: 'battery',
+        closedAt: NOW - i * 20 * D,
+        room: 'Garage',
+    }));
+    const sel = m.selectHistory(rows, { maxRows: 2 }, NOW);
+    eq('cap', [sel.rows.map((r) => r.id), sel.hidden], [['r0', 'r1'], 2]);
+    const aged = m.selectHistory(rows, { maxAgeDays: 30 }, NOW);
+    eq('maxAgeDays', [aged.rows.map((r) => r.id), aged.hidden], [['r0', 'r1'], 0]);
+    eq('scope: room of the entry', m.historyPassesScope(rows[0], { filterRooms: 'Garage' }), true);
+    eq('scope: other room', m.historyPassesScope(rows[0], { filterRooms: 'Keller' }), false);
+    eq('scope: exclude pattern', m.historyPassesScope(rows[0], { excludeIdPatterns: 'r0' }), false);
+    eq(
+        'scope: adapter',
+        m.historyPassesScope({ id: 'hm-rpc.1.X.0.LOW_BAT', closedAt: 1 }, { filterAdapters: 'zigbee.0' }),
+        false,
+    );
+}
 
 console.log(failed ? `\n${failed} FAILED` : '\nall passed');
 process.exit(failed ? 1 : 0);

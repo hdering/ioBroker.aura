@@ -8,6 +8,8 @@ const path = require('node:path');
 const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS } = require('./lib/countdowns');
 const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
+/** Record of battery changes kept by the former battery script — imported once (status.battery.history). */
+const LEGACY_BATTERY_HISTORY_ID = '0_userdata.0.Batterien.Verlauf';
 
 /** Channel names of aura.<inst>.status.<cat> (Statusübersicht, remembered hints). */
 const STATUS_CATEGORY_NAMES = { battery: 'Batterien', unreach: 'Nicht erreichbar', alarm: 'Rauch- & Wasser-Alarme' };
@@ -4397,6 +4399,12 @@ class Aura extends utils.Adapter {
             },
             writeSources: (cat, sources) =>
                 queue(() => this.setStateAsync(`status.${cat}.sources`, JSON.stringify(sources), true)),
+            writeHistory: (cat, history) =>
+                queue(() => this.setStateAsync(`status.${cat}.history`, JSON.stringify(history), true)),
+            historyMax: Number(this.config?.statusHistorySize) || undefined,
+            historyDays: Number.isFinite(Number(this.config?.statusHistoryDays))
+                ? Number(this.config.statusHistoryDays)
+                : undefined,
         });
         try {
             await this.setObjectNotExistsAsync('status', {
@@ -4429,12 +4437,18 @@ class Aura extends utils.Adapter {
                         native: {},
                     });
                 }
-                const [list, sources] = await Promise.all([
+                const [list, sources, history] = await Promise.all([
                     this.getStateAsync(`status.${cat}.list`),
                     this.getStateAsync(`status.${cat}.sources`),
+                    this.getStateAsync(`status.${cat}.history`),
                 ]);
-                this._statusLatch.restore(cat, { list: list && list.val, sources: sources && sources.val });
+                this._statusLatch.restore(cat, {
+                    list: list && list.val,
+                    sources: sources && sources.val,
+                    history: history && history.val,
+                });
             }
+            await this._importLegacyBatteryHistory();
             this.subscribeStates('status.*');
             this._statusLatch.tick();
             await this._syncStatusSubscriptions(true);
@@ -4447,6 +4461,35 @@ class Aura extends utils.Adapter {
             }, 3600 * 1000);
         } catch (e) {
             this.log.warn(`[status] init failed: ${e.message}`);
+        }
+    }
+
+    /**
+     * One-time takeover of the former battery script's record of changes
+     * (0_userdata.0.Batterien.Verlauf): imported while the own history is still
+     * empty. Later the same records come through `import:<JSON>` on battery.cmd.
+     */
+    async _importLegacyBatteryHistory() {
+        if (this._statusLatch.history('battery').length) {
+            return;
+        }
+        let st;
+        try {
+            st = await this.getForeignStateAsync(LEGACY_BATTERY_HISTORY_ID);
+        } catch {
+            return;
+        }
+        const raw = st && typeof st.val === 'string' ? st.val.trim() : '';
+        if (!raw || raw === '[]') {
+            return;
+        }
+        const res = this._statusLatch.command('battery', `import:${raw}`);
+        if (res.done) {
+            this.log.info(
+                `[status] battery history taken over from ${LEGACY_BATTERY_HISTORY_ID} — the old datapoint is no longer read`,
+            );
+        } else if (res.errors.length) {
+            this.log.info(`[status] ${LEGACY_BATTERY_HISTORY_ID} not imported: ${res.errors.join('; ')}`);
         }
     }
 

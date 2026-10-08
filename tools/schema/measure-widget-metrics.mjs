@@ -638,6 +638,27 @@ const COUNTED = [
             },
             { key: 'card', layout: 'card', label: 'Layout "card"' },
             { key: 'minimal', layout: 'minimal', label: 'Layout "minimal"' },
+            {
+                // The adapter's record of battery changes, not live datapoints: the
+                // rows come from status.battery.history (seeded with more than the
+                // largest count, so maxRows decides). Every row is two lines that
+                // truncate — name and date, then reason chip and facts — so its
+                // height does not depend on the width or on the text.
+                key: 'history',
+                layout: 'history',
+                label: 'Layout "history" (Zuletzt gewechselt)',
+                build: (n) => ({
+                    options: {
+                        maxRows: n,
+                        showMore: false,
+                        catWindow: false,
+                        catLight: false,
+                        catUnreach: false,
+                        catAlarm: false,
+                    },
+                }),
+                mock: () => ({ 'aura.0.status.battery.history': JSON.stringify(historyRows(12)) }),
+            },
         ],
         // „count“ draws the alert count and nothing else — no rows, so no slope.
         freeLayouts: ['count'],
@@ -683,8 +704,9 @@ const COUNTED = [
                 key: 'rowButtons',
                 label: 'Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)',
                 // The two-line layout puts its buttons beside both lines and is
-                // measured with them in it.
-                notForVariants: ['twoline'],
+                // measured with them in it; the history has its own „Wieder öffnen“
+                // in every row and reads neither rowActions nor the latch.
+                notForVariants: ['twoline', 'history'],
                 when: {
                     any: [
                         { path: 'rowActions[].label', startsWith: '' },
@@ -723,12 +745,39 @@ const COUNTED = [
                 'der Standardbreite (siehe atWidthPx). Auf einer breiteren Karte stehen mehrere in einer ' +
                 'Zeile und die Höhe je Zeile sinkt entsprechend',
             'ohne maxRows ist die Zeilenzahl unbekannt — dann ist diese Rechnung keine Auskunft über die Höhe',
+            'Layout „history“: maxRows ist die OBERGRENZE — es erscheinen nur so viele Wechsel, wie der ' +
+                'Adapter kennt (und maxAgeDays durchlässt); bis dahin zeigt das Widget weniger Zeilen bzw. ' +
+                '„Noch keine Wechsel erfasst“. Die Zeilen sind zweizeilig und kürzen ab, die Höhe je Zeile ' +
+                'hängt nicht an Breite oder Text',
             'Layout „twoline“: gemessen bei 480 px Breite mit Zeilen EINER Kategorie, die dann keine ' +
                 'Überschrift haben. Schmaler (unter etwa 420 px) rutschen die Knöpfe unter den Text — die Zeile ' +
                 'wird dann etwa 45 px höher; ein langer Name oder Hinweis bricht ebenfalls um',
         ],
     },
 ];
+
+/**
+ * A battery-change record as the adapter writes it (status.battery.history), newest
+ * first: every row with room, reason, weak span, lifetime and levels — the fullest
+ * row the history layout draws.
+ */
+function historyRows(n) {
+    const day = 24 * 3600 * 1000;
+    const now = Date.UTC(2026, 9, 8, 12);
+    return Array.from({ length: n }, (_, i) => ({
+        id: `hm-rpc.0.MESS${i}.0.LOW_BAT`,
+        name: `Fensterkontakt Messung ${i + 1}`,
+        room: 'Wohnzimmer',
+        since: now - (i + 1) * 10 * day - 21 * day,
+        closedAt: now - (i + 1) * 10 * day,
+        reason: i % 2 ? 'auto' : 'ack',
+        levelBefore: 2.2,
+        levelAfter: 3.0,
+        unit: 'V',
+        count: 2,
+        prevClosedAt: now - (i + 1) * 10 * day - 420 * day,
+    }));
+}
 
 /** Datapoint per type where the default demo value would not do. */
 const DP_FOR = {
@@ -1421,8 +1470,11 @@ const counted = {};
  * Two counts are the minimum, four give the same slope and catch a row that is
  * not linear at all.
  */
-async function line(spec, { cols, counts, build, layout, fontScale }) {
+async function line(spec, { cols, counts, build, layout, fontScale, mock }) {
     const points = [];
+    // A layout that reads other states than the type's default (the status
+    // overview's history) brings its own mock.
+    const mockOf = mock ?? spec.mock;
     for (const n of counts) {
         const r = await requiredPx(spec.type, {
             cols,
@@ -1430,7 +1482,7 @@ async function line(spec, { cols, counts, build, layout, fontScale }) {
             layout,
             fontScale,
             ...build(n),
-            mock: spec.mock ? spec.mock(n) : undefined,
+            mock: mockOf ? mockOf(n) : undefined,
         });
         if (r.error) {
             return { error: r.error };
@@ -1527,8 +1579,15 @@ for (const spec of COUNTED) {
         // A layout whose row reflows with the width can be measured at a width of
         // its own (`cols`); aura_measure names it next to the number.
         const vCols = v.cols ?? cols;
-        const r = await line(spec, { cols: vCols, counts, build, layout: v.layout });
-        const rHigh = await line(spec, { cols: vCols, counts, build, layout: v.layout, fontScale: SCALE_HIGH });
+        const r = await line(spec, { cols: vCols, counts, build, layout: v.layout, mock: v.mock });
+        const rHigh = await line(spec, {
+            cols: vCols,
+            counts,
+            build,
+            layout: v.layout,
+            fontScale: SCALE_HIGH,
+            mock: v.mock,
+        });
         if (r.error || rHigh.error) {
             console.warn(`  skip ${spec.type}/${v.key}: ${r.error || rHigh.error}`);
             continue;

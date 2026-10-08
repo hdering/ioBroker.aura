@@ -133,7 +133,9 @@ export type WidgetLayout =
     | 'wave'
     | 'bar'
     /** Status overview: two-line rows (dot, bold name, muted facts) with touch buttons. */
-    | 'twoline';
+    | 'twoline'
+    /** Status overview: the closed hints from the adapter's history ("Zuletzt gewechselt"). */
+    | 'history';
 
 // ── Light widget option types ─────────────────────────────────────────────────
 

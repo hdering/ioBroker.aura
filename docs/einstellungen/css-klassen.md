@@ -165,6 +165,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-html-fill` | HTML-Zelle der JSON-Tabelle mit `Breite füllen` |
 | `.aura-status-row-2l` | Statusübersicht: Zeile im Layout „Zweizeilig“ (`twoline`); `data-latch` trägt `active` · `muted` |
 | `.aura-status-action` · `.aura-status-action-lg` | Statusübersicht: Knopf am Zeilenende, große Form der zweizeiligen Zeile |
+| `.aura-status-history-row` · `.aura-status-history-reason` | Statusübersicht: Zeile im Layout „Zuletzt gewechselt“ (`history`), `data-reason` trägt `ack` · `auto`; Kennzeichen „per Knopf“/„automatisch“ |
 
 ```css
 .aura-group-header {

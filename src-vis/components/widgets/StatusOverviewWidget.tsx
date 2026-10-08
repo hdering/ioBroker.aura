@@ -8,6 +8,12 @@ import {
     WifiOff,
     Siren,
     RefreshCw,
+    BatteryFull,
+    Wifi,
+    History,
+    Hand,
+    Zap,
+    RotateCcw,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
@@ -48,6 +54,19 @@ import {
     fillRowTemplate,
     typedActionValue,
     deviceIdFallback,
+    historyCategories,
+    parseHistory,
+    historyPassesScope,
+    selectHistory,
+    formatAgo,
+    formatSpan,
+    formatDateTime,
+    weakSpan,
+    lifetimeSpan,
+    formatLevels,
+    reopenCommand,
+    type HistoryEntry,
+    type HistoryRow,
     type CategoryKey,
     type LatchEntry,
     type LatchWatch,
@@ -121,6 +140,7 @@ const ARM_MS = 3000;
  */
 function RowButton({
     label,
+    ariaLabel,
     title,
     confirm,
     confirmLabel,
@@ -128,7 +148,9 @@ function RowButton({
     disabled,
     onRun,
 }: {
-    label: string;
+    /** Text, or an icon (then name it with ariaLabel). */
+    label: React.ReactNode;
+    ariaLabel?: string;
     title?: string;
     confirm?: boolean;
     confirmLabel?: string;
@@ -147,6 +169,7 @@ function RowButton({
             type="button"
             className="aura-status-action shrink-0 rounded px-1.5 text-[10px] font-semibold leading-[14px] border transition-colors"
             title={title}
+            aria-label={armed ? undefined : ariaLabel}
             disabled={disabled}
             style={{
                 color: armed ? 'var(--widget-bg, var(--app-surface))' : color,
@@ -262,7 +285,7 @@ function readingFor(item: StatusItem): string {
     return l?.level !== undefined && l.unit ? `Batterie schwach (${formatLevel(l.level, l.unit)})` : 'Batterie schwach';
 }
 
-export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
+function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const { subscribe, getState } = useIoBroker();
     const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides);
     const hiddenDevices = useConfigStore((s) => s.frontend.batteryHiddenDevices) ?? EMPTY_HIDDEN;
@@ -1224,6 +1247,284 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                     Keine passenden Datenpunkte gefunden – Kategorien/Filter prüfen.
                 </p>
             )}
+        </div>
+    );
+}
+
+export function StatusOverviewWidget(props: WidgetProps) {
+    // Two components, so switching the layout in the editor remounts instead of
+    // running a different set of hooks in the same component.
+    return props.config.layout === 'history' ? <StatusHistoryLayout {...props} /> : <StatusOverviewLive {...props} />;
+}
+
+/** Category icon of a history row: what was done, not what was wrong. */
+const HISTORY_ICON: Partial<Record<CategoryKey, LucideIcon>> = {
+    battery: BatteryFull,
+    unreach: Wifi,
+    alarm: Siren,
+};
+
+/**
+ * Layout "history" ("Zuletzt gewechselt"): the closed hints the adapter recorded in
+ * status.<cat>.history — when a battery was changed, how long it was weak before,
+ * how long the one before lasted. Read only; "Wieder öffnen" takes a change back
+ * that was confirmed by mistake. Nothing is registered with the adapter here: this
+ * instance stands next to the live overview, which does that.
+ */
+function StatusHistoryLayout({ config, editMode }: WidgetProps) {
+    const { subscribe, getState } = useIoBroker();
+    const hiddenDevices = useConfigStore((s) => s.frontend.batteryHiddenDevices) ?? EMPTY_HIDDEN;
+    const opts = useMemo(() => (config.options ?? {}) as StatusOverviewOptions, [config.options]);
+    const rowPopup = useRowPopup(config, opts, editMode);
+    const t = useT();
+    const cats = useMemo(() => historyCategories(opts), [opts]);
+    const catKey = cats.join(',');
+
+    const [histories, setHistories] = useState<Partial<Record<CategoryKey, HistoryEntry[]>>>({});
+    useEffect(() => {
+        setHistories({});
+        const unsubs = cats.map((cat) => {
+            const id = `${NS}.status.${cat}.history`;
+            const apply = (s: ioBrokerState | null) =>
+                setHistories((prev) => ({ ...prev, [cat]: parseHistory(s?.val) }));
+            getState(id).then(apply);
+            return subscribe(id, apply);
+        });
+        return () => unsubs.forEach((u) => u());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [catKey]);
+    const loaded = cats.every((c) => histories[c] !== undefined);
+
+    // Room/function filters need the datapoint's enums; the cache is shared and
+    // only asked when such a filter is set.
+    const needCache = !!(opts.filterRooms?.trim() || opts.filterFuncs?.trim());
+    const [dpById, setDpById] = useState<Map<string, DatapointEntry> | null>(null);
+    useEffect(() => {
+        if (!needCache) return;
+        let cancelled = false;
+        ensureDatapointCache().then((cache) => {
+            if (!cancelled) setDpById(new Map(cache.map((d) => [d.id, d])));
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [needCache]);
+
+    // Hidden battery devices stay hidden here too.
+    const [deviceIndex, setDeviceIndex] = useState<Awaited<ReturnType<typeof loadDeviceModelIndex>> | null>(null);
+    const needIndex = hiddenDevices.length > 0;
+    useEffect(() => {
+        if (!needIndex) return;
+        let cancelled = false;
+        loadDeviceModelIndex().then((idx) => {
+            if (!cancelled) setDeviceIndex(idx);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [needIndex]);
+
+    const now = Date.now();
+    const { rows, hidden } = useMemo(() => {
+        const all: HistoryRow[] = [];
+        const hiddenSet = new Set(hiddenDevices);
+        for (const cat of cats) {
+            for (const e of histories[cat] ?? []) {
+                const dp = dpById?.get(e.id);
+                if (!historyPassesScope(e, opts, dp)) continue;
+                if (cat === 'battery' && hiddenSet.size && deviceIndex) {
+                    if (hiddenSet.has(resolveDeviceIdForDp(e.id, deviceIndex))) continue;
+                }
+                all.push({ ...e, room: e.room ?? dp?.rooms[0], category: cat });
+            }
+        }
+        return selectHistory(all, opts, now);
+        // `now` changes every render; the list only has to follow the data.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [histories, cats, opts, dpById, deviceIndex, hiddenDevices]);
+
+    const rawLabel = (e: HistoryRow) =>
+        formatItemName({ id: e.id, name: e.name || e.id, room: e.room }, opts.namePattern, opts.nameFilters);
+    const resolveDpTokens = useDpTokenResolver(rows.map(rawLabel));
+    const labelFor = (e: HistoryRow) => {
+        const raw = rawLabel(e);
+        if (!hasLiveToken(raw)) return raw;
+        return finishItemName(resolveDpTokens(raw, e.name || e.id), opts.nameFilters, e.name || e.id);
+    };
+
+    const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
+    const rootCls = autoHeight ? 'w-full flex flex-col' : 'h-full w-full flex flex-col min-h-0';
+    const scrollCls = autoHeight ? 'overflow-visible' : 'flex-1 min-h-0 overflow-y-auto overflow-x-hidden';
+    const showTitle = opts.showTitle !== false && !!config.title;
+    const showCount = opts.showCount !== false;
+    const showRoom = opts.showRoom !== false;
+    const showReason = opts.showReason !== false;
+    const showDuration = opts.showDuration !== false;
+    const showLifetime = opts.showLifetime !== false;
+    const onlyBattery = cats.length === 1 && cats[0] === 'battery';
+    const total = rows.length + hidden;
+
+    const header = (
+        <div className="flex items-center justify-between gap-2 mb-1.5 shrink-0">
+            {showTitle ? (
+                <p
+                    className="aura-widget-title text-xs font-semibold truncate"
+                    style={{ '--aura-title-color': 'var(--text-secondary)' }}
+                >
+                    {config.title}
+                </p>
+            ) : (
+                <span />
+            )}
+            {showCount && loaded && (
+                <span
+                    className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0"
+                    style={{
+                        color: 'var(--text-secondary)',
+                        background:
+                            'color-mix(in srgb, var(--text-secondary) 12%, var(--widget-bg, var(--app-surface)))',
+                    }}
+                >
+                    <History size={12} />
+                    {total} {onlyBattery ? 'Wechsel' : total === 1 ? 'Eintrag' : 'Einträge'}
+                </span>
+            )}
+        </div>
+    );
+
+    const maxAge = Number.isFinite(opts.maxAgeDays) && (opts.maxAgeDays as number) > 0 ? opts.maxAgeDays! : 0;
+    const anyRecorded = cats.some((c) => (histories[c]?.length ?? 0) > 0);
+    const emptyBlock = (
+        <div
+            className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center gap-1.5 text-center px-2`}
+        >
+            <History size={22} style={{ color: 'var(--text-secondary)' }} />
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                {!loaded
+                    ? 'Lädt…'
+                    : anyRecorded && maxAge
+                      ? `Keine Wechsel in den letzten ${maxAge} Tagen`
+                      : 'Noch keine Wechsel erfasst'}
+            </p>
+            {editMode && loaded && cats.length === 0 && (
+                <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    Einen Verlauf haben Batterien, Erreichbarkeit und Alarme – eine davon einschalten.
+                </p>
+            )}
+        </div>
+    );
+
+    const renderRow = (e: HistoryRow, first: boolean) => {
+        const Icon = HISTORY_ICON[e.category] ?? History;
+        const label = labelFor(e);
+        const weak = showDuration ? weakSpan(e) : null;
+        const life = showLifetime ? lifetimeSpan(e) : null;
+        const levels = formatLevels(e);
+        const isBattery = e.category === 'battery';
+        const facts = [
+            showRoom ? e.room : null,
+            weak !== null ? `${formatSpan(weak)} ${isBattery ? 'schwach' : 'gemeldet'}` : null,
+            life !== null ? `hielt ${formatSpan(life)}` : null,
+            levels,
+        ].filter(Boolean) as string[];
+        const reasonAuto = e.reason === 'auto';
+        const reasonText = reasonAuto ? 'automatisch' : 'per Knopf';
+        const rowProps = rowPopup.row(e.id, label);
+        const tip = [
+            `${isBattery ? 'Gewechselt' : 'Geschlossen'} am ${formatDateTime(e.closedAt)}`,
+            e.since ? `${isBattery ? 'schwach' : 'gemeldet'} seit ${formatDateTime(e.since)}` : null,
+            e.prevClosedAt ? `vorheriger Wechsel ${formatDateTime(e.prevClosedAt)}` : null,
+            reasonAuto ? 'automatisch erkannt (Spannungs-/Prozentsprung)' : 'per Knopf bestätigt',
+            (e.count ?? 1) > 1 ? `${e.count}× gemeldet` : null,
+            e.imported ? 'aus dem alten Batterie-Verlauf übernommen' : null,
+        ]
+            .filter(Boolean)
+            .join('\n');
+        return (
+            <div
+                key={`${e.category}:${e.id}@${e.closedAt}`}
+                className="aura-status-history-row flex items-center gap-2 py-1 min-w-0"
+                data-reason={e.reason ?? 'ack'}
+                style={{
+                    borderTop: first ? undefined : '1px solid var(--widget-border)',
+                    cursor: rowProps ? 'pointer' : undefined,
+                }}
+                title={tip}
+                {...rowProps}
+            >
+                <Icon
+                    size={14}
+                    className="shrink-0"
+                    style={{ color: 'var(--badge-ok, var(--accent-green, #22c55e))' }}
+                />
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 min-w-0">
+                        <span
+                            className="flex-1 min-w-0 truncate text-xs font-medium"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            {label}
+                        </span>
+                        <span className="shrink-0 text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {formatAgo(e.closedAt, now)}
+                        </span>
+                    </div>
+                    {(facts.length > 0 || showReason) && (
+                        <div
+                            className="flex items-center gap-1.5 min-w-0 text-[11px] leading-4"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            {showReason && (
+                                <span
+                                    className="aura-status-history-reason shrink-0 inline-flex items-center gap-0.5 rounded px-1 text-[10px] leading-[14px] border"
+                                    style={{
+                                        color: reasonAuto
+                                            ? 'var(--badge-ok, var(--accent-green, #22c55e))'
+                                            : 'var(--text-secondary)',
+                                        borderColor: reasonAuto
+                                            ? 'color-mix(in srgb, var(--badge-ok, var(--accent-green, #22c55e)) 45%, transparent)'
+                                            : 'var(--widget-border)',
+                                    }}
+                                >
+                                    {reasonAuto ? <Zap size={9} /> : <Hand size={9} />}
+                                    {reasonText}
+                                </span>
+                            )}
+                            <span className="min-w-0 truncate">{facts.join(' · ')}</span>
+                        </div>
+                    )}
+                </div>
+                <RowButton
+                    label={<RotateCcw size={11} className="block my-px" />}
+                    ariaLabel="Wieder öffnen"
+                    title="Wieder öffnen – versehentlich bestätigt? Holt den Hinweis zurück in die Liste"
+                    confirm
+                    confirmLabel="Wirklich?"
+                    color="var(--text-secondary)"
+                    disabled={editMode}
+                    onRun={() => setStateDirect(`${NS}.status.${e.category}.cmd`, reopenCommand(e), false)}
+                />
+            </div>
+        );
+    };
+
+    const moreRow =
+        hidden > 0 && opts.showMore !== false ? (
+            <p className="shrink-0 pt-1" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+                {t('calendar.more', { count: hidden })}
+            </p>
+        ) : null;
+
+    return (
+        <div ref={measureRef} className={rootCls}>
+            {header}
+            {rowPopup.node}
+            {rows.length === 0 ? (
+                emptyBlock
+            ) : (
+                <div className={`${scrollCls} pr-0.5`}>{rows.map((e, i) => renderRow(e, i === 0))}</div>
+            )}
+            {moreRow}
         </div>
     );
 }
