@@ -6,4 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Popups - `popup.open` datapoints accept `width` and `height` (px) in the JSON payload to set the popup size (#762)
