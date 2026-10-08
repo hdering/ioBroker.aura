@@ -51,14 +51,14 @@ const GROUP = {
 };
 const SOLO = { ...list('solo-759', 3, 20), gridPos: { x: 0, y: 20, w: 19, h: 6 } };
 
-async function measure(width, settings, editMode = false) {
-    const ctx = await browser.newContext({ viewport: { width, height: 1000 } });
+async function measure(width, settings, editMode = false, { height = 1000, alone = false } = {}) {
+    const ctx = await browser.newContext({ viewport: { width, height } });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => pageErrors.push(e.message));
     await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
     await page.evaluate(
-        ([m, kids, group, solo, settings, editMode]) => {
+        ([m, kids, widgets, settings, editMode]) => {
             window.__auraShot.mockServerState(m);
             window.__auraShot.mock(m);
             window.__auraShot.setFrontend({
@@ -74,9 +74,9 @@ async function measure(width, settings, editMode = false) {
                 ...settings,
             });
             window.__auraShot.groupDefs({ 'def-759': kids });
-            window.__auraShot.showWidgets([group, solo], { editMode });
+            window.__auraShot.showWidgets(widgets, { editMode });
         },
-        [mock, KIDS, GROUP, SOLO, settings, editMode],
+        [mock, KIDS, alone ? [GROUP] : [GROUP, SOLO], settings, editMode],
     );
     let prev = '';
     let m = null;
@@ -139,6 +139,27 @@ for (const [mode, maxExtra] of [
         JSON.stringify([...m.kids, m.solo].map((k) => k?.slack)),
     );
 }
+
+// The group alone on the tab — the issue's picture. 'fill' then stretches every row
+// to ~30 px (40 px with the gap), the coarsest case: whole rows on that pitch leave
+// up to one of them as slack, but no more. Before the fix: group 803 px, slack 91.
+const aloneOpts = { height: 900, alone: true };
+const aloneFixed = await measure(1600, {}, false, aloneOpts);
+const aloneFill = await measure(1600, { gridWidthMode: 'fluid', gridHeightMode: 'fill' }, false, aloneOpts);
+console.log('  alone fixed:', JSON.stringify(aloneFixed));
+console.log('  alone fill:', JSON.stringify(aloneFill));
+check(
+    'fill, group alone: group is not stretched along',
+    aloneFill.group <= aloneFixed.group * 1.2,
+    `${aloneFill.group} vs ${aloneFixed.group} fixed`,
+);
+aloneFill.kids.forEach((k, n) =>
+    check(
+        `fill, group alone: list ${n} slack within one stretched row`,
+        k && k.slack >= 16 && k.slack <= aloneFixed.kids[n].slack + 40,
+        `${k?.slack} vs ${aloneFixed.kids[n].slack} fixed`,
+    ),
+);
 
 // The editor stays on the design pitch, fluid or not.
 const editor = await measure(1920, { gridWidthMode: 'fluid', gridHeightMode: 'fill' }, true);
