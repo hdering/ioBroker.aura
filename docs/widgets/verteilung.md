@@ -171,6 +171,12 @@ Gleiche Konfiguration mit `chartStyle: donut` — die Gruppensumme steht in der 
 
 ![](./assets/verteilung/bsp-vt-zeitraum-30d.png)
 
+### Verbrauch/Ertrag im Zeitraum — eine Gruppe je Zähler
+
+Je Zähler eine eigene Gruppe mit einem Eintrag · `aggregate: consumption` · `showTotals: true` · `showPercent: false` · `visibleRanges: ["24h","7d","30d"]`. Über jedem Balken steht der Zuwachs im gewählten Zeitraum (Ende minus Anfang) — hier Bezug und Einspeisung über **30 Tage**:
+
+![](./assets/verteilung/bsp-vt-zeitraum-summe.png)
+
 ### Anteile, die keine Energie sind
 
 `aggregate: last` · `unit: %` · `showTotals: false` — zwei Datenpunkte (belegt / frei) als Speicherbelegung:
