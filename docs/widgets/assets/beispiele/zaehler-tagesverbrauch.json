@@ -1,0 +1,39 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "PV-Ertrag pro Tag",
+  "datapoint": "demo.0.PV.Ertrag_Gesamt",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartRange": "30d",
+    "echartVisibleRanges": [
+      "7d",
+      "30d"
+    ],
+    "echartLeftUnit": "kWh",
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s1",
+        "name": "PV-Ertrag",
+        "datapointId": "demo.0.PV.Ertrag_Gesamt",
+        "chartType": "bar",
+        "color": "var(--accent-yellow)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "day",
+        "decimals": 1
+      }
+    ]
+  }
+}

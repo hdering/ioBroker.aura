@@ -1,0 +1,44 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "PV-Leistung und Prognose",
+  "datapoint": "demo.0.PV.Leistung",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": true,
+    "echartRange": "24h",
+    "lockRange": true,
+    "echartLeftUnit": "W",
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s33",
+        "name": "Gemessen",
+        "datapointId": "demo.0.PV.Leistung",
+        "chartType": "area",
+        "color": "var(--accent-yellow)",
+        "yAxisIndex": 0,
+        "decimals": 0
+      },
+      {
+        "id": "s34",
+        "name": "Prognose",
+        "datapointId": "demo.0.PV.Prognose_JSON",
+        "chartType": "line",
+        "color": "var(--text-secondary)",
+        "yAxisIndex": 0,
+        "source": "json",
+        "decimals": 0
+      }
+    ]
+  }
+}

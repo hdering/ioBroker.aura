@@ -2,6 +2,8 @@
 
 Anteilige Darstellung beliebig vieler Gruppen aus mehreren Datenpunkten — als 100-%-Balken, Torte oder Donut. Jeder Eintrag wird über einen Verlaufs-Adapter auf **eine Zahl** im gemeinsamen Zeitraum reduziert; die Gruppe zeigt die Anteile daran.
 
+> **Fertige Beispiele mit Bild und Widget-Export zum Importieren:** [Beispiel-Galerie](./beispiele-verteilung)
+
 ![](./assets/verteilung/bsp-vt-bilanz.png)
 
 ## Datenpunkt

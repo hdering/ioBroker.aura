@@ -1,0 +1,56 @@
+{
+  "id": "w-verteilung",
+  "type": "energiebilanz",
+  "title": "PV-Strom der letzten 7 Tage",
+  "datapoint": "",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 11
+  },
+  "options": {
+    "unit": "kWh",
+    "decimals": 1,
+    "range": "7d",
+    "lockRange": true,
+    "chartStyle": "pie",
+    "pieSize": 180,
+    "legendFormat": "icon-label-value",
+    "showSegmentIcon": true,
+    "bars": [
+      {
+        "id": "g-pv",
+        "title": "PV",
+        "legendSide": "right",
+        "entries": [
+          {
+            "id": "e-direkt",
+            "label": "Ins Haus",
+            "datapointId": "demo.0.Haus.PV_Direkt_Heute",
+            "color": "var(--accent-green)",
+            "icon": "House",
+            "aggregate": "consumption"
+          },
+          {
+            "id": "e-batt",
+            "label": "In den Speicher",
+            "datapointId": "demo.0.Speicher.Laden_Heute",
+            "color": "var(--accent)",
+            "icon": "BatteryFull",
+            "aggregate": "consumption"
+          },
+          {
+            "id": "e-netz",
+            "label": "Ins Netz",
+            "datapointId": "demo.0.Netz.Einspeisung_Heute",
+            "color": "var(--accent-yellow)",
+            "icon": "Zap",
+            "aggregate": "consumption"
+          }
+        ]
+      }
+    ]
+  }
+}

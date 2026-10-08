@@ -1,0 +1,42 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Router-Datenvolumen",
+  "datapoint": "demo.0.Router.Download_Monate_JSON",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 13
+  },
+  "options": {
+    "echartMode": "json",
+    "autoHistoryInstance": false,
+    "echartShowLegend": true,
+    "echartShowCurrent": false,
+    "echartShowValues": true,
+    "echartLeftUnit": "GB",
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s30",
+        "name": "Download",
+        "datapointId": "demo.0.Router.Download_Monate_JSON",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "source": "json"
+      },
+      {
+        "id": "s31",
+        "name": "Upload",
+        "datapointId": "demo.0.Router.Upload_Monate_JSON",
+        "chartType": "bar",
+        "color": "var(--accent-green)",
+        "yAxisIndex": 0,
+        "source": "json"
+      }
+    ]
+  }
+}

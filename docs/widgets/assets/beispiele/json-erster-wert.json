@@ -1,0 +1,36 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Temperatur der letzten 24 h",
+  "datapoint": "demo.0.Wetter.Verlauf_JSON",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "json",
+    "autoHistoryInstance": false,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartCurrentFrom": "first",
+    "echartCurrentAlign": "left",
+    "echartLeftUnit": "°C",
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s32",
+        "name": "Außen",
+        "datapointId": "demo.0.Wetter.Verlauf_JSON",
+        "chartType": "line",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0,
+        "source": "json",
+        "smooth": true,
+        "decimals": 1
+      }
+    ]
+  }
+}

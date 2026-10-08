@@ -2,6 +2,8 @@
 
 Mehrere Datenpunkte in einem Diagramm — pro Serie eigener Typ (Linie, Fläche, Balken, Punkte), Farbe und Y-Achse. Auf ECharts basierend, mit zwei Y-Achsen, Legende, Vergleichs- und Gauge-Modus sowie einem JSON-Override für ECharts-Feineinstellungen.
 
+> **Fertige Beispiele mit Bild und Widget-Export zum Importieren:** [Beispiel-Galerie](./beispiele-diagramm-erweitert)
+
 ## Datenpunkt
 
 Das Widget hat keinen eigenen Haupt-Datenpunkt — jede Serie trägt ihren Datenpunkt selbst.

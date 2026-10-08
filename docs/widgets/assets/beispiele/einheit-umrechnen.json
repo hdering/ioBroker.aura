@@ -1,0 +1,40 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Hausverbrauch",
+  "datapoint": "demo.0.Haus.Leistung",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartRange": "24h",
+    "echartVisibleRanges": [
+      "6h",
+      "24h",
+      "7d"
+    ],
+    "echartLeftUnit": "kW",
+    "decimals": 2,
+    "echartSeries": [
+      {
+        "id": "s12",
+        "name": "Leistung",
+        "datapointId": "demo.0.Haus.Leistung",
+        "chartType": "area",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "valueTransform": "w-kw",
+        "valueFactor": 0.001,
+        "decimals": 2
+      }
+    ]
+  }
+}

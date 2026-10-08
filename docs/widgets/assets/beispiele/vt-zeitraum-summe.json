@@ -1,0 +1,56 @@
+{
+  "id": "w-verteilung",
+  "type": "energiebilanz",
+  "title": "Netz im Zeitraum",
+  "datapoint": "",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 15,
+    "h": 12
+  },
+  "options": {
+    "unit": "kWh",
+    "decimals": 1,
+    "range": "30d",
+    "visibleRanges": [
+      "24h",
+      "7d",
+      "30d"
+    ],
+    "showTotals": true,
+    "showPercent": false,
+    "legendFormat": "label-value",
+    "bars": [
+      {
+        "id": "g-bezug",
+        "title": "Bezug",
+        "entries": [
+          {
+            "id": "e-bezug",
+            "label": "Bezug",
+            "datapointId": "demo.0.Netz.Bezug_Gesamt",
+            "color": "var(--accent-red)",
+            "icon": "Zap",
+            "aggregate": "consumption"
+          }
+        ]
+      },
+      {
+        "id": "g-einsp",
+        "title": "Einspeisung",
+        "entries": [
+          {
+            "id": "e-einsp",
+            "label": "Einspeisung",
+            "datapointId": "demo.0.Netz.Einspeisung_Gesamt",
+            "color": "var(--accent-green)",
+            "icon": "Zap",
+            "aggregate": "consumption"
+          }
+        ]
+      }
+    ]
+  }
+}

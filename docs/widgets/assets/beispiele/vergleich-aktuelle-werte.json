@@ -1,0 +1,65 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Raumtemperaturen",
+  "datapoint": "demo.0.Raum.Wohnzimmer.Temperatur",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "comparison",
+    "autoHistoryInstance": false,
+    "echartShowLegend": false,
+    "echartShowCurrent": false,
+    "echartShowValues": true,
+    "echartLeftUnit": "°C",
+    "echartLeftMin": 15,
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s25",
+        "name": "Wohnzimmer",
+        "datapointId": "demo.0.Raum.Wohnzimmer.Temperatur",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0
+      },
+      {
+        "id": "s26",
+        "name": "Küche",
+        "datapointId": "demo.0.Raum.Kueche.Temperatur",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0
+      },
+      {
+        "id": "s27",
+        "name": "Schlafzimmer",
+        "datapointId": "demo.0.Raum.Schlafzimmer.Temperatur",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0
+      },
+      {
+        "id": "s28",
+        "name": "Bad",
+        "datapointId": "demo.0.Raum.Bad.Temperatur",
+        "chartType": "bar",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0
+      },
+      {
+        "id": "s29",
+        "name": "Kinderzimmer",
+        "datapointId": "demo.0.Raum.Kinderzimmer.Temperatur",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0
+      }
+    ]
+  }
+}

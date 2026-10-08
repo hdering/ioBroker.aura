@@ -1,0 +1,61 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Hausverbrauch nach Quelle je Tag",
+  "datapoint": "demo.0.Haus.PV_Direkt_Gesamt",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 34,
+    "h": 14
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": false,
+    "echartRange": "custom",
+    "echartRangeCustomValue": 5,
+    "echartRangeCustomUnit": "d",
+    "lockRange": true,
+    "echartShowStackPercent": true,
+    "echartLeftUnit": "kWh",
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s15",
+        "name": "PV direkt",
+        "datapointId": "demo.0.Haus.PV_Direkt_Gesamt",
+        "chartType": "bar",
+        "color": "var(--accent-yellow)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "day",
+        "stack": true
+      },
+      {
+        "id": "s16",
+        "name": "Speicher",
+        "datapointId": "demo.0.Speicher.Entladen_Gesamt",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "day",
+        "stack": true
+      },
+      {
+        "id": "s17",
+        "name": "Netz",
+        "datapointId": "demo.0.Netz.Bezug_Gesamt",
+        "chartType": "bar",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "day",
+        "stack": true
+      }
+    ]
+  }
+}

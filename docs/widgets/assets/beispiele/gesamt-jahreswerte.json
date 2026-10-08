@@ -1,0 +1,50 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Erzeugung und Netzbezug je Jahr",
+  "datapoint": "demo.0.PV.Ertrag_Gesamt",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": true,
+    "echartRange": "total",
+    "echartVisibleRanges": [
+      "30d",
+      "1y",
+      "total"
+    ],
+    "echartLeftUnit": "kWh",
+    "echartShowValues": true,
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s3",
+        "name": "PV-Erzeugung",
+        "datapointId": "demo.0.PV.Ertrag_Gesamt",
+        "chartType": "bar",
+        "color": "var(--accent-yellow)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "auto"
+      },
+      {
+        "id": "s4",
+        "name": "Netzbezug",
+        "datapointId": "demo.0.Netz.Bezug_Gesamt",
+        "chartType": "bar",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "auto"
+      }
+    ]
+  }
+}

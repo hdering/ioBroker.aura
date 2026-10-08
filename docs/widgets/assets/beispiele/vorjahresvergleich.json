@@ -1,0 +1,47 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Gas je Monat",
+  "datapoint": "demo.0.Gas.Zaehlerstand",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": true,
+    "echartRange": "1y",
+    "lockRange": true,
+    "echartLeftUnit": "m³",
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s6",
+        "name": "Dieses Jahr",
+        "datapointId": "demo.0.Gas.Zaehlerstand",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "month"
+      },
+      {
+        "id": "s7",
+        "name": "Vorjahr",
+        "datapointId": "demo.0.Gas.Zaehlerstand",
+        "chartType": "bar",
+        "color": "var(--text-secondary)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "month",
+        "timeShift": 1,
+        "timeShiftUnit": "year"
+      }
+    ]
+  }
+}

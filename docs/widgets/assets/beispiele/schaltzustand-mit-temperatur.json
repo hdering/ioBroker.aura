@@ -1,0 +1,56 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Heizung",
+  "datapoint": "demo.0.Heizung.Vorlauf",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": true,
+    "echartRange": "6h",
+    "echartVisibleRanges": [
+      "6h",
+      "24h"
+    ],
+    "echartLeftUnit": "°C",
+    "echartSeries": [
+      {
+        "id": "s21",
+        "name": "Vorlauf",
+        "datapointId": "demo.0.Heizung.Vorlauf",
+        "chartType": "line",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0,
+        "decimals": 1
+      },
+      {
+        "id": "s22",
+        "name": "Rücklauf",
+        "datapointId": "demo.0.Heizung.Ruecklauf",
+        "chartType": "line",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "decimals": 1
+      },
+      {
+        "id": "s23",
+        "name": "Brenner",
+        "datapointId": "demo.0.Heizung.Brenner",
+        "chartType": "area",
+        "color": "var(--accent-yellow)",
+        "yAxisIndex": 1,
+        "step": true,
+        "valueLabels": "0=Aus; 1=An",
+        "areaOpacity": 25
+      }
+    ]
+  }
+}

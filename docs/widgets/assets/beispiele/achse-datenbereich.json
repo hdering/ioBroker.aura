@@ -1,0 +1,40 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Außentemperatur",
+  "datapoint": "demo.0.Wetter.Aussentemperatur",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartRange": "7d",
+    "echartVisibleRanges": [
+      "24h",
+      "7d"
+    ],
+    "echartLeftUnit": "°C",
+    "echartLeftMin": "dataMin",
+    "echartLeftMax": "dataMax",
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s20",
+        "name": "Außen",
+        "datapointId": "demo.0.Wetter.Aussentemperatur",
+        "chartType": "line",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0,
+        "smooth": true,
+        "decimals": 1
+      }
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "PV-Ertrag (Tageszähler)",
+  "datapoint": "demo.0.PV.Ertrag_Heute",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartRange": "1y",
+    "echartVisibleRanges": [
+      "30d",
+      "1y"
+    ],
+    "echartLeftUnit": "kWh",
+    "echartShowValues": true,
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s2",
+        "name": "PV-Ertrag",
+        "datapointId": "demo.0.PV.Ertrag_Heute",
+        "chartType": "bar",
+        "color": "var(--accent-yellow)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "auto",
+        "decimals": 0
+      }
+    ]
+  }
+}

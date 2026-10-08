@@ -8,8 +8,20 @@ const DOCS = 'docs/widgets';
 
 // Hand-written pages that already exist — included in nav/index, never overwritten.
 const EXISTING = {
-    control: [{ slug: 'schalter', label: 'Schalter', hint: 'Ein/Aus-Schalter für Boolean-Datenpunkte (z. B. Lampe, Steckdose).' }],
-    special: [{ slug: 'zeitschaltuhr', label: 'Zeitschaltuhr', hint: 'Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum.' }],
+    control: [
+        {
+            slug: 'schalter',
+            label: 'Schalter',
+            hint: 'Ein/Aus-Schalter für Boolean-Datenpunkte (z. B. Lampe, Steckdose).',
+        },
+    ],
+    special: [
+        {
+            slug: 'zeitschaltuhr',
+            label: 'Zeitschaltuhr',
+            hint: 'Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum.',
+        },
+    ],
     layout: [],
 };
 
@@ -17,7 +29,14 @@ function page(w) {
     const runtime = existsSync(`${DOCS}/assets/${w.slug}/runtime.png`);
     const lines = [`# ${w.label}`, '', w.hint, ''];
     if (runtime) lines.push(`![](./assets/${w.slug}/runtime.png)`, '');
-    lines.push('## Einstellungen', '', 'Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.', '', `![](./assets/${w.slug}/config.png)`, '');
+    lines.push(
+        '## Einstellungen',
+        '',
+        'Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.',
+        '',
+        `![](./assets/${w.slug}/config.png)`,
+        '',
+    );
     return lines.join('\n');
 }
 
@@ -44,7 +63,12 @@ const byGroup = (g) => {
     const fromMeta = WIDGETS.filter((w) => w.group === g).map((w) => ({ slug: w.slug, label: w.label, hint: w.hint }));
     return [...(EXISTING[g] ?? []), ...fromMeta].sort((a, b) => a.label.localeCompare(b.label, 'de'));
 };
-const indexLines = ['# Widgets', '', 'Übersicht aller verfügbaren Widgets. Jede Seite zeigt das Widget und seinen Einstellungs-Dialog.', ''];
+const indexLines = [
+    '# Widgets',
+    '',
+    'Übersicht aller verfügbaren Widgets. Jede Seite zeigt das Widget und seinen Einstellungs-Dialog.',
+    '',
+];
 for (const grp of GROUPS) {
     const items = byGroup(grp.id);
     if (!items.length) continue;
@@ -52,7 +76,12 @@ for (const grp of GROUPS) {
     for (const it of items) indexLines.push(`| [${it.label}](./${it.slug}) | ${it.hint} |`);
     indexLines.push('');
 }
-indexLines.push('## Konzepte', '', '- [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten', '');
+indexLines.push(
+    '## Konzepte',
+    '',
+    '- [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten',
+    '',
+);
 // Hand-written tail of the overview — kept here so regenerating the index does not drop it.
 indexLines.push(
     '## Datenpunkt-Wert im Widget-Namen',
@@ -79,6 +108,13 @@ const sidebar = GROUPS.map((grp) => ({
 sidebar.unshift({ text: 'Bildpfade', link: '/widgets/bildpfade' });
 sidebar.unshift({ text: 'Referenz (Primer)', link: '/widgets/referenz' });
 sidebar.unshift({ text: 'Übersicht', link: '/widgets/' });
+sidebar.push({
+    text: 'Beispiele',
+    items: [
+        { text: 'Diagramm (erweitert)', link: '/widgets/beispiele-diagramm-erweitert' },
+        { text: 'Diagramm (Verteilung)', link: '/widgets/beispiele-verteilung' },
+    ],
+});
 sidebar.push({ text: 'Konzepte', items: [{ text: 'Custom-Layout', link: '/widgets/custom-layout' }] });
 writeFileSync('docs/.vitepress/widgetsSidebar.json', JSON.stringify(sidebar, null, 2) + '\n');
 console.log('wrote widgetsSidebar.json');

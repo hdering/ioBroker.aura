@@ -1,0 +1,51 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Gas und Außentemperatur",
+  "datapoint": "demo.0.Gas.Zaehlerstand",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": true,
+    "echartRange": "7d",
+    "echartVisibleRanges": [
+      "7d",
+      "30d"
+    ],
+    "echartLeftUnit": "m³",
+    "echartRightUnit": "°C",
+    "echartSeries": [
+      {
+        "id": "s18",
+        "name": "Gas",
+        "datapointId": "demo.0.Gas.Zaehlerstand",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "day",
+        "showValues": true,
+        "decimals": 1
+      },
+      {
+        "id": "s19",
+        "name": "Außentemperatur",
+        "datapointId": "demo.0.Wetter.Aussentemperatur",
+        "chartType": "line",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 1,
+        "showValues": false,
+        "decimals": 0,
+        "smooth": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Hausverbrauch nach Quelle",
+  "datapoint": "demo.0.Haus.Leistung_aus_Netz",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": true,
+    "echartRange": "24h",
+    "echartVisibleRanges": [
+      "6h",
+      "24h"
+    ],
+    "echartLeftUnit": "W",
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s13",
+        "name": "Aus dem Netz",
+        "datapointId": "demo.0.Haus.Leistung_aus_Netz",
+        "chartType": "area",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0,
+        "stack": true,
+        "areaOpacity": 85
+      },
+      {
+        "id": "s14",
+        "name": "Aus dem Speicher",
+        "datapointId": "demo.0.Haus.Leistung_aus_Speicher",
+        "chartType": "area",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "stack": true,
+        "areaOpacity": 85
+      }
+    ]
+  }
+}

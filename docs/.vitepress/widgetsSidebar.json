@@ -250,6 +250,19 @@
     ]
   },
   {
+    "text": "Beispiele",
+    "items": [
+      {
+        "text": "Diagramm (erweitert)",
+        "link": "/widgets/beispiele-diagramm-erweitert"
+      },
+      {
+        "text": "Diagramm (Verteilung)",
+        "link": "/widgets/beispiele-verteilung"
+      }
+    ]
+  },
+  {
     "text": "Konzepte",
     "items": [
       {

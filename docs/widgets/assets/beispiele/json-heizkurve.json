@@ -1,0 +1,38 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Heizkurve",
+  "datapoint": "demo.0.Heizung.Heizkurve_JSON",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "json",
+    "autoHistoryInstance": false,
+    "echartShowLegend": false,
+    "echartShowCurrent": false,
+    "echartLeftUnit": "°C",
+    "echartLeftMin": 20,
+    "echartLeftMax": 50,
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s35",
+        "name": "Vorlauf",
+        "datapointId": "demo.0.Heizung.Heizkurve_JSON",
+        "chartType": "area",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 0,
+        "source": "json",
+        "jsonLabelKey": "aussentemperatur",
+        "jsonValueKey": "vorlauftemperatur",
+        "showValues": true,
+        "decimals": 1
+      }
+    ]
+  }
+}

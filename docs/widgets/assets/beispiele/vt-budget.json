@@ -1,0 +1,41 @@
+{
+  "id": "w-verteilung",
+  "type": "energiebilanz",
+  "title": "Stromkosten 2026",
+  "datapoint": "",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 13
+  },
+  "options": {
+    "unit": "€",
+    "decimals": 0,
+    "range": "24h",
+    "lockRange": true,
+    "barDirection": "up",
+    "legendFormat": "label-value",
+    "bars": [
+      {
+        "id": "g-kosten",
+        "title": "Abschlag",
+        "totalDatapoint": "demo.0.Strom.Abschlag_Jahr",
+        "restLabel": "Offen",
+        "overActive": true,
+        "overThreshold": 90,
+        "entries": [
+          {
+            "id": "e-kosten",
+            "label": "Verbraucht",
+            "datapointId": "demo.0.Strom.Kosten_Jahr",
+            "color": "var(--accent)",
+            "icon": "Euro",
+            "aggregate": "last"
+          }
+        ]
+      }
+    ]
+  }
+}

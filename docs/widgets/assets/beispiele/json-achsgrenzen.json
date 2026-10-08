@@ -1,0 +1,35 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "CPU-Auslastung",
+  "datapoint": "demo.0.Skript.Auslastung_JSON",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "json",
+    "autoHistoryInstance": false,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartJsonAxisBounds": true,
+    "echartLeftUnit": "%",
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s36",
+        "name": "Auslastung",
+        "datapointId": "demo.0.Skript.Auslastung_JSON",
+        "chartType": "area",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "source": "json",
+        "jsonPath": "data",
+        "decimals": 0
+      }
+    ]
+  }
+}

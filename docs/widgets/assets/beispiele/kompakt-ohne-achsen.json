@@ -1,0 +1,38 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Hausverbrauch",
+  "datapoint": "demo.0.Haus.Leistung",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 18,
+    "h": 7
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartRange": "6h",
+    "lockRange": true,
+    "echartShowXAxis": false,
+    "echartShowYAxis": false,
+    "echartShowGridLines": false,
+    "echartLeftUnit": "W",
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s24",
+        "name": "Leistung",
+        "datapointId": "demo.0.Haus.Leistung",
+        "chartType": "area",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "step": true,
+        "decimals": 0
+      }
+    ]
+  }
+}

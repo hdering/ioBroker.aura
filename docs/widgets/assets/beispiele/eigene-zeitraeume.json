@@ -1,0 +1,45 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Gasverbrauch",
+  "datapoint": "demo.0.Gas.Zaehlerstand",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": false,
+    "echartShowCurrent": true,
+    "echartRange": "custom",
+    "echartRangeCustomValue": 12,
+    "echartRangeCustomUnit": "M",
+    "rangeChips": [
+      "1M",
+      "3M=Quartal",
+      "6M",
+      "12M",
+      "24M",
+      "total"
+    ],
+    "echartLeftUnit": "m³",
+    "decimals": 0,
+    "echartSeries": [
+      {
+        "id": "s5",
+        "name": "Gas",
+        "datapointId": "demo.0.Gas.Zaehlerstand",
+        "chartType": "bar",
+        "color": "var(--accent)",
+        "yAxisIndex": 0,
+        "aggregate": "delta",
+        "deltaBucket": "auto",
+        "decimals": 0
+      }
+    ]
+  }
+}
