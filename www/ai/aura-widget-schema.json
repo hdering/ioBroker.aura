@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.78.1",
+    "auraVersion": "0.79.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6115,6 +6115,17 @@
         "md",
         "lg"
       ]
+    },
+    "HistoryTableRange": {
+      "type": "string",
+      "enum": [
+        "1h",
+        "6h",
+        "24h",
+        "7d",
+        "30d",
+        "custom"
+      ]
     }
   },
   "widgets": {
@@ -10620,6 +10631,167 @@
           "type": "boolean",
           "default": false,
           "description": "Titel in Versalien mit weiter Laufweite, in jedem Stil. Aus = Titel so, wie er eingegeben wurde."
+        }
+      }
+    },
+    "historytable": {
+      "label": "Verlaufstabelle",
+      "group": "control",
+      "addMode": "datapoint",
+      "hint": "Aufgezeichnete Werte eines Datenpunkts aus dem History-Adapter als Tabelle – die letzten N Werte oder ein Zeitraum",
+      "defaultSize": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "autoHeight",
+        "badges",
+        "bgImage",
+        "clickAction",
+        "clickActionIcon",
+        "clickActionIconName",
+        "clickActionIconPosition",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenScreen",
+        "fullscreenWidget",
+        "headerItems",
+        "icon",
+        "iconColor",
+        "iconPlace",
+        "iconSize",
+        "numberFormat",
+        "showIcon",
+        "showTitle",
+        "styleOverride",
+        "textLines",
+        "titleAlign",
+        "titleColor",
+        "titleRow",
+        "titleSize",
+        "transparency",
+        "transparent",
+        "unit"
+      ],
+      "options": {
+        "colDateLabel": {
+          "type": "string",
+          "description": "Titel der Datumsspalte bei timeColumns \"split\". Leer = Übersetzung."
+        },
+        "colTimeLabel": {
+          "type": "string",
+          "description": "Titel der Zeitspalte (bzw. Uhrzeit bei \"split\"). Leer = Übersetzung."
+        },
+        "colValueLabel": {
+          "type": "string",
+          "description": "Titel der Wertspalte. Leer = Übersetzung."
+        },
+        "dateFormat": {
+          "type": "string",
+          "description": "Datumsmuster, Platzhalter dd MM yyyy yy EE EEEE MMMM ww. Leer = \"dd.MM.yyyy\"."
+        },
+        "decimals": {
+          "type": "number",
+          "description": "Nachkommastellen. Ohne Angabe: ganze Zahlen ohne, sonst die globale Einstellung."
+        },
+        "fontSize": {
+          "type": "number",
+          "default": 12,
+          "description": "Schriftgröße der Tabelle in px."
+        },
+        "hideDuplicates": {
+          "type": "boolean",
+          "default": false,
+          "description": "Aufeinanderfolgende gleiche Werte zu einer Zeile zusammenfassen (die erste, also der Zeitpunkt des Wechsels). Für Schaltzustände."
+        },
+        "historyCount": {
+          "type": "number",
+          "default": 20,
+          "description": "Anzahl Zeilen bei historyMode \"count\" (1–500). Bestimmt die Höhe des Widgets."
+        },
+        "historyInstance": {
+          "type": "string",
+          "description": "History-Adapterinstanz, z. B. \"history.0\", \"sql.0\" oder \"influxdb.0\". Leer = erste im Datenpunkt aktivierte Instanz."
+        },
+        "historyMode": {
+          "type": "string",
+          "enum": [
+            "count",
+            "range"
+          ],
+          "default": "count",
+          "description": "\"count\" = die letzten historyCount Werte, \"range\" = alle Werte des Zeitraums historyRange (höchstens 2000, dann die neuesten)."
+        },
+        "historyRange": {
+          "type": "string",
+          "ref": "HistoryTableRange",
+          "default": "24h",
+          "description": "Zeitraum bei historyMode \"range\". \"custom\" = historyRangeCustomValue × historyRangeCustomUnit."
+        },
+        "historyRangeCustomUnit": {
+          "type": "string",
+          "ref": "RangeUnit",
+          "default": "h",
+          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
+        },
+        "historyRangeCustomValue": {
+          "type": "number",
+          "default": 24,
+          "description": "Länge des eigenen Zeitraums."
+        },
+        "showHeader": {
+          "type": "boolean",
+          "default": true,
+          "description": "Zeile mit den Spaltentiteln anzeigen."
+        },
+        "sortOrder": {
+          "description": "\"desc\" = neueste Zeile oben (Standard), \"asc\" = älteste oben.",
+          "type": "string",
+          "enum": [
+            "desc",
+            "asc"
+          ],
+          "default": "desc"
+        },
+        "striped": {
+          "type": "boolean",
+          "default": true,
+          "description": "Zeilen abwechselnd einfärben."
+        },
+        "timeColumns": {
+          "type": "string",
+          "enum": [
+            "combined",
+            "split"
+          ],
+          "default": "combined",
+          "description": "\"combined\" = eine Spalte Datum + Uhrzeit, \"split\" = getrennte Spalten Datum | Uhrzeit."
+        },
+        "timeFormat": {
+          "type": "string",
+          "description": "Zeitmuster, Platzhalter HH hh mm ss. Leer = \"HH:mm:ss\"."
+        },
+        "valueFactor": {
+          "type": "number",
+          "description": "Rohwert wird mit diesem Faktor multipliziert, bevor er angezeigt wird."
+        },
+        "valueLabels": {
+          "type": "string",
+          "description": "Werttexte \"0=Aus; 1=An\" (true/false gelten als 1/0). Leer = Texte aus common.states des Datenpunkts."
+        },
+        "valueOffset": {
+          "type": "number",
+          "description": "Dieser Wert wird nach dem Faktor addiert."
         }
       }
     },
