@@ -843,19 +843,36 @@ export default function App() {
     );
 
     // Shared popup.open handler (global + per-client). Accepts a popup-view id or
-    // name, or a JSON payload {view, dp, title} where `dp` becomes the view's
-    // {{dp}} context. Clears the datapoint afterwards, like handleNavigate.
+    // name, or a JSON payload {view, dp, title, width, height} where `dp` becomes the
+    // view's {{dp}} context and width/height (px) map to popupWidth/popupHeight (#762).
+    // Clears the datapoint afterwards, like handleNavigate.
     const handlePopupOpen = useCallback((val: string, clearId: string) => {
         if (!val) return;
         let viewRef = val;
         let dp: string | undefined;
         let title: string | undefined;
+        let width: number | undefined;
+        let height: number | undefined;
         if (val.startsWith('{')) {
             try {
-                const payload = JSON.parse(val) as { view?: string; dp?: string; title?: string };
+                const payload = JSON.parse(val) as {
+                    view?: string;
+                    dp?: string;
+                    title?: string;
+                    width?: number | string;
+                    height?: number | string;
+                };
                 viewRef = String(payload.view ?? '').trim();
                 dp = payload.dp ? String(payload.dp) : undefined;
                 title = payload.title ? String(payload.title) : undefined;
+                const px = (v: unknown) => {
+                    const n = Number(v);
+                    return v !== undefined && v !== null && v !== '' && Number.isFinite(n) && n > 0
+                        ? Math.round(n)
+                        : undefined;
+                };
+                width = px(payload.width);
+                height = px(payload.height);
             } catch {
                 console.warn('[aura] popup.open: invalid JSON payload', val);
                 setStateDirect(clearId, '');
@@ -870,12 +887,14 @@ export default function App() {
             setStateDirect(clearId, '');
             return;
         }
+        const host = newTriggerHost();
         usePopupRuntimeStore.getState().openPopup({
             key: `dp:${clearId}`,
             widget: {
-                ...newTriggerHost(),
+                ...host,
                 title: title ?? view.name,
                 datapoint: dp ?? '',
+                options: { ...host.options, popupWidth: width, popupHeight: height },
             },
             action: { kind: 'popup-view', viewId: view.id, dp },
         });
@@ -994,7 +1013,7 @@ export default function App() {
 
     // Subscribe to the popup.open datapoints (global + per client). Same
     // write-then-self-clear contract as navigate.url above.
-    // Payload: a popup-view name or id, or JSON {"view":"…","dp":"…","title":"…"}.
+    // Payload: a popup-view name or id, or JSON {"view":"…","dp":"…","title":"…","width":…,"height":…}.
     useEffect(() => {
         const globalId = `${NS}.popup.open`;
         const clientDpId = `${NS}.clients.${clientId}.popup.open`;

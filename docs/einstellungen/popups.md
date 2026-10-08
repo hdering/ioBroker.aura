@@ -54,11 +54,20 @@ Steht der Datenpunkt beim Laden der Seite schon auf dem Trigger-Wert, öffnet si
 
 Die `<clientId>` steht in Einstellungen → Verbundene Geräte und lässt sich dort fest vergeben (siehe [Client-ID](./settings#client-id)).
 
-Wert: Name oder ID einer Popup-View, oder JSON `{"view":"…","dp":"…","title":"…"}`. Der Datenpunkt wird nach dem Öffnen automatisch geleert.
+Wert: Name oder ID einer Popup-View, oder JSON. Der Datenpunkt wird nach dem Öffnen automatisch geleert.
+
+| JSON-Feld | |
+| --- | --- |
+| `view` | Name oder ID der Popup-View (Pflicht) |
+| `dp` | Haupt-Datenpunkt, im Popup als `{{dp}}` |
+| `title` | Popup-Titel; leer = Name der View |
+| `width` | Breite in px; leer = automatisch (max. `600 px`) |
+| `height` | Höhe in px (höchstens `85 %` der Bildschirmhöhe); leer = nach Inhalt |
 
 ```js
 setState('aura.0.popup.open', 'Wetter-Details');
 setState('aura.0.popup.open', '{"view":"Gerät","dp":"hm-rpc.0.ABC.1.STATE"}');
+setState('aura.0.popup.open', '{"view":"Kamera","width":900,"height":700}');
 ```
 
 ## Popup-Views

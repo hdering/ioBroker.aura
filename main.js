@@ -2223,7 +2223,7 @@ class Aura extends utils.Adapter {
         await this.setObjectNotExistsAsync(`${base}.popup.open`, {
             type: 'state',
             common: {
-                name: 'Open a popup view (name, id or JSON {view,dp,title})',
+                name: 'Open a popup view (name, id or JSON {view,dp,title,width,height})',
                 type: 'string',
                 role: 'text',
                 read: true,
