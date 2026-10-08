@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-10-03",
+  "generatedAt": "2026-10-08",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -669,6 +669,28 @@
       "screenshots": {
         "hero": "assets/diagramm/runtime.png",
         "config": "assets/diagramm/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "historytable",
+      "slug": "verlaufstabelle",
+      "label": "Verlaufstabelle",
+      "group": "control",
+      "hint": "Aufgezeichnete Werte eines Datenpunkts aus dem History-Adapter als Tabelle – die letzten N Werte oder ein Zeitraum.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/verlaufstabelle/runtime.png",
+        "config": "assets/verlaufstabelle/config.png",
         "shots": {}
       }
     },

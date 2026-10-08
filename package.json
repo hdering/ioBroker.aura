@@ -222,6 +222,7 @@
     "test:chart-labels": "node tools/tests/chart-value-labels.mjs",
     "test:chart-axis-decimals": "node tools/tests/chart-axis-decimals.mjs",
     "test:chart-boolean": "node tools/tests/chart-boolean.mjs",
+    "test:history-table": "node tools/tests/history-table.mjs",
     "test:list-subdps": "node tools/tests/list-subdps.mjs",
     "test:html-tokens": "node tools/tests/html-dp-tokens.mjs",
     "test:expr": "node tools/tests/expr.mjs",

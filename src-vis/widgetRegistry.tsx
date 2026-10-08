@@ -62,6 +62,7 @@ import {
     Menu,
     BellRing,
     IdCard,
+    History,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType, ConditionSlot } from './types';
@@ -951,6 +952,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Meldungen', v: '' },
         hint: 'Verlauf der eingegangenen Informationen, Warnungen und Fehler – Filter nach Schweregrad und Zeitraum, Klick öffnet die Detailansicht',
+    },
+    {
+        type: 'historytable',
+        label: 'Verlaufstabelle',
+        shortLabel: 'Verlauf',
+        Icon: History,
+        iconName: 'History',
+        color: '#8b5cf6',
+        defaultW: 8,
+        defaultH: 8,
+        addMode: 'datapoint',
+        widgetGroup: 'control',
+        mock: { t: 'Verlauf', v: '21.4', u: '°C' },
+        hint: 'Aufgezeichnete Werte eines Datenpunkts aus dem History-Adapter als Tabelle – die letzten N Werte oder ein Zeitraum',
     },
 ];
 

@@ -120,6 +120,10 @@
         "link": "/widgets/universal-widget"
       },
       {
+        "text": "Verlaufstabelle",
+        "link": "/widgets/verlaufstabelle"
+      },
+      {
         "text": "Wert-Anzeige",
         "link": "/widgets/wert-anzeige"
       }

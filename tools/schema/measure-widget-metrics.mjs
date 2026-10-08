@@ -510,6 +510,15 @@ const COUNTED = [
         build: () => ({ options: {} }),
     },
     {
+        // Verlaufstabelle (#760): the fabricated history behind DP_HIST has more rows
+        // than any count here, so historyCount alone decides how many are drawn.
+        type: 'historytable',
+        item: 'Tabellenzeile',
+        counts: [2, 4, 8],
+        datapoint: DP_HIST,
+        build: (n) => ({ options: { historyInstance: HISTORY_INSTANCE, historyCount: n, unit: 'W' } }),
+    },
+    {
         // Reported from use: weather was classed as "fills — überlaufen kann
         // nichts" and at h=7 with four forecast days its content is 191 px in a
         // 188 px card, i.e. it scrolls. It is not a fills type at all: it draws
@@ -737,6 +746,7 @@ const DP_FOR = {
     // The simple chart reads the widget's own datapoint; the fabricated history
     // is generated per id, so it needs the id that has one.
     chart: DP_HIST,
+    historytable: DP_HIST,
 };
 
 /**
@@ -767,6 +777,7 @@ const OPTIONS_FOR = {
     chips: { chips: chipItems(4) },
     carousel: { items: chipItems(4) },
     chart: { historyInstance: HISTORY_INSTANCE, historyRange: '24h', decimals: 1, unit: 'W' },
+    historytable: { historyInstance: HISTORY_INSTANCE, historyCount: 4, unit: 'W' },
     echart: {
         echartMode: 'timeseries',
         // echarts drives its entrance animation off the wall clock, and the walk
@@ -1025,6 +1036,8 @@ const CONTENT = {
     chart: { need: '.recharts-line, .recharts-area, .recharts-bar', what: 'die Kurve', plot: '.recharts-surface' },
     echart: { plot: '[_echarts_instance_]' },
     chips: { need: '.aura-chip, button', what: 'die Chips' },
+    // The loading/empty notice is a single row — two rows means history arrived.
+    historytable: { need: 'tbody tr:nth-child(2)', what: 'die Zeilen' },
 };
 
 /**

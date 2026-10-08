@@ -72,6 +72,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     energiebilanz: ['default'],
     iframe: ['default'],
     jsontable: ['default'],
+    historytable: ['default'],
     html: ['default'],
     mirror: ['default'],
     menu: ['default'],

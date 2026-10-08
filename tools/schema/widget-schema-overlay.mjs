@@ -776,6 +776,56 @@ export const WIDGET_OPTION_NOTES = {
         allowClear: { description: 'Taste zum Leeren des Archivs anzeigen.' },
         layoutFilter: { description: 'Nur Meldungen dieses Layouts zeigen. Leer = alle.' },
     },
+    historytable: {
+        historyInstance: {
+            description:
+                'History-Adapterinstanz, z. B. "history.0", "sql.0" oder "influxdb.0". Leer = erste im Datenpunkt aktivierte Instanz.',
+        },
+        historyMode: {
+            type: 'string',
+            enum: ['count', 'range'],
+            default: 'count',
+            description:
+                '"count" = die letzten historyCount Werte, "range" = alle Werte des Zeitraums historyRange (höchstens 2000, dann die neuesten).',
+        },
+        historyCount: {
+            type: 'number',
+            default: 20,
+            description: 'Anzahl Zeilen bei historyMode "count" (1–500). Bestimmt die Höhe des Widgets.',
+        },
+        historyRange: {
+            description:
+                'Zeitraum bei historyMode "range". "custom" = historyRangeCustomValue × historyRangeCustomUnit.',
+        },
+        timeColumns: {
+            type: 'string',
+            enum: ['combined', 'split'],
+            default: 'combined',
+            description: '"combined" = eine Spalte Datum + Uhrzeit, "split" = getrennte Spalten Datum | Uhrzeit.',
+        },
+        dateFormat: { description: 'Datumsmuster, Platzhalter dd MM yyyy yy EE EEEE MMMM ww. Leer = "dd.MM.yyyy".' },
+        timeFormat: { description: 'Zeitmuster, Platzhalter HH hh mm ss. Leer = "HH:mm:ss".' },
+        sortOrder: {
+            type: 'string',
+            enum: ['desc', 'asc'],
+            default: 'desc',
+            description: '"desc" = neueste Zeile oben (Standard), "asc" = älteste oben.',
+        },
+        hideDuplicates: {
+            description:
+                'Aufeinanderfolgende gleiche Werte zu einer Zeile zusammenfassen (die erste, also der Zeitpunkt des Wechsels). Für Schaltzustände.',
+        },
+        valueLabels: {
+            description:
+                'Werttexte "0=Aus; 1=An" (true/false gelten als 1/0). Leer = Texte aus common.states des Datenpunkts.',
+        },
+        decimals: { description: 'Nachkommastellen. Ohne Angabe: ganze Zahlen ohne, sonst die globale Einstellung.' },
+        colTimeLabel: { description: 'Titel der Zeitspalte (bzw. Uhrzeit bei "split"). Leer = Übersetzung.' },
+        colDateLabel: { description: 'Titel der Datumsspalte bei timeColumns "split". Leer = Übersetzung.' },
+        colValueLabel: { description: 'Titel der Wertspalte. Leer = Übersetzung.' },
+        fontSize: { type: 'number', default: 12, description: 'Schriftgröße der Tabelle in px.' },
+        showHeader: { description: 'Zeile mit den Spaltentiteln anzeigen.' },
+    },
     adapterlogs: {
         adapterFilter: {
             description:
@@ -1211,6 +1261,7 @@ export const EXTRA_OPTIONS = {
     statusoverview: { ...AUTO_HEIGHT_OPTION },
     messages: { ...AUTO_HEIGHT_OPTION },
     adapterlogs: { ...AUTO_HEIGHT_OPTION },
+    historytable: { ...AUTO_HEIGHT_OPTION },
     iframe: {
         // Read in hooks/useIframeColorScheme, not through the widget's own
         // options binding.

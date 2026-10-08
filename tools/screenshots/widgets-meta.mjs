@@ -107,6 +107,10 @@ export const WIDGETS = [
       runtime: null },
     { type: 'chart', slug: 'diagramm', label: 'Diagramm (einfach)', group: 'control',
       hint: 'Verlauf eines einzelnen Datenpunkts als einfaches Diagramm.', runtime: null },
+    // Screenshots come from tools/screenshots/verlaufstabelle.mjs (history mocked per datapoint).
+    { type: 'historytable', slug: 'verlaufstabelle', label: 'Verlaufstabelle', group: 'control',
+      hint: 'Aufgezeichnete Werte eines Datenpunkts aus dem History-Adapter als Tabelle – die letzten N Werte oder ein Zeitraum.',
+      runtime: null },
     { type: 'echart', slug: 'diagramm-erweitert', label: 'Diagramm (erweitert)', group: 'control',
       hint: 'Erweitertes Diagramm mit mehreren Datenpunkten und Optionen.', runtime: null },
     { type: 'energiebilanz', slug: 'verteilung', label: 'Diagramm (Verteilung)', group: 'control',

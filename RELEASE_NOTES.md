@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Advanced chart - value labels at the chart edges no longer overlap the y-axis numbers or snap back over the edge after a redraw (#703)
+- History table - new widget that lists the recorded values of a datapoint from a history adapter (history, sql, influxdb): the last N values or a time range, with date and time in one or two columns (#760)

@@ -104,7 +104,11 @@ const DEMO_TAB_ID = 'screenshot-tab';
 // Fabricate a smooth, deterministic history series centred on the datapoint's
 // current cached value, so chart/echart widgets render a believable curve from
 // injected state alone (no history adapter behind the dev proxy).
-function genHistory(id: string, opts: { start: number; end: number; count?: number }): HistoryEntry[] {
+function genHistory(
+    id: string,
+    opts: { start: number; end: number; count?: number; returnNewestEntries?: boolean },
+): HistoryEntry[] {
+    if (opts.end <= opts.start) return [];
     const cur = getStateFromCache(id);
     const center = typeof cur?.val === 'number' ? cur.val : 50;
     const amp = Math.max(Math.abs(center) * 0.14, 2);
@@ -119,6 +123,10 @@ function genHistory(id: string, opts: { start: number; end: number; count?: numb
         const x = (i / n) * Math.PI * 4 + phase;
         const wobble = Math.sin(x) * amp + Math.sin(x * 2.7 + seed) * amp * 0.35 + Math.sin(x * 0.5) * amp * 0.4;
         out.push({ ts, val: Math.round((center + wobble) * 100) / 100 });
+    }
+    // Only callers that say which end they want get the `count` cap (see mockHistory).
+    if (opts.returnNewestEntries !== undefined && opts.count && out.length > opts.count) {
+        return opts.returnNewestEntries ? out.slice(-opts.count) : out.slice(0, opts.count);
     }
     return out;
 }
@@ -355,7 +363,10 @@ function installScreenshotApi(): void {
          *  for `removeBorderValues`: the last reading BEFORE the window, stamped on the
          *  window's start, and folded into the first aggregation bucket on top of that. Off
          *  by default so the existing mocks keep serving exactly what they list (#685). */
-        mockHistory(byId: Record<string, [number, number][]> | false, opts: { borderValues?: boolean } = {}): void {
+        mockHistory(
+            byId: Record<string, [number, HistoryEntry['val']][]> | false,
+            opts: { borderValues?: boolean; ignoreNewest?: boolean } = {},
+        ): void {
             if (byId === false) {
                 __devSetHistoryGen(null);
                 return;
@@ -363,10 +374,16 @@ function installScreenshotApi(): void {
             __devSetHistoryGen((id, o) => {
                 const points = byId[id];
                 if (!points) return genHistory(id, o);
-                const raw = points
+                let raw = points
                     .filter(([ts]) => ts >= o.start && ts <= o.end)
                     .map(([ts, val]): HistoryEntry => ({ ts, val }));
-                if (!opts.borderValues) return aggregateRaw(raw, o.start, o.step, o.aggregate);
+                // The `count` cap is only emulated for callers that state which end they want
+                // (the history table) — the charts' mocks keep serving everything they list.
+                // `ignoreNewest` plays an adapter that does not know `returnNewestEntries`.
+                if (o.returnNewestEntries !== undefined && o.count && raw.length > o.count) {
+                    raw = o.returnNewestEntries && !opts.ignoreNewest ? raw.slice(-o.count) : raw.slice(0, o.count);
+                }
+                if (!opts.borderValues || o.removeBorderValues) return aggregateRaw(raw, o.start, o.step, o.aggregate);
                 const before = [...points].reverse().find(([ts]) => ts < o.start);
                 if (!before) return aggregateRaw(raw, o.start, o.step, o.aggregate);
                 const border: HistoryEntry = { ts: o.start, val: before[1] };

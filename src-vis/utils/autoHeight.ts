@@ -14,6 +14,7 @@ export const AUTO_HEIGHT_TYPES: ReadonlySet<string> = new Set([
     'calendar',
     'messages',
     'adapterlogs',
+    'historytable',
 ]);
 
 /** Types whose 'count' layout just centres one number in the box. The status

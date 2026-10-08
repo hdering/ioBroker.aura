@@ -24,6 +24,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Eingabefeld](./eingabefeld) | `input` | `default` · `compact` · `custom` | 12×4 |
 | [Auswahlfeld](./auswahlfeld) | `enum` | `default` · `compact` · `minimal` · `card` · `custom` | 12×6 |
 | [Diagramm (einfach)](./diagramm) | `chart` | `default` · `card` | 12×6 |
+| [Verlaufstabelle](./verlaufstabelle) | `historytable` | `default` | 12×6 |
 | [Diagramm (erweitert)](./diagramm-erweitert) | `echart` | `default` · `custom` | 12×6 |
 | [Diagramm (Verteilung)](./verteilung) | `energiebilanz` | `default` | 8×8 |
 | [eCharts](./echarts) | `echartsPreset` | `default` | 12×6 |

@@ -67,6 +67,9 @@ const EChartsPresetWidget = lazyWithReload(() =>
 // MapWidget is heavy (leaflet) — lazy-loaded like the chart widgets.
 const MapWidget = lazyWithReload(() => import('./MapWidget').then((m) => ({ default: m.MapWidget })));
 // LoadTimesWidget pulls in recharts — lazy-load it like the other chart widgets.
+const HistoryTableWidget = lazyWithReload(() =>
+    import('./HistoryTableWidget').then((m) => ({ default: m.HistoryTableWidget })),
+);
 const LoadTimesWidget = lazyWithReload(() => import('./LoadTimesWidget').then((m) => ({ default: m.LoadTimesWidget })));
 
 export function getWidgetMap() {
@@ -128,6 +131,7 @@ export function getWidgetMap() {
         messages: MessagesWidget,
         menu: MenuWidget,
         devicecard: DeviceCardWidget,
+        historytable: HistoryTableWidget,
         // `satisfies` makes a missing widget type a build error instead of a
         // "Unbekannter Widget-Typ" notice in mirrors, popups and tab embeds.
     } as const satisfies Record<WidgetType, unknown>;

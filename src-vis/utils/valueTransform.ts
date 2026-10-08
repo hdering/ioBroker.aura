@@ -289,6 +289,7 @@ export const TRANSFORMABLE_WIDGET_TYPES: readonly string[] = [
     'gauge',
     'fill',
     'chart',
+    'historytable',
     'slider',
     'knob',
     'dimmer',

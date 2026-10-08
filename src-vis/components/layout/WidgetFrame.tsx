@@ -169,6 +169,7 @@ import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLi
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
+import { HistoryTableConfig } from '../config/HistoryTableConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
 import {
@@ -10718,6 +10719,7 @@ function WidgetFrameInner({
                                                 const supportsUnit = [
                                                     'value',
                                                     'chart',
+                                                    'historytable',
                                                     'gauge',
                                                     'fill',
                                                     'knob',
@@ -11508,6 +11510,9 @@ function WidgetFrameInner({
 
                         {config.type === 'chart' && (
                             <ChartHistoryConfig config={config} onConfigChange={onConfigChange} />
+                        )}
+                        {config.type === 'historytable' && (
+                            <HistoryTableConfig config={config} onConfigChange={onConfigChange} />
                         )}
                         {config.type === 'climate' && (
                             <ClimateConfig
@@ -20278,7 +20283,9 @@ function WidgetFrameInner({
                             const hasExistingDp = !!(config.datapoint && config.datapoint.trim());
                             // 'light' is its own special case: never auto-downgrade to dimmer/value
                             // when the user picks e.g. hue.0…level on an explicitly-chosen light widget.
-                            const canAutoSwitch = !hasExistingDp && config.type !== 'light';
+                            // The history table reads the DP's log, whatever kind of value it holds.
+                            const canAutoSwitch =
+                                !hasExistingDp && config.type !== 'light' && config.type !== 'historytable';
 
                             const applyDp = (allowTypeChange: boolean) => {
                                 const typePatch: { type?: WidgetType } =
@@ -20287,6 +20294,7 @@ function WidgetFrameInner({
                                 const supportsUnit = [
                                     'value',
                                     'chart',
+                                    'historytable',
                                     'gauge',
                                     'fill',
                                     'input',

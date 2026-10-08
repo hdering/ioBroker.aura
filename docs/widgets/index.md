@@ -32,6 +32,7 @@
 | [Statische Liste](./liste) | Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. |
 | [Thermostat](./thermostat) | Soll-Temperatur einstellen und Ist-Temperatur anzeigen. |
 | [Universal-Widget](./universal-widget) | Freies Raster – Zellen einzeln mit Schaltern, Reglern, Werten und Bildern belegen. |
+| [Verlaufstabelle](./verlaufstabelle) | Aufgezeichnete Werte eines Datenpunkts aus dem History-Adapter als Tabelle – die letzten N Werte oder ein Zeitraum. |
 | [Wert-Anzeige](./wert-anzeige) | Einen Datenpunktwert als Zahl/Text anzeigen (read-only). |
 
 ## Spezial

@@ -1133,6 +1133,58 @@
       "freeLayouts": [
         "count"
       ]
+    },
+    "historytable": {
+      "item": "Tabellenzeile",
+      "basePx": 82,
+      "perItemPx": 23,
+      "fontScalePx": {
+        "basePx": 6.7,
+        "perItemPx": 0
+      },
+      "atWidthPx": 160,
+      "measured": [
+        {
+          "n": 2,
+          "px": 128
+        },
+        {
+          "n": 4,
+          "px": 174
+        },
+        {
+          "n": 8,
+          "px": 266
+        }
+      ],
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
+          "when": {
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              },
+              {
+                "path": "iconPlace",
+                "startsWith": "r2-"
+              }
+            ]
+          },
+          "basePx": 20,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 13.3,
+            "perItemPx": 0
+          }
+        }
+      ]
     }
   },
   "minimum": {
@@ -2217,6 +2269,38 @@
           "basePx": 20,
           "fontScalePx": {
             "basePx": 20
+          }
+        }
+      ]
+    },
+    "historytable": {
+      "minPx": 174,
+      "minRowsDefaultGrid": 7,
+      "fontScalePx": 6.7,
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
+          "when": {
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              },
+              {
+                "path": "iconPlace",
+                "startsWith": "r2-"
+              }
+            ]
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
           }
         }
       ]

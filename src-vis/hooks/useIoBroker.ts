@@ -137,7 +137,15 @@ export function __devInjectState(id: string, state: ioBrokerState): void {
 let devHistoryGen:
     | ((
           id: string,
-          opts: { start: number; end: number; count?: number; step?: number; aggregate?: HistoryAggregate },
+          opts: {
+              start: number;
+              end: number;
+              count?: number;
+              step?: number;
+              aggregate?: HistoryAggregate;
+              returnNewestEntries?: boolean;
+              removeBorderValues?: boolean;
+          },
       ) => HistoryEntry[])
     | null = null;
 let devObjectView: ((type: string, startkey: string, endkey: string) => ObjectViewResult | undefined) | null = null;
@@ -150,6 +158,10 @@ let devGetState: ((id: string) => ioBrokerState | null | undefined) | null = nul
 
 export function __devSetHistoryGen(fn: typeof devHistoryGen): void {
     devHistoryGen = fn;
+}
+/** True while the harness fabricates history — it answers without a connection. */
+export function isHistoryStubbed(): boolean {
+    return !!devHistoryGen;
 }
 export function __devSetObjectView(fn: typeof devObjectView): void {
     devObjectView = fn;
@@ -793,6 +805,10 @@ export function getHistoryDirect(
         step?: number;
         count?: number;
         aggregate?: HistoryAggregate;
+        /** With a `count` cap: keep the NEWEST rows of the window instead of the oldest. */
+        returnNewestEntries?: boolean;
+        /** Leave out the edge rows the adapter adds before/after the window. */
+        removeBorderValues?: boolean;
     },
 ): Promise<HistoryEntry[]> {
     if (devHistoryGen) {
@@ -803,6 +819,8 @@ export function getHistoryDirect(
                 count: opts.count,
                 step: opts.step,
                 aggregate: opts.aggregate,
+                returnNewestEntries: opts.returnNewestEntries,
+                removeBorderValues: opts.removeBorderValues,
             }),
         );
     }
@@ -822,6 +840,9 @@ export function getHistoryDirect(
                 q: false,
                 addID: false,
                 ignoreNull: false,
+                // Only sent when asked for — the existing callers keep the adapter defaults.
+                ...(opts.returnNewestEntries !== undefined ? { returnNewestEntries: opts.returnNewestEntries } : {}),
+                ...(opts.removeBorderValues !== undefined ? { removeBorderValues: opts.removeBorderValues } : {}),
             },
             (_err: unknown, result: HistoryEntry[] | undefined) => resolve(result ?? []),
         );
