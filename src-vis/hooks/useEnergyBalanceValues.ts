@@ -28,13 +28,25 @@ export type EnergyAggregate = 'last' | 'delta' | 'consumption' | 'sum' | 'averag
 export interface EnergyEntry {
     id: string;
     datapointId: string;
-    label?: string;
+    label?: string; // Name in the legend.
     icon?: string;
     color?: string;
-    unit?: string;
+    unit?: string; // Overrides the widget's `unit` for this entry.
     decimals?: number;
     numberFormat?: NumberFormat;
-    historyInstance?: string;
+    historyInstance?: string; // History instance (e.g. "history.0"); empty = auto-detected from the datapoint's custom settings.
+    /**
+     * How the entry's value is computed over the selected range. Default 'last'.
+     * - 'last': current value of the datapoint, no history needed.
+     * - 'delta': last minus first logged value in the range — the difference between start and end,
+     *   right for a meter that only ever rises (total kWh, gas, water).
+     * - 'consumption': sum of every rise in the range; a drop to 0 (day counter reset at midnight,
+     *   meter swap) books nothing. Use this for any counter that can reset — 'delta' turns
+     *   negative there. Identical to 'delta' for a monotonic meter, so the safe default for meters.
+     * - 'sum' / 'average' / 'max' / 'min': over the logged readings in the range (for power or
+     *   price datapoints, not meters).
+     * Everything but 'last' needs a history adapter on the datapoint and follows the range buttons.
+     */
     aggregate?: EnergyAggregate;
 }
 

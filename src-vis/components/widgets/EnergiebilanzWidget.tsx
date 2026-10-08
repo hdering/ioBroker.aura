@@ -29,7 +29,8 @@ const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'cus
 
 export interface EnergyBar {
     id: string;
-    title?: string;
+    title?: string; // Heading above the group, next to its total.
+    /** The datapoints of this group; each becomes one segment sized by its share of the group's total. */
     entries: EnergyEntry[];
     /** Where this bar's legend sits relative to the bar. Default 'below'. */
     legendSide?: 'left' | 'right' | 'below' | 'top';

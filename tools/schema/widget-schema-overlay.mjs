@@ -831,6 +831,27 @@ export const WIDGET_OPTION_NOTES = {
         showBoost: { description: 'Taste für die Schnellstufe anzeigen.' },
         showHumidity: { description: 'Raumluftfeuchte in der Fußzeile anzeigen.' },
     },
+    energiebilanz: {
+        bars: {
+            description:
+                'Gruppen (je ein Balken bzw. eine Torte). Jeder Eintrag rechnet über den gewählten Zeitraum EINE Zahl aus ' +
+                '(aggregate) — z. B. "consumption" = Verbrauch/Ertrag eines Zählers im Zeitraum, also die Differenz ' +
+                'zwischen Anfang und Ende. Eine Gruppe mit nur einem Eintrag zeigt diese Zahl als Summe über dem Balken.',
+        },
+        range: {
+            description:
+                'Zeitraum, über den die Einträge aggregiert werden. Im Frontend umschaltbar (visibleRanges), solange lockRange aus ist.',
+        },
+        rangeCustomValue: { description: 'Länge des Zeitraums bei range "custom".' },
+        rangeCustomUnit: { description: 'Einheit von rangeCustomValue: "h" = Stunden, "d" = Tage.' },
+        showTotals: { description: 'Summe der Gruppe neben ihrem Titel anzeigen.' },
+        showPercent: { description: 'Anteil in Prozent in den Segmenten anzeigen.' },
+        legendFormat: { description: 'Inhalt jeder Legendenzeile: Symbol, Name und/oder Wert.' },
+        unit: {
+            description:
+                'Einheit hinter jedem Wert und der Summe; ein Eintrag kann sie mit eigener unit überschreiben.',
+        },
+    },
     echart: {
         echartMode: {
             description:
@@ -853,7 +874,12 @@ export const WIDGET_OPTION_NOTES = {
                 'Startet das Diagramm auf dem heutigen Tag (00:00–24:00) statt auf dem rollenden Zeitraum. Setzt echartDayNav voraus.',
         },
         echartShowCurrent: { description: 'Aktuellen Wert je Reihe über dem Diagramm anzeigen.' },
-        echartCurrentFrom: { description: '"last" nimmt den letzten Punkt der Reihe, "first" den ersten.' },
+        echartCurrentFrom: {
+            description:
+                '"last" nimmt den letzten Punkt der Reihe, "first" den ersten. Eine Differenz Ende minus Anfang gibt es ' +
+                'hier nicht — Verbrauch/Ertrag im gewählten Zeitraum als Zahl liefert das Widget "energiebilanz" ' +
+                '(aggregate "consumption", Rezept "zeitraum-summe").',
+        },
         echartCurrentAlign: { description: 'Ausrichtung des Aktuell-Blocks.' },
         echartShowValues: { description: 'Werte an den Datenpunkten beschriften.' },
         echartShowStackPercent: { description: 'Bei gestapelten Reihen zusätzlich den Prozentanteil beschriften.' },
