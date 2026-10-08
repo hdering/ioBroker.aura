@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.70.0 (2026-09-25)
+- 🌟 **New feature:** Widget fullscreen can fill the whole screen: the new "Fill the screen" option uses the browser's fullscreen mode, hiding the address bar and task bar ([#711](https://github.com/hdering/ioBroker.aura/issues/711))
+- 🌟 **New feature:** Settings - new grid option "Fill window width": widgets stretch to the full screen width on any resolution, the arrangement stays; off by default ([#413](https://github.com/hdering/ioBroker.aura/issues/413))
+
 ## 0.69.0 (2026-09-24)
 - Custom CSS applied in the dashboard editor now styles only the dashboard preview, not the admin menu around it ([#710](https://github.com/hdering/ioBroker.aura/issues/710))
 - Admin overview - the AI access (MCP) card can be dismissed, like the getting-started card
