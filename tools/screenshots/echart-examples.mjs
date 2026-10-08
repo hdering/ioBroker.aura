@@ -2,6 +2,7 @@
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/screenshots/echart-examples.mjs
+//   node tools/screenshots/echart-examples.mjs --only bsp-agg-envelope[,…]   just these pictures
 //
 // Renders the same datapoint under different settings so the docs can show what each
 // one actually does — the counter/delta pair from issue #545 above all. Data is
@@ -15,6 +16,10 @@ import { mkdirSync } from 'node:fs';
 import { HOUR, DAY, mulberry32, makeWeather, pvPowerAt, houseLoadAt, batteryPowerAt } from './demo-energy.mjs';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
+// The clock is pinned to today, so a full run moves every picture to today's dates — `--only`
+// redraws the named ones and leaves the rest as they are.
+const onlyAt = process.argv.indexOf('--only');
+const ONLY = onlyAt > 0 && process.argv[onlyAt + 1] ? new Set(process.argv[onlyAt + 1].split(',')) : null;
 const OUT = 'docs/widgets/assets/diagramm-erweitert';
 const ID = 'w-ex';
 const SEL = `.aura-widget-${ID}`;
@@ -88,10 +93,10 @@ function outdoorTemp(ts) {
     const seasonal = 0.5 * (1 + Math.cos((2 * Math.PI * (doy - 200)) / 365)); // warmest ~19 July
     const w = weather[Math.min(weather.length - 1, Math.max(0, Math.floor((ts - ANCHOR) / DAY)))];
     const mean = 1.5 + 17 * seasonal + (w - 0.6) * 5; // clear spells run warmer
-    // Coldest around 05:00, warmest around 15:00; clear days swing wider.
+    // Coldest around 03:00, warmest around 15:00; clear days swing wider.
     const swing = (2.2 + 5.5 * seasonal) * (0.55 + 0.7 * w);
     const rnd = mulberry32(0x7e11 + Math.floor((ts - ANCHOR) / (30 * 60_000)));
-    return Math.round((mean + swing * -Math.cos((2 * Math.PI * (h - 15)) / 24) + (rnd() - 0.5) * 0.8) * 10) / 10;
+    return Math.round((mean + swing * Math.cos((2 * Math.PI * (h - 15)) / 24) + (rnd() - 0.5) * 0.8) * 10) / 10;
 }
 
 // ── Rain gauge: millimetres per logging interval, not a total ─────────────────
@@ -203,6 +208,7 @@ function pvSeriesCfg(extra = {}) {
 }
 
 async function shot(file, { widget, history, values, wait = 1600 }) {
+    if (ONLY && !ONLY.has(file)) return;
     // Own widget id per shot: same id means React keeps the chart mounted, and echarts
     // MERGES the new option into the old one — the previous shot's extra series and its
     // axis min would bleed into this picture.
@@ -217,6 +223,9 @@ async function shot(file, { widget, history, values, wait = 1600 }) {
         },
         { w: { ...widget, id }, h: history, v: values },
     );
+    // The chart module loads lazily: the first shot of a run (all of them with --only) would
+    // otherwise capture an empty card.
+    await page.waitForSelector(`.aura-widget-${id} canvas`, { timeout: 30000 });
     await page.waitForTimeout(wait);
     await page
         .locator(`.aura-widget-${id}`)
@@ -351,7 +360,10 @@ for (const [file, aggregate, title] of [
 // A year with daily buckets: the aggregation alone decides whether the curve is the
 // afternoon, the night or the day's mean.
 {
-    const tempHistory = { [DP_TEMP]: loadSeries(now - 400 * DAY, now, 15 * 60_000, outdoorTemp) };
+    // Ends a quarter of an hour short of "now": the daily buckets count from the window start, so a
+    // reading AT now would open a bucket of its own — one value that is min, mean and max at once
+    // and pulls all three lines together at the right edge.
+    const tempHistory = { [DP_TEMP]: loadSeries(now - 400 * DAY, now - 15 * 60_000, 15 * 60_000, outdoorTemp) };
     const tempSeries = [
         ['t1', 'Maximum', 'max', '#ef4444'],
         ['t2', 'Mittelwert', 'average', '#6b7280'],
@@ -375,7 +387,9 @@ for (const [file, aggregate, title] of [
             echartShowCurrent: false,
         }),
         history: tempHistory,
-        values: { [DP_TEMP]: { val: outdoorTemp(now), unit: '°C' } },
+        // No live value: the widget appends it to every series, min and max included, and the
+        // current reading would pull all three lines to one point at the right edge.
+        values: {},
     });
 }
 
@@ -487,6 +501,10 @@ for (const [file, aggregate, title] of [
 }
 
 // ── 6. the settings behind example 1, in the editor ───────────────────────────
+if (ONLY && !ONLY.has('bsp-config-delta')) {
+    await browser.close();
+    process.exit(0);
+}
 await page.goto(`${BASE}/?shot=1#/admin/editor`, { waitUntil: 'networkidle' });
 await ready();
 await page.evaluate(
