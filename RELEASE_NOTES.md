@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Advanced chart - value labels at the chart edges no longer overlap the y-axis numbers or snap back over the edge after a redraw (#703)
 - History table - new widget that lists the recorded values of a datapoint from a history adapter (history, sql, influxdb): the last N values or a time range, with date and time in one or two columns (#760)
+- Advanced chart - series aggregated as max, min or sum (and averages over 30 days and more) no longer end in a spike to the live value at the right edge; the current value above the chart still shows the live reading

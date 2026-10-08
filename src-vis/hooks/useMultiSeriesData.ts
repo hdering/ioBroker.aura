@@ -993,6 +993,24 @@ export function useAutoHistoryInstances(
     return { resolved, setPicked };
 }
 
+/**
+ * Whether the points of a bucketed fetch are something a single live reading cannot stand next
+ * to. `max`/`min` are the extreme of a whole step and `total` its sum; an average over more than
+ * an hour (30 days at 6 h, a year at a day) smooths a daily cycle the reading is part of. A raw or
+ * finely bucketed series, `minmax` (real readings at real times) and a boolean (0/1 either way)
+ * keep taking live points — that is what lets a curve drop to a fresh 0 (issue #510).
+ */
+export function isBucketOnly(
+    aggregate: EChartSeriesConfig['aggregate'],
+    step: number | undefined,
+    isBool: boolean,
+): boolean {
+    if (!step) return false;
+    if (aggregate === 'max' || aggregate === 'min' || aggregate === 'total') return true;
+    const averaged = aggregate === 'average' || (aggregate === undefined && !isBool);
+    return averaged && step > 3_600_000;
+}
+
 export function useMultiSeriesData(
     series: EChartSeriesConfig[],
     connected: boolean,
@@ -1046,6 +1064,12 @@ export function useMultiSeriesData(
     // the bar. `base` is a MAGNITUDE, like everything `bucketDeltas` sees — the series' sign is put
     // back on when the growing bar is published (issue #594).
     const deltaBaseRef = useRef<Map<string, { bucket: number; base: number; unit: DeltaBucket }>>(new Map());
+
+    // Series whose last fetch came back in buckets a single reading is not comparable with (see
+    // `isBucketOnly`). Appending the reading bent the line to the current value at the right edge —
+    // a year of daily minima ending in this afternoon's temperature. Such a series takes no live
+    // POINTS; its "current" still follows the live state, which is what the value block shows.
+    const bucketOnlyRef = useRef<Set<string>>(new Set());
 
     // ── Periodic refresh so a long-open browser does not drift away from the database ─────────
     // Without it the history is read exactly once and everything after that is live socket
@@ -1232,6 +1256,8 @@ export function useMultiSeriesData(
                 })
                     .then((entries: HistoryEntry[]) => {
                         if (!mountedRef.current) return;
+                        if (isBucketOnly(s.aggregate, step, isBool)) bucketOnlyRef.current.add(s.id);
+                        else bucketOnlyRef.current.delete(s.id);
                         let data: [number, number][] = entries
                             // Raw rows of a boolean come back as true/false and plot as 1/0 (#718).
                             .map((e) => ({ ts: e.ts, num: chartNumber(e.val) }))
@@ -1352,7 +1378,13 @@ export function useMultiSeriesData(
                             const liveNum = chartNumber(state?.val);
                             const liveVal = liveNum !== null ? seriesValue(s, liveNum) : null;
                             let outData = data;
-                            if (liveVal !== null && data.length > 0 && data[data.length - 1][1] !== liveVal) {
+                            const appendLive = !bucketOnlyRef.current.has(s.id);
+                            if (
+                                appendLive &&
+                                liveVal !== null &&
+                                data.length > 0 &&
+                                data[data.length - 1][1] !== liveVal
+                            ) {
                                 outData = [...data, [Date.now(), liveVal]];
                             }
                             const current = liveVal ?? (data.length > 0 ? data[data.length - 1][1] : null);
@@ -1485,6 +1517,18 @@ export function useMultiSeriesData(
                     const num = chartNumber(state.val);
                     if (num === null) return;
                     const val = seriesValue(s, num);
+                    // Buckets a reading is not comparable with: only the value block follows it,
+                    // the curve waits for the next periodic refetch to bring the grown bucket.
+                    if (bucketOnlyRef.current.has(s.id)) {
+                        setResultsMap((prev) => {
+                            const existing = prev.get(s.id);
+                            if (!existing || existing.loading || existing.current === val) return prev;
+                            const next = new Map(prev);
+                            next.set(s.id, { ...existing, current: val });
+                            return next;
+                        });
+                        return;
+                    }
                     setResultsMap((prev) => {
                         const existing = prev.get(s.id);
                         // Adapters often re-write unchanged values on every poll (only the ts

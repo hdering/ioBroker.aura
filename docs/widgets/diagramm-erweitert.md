@@ -355,6 +355,15 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartDayNavDefault`    | `false`  | Beim Laden auf den heutigen Tag stellen (00:00–24:00), setzt `echartDayNav` voraus |
 | `autoHistoryInstance`    | `false`  | History-Instanz je Serie automatisch erkennen                                     |
 
+Live-Wert am rechten Rand:
+
+| Serie                                                                   | Kurve                                  | aktueller Wert oben |
+| ----------------------------------------------------------------------- | -------------------------------------- | ------------------- |
+| Rohdaten, Mittelwert bis `7d`, `minmax`, boolesche Datenpunkte          | endet am Live-Wert (fällt z. B. auf 0) | Live-Wert           |
+| `max`, `min`, `total`; Mittelwert ab `30d` (Bündel über 1 h)            | endet am letzten Bündel                | Live-Wert           |
+
+Ein einzelner Messwert ist kein Tagesminimum und keine Tagessumme — angehängt würde er die Linie am Rand auf den aktuellen Wert ziehen.
+
 Die Tages-Navigation zeigt neben ◀ Heute ▶ das aktive Datum. Ein Klick darauf öffnet die
 Datumsauswahl des Browsers und springt direkt auf den gewählten Tag — Tage in der Zukunft sind
 gesperrt, ◀ und ▶ laufen danach von dort weiter.

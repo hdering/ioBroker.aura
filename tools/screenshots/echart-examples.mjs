@@ -387,9 +387,7 @@ for (const [file, aggregate, title] of [
             echartShowCurrent: false,
         }),
         history: tempHistory,
-        // No live value: the widget appends it to every series, min and max included, and the
-        // current reading would pull all three lines to one point at the right edge.
-        values: {},
+        values: { [DP_TEMP]: { val: outdoorTemp(now), unit: '°C' } },
     });
 }
 
