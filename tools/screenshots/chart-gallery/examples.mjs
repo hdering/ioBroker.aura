@@ -680,7 +680,7 @@ export const EXAMPLES = [
                 serie('Gemessen', DP.pvPower, 'area', 'var(--accent-yellow)', { decimals: 0 }),
                 serie('Prognose', DP.pvForecast, 'line', 'var(--text-secondary)', { source: 'json', decimals: 0 }),
             ],
-            { echartRange: '24h', lockRange: true, echartLeftUnit: 'W', decimals: 0 },
+            { echartRange: '24h', lockRange: true, echartShowCurrent: false, echartLeftUnit: 'W', decimals: 0 },
         ),
         data: () => ({
             history: { [DP.pvPower]: D.pvPowerSeries(since(1), NOW, 10 * MIN) },

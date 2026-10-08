@@ -12,6 +12,7 @@ import {
     mulberry32,
     makeWeather,
     houseLoadAt,
+    pvPowerAt,
     batteryPowerAt,
     simulateEnergyFlow,
 } from '../demo-energy.mjs';
@@ -80,10 +81,12 @@ export function outdoorAt(ts) {
     const h = d.getHours() + d.getMinutes() / 60;
     const seasonal = 0.5 * (1 + Math.cos((2 * Math.PI * (doy - 200)) / 365)); // warmest ~19 July
     const w = weather[Math.min(weather.length - 1, Math.max(0, Math.floor((ts - ANCHOR) / DAY)))];
-    const mean = 1.5 + 17 * seasonal + (w - 0.6) * 5;
+    // Each year runs a little warmer or colder, so a year-on-year comparison has something to compare.
+    const yearShift = [0, -1.4, 0.9, -0.6, 1.2, -0.9][d.getFullYear() % 6];
+    const mean = 1.5 + 17 * seasonal + (w - 0.6) * 5 + yearShift;
     const swing = (2.2 + 5.5 * seasonal) * (0.55 + 0.7 * w);
     const rnd = mulberry32(0x7e11 + Math.floor((ts - ANCHOR) / (30 * 60_000)));
-    return round(mean + swing * -Math.cos((2 * Math.PI * (h - 15)) / 24) + (rnd() - 0.5) * 0.8);
+    return round(mean + swing * Math.cos((2 * Math.PI * (h - 15)) / 24) + (rnd() - 0.5) * 0.8);
 }
 export const outdoorSeries = (from, to, step) => grid(from, to, step, outdoorAt);
 
@@ -170,19 +173,16 @@ export function rollingTempJson() {
 /** Solar forecast for the rest of today and tomorrow in W — like open-meteo's [{ts,val}]. */
 export function forecastJson() {
     const out = [];
-    const start = Math.ceil(NOW / HOUR) * HOUR;
-    for (let ts = start; ts <= midnight(NOW) + 2 * DAY; ts += HOUR) {
-        const h = new Date(ts).getHours();
-        const bell = h > 6 && h < 20 ? Math.pow(Math.sin((Math.PI * (h - 6)) / 14), 1.4) : 0;
-        out.push({ ts: String(ts), val: Math.round(5200 * bell * (ts > midnight(NOW) + DAY ? 0.7 : 1)) });
+    // From the current hour on, so it meets the measured curve; a forecast is smoother and a
+    // little off, hence the hour-centred sample and the 0.9.
+    for (let ts = Math.floor(NOW / HOUR) * HOUR; ts <= midnight(NOW) + 2 * DAY; ts += HOUR) {
+        out.push({ ts: String(ts), val: Math.round(pvPowerAt(ts, ANCHOR, weather) * 900) });
     }
     return JSON.stringify(out);
 }
 /** Measured PV power in W up to now — the history half of the forecast example. */
 export const pvPowerSeries = (from, to, step) =>
-    grid(from, to, step, (ts) =>
-        Math.round((flow.readingAt('pv', ts + step / 2) - flow.readingAt('pv', ts - step / 2)) * (HOUR / step) * 1000),
-    );
+    grid(from, to, step, (ts) => Math.round(pvPowerAt(ts, ANCHOR, weather) * 1000));
 
 /** Heating curve from a heat pump script: flow temperature per outdoor temperature. */
 export function heatingCurveJson() {

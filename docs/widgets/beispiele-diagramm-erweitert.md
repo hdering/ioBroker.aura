@@ -1095,15 +1095,15 @@ Aus [#549](https://github.com/hdering/ioBroker.aura/issues/549). Steht der neues
 [
   {
     "label": "13:00",
-    "value": 6.6
+    "value": 18.2
   },
   {
     "label": "12:00",
-    "value": 7.2
+    "value": 17.5
   },
   {
     "label": "11:00",
-    "value": 8.2
+    "value": 16.6
   }
 ]
 ```
@@ -1168,16 +1168,16 @@ Aus [#595](https://github.com/hdering/ioBroker.aura/issues/595) · [#509](https:
 ```json
 [
   {
+    "ts": "1791457200000",
+    "val": 2279
+  },
+  {
     "ts": "1791460800000",
-    "val": 5018
+    "val": 1881
   },
   {
     "ts": "1791464400000",
-    "val": 4494
-  },
-  {
-    "ts": "1791468000000",
-    "val": 3684
+    "val": 1304
   }
 ]
 ```
@@ -1201,7 +1201,7 @@ Aus [#595](https://github.com/hdering/ioBroker.aura/issues/595) · [#509](https:
     "echartMode": "timeseries",
     "autoHistoryInstance": true,
     "echartShowLegend": true,
-    "echartShowCurrent": true,
+    "echartShowCurrent": false,
     "echartRange": "24h",
     "lockRange": true,
     "echartLeftUnit": "W",

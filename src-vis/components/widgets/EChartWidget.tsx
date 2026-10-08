@@ -60,6 +60,29 @@ const AXIS_GAP_V = 14;
 // Least distance of a value label from the left/right canvas edge.
 const LABEL_INSET = 2;
 
+/** The plot area of the first grid in px, or null before the first layout. Reaches into the
+ *  echarts model — there is no public API for the laid-out grid rectangle. */
+function plotRect(inst: unknown): { x: number; width: number } | null {
+    try {
+        const grid = (
+            inst as {
+                getModel?: () => {
+                    getComponent: (
+                        t: string,
+                        i: number,
+                    ) => { coordinateSystem?: { getRect?: () => unknown } } | undefined;
+                };
+            }
+        )
+            ?.getModel?.()
+            ?.getComponent('grid', 0);
+        const rect = grid?.coordinateSystem?.getRect?.() as { x: number; width: number } | undefined;
+        return rect && Number.isFinite(rect.x) && rect.width > 0 ? rect : null;
+    } catch {
+        return null;
+    }
+}
+
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total'];
 
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
@@ -513,15 +536,25 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Dense series would otherwise stamp a label on every single point; echarts drops the
     // ones that would collide and keeps the rest readable.
     // The label of a point on the plot edge is centred on it and half of it hangs over the canvas —
-    // the grid only reserves room for axis labels. It is pushed back inside instead (issue #703).
+    // the grid only reserves room for axis labels. It is pushed back inside instead (issue #703):
+    // inside the PLOT, not just the canvas — clamped to the canvas alone, the first label of a
+    // category chart lands on the y-axis numbers beside it.
+    // The shift is measured from the point (`rect`), not from `labelRect`: echarts calls this again
+    // on every relayout and hands in the rect AFTER the previous shift, so "already inside, dx 0"
+    // would snap the label back to the middle of its point.
     const valueLabelLayout =
         echartSeries.some((s) => seriesShowValues(s)) || echartShowStackPercent
-            ? (p: { labelRect: { x: number; width: number } }) => {
-                  const width: number = chartRef.current?.getEchartsInstance?.()?.getWidth?.() ?? chartWidth;
-                  const r = p.labelRect;
+            ? (p: { rect: { x: number; width: number }; labelRect: { x: number; width: number } }) => {
+                  const inst = chartRef.current?.getEchartsInstance?.();
+                  const width: number = inst?.getWidth?.() ?? chartWidth;
+                  const plot = plotRect(inst);
+                  const lo = plot ? Math.max(LABEL_INSET, plot.x) : LABEL_INSET;
+                  const hi = plot ? Math.min(width - LABEL_INSET, plot.x + plot.width) : width - LABEL_INSET;
+                  const w = p.labelRect.width;
+                  const left = p.rect.x + p.rect.width / 2 - w / 2; // where the centred label starts
                   let dx = 0;
-                  if (r.x < LABEL_INSET) dx = LABEL_INSET - r.x;
-                  else if (width > 0 && r.x + r.width > width - LABEL_INSET) dx = width - LABEL_INSET - r.x - r.width;
+                  if (left < lo) dx = lo - left;
+                  else if (width > 0 && left + w > hi) dx = hi - left - w;
                   return { hideOverlap: true, dx };
               }
             : undefined;

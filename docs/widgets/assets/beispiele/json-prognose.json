@@ -14,7 +14,7 @@
     "echartMode": "timeseries",
     "autoHistoryInstance": true,
     "echartShowLegend": true,
-    "echartShowCurrent": true,
+    "echartShowCurrent": false,
     "echartRange": "24h",
     "lockRange": true,
     "echartLeftUnit": "W",
