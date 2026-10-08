@@ -1030,6 +1030,25 @@
               "px": 1286
             }
           ]
+        },
+        "history": {
+          "label": "Layout \"history\" (Zuletzt gewechselt)",
+          "basePx": 57,
+          "perItemPx": 42.7,
+          "fontScalePx": {
+            "basePx": 20,
+            "perItemPx": 12
+          },
+          "measured": [
+            {
+              "n": 2,
+              "px": 142
+            },
+            {
+              "n": 8,
+              "px": 398
+            }
+          ]
         }
       },
       "modifiers": [
@@ -1077,7 +1096,8 @@
             ]
           },
           "notForVariants": [
-            "twoline"
+            "twoline",
+            "history"
           ],
           "basePx": 0,
           "perItemPx": 52,
@@ -1118,6 +1138,7 @@
         "die Zeilen selbst stammen aus der Erkennung: ein langer Gerätename bricht um und macht seine Zeile höher (namePattern/nameFilters kürzen ihn)",
         "die Layouts „card“ und „minimal“ ordnen Kacheln bzw. Pillen nach der BREITE an — gemessen an der Standardbreite (siehe atWidthPx). Auf einer breiteren Karte stehen mehrere in einer Zeile und die Höhe je Zeile sinkt entsprechend",
         "ohne maxRows ist die Zeilenzahl unbekannt — dann ist diese Rechnung keine Auskunft über die Höhe",
+        "Layout „history“: maxRows ist die OBERGRENZE — es erscheinen nur so viele Wechsel, wie der Adapter kennt (und maxAgeDays durchlässt); bis dahin zeigt das Widget weniger Zeilen bzw. „Noch keine Wechsel erfasst“. Die Zeilen sind zweizeilig und kürzen ab, die Höhe je Zeile hängt nicht an Breite oder Text",
         "Layout „twoline“: gemessen bei 480 px Breite mit Zeilen EINER Kategorie, die dann keine Überschrift haben. Schmaler (unter etwa 420 px) rutschen die Knöpfe unter den Text — die Zeile wird dann etwa 45 px höher; ein langer Name oder Hinweis bricht ebenfalls um"
       ],
       "voids": [

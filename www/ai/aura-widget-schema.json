@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.79.0",
+    "auraVersion": "0.80.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -13787,7 +13787,8 @@
         "twoline",
         "card",
         "minimal",
-        "count"
+        "count",
+        "history"
       ],
       "conditionSlots": [
         "title"
@@ -13810,6 +13811,7 @@
         "headerItems",
         "iconColor",
         "iconPlace",
+        "showTitle",
         "styleOverride",
         "textLines",
         "titleColor",
@@ -13820,15 +13822,39 @@
       ],
       "options": {
         "allClearText": {
-          "type": "string"
+          "type": "string",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "batteryThreshold": {
           "type": "number",
-          "description": "% (default 20)"
+          "description": "% (default 20)",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "batteryTypeEnabled": {
           "type": "boolean",
-          "description": "show physical battery type (· CR2032) next to low batteries"
+          "description": "show physical battery type (· CR2032) next to low batteries",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "cardMinWidth": {
           "type": "number",
@@ -13841,13 +13867,29 @@
           "type": "boolean"
         },
         "catLight": {
-          "type": "boolean"
+          "type": "boolean",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "catUnreach": {
           "type": "boolean"
         },
         "catWindow": {
-          "type": "boolean"
+          "type": "boolean",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "categoryBgColors": {
           "type": "object",
@@ -13869,7 +13911,15 @@
               "type": "string"
             }
           },
-          "description": "Per-category background colour for attention rows/tiles (default: tint of the highlight colour)."
+          "description": "Per-category background colour for attention rows/tiles (default: tint of the highlight colour).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "categoryColors": {
           "type": "object",
@@ -13891,7 +13941,15 @@
               "type": "string"
             }
           },
-          "description": "Per-category highlight colour for devices in an attention state (default: per-severity)."
+          "description": "Per-category highlight colour for devices in an attention state (default: per-severity).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "contentAlign": {
           "type": "string",
@@ -13900,7 +13958,15 @@
             "center",
             "right"
           ],
-          "description": "Horizontal alignment of the rows/tiles/pills (default 'left'; mainly relevant for the Minimal layout)."
+          "description": "Horizontal alignment of the rows/tiles/pills (default 'left'; mainly relevant for the Minimal layout).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "excludeIdPatterns": {
           "type": "string",
@@ -13923,39 +13989,104 @@
         },
         "filterRooms": {
           "type": "string",
-          "description": "Auf diese Räume einschränken, kommagetrennte Raumnamen. Leer = alle."
+          "description": "Auf diese Räume einschränken, kommagetrennte Raumnamen. Leer = alle.",
+          "default": false
         },
         "includeLowbatBoolean": {
           "type": "boolean",
-          "description": "also match boolean LOWBAT-style DPs (default true)"
+          "description": "also match boolean LOWBAT-style DPs (default true)",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "latchAlarm": {
           "type": "boolean",
-          "description": "Remember smoke/water alarms that went off until they are acknowledged (\"Quittieren\"), even after the sensor is quiet again. Needs the AURA adapter."
+          "description": "Remember smoke/water alarms that went off until they are acknowledged (\"Quittieren\"), even after the sensor is quiet again. Needs the AURA adapter.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "latchAutoClose": {
           "type": "boolean",
-          "description": "Batteries: close automatically when the voltage (OPERATING_VOLTAGE) or the percent value clearly jumps up (default false)."
+          "description": "Batteries: close automatically when the voltage (OPERATING_VOLTAGE) or the percent value clearly jumps up (default false).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "latchBattery": {
           "type": "boolean",
-          "description": "Remember weak batteries until they are closed (\"Gewechselt\"), even when LOWBAT goes back to false. Needs the AURA adapter."
+          "description": "Remember weak batteries until they are closed (\"Gewechselt\"), even when LOWBAT goes back to false. Needs the AURA adapter.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "latchConfirm": {
           "type": "boolean",
-          "description": "Ask before \"Gewechselt\"/\"Quittieren\" — the first tap arms the button, the second closes (default true)."
+          "description": "Ask before \"Gewechselt\"/\"Quittieren\" — the first tap arms the button, the second closes (default true).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "latchRecheckDays": {
           "type": "number",
-          "description": "Recheck after closing, in days (default 7): a new report in that time reopens the entry (\"trotz Wechsel am …\")."
+          "description": "Recheck after closing, in days (default 7): a new report in that time reopens the entry (\"trotz Wechsel am …\").",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "latchSnoozeDays": {
           "type": "number",
-          "description": "How long \"Später\" puts an entry back, in days (default 2)."
+          "description": "How long \"Später\" puts an entry back, in days (default 2).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "latchUnreach": {
           "type": "boolean",
-          "description": "Remember unreachable devices until they are acknowledged (\"Quittieren\"). Needs the AURA adapter."
+          "description": "Remember unreachable devices until they are acknowledged (\"Quittieren\"). Needs the AURA adapter.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "lightRoleScope": {
           "type": "string",
@@ -13963,11 +14094,34 @@
             "light",
             "all"
           ],
-          "description": "'light' = only switch.light (default); 'all' = also switch/switch.power"
+          "description": "'light' = only switch.light (default); 'all' = also switch/switch.power",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "lightsOnlyFunction": {
           "type": "boolean",
-          "description": "when scope 'all', require a \"Licht\"/\"Light\" function enum"
+          "description": "when scope 'all', require a \"Licht\"/\"Light\" function enum",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
+        "maxAgeDays": {
+          "type": "number",
+          "description": "Layout \"history\" (Zuletzt gewechselt): only changes of the last N days (0 / unset = everything the adapter keeps). maxRows caps the rows as usual.",
+          "onlyLayouts": [
+            "history"
+          ]
         },
         "maxRows": {
           "type": "number",
@@ -13999,7 +14153,15 @@
             "type": "object",
             "ref": "StatusRowAction"
           },
-          "description": "Buttons at the end of a row (layouts Standard, Kompakt and Zweizeilig). Each writes a value to a datapoint; placeholders from the row fill target and value."
+          "description": "Buttons at the end of a row (layouts Standard, Kompakt and Zweizeilig). Each writes a value to a datapoint; placeholders from the row fill target and value.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "rowClickAction": {
           "type": [
@@ -14052,31 +14214,78 @@
         },
         "showAllClear": {
           "type": "boolean",
-          "description": "show the „Alles in Ordnung“ panel when nothing needs attention (default true)"
+          "description": "show the „Alles in Ordnung“ panel when nothing needs attention (default true)",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "showCount": {
           "type": "boolean",
-          "description": "Anzahl-Chip in der Kopfzeile anzeigen."
+          "description": "Anzahl-Chip in der Kopfzeile anzeigen.",
+          "default": true
+        },
+        "showDuration": {
+          "type": "boolean",
+          "description": "Layout \"history\": how long the battery was weak before the change (\"3 Wochen schwach\", default true).",
+          "default": true,
+          "onlyLayouts": [
+            "history"
+          ]
+        },
+        "showLifetime": {
+          "type": "boolean",
+          "description": "Layout \"history\": how long the battery before lasted, when the device was changed before (\"hielt 14 Monate\", default true).",
+          "default": true,
+          "onlyLayouts": [
+            "history"
+          ]
         },
         "showMore": {
           "type": "boolean",
-          "description": "show the \"+N weitere\" row when maxRows cuts the list off (default true)"
+          "description": "show the \"+N weitere\" row when maxRows cuts the list off (default true)",
+          "default": true
         },
         "showOkCategories": {
           "type": "boolean",
-          "description": "also list categories with no alerts (default false)"
+          "description": "also list categories with no alerts (default false)",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
+        "showReason": {
+          "type": "boolean",
+          "description": "Layout \"history\": mark how the hint was closed — by the button or detected automatically (default true).",
+          "default": true,
+          "onlyLayouts": [
+            "history"
+          ]
         },
         "showRoom": {
           "type": "boolean",
-          "description": "Raum des Geräts mit anzeigen."
+          "description": "Raum des Geräts mit anzeigen.",
+          "default": true
         },
         "showSince": {
           "type": "boolean",
-          "description": "show how long a window/door has been open (\"seit 5 min\", default true)"
-        },
-        "showTitle": {
-          "type": "boolean",
-          "description": "Titelzeile anzeigen."
+          "description": "show how long a window/door has been open (\"seit 5 min\", default true)",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "sinceCategories": {
           "type": "array",
@@ -14084,7 +14293,15 @@
             "type": "string",
             "ref": "CategoryKey"
           },
-          "description": "Categories whose rows show \"seit …\" (default ['window']). Windows/doors count the time since they opened; batteries and reachability the time since the datapoint last changed. Remembered hints (latch) always show the day of their first report."
+          "description": "Categories whose rows show \"seit …\" (default ['window']). Windows/doors count the time since they opened; batteries and reachability the time since the datapoint last changed. Remembered hints (latch) always show the day of their first report.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "sortBy": {
           "type": "string",
@@ -14092,7 +14309,15 @@
             "severity",
             "room"
           ],
-          "description": "Sortierschlüssel: none, label, value oder \"sub:<Feld>\" für eine Zweitzeile."
+          "description": "Sortierschlüssel: none, label, value oder \"sub:<Feld>\" für eine Zweitzeile.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         },
         "valueFilter": {
           "type": "string",
@@ -14100,7 +14325,15 @@
             "alerts",
             "all"
           ],
-          "description": "'alerts' = only devices needing attention (default); 'all' = every found device"
+          "description": "'alerts' = only devices needing attention (default); 'all' = every found device",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
         }
       }
     },
