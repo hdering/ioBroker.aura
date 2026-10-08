@@ -975,21 +975,21 @@
         },
         "twoline": {
           "label": "Layout \"twoline\"",
-          "basePx": 57,
-          "perItemPx": 62.7,
+          "basePx": 56,
+          "perItemPx": 51,
           "atWidthPx": 480,
           "fontScalePx": {
-            "basePx": 13.3,
-            "perItemPx": 195.3
+            "basePx": 23.3,
+            "perItemPx": 31
           },
           "measured": [
             {
               "n": 2,
-              "px": 182
+              "px": 158
             },
             {
               "n": 8,
-              "px": 558
+              "px": 464
             }
           ]
         },
