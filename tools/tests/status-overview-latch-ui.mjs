@@ -481,7 +481,7 @@ const rows2 = (page) =>
         'twoline: no category heading with one category',
         !(await page.locator('.react-grid-item span.uppercase').count()),
     );
-    check('twoline: name 16 px', golf?.nameSize === 16, String(golf?.nameSize));
+    check('twoline: name 13 px', golf?.nameSize === 13, String(golf?.nameSize));
     check('twoline: reading with level', !!golf?.sub.startsWith('Batterie schwach (1,2 V)'), golf?.sub);
     check('twoline: room on line 2', !!golf?.sub.includes('Garage'), golf?.sub);
     check('twoline: "gemeldet seit"', /gemeldet seit \d\d\.\d\d\./.test(golf?.sub ?? ''), golf?.sub);
@@ -499,7 +499,7 @@ const rows2 = (page) =>
         JSON.stringify(golf?.buttons.map((b) => b.text)) === JSON.stringify(['Notiz', '2 Tage später', 'Gewechselt']),
         JSON.stringify(golf?.buttons),
     );
-    check('twoline: buttons ≥ 32 px high', !!golf?.buttons.every((b) => b.h >= 32), JSON.stringify(golf?.buttons));
+    check('twoline: buttons ≥ 28 px high', !!golf?.buttons.every((b) => b.h >= 28), JSON.stringify(golf?.buttons));
     check('twoline: live entry says "Batterie schwach"', !!griff?.sub.startsWith('Batterie schwach'), griff?.sub);
     if (SHOTS) {
         const shot = (name) =>

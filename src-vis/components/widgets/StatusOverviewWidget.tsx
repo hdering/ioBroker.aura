@@ -239,12 +239,12 @@ function TwoLineButton({
     return (
         <button
             type="button"
-            className="aura-status-action aura-status-action-lg shrink-0 text-sm leading-tight border transition-colors"
+            className="aura-status-action aura-status-action-lg shrink-0 text-xs leading-tight border transition-colors"
             title={title}
             disabled={off}
             style={{
-                padding: '7px 12px',
-                minHeight: 32,
+                padding: '6px 10px',
+                minHeight: 28,
                 borderRadius: 8,
                 fontWeight: tone === 'confirm' ? 600 : 500,
                 whiteSpace: 'nowrap',
@@ -954,7 +954,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 className="aura-status-row-2l flex items-center gap-x-3 gap-y-2 flex-wrap min-w-0"
                 data-latch={item.latch ? (isMuted(item) ? 'muted' : 'active') : undefined}
                 style={{
-                    padding: '10px 0',
+                    padding: '8px 0',
                     borderTop: first ? undefined : '1px solid var(--widget-border)',
                     cursor: rowProps ? 'pointer' : undefined,
                 }}
@@ -962,13 +962,13 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             >
                 <span
                     className="shrink-0 rounded-full"
-                    style={{ width: 10, height: 10, background: dotColorFor(item) }}
+                    style={{ width: 8, height: 8, background: dotColorFor(item) }}
                     aria-hidden
                 />
                 <div className="min-w-0" style={{ flex: '1 1 10rem' }}>
                     <div
-                        className="text-base leading-snug font-semibold break-words"
-                        style={{ color: 'var(--text-primary)' }}
+                        className="leading-snug font-semibold break-words"
+                        style={{ color: 'var(--text-primary)', fontSize: 'calc(0.8125rem * var(--font-scale, 1))' }}
                     >
                         {labelFor(item)}
                     </div>
@@ -977,9 +977,9 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                             className="break-words"
                             style={{
                                 color: 'var(--text-secondary)',
-                                fontSize: 'calc(0.8125rem * var(--font-scale, 1))',
+                                fontSize: 'calc(0.6875rem * var(--font-scale, 1))',
                                 lineHeight: 1.35,
-                                marginTop: 2,
+                                marginTop: 1,
                             }}
                         >
                             {sub}
