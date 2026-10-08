@@ -606,6 +606,77 @@
       ]
     },
     {
+      "id": "zeitraum-summe",
+      "title": "Verbrauch/Ertrag im gewählten Zeitraum als Zahl",
+      "when": "Wie viel ist zwischen Anfang und Ende des Zeitraums dazugekommen — Bezug, Einspeisung, Gas, Wasser — als eine Zahl, die mit den Zeitraum-Knöpfen (24 h, 7 Tage, 30 Tage) mitgeht.",
+      "instead": "einem Diagramm, an dessen Kurve man Anfangs- und Endwert ablesen und selbst abziehen muss",
+      "notes": [
+        "Widget \"energiebilanz\" (Diagramm Verteilung): jeder Eintrag rechnet über den Zeitraum EINE Zahl aus; die Summe einer Gruppe steht über ihrem Balken.",
+        "aggregate \"consumption\" summiert jeden Anstieg im Zeitraum — bei einem fortlaufenden Zähler genau Ende minus Anfang, und es bleibt richtig, wenn der Zähler zurückspringt (Tageszähler um Mitternacht, Zählerwechsel). \"delta\" rechnet stur Ende minus Anfang und wird dort negativ — für Zähler daher immer \"consumption\" nehmen.",
+        "Eine Gruppe je Zähler, damit jede ihre eigene Summe zeigt. Zwei Einträge in EINER Gruppe zeigen stattdessen die Anteile beider an der gemeinsamen Summe (z. B. Eigenverbrauch gegen Einspeisung).",
+        "visibleRanges bestimmt die Zeitraum-Knöpfe im Frontend; lockRange true blendet sie aus.",
+        "Braucht History (history/influxdb/sql) auf beiden Datenpunkten; historyInstance leer = automatisch erkannt.",
+        "Den Zähler als Kurve dazu zeigt ein echart daneben — echartCurrentFrom kennt nur ersten/letzten Wert, keine Differenz."
+      ],
+      "widgets": [
+        {
+          "id": "w-zeitraum-summe",
+          "type": "energiebilanz",
+          "title": "Netz",
+          "datapoint": "",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 6
+          },
+          "options": {
+            "range": "24h",
+            "visibleRanges": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "unit": "kWh",
+            "decimals": 1,
+            "chartStyle": "bars",
+            "showTotals": true,
+            "showPercent": false,
+            "legendFormat": "label-value",
+            "bars": [
+              {
+                "id": "g-bezug",
+                "title": "Bezug",
+                "entries": [
+                  {
+                    "id": "e-bezug",
+                    "datapointId": "%dp.zaehler.bezug%",
+                    "label": "Bezug",
+                    "color": "var(--accent-red)",
+                    "aggregate": "consumption"
+                  }
+                ]
+              },
+              {
+                "id": "g-einspeisung",
+                "title": "Einspeisung",
+                "entries": [
+                  {
+                    "id": "e-einspeisung",
+                    "datapointId": "%dp.zaehler.einspeisung%",
+                    "label": "Einspeisung",
+                    "color": "var(--accent-green)",
+                    "aggregate": "consumption"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "status",
       "title": "Statusübersicht statt Fensterkacheln",
       "when": "Offene Fenster, leere Batterien, nicht erreichbare Geräte, brennendes Licht — alles, was auffallen soll.",

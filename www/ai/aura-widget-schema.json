@@ -5848,7 +5848,8 @@
           "required": true
         },
         "title": {
-          "type": "string"
+          "type": "string",
+          "description": "Heading above the group, next to its total."
         },
         "entries": {
           "type": "array",
@@ -5856,7 +5857,8 @@
             "type": "object",
             "ref": "EnergyEntry"
           },
-          "required": true
+          "required": true,
+          "description": "The datapoints of this group; each becomes one segment sized by its share of the group's total."
         },
         "legendSide": {
           "type": "string",
@@ -5918,7 +5920,8 @@
           "datapoint": true
         },
         "label": {
-          "type": "string"
+          "type": "string",
+          "description": "Name in the legend."
         },
         "icon": {
           "type": "string"
@@ -5928,7 +5931,8 @@
           "color": true
         },
         "unit": {
-          "type": "string"
+          "type": "string",
+          "description": "Overrides the widget's `unit` for this entry."
         },
         "decimals": {
           "type": "number"
@@ -5938,11 +5942,13 @@
           "ref": "NumberFormat"
         },
         "historyInstance": {
-          "type": "string"
+          "type": "string",
+          "description": "History instance (e.g. \"history.0\"); empty = auto-detected from the datapoint's custom settings."
         },
         "aggregate": {
           "type": "string",
-          "ref": "EnergyAggregate"
+          "ref": "EnergyAggregate",
+          "description": "How the entry's value is computed over the selected range. Default 'last'. - 'last': current value of the datapoint, no history needed. - 'delta': last minus first logged value in the range — the difference between start and end, right for a meter that only ever rises (total kWh, gas, water). - 'consumption': sum of every rise in the range; a drop to 0 (day counter reset at midnight, meter swap) books nothing. Use this for any counter that can reset — 'delta' turns negative there. Identical to 'delta' for a monotonic meter, so the safe default for meters. - 'sum' / 'average' / 'max' / 'min': over the logged readings in the range (for power or price datapoints, not meters). Everything but 'last' needs a history adapter on the datapoint and follows the range buttons."
         }
       }
     },
@@ -9169,7 +9175,7 @@
             "first"
           ],
           "default": "last",
-          "description": "\"last\" nimmt den letzten Punkt der Reihe, \"first\" den ersten."
+          "description": "\"last\" nimmt den letzten Punkt der Reihe, \"first\" den ersten. Eine Differenz Ende minus Anfang gibt es hier nicht — Verbrauch/Ertrag im gewählten Zeitraum als Zahl liefert das Widget \"energiebilanz\" (aggregate \"consumption\", Rezept \"zeitraum-summe\")."
         },
         "echartDayNav": {
           "type": "boolean",
@@ -9482,7 +9488,8 @@
             "type": "object",
             "ref": "EnergyBar"
           },
-          "required": true
+          "required": true,
+          "description": "Gruppen (je ein Balken bzw. eine Torte). Jeder Eintrag rechnet über den gewählten Zeitraum EINE Zahl aus (aggregate) — z. B. \"consumption\" = Verbrauch/Ertrag eines Zählers im Zeitraum, also die Differenz zwischen Anfang und Ende. Eine Gruppe mit nur einem Eintrag zeigt diese Zahl als Summe über dem Balken."
         },
         "chartStyle": {
           "type": "string",
@@ -9511,7 +9518,8 @@
         "legendFormat": {
           "type": "string",
           "ref": "LegendFormat",
-          "default": "icon-value"
+          "default": "icon-value",
+          "description": "Inhalt jeder Legendenzeile: Symbol, Name und/oder Wert."
         },
         "legendSide": {
           "type": "string",
@@ -9536,7 +9544,8 @@
         "range": {
           "type": "string",
           "ref": "EChartTimeRange",
-          "default": "24h"
+          "default": "24h",
+          "description": "Zeitraum, über den die Einträge aggregiert werden. Im Frontend umschaltbar (visibleRanges), solange lockRange aus ist."
         },
         "rangeCustomUnit": {
           "type": "string",
@@ -9544,11 +9553,13 @@
             "h",
             "d"
           ],
-          "default": "h"
+          "default": "h",
+          "description": "Einheit von rangeCustomValue: \"h\" = Stunden, \"d\" = Tage."
         },
         "rangeCustomValue": {
           "type": "number",
-          "default": 24
+          "default": 24,
+          "description": "Länge des Zeitraums bei range \"custom\"."
         },
         "showBarTitles": {
           "type": "boolean",
@@ -9567,7 +9578,8 @@
         },
         "showPercent": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Anteil in Prozent in den Segmenten anzeigen."
         },
         "showSegmentIcon": {
           "type": "boolean",
@@ -9576,7 +9588,8 @@
         },
         "showTotals": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Summe der Gruppe neben ihrem Titel anzeigen."
         },
         "titleAlign": {
           "type": "string",
@@ -9590,7 +9603,7 @@
         },
         "unit": {
           "type": "string",
-          "description": "Einheit hinter dem Wert, z. B. \"°C\", \"%\", \"kWh\".",
+          "description": "Einheit hinter jedem Wert und der Summe; ein Eintrag kann sie mit eigener unit überschreiben.",
           "default": "kWh"
         },
         "visibleRanges": {
