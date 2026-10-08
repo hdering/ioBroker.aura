@@ -481,7 +481,7 @@ const rows2 = (page) =>
         'twoline: no category heading with one category',
         !(await page.locator('.react-grid-item span.uppercase').count()),
     );
-    check('twoline: name 13 px', golf?.nameSize === 13, String(golf?.nameSize));
+    check('twoline: name 14 px (text-sm)', golf?.nameSize === 14, String(golf?.nameSize));
     check('twoline: reading with level', !!golf?.sub.startsWith('Batterie schwach (1,2 V)'), golf?.sub);
     check('twoline: room on line 2', !!golf?.sub.includes('Garage'), golf?.sub);
     check('twoline: "gemeldet seit"', /gemeldet seit \d\d\.\d\d\./.test(golf?.sub ?? ''), golf?.sub);

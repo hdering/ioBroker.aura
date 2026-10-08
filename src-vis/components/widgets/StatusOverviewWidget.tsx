@@ -966,22 +966,11 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     aria-hidden
                 />
                 <div className="min-w-0" style={{ flex: '1 1 10rem' }}>
-                    <div
-                        className="leading-snug font-semibold break-words"
-                        style={{ color: 'var(--text-primary)', fontSize: 'calc(0.8125rem * var(--font-scale, 1))' }}
-                    >
+                    <div className="text-sm font-semibold break-words" style={{ color: 'var(--text-primary)' }}>
                         {labelFor(item)}
                     </div>
                     {sub && (
-                        <div
-                            className="break-words"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                fontSize: 'calc(0.6875rem * var(--font-scale, 1))',
-                                lineHeight: 1.35,
-                                marginTop: 1,
-                            }}
-                        >
+                        <div className="text-xs break-words" style={{ color: 'var(--text-secondary)', marginTop: 1 }}>
                             {sub}
                         </div>
                     )}
