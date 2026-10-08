@@ -160,9 +160,15 @@ Eigene Knöpfe am Zeilenende, die einen Wert in einen Datenpunkt schreiben (`row
 | --- | --- |
 | `label` | Beschriftung |
 | `targetDp` | Ziel-Datenpunkt |
-| `value` | Wert; `true`/`false`/Zahlen werden typgerecht geschrieben |
-| `categories` | nur bei diesen Kategorien (leer = alle) |
+| `value` | Wert, Platzhalter erlaubt |
+| `categories` | nur bei diesen Kategorien (leer = alle): `alarm` · `window` · `unreach` · `battery` · `light` |
 | `confirm`, `confirmLabel` | erst nach zweitem Tippen (Text des scharfen Knopfs, Vorgabe „Wirklich?“) |
+
+| `value` | wird geschrieben als |
+| --- | --- |
+| `true` / `false` | Boolean |
+| `42`, `-1`, `3.5` | Zahl |
+| alles andere | Text (nach Einsetzen der Platzhalter) |
 
 Ein Knopf erscheint, wenn alles drei zutrifft:
 
@@ -170,7 +176,7 @@ Ein Knopf erscheint, wenn alles drei zutrifft:
 | --- | --- |
 | Zeile wird gezeigt | Standard: nur Auffälliges (Licht an, Fenster offen …); mit „Alle gefundenen Geräte“ an jeder Zeile |
 | Kategorie passt | `categories` leer = jede Zeile |
-| Layout | `default` oder `compact` |
+| Layout | `default`, `compact` oder `twoline` |
 
 | Vorlage | Knopf | Ziel / Wert | Kategorie |
 | --- | --- | --- | --- |
