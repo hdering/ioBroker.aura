@@ -130,7 +130,9 @@ export type WidgetLayout =
     | 'dial'
     | 'segments'
     | 'wave'
-    | 'bar';
+    | 'bar'
+    /** Status overview: two-line rows (dot, bold name, muted facts) with touch buttons. */
+    | 'twoline';
 
 // ── Light widget option types ─────────────────────────────────────────────────
 

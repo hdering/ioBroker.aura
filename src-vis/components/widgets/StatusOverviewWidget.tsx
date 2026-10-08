@@ -177,7 +177,7 @@ const ARM_MS_TWO_LINE = 4000;
 const BUSY_MAX_MS = 6000;
 
 /**
- * The touch-sized button of the two-line row (rowStyle 'twoLine'). `tone` 'confirm'
+ * The touch-sized button of the two-line layout (`twoline`). `tone` 'confirm'
  * is the green "Gewechselt"/"Quittieren"; armed it fills green and asks once more.
  * While the write is out it is disabled and shows "…" — the row then disappears
  * with the adapter's updated list, in every open browser at once.
@@ -855,10 +855,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         );
     };
 
-    // ── Two-line row (rowStyle 'twoLine', layouts Standard and Kompakt) ──────────
+    // ── Two-line row (layout 'twoline') ───────────────────────────────────────────
     // Dot · name on line 1 · reading and facts muted on line 2 · touch buttons on the
     // right. No tinted background and no muting of quiet entries: line 2 says it.
-    const twoLine = opts.rowStyle === 'twoLine';
+    const twoLine = layout === 'twoline';
     const dotColorFor = (item: StatusItem) => {
         if (item.severity === 'ok') return 'var(--accent-green, #22c55e)';
         const own = opts.categoryColors?.[item.category];
@@ -1177,9 +1177,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             ) : (
                 <div className={`${scrollCls} pr-0.5`}>
                     {layout === 'compact' || (twoLine && enabledCats.length === 1)
-                        ? // A single category needs no heading in the two-line rows: the chip counts.
+                        ? // A single category needs no heading in the two-line layout: the chip counts.
                           rowsOf(items)
-                        : // default: grouped by category
+                        : // default (and twoline with several categories): grouped by category
                           enabledCats.map((cat) => {
                               const catItems = items.filter((i) => i.category === cat);
                               if (catItems.length === 0 && !opts.showOkCategories) return null;

@@ -8,22 +8,14 @@ Zeigt von selbst, was Aufmerksamkeit braucht: offene Fenster und Türen, schwach
 | --- | --- |
 | `default` | nach Kategorie gruppiert |
 | `compact` | eine Liste, sortiert |
+| `twoline` | Zweizeilig: Punkt in der Farbe der Schwere, Name fett, darunter Messwert und Hinweise, große Knöpfe rechts; Überschrift nur bei mehreren Kategorien |
 | `card` | Kacheln |
 | `minimal` | Pillen |
 | `count` | nur der Zähler |
 
-Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default` und `compact`.
+Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`, `compact` und `twoline`.
 
-## Zeilenform
-
-| `rowStyle` | |
-| --- | --- |
-| `standard` (Vorgabe) | einzeilig, eingefärbte Zeile, kleine Knöpfe |
-| `twoLine` | Punkt in der Farbe der Schwere, Name fett, darunter Messwert und Hinweise, große Knöpfe rechts; keine Kategorie-Überschrift bei nur einer Kategorie |
-
-Gilt für `default` und `compact`.
-
-![Zweizeilige Zeilen](assets/statusuebersicht/row-style-two-line.png)
+![Layout „Zweizeilig“](assets/statusuebersicht/layout-twoline.png)
 
 ## Merkliste
 

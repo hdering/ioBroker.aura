@@ -183,13 +183,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
      */
     maxRows?: number;
     showMore?: boolean; // show the "+N weitere" row when maxRows cuts the list off (default true)
-    showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt)
-    /**
-     * Row shape of the layouts Standard and Kompakt (default 'standard' = one line, tinted row).
-     * 'twoLine': coloured dot, device name bold on line 1, value and facts muted on line 2,
-     * large touch buttons on the right, a rule between the rows.
-     */
-    rowStyle?: 'standard' | 'twoLine';
+    showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt/Zweizeilig)
     showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
     /**
      * Categories whose rows show "seit …" (default ['window']). Windows/doors count the
@@ -198,7 +192,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
      */
     sinceCategories?: CategoryKey[];
     /**
-     * Buttons at the end of a row (layouts Standard and Kompakt). Each writes a value
+     * Buttons at the end of a row (layouts Standard, Kompakt and Zweizeilig). Each writes a value
      * to a datapoint; placeholders from the row fill target and value.
      */
     rowActions?: StatusRowAction[];

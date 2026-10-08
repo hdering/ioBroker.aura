@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-07",
+    "measured": "2026-10-08",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -971,26 +971,25 @@
               "n": 8,
               "px": 250
             }
-          ],
-          "modifiers": [
+          ]
+        },
+        "twoline": {
+          "label": "Layout \"twoline\"",
+          "basePx": 57,
+          "perItemPx": 62.7,
+          "atWidthPx": 480,
+          "fontScalePx": {
+            "basePx": 13.3,
+            "perItemPx": 195.3
+          },
+          "measured": [
             {
-              "key": "twoLine",
-              "label": "zweizeilige Zeilen mit großen Knöpfen (rowStyle: \"twoLine\")",
-              "when": {
-                "path": "rowStyle",
-                "equals": "twoLine"
-              },
-              "notForVariants": [
-                "card",
-                "minimal"
-              ],
-              "atWidthPx": 480,
-              "basePx": 0,
-              "perItemPx": 38.7,
-              "fontScalePx": {
-                "basePx": -10,
-                "perItemPx": 179.7
-              }
+              "n": 2,
+              "px": 182
+            },
+            {
+              "n": 8,
+              "px": 558
             }
           ]
         },
@@ -1058,57 +1057,33 @@
           "key": "rowButtons",
           "label": "Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)",
           "when": {
-            "all": [
+            "any": [
               {
-                "any": [
-                  {
-                    "path": "rowActions[].label",
-                    "startsWith": ""
-                  },
-                  {
-                    "path": "latchBattery",
-                    "equals": true
-                  },
-                  {
-                    "path": "latchUnreach",
-                    "equals": true
-                  },
-                  {
-                    "path": "latchAlarm",
-                    "equals": true
-                  }
-                ]
+                "path": "rowActions[].label",
+                "startsWith": ""
               },
               {
-                "path": "rowStyle",
-                "not": "twoLine"
+                "path": "latchBattery",
+                "equals": true
+              },
+              {
+                "path": "latchUnreach",
+                "equals": true
+              },
+              {
+                "path": "latchAlarm",
+                "equals": true
               }
             ]
           },
+          "notForVariants": [
+            "twoline"
+          ],
           "basePx": 0,
           "perItemPx": 52,
           "fontScalePx": {
             "basePx": 0,
             "perItemPx": 15.3
-          }
-        },
-        {
-          "key": "twoLine",
-          "label": "zweizeilige Zeilen mit großen Knöpfen (rowStyle: \"twoLine\")",
-          "when": {
-            "path": "rowStyle",
-            "equals": "twoLine"
-          },
-          "notForVariants": [
-            "card",
-            "minimal"
-          ],
-          "atWidthPx": 480,
-          "basePx": -25,
-          "perItemPx": 38.7,
-          "fontScalePx": {
-            "basePx": -13.3,
-            "perItemPx": 178.7
           }
         },
         {
@@ -1143,7 +1118,7 @@
         "die Zeilen selbst stammen aus der Erkennung: ein langer Gerätename bricht um und macht seine Zeile höher (namePattern/nameFilters kürzen ihn)",
         "die Layouts „card“ und „minimal“ ordnen Kacheln bzw. Pillen nach der BREITE an — gemessen an der Standardbreite (siehe atWidthPx). Auf einer breiteren Karte stehen mehrere in einer Zeile und die Höhe je Zeile sinkt entsprechend",
         "ohne maxRows ist die Zeilenzahl unbekannt — dann ist diese Rechnung keine Auskunft über die Höhe",
-        "rowStyle \"twoLine\": gemessen bei 480 px Breite mit Zeilen EINER Kategorie, die dann keine Überschrift haben. Schmaler (unter etwa 420 px) rutschen die Knöpfe unter den Text — die Zeile wird dann etwa 45 px höher; ein langer Name oder Hinweis bricht ebenfalls um"
+        "Layout „twoline“: gemessen bei 480 px Breite mit Zeilen EINER Kategorie, die dann keine Überschrift haben. Schmaler (unter etwa 420 px) rutschen die Knöpfe unter den Text — die Zeile wird dann etwa 45 px höher; ein langer Name oder Hinweis bricht ebenfalls um"
       ],
       "voids": [
         {

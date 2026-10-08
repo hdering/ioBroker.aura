@@ -13599,6 +13599,7 @@
       "layouts": [
         "default",
         "compact",
+        "twoline",
         "card",
         "minimal",
         "count"
@@ -13813,7 +13814,7 @@
             "type": "object",
             "ref": "StatusRowAction"
           },
-          "description": "Buttons at the end of a row (layouts Standard and Kompakt). Each writes a value to a datapoint; placeholders from the row fill target and value."
+          "description": "Buttons at the end of a row (layouts Standard, Kompakt and Zweizeilig). Each writes a value to a datapoint; placeholders from the row fill target and value."
         },
         "rowClickAction": {
           "type": [
@@ -13863,14 +13864,6 @@
         "rowPopupWidth": {
           "type": "number",
           "description": "Breite des Zeilen-Popups in px."
-        },
-        "rowStyle": {
-          "type": "string",
-          "enum": [
-            "standard",
-            "twoLine"
-          ],
-          "description": "Row shape of the layouts Standard and Kompakt (default 'standard' = one line, tinted row). 'twoLine': coloured dot, device name bold on line 1, value and facts muted on line 2, large touch buttons on the right, a rule between the rows."
         },
         "showAllClear": {
           "type": "boolean",

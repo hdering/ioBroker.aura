@@ -2088,7 +2088,7 @@ Neue Optionen an `statusoverview` (alle aus `StatusOverviewOptions`, Beschreibun
 | `latchSnoozeDays` (2) | „Später“ |
 | `latchAutoClose` | Schließt bei Spannungssprung (≥ 0,3 V und ≥ 25 %) bzw. Prozent (≥ 40 % und ≥ 30 Punkte) |
 | `latchConfirm` (true) | „Gewechselt“/„Quittieren“ erst nach zweitem Tippen |
-| `rowActions: StatusRowAction[]` | Knöpfe am Zeilenende (default/compact), Platzhalter `{id} {device} {serial} {name} {room}` |
+| `rowActions: StatusRowAction[]` | Knöpfe am Zeilenende (default/compact/twoline), Platzhalter `{id} {device} {serial} {name} {room}` |
 | `sinceCategories` (`['window']`) | „seit …“ auch für `battery` / `unreach` |
 
 Adapter-Seite (`lib/statusLatch.js`, Verdrahtung in `main.js` `_initStatusLatch`):
