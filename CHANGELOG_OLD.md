@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.72.1 (2026-09-29)
+- Section title widget: the minimal style now shows the title as typed instead of forcing capitals; a new "Title in capitals" switch works in every style ([#723](https://github.com/hdering/ioBroker.aura/issues/723))
+
 ## 0.72.0 (2026-09-29)
 - 🌟 **New feature:** "Fit height to content" is now one option in the Appearance block and also available for lists, dynamic lists, the JSON table, messages and adapter logs; resizing such a widget in the editor shows a hint why its height is fixed
 

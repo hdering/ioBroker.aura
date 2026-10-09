@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.80.3",
+    "version": "0.80.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.80.4": {
+        "en": "🌟 New feature: Conditions - new effect \"Disable widget\": while the condition matches, the widget is greyed out and cannot be operated; its look is adjustable under Theme & CSS",
+        "de": "🌟 Neue Funktion: Bedingungen – neuer Effekt „Widget deaktivieren“: Während die Bedingung zutrifft, ist das Widget ausgegraut und kann nicht bedient werden; sein Aussehen ist unter Theme & CSS anpassbar",
+        "ru": "🌟 Новая функция: Условия - новый эффект «Отключить виджет»: пока условие соответствует, виджет становится серым и им невозможно управлять; его внешний вид можно настроить в разделе «Тема и CSS».",
+        "pt": "🌟 Novo recurso: Condições - novo efeito \"Desativar widget\": enquanto a condição corresponde, o widget fica acinzentado e não pode ser operado; sua aparência é ajustável em Tema e CSS",
+        "nl": "🌟 Nieuwe functie: Voorwaarden - nieuw effect \"Widget uitschakelen\": zolang de voorwaarde overeenkomt, wordt de widget grijs weergegeven en kan deze niet worden bediend; het uiterlijk is aanpasbaar onder Thema & CSS",
+        "fr": "🌟 Nouvelle fonctionnalité : Conditions - nouvel effet « Désactiver le widget » : tant que la condition correspond, le widget est grisé et ne peut pas être utilisé ; son look est ajustable sous Thème & CSS",
+        "it": "🌟 Nuova funzionalità: Condizioni - nuovo effetto \"Disabilita widget\": mentre la condizione corrisponde, il widget è disattivato e non può essere utilizzato; il suo aspetto è regolabile in Tema e CSS",
+        "es": "🌟 Nueva característica: Condiciones - nuevo efecto \"Desactivar widget\": mientras la condición coincide, el widget aparece atenuado y no se puede utilizar; su apariencia es ajustable en Tema y CSS",
+        "pl": "🌟 Nowa funkcja: Warunki - nowy efekt „Wyłącz widżet”: gdy warunek jest zgodny, widżet jest wyszarzony i nie można go obsługiwać; jego wygląd można regulować w sekcji Motyw i CSS",
+        "uk": "🌟 Нова функція: Умови - новий ефект «Вимкнути віджет»: поки умова збігається, віджет неактивний, і ним не можна керувати; його вигляд можна налаштувати в розділі Тема та CSS",
+        "zh-cn": "🌟 新功能：条件-新增效果“禁用小部件”：条件匹配时，小部件灰显且无法操作；其外观可在主题和 CSS 下进行调整"
+      },
       "0.80.3": {
         "en": "Popups - `popup.open` datapoints accept `width` and `height` (px) in the JSON payload to set the popup size (#762)",
         "de": "Popups – „popup.open“-Datenpunkte akzeptieren „width“ und „height“ (px) in der JSON-Nutzlast, um die Popup-Größe festzulegen (#762)",
@@ -185,19 +198,6 @@
         "pl": "Timer — wpisy dodane w timerze znajdującym się w wyskakującym okienku są teraz zapisywane i przetrwają przeładowanie strony (#750)",
         "uk": "Таймер — записи, додані до таймера, який знаходиться в спливаючому вікні, тепер зберігаються та переживають перезавантаження сторінки (#750)",
         "zh-cn": "计时器 - 添加到位于弹出视图内的计时器中的条目现在被保存并在页面重新加载后继续存在(#750)"
-      },
-      "0.77.4": {
-        "en": "Release v0.77.4",
-        "de": "Veröffentlichung v0.77.4",
-        "ru": "Релиз v0.77.4",
-        "pt": "Versão v0.77.4",
-        "nl": "Release v0.77.4",
-        "fr": "Version v0.77.4",
-        "it": "Rilascio v0.77.4",
-        "es": "Versión v0.77.4",
-        "pl": "Wydanie v0.77.4",
-        "uk": "Випуск v0.77.4",
-        "zh-cn": "发布 v0.77.4"
       }
     }
   },
