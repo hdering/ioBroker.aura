@@ -2,22 +2,32 @@
  * HistoryTableConfig — config panel of the history table (#760): which adapter, which rows
  * (last N values or a time window), how the time columns read and how values are formatted.
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { WidgetConfig } from '../../types';
 import { useT } from '../../i18n';
-import { getObjectDirect } from '../../hooks/useIoBroker';
+import { getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
-import { HISTORY_TABLE_MAX_COUNT } from '../../hooks/useHistoryRows';
+import { HISTORY_TABLE_MAX_COUNT, HISTORY_TABLE_RANGE_CAP, useHistoryRows } from '../../hooks/useHistoryRows';
 import {
+    HISTORY_SORT_KEYS,
     HISTORY_TABLE_DEFAULT_COUNT,
     HISTORY_TABLE_DEFAULT_DATE,
     HISTORY_TABLE_DEFAULT_TIME,
     HISTORY_TABLE_RANGES,
+    historyColumns,
+    historyRangeMs,
+    historySortRows,
+    historyTableRows,
+    type HistoryColumnDef,
+    type HistoryColumnKey,
     type HistoryTableRange,
 } from '../widgets/HistoryTableWidget';
 import { RANGE_UNITS, type RangeUnit } from '../../utils/rangeChips';
 import type { NumberFormat } from '../../utils/formatValue';
+import type { JsonSortRule } from '../../utils/jsonTableSort';
 import { ValueFormatRow } from './ValueFormatRow';
+import { HistoryTableColumnsSection } from './HistoryTableColumnsSection';
+import { JsonTableSortSection } from './JsonTableSortSection';
 
 interface Props {
     config: WidgetConfig;
@@ -79,6 +89,86 @@ function Check({ checked, onChange, label }: { checked: boolean; onChange: (v: b
     );
 }
 
+/**
+ * Sort chain of the history table (#760): the JSON table's rule dialog over the two keys a row
+ * has — the moment and the value. Loads the rows itself so the dialog previews the real order.
+ */
+function HistorySortBlock({
+    config,
+    labels,
+    onChange,
+}: {
+    config: WidgetConfig;
+    labels: Record<HistoryColumnKey, string>;
+    onChange: (patch: Record<string, unknown>) => void;
+}) {
+    const t = useT();
+    const { subscribe, connected } = useIoBroker();
+    const o = config.options ?? {};
+    const mode = o.historyMode === 'range' ? 'range' : 'count';
+    const count = Math.min(
+        HISTORY_TABLE_MAX_COUNT,
+        Math.max(1, Math.round(Number(o.historyCount) || HISTORY_TABLE_DEFAULT_COUNT)),
+    );
+    const hideDuplicates = o.hideDuplicates === true;
+    const rangeMs = historyRangeMs(
+        (o.historyRange as HistoryTableRange | undefined) ?? '24h',
+        (o.historyRangeCustomValue as number | undefined) ?? 24,
+        (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h',
+    );
+    const isTemplate = !!config.datapoint?.startsWith('{{');
+    const data = useHistoryRows(
+        isTemplate ? undefined : config.datapoint,
+        o.historyInstance as string | undefined,
+        mode,
+        hideDuplicates ? Math.min(HISTORY_TABLE_RANGE_CAP, count * 5) : count,
+        rangeMs,
+        connected,
+        subscribe,
+    );
+    // Rows in the widget's base order, before any rule — the dialog applies the rules itself.
+    const rows = useMemo(
+        () =>
+            historySortRows(
+                historyTableRows(data.rows, { hideDuplicates, mode, count, newestFirst: o.sortOrder !== 'asc' }),
+            ),
+        [data.rows, hideDuplicates, mode, count, o.sortOrder],
+    );
+    const split = o.timeColumns === 'split';
+    const valueCol = historyColumns(o.columns as HistoryColumnDef[] | undefined, split).find((c) => c.key === 'value');
+    const dateFormat = (o.dateFormat as string | undefined) || HISTORY_TABLE_DEFAULT_DATE;
+    const timeFormat = (o.timeFormat as string | undefined) || HISTORY_TABLE_DEFAULT_TIME;
+    // The moment is one key even with split columns, so it carries both titles.
+    const timeLabel = split ? `${labels.date} / ${labels.time}` : labels.time;
+    return (
+        <JsonTableSortSection
+            rules={(o.sortRules as JsonSortRule[] | undefined) ?? []}
+            onChange={(next) => onChange({ sortRules: next })}
+            keys={HISTORY_SORT_KEYS}
+            colDefs={[
+                {
+                    key: 'time',
+                    label: timeLabel,
+                    valueTimeFormat: 'custom',
+                    valueTimePattern: `${dateFormat} ${timeFormat}`,
+                },
+                {
+                    key: 'value',
+                    label: labels.value,
+                    decimals: o.decimals as number | undefined,
+                    valueFactor: o.valueFactor as number | undefined,
+                    valueOffset: o.valueOffset as number | undefined,
+                    valueTimeFormat: valueCol?.valueTimeFormat,
+                    valueTimePattern: valueCol?.valueTimePattern,
+                },
+            ]}
+            rows={rows}
+            storageKey="aura-historytable-sort-modal"
+            emptyRowsText={t('historytable.cfg.sortNoRows')}
+        />
+    );
+}
+
 export function HistoryTableConfig({ config, onConfigChange }: Props) {
     const t = useT();
     const o = config.options ?? {};
@@ -111,6 +201,11 @@ export function HistoryTableConfig({ config, onConfigChange }: Props) {
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
     const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
     const split = o.timeColumns === 'split';
+    const labels: Record<HistoryColumnKey, string> = {
+        date: (o.colDateLabel as string | undefined) || t('historytable.col.date'),
+        time: (o.colTimeLabel as string | undefined) || t(split ? 'historytable.col.time' : 'historytable.col.when'),
+        value: (o.colValueLabel as string | undefined) || t('historytable.col.value'),
+    };
 
     return (
         <>
@@ -296,33 +391,7 @@ export function HistoryTableConfig({ config, onConfigChange }: Props) {
             <p className="text-[10px] -mt-1" style={hintSty}>
                 {t('historytable.cfg.formatHint')}
             </p>
-            <div className="flex gap-2">
-                {(split
-                    ? [
-                          ['colDateLabel', 'historytable.col.date'],
-                          ['colTimeLabel', 'historytable.col.time'],
-                          ['colValueLabel', 'historytable.col.value'],
-                      ]
-                    : [
-                          ['colTimeLabel', 'historytable.col.when'],
-                          ['colValueLabel', 'historytable.col.value'],
-                      ]
-                ).map(([key, fallback]) => (
-                    <div key={key} className="flex-1 min-w-0">
-                        <label className={labelCls} style={labelSty}>
-                            {t('historytable.cfg.header')}
-                        </label>
-                        <input
-                            type="text"
-                            value={(o[key] as string | undefined) ?? ''}
-                            placeholder={t(fallback as Parameters<typeof t>[0])}
-                            onChange={(e) => set({ [key]: e.target.value || undefined })}
-                            className={fieldCls}
-                            style={fieldSty}
-                        />
-                    </div>
-                ))}
-            </div>
+            <HistoryTableColumnsSection options={o} split={split} labels={labels} onChange={set} />
             <div>
                 <label className={labelCls} style={labelSty}>
                     {t('historytable.cfg.sortOrder')}
@@ -336,6 +405,15 @@ export function HistoryTableConfig({ config, onConfigChange }: Props) {
                     onChange={(v) => set({ sortOrder: v })}
                 />
             </div>
+            <HistorySortBlock config={config} labels={labels} onChange={set} />
+            <p className="text-[10px] -mt-1" style={hintSty}>
+                {t('historytable.cfg.sortHint')}
+            </p>
+            <Check
+                checked={o.sortable === true}
+                onChange={(v) => set({ sortable: v || undefined })}
+                label={t('historytable.cfg.sortable')}
+            />
 
             {/* Werte */}
             <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />

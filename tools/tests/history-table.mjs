@@ -8,7 +8,8 @@
 // mode only shows rows inside the window; combined vs. split time columns; date/time patterns;
 // value texts from `valueLabels` and from `common.states`; booleans and strings survive (the chart
 // hook drops them); repeats fold away with hideDuplicates; ascending order; the notice when no
-// history adapter is enabled for the datapoint.
+// history adapter is enabled for the datapoint. Column options (hide, order, prefix/suffix, colours,
+// wrap, alignment, value as date), the sort-rule chain and clickable headers.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -87,6 +88,13 @@ async function render(points, options, { common = {}, logged = true, mockOpts = 
         return {
             head: [...root.querySelectorAll('thead th')].map((th) => th.textContent.trim()),
             rows: [...root.querySelectorAll('tbody tr')].map((tr) => [...tr.cells].map((c) => c.textContent.trim())),
+            styles: [...(root.querySelector('tbody tr')?.cells ?? [])].map((c) => ({
+                col: c.dataset.col,
+                color: c.style.color,
+                bg: c.style.background,
+                ws: c.style.whiteSpace,
+                align: c.style.textAlign,
+            })),
             text: root.textContent,
         };
     }, sel);
@@ -198,6 +206,98 @@ const bools = [true, true, false, false, false, true, false, true, true, true].m
         'strings kept, common.states texts applied',
         JSON.stringify(vals) === '["BOOST","Manuell","Automatik","Automatik"]',
         JSON.stringify(vals),
+    );
+}
+
+// ── column options ────────────────────────────────────────────────────────────
+{
+    const r = await render(numeric, {
+        historyInstance: 'history.0',
+        historyCount: 3,
+        decimals: 0,
+        timeColumns: 'split',
+        timeFormat: 'HH:mm',
+        columns: [
+            { key: 'date', hidden: true },
+            {
+                key: 'value',
+                order: 0,
+                prefix: '~',
+                suffix: ' Stk',
+                cellBg: '#112233',
+                cellColor: '#ffeedd',
+                wrap: true,
+            },
+            { key: 'time', order: 1, align: 'right' },
+        ],
+    });
+    check(
+        'columns: hidden date column dropped, order value | time',
+        JSON.stringify(r?.head) === '["Wert","Uhrzeit"]',
+        JSON.stringify(r?.head),
+    );
+    check('columns: prefix + suffix around the value', r?.rows[0]?.[0] === '~49 Stk', JSON.stringify(r?.rows[0]));
+    const v = r?.styles?.[0];
+    check(
+        'columns: colours and wrap on the value cells',
+        /17, 34, 51|#112233/.test(v?.bg ?? '') && /255, 238, 221|#ffeedd/.test(v?.color ?? '') && v?.ws === 'normal',
+        JSON.stringify(v),
+    );
+    check('columns: alignment of the time column', r?.styles?.[1]?.align === 'right', JSON.stringify(r?.styles?.[1]));
+}
+{
+    // A datapoint that stores a moment: the value column reads it as a date.
+    const stamps = [0, 1, 2].map((i) => [now - (2 - i) * MIN, Date.UTC(2026, 0, 15 + i, 11, 0)]);
+    const r = await render(stamps, {
+        historyInstance: 'history.0',
+        historyCount: 3,
+        columns: [{ key: 'value', valueTimeFormat: 'custom', valueTimePattern: 'dd.MM.yyyy' }],
+    });
+    check('columns: value as date', r?.rows[0]?.[1] === '17.01.2026', JSON.stringify(r?.rows.map((x) => x[1])));
+}
+
+// ── sort rules ────────────────────────────────────────────────────────────────
+const wavy = [5, 1, 9, 3, 9, 7].map((v, i) => [now - (5 - i) * 10 * MIN, v]);
+{
+    const r = await render(wavy, {
+        historyInstance: 'history.0',
+        historyCount: 6,
+        sortRules: [{ column: 'value', order: 'desc' }],
+    });
+    const vals = r?.rows.map((x) => x[1]) ?? [];
+    check('sortRules: value descending', JSON.stringify(vals) === '["9","9","7","5","3","1"]', JSON.stringify(vals));
+    // The two 9s keep the base order (newest first) as tie-breaker.
+    check(
+        'sortRules: ties keep newest first',
+        (r?.rows[0]?.[0] ?? '') > (r?.rows[1]?.[0] ?? ''),
+        JSON.stringify(r?.rows.slice(0, 2)),
+    );
+}
+{
+    const id = `w-histtable-${n + 1}`;
+    await render(wavy, { historyInstance: 'history.0', historyCount: 6, sortable: true });
+    const sel = `.aura-widget-${id}`;
+    const vals = () => page.$$eval(`${sel} tbody tr`, (trs) => trs.map((tr) => tr.cells[1].textContent.trim()));
+    await page.click(`${sel} thead th[data-col="value"]`);
+    const asc = await vals();
+    await page.click(`${sel} thead th[data-col="value"]`);
+    const desc = await vals();
+    await page.click(`${sel} thead th[data-col="value"]`);
+    const back = await vals();
+    check(
+        'sortable: header click sorts ascending',
+        JSON.stringify(asc) === '["1","3","5","7","9","9"]',
+        JSON.stringify(asc),
+    );
+    check(
+        'sortable: second click descending',
+        JSON.stringify(desc) === '["9","9","7","5","3","1"]',
+        JSON.stringify(desc),
+    );
+    check(
+        'sortable: third click back to newest first',
+        JSON.stringify(back) === '["7","9","3","9","1","5"]',
+        JSON.stringify(back),
     );
 }
 

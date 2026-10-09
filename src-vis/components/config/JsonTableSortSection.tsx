@@ -59,14 +59,21 @@ export function JsonTableSortSection({
     keys,
     colDefs,
     rows,
+    storageKey = 'aura-jsontable-sort-modal',
+    emptyRowsText,
 }: {
     rules: JsonSortRule[];
     onChange: (next: JsonSortRule[] | undefined) => void;
     /** Column keys to offer — configured columns, else what the data holds. */
     keys: string[];
+    /** Labels and cell formats of the columns (only key, label and the format fields are read). */
     colDefs: JsonColumnDef[];
     /** Current rows of the datapoint, for the preview. */
     rows: Record<string, unknown>[];
+    /** Where the dialog keeps its size — the history table (#760) has its own. */
+    storageKey?: string;
+    /** Preview note when there are no rows (default: the JSON datapoint's wording). */
+    emptyRowsText?: string;
 }) {
     const [open, setOpen] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -110,7 +117,7 @@ export function JsonTableSortSection({
                     maxWidth={640}
                     maxHeight={760}
                     padded
-                    storageKey="aura-jsontable-sort-modal"
+                    storageKey={storageKey}
                     onClose={() => {
                         setOpen(false);
                         // The dialog portals out of the panel — hand focus back to the trigger.
@@ -124,6 +131,7 @@ export function JsonTableSortSection({
                         colDefs={colDefs}
                         rows={rows}
                         labelOf={labelOf}
+                        emptyRowsText={emptyRowsText}
                     />
                 </ConfigModal>
             )}
@@ -138,6 +146,7 @@ function JsonTableSortEditor({
     colDefs,
     rows,
     labelOf,
+    emptyRowsText,
 }: {
     rules: JsonSortRule[];
     onChange: (next: JsonSortRule[] | undefined) => void;
@@ -145,6 +154,7 @@ function JsonTableSortEditor({
     colDefs: JsonColumnDef[];
     rows: Record<string, unknown>[];
     labelOf: (key: string) => string;
+    emptyRowsText?: string;
 }) {
     const t = useT();
     const numFmt = useGlobalSettingsStore((s) => s.numberFormat);
@@ -362,7 +372,7 @@ function JsonTableSortEditor({
                 </p>
                 {rows.length === 0 ? (
                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
-                        Der Datenpunkt liefert gerade keine Zeilen – die Vorschau bleibt leer.
+                        {emptyRowsText ?? 'Der Datenpunkt liefert gerade keine Zeilen – die Vorschau bleibt leer.'}
                     </p>
                 ) : (
                     <ol className="space-y-0.5" data-testid="jsontable-sort-preview">

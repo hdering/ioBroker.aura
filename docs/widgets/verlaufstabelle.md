@@ -37,7 +37,28 @@ Zeitraum: Rohwerte, höchstens 2000 Zeilen — bei mehr die neuesten.
 | `dateFormat` | `dd.MM.yyyy` | Platzhalter `dd MM yyyy yy EE EEEE MMMM ww` |
 | `timeFormat` | `HH:mm:ss` | Platzhalter `HH hh mm ss` |
 | `colDateLabel` / `colTimeLabel` / `colValueLabel` | Datum / Zeitpunkt bzw. Uhrzeit / Wert | Spaltentitel |
-| `sortOrder` | `desc` | `desc` = neueste oben, `asc` = älteste oben |
+| `columns` | – | je Spalte (`date` `time` `value`), Taste **Spalten** |
+
+#### Je Spalte (`columns`)
+
+| Option | |
+| --- | --- |
+| `hidden` | ausblenden (bleibt sortierbar) |
+| `order` | Reihenfolge, Pfeile im Popup |
+| `width` | Breite in px |
+| `align` | `left` `center` `right` |
+| `wrap` | Zeilenumbruch |
+| `cellBg` / `cellColor` | Hintergrund- / Textfarbe |
+| `prefix` / `suffix` | Text vor / hinter dem Wert |
+| `valueTimeFormat` | nur Wert: Zeitstempel als Datum/Uhrzeit |
+
+### Sortierung
+
+| Option | Standard | |
+| --- | --- | --- |
+| `sortOrder` | `desc` | `desc` = neueste oben, `asc` = älteste oben — entscheidet bei Gleichstand |
+| `sortRules` | – | Kriterien wie bei der [JSON-Tabelle](./json-tabelle): Spalte `time` oder `value`, Richtung, Vergleich |
+| `sortable` | `false` | Klick auf Spaltentitel sortiert (auf / ab / zurück) |
 
 ### Werte
 

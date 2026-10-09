@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.80.3",
+    "auraVersion": "0.80.4",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6130,6 +6130,76 @@
         "30d",
         "custom"
       ]
+    },
+    "HistoryColumnDef": {
+      "type": "object",
+      "fields": {
+        "key": {
+          "type": "string",
+          "ref": "HistoryColumnKey",
+          "required": true,
+          "description": "Which column: 'date' (only with timeColumns \"split\"), 'time' (date + time, or the time with \"split\"), 'value'."
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "hide the column; it can still be sorted by"
+        },
+        "width": {
+          "type": "number",
+          "description": "Fixed column width in px. Unset → auto (the value column takes the rest)."
+        },
+        "wrap": {
+          "type": "boolean",
+          "description": "Allow the cell text to wrap onto multiple lines (default: one line)."
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Horizontal alignment of header + cells. Default 'left', the value column 'right'."
+        },
+        "cellBg": {
+          "type": "string",
+          "description": "Background colour of the column's data cells (hex, rgba(), CSS var or light/dark pair). Wins over the zebra stripe.",
+          "color": true
+        },
+        "cellColor": {
+          "type": "string",
+          "description": "Text colour of the column's data cells. Unset = theme colour (secondary for the time columns).",
+          "color": true
+        },
+        "prefix": {
+          "type": "string",
+          "description": "text before every non-empty cell value"
+        },
+        "suffix": {
+          "type": "string",
+          "description": "text after every non-empty cell value (after the unit)"
+        },
+        "valueTimeFormat": {
+          "type": "string",
+          "description": "Value column only: render the value as time/date (see TIME_DISPLAY_PRESETS) — for datapoints that store a timestamp."
+        },
+        "valueTimePattern": {
+          "type": "string",
+          "description": "token pattern, only used when valueTimeFormat is 'custom'"
+        },
+        "order": {
+          "type": "number",
+          "description": "lower = further left"
+        }
+      }
+    },
+    "HistoryColumnKey": {
+      "type": "string",
+      "enum": [
+        "date",
+        "time",
+        "value"
+      ]
     }
   },
   "widgets": {
@@ -10700,6 +10770,14 @@
           "type": "string",
           "description": "Titel der Wertspalte. Leer = Übersetzung."
         },
+        "columns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "HistoryColumnDef"
+          },
+          "description": "Spalten-Optionen (HistoryColumnDef) je key \"date\" (nur bei timeColumns \"split\"), \"time\", \"value\": hidden, order (kleiner = weiter links), width (px), align, wrap (Zeilenumbruch), cellBg/cellColor, prefix/suffix (nur um echte Werte); nur \"value\": valueTimeFormat/valueTimePattern zeigt einen gespeicherten Zeitstempel als Datum. Leer = Zeitspalte(n) links, Wert rechts. Titel bleiben in colDateLabel/colTimeLabel/colValueLabel, Zahlenformat in decimals/numberFormat/unit."
+        },
         "dateFormat": {
           "type": "string",
           "description": "Datumsmuster, Platzhalter dd MM yyyy yy EE EEEE MMMM ww. Leer = \"dd.MM.yyyy\"."
@@ -10766,6 +10844,19 @@
             "asc"
           ],
           "default": "desc"
+        },
+        "sortRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "JsonSortRule"
+          },
+          "description": "Sortier-Kette wie bei der JSON-Tabelle: [{column, order?, mode?, empty?}], column = \"time\" (Zeitpunkt, auch hinter der Datumsspalte) | \"value\" (Rohwert). order asc (Standard) | desc, mode auto | number | text | active | time. Die erste Regel entscheidet, sortOrder (neueste/älteste oben) bei Gleichstand. Gilt erst nach dem Schnitt auf die letzten historyCount Werte."
+        },
+        "sortable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Klick auf einen Spaltentitel sortiert nach dieser Spalte (auf/ab/zurück zur Kette); Datum und Uhrzeit sortieren beide nach dem Zeitpunkt."
         },
         "striped": {
           "type": "boolean",

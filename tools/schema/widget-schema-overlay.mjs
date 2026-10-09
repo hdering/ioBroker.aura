@@ -857,6 +857,18 @@ export const WIDGET_OPTION_NOTES = {
         colTimeLabel: { description: 'Titel der Zeitspalte (bzw. Uhrzeit bei "split"). Leer = Übersetzung.' },
         colDateLabel: { description: 'Titel der Datumsspalte bei timeColumns "split". Leer = Übersetzung.' },
         colValueLabel: { description: 'Titel der Wertspalte. Leer = Übersetzung.' },
+        columns: {
+            description:
+                'Spalten-Optionen (HistoryColumnDef) je key "date" (nur bei timeColumns "split"), "time", "value": hidden, order (kleiner = weiter links), width (px), align, wrap (Zeilenumbruch), cellBg/cellColor, prefix/suffix (nur um echte Werte); nur "value": valueTimeFormat/valueTimePattern zeigt einen gespeicherten Zeitstempel als Datum. Leer = Zeitspalte(n) links, Wert rechts. Titel bleiben in colDateLabel/colTimeLabel/colValueLabel, Zahlenformat in decimals/numberFormat/unit.',
+        },
+        sortRules: {
+            description:
+                'Sortier-Kette wie bei der JSON-Tabelle: [{column, order?, mode?, empty?}], column = "time" (Zeitpunkt, auch hinter der Datumsspalte) | "value" (Rohwert). order asc (Standard) | desc, mode auto | number | text | active | time. Die erste Regel entscheidet, sortOrder (neueste/älteste oben) bei Gleichstand. Gilt erst nach dem Schnitt auf die letzten historyCount Werte.',
+        },
+        sortable: {
+            description:
+                'Klick auf einen Spaltentitel sortiert nach dieser Spalte (auf/ab/zurück zur Kette); Datum und Uhrzeit sortieren beide nach dem Zeitpunkt.',
+        },
         fontSize: { type: 'number', default: 12, description: 'Schriftgröße der Tabelle in px.' },
         showHeader: { description: 'Zeile mit den Spaltentiteln anzeigen.' },
     },
