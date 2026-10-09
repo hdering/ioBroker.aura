@@ -90,6 +90,9 @@ export interface ElementVars {
     // Popup dialog (issue #611) — set these to lift a popup off the widgets
     '--popup-bg': string;
     '--popup-border': string;
+    // Widget disabled by a condition ("Widget deaktivieren")
+    '--widget-disabled-filter': string; // CSS filter on the whole card, e.g. 'grayscale(1) opacity(0.6)'
+    '--widget-disabled-bg': string; // veil laid over the card
 }
 
 /**
@@ -148,6 +151,9 @@ export const ELEMENT_VAR_FALLBACKS: Record<keyof ElementVars, keyof ThemeVars | 
     '--nav-shadow': 'none',
     '--popup-bg': '--app-surface',
     '--popup-border': '--app-border',
+    // Literal defaults — keep in sync with the .aura-cond-disabled rules in index.css.
+    '--widget-disabled-filter': 'grayscale(1)',
+    '--widget-disabled-bg': 'color-mix(in srgb, var(--app-bg) 45%, transparent)',
 };
 
 export interface Theme {

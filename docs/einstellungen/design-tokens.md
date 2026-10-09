@@ -52,6 +52,8 @@ Element-Tokens verfeinern einzelne Bauteile. Sie sind **nicht** pro Theme gesetz
 | `--nav-icon` / `--nav-active-icon` | `--nav-text` / `--nav-active` | Icons der Navigation (inaktiv / aktiv) |
 | `--nav-shadow` | `none` | Schatten unter Tab- und Bereichsleiste |
 | `--popup-bg` / `--popup-border` | `--app-surface` / `--app-border` | Popup-Fläche und -Rand |
+| `--widget-disabled-filter` | `grayscale(1)` | Filter auf der Karte, solange eine Bedingung sie [deaktiviert](./editor#bedingungen-effekte), z. B. `grayscale(1) opacity(0.6)` |
+| `--widget-disabled-bg` | `color-mix(in srgb, var(--app-bg) 45%, transparent)` | Abdeckung über der deaktivierten Karte |
 
 ## Eigene Themes
 

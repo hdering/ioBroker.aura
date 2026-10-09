@@ -31,6 +31,7 @@ const VAR_GROUPS: { labelKey: string; keys: (keyof AllVars)[] }[] = [
     },
     { labelKey: 'theme.vars.elGroup', keys: ['--widget-in-group-bg', '--widget-in-group-border'] },
     { labelKey: 'theme.vars.elPopup', keys: ['--popup-bg', '--popup-border'] },
+    { labelKey: 'theme.vars.elDisabled', keys: ['--widget-disabled-filter', '--widget-disabled-bg'] },
     {
         labelKey: 'theme.vars.elSwitch',
         keys: ['--switch-bg', '--switch-off-bg', '--switch-thumb-color', '--switch-border'],
@@ -124,6 +125,8 @@ const VAR_LABEL_KEYS: Partial<Record<keyof AllVars, string>> = {
     '--nav-shadow': 'theme.vars.shadow',
     '--popup-bg': 'theme.vars.bg',
     '--popup-border': 'theme.vars.border',
+    '--widget-disabled-filter': 'theme.vars.elFilter',
+    '--widget-disabled-bg': 'theme.vars.elVeil',
 };
 
 function isColor(v: string) {

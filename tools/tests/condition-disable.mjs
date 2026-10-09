@@ -85,6 +85,18 @@ await settle();
     check('clicks on a disabled widget write nothing', writes.length === 0, JSON.stringify(writes));
 }
 
+{
+    // The look is a theme var (Theme & CSS → "Deaktiviertes Widget").
+    const filter = await page.evaluate(() => {
+        const root = document.documentElement;
+        root.style.setProperty('--widget-disabled-filter', 'opacity(0.5)');
+        const f = getComputedStyle(document.querySelector('.aura-widget-cd-test')).filter;
+        root.style.removeProperty('--widget-disabled-filter');
+        return f;
+    });
+    check('--widget-disabled-filter overrides the look', filter === 'opacity(0.5)', filter);
+}
+
 await setDp({ [LOCK_DP]: false });
 await settle();
 {

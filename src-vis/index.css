@@ -203,9 +203,11 @@ iframe {
 /* Condition effect "Widget deaktivieren": the card turns grey and nothing inside
    it takes a click — every descendant drops its pointer events, and the veil on
    top catches the click instead (not-allowed cursor, no action). Writes that need
-   no click are stopped by the write lock the frame sets alongside. */
+   no click are stopped by the write lock the frame sets alongside. The look comes
+   from the theme vars --widget-disabled-filter / --widget-disabled-bg (Theme & CSS);
+   their defaults live in ELEMENT_VAR_FALLBACKS too. */
 .aura-cond-disabled {
-    filter: grayscale(1);
+    filter: var(--widget-disabled-filter, grayscale(1));
 }
 .aura-cond-disabled * {
     pointer-events: none !important;
@@ -215,7 +217,7 @@ iframe {
     inset: 0;
     z-index: 40;
     border-radius: inherit;
-    background: color-mix(in srgb, var(--app-bg, #808080) 45%, transparent);
+    background: var(--widget-disabled-bg, color-mix(in srgb, var(--app-bg, #808080) 45%, transparent));
     cursor: not-allowed;
     pointer-events: auto !important;
 }
