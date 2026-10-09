@@ -317,6 +317,18 @@
       "name": "--popup-border",
       "inherits": "--app-border",
       "group": "Popup dialog (issue #611) — set these to lift a popup off the widgets"
+    },
+    {
+      "name": "--widget-disabled-filter",
+      "inherits": "grayscale(1)",
+      "group": "Widget disabled by a condition (\"Widget deaktivieren\")",
+      "description": "CSS filter on the whole card, e.g. 'grayscale(1) opacity(0.6)'"
+    },
+    {
+      "name": "--widget-disabled-bg",
+      "inherits": "color-mix(in srgb, var(--app-bg) 45%, transparent)",
+      "group": "Widget disabled by a condition (\"Widget deaktivieren\")",
+      "description": "veil laid over the card"
     }
   ],
   "themes": [
