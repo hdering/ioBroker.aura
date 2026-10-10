@@ -529,7 +529,8 @@ export const WIDGET_OPTION_NOTES = {
         showTiltValue: { description: 'Lamellenwert als Zahl anzeigen.' },
         reapplyTiltAfterMove: {
             description:
-                'Lamellen nach einer vom Widget gestarteten Fahrt einmal erneut auf den gewünschten Winkel setzen; Fahrten von außen (Wandtaster, Logik) bleiben unberührt.',
+                'Lamellen nach einer vom Widget gestarteten Fahrt einmal erneut auf den gewünschten Winkel setzen; Fahrten von außen (Wandtaster, Logik) bleiben unberührt. Fahrtende: activityDp fällt ab; ohne activityDp, aber mit actualPositionDp, ' +
+                'wenn die Ist-Position 3 s ruht (spätestens 8 s ohne Meldung); sonst pauschal nach 3 s.',
         },
         buttonSize: { description: 'Größe der Auf/Stopp/Zu-Tasten in px.' },
         sliderHeight: { description: 'Höhe des Positionsreglers in px.' },
@@ -538,7 +539,7 @@ export const WIDGET_OPTION_NOTES = {
                 'Schnellwahl-Tasten mit festen Positionen (#745), z. B. [{ pos: 30, label: "Beschattung", tilt: 50 }]. ' +
                 'pos liest sich wie die Anzeige (bei showClosedPercent also % geschlossen); tilt nur mit tiltDp, ' +
                 'leer = Lamellen bleiben. Ohne pos (nur mit tiltDp) setzt die Taste nur die Lamellen; steht der Behang ' +
-                'schon auf pos, wird ebenfalls nur tilt geschrieben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im ' +
+                'schon auf pos (mit actualPositionDp ±2 Punkte), wird ebenfalls nur tilt geschrieben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im ' +
                 'custom-Layout als Baustein "presets"; compact/minimal zeigen sie nicht.',
         },
     },

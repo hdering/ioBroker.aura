@@ -141,6 +141,42 @@ await click('Lamellen 70%');
 await page.waitForTimeout(3300);
 check('reapply: a slat-only change is not re-sent', (await writes()) === '[{"id":"demo.tilt","val":70}]');
 
+// ── 4d. Actual-position DP: tolerance and waiting for the drive (#745) ──────
+// KNX reports the drive on a separate DP and may stop at 26 when 25 was sent.
+await show(
+    {
+        tiltDp: 'demo.tilt',
+        actualPositionDp: 'demo.actual',
+        positionPresets: [{ pos: 25, tilt: 40, label: 'Fast' }],
+    },
+    'default',
+    { 'demo.level': 25, 'demo.actual': 26, 'demo.tilt': 40 },
+);
+check('actual 26 counts as preset 25', JSON.stringify(await activeLabels()) === '["Fast"]');
+await click('Fast');
+check('actual 26 vs. preset 25 writes only the slats', (await writes()) === '[{"id":"demo.tilt","val":40}]');
+await show(
+    {
+        tiltDp: 'demo.tilt',
+        actualPositionDp: 'demo.actual',
+        reapplyTiltAfterMove: true,
+        positionPresets: [{ pos: 0, tilt: 50, label: 'Zu' }],
+    },
+    'default',
+    { 'demo.actual': 40 },
+);
+await click('Zu');
+await page.waitForTimeout(3300);
+check(
+    'actual DP: no re-set after the fixed 3 s',
+    (await writes()) === '[{"id":"demo.tilt","val":50},{"id":"demo.level","val":0}]',
+);
+await page.waitForTimeout(5000);
+check(
+    'actual DP: without any report the angle still goes out',
+    (await writes()) === '[{"id":"demo.tilt","val":50},{"id":"demo.level","val":0},{"id":"demo.tilt","val":50}]',
+);
+
 // ── 5. Robust input and layouts ──────────────────────────────────────────────
 await show({ positionPresets: [25, { label: 'kaputt' }, { pos: 150 }] });
 check(

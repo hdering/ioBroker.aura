@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Shutter - without an activity datapoint, "Re-set after drive" waits until the actual position stops changing, and a preset counts as reached within ±2 points of the actual position (#745)

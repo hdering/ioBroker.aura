@@ -80,7 +80,7 @@ Nur aktiv mit `tiltDp`. Feste Skala: **0 % = Lamellen geschlossen, 100 % = offen
 | `tiltLivePreview` | `true` | Lamellen-Grafik und Prozentwert folgen dem Regler schon beim Ziehen |
 | `showTiltValue` | `true` | Prozentwert der Neigung anzeigen |
 | `tiltLabel` | `Lamellen` | Beschriftung |
-| `reapplyTiltAfterMove` | `false` | Winkel nach Fahrtende erneut schreiben (Aktoren, die die Lamellen bei einer Fahrt in die Endlage stellen) |
+| `reapplyTiltAfterMove` | `false` | Winkel nach Fahrtende erneut schreiben (Aktoren, die die Lamellen bei einer Fahrt in die Endlage stellen). Fahrtende: Aktivitäts-DP · sonst Ist-Position 3 s unverändert · sonst pauschal 3 s |
 
 ### Schwellwerte
 

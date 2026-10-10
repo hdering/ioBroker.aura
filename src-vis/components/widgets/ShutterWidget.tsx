@@ -90,6 +90,10 @@ function BtnRow({
     );
 }
 
+/** Slat re-set via the actual position: quiet period that ends a drive, and the wait for its first report. */
+const SETTLE_QUIET_MS = 3000;
+const SETTLE_START_MS = 8000;
+
 /**
  * Valid presets only; a bare number (as an AI might write it) counts as `{ pos }`.
  * Without `pos` a preset sets only the slats, so it needs a `tilt`.
@@ -192,6 +196,12 @@ export function ShutterWidget({ config }: WidgetProps) {
     const hasActivityDp = !!(opts.activityDp as string | undefined);
     const wasMovingRef = useRef(isMoving);
     const reapplyTimerRef = useRef<number | undefined>(undefined);
+    // Without an activity DP, a separate actual-position DP tells when the drive
+    // is over: it stops changing. KNX actuators report every few percent and may
+    // end a point or two off the target, so "quiet for a while" is the signal (#745).
+    const settleOnActual = reapplyTilt && !!tiltDp && !hasActivityDp && !!actualPositionDp;
+    // A separately reported position may stop a point or two off the written one.
+    const posTolerance = actualPositionDp ? 3 : 1;
 
     const writeTiltRaw = (pct: number) => {
         if (tiltDp) setState(tiltDp, tiltPctToRaw(pct, tiltRng));
@@ -217,6 +227,22 @@ export function ShutterWidget({ config }: WidgetProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMoving]);
 
+    /** Write the remembered angle (the latest wish, also one picked during the drive) and forget it. */
+    const flushTilt = () => {
+        if (preMoveTiltRef.current !== null) writeTiltRaw(preMoveTiltRef.current);
+        preMoveTiltRef.current = null;
+    };
+
+    // Every actual-position report restarts the quiet period; once it stays
+    // quiet, the drive is over and the angle goes out.
+    useEffect(() => {
+        if (!settleOnActual || preMoveTiltRef.current === null) return;
+        window.clearTimeout(reapplyTimerRef.current);
+        reapplyTimerRef.current = window.setTimeout(flushTilt, SETTLE_QUIET_MS);
+        // Only the reported position matters here.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [actualVal]);
+
     useEffect(() => () => window.clearTimeout(reapplyTimerRef.current), []);
 
     /** Remember the wanted slat angle for the drive about to start and re-send it once it is over. */
@@ -233,11 +259,10 @@ export function ShutterWidget({ config }: WidgetProps) {
             }, 15000);
             return;
         }
-        const target = preMoveTiltRef.current;
-        reapplyTimerRef.current = window.setTimeout(() => {
-            writeTiltRaw(target);
-            preMoveTiltRef.current = null;
-        }, 3000);
+        // With an actual-position DP: wait for the drive to start reporting
+        // (each report restarts the timer above); no report at all = command
+        // lost or already there, the angle goes out anyway. Without: fixed delay.
+        reapplyTimerRef.current = window.setTimeout(flushTilt, settleOnActual ? SETTLE_START_MS : 3000);
     };
 
     const writePos = (p: number, wantedTilt?: number) => {
@@ -350,7 +375,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         const target = p.pos === undefined ? undefined : showClosedPercent ? 100 - p.pos : p.pos;
         // Already there: many actuators re-drive on a repeated position and put
         // the slats into an end position, so only the angle is written.
-        const atTarget = target !== undefined && !isMoving && Math.abs(pos - target) < 1;
+        const atTarget = target !== undefined && !isMoving && Math.abs(pos - target) < posTolerance;
         // Slats first: HmIP blinds expect LEVEL_2 before LEVEL and then drive
         // both in one go. Actuators that reset the slats on a drive are covered
         // by reapplyTiltAfterMove, which now holds the preset's angle.
@@ -362,7 +387,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         if (target !== undefined && !(atTarget && tilt !== undefined)) writePos(target, tilt);
     };
     const presetActive = (p: ShutterPreset) =>
-        (p.pos === undefined || Math.abs((showClosedPercent ? 100 - pos : pos) - p.pos) < 1) &&
+        (p.pos === undefined || Math.abs((showClosedPercent ? 100 - pos : pos) - p.pos) < posTolerance) &&
         (!tiltActive || p.tilt === undefined || Math.abs(tiltPct - p.tilt) < 2);
     const presetText = (p: ShutterPreset) =>
         p.pos === undefined ? `${tiltLabel} ${Math.round(p.tilt ?? 0)}%` : `${Math.round(p.pos)}%`;
