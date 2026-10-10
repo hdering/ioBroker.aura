@@ -616,7 +616,7 @@
         "Eine Gruppe je Zähler, damit jede ihre eigene Summe zeigt. Zwei Einträge in EINER Gruppe zeigen stattdessen die Anteile beider an der gemeinsamen Summe (z. B. Eigenverbrauch gegen Einspeisung).",
         "visibleRanges bestimmt die Zeitraum-Knöpfe im Frontend; lockRange true blendet sie aus.",
         "Braucht History (history/influxdb/sql) auf beiden Datenpunkten; historyInstance leer = automatisch erkannt.",
-        "Den Zähler als Kurve dazu zeigt ein echart daneben — echartCurrentFrom kennt nur ersten/letzten Wert, keine Differenz."
+        "Soll die Kurve dazu, reicht EIN echart mit periodValue an der Serie (Rezept \"kurve-zeitraumwert\") — kein zweites Widget nötig."
       ],
       "widgets": [
         {
@@ -670,6 +670,68 @@
                     "aggregate": "consumption"
                   }
                 ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "kurve-zeitraumwert",
+      "title": "Kurve mit Verbrauch/Ertrag des Zeitraums in der Legende",
+      "when": "Ein Verlauf soll neben der Kurve eine Zahl über den gewählten Zeitraum zeigen — Einspeisung der letzten 30 Tage, Höchsttemperatur der Woche, mittlere Leistung von heute.",
+      "instead": "einem zweiten Widget (energiebilanz) neben dem Diagramm, dessen Zeitraum-Knöpfe getrennt laufen",
+      "notes": [
+        "periodValue an der Serie: \"consumption\" (Summe der Anstiege — für Zähler, bleibt bei Tageszähler und Zählertausch richtig), \"change\" (Ende − Start), \"min\", \"max\", \"average\".",
+        "Die Zahl geht mit Zeitraum-Knöpfen, Tagesnavigation und timeShift mit; für consumption holt das Widget dieselben Daten wie energiebilanz, beide zeigen also dieselbe Zahl.",
+        "Bei aggregate \"delta\" (Verbrauchsbalken) kommt die Zahl aus den Balken: consumption = Summe, max = höchster Balken (z. B. höchster Tagesverbrauch).",
+        "echartPeriodPlacement \"legend\" (Standard) hängt die Zahl an den Legendeneintrag, \"row\" gibt ihr eine eigene Zeile über dem Diagramm. Ohne Legende steht sie immer in der Zeile.",
+        "Braucht History auf dem Datenpunkt; in den Modi comparison und json gibt es keine Zeitraum-Kennzahl."
+      ],
+      "widgets": [
+        {
+          "id": "w-kurve-zeitraumwert",
+          "type": "echart",
+          "title": "Netz",
+          "datapoint": "%dp.zaehler.einspeisung%",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 5
+          },
+          "options": {
+            "echartMode": "timeseries",
+            "echartRange": "30d",
+            "echartVisibleRanges": [
+              "24h",
+              "7d",
+              "30d",
+              "1y"
+            ],
+            "autoHistoryInstance": true,
+            "echartShowLegend": true,
+            "echartLeftUnit": "kWh",
+            "decimals": 2,
+            "echartSeries": [
+              {
+                "id": "s-einspeisung",
+                "name": "Einspeisung",
+                "datapointId": "%dp.zaehler.einspeisung%",
+                "chartType": "line",
+                "color": "var(--accent-green)",
+                "periodValue": "consumption",
+                "yAxisIndex": 0
+              },
+              {
+                "id": "s-bezug",
+                "name": "Bezug",
+                "datapointId": "%dp.zaehler.bezug%",
+                "chartType": "line",
+                "color": "var(--accent-red)",
+                "periodValue": "consumption",
+                "yAxisIndex": 0
               }
             ]
           }

@@ -2426,6 +2426,11 @@
           "type": "string",
           "ref": "TimeShiftUnit",
           "description": "Unit of `timeShift` (default `year`). Calendar steps, so a month back lands on the same day."
+        },
+        "periodValue": {
+          "type": "string",
+          "ref": "PeriodValueKind",
+          "description": "One number over the charted window, shown next to the series (issue #749) — e.g. the energy fed in over the selected 30 days. Follows the range buttons, the day navigation and a time shift. `consumption` = sum of every rise (meters, reset-aware), `change` = end − start, `min`/`max`/`average` over the readings; a `delta` series reads them off its bars. Placement: widget option `echartPeriodPlacement`. Unset = none. Ignored for JSON series and in comparison/JSON mode."
         }
       }
     },
@@ -2461,6 +2466,16 @@
         "week",
         "month",
         "year"
+      ]
+    },
+    "PeriodValueKind": {
+      "type": "string",
+      "enum": [
+        "consumption",
+        "change",
+        "min",
+        "max",
+        "average"
       ]
     },
     "GroupActionType": {
@@ -9260,7 +9275,7 @@
             "first"
           ],
           "default": "last",
-          "description": "\"last\" nimmt den letzten Punkt der Reihe, \"first\" den ersten. Eine Differenz Ende minus Anfang gibt es hier nicht — Verbrauch/Ertrag im gewählten Zeitraum als Zahl liefert das Widget \"energiebilanz\" (aggregate \"consumption\", Rezept \"zeitraum-summe\")."
+          "description": "\"last\" nimmt den letzten Punkt der Reihe, \"first\" den ersten. Verbrauch/Ertrag, Differenz, Min/Max/Mittel über den gewählten Zeitraum: periodValue an der Serie (Rezept \"kurve-zeitraumwert\")."
         },
         "echartDayNav": {
           "type": "boolean",
@@ -9322,6 +9337,15 @@
           "type": "string",
           "default": "timeseries",
           "description": "\"timeseries\" = Verlauf über die Zeit, \"comparison\" = Balkenvergleich, \"json\" = fertige ECharts-Option aus einem Datenpunkt."
+        },
+        "echartPeriodPlacement": {
+          "type": "string",
+          "enum": [
+            "legend",
+            "row"
+          ],
+          "default": "legend",
+          "description": "Wo die Zeitraum-Kennzahlen (periodValue der Serien) stehen: \"legend\" hängt sie an den Legendeneintrag (\"Einspeisung: 6,59 kWh\"), \"row\" = eigene Zeile über dem Diagramm (eine Zeile höher). Bei ausgeblendeter Legende immer \"row\"."
         },
         "echartRange": {
           "type": "string",

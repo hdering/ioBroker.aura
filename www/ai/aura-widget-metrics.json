@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-08",
+    "measured": "2026-10-10",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1486,6 +1486,34 @@
       "fontScalePx": 20,
       "atWidthPx": 240,
       "modifiers": [
+        {
+          "key": "periodRow",
+          "label": "Zeitraum-Kennzahl als eigene Zeile (periodValue + echartPeriodPlacement row)",
+          "when": {
+            "all": [
+              {
+                "path": "echartSeries[].periodValue",
+                "nonEmpty": true
+              },
+              {
+                "any": [
+                  {
+                    "path": "echartPeriodPlacement",
+                    "equals": "row"
+                  },
+                  {
+                    "path": "echartShowLegend",
+                    "equals": false
+                  }
+                ]
+              }
+            ]
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        },
         {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
