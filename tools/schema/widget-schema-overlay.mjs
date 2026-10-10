@@ -527,7 +527,10 @@ export const WIDGET_OPTION_NOTES = {
         tiltSliderSide: { description: 'Auf welcher Seite der Lamellenregler steht: left oder right.' },
         tiltSliderWidth: { description: 'Breite des Lamellenreglers in px.' },
         showTiltValue: { description: 'Lamellenwert als Zahl anzeigen.' },
-        reapplyTiltAfterMove: { description: 'Lamellen nach einer Fahrt erneut auf den eingestellten Wert setzen.' },
+        reapplyTiltAfterMove: {
+            description:
+                'Lamellen nach einer vom Widget gestarteten Fahrt einmal erneut auf den gewünschten Winkel setzen; Fahrten von außen (Wandtaster, Logik) bleiben unberührt.',
+        },
         buttonSize: { description: 'Größe der Auf/Stopp/Zu-Tasten in px.' },
         sliderHeight: { description: 'Höhe des Positionsreglers in px.' },
         positionPresets: {

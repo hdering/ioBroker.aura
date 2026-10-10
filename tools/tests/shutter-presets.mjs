@@ -120,6 +120,27 @@ check(
     JSON.stringify(await page.locator(`${ROW} button`).allTextContents()) === '["10%"]',
 );
 
+// ── 4c. Re-set slats after the drive (no activity DP → 3 s fallback) ─────────
+// One-shot: the preset's angle comes back once, and a slat change while no
+// drive is pending does not arm a later re-set (#745).
+await show({
+    tiltDp: 'demo.tilt',
+    reapplyTiltAfterMove: true,
+    positionPresets: [{ pos: 0, tilt: 50, label: 'Schatten' }, { tilt: 70 }],
+});
+await click('Schatten');
+await page.waitForTimeout(3300);
+check(
+    'reapply: the preset angle is written again after the drive',
+    (await writes()) === '[{"id":"demo.tilt","val":50},{"id":"demo.level","val":0},{"id":"demo.tilt","val":50}]',
+);
+await page.evaluate(() => window.__auraShot.writes(true));
+await page.waitForTimeout(3300);
+check('reapply: only once', (await writes()) === '[]');
+await click('Lamellen 70%');
+await page.waitForTimeout(3300);
+check('reapply: a slat-only change is not re-sent', (await writes()) === '[{"id":"demo.tilt","val":70}]');
+
 // ── 5. Robust input and layouts ──────────────────────────────────────────────
 await show({ positionPresets: [25, { label: 'kaputt' }, { pos: 150 }] });
 check(

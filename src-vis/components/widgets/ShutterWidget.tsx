@@ -185,7 +185,8 @@ export function ShutterWidget({ config }: WidgetProps) {
     // by the time the user clicks stop, which would send 0 again (no-op) or the old
     // position back (causing the blind to reverse).
     const preMoveRawRef = useRef(rawPos);
-    // Slat angle wanted across a drive – see reapplyTiltAfterMove below.
+    // Slat angle wanted across a drive – see reapplyTiltAfterMove below. Only
+    // set while a drive this widget started is pending; null = nothing to restore.
     const preMoveTiltRef = useRef<number | null>(null);
     const reapplyTilt = !!(opts.reapplyTiltAfterMove as boolean);
     const hasActivityDp = !!(opts.activityDp as string | undefined);
@@ -197,28 +198,46 @@ export function ShutterWidget({ config }: WidgetProps) {
     };
 
     // Some actuators drive the slats into an end position whenever a new blind
-    // position is written. Opt-in: restore the angle from before the drive once
-    // it has finished – on the falling edge of the activity DP, or after a short
-    // fallback delay when there is none.
+    // position is written. Opt-in: restore the angle once the drive this widget
+    // started has finished – on the falling edge of the activity DP, or after a
+    // short fallback delay when there is none. One-shot: drives started elsewhere
+    // (wall switch, logic) leave the slats to the actuator (#745).
     useEffect(() => {
         const was = wasMovingRef.current;
         wasMovingRef.current = isMoving;
         if (!reapplyTilt || !tiltDp || !hasActivityDp) return;
-        if (was && !isMoving && preMoveTiltRef.current !== null) writeTiltRaw(preMoveTiltRef.current);
+        if (isMoving) {
+            // The drive has started – it may take as long as it needs.
+            window.clearTimeout(reapplyTimerRef.current);
+        } else if (was && preMoveTiltRef.current !== null) {
+            writeTiltRaw(preMoveTiltRef.current);
+            preMoveTiltRef.current = null;
+        }
         // Only the moving edge matters here.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isMoving]);
 
     useEffect(() => () => window.clearTimeout(reapplyTimerRef.current), []);
 
-    /** Remember the wanted slat angle and, without an activity DP, re-send it later. */
+    /** Remember the wanted slat angle for the drive about to start and re-send it once it is over. */
     const keepTiltAcrossMove = (wanted?: number) => {
         if (!tiltActive) return;
         preMoveTiltRef.current = wanted ?? dragTilt ?? tiltPct;
-        if (!reapplyTilt || hasActivityDp) return;
-        const target = preMoveTiltRef.current;
+        if (!reapplyTilt) return;
         window.clearTimeout(reapplyTimerRef.current);
-        reapplyTimerRef.current = window.setTimeout(() => writeTiltRaw(target), 3000);
+        if (hasActivityDp) {
+            // No drive within a while (already there, command lost): forget the
+            // angle, so a later foreign drive does not pick it up.
+            reapplyTimerRef.current = window.setTimeout(() => {
+                if (!wasMovingRef.current) preMoveTiltRef.current = null;
+            }, 15000);
+            return;
+        }
+        const target = preMoveTiltRef.current;
+        reapplyTimerRef.current = window.setTimeout(() => {
+            writeTiltRaw(target);
+            preMoveTiltRef.current = null;
+        }, 3000);
     };
 
     const writePos = (p: number, wantedTilt?: number) => {
@@ -297,7 +316,8 @@ export function ShutterWidget({ config }: WidgetProps) {
     };
 
     const writeTilt = (pct: number) => {
-        preMoveTiltRef.current = pct;
+        // Changed during a pending drive: that angle is the one to restore.
+        if (preMoveTiltRef.current !== null) preMoveTiltRef.current = pct;
         writeTiltRaw(pct);
     };
     const handleTiltChange = (v: number) => {

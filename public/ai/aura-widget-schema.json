@@ -13479,7 +13479,7 @@
         },
         "reapplyTiltAfterMove": {
           "type": "boolean",
-          "description": "Lamellen nach einer Fahrt erneut auf den eingestellten Wert setzen."
+          "description": "Lamellen nach einer vom Widget gestarteten Fahrt einmal erneut auf den gewünschten Winkel setzen; Fahrten von außen (Wandtaster, Logik) bleiben unberührt."
         },
         "sendOnRelease": {
           "type": "boolean",
