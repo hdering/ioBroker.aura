@@ -2,9 +2,9 @@
 
 Zeigt die aufgezeichneten Werte eines Datenpunkts aus einem History-Adapter (`history`, `sql`, `influxdb`) als Tabelle: die letzten N Werte oder alle Werte eines Zeitraums. Der Datenpunkt muss im Adapter geloggt werden.
 
-| Schaltvorgänge (getrennte Spalten) | Messwerte (Datum + Uhrzeit) |
-| --- | --- |
-| ![](./assets/verlaufstabelle/runtime.png) | ![](./assets/verlaufstabelle/runtime-werte.png) |
+| Schaltvorgänge (getrennte Spalten) | Messwerte (Datum + Uhrzeit) | Raster (Stundenmittel) |
+| --- | --- | --- |
+| ![](./assets/verlaufstabelle/runtime.png) | ![](./assets/verlaufstabelle/runtime-werte.png) | ![](./assets/verlaufstabelle/runtime-raster.png) |
 
 ## Datenpunkt
 
@@ -26,8 +26,26 @@ Zeigt die aufgezeichneten Werte eines Datenpunkts aus einem History-Adapter (`hi
 | `historyRange` | `24h` | `1h` `6h` `24h` `7d` `30d` `custom` |
 | `historyRangeCustomValue` / `…Unit` | `24` / `h` | eigener Zeitraum, Einheit `h` `d` `w` `M` `y` |
 | `hideDuplicates` | `false` | gleiche Werte hintereinander → eine Zeile (Zeitpunkt des Wechsels) |
+| `historyInterval` | aus | Raster: eine Zeile je Zeitschritt (1 Min. … 1 Tag), ab Mitternacht gezählt |
+| `historyAggregate` | `last` | Wert je Zeitschritt, nur mit Raster |
 
-Zeitraum: Rohwerte, höchstens 2000 Zeilen — bei mehr die neuesten.
+Zeitraum ohne Raster: Rohwerte, höchstens 2000 Zeilen — bei mehr die neuesten.
+
+#### Raster
+
+| `historyAggregate` | Wert der Zeile | Typen |
+| --- | --- | --- |
+| `last` (Stand) | der zum Zeitpunkt der Zeile geltende Wert | alle |
+| `average` (Mittel) | Mittelwert über den Zeitschritt | Zahlen |
+| `min` / `max` | Minimum / Maximum im Zeitschritt | Zahlen |
+| `total` (Summe) | Summe im Zeitschritt | Zahlen |
+
+| Zeilen | mit Raster |
+| --- | --- |
+| `count` | `historyCount` = Anzahl Zeitschritte |
+| `range` | alle Zeitschritte des Zeitraums |
+
+Zeitformat-Standard mit Raster: `HH:mm`. Leerer Zeitschritt: `–`.
 
 ### Spalten
 

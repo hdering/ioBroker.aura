@@ -9,7 +9,9 @@
 // value texts from `valueLabels` and from `common.states`; booleans and strings survive (the chart
 // hook drops them); repeats fold away with hideDuplicates; ascending order; the notice when no
 // history adapter is enabled for the datapoint. Column options (hide, order, prefix/suffix, colours,
-// wrap, alignment, value as date), the sort-rule chain and clickable headers.
+// wrap, alignment, value as date), the sort-rule chain and clickable headers. The time grid
+// (historyInterval): the value in force at each mark, adapter averages per step, a value from
+// before the window carrying on.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -298,6 +300,82 @@ const wavy = [5, 1, 9, 3, 9, 7].map((v, i) => [now - (5 - i) * 10 * MIN, v]);
         'sortable: third click back to newest first',
         JSON.stringify(back) === '["7","9","3","9","1","5"]',
         JSON.stringify(back),
+    );
+}
+
+// ── grid (historyInterval) ────────────────────────────────────────────────────
+/** Same cell maths as the hook: cells count from local midnight. */
+const gridFloor = (ts, step) => {
+    const d = new Date(ts);
+    const midnight = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    return midnight + Math.floor((ts - midnight) / step) * step;
+};
+const hhmm = (ts) => {
+    const d = new Date(ts);
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+};
+{
+    // 'last' (default): the value in force at each :00/:30 mark, newest mark on top.
+    const r = await render(numeric, {
+        historyInstance: 'history.0',
+        historyCount: 4,
+        historyInterval: 30 * MIN,
+        decimals: 2,
+        timeColumns: 'split',
+    });
+    const cells = [0, 1, 2, 3].map((k) => gridFloor(Date.now(), 30 * MIN) - k * 30 * MIN);
+    const expect = cells.map((c) => {
+        const p = [...numeric].reverse().find(([ts]) => ts <= c);
+        return [hhmm(c), p ? p[1].toFixed(2) : '–'];
+    });
+    const got = r?.rows.map((x) => [x[1], x[2]]);
+    check(
+        'grid last: one row per 30 min mark, value in force then',
+        JSON.stringify(got) === JSON.stringify(expect),
+        JSON.stringify({ got, expect }),
+    );
+    check('grid: time pattern defaults to HH:mm', /^\d{2}:(00|30)$/.test(r?.rows[0]?.[1] ?? ''), r?.rows[0]?.[1]);
+}
+{
+    // Adapter aggregation: hourly average over a 6 h window.
+    const r = await render(numeric, {
+        historyInstance: 'history.0',
+        historyMode: 'range',
+        historyRange: '6h',
+        historyInterval: 60 * MIN,
+        historyAggregate: 'average',
+        decimals: 2,
+        timeColumns: 'split',
+    });
+    const step = 60 * MIN;
+    const last = gridFloor(Date.now(), step);
+    const cells = [];
+    for (let c = last; c > Date.now() - 6 * step; c -= step) cells.push(c);
+    const expect = cells.map((c) => {
+        const inCell = numeric.filter(([ts]) => ts >= c && ts < c + step).map(([, v]) => v);
+        return [hhmm(c), inCell.length ? (inCell.reduce((a, b) => a + b, 0) / inCell.length).toFixed(2) : '–'];
+    });
+    const got = r?.rows.map((x) => [x[1], x[2]]);
+    check(
+        'grid average: hourly mean per row, 6 rows',
+        JSON.stringify(got) === JSON.stringify(expect),
+        JSON.stringify({ got, expect }),
+    );
+}
+{
+    // Sparse switch: one change 5 h ago — every later mark still reads it (value before the window).
+    const sparse = [[now - 5 * 60 * MIN - 7 * MIN, true]];
+    const r = await render(sparse, {
+        historyInstance: 'history.0',
+        historyCount: 3,
+        historyInterval: 60 * MIN,
+        valueLabels: '0=Aus; 1=An',
+    });
+    const vals = r?.rows.map((x) => x[1]) ?? [];
+    check(
+        'grid last: value from before the window carries on',
+        JSON.stringify(vals) === '["An","An","An"]',
+        JSON.stringify(vals),
     );
 }
 

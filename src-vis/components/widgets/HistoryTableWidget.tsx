@@ -3,9 +3,12 @@ import { ArrowDown, ArrowUp, History, Loader } from 'lucide-react';
 import { useIoBroker, type HistoryEntry } from '../../hooks/useIoBroker';
 import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import {
+    HISTORY_GRID_AGGREGATES,
     HISTORY_TABLE_MAX_COUNT,
     HISTORY_TABLE_RANGE_CAP,
     useHistoryRows,
+    type HistoryGrid,
+    type HistoryGridAggregate,
     type HistoryTableMode,
 } from '../../hooks/useHistoryRows';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -38,6 +41,16 @@ export function historyRangeMs(range: HistoryTableRange, customVal: number, cust
 
 export const HISTORY_TABLE_DEFAULT_DATE = 'dd.MM.yyyy';
 export const HISTORY_TABLE_DEFAULT_TIME = 'HH:mm:ss';
+/** Default time pattern with a grid — its rows sit on whole minutes. */
+export const HISTORY_TABLE_GRID_TIME = 'HH:mm';
+
+/** The grid of options.historyInterval / historyAggregate, or undefined for raw values. */
+export function historyGridOf(o: Record<string, unknown>): HistoryGrid | undefined {
+    const stepMs = Math.round(Number(o.historyInterval) || 0);
+    if (stepMs < 60_000) return undefined;
+    const agg = o.historyAggregate as HistoryGridAggregate | undefined;
+    return { stepMs, aggregate: agg && HISTORY_GRID_AGGREGATES.includes(agg) ? agg : 'last' };
+}
 export const HISTORY_TABLE_DEFAULT_COUNT = 20;
 
 /** Column ids: the date column only exists with timeColumns "split", "time" is the combined one otherwise. */
@@ -139,7 +152,9 @@ export function HistoryTableWidget({ config, editMode }: WidgetProps) {
 
     const split = o.timeColumns === 'split';
     const dateFormat = (o.dateFormat as string | undefined) || HISTORY_TABLE_DEFAULT_DATE;
-    const timeFormat = (o.timeFormat as string | undefined) || HISTORY_TABLE_DEFAULT_TIME;
+    const grid = useMemo(() => historyGridOf(o), [o.historyInterval, o.historyAggregate]); // eslint-disable-line react-hooks/exhaustive-deps
+    const timeFormat =
+        (o.timeFormat as string | undefined) || (grid ? HISTORY_TABLE_GRID_TIME : HISTORY_TABLE_DEFAULT_TIME);
     const newestFirst = o.sortOrder !== 'asc';
     const sortable = o.sortable === true;
     const showHeader = o.showHeader !== false;
@@ -162,6 +177,7 @@ export function HistoryTableWidget({ config, editMode }: WidgetProps) {
         rangeMs,
         connected,
         subscribe,
+        grid,
     );
 
     const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
@@ -438,9 +454,11 @@ export function HistoryTableWidget({ config, editMode }: WidgetProps) {
                     </table>
                 </div>
             )}
-            {data.truncated && mode === 'range' && (
+            {data.truncated && (
                 <p className="shrink-0 text-right" style={{ fontSize: fs - 2, color: 'var(--text-secondary)' }}>
-                    {t('historytable.truncated', { n: HISTORY_TABLE_RANGE_CAP })}
+                    {grid
+                        ? t('historytable.gridTruncated')
+                        : t('historytable.truncated', { n: HISTORY_TABLE_RANGE_CAP })}
                 </p>
             )}
         </div>

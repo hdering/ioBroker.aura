@@ -852,6 +852,19 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Aufeinanderfolgende gleiche Werte zu einer Zeile zusammenfassen (die erste, also der Zeitpunkt des Wechsels). Für Schaltzustände.',
         },
+        historyInterval: {
+            type: 'number',
+            enum: [60000, 300000, 900000, 1800000, 3600000, 10800000, 21600000, 43200000, 86400000],
+            description:
+                'Raster in ms: eine Zeile je Zeitschritt, ab lokaler Mitternacht gezählt (1800000 = 08:00, 08:30 …). Leer = Rohwerte. Bei historyMode "count" ist historyCount die Zahl der Zeitschritte, bei "range" alle Schritte des Zeitraums. timeFormat-Standard wird "HH:mm".',
+        },
+        historyAggregate: {
+            type: 'string',
+            enum: ['last', 'average', 'min', 'max', 'total'],
+            default: 'last',
+            description:
+                'Wert je Rasterzeile (nur mit historyInterval): "last" = der zum Zeitpunkt der Zeile geltende Wert (alle Typen, auch Schaltzustände/Texte), "average"/"min"/"max"/"total" = Aggregation des History-Adapters über den Zeitschritt (nur Zahlen).',
+        },
         valueLabels: {
             description:
                 'Werttexte "0=Aus; 1=An" (true/false gelten als 1/0). Leer = Texte aus common.states des Datenpunkts.',

@@ -7,14 +7,22 @@ import type { WidgetConfig } from '../../types';
 import { useT } from '../../i18n';
 import { getObjectDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
-import { HISTORY_TABLE_MAX_COUNT, HISTORY_TABLE_RANGE_CAP, useHistoryRows } from '../../hooks/useHistoryRows';
+import {
+    HISTORY_GRID_AGGREGATES,
+    HISTORY_GRID_STEPS,
+    HISTORY_TABLE_MAX_COUNT,
+    HISTORY_TABLE_RANGE_CAP,
+    useHistoryRows,
+} from '../../hooks/useHistoryRows';
 import {
     HISTORY_SORT_KEYS,
     HISTORY_TABLE_DEFAULT_COUNT,
     HISTORY_TABLE_DEFAULT_DATE,
     HISTORY_TABLE_DEFAULT_TIME,
+    HISTORY_TABLE_GRID_TIME,
     HISTORY_TABLE_RANGES,
     historyColumns,
+    historyGridOf,
     historyRangeMs,
     historySortRows,
     historyTableRows,
@@ -117,6 +125,7 @@ function HistorySortBlock({
         (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h',
     );
     const isTemplate = !!config.datapoint?.startsWith('{{');
+    const grid = useMemo(() => historyGridOf(o), [o.historyInterval, o.historyAggregate]); // eslint-disable-line react-hooks/exhaustive-deps
     const data = useHistoryRows(
         isTemplate ? undefined : config.datapoint,
         o.historyInstance as string | undefined,
@@ -125,6 +134,7 @@ function HistorySortBlock({
         rangeMs,
         connected,
         subscribe,
+        grid,
     );
     // Rows in the widget's base order, before any rule — the dialog applies the rules itself.
     const rows = useMemo(
@@ -137,7 +147,8 @@ function HistorySortBlock({
     const split = o.timeColumns === 'split';
     const valueCol = historyColumns(o.columns as HistoryColumnDef[] | undefined, split).find((c) => c.key === 'value');
     const dateFormat = (o.dateFormat as string | undefined) || HISTORY_TABLE_DEFAULT_DATE;
-    const timeFormat = (o.timeFormat as string | undefined) || HISTORY_TABLE_DEFAULT_TIME;
+    const timeFormat =
+        (o.timeFormat as string | undefined) || (grid ? HISTORY_TABLE_GRID_TIME : HISTORY_TABLE_DEFAULT_TIME);
     // The moment is one key even with split columns, so it carries both titles.
     const timeLabel = split ? `${labels.date} / ${labels.time}` : labels.time;
     return (
@@ -201,6 +212,7 @@ export function HistoryTableConfig({ config, onConfigChange }: Props) {
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
     const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
     const split = o.timeColumns === 'split';
+    const grid = historyGridOf(o);
     const labels: Record<HistoryColumnKey, string> = {
         date: (o.colDateLabel as string | undefined) || t('historytable.col.date'),
         time: (o.colTimeLabel as string | undefined) || t(split ? 'historytable.col.time' : 'historytable.col.when'),
@@ -275,7 +287,7 @@ export function HistoryTableConfig({ config, onConfigChange }: Props) {
             {mode === 'count' ? (
                 <div>
                     <label className={labelCls} style={labelSty}>
-                        {t('historytable.cfg.count')}
+                        {t(grid ? 'historytable.cfg.countGrid' : 'historytable.cfg.count')}
                     </label>
                     <input
                         type="number"
@@ -334,8 +346,54 @@ export function HistoryTableConfig({ config, onConfigChange }: Props) {
                             ))}
                         </div>
                     )}
+                    {!grid && (
+                        <p className="text-[10px] mt-1" style={hintSty}>
+                            {t('historytable.cfg.rangeHint')}
+                        </p>
+                    )}
+                </div>
+            )}
+            <div>
+                <label className={labelCls} style={labelSty}>
+                    {t('historytable.cfg.interval')}
+                </label>
+                <select
+                    value={grid?.stepMs ?? 0}
+                    onChange={(e) => set({ historyInterval: Number(e.target.value) || undefined })}
+                    className={fieldCls}
+                    style={fieldSty}
+                >
+                    <option value={0}>{t('historytable.cfg.intervalOff')}</option>
+                    {HISTORY_GRID_STEPS.map((ms) => (
+                        <option key={ms} value={ms}>
+                            {ms < 3_600_000
+                                ? t('historytable.cfg.stepMin', { n: ms / 60_000 })
+                                : ms < 86_400_000
+                                  ? t('historytable.cfg.stepHour', { n: ms / 3_600_000 })
+                                  : t('historytable.cfg.stepDay')}
+                        </option>
+                    ))}
+                </select>
+                <p className="text-[10px] mt-1" style={hintSty}>
+                    {t('historytable.cfg.intervalHint')}
+                </p>
+            </div>
+            {grid && (
+                <div>
+                    <label className={labelCls} style={labelSty}>
+                        {t('historytable.cfg.aggregate')}
+                    </label>
+                    <Segmented
+                        value={grid.aggregate}
+                        options={HISTORY_GRID_AGGREGATES.map((a) => ({ id: a, label: t(`historytable.cfg.agg.${a}`) }))}
+                        onChange={(v) => set({ historyAggregate: v })}
+                    />
                     <p className="text-[10px] mt-1" style={hintSty}>
-                        {t('historytable.cfg.rangeHint')}
+                        {t(
+                            grid.aggregate === 'last'
+                                ? 'historytable.cfg.aggLastHint'
+                                : 'historytable.cfg.aggNumberHint',
+                        )}
                     </p>
                 </div>
             )}
@@ -381,7 +439,7 @@ export function HistoryTableConfig({ config, onConfigChange }: Props) {
                     <input
                         type="text"
                         value={(o.timeFormat as string | undefined) ?? ''}
-                        placeholder={HISTORY_TABLE_DEFAULT_TIME}
+                        placeholder={grid ? HISTORY_TABLE_GRID_TIME : HISTORY_TABLE_DEFAULT_TIME}
                         onChange={(e) => set({ timeFormat: e.target.value || undefined })}
                         className={fieldCls}
                         style={fieldSty}

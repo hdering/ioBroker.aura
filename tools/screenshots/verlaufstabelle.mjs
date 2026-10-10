@@ -1,6 +1,7 @@
 // Documentation screenshots for the history table (issue #760).
 // Output: docs/widgets/assets/verlaufstabelle/runtime.png      (Schaltvorgänge, getrennte Spalten)
 //         docs/widgets/assets/verlaufstabelle/runtime-werte.png (Messwerte, Datum + Uhrzeit)
+//         docs/widgets/assets/verlaufstabelle/runtime-raster.png (Stundenmittel im Raster)
 //         docs/widgets/assets/verlaufstabelle/config.png       (Einstellungen)
 //
 //   npm run dev            (or set AURA_BASE)
@@ -77,6 +78,25 @@ const TEMP = {
     gridPos: { x: 12, y: 0, w: 11, h: 13 },
     options: { icon: 'Thermometer', historyInstance: 'history.0', historyCount: 8, decimals: 1, unit: '°C' },
 };
+const GRID = {
+    id: 'w-ht-grid',
+    type: 'historytable',
+    title: 'Wohnzimmer – Stundenmittel',
+    datapoint: 'demo.doc.temp',
+    layout: 'default',
+    gridPos: { x: 24, y: 0, w: 11, h: 13 },
+    options: {
+        icon: 'Thermometer',
+        historyInstance: 'history.0',
+        historyCount: 8,
+        historyInterval: 3_600_000,
+        historyAggregate: 'average',
+        timeColumns: 'split',
+        dateFormat: 'EE dd.MM.',
+        decimals: 1,
+        unit: '°C',
+    },
+};
 
 async function seed(editMode = false) {
     await page.evaluate(
@@ -90,7 +110,7 @@ async function seed(editMode = false) {
             a.mockServerState(vals);
             a.showWidgets(widgets, editMode ? { editMode: true } : {});
         },
-        [door, temp, [DOOR, TEMP], editMode],
+        [door, temp, [DOOR, TEMP, GRID], editMode],
     );
 }
 
@@ -107,7 +127,11 @@ await page
     .locator('.aura-widget-w-ht-temp')
     .first()
     .screenshot({ path: `${OUT}/runtime-werte.png` });
-console.log('✓ runtime.png, runtime-werte.png');
+await page
+    .locator('.aura-widget-w-ht-grid')
+    .first()
+    .screenshot({ path: `${OUT}/runtime-raster.png` });
+console.log('✓ runtime.png, runtime-werte.png, runtime-raster.png');
 
 // ── Einstellungen ──────────────────────────────────────────────────────────────
 await page.goto(`${BASE}/?shot=1#/admin/editor`, { waitUntil: 'domcontentloaded' });
