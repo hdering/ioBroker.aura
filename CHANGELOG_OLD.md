@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.72.3 (2026-09-29)
+- 🌟 **New feature:** Section menu - elements in the sidebar / overlay menu can be aligned left, centered or right
+
 ## 0.72.2 (2026-09-29)
 - Room climate - humidity can be drawn in the history chart (own right axis, selectable colour), and the temperature series can be switched off ([#724](https://github.com/hdering/ioBroker.aura/issues/724))
 - Room climate - settings regrouped per value (show switch, datapoint, icon and unit side by side) with one history section; the chart legend is now switchable ([#724](https://github.com/hdering/ioBroker.aura/issues/724))

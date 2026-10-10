@@ -122,6 +122,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.81.1 (2026-10-10)
+- Shutter - without an activity datapoint, "Re-set after drive" waits until the actual position stops changing, and a preset counts as reached within ±2 points of the actual position ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+
+
 ### 0.81.0 (2026-10-10)
 - 🌟 **New feature:** History table - per-column options like the JSON table (hide, order, width, alignment, wrap, background and text colour, prefix/suffix, value as date/time), sort rules and sorting by clicking a column title ([#760](https://github.com/hdering/ioBroker.aura/issues/760))
 - Shutter - "Re-set after drive" now restores the slat angle only once, after a drive started from the widget; drives from a wall switch or logic no longer bring the old angle back ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
@@ -235,10 +239,6 @@ Release v0.77.4
 - Widget fullscreen - a chart opened in fullscreen no longer stays empty on a phone in landscape ([#728](https://github.com/hdering/ioBroker.aura/issues/728))
 
 
-### 0.72.3 (2026-09-29)
-- 🌟 **New feature:** Section menu - elements in the sidebar / overlay menu can be aligned left, centered or right
-
-
 ## License
 
 MIT License
@@ -250,6 +250,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
