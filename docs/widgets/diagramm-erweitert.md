@@ -153,6 +153,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartShowValues`       | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) — Vorgabe für alle Serien, je Serie überschreibbar |
 | `echartShowStackPercent` | `false`                                   | prozentualen Anteil an der Stapelsumme anzeigen (nur gestapelte Serien, siehe [Stapeln](#stapeln))                                                         |
 | `echartShowLegend`       | im Vergleichs-Modus `false`, sonst `true` | Legende anzeigen; Klick auf einen Eintrag blendet die Serie aus (im Vergleichs-Modus: den Balken)                                                         |
+| `echartPeriodPlacement`  | `legend`                                  | wo die [Zeitraum-Kennzahl](#zeitraum-kennzahl) steht: `legend` (hinter dem Legendeneintrag) · `row` (eigene Zeile über dem Diagramm); ohne Legende immer `row` |
 | `echartAnimation`        | `true`                                    | Aufbau- und Übergangsanimation; aus, wenn Werte, Achsen oder Zeitraum ständig wechseln                                                                     |
 | `decimals`               | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung — Vorgabe für alle Serien, je Serie überschreibbar                         |
 | `numberFormat`           | globale Einstellung                       | 1000er-Trennzeichen: `plain` · `de` · `en` · `space` · `apostrophe` — Vorgabe für alle Serien, je Serie überschreibbar                                     |
@@ -175,6 +176,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].deltaBucket`   | `hour`       | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta`                                                                                                                           |
 | `echartSeries[].timeShift`     | `0`          | „Werte von früher zeigen“: die Serie zeigt die Werte von vor n Einheiten, eingezeichnet über dem aktuellen Zeitraum (siehe unten)                                                                                 |
 | `echartSeries[].timeShiftUnit` | `year`       | `hour` · `day` · `week` · `month` · `year` — Einheit von `timeShift`                                                                                                                                               |
+| `echartSeries[].periodValue`   | leer         | [Zeitraum-Kennzahl](#zeitraum-kennzahl): `consumption` · `change` · `min` · `max` · `average` — eine Zahl über den gezeigten Zeitraum |
 | `echartSeries[].lineWidth`     | `2`          | Linienstärke 0–4, `0` = keine Linie (nur Linie/Fläche)                                                                                                                                                             |
 | `echartSeries[].stackOutline`  | `false`      | Kontur eines gestapelten Bandes zeichnen (nur gestapelte Fläche)                                                                                                                                                   |
 | `echartSeries[].areaOpacity`   | Auto         | Deckkraft der Fläche in Prozent 10–100 (nur Fläche); Auto = gestapelt 100 %, einzeln 20 %                                                                                                                          |
@@ -306,6 +308,28 @@ Dafür eine zweite Serie auf denselben Datenpunkt mit `timeShift: 1` · `timeShi
 | Tooltip                 | nennt hinter dem Seriennamen den Zeitraum, aus dem der Wert stammt                         |
 | Andere Vergleiche       | `day` = gestern, `week` = Vorwoche, `month` = Vormonat                                     |
 | Zeitraum `Gesamt`       | Versatz wirkt nicht                                                                        |
+
+### Zeitraum-Kennzahl
+
+Eine Zahl je Serie über den gerade gezeigten Zeitraum, z. B. die Einspeisung der letzten 30 Tage. Geht mit Zeitraum-Knöpfen, Tagesnavigation und Zeitversatz mit. Im Editor unter „Verlauf“ der Serie, die Position im Tab „Werte“.
+
+![](./assets/diagramm-erweitert/bsp-zeitraumwert-legende.png)
+
+![](./assets/diagramm-erweitert/bsp-zeitraumwert-zeile.png)
+
+| `periodValue`  | Zählerstand / Messwert                                                          | Serie mit `aggregate: delta` (Balken) |
+| --------------- | ------------------------------------------------------------------------------- | ------------------------------------- |
+| `consumption`   | Summe aller Anstiege — bleibt bei Tageszähler und Zählertausch richtig           | Summe der Balken                      |
+| `change`        | Ende − Start                                                                     | Summe der Balken                      |
+| `min` · `max`   | kleinster / größter Wert im Zeitraum                                             | kleinster / größter Balken            |
+| `average`       | Mittelwert                                                                       | mittlerer Balken                      |
+
+| Thema           | Verhalten                                                                                       |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| Datenquelle     | eigene History-Abfrage (dieselbe wie [Verteilung](./verteilung.md) → gleiche Zahl); Balken: aus den Balken |
+| Live-Werte      | Verbrauch, Differenz, Min, Max laufen live mit; Mittelwert beim nächsten Nachladen                |
+| Format          | Nachkommastellen und Einheit der Serie bzw. ihrer Achse                                          |
+| Nicht verfügbar | Modus `comparison` und `json`, Serien mit `source: json`                                    |
 
 ### JSON-Quelle
 

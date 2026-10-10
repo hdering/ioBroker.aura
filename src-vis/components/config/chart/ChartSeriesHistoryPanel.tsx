@@ -22,6 +22,7 @@ export function ChartSeriesHistoryPanel({
     onDetect,
     isBool = false,
     onAddComparison,
+    showPeriod = true,
 }: {
     s: EChartSeriesConfig;
     adState?: SeriesAdapterState;
@@ -32,6 +33,8 @@ export function ChartSeriesHistoryPanel({
     isBool?: boolean;
     /** Add a copy of this series shifted one year back, right below it (issue #730). */
     onAddComparison?: () => void;
+    /** Offer the period value (issue #749) — not in comparison mode, which has no time axis. */
+    showPeriod?: boolean;
 }) {
     const t = useT();
     const isTpl = (s.datapointId ?? '').includes('{{');
@@ -178,6 +181,32 @@ export function ChartSeriesHistoryPanel({
                     </select>
                     <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                         {s.deltaBucket === 'auto' ? t('echart.bucketAutoHint') : t('echart.deltaHint')}
+                    </p>
+                </div>
+            )}
+            {s.datapointId && showPeriod && (
+                <div className="mt-1.5">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.periodValue')}
+                    </label>
+                    <select
+                        value={s.periodValue ?? ''}
+                        onChange={(e) =>
+                            update({ periodValue: (e.target.value || undefined) as EChartSeriesConfig['periodValue'] })
+                        }
+                        className={inputCls}
+                        style={inputStyle}
+                        data-testid="echart-period-value"
+                    >
+                        <option value="">{t('echart.periodNone')}</option>
+                        <option value="consumption">{t('echart.periodConsumption')}</option>
+                        <option value="change">{t('echart.periodChange')}</option>
+                        <option value="min">{t('echart.periodMin')}</option>
+                        <option value="max">{t('echart.periodMax')}</option>
+                        <option value="average">{t('echart.periodAverage')}</option>
+                    </select>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {s.aggregate === 'delta' ? t('echart.periodBarsHint') : t('echart.periodHint')}
                     </p>
                 </div>
             )}

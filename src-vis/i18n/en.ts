@@ -1895,6 +1895,22 @@ export const en: Record<TranslationKey, string> = {
     'echart.seriesShowValues': 'Values at data points',
     'echart.seriesShowValuesAuto': 'Auto ({value})',
     'echart.labelIntervalAll': 'Labels: every value',
+    'echart.periodValue': 'Period value',
+    'echart.periodNone': 'None',
+    'echart.periodConsumption': 'Consumption/yield (increase — for meters)',
+    'echart.periodChange': 'Difference (end − start)',
+    'echart.periodMin': 'Minimum',
+    'echart.periodMax': 'Maximum',
+    'echart.periodAverage': 'Average',
+    'echart.periodHint':
+        'One number over the range currently shown, e.g. the energy fed in over the last 30 days. Follows the range buttons, the day navigation and the time shift. "Consumption/yield" only counts the rises and stays correct for a day counter or a meter swap.',
+    'echart.periodBarsHint':
+        'For consumption bars: consumption and difference = sum of all bars, minimum/maximum/average = of a single bar (e.g. the highest daily consumption).',
+    'echart.periodPlacement': 'Show period values',
+    'echart.periodPlacementLegend': 'In the legend',
+    'echart.periodPlacementRow': 'As a row of their own above the chart',
+    'echart.periodPlacementHint':
+        'The value is picked per series under "History". With the legend hidden it always goes into the row of its own.',
     'echart.labelInterval': 'Labels: 1 of every {value} values',
     'echart.showStackPercent': 'Show percentage share of the stack',
     'echart.showStackPercentHint':
@@ -2011,7 +2027,8 @@ export const en: Record<TranslationKey, string> = {
     'historytable.cfg.agg.min': 'Min',
     'historytable.cfg.agg.max': 'Max',
     'historytable.cfg.agg.total': 'Sum',
-    'historytable.cfg.aggLastHint': 'The value that applied at the moment of the row – for numbers, switch states and texts.',
+    'historytable.cfg.aggLastHint':
+        'The value that applied at the moment of the row – for numbers, switch states and texts.',
     'historytable.cfg.aggNumberHint': 'Computed by the history adapter over the whole time step – numbers only.',
     'historytable.cfg.timeColumns': 'Time columns',
     'historytable.cfg.combined': 'Date + time',

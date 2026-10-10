@@ -582,6 +582,7 @@ export function ChartSeriesDetail({
                             onDetect={onDetect}
                             isBool={isBoolDp}
                             onAddComparison={isComparison ? undefined : onAddComparison}
+                            showPeriod={!isComparison}
                         />
                     )}
                 </>

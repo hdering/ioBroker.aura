@@ -1024,6 +1024,39 @@ const MIN_MODIFIERS = {
             options: { presets: [300, 900, 3600] },
         },
     ],
+    // The period values in a row of their own above the plot (#749) — in the legend they cost no
+    // height, but without a legend or with placement "row" they take one line.
+    echart: [
+        {
+            key: 'periodRow',
+            label: 'Zeitraum-Kennzahl als eigene Zeile (periodValue + echartPeriodPlacement row)',
+            when: {
+                all: [
+                    { path: 'echartSeries[].periodValue', nonEmpty: true },
+                    {
+                        any: [
+                            { path: 'echartPeriodPlacement', equals: 'row' },
+                            { path: 'echartShowLegend', equals: false },
+                        ],
+                    },
+                ],
+            },
+            options: {
+                echartPeriodPlacement: 'row',
+                echartSeries: [
+                    {
+                        id: 's1',
+                        name: 'Leistung',
+                        datapointId: DP_HIST,
+                        chartType: 'line',
+                        historyInstance: HISTORY_INSTANCE,
+                        yAxisIndex: 0,
+                        periodValue: 'max',
+                    },
+                ],
+            },
+        },
+    ],
     // Same for the shutter's quick-select row under the slider (#745).
     shutter: [
         {

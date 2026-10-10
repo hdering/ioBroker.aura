@@ -988,9 +988,14 @@ export const WIDGET_OPTION_NOTES = {
         echartShowCurrent: { description: 'Aktuellen Wert je Reihe über dem Diagramm anzeigen.' },
         echartCurrentFrom: {
             description:
-                '"last" nimmt den letzten Punkt der Reihe, "first" den ersten. Eine Differenz Ende minus Anfang gibt es ' +
-                'hier nicht — Verbrauch/Ertrag im gewählten Zeitraum als Zahl liefert das Widget "energiebilanz" ' +
-                '(aggregate "consumption", Rezept "zeitraum-summe").',
+                '"last" nimmt den letzten Punkt der Reihe, "first" den ersten. Verbrauch/Ertrag, Differenz, ' +
+                'Min/Max/Mittel über den gewählten Zeitraum: periodValue an der Serie (Rezept "kurve-zeitraumwert").',
+        },
+        echartPeriodPlacement: {
+            description:
+                'Wo die Zeitraum-Kennzahlen (periodValue der Serien) stehen: "legend" hängt sie an den Legendeneintrag ' +
+                '("Einspeisung: 6,59 kWh"), "row" = eigene Zeile über dem Diagramm (eine Zeile höher). Bei ' +
+                'ausgeblendeter Legende immer "row".',
         },
         echartCurrentAlign: { description: 'Ausrichtung des Aktuell-Blocks.' },
         echartShowValues: { description: 'Werte an den Datenpunkten beschriften.' },

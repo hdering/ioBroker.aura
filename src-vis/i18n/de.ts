@@ -1913,6 +1913,22 @@ export const de = {
     'echart.seriesShowValues': 'Werte am Datenpunkt',
     'echart.seriesShowValuesAuto': 'Auto ({value})',
     'echart.labelIntervalAll': 'Beschriftung: jeder Wert',
+    'echart.periodValue': 'Zeitraum-Kennzahl',
+    'echart.periodNone': 'Keine',
+    'echart.periodConsumption': 'Verbrauch/Ertrag (Zuwachs — für Zähler)',
+    'echart.periodChange': 'Differenz (Ende − Start)',
+    'echart.periodMin': 'Minimum',
+    'echart.periodMax': 'Maximum',
+    'echart.periodAverage': 'Mittelwert',
+    'echart.periodHint':
+        'Eine Zahl über den gerade gezeigten Zeitraum, z.B. die Einspeisung der letzten 30 Tage. Geht mit den Zeitraum-Knöpfen, der Tagesnavigation und dem Zeitversatz mit. „Verbrauch/Ertrag“ zählt nur die Anstiege und bleibt bei einem Tageszähler oder Zählertausch richtig.',
+    'echart.periodBarsHint':
+        'Bei „Verbrauch“-Balken: Verbrauch und Differenz = Summe aller Balken, Minimum/Maximum/Mittelwert = des einzelnen Balkens (z.B. höchster Tagesverbrauch).',
+    'echart.periodPlacement': 'Zeitraum-Kennzahl anzeigen',
+    'echart.periodPlacementLegend': 'In der Legende',
+    'echart.periodPlacementRow': 'Als eigene Zeile über dem Diagramm',
+    'echart.periodPlacementHint':
+        'Die Kennzahl wird je Serie unter „Verlauf“ gewählt. Ist die Legende ausgeblendet, steht sie immer in der eigenen Zeile.',
     'echart.labelInterval': 'Beschriftung: jeder {value}. Wert',
     'echart.showStackPercent': 'Prozentualen Anteil am Stapel anzeigen',
     'echart.showStackPercentHint':
@@ -2029,7 +2045,8 @@ export const de = {
     'historytable.cfg.agg.min': 'Min',
     'historytable.cfg.agg.max': 'Max',
     'historytable.cfg.agg.total': 'Summe',
-    'historytable.cfg.aggLastHint': 'Der Wert, der zum Zeitpunkt der Zeile galt – für Zahlen, Schaltzustände und Texte.',
+    'historytable.cfg.aggLastHint':
+        'Der Wert, der zum Zeitpunkt der Zeile galt – für Zahlen, Schaltzustände und Texte.',
     'historytable.cfg.aggNumberHint': 'Rechnet der History-Adapter über den ganzen Zeitschritt – nur für Zahlen.',
     'historytable.cfg.timeColumns': 'Zeitspalten',
     'historytable.cfg.combined': 'Datum + Uhrzeit',

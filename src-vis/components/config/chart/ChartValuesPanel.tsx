@@ -1,4 +1,5 @@
 import { useT } from '../../../i18n';
+import { inputCls, inputStyle } from './chartShared';
 
 /**
  * "Werte" tab of the chart's "Datenpunkte verwalten" dialog: the two settings that only make
@@ -13,12 +14,17 @@ export function ChartValuesPanel({
     showValues,
     showStackPercent,
     anyStack,
+    anyPeriod = false,
+    periodPlacement = 'legend',
     onChange,
 }: {
     showValues: boolean;
     showStackPercent: boolean;
     /** At least one series stacks — without one the percentage has no total to relate to. */
     anyStack: boolean;
+    /** At least one series shows a period value (issue #749). */
+    anyPeriod?: boolean;
+    periodPlacement?: 'legend' | 'row';
     onChange: (patch: Record<string, unknown>) => void;
 }) {
     const t = useT();
@@ -64,6 +70,32 @@ export function ChartValuesPanel({
                             {t('echart.showStackPercentHint')}
                         </p>
                     )}
+                </div>
+            )}
+
+            {anyPeriod && (
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.periodPlacement')}
+                    </label>
+                    <select
+                        value={periodPlacement}
+                        onChange={(e) =>
+                            onChange({ echartPeriodPlacement: e.target.value === 'row' ? 'row' : undefined })
+                        }
+                        className={inputCls}
+                        style={inputStyle}
+                        data-testid="echart-period-placement"
+                    >
+                        <option value="legend">{t('echart.periodPlacementLegend')}</option>
+                        <option value="row">{t('echart.periodPlacementRow')}</option>
+                    </select>
+                    <p
+                        className="text-[10px] mt-1 leading-snug"
+                        style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                    >
+                        {t('echart.periodPlacementHint')}
+                    </p>
                 </div>
             )}
         </div>

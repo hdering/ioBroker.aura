@@ -11,6 +11,8 @@ import {
     parseTimeLabel,
     seriesTimeShift,
     shiftTime,
+    reducePeriod,
+    periodFromBars,
     type EChartSeriesConfig,
     type EChartTimeRange,
     type JsonAxisBounds,
@@ -255,6 +257,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
     const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
     const currentBlockCls = `flex items-center gap-2 shrink-0 ${echartCurrentAlign === 'left' ? 'order-first' : 'ml-auto'}`;
+    // Where the period values go (issue #749): appended to the legend entries, or a row of their own
+    // above the plot. Without a legend there is nothing to append to, so they take the row.
+    const echartPeriodPlacement = (o.echartPeriodPlacement as 'legend' | 'row' | undefined) ?? 'legend';
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     // Value labels at the data points. Comparison charts have always drawn them, so they stay
     // on there unless switched off explicitly; timeseries and JSON default to off (issue #543).
@@ -667,6 +672,49 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (dayWindow && current === null && !entry?.loading) return 0;
         return current;
     };
+    /**
+     * Period value of each series over the charted window (issue #749), null where it has none.
+     * A delta series reads it off its bars, so it grows with the live bar; every other history
+     * series has a query of its own (see `periodFetch`). The preview reduces its sample curve.
+     */
+    const periodValues = echartSeries.map((s, idx): number | null => {
+        const kind = s.periodValue;
+        if (!kind || sourceOf(s) === 'json') return null;
+        if (previewData) {
+            const pts = previewData[idx];
+            if (pts.length === 0) return null;
+            return reducePeriod(kind, pts, pts[0][0], pts[pts.length - 1][0]);
+        }
+        if (s.aggregate === 'delta') return periodFromBars(kind, seriesDataMap.get(s.id)?.data ?? []);
+        return seriesDataMap.get(s.id)?.period ?? null;
+    });
+    /** A period value as text — never through the value texts: a sum of 3 is no "Heizen". */
+    const periodText = (idx: number): string | null => {
+        const v = periodValues[idx];
+        if (v === null) return null;
+        const cfg = echartSeries[idx];
+        const unit = (cfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+        return `${fmtSeries(v, cfg)}${unit ? ` ${unit}` : ''}`;
+    };
+    const periodInLegend = echartShowLegend && echartPeriodPlacement === 'legend';
+    const periodRow = periodInLegend
+        ? []
+        : echartSeries
+              .map((s, idx) => ({ s, color: colorAt(idx), text: periodText(idx) }))
+              .filter((p): p is { s: EChartSeriesConfig; color: string; text: string } => p.text !== null);
+    const periodLegendTexts = new Map<string, string>();
+    if (periodInLegend) {
+        echartSeries.forEach((s, idx) => {
+            const text = periodText(idx);
+            if (text !== null && !periodLegendTexts.has(s.name)) periodLegendTexts.set(s.name, text);
+        });
+    }
+    /** Legend entry with the period value behind the name. */
+    const legendLabel = (name: string) => {
+        const text = periodLegendTexts.get(name);
+        return text ? `${name}: ${text}` : name;
+    };
+
     // Delta series draw no synthetic flat line, so "has history" alone doesn't mean there is
     // anything to render — an all-delta widget without bars must say "no data" rather than
     // show an empty axis frame.
@@ -1358,7 +1406,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         };
     });
 
-    const legendNames = seriesList.map((ser) => String(ser.name ?? ''));
+    // Measured with the period values appended, or the grid would not clear a legend they wrap.
+    const legendNames = seriesList.map((ser) => legendLabel(String(ser.name ?? '')));
 
     const option: Record<string, unknown> = {
         backgroundColor: 'transparent',
@@ -1442,7 +1491,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             },
         },
         legend: echartShowLegend
-            ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: LEGEND_TOP }
+            ? {
+                  show: true,
+                  textStyle: { color: onCanvasMuted, fontSize: 11 },
+                  top: LEGEND_TOP,
+                  // Written as null when unused — setOption merges, an omitted key would keep the old one.
+                  formatter: periodLegendTexts.size > 0 ? legendLabel : null,
+              }
             : { show: false },
         grid: {
             left: AXIS_GAP,
@@ -1645,6 +1700,24 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 <div className="shrink-0 mb-1 flex items-center justify-between gap-2 min-w-0">
                     {rangeSelector ?? <span />}
                     {dayNavControls}
+                </div>
+            )}
+            {periodRow.length > 0 && (
+                <div
+                    className="aura-chart-period shrink-0 mb-1 flex items-center gap-x-3 gap-y-0.5 flex-wrap min-w-0"
+                    data-testid="echart-period-row"
+                >
+                    {periodRow.map((p) => (
+                        <span key={p.s.id} className="flex items-center gap-1 min-w-0 text-xs leading-tight">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
+                            <span className="truncate" style={{ color: 'var(--text-secondary)' }}>
+                                {p.s.name}
+                            </span>
+                            <span className="font-bold whitespace-nowrap" style={{ color: p.color }}>
+                                {p.text}
+                            </span>
+                        </span>
+                    ))}
                 </div>
             )}
             {instancePickers.length > 0 && (

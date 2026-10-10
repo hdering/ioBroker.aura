@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { getHistoryDirect, getStateFromCache, getObjectDirect, type HistoryEntry } from './useIoBroker';
 import { detectHistoryAdapters, TOTAL_FLOOR_MS, type DetectedAdapter } from './useChartHistory';
 import { applyValueTransform, transformMagnitude, transformSign } from '../utils/valueTransform';
@@ -148,7 +148,27 @@ export interface EChartSeriesConfig {
     timeShift?: number;
     /** Unit of `timeShift` (default `year`). Calendar steps, so a month back lands on the same day. */
     timeShiftUnit?: TimeShiftUnit;
+    /**
+     * One number over the charted window, shown next to the series (issue #749) — e.g. the energy
+     * fed in over the selected 30 days. Follows the range buttons, the day navigation and a time
+     * shift. `consumption` = sum of every rise (meters, reset-aware), `change` = end − start,
+     * `min`/`max`/`average` over the readings; a `delta` series reads them off its bars. Placement:
+     * widget option `echartPeriodPlacement`. Unset = none. Ignored for JSON series and in
+     * comparison/JSON mode.
+     */
+    periodValue?: PeriodValueKind;
 }
+
+/**
+ * What `EChartSeriesConfig.periodValue` computes over the window:
+ * - `consumption`: sum of every rise of a counter — reset-aware like the `delta` bars;
+ * - `change`: last reading minus first (end − start);
+ * - `min` / `max` / `average`: over the readings.
+ *
+ * A `delta` series reads its bars instead: `consumption` and `change` are their sum, the other three
+ * the smallest/largest/mean bar ("highest daily consumption").
+ */
+export type PeriodValueKind = 'consumption' | 'change' | 'min' | 'max' | 'average';
 
 /** Calendar unit a comparison series is shifted by — see `EChartSeriesConfig.timeShift`. */
 export type TimeShiftUnit = 'hour' | 'day' | 'week' | 'month' | 'year';
@@ -295,6 +315,11 @@ export interface SeriesDataResult {
      * recording length, which only the fetch knows (issue #570).
      */
     deltaBucket?: DeltaBucket;
+    /**
+     * The series' `periodValue` over the window — only for history series that are not `delta`
+     * (those derive it from their bars). Undefined until the fetch came back.
+     */
+    period?: number | null;
 }
 
 const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
@@ -636,6 +661,119 @@ export function bucketDeltas(data: [number, number][], bucket: DeltaBucket, wind
         lastBucket,
         lastBase: lastBucket !== null && prevVal !== null ? prevVal - sums.get(lastBucket)! : null,
     };
+}
+
+/**
+ * Total increase a counter booked inside the window — reset- and glitch-aware (issue #561).
+ *
+ * `delta` is a plain `end − start`, which only holds for a counter that rises forever. A DAY
+ * counter (`sourceanalytix.*.01_currentDay`, a PV inverter's day yield) falls back to 0 at
+ * midnight, so on a rolling 24 h window `end − start` compares today's part-day against
+ * yesterday's finished day and comes out negative — the share each entry then contributes to
+ * its bar is meaningless.
+ *
+ * So instead of differencing the two ends, every rise in the series is booked and summed, which
+ * is what `bucketDeltas` already does for the advanced chart's `delta` bars (#545): a midnight
+ * drop books nothing and the climb after it is real consumption, while a stray low reading
+ * inside a day is told apart from a reset and its jump back discarded. Summing the hourly
+ * buckets it returns gives the window's total, i.e. the sum of the daily values whenever the
+ * window sits on day boundaries. For a monotonic meter the result is identical to `delta`.
+ */
+export function counterIncrease(data: [number, number][], windowStart: number): number | null {
+    if (data.length === 0) return null;
+    // Hour buckets, anchored on the window's own hour so nothing inside it is trimmed away.
+    const { points } = bucketDeltas(data, 'hour', bucketStart(windowStart, 'hour'));
+    return points.reduce((sum, p) => sum + p[1], 0);
+}
+
+/**
+ * getHistory step for a `consumption` fetch — `undefined` means raw readings.
+ *
+ * The rises are summed client-side, so the fetch must not average the midnight reset of a day
+ * counter away: a step comes back as `max` (the reading at the step's end), which keeps every
+ * drop visible, and once the step is a whole day the extra low row of a `minmax` fetch is what
+ * makes the reset visible at all (#545). The steps stay well below the row cap while giving the
+ * sum enough resolution — the only increase a step can swallow is the part that falls inside
+ * the very step the counter resets in, which for a day counter is the middle of the night.
+ * `getStepForMs` cannot be reused: its coarse end would return a single row for a 1 h window,
+ * and one reading has no rise to book.
+ *
+ * A whole day is the coarsest step there is: beyond that one step holds several reset cycles of a
+ * day counter and its `minmax` rows expose only one climb of them, which cut long windows down to a
+ * fraction of the real increase (issue #562). Long windows pay for the extra rows out of the row
+ * budget instead (`deltaFetchCount`).
+ */
+export function counterFetchStep(rangeMs: number): number | undefined {
+    if (rangeMs <= 3 * 3_600_000) return undefined; // raw — every logged reading
+    if (rangeMs <= 48 * 3_600_000) return 900_000; // 15 min → ≥ 96 rows for a day
+    if (rangeMs <= 45 * 86_400_000) return 3_600_000; // hourly → ≤ 1080 rows
+    return 86_400_000;
+}
+
+// ── Period value (issue #749) ─────────────────────────────────────────────────
+// One number per series over the charted window. It has a history query of its own: the curve is
+// fetched as bucket averages, and neither the rises of a counter nor a real extreme survive that —
+// a 30-day line at a 6 h step puts the window's start reading half a step off and flattens every
+// peak. The counter kinds use exactly the fetch of the "Diagramm (Verteilung)" widget, so both
+// widgets show the same number for the same window.
+
+/** getHistory parameters for a period value over a window of `rangeMs`. */
+export function periodFetch(
+    kind: PeriodValueKind,
+    rangeMs: number,
+): { step: number | undefined; aggregate: 'none' | 'max' | 'min' | 'minmax' | 'average'; count: number } {
+    if (kind === 'consumption' || kind === 'change') {
+        const step = counterFetchStep(rangeMs);
+        return {
+            step,
+            aggregate: !step ? 'none' : step >= 86_400_000 ? 'minmax' : 'max',
+            count: step ? deltaFetchCount(step, rangeMs) : 3000,
+        };
+    }
+    const step = getStepForMs(rangeMs);
+    // A bucket's own max/min keeps the real extreme; an average of averages is still the average.
+    return { step, aggregate: step ? kind : 'none', count: 1000 };
+}
+
+/**
+ * Reduce the rows of a `periodFetch` to the period value. `data` must be sorted and converted
+ * (for `consumption` into the magnitude space — the caller puts the sign back on). The adapter's
+ * border rows outside `[start, end]` are dropped for the reading kinds — a reading from before the
+ * window is no extreme of it. The counter kinds keep the leading one: the reading the window
+ * opened with is exactly the baseline the first rise is measured from.
+ */
+export function reducePeriod(
+    kind: PeriodValueKind,
+    data: [number, number][],
+    start: number,
+    end: number,
+): number | null {
+    if (kind === 'consumption' || kind === 'change') {
+        // A border row after the window would book a rise that happened later.
+        const upToEnd = data.filter((p) => p[0] <= end);
+        if (kind === 'consumption') return counterIncrease(upToEnd, start);
+        return upToEnd.length > 0 ? upToEnd[upToEnd.length - 1][1] - upToEnd[0][1] : null;
+    }
+    const inside = data.filter((p) => p[0] >= start && p[0] <= end);
+    const rows = inside.length > 0 ? inside : data;
+    if (rows.length === 0) return null;
+    const vals = rows.map((p) => p[1]);
+    if (kind === 'min') return Math.min(...vals);
+    if (kind === 'max') return Math.max(...vals);
+    return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+/**
+ * Period value of a `delta` series, read off its bars: the window's consumption is their sum, and
+ * min/max/average are those of a single bar — "the highest daily consumption".
+ */
+export function periodFromBars(kind: PeriodValueKind, bars: [number, number][]): number | null {
+    if (bars.length === 0) return null;
+    const vals = bars.map((p) => p[1]);
+    if (kind === 'min') return Math.min(...vals);
+    if (kind === 'max') return Math.max(...vals);
+    const sum = vals.reduce((a, b) => a + b, 0);
+    return kind === 'average' ? sum / vals.length : sum;
 }
 
 /** Key names commonly used for the y value, best guess first. */
@@ -1050,7 +1188,18 @@ export function useMultiSeriesData(
             s.valueOffset,
             seriesTimeShift(s)?.amount,
             seriesTimeShift(s)?.unit,
+            s.periodValue,
         ]),
+    );
+
+    // Period value per series (issue #749) — its own state, because every other path rebuilds the
+    // series' result object from scratch and would drop it.
+    const [periodMap, setPeriodMap] = useState<Map<string, number | null>>(new Map());
+    // What a live reading needs to move the period value without a refetch: the value as fetched
+    // and the last reading it accounts for (a magnitude for `consumption`), plus the window's first
+    // reading for `change`.
+    const periodLiveRef = useRef<Map<string, { kind: PeriodValueKind; value: number; last: number; first: number }>>(
+        new Map(),
     );
 
     // Last raw value seen per JSON series — lets the live subscription bail out of a re-render
@@ -1111,6 +1260,20 @@ export function useMultiSeriesData(
                 }
                 return next;
             });
+        }
+
+        // Series that no longer take a period value (or take it from their bars) lose the old one.
+        setPeriodMap((prev) => {
+            const keep = new Set(
+                series.filter((s) => s.periodValue && s.aggregate !== 'delta' && s.source !== 'json').map((s) => s.id),
+            );
+            if ([...prev.keys()].every((k) => keep.has(k))) return prev;
+            return new Map([...prev].filter(([k]) => keep.has(k)));
+        });
+        for (const id of [...periodLiveRef.current.keys()]) {
+            if (!series.some((s) => s.id === id && s.periodValue && s.aggregate !== 'delta')) {
+                periodLiveRef.current.delete(id);
+            }
         }
 
         series.forEach((s) => {
@@ -1203,6 +1366,45 @@ export function useMultiSeriesData(
              * step and delta bucket are chosen from — for a pinned day window that is the full day
              * even once `end` has been clamped to now, so the resolution doesn't drift through the day.
              */
+            /**
+             * The series' period value over the QUERIED window (shifted back for a comparison
+             * series) — a query of its own, see `periodFetch`. Converted like the curve; a
+             * `consumption` sums rises in the magnitude space and takes the sign afterwards, the
+             * same as a delta bar (issue #594).
+             */
+            const fetchPeriod = (kind: PeriodValueKind, qStart: number, qEnd: number, rangeMs: number) => {
+                const { step, aggregate, count } = periodFetch(kind, rangeMs);
+                const magnitude = kind === 'consumption';
+                getHistoryDirect(s.datapointId, { instance, start: qStart, end: qEnd, step, aggregate, count })
+                    .then((entries: HistoryEntry[]) => {
+                        if (!mountedRef.current) return;
+                        const data = entries
+                            .map((e) => ({ ts: e.ts, num: chartNumber(e.val) }))
+                            .filter((e): e is { ts: number; num: number } => e.num !== null)
+                            .map((e): [number, number] => [
+                                e.ts,
+                                magnitude ? deltaMagnitude(s, e.num) : seriesValue(s, e.num),
+                            ])
+                            .sort((a, b) => a[0] - b[0]);
+                        const reduced = reducePeriod(kind, data, qStart, qEnd);
+                        const value = reduced !== null && magnitude ? reduced * deltaTransform(s).sign : reduced;
+                        if (value !== null && data.length > 0) {
+                            periodLiveRef.current.set(s.id, {
+                                kind,
+                                value,
+                                last: data[data.length - 1][1],
+                                first: data[0][1],
+                            });
+                        } else {
+                            periodLiveRef.current.delete(s.id);
+                        }
+                        setPeriodMap((prev) => (prev.get(s.id) === value ? prev : new Map(prev).set(s.id, value)));
+                    })
+                    .catch(() => {
+                        // Keep what is on screen — the next refresh tries again.
+                    });
+            };
+
             const fetchWindow = (start: number, end: number, rangeMs: number, isBool: boolean) => {
                 // `none` = raw points: skip bucketing so the adapter returns the actual logged
                 // values instead of per-bucket averages.
@@ -1228,6 +1430,8 @@ export function useMultiSeriesData(
                 const qEnd = shift && isDelta ? Math.min(nextBucketStart(back(end), bucket), Date.now()) : back(end);
                 const deltaWindowStart = isDelta ? bucketStart(qStart, bucket) : qStart;
                 const fetchStart = isDelta ? prevBucketStart(qStart, bucket) : qStart;
+
+                if (s.periodValue && !isDelta) fetchPeriod(s.periodValue, qStart, qEnd, rangeMs);
 
                 getHistoryDirect(s.datapointId, {
                     instance,
@@ -1448,6 +1652,33 @@ export function useMultiSeriesData(
     // Subscribe to live updates for all series
     useEffect(() => {
         if (!connected || series.length === 0) return;
+        /**
+         * Move the period value along with a live reading (issue #749): a counter books the rise,
+         * `change` is measured against the window's first reading, min/max widen. An average needs
+         * the whole window and waits for the periodic refetch. A drop books nothing — a reset, or a
+         * glitch the next refetch sorts out.
+         */
+        const livePeriod = (s: EChartSeriesConfig, raw: number, val: number) => {
+            const info = periodLiveRef.current.get(s.id);
+            if (!info) return;
+            let next: number;
+            let last = val;
+            if (info.kind === 'consumption') {
+                last = deltaMagnitude(s, raw);
+                next = last > info.last ? info.value + (last - info.last) * deltaTransform(s).sign : info.value;
+            } else if (info.kind === 'change') {
+                next = val - info.first;
+            } else if (info.kind === 'min') {
+                next = Math.min(info.value, val);
+            } else if (info.kind === 'max') {
+                next = Math.max(info.value, val);
+            } else {
+                return;
+            }
+            periodLiveRef.current.set(s.id, { ...info, value: next, last });
+            if (next === info.value) return;
+            setPeriodMap((prev) => new Map(prev).set(s.id, next));
+        };
         const unsubs = series
             // Series pinned to a past absolute window are a frozen view — no live appends.
             .filter(
@@ -1517,6 +1748,7 @@ export function useMultiSeriesData(
                     const num = chartNumber(state.val);
                     if (num === null) return;
                     const val = seriesValue(s, num);
+                    livePeriod(s, num, val);
                     // Buckets a reading is not comparable with: only the value block follows it,
                     // the curve waits for the next periodic refetch to bring the grown bucket.
                     if (bucketOnlyRef.current.has(s.id)) {
@@ -1576,5 +1808,13 @@ export function useMultiSeriesData(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [depKey, connected, subscribe]);
 
-    return resultsMap;
+    return useMemo(() => {
+        if (periodMap.size === 0) return resultsMap;
+        const merged = new Map(resultsMap);
+        for (const [id, period] of periodMap) {
+            const r = merged.get(id);
+            if (r) merged.set(id, { ...r, period });
+        }
+        return merged;
+    }, [resultsMap, periodMap]);
 }

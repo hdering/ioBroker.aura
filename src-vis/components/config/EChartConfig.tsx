@@ -151,6 +151,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // Share of the stack total at the data point (issue #569) — only offered once something stacks.
     const echartShowStackPercent = (o.echartShowStackPercent as boolean | undefined) ?? false;
     const anyStack = series.some((s) => s.stack);
+    const anyPeriod = series.some((s) => !!s.periodValue);
     // The chart-wide number format each series inherits (issue #600) — already resolved against
     // the app-wide defaults, so a series row can name what "inherit" gives it.
     const { defaultDecimals, numberFormat: globalNumberFormat } = useGlobalSettingsStore();
@@ -482,6 +483,10 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                     showValues={echartShowValues}
                                     showStackPercent={echartShowStackPercent}
                                     anyStack={anyStack}
+                                    anyPeriod={anyPeriod}
+                                    periodPlacement={
+                                        (o.echartPeriodPlacement as 'legend' | 'row' | undefined) ?? 'legend'
+                                    }
                                     onChange={setO}
                                 />
                             ),
