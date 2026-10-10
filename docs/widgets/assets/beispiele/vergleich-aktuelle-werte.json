@@ -21,7 +21,7 @@
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s25",
+        "id": "s27",
         "name": "Wohnzimmer",
         "datapointId": "demo.0.Raum.Wohnzimmer.Temperatur",
         "chartType": "bar",
@@ -29,7 +29,7 @@
         "yAxisIndex": 0
       },
       {
-        "id": "s26",
+        "id": "s28",
         "name": "Küche",
         "datapointId": "demo.0.Raum.Kueche.Temperatur",
         "chartType": "bar",
@@ -37,7 +37,7 @@
         "yAxisIndex": 0
       },
       {
-        "id": "s27",
+        "id": "s29",
         "name": "Schlafzimmer",
         "datapointId": "demo.0.Raum.Schlafzimmer.Temperatur",
         "chartType": "bar",
@@ -45,7 +45,7 @@
         "yAxisIndex": 0
       },
       {
-        "id": "s28",
+        "id": "s30",
         "name": "Bad",
         "datapointId": "demo.0.Raum.Bad.Temperatur",
         "chartType": "bar",
@@ -53,7 +53,7 @@
         "yAxisIndex": 0
       },
       {
-        "id": "s29",
+        "id": "s31",
         "name": "Kinderzimmer",
         "datapointId": "demo.0.Raum.Kinderzimmer.Temperatur",
         "chartType": "bar",

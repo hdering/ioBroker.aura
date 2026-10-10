@@ -20,7 +20,7 @@
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s30",
+        "id": "s32",
         "name": "Download",
         "datapointId": "demo.0.Router.Download_Monate_JSON",
         "chartType": "bar",
@@ -29,7 +29,7 @@
         "source": "json"
       },
       {
-        "id": "s31",
+        "id": "s33",
         "name": "Upload",
         "datapointId": "demo.0.Router.Upload_Monate_JSON",
         "chartType": "bar",

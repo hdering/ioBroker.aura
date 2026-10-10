@@ -1,0 +1,48 @@
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Netz",
+  "datapoint": "demo.0.Netz.Einspeisung_Gesamt",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": false,
+    "echartRange": "30d",
+    "echartVisibleRanges": [
+      "24h",
+      "7d",
+      "30d"
+    ],
+    "echartLeftUnit": "kWh",
+    "echartRightUnit": "kWh",
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s12",
+        "name": "Einspeisung",
+        "datapointId": "demo.0.Netz.Einspeisung_Gesamt",
+        "chartType": "line",
+        "color": "var(--accent-green)",
+        "yAxisIndex": 0,
+        "periodValue": "consumption"
+      },
+      {
+        "id": "s13",
+        "name": "Bezug",
+        "datapointId": "demo.0.Netz.Bezug_Gesamt",
+        "chartType": "line",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 1,
+        "periodValue": "consumption"
+      }
+    ]
+  }
+}

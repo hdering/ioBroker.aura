@@ -21,7 +21,7 @@
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s32",
+        "id": "s34",
         "name": "Außen",
         "datapointId": "demo.0.Wetter.Verlauf_JSON",
         "chartType": "line",

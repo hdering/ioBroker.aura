@@ -24,7 +24,7 @@
     "echartRightUnit": "°C",
     "echartSeries": [
       {
-        "id": "s18",
+        "id": "s20",
         "name": "Gas",
         "datapointId": "demo.0.Gas.Zaehlerstand",
         "chartType": "bar",
@@ -36,7 +36,7 @@
         "decimals": 1
       },
       {
-        "id": "s19",
+        "id": "s21",
         "name": "Außentemperatur",
         "datapointId": "demo.0.Wetter.Aussentemperatur",
         "chartType": "line",

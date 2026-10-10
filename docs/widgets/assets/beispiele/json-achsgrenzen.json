@@ -20,7 +20,7 @@
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s36",
+        "id": "s38",
         "name": "Auslastung",
         "datapointId": "demo.0.Skript.Auslastung_JSON",
         "chartType": "area",

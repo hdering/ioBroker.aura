@@ -21,7 +21,7 @@
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s35",
+        "id": "s37",
         "name": "Vorlauf",
         "datapointId": "demo.0.Heizung.Heizkurve_JSON",
         "chartType": "area",

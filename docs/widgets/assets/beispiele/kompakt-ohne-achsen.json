@@ -24,7 +24,7 @@
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s24",
+        "id": "s26",
         "name": "Leistung",
         "datapointId": "demo.0.Haus.Leistung",
         "chartType": "area",

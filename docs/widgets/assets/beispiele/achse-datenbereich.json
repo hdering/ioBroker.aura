@@ -26,7 +26,7 @@
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s20",
+        "id": "s22",
         "name": "Außen",
         "datapointId": "demo.0.Wetter.Aussentemperatur",
         "chartType": "line",

@@ -311,7 +311,7 @@ Dafür eine zweite Serie auf denselben Datenpunkt mit `timeShift: 1` · `timeShi
 
 ### Zeitraum-Kennzahl
 
-Eine Zahl je Serie über den gerade gezeigten Zeitraum, z. B. die Einspeisung der letzten 30 Tage. Geht mit Zeitraum-Knöpfen, Tagesnavigation und Zeitversatz mit. Im Editor unter „Verlauf“ der Serie, die Position im Tab „Werte“.
+Eine Zahl je Serie über den gerade gezeigten Zeitraum, z. B. die Einspeisung der letzten 30 Tage. Geht mit Zeitraum-Knöpfen, Tagesnavigation und Zeitversatz mit. Im Editor unter „Verlauf“ der Serie, die Position im Tab „Werte“. Zum Importieren: [Beispiel „Einspeisung und Bezug des Zeitraums“](./beispiele-diagramm-erweitert#zeitraum-kennzahl).
 
 ![](./assets/diagramm-erweitert/bsp-zeitraumwert-legende.png)
 

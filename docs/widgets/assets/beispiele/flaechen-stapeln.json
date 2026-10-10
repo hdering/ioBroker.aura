@@ -24,7 +24,7 @@
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s13",
+        "id": "s15",
         "name": "Aus dem Netz",
         "datapointId": "demo.0.Haus.Leistung_aus_Netz",
         "chartType": "area",
@@ -34,7 +34,7 @@
         "areaOpacity": 85
       },
       {
-        "id": "s14",
+        "id": "s16",
         "name": "Aus dem Speicher",
         "datapointId": "demo.0.Haus.Leistung_aus_Speicher",
         "chartType": "area",

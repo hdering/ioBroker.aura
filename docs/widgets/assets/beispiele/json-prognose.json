@@ -21,7 +21,7 @@
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s33",
+        "id": "s35",
         "name": "Gemessen",
         "datapointId": "demo.0.PV.Leistung",
         "chartType": "area",
@@ -30,7 +30,7 @@
         "decimals": 0
       },
       {
-        "id": "s34",
+        "id": "s36",
         "name": "Prognose",
         "datapointId": "demo.0.PV.Prognose_JSON",
         "chartType": "line",

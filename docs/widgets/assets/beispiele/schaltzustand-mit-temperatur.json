@@ -23,7 +23,7 @@
     "echartLeftUnit": "°C",
     "echartSeries": [
       {
-        "id": "s21",
+        "id": "s23",
         "name": "Vorlauf",
         "datapointId": "demo.0.Heizung.Vorlauf",
         "chartType": "line",
@@ -32,7 +32,7 @@
         "decimals": 1
       },
       {
-        "id": "s22",
+        "id": "s24",
         "name": "Rücklauf",
         "datapointId": "demo.0.Heizung.Ruecklauf",
         "chartType": "line",
@@ -41,7 +41,7 @@
         "decimals": 1
       },
       {
-        "id": "s23",
+        "id": "s25",
         "name": "Brenner",
         "datapointId": "demo.0.Heizung.Brenner",
         "chartType": "area",

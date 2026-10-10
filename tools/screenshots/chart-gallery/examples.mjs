@@ -320,6 +320,52 @@ export const EXAMPLES = [
         }),
     },
 
+    {
+        id: 'zeitraum-kennzahl',
+        section: 'Zähler und Verbrauch',
+        title: 'Einspeisung und Bezug des Zeitraums in der Legende',
+        issues: [749],
+        intro: 'Die Zählerstände als Kurve, dahinter in der Legende die Menge im gewählten Zeitraum — geht mit den Zeitraum-Knöpfen mit, kein zweites Widget nötig.',
+        keys: [
+            [
+                'echartSeries[].periodValue',
+                '`consumption`',
+                'im Editor: Serie → „Verlauf“ → „Zeitraum-Kennzahl“ → „Verbrauch/Ertrag“',
+            ],
+            ['echartPeriodPlacement', '`legend`', '`row` = eigene Zeile über dem Diagramm'],
+            ['echartVisibleRanges', '`24h` · `7d` · `30d`', 'die Zahl folgt dem gewählten Knopf'],
+            [
+                'echartSeries[1].yAxisIndex',
+                '`1`',
+                'zweiter Zähler auf der rechten Achse — sonst liegen beide Kurven flach',
+            ],
+        ],
+        widget: echart(
+            'Netz',
+            [
+                serie('Einspeisung', DP.gridOut, 'line', 'var(--accent-green)', { periodValue: 'consumption' }),
+                serie('Bezug', DP.gridIn, 'line', 'var(--accent-red)', { periodValue: 'consumption', yAxisIndex: 1 }),
+            ],
+            {
+                echartRange: '30d',
+                echartVisibleRanges: ['24h', '7d', '30d'],
+                echartLeftUnit: 'kWh',
+                echartRightUnit: 'kWh',
+                echartShowCurrent: false,
+                decimals: 1,
+            },
+        ),
+        data: () => ({
+            history: Object.fromEntries(
+                [
+                    [DP.gridOut, 'gridOut'],
+                    [DP.gridIn, 'gridIn'],
+                ].map(([dp, c]) => [dp, D.totalSeries(c, since(32), NOW, HOUR)]),
+            ),
+            values: {},
+        }),
+    },
+
     // ── Darstellung ──────────────────────────────────────────────────────────
     {
         id: 'einheit-umrechnen',

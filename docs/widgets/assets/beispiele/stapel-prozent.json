@@ -24,7 +24,7 @@
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s15",
+        "id": "s17",
         "name": "PV direkt",
         "datapointId": "demo.0.Haus.PV_Direkt_Gesamt",
         "chartType": "bar",
@@ -35,7 +35,7 @@
         "stack": true
       },
       {
-        "id": "s16",
+        "id": "s18",
         "name": "Speicher",
         "datapointId": "demo.0.Speicher.Entladen_Gesamt",
         "chartType": "bar",
@@ -46,7 +46,7 @@
         "stack": true
       },
       {
-        "id": "s17",
+        "id": "s19",
         "name": "Netz",
         "datapointId": "demo.0.Netz.Bezug_Gesamt",
         "chartType": "bar",

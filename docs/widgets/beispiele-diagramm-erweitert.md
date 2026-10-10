@@ -18,6 +18,7 @@ Fertige Konfigurationen für [Diagramm (erweitert)](./diagramm-erweitert), entst
 - [Eigene Zeiträume in Monaten](#eigene-zeitraeume)
 - [Monatsverbrauch neben dem Vorjahr](#vorjahresvergleich)
 - [Bezug nach oben, Einspeisung nach unten](#einspeisung-negativ)
+- [Einspeisung und Bezug des Zeitraums in der Legende](#zeitraum-kennzahl)
 
 ### Zählerstand als Verbrauch pro Tag {#zaehler-tagesverbrauch}
 
@@ -428,6 +429,74 @@ Aus [#594](https://github.com/hdering/ioBroker.aura/issues/594). Werte, die als 
 
 [JSON herunterladen](./assets/beispiele/einspeisung-negativ.json)
 
+### Einspeisung und Bezug des Zeitraums in der Legende {#zeitraum-kennzahl}
+
+Aus [#749](https://github.com/hdering/ioBroker.aura/issues/749). Die Zählerstände als Kurve, dahinter in der Legende die Menge im gewählten Zeitraum — geht mit den Zeitraum-Knöpfen mit, kein zweites Widget nötig.
+
+![Einspeisung und Bezug des Zeitraums in der Legende](./assets/beispiele/zeitraum-kennzahl.png)
+
+| Option | Wert | |
+| --- | --- | --- |
+| `echartSeries[].periodValue` | `consumption` | im Editor: Serie → „Verlauf“ → „Zeitraum-Kennzahl“ → „Verbrauch/Ertrag“ |
+| `echartPeriodPlacement` | `legend` | `row` = eigene Zeile über dem Diagramm |
+| `echartVisibleRanges` | `24h` · `7d` · `30d` | die Zahl folgt dem gewählten Knopf |
+| `echartSeries[1].yAxisIndex` | `1` | zweiter Zähler auf der rechten Achse — sonst liegen beide Kurven flach |
+
+::: details Widget-Export (JSON)
+```json
+{
+  "id": "w-chart",
+  "type": "echart",
+  "title": "Netz",
+  "datapoint": "demo.0.Netz.Einspeisung_Gesamt",
+  "layout": "default",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 30,
+    "h": 12
+  },
+  "options": {
+    "echartMode": "timeseries",
+    "autoHistoryInstance": true,
+    "echartShowLegend": true,
+    "echartShowCurrent": false,
+    "echartRange": "30d",
+    "echartVisibleRanges": [
+      "24h",
+      "7d",
+      "30d"
+    ],
+    "echartLeftUnit": "kWh",
+    "echartRightUnit": "kWh",
+    "decimals": 1,
+    "echartSeries": [
+      {
+        "id": "s12",
+        "name": "Einspeisung",
+        "datapointId": "demo.0.Netz.Einspeisung_Gesamt",
+        "chartType": "line",
+        "color": "var(--accent-green)",
+        "yAxisIndex": 0,
+        "periodValue": "consumption"
+      },
+      {
+        "id": "s13",
+        "name": "Bezug",
+        "datapointId": "demo.0.Netz.Bezug_Gesamt",
+        "chartType": "line",
+        "color": "var(--accent-red)",
+        "yAxisIndex": 1,
+        "periodValue": "consumption"
+      }
+    ]
+  }
+}
+```
+:::
+
+[JSON herunterladen](./assets/beispiele/zeitraum-kennzahl.json)
+
 ## Darstellung
 
 - [Watt in Kilowatt anzeigen](#einheit-umrechnen)
@@ -480,7 +549,7 @@ Aus [#540](https://github.com/hdering/ioBroker.aura/issues/540). Reine Anzeige-U
     "decimals": 2,
     "echartSeries": [
       {
-        "id": "s12",
+        "id": "s14",
         "name": "Leistung",
         "datapointId": "demo.0.Haus.Leistung",
         "chartType": "area",
@@ -538,7 +607,7 @@ Aus [#541](https://github.com/hdering/ioBroker.aura/issues/541) · [#557](https:
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s13",
+        "id": "s15",
         "name": "Aus dem Netz",
         "datapointId": "demo.0.Haus.Leistung_aus_Netz",
         "chartType": "area",
@@ -548,7 +617,7 @@ Aus [#541](https://github.com/hdering/ioBroker.aura/issues/541) · [#557](https:
         "areaOpacity": 85
       },
       {
-        "id": "s14",
+        "id": "s16",
         "name": "Aus dem Speicher",
         "datapointId": "demo.0.Haus.Leistung_aus_Speicher",
         "chartType": "area",
@@ -605,7 +674,7 @@ Aus [#569](https://github.com/hdering/ioBroker.aura/issues/569). Woher der Tages
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s15",
+        "id": "s17",
         "name": "PV direkt",
         "datapointId": "demo.0.Haus.PV_Direkt_Gesamt",
         "chartType": "bar",
@@ -616,7 +685,7 @@ Aus [#569](https://github.com/hdering/ioBroker.aura/issues/569). Woher der Tages
         "stack": true
       },
       {
-        "id": "s16",
+        "id": "s18",
         "name": "Speicher",
         "datapointId": "demo.0.Speicher.Entladen_Gesamt",
         "chartType": "bar",
@@ -627,7 +696,7 @@ Aus [#569](https://github.com/hdering/ioBroker.aura/issues/569). Woher der Tages
         "stack": true
       },
       {
-        "id": "s17",
+        "id": "s19",
         "name": "Netz",
         "datapointId": "demo.0.Netz.Bezug_Gesamt",
         "chartType": "bar",
@@ -685,7 +754,7 @@ Aus [#598](https://github.com/hdering/ioBroker.aura/issues/598) · [#584](https:
     "echartRightUnit": "°C",
     "echartSeries": [
       {
-        "id": "s18",
+        "id": "s20",
         "name": "Gas",
         "datapointId": "demo.0.Gas.Zaehlerstand",
         "chartType": "bar",
@@ -697,7 +766,7 @@ Aus [#598](https://github.com/hdering/ioBroker.aura/issues/598) · [#584](https:
         "decimals": 1
       },
       {
-        "id": "s19",
+        "id": "s21",
         "name": "Außentemperatur",
         "datapointId": "demo.0.Wetter.Aussentemperatur",
         "chartType": "line",
@@ -757,7 +826,7 @@ Aus [#83](https://github.com/hdering/ioBroker.aura/issues/83). Die Achse beginnt
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s20",
+        "id": "s22",
         "name": "Außen",
         "datapointId": "demo.0.Wetter.Aussentemperatur",
         "chartType": "line",
@@ -813,7 +882,7 @@ Aus [#718](https://github.com/hdering/ioBroker.aura/issues/718). Ein boolescher 
     "echartLeftUnit": "°C",
     "echartSeries": [
       {
-        "id": "s21",
+        "id": "s23",
         "name": "Vorlauf",
         "datapointId": "demo.0.Heizung.Vorlauf",
         "chartType": "line",
@@ -822,7 +891,7 @@ Aus [#718](https://github.com/hdering/ioBroker.aura/issues/718). Ein boolescher 
         "decimals": 1
       },
       {
-        "id": "s22",
+        "id": "s24",
         "name": "Rücklauf",
         "datapointId": "demo.0.Heizung.Ruecklauf",
         "chartType": "line",
@@ -831,7 +900,7 @@ Aus [#718](https://github.com/hdering/ioBroker.aura/issues/718). Ein boolescher 
         "decimals": 1
       },
       {
-        "id": "s23",
+        "id": "s25",
         "name": "Brenner",
         "datapointId": "demo.0.Heizung.Brenner",
         "chartType": "area",
@@ -889,7 +958,7 @@ Aus [#282](https://github.com/hdering/ioBroker.aura/issues/282) · [#240](https:
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s24",
+        "id": "s26",
         "name": "Leistung",
         "datapointId": "demo.0.Haus.Leistung",
         "chartType": "area",
@@ -943,7 +1012,7 @@ Aus [#200](https://github.com/hdering/ioBroker.aura/issues/200) · [#253](https:
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s25",
+        "id": "s27",
         "name": "Wohnzimmer",
         "datapointId": "demo.0.Raum.Wohnzimmer.Temperatur",
         "chartType": "bar",
@@ -951,7 +1020,7 @@ Aus [#200](https://github.com/hdering/ioBroker.aura/issues/200) · [#253](https:
         "yAxisIndex": 0
       },
       {
-        "id": "s26",
+        "id": "s28",
         "name": "Küche",
         "datapointId": "demo.0.Raum.Kueche.Temperatur",
         "chartType": "bar",
@@ -959,7 +1028,7 @@ Aus [#200](https://github.com/hdering/ioBroker.aura/issues/200) · [#253](https:
         "yAxisIndex": 0
       },
       {
-        "id": "s27",
+        "id": "s29",
         "name": "Schlafzimmer",
         "datapointId": "demo.0.Raum.Schlafzimmer.Temperatur",
         "chartType": "bar",
@@ -967,7 +1036,7 @@ Aus [#200](https://github.com/hdering/ioBroker.aura/issues/200) · [#253](https:
         "yAxisIndex": 0
       },
       {
-        "id": "s28",
+        "id": "s30",
         "name": "Bad",
         "datapointId": "demo.0.Raum.Bad.Temperatur",
         "chartType": "bar",
@@ -975,7 +1044,7 @@ Aus [#200](https://github.com/hdering/ioBroker.aura/issues/200) · [#253](https:
         "yAxisIndex": 0
       },
       {
-        "id": "s29",
+        "id": "s31",
         "name": "Kinderzimmer",
         "datapointId": "demo.0.Raum.Kinderzimmer.Temperatur",
         "chartType": "bar",
@@ -1053,7 +1122,7 @@ Aus [#543](https://github.com/hdering/ioBroker.aura/issues/543) · [#509](https:
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s30",
+        "id": "s32",
         "name": "Download",
         "datapointId": "demo.0.Router.Download_Monate_JSON",
         "chartType": "bar",
@@ -1062,7 +1131,7 @@ Aus [#543](https://github.com/hdering/ioBroker.aura/issues/543) · [#509](https:
         "source": "json"
       },
       {
-        "id": "s31",
+        "id": "s33",
         "name": "Upload",
         "datapointId": "demo.0.Router.Upload_Monate_JSON",
         "chartType": "bar",
@@ -1095,15 +1164,15 @@ Aus [#549](https://github.com/hdering/ioBroker.aura/issues/549). Steht der neues
 [
   {
     "label": "13:00",
-    "value": 18.2
+    "value": 17.8
   },
   {
     "label": "12:00",
-    "value": 17.5
+    "value": 17.2
   },
   {
     "label": "11:00",
-    "value": 16.6
+    "value": 16.2
   }
 ]
 ```
@@ -1134,7 +1203,7 @@ Aus [#549](https://github.com/hdering/ioBroker.aura/issues/549). Steht der neues
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s32",
+        "id": "s34",
         "name": "Außen",
         "datapointId": "demo.0.Wetter.Verlauf_JSON",
         "chartType": "line",
@@ -1168,16 +1237,16 @@ Aus [#595](https://github.com/hdering/ioBroker.aura/issues/595) · [#509](https:
 ```json
 [
   {
-    "ts": "1791457200000",
-    "val": 2279
+    "ts": "1791630000000",
+    "val": 2237
   },
   {
-    "ts": "1791460800000",
-    "val": 1881
+    "ts": "1791633600000",
+    "val": 1838
   },
   {
-    "ts": "1791464400000",
-    "val": 1304
+    "ts": "1791637200000",
+    "val": 1263
   }
 ]
 ```
@@ -1208,7 +1277,7 @@ Aus [#595](https://github.com/hdering/ioBroker.aura/issues/595) · [#509](https:
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s33",
+        "id": "s35",
         "name": "Gemessen",
         "datapointId": "demo.0.PV.Leistung",
         "chartType": "area",
@@ -1217,7 +1286,7 @@ Aus [#595](https://github.com/hdering/ioBroker.aura/issues/595) · [#509](https:
         "decimals": 0
       },
       {
-        "id": "s34",
+        "id": "s36",
         "name": "Prognose",
         "datapointId": "demo.0.PV.Prognose_JSON",
         "chartType": "line",
@@ -1290,7 +1359,7 @@ Aus [#703](https://github.com/hdering/ioBroker.aura/issues/703). Die X-Achse mus
     "decimals": 1,
     "echartSeries": [
       {
-        "id": "s35",
+        "id": "s37",
         "name": "Vorlauf",
         "datapointId": "demo.0.Heizung.Heizkurve_JSON",
         "chartType": "area",
@@ -1371,7 +1440,7 @@ Aus [#550](https://github.com/hdering/ioBroker.aura/issues/550). Das Skript lief
     "decimals": 0,
     "echartSeries": [
       {
-        "id": "s36",
+        "id": "s38",
         "name": "Auslastung",
         "datapointId": "demo.0.Skript.Auslastung_JSON",
         "chartType": "area",
