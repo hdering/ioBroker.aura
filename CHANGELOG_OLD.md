@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.72.2 (2026-09-29)
+- Room climate - humidity can be drawn in the history chart (own right axis, selectable colour), and the temperature series can be switched off ([#724](https://github.com/hdering/ioBroker.aura/issues/724))
+- Room climate - settings regrouped per value (show switch, datapoint, icon and unit side by side) with one history section; the chart legend is now switchable ([#724](https://github.com/hdering/ioBroker.aura/issues/724))
+
 ## 0.72.1 (2026-09-29)
 - Section title widget: the minimal style now shows the title as typed instead of forcing capitals; a new "Title in capitals" switch works in every style ([#723](https://github.com/hdering/ioBroker.aura/issues/723))
 

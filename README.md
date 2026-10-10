@@ -122,6 +122,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.81.0 (2026-10-10)
+- 🌟 **New feature:** History table - per-column options like the JSON table (hide, order, width, alignment, wrap, background and text colour, prefix/suffix, value as date/time), sort rules and sorting by clicking a column title ([#760](https://github.com/hdering/ioBroker.aura/issues/760))
+- Shutter - "Re-set after drive" now restores the slat angle only once, after a drive started from the widget; drives from a wall switch or logic no longer bring the old angle back ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+- 🌟 **New feature:** History table - optional time grid: one row per interval (1 min to 1 day, e.g. every 30 minutes), showing the value at that moment or the average, minimum, maximum or sum of the interval ([#760](https://github.com/hdering/ioBroker.aura/issues/760))
+- 🌟 **New feature:** Advanced chart - optional period value per series: consumption/yield, difference, minimum, maximum or average over the range shown, in the legend or in a row above the chart; follows the range buttons and day navigation ([#749](https://github.com/hdering/ioBroker.aura/issues/749))
+
+
 ### 0.80.4 (2026-10-09)
 - 🌟 **New feature:** Conditions - new effect "Disable widget": while the condition matches, the widget is greyed out and cannot be operated; its look is adjustable under Theme & CSS
 
@@ -232,11 +239,6 @@ Release v0.77.4
 - 🌟 **New feature:** Section menu - elements in the sidebar / overlay menu can be aligned left, centered or right
 
 
-### 0.72.2 (2026-09-29)
-- Room climate - humidity can be drawn in the history chart (own right axis, selectable colour), and the temperature series can be switched off ([#724](https://github.com/hdering/ioBroker.aura/issues/724))
-- Room climate - settings regrouped per value (show switch, datapoint, icon and unit side by side) with one history section; the chart legend is now switchable ([#724](https://github.com/hdering/ioBroker.aura/issues/724))
-
-
 ## License
 
 MIT License
@@ -248,6 +250,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
