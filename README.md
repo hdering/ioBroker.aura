@@ -122,6 +122,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.81.3 (2026-10-11)
+- Settings - web adapter extension: hint that the Visu App / ioBroker.pro remote access needs the same web instance as the cloud adapter (usually web.0) ([#688](https://github.com/hdering/ioBroker.aura/issues/688))
+- 🌟 **New feature:** Group / List - group switch: choose whether a click from the mixed state turns all devices on or off ([#764](https://github.com/hdering/ioBroker.aura/issues/764))
+- Status overview: the colour of the row buttons "Replaced/Acknowledge", "Later" and "Ignore" can be set per button, and each button carries its own CSS class.
+- Fill level - LED segments: "Fill width" now keeps the configured segment count and spreads it over the tile (the old behaviour is the new "Adapt count to length" switch), up to 200 segments, and the value can sit below or beside the segments with its own font size ([#765](https://github.com/hdering/ioBroker.aura/issues/765))
+
+
 ### 0.81.2 (2026-10-11)
 - Status overview - new row action "Ignore" (option latchIgnore, with confirmation) hides a false alarm such as an empty wallbox for good; ignored datapoints are never remembered again and can be shown and restored with showIgnored
 - Status overview - commands on status.<cat>.cmd run one after another, accept several ids (remove:<id1>,<id2>) and report their outcome in status.<cat>.cmdResult; excluded datapoints (excludeIdPatterns) take effect in the adapter immediately, without a browser
@@ -232,10 +239,6 @@ Release v0.77.4
 - 🌟 **New feature:** Universal widget - row heights can be set as a ratio per row, like the column widths (e.g. 1 / 0.25 / 1 for a thin separator row), or to auto ([#737](https://github.com/hdering/ioBroker.aura/issues/737))
 
 
-### 0.73.0 (2026-09-30)
-- 🌟 **New feature:** Universal widget - each display cell (text, value, image, icon, …) can have its own click action, e.g. a different popup view per cell ([#729](https://github.com/hdering/ioBroker.aura/issues/729))
-
-
 ## License
 
 MIT License
@@ -247,6 +250,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
