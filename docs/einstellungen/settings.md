@@ -77,8 +77,9 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 | --- | --- |
 | Datenverbindung | Das Feld **Datenverbindung (Socket-Backend)** weiter oben ist etwas anderes: von dort holt Aura Live-Werte und Adapter-Dateien – wird immer gebraucht, auch ohne Erweiterung |
 | Port 8095 | Läuft unverändert weiter; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben |
-| Neustarts | Die gewählte Web-Instanz startet bei jedem Start, Stopp und Speichern der Aura-Instanz neu – andere Web-Instanzen nicht |
-| Empfehlung | Eigene Web-Instanz nur für Aura (z. B. `web.1` auf eigenem Port), dann laufen die anderen Visualisierungen auf `:8082` ungestört |
+| Visu App / ioBroker.pro | Dieselbe Web-Instanz wählen, die im Cloud-Adapter (`cloud.0`) eingetragen ist – meist `web.0`. Der Cloud-Adapter leitet nur **eine** Web-Instanz weiter; Aura, vis und andere Apps müssen alle über sie laufen |
+| Eigene Web-Instanz | Z. B. `web.1` nur für Aura: geht lokal, aber nicht über die Cloud. `cloud.0` auf `web.1` umstellen macht Aura erreichbar, vis dann nicht mehr ([#688](https://github.com/hdering/ioBroker.aura/issues/688)) |
+| Neustarts | Die gewählte Web-Instanz startet bei jedem Start, Stopp und Speichern der Aura-Instanz neu (technisch bedingt) – andere Web-Instanzen nicht |
 | Socket | Die Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte |
 | Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs |
 | Aura gestoppt | `/aura/` zeigt „Aura läuft nicht“ und lädt von selbst neu, sobald Aura wieder läuft; die Web-Instanz läuft weiter |

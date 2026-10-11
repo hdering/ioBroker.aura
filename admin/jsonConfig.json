@@ -272,8 +272,8 @@
     "webExtHint": {
       "type": "staticText",
       "text": {
-        "en": "Optional. Makes Aura additionally reachable as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), which is what the ioBroker Visu App and the cloud adapter can open. Aura keeps running on its own port above as well; dashboards, PINs and settings are the same on both ways. The chosen web instance restarts every time this Aura instance is started, stopped or its settings are saved — so a separate web instance used only for Aura (e.g. web.1 on its own port) is recommended, then your other visualisations on :8082 are never interrupted. That web instance needs its integrated socket (the default) — the dashboard uses it for live values.",
-        "de": "Optional. Macht Aura zusätzlich als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – so kann die ioBroker Visu App bzw. der Cloud-Adapter Aura öffnen. Aura läuft außerdem weiter auf dem eigenen Port oben; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird – empfohlen ist deshalb eine eigene Web-Instanz nur für Aura (z. B. web.1 auf eigenem Port), dann werden die anderen Visualisierungen auf :8082 nie unterbrochen. Diese Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards."
+        "en": "Optional. Makes Aura additionally reachable as <web-port>/aura/ (e.g. http://192.168.1.10:8082/aura/), which is what the ioBroker Visu App and the cloud adapter can open. Aura keeps running on its own port above as well; dashboards, PINs and settings are the same on both ways. Visu App / remote access via ioBroker.pro: choose the same web instance that the cloud adapter uses (usually web.0). The cloud adapter forwards only one web instance, so Aura, vis and the other apps must all be served by it. A separate web instance for Aura (e.g. web.1) then only works locally — switching cloud.0 over to it breaks vis remotely. The chosen web instance restarts every time this Aura instance is started, stopped or its settings are saved (technically unavoidable). It needs its integrated socket (the default) — the dashboard uses it for live values.",
+        "de": "Optional. Macht Aura zusätzlich als <Web-Port>/aura/ erreichbar (z. B. http://192.168.1.10:8082/aura/) – so kann die ioBroker Visu App bzw. der Cloud-Adapter Aura öffnen. Aura läuft außerdem weiter auf dem eigenen Port oben; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Visu App / Fernzugriff über ioBroker.pro: dieselbe Web-Instanz wählen, die der Cloud-Adapter nutzt (meist web.0). Der Cloud-Adapter leitet nur eine Web-Instanz weiter – Aura, vis und die anderen Apps müssen also alle über sie laufen. Eine eigene Web-Instanz für Aura (z. B. web.1) funktioniert dann nur lokal; stellt man cloud.0 auf sie um, geht vis von unterwegs nicht mehr. Die gewählte Web-Instanz startet jedes Mal neu, wenn diese Aura-Instanz gestartet, gestoppt oder gespeichert wird (technisch bedingt). Sie braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte des Dashboards."
       },
       "xs": 12,
       "sm": 12,
@@ -291,8 +291,8 @@
         "de": "Zusätzlich erreichbar über Web-Instanz (/aura/)"
       },
       "help": {
-        "en": "Only for the Visu App / cloud. Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",
-        "de": "Nur für Visu App / Cloud. Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+        "en": "Only for the Visu App / cloud. For remote access pick the web instance set in cloud.0 (usually web.0). Unrelated to the data connection above. Empty = off. The list is only filled while this instance runs.",
+        "de": "Nur für Visu App / Cloud. Für den Fernzugriff die Web-Instanz wählen, die in cloud.0 eingetragen ist (meist web.0). Hat nichts mit der Datenverbindung oben zu tun. Leer = aus. Die Liste wird nur gefüllt, solange diese Instanz läuft."
       },
       "xs": 12,
       "sm": 12,
