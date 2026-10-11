@@ -1,5 +1,14 @@
 # Changelog (older entries)
 
+## 0.74.0 (2026-10-01)
+- 🌟 **New feature:** Adapter logs - the search field can be preset in the widget settings; the frontend starts filtered and the text can still be changed; several terms separated by "|" match any of them ([#727](https://github.com/hdering/ioBroker.aura/issues/727))
+- Camera - MJPEG stream URLs (e.g. `.../stream.mjpeg`) now always play live; the refresh interval no longer reloads them every few seconds
+- 🌟 **New feature:** Universal widget - the grid is no longer capped at 20 rows and columns ([#735](https://github.com/hdering/ioBroker.aura/issues/735))
+- Camera - a player page that reports its state (eusec `stream.html`) pauses the stream timeout while it waits for the HomeBase or plays, and names the camera the station is busy with; "start on tap" now also works without a wake-up datapoint
+- Frontend - changes made in a widget on any tab other than the one last opened in the editor (timer events and master switch, auto-list sync, widgets shown in a popup) were silently dropped; they are saved again. Timers inside a group are saved too ([#731](https://github.com/hdering/ioBroker.aura/issues/731))
+- 🌟 **New feature:** Custom layout - each cell can have a background colour (with transparency), filling the cell or only as a label behind its text; keeps values readable on a photo in the Image widget ([#732](https://github.com/hdering/ioBroker.aura/issues/732))
+- 🌟 **New feature:** Universal widget - row heights can be set as a ratio per row, like the column widths (e.g. 1 / 0.25 / 1 for a thin separator row), or to auto ([#737](https://github.com/hdering/ioBroker.aura/issues/737))
+
 ## 0.73.0 (2026-09-30)
 - 🌟 **New feature:** Universal widget - each display cell (text, value, image, icon, …) can have its own click action, e.g. a different popup view per cell ([#729](https://github.com/hdering/ioBroker.aura/issues/729))
 

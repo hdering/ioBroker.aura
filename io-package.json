@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.81.3",
+    "version": "0.81.4",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.81.4": {
+        "en": "Click popups without a configured width now size to their content (e.g. the popup view's own width) instead of stopping at 600 px\nChart / Advanced chart - time ranges can now be set in minutes (custom range and own range chips like `15m`) for watching live values (#766)",
+        "de": "Klick-Popups ohne konfigurierte Breite passen sich jetzt der Größe ihres Inhalts an (z. B. der eigenen Breite der Popup-Ansicht), anstatt bei 600 Pixel anzuhalten\nDiagramm / Erweitertes Diagramm – Zeitbereiche können jetzt in Minuten eingestellt werden (benutzerdefinierter Bereich und eigene Bereichschips wie „15 m“), um Live-Werte anzuzeigen (#766)",
+        "ru": "Всплывающие окна без настроенной ширины теперь имеют размер, соответствующий их содержимому (например, собственной ширине всплывающего окна), а не останавливаются на 600 пикселях.\nДиаграмма / Расширенная диаграмма — временные диапазоны теперь могут быть установлены в минутах (пользовательский диапазон и собственные чипы диапазона, например «15 м») для просмотра текущих значений (# 766). (#766)",
+        "pt": "Clique em pop-ups sem largura configurada agora dimensionados de acordo com seu conteúdo (por exemplo, a própria largura da visualização pop-up) em vez de parar em 600 px\nGráfico / Gráfico avançado - os intervalos de tempo agora podem ser definidos em minutos (intervalo personalizado e chips de intervalo próprios como `15m`) para observar valores ao vivo (#766)",
+        "nl": "Klik op pop-ups zonder een geconfigureerde breedte en pas het formaat aan hun inhoud aan (bijvoorbeeld de eigen breedte van de pop-upweergave) in plaats van te stoppen bij 600 px\nGrafiek / Geavanceerde grafiek - tijdsbereiken kunnen nu in minuten worden ingesteld (aangepast bereik en eigen bereikchips zoals `15m`) voor het bekijken van live waarden (#766)",
+        "fr": "Cliquez sur les fenêtres contextuelles sans largeur configurée pour les dimensionner désormais en fonction de leur contenu (par exemple, la propre largeur de la vue contextuelle) au lieu de s'arrêter à 600 px.\nGraphique / Graphique avancé - les plages de temps peuvent désormais être définies en minutes (plage personnalisée et propres puces de plage comme « 15 m ») pour regarder les valeurs en direct (#766)",
+        "it": "I popup che non hanno una larghezza configurata ora vengono ridimensionati in base al loro contenuto (ad esempio, la larghezza della visualizzazione popup) invece di fermarsi a 600 px\nGrafico/Grafico avanzato: gli intervalli di tempo ora possono essere impostati in minuti (intervallo personalizzato e chip di intervallo propri come `15m`) per guardare valori in tempo reale (#766)",
+        "es": "Haga clic en las ventanas emergentes sin un ancho configurado y ahora ajuste el tamaño a su contenido (por ejemplo, el ancho de la vista emergente) en lugar de detenerse en 600 px.\nGráfico/Gráfico avanzado: los rangos de tiempo ahora se pueden configurar en minutos (rango personalizado y chips de rango propio como `15m`) para ver valores en vivo (#766)",
+        "pl": "Kliknij wyskakujące okienka bez skonfigurowanej szerokości, teraz dopasowuj je do ich zawartości (np. własnej szerokości widoku wyskakującego okienka) zamiast zatrzymywać się na 600 px\nWykres / Wykres zaawansowany — zakresy czasu można teraz ustawić w minutach (zakres niestandardowy i własne znaczniki zakresu, takie jak „15 m”) do oglądania wartości na żywo (#766)",
+        "uk": "Спливаючі вікна без налаштованої ширини тепер мають розмір відповідно до свого вмісту (наприклад, власної ширини спливаючого вікна) замість зупинки на 600 пікселях\nДіаграма / розширена діаграма - часові діапазони тепер можна встановлювати в хвилинах (спеціальний діапазон і власні фішки діапазону, як-от \"15m\") для перегляду живих значень (#766)",
+        "zh-cn": "单击没有配置宽度的弹出窗口，现在其大小适合其内容（例如弹出视图自己的宽度），而不是停留在 600 像素\n图表/高级图表 - 现在可以以分钟为单位设置时间范围（自定义范围和自己的范围芯片，如“15m”）以观看实时值(#766)"
+      },
       "0.81.3": {
         "en": "Settings - web adapter extension: hint that the Visu App / ioBroker.pro remote access needs the same web instance as the cloud adapter (usually web.0) (#688)\n🌟 New feature: Group / List - group switch: choose whether a click from the mixed state turns all devices on or off (#764)\nStatus overview: the colour of the row buttons \"Replaced/Acknowledge\", \"Later\" and \"Ignore\" can be set per button, and each button carries its own CSS class.\nFill level - LED segments: \"Fill width\" now keeps the configured segment count and spreads it over the tile (the old behaviour is the new \"Adapt count to length\" switch), up to 200 segments, and the value can sit below or beside the segments with its own font size (#765)",
         "de": "Einstellungen – Webadapter-Erweiterung: Hinweis, dass der Visu App / ioBroker.pro-Fernzugriff dieselbe Webinstanz wie der Cloud-Adapter benötigt (normalerweise web.0) (#688)\n🌟 Neue Funktion: Gruppe / Liste – Gruppenschalter: Wählen Sie, ob ein Klick aus dem gemischten Zustand alle Geräte ein- oder ausschaltet (#764)\nStatusübersicht: Die Farbe der Zeilen-Buttons „Ersetzt/Bestätigen“, „Später“ und „Ignorieren“ kann pro Button eingestellt werden, und jeder Button trägt seine eigene CSS-Klasse.\nFüllstand – LED-Segmente: „Füllbreite“ behält jetzt die konfigurierte Segmentanzahl bei und verteilt sie über die Kachel (das alte Verhalten ist der neue Schalter „Anzahl an Länge anpassen“), bis zu 200 Segmente, und der Wert kann mit seiner eigenen Schriftgröße unter oder neben den Segmenten stehen (#765)",
@@ -185,19 +198,6 @@
         "pl": "Wyskakujące okienka — punkty danych `popup.open` akceptują `szerokość` i `wysokość` (px) w ładunku JSON w celu ustawienia rozmiaru wyskakującego okienka (#762)",
         "uk": "Спливаючі вікна – точки даних `popup.open` приймають `width` і `height` (px) у корисному навантаженні JSON для встановлення розміру спливаючого вікна (#762)",
         "zh-cn": "弹出窗口 - `popup.open` 数据点接受 JSON 负载中的 `width` 和 `height` (px) 以设置弹出窗口大小 (#762)"
-      },
-      "0.80.2": {
-        "en": "Status overview - the two-line layout uses the standard text sizes, in line with the other widgets",
-        "de": "Statusübersicht – Das zweizeilige Layout verwendet die Standardtextgrößen, passend zu den anderen Widgets",
-        "ru": "Обзор состояния — в двухстрочном макете используются стандартные размеры текста, как и в других виджетах.",
-        "pt": "Visão geral do status - o layout de duas linhas usa tamanhos de texto padrão, alinhados com os outros widgets",
-        "nl": "Statusoverzicht - de tweeregelige lay-out gebruikt de standaard tekstgroottes, in lijn met de andere widgets",
-        "fr": "Aperçu du statut - la mise en page sur deux lignes utilise les tailles de texte standard, conformément aux autres widgets",
-        "it": "Panoramica dello stato: il layout a due righe utilizza le dimensioni del testo standard, in linea con gli altri widget",
-        "es": "Descripción general del estado: el diseño de dos líneas utiliza los tamaños de texto estándar, en línea con los otros widgets",
-        "pl": "Przegląd stanu - dwuliniowy układ wykorzystuje standardowe rozmiary tekstu, podobnie jak pozostałe widżety",
-        "uk": "Огляд статусу - у дворядковому макеті використовуються стандартні розміри тексту відповідно до інших віджетів",
-        "zh-cn": "状态概述 - 两行布局使用标准文本大小，与其他小部件一致"
       }
     }
   },

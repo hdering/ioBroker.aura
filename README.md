@@ -122,6 +122,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.81.4 (2026-10-11)
+- Click popups without a configured width now size to their content (e.g. the popup view's own width) instead of stopping at 600 px
+- Chart / Advanced chart - time ranges can now be set in minutes (custom range and own range chips like `15m`) for watching live values ([#766](https://github.com/hdering/ioBroker.aura/issues/766))
+
+
 ### 0.81.3 (2026-10-11)
 - Settings - web adapter extension: hint that the Visu App / ioBroker.pro remote access needs the same web instance as the cloud adapter (usually web.0) ([#688](https://github.com/hdering/ioBroker.aura/issues/688))
 - 🌟 **New feature:** Group / List - group switch: choose whether a click from the mixed state turns all devices on or off ([#764](https://github.com/hdering/ioBroker.aura/issues/764))
@@ -229,16 +234,6 @@ Release v0.77.4
 - Dynamic list - removed datapoints no longer come back with the next automatic sync: with a filter set they are added to the exclude list, and "Delete all" clears the stored filter
 
 
-### 0.74.0 (2026-10-01)
-- 🌟 **New feature:** Adapter logs - the search field can be preset in the widget settings; the frontend starts filtered and the text can still be changed; several terms separated by "|" match any of them ([#727](https://github.com/hdering/ioBroker.aura/issues/727))
-- Camera - MJPEG stream URLs (e.g. `.../stream.mjpeg`) now always play live; the refresh interval no longer reloads them every few seconds
-- 🌟 **New feature:** Universal widget - the grid is no longer capped at 20 rows and columns ([#735](https://github.com/hdering/ioBroker.aura/issues/735))
-- Camera - a player page that reports its state (eusec `stream.html`) pauses the stream timeout while it waits for the HomeBase or plays, and names the camera the station is busy with; "start on tap" now also works without a wake-up datapoint
-- Frontend - changes made in a widget on any tab other than the one last opened in the editor (timer events and master switch, auto-list sync, widgets shown in a popup) were silently dropped; they are saved again. Timers inside a group are saved too ([#731](https://github.com/hdering/ioBroker.aura/issues/731))
-- 🌟 **New feature:** Custom layout - each cell can have a background colour (with transparency), filling the cell or only as a label behind its text; keeps values readable on a photo in the Image widget ([#732](https://github.com/hdering/ioBroker.aura/issues/732))
-- 🌟 **New feature:** Universal widget - row heights can be set as a ratio per row, like the column widths (e.g. 1 / 0.25 / 1 for a thin separator row), or to auto ([#737](https://github.com/hdering/ioBroker.aura/issues/737))
-
-
 ## License
 
 MIT License
@@ -250,6 +245,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
