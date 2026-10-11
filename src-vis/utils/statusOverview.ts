@@ -211,6 +211,14 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     /** Ask before "Gewechselt"/"Quittieren" — the first tap arms the button, the second closes (default true). */
     latchConfirm?: boolean;
     /**
+     * Row action "Ignorieren" (batteries, reachability, alarms): the AURA adapter never remembers that
+     * datapoint again and every Statusübersicht hides it — for false alarms such as an empty wallbox
+     * reporting 0 %. Asks before it runs (default false).
+     */
+    latchIgnore?: boolean;
+    /** Also list the ignored datapoints of this widget, muted, with "Aufnehmen" to take the ignore back (default false). */
+    showIgnored?: boolean;
+    /**
      * Layout "history" (Zuletzt gewechselt): only changes of the last N days
      * (0 / unset = everything the adapter keeps). maxRows caps the rows as usual.
      */
@@ -244,6 +252,8 @@ export interface StatusItem {
     batteryQuantity?: number;
     /** Remembered-hint state, set by applyLatch when the category latches. */
     latch?: LatchInfo;
+    /** Ignored in the adapter (status.<cat>.ignored); only listed with showIgnored. */
+    ignored?: boolean;
 }
 
 const HM_ADAPTERS = new Set(['hm-rpc', 'hmip', 'homematic']);
@@ -765,7 +775,39 @@ export function applyLatch(
 
 /** Counts towards the hint chip: needs attention and is not put back ("Später"). */
 export function countsAsHint(item: StatusItem): boolean {
-    return item.severity !== 'ok' && !item.latch?.snoozedUntil;
+    return item.severity !== 'ok' && !item.latch?.snoozedUntil && !item.ignored;
+}
+
+/** Categories the adapter keeps a list for — only these can be ignored. */
+export function isAdapterCategory(cat: CategoryKey): boolean {
+    return LATCH_CATEGORIES.includes(cat);
+}
+
+/** The ids of the ignored state (status.<cat>.ignored). Garbage → empty. */
+export function parseIgnoredList(val: unknown): Set<string> {
+    const out = new Set<string>();
+    let arr: unknown = val;
+    if (typeof val === 'string') {
+        try {
+            arr = JSON.parse(val);
+        } catch {
+            return out;
+        }
+    }
+    if (!Array.isArray(arr)) return out;
+    for (const e of arr) {
+        if (e && typeof e === 'object' && typeof (e as { id?: unknown }).id === 'string')
+            out.add((e as { id: string }).id);
+    }
+    return out;
+}
+
+/**
+ * An ignored datapoint as a row (showIgnored): muted, never an alert, whatever the
+ * live value says.
+ */
+export function ignoredItem(live: StatusItem): StatusItem {
+    return { ...live, severity: 'ok', color: 'var(--text-secondary)', latch: undefined, ignored: true };
 }
 
 /** Small, stable string hash — tells the widget whether its registration changed. */
@@ -787,6 +829,7 @@ export function formatDay(ts: number): string {
  * "zurückgestellt bis 07.10." · "trotz Wechsel am 01.10."
  */
 export function latchFacts(item: StatusItem, showSince: boolean, long = false): string[] {
+    if (item.ignored) return [long ? 'ignoriert, wird nicht gemerkt' : 'ignoriert'];
     const l = item.latch;
     if (!l) return [];
     const out: string[] = [];

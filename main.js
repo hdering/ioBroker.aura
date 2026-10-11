@@ -939,6 +939,15 @@ class Aura extends utils.Adapter {
 
         // Dashboard config changed → rebuild the navigate selector dropdowns and
         // the per-layout message datapoints.
+        // The Statusübersicht's stored filters (excludeIdPatterns …) apply at once.
+        if (
+            state &&
+            (id === `${this.namespace}.config.dashboard` ||
+                id === `${this.namespace}.config.group-defs` ||
+                id === `${this.namespace}.config.popup-config`)
+        ) {
+            this._scheduleStatusWidgetOptions();
+        }
         if (id.endsWith('.config.dashboard') && state) {
             // Server-side PIN gate: strip protected sections/tabs (their PINs and
             // widgets) out of this socket-readable state into the vault BEFORE any
@@ -4385,6 +4394,10 @@ class Aura extends utils.Adapter {
     async _initStatusLatch() {
         this._statusSubscribed = new Set();
         this._statusWriteChain = Promise.resolve();
+        // register, cmd and dashboard edits run one after the other — two commands
+        // written within milliseconds must both land (no interleaving across awaits).
+        this._statusOpChain = Promise.resolve();
+        this._statusNameCache = new Map();
         const queue = (fn) => {
             this._statusWriteChain = this._statusWriteChain.then(fn).catch((e) => {
                 this.log.warn(`[status] write failed: ${e.message}`);
@@ -4401,6 +4414,8 @@ class Aura extends utils.Adapter {
                 queue(() => this.setStateAsync(`status.${cat}.sources`, JSON.stringify(sources), true)),
             writeHistory: (cat, history) =>
                 queue(() => this.setStateAsync(`status.${cat}.history`, JSON.stringify(history), true)),
+            writeIgnored: (cat, ignored) =>
+                queue(() => this.setStateAsync(`status.${cat}.ignored`, JSON.stringify(ignored), true)),
             historyMax: Number(this.config?.statusHistorySize) || undefined,
             historyDays: Number.isFinite(Number(this.config?.statusHistoryDays))
                 ? Number(this.config.statusHistoryDays)
@@ -4437,18 +4452,23 @@ class Aura extends utils.Adapter {
                         native: {},
                     });
                 }
-                const [list, sources, history] = await Promise.all([
+                const [list, sources, history, ignored] = await Promise.all([
                     this.getStateAsync(`status.${cat}.list`),
                     this.getStateAsync(`status.${cat}.sources`),
                     this.getStateAsync(`status.${cat}.history`),
+                    this.getStateAsync(`status.${cat}.ignored`),
                 ]);
                 this._statusLatch.restore(cat, {
                     list: list && list.val,
                     sources: sources && sources.val,
                     history: history && history.val,
+                    ignored: ignored && ignored.val,
                 });
             }
             await this._importLegacyBatteryHistory();
+            // The widgets' filters as stored, before the first subscribe — a pattern
+            // added while no browser was open must not watch anything at start.
+            await this._readStatusWidgetOptions();
             this.subscribeStates('status.*');
             this._statusLatch.tick();
             await this._syncStatusSubscriptions(true);
@@ -4535,6 +4555,16 @@ class Aura extends utils.Adapter {
         }
     }
 
+    /**
+     * Run status work one piece at a time (register, cmd, dashboard edits).
+     *
+     * @param fn async work
+     */
+    _statusSerial(fn) {
+        this._statusOpChain = this._statusOpChain.then(fn).catch((e) => this.log.warn(`[status] ${e.message}`));
+        return this._statusOpChain;
+    }
+
     async _onStatusStateChange(id, state) {
         if (!this._statusLatch || state.ack) {
             return;
@@ -4548,14 +4578,17 @@ class Aura extends utils.Adapter {
                 return;
             }
             const list = Array.isArray(payload) ? payload : [payload];
-            let changed = false;
-            for (const p of list) {
-                changed = this._statusLatch.register(p).changed || changed;
-            }
-            if (changed) {
-                await this._syncStatusSubscriptions(false);
-            }
-            await this.setStateAsync('status.register', state.val, true);
+            await this._statusSerial(async () => {
+                let changed = false;
+                for (const p of list) {
+                    await this._improveStatusNames(p);
+                    changed = this._statusLatch.register(p).changed || changed;
+                }
+                if (changed) {
+                    await this._syncStatusSubscriptions(false);
+                }
+                await this.setStateAsync('status.register', state.val, true);
+            });
             return;
         }
         const m = rel.match(/^status\.([^.]+)\.cmd$/);
@@ -4566,11 +4599,158 @@ class Aura extends utils.Adapter {
         if (!raw) {
             return;
         }
-        const res = this._statusLatch.command(m[1], raw);
-        if (!res.ok) {
-            this.log.info(`[status] ${m[1]}: ${res.errors.join('; ')}`);
+        const cat = m[1];
+        await this._statusSerial(async () => {
+            const res = this._statusLatch.command(cat, raw);
+            if (!res.ok) {
+                this.log.info(`[status] ${cat}: ${res.errors.join('; ')}`);
+            }
+            // The result first, then the ack: a caller that waits for ack=true
+            // finds the matching result already there.
+            await this.setStateAsync(
+                `status.${cat}.cmdResult`,
+                JSON.stringify({ ts: Date.now(), cmd: raw.slice(0, 500), ...res }),
+                true,
+            );
+            await this.setStateAsync(`status.${cat}.cmd`, raw, true);
+        });
+    }
+
+    /**
+     * The options of every Statusübersicht in the stored dashboard (layouts, group
+     * children, popups) → the engine, which applies their id filters to the
+     * registrations. A dashboard edit takes effect at once, open browser or not.
+     *
+     * @returns {Promise<boolean>} whether the watched datapoints changed
+     */
+    async _readStatusWidgetOptions() {
+        const map = new Map();
+        const walk = (node, depth) => {
+            if (!node || typeof node !== 'object' || depth > 40) {
+                return;
+            }
+            if (Array.isArray(node)) {
+                for (const x of node) {
+                    walk(x, depth + 1);
+                }
+                return;
+            }
+            if (
+                node.type === 'statusoverview' &&
+                typeof node.id === 'string' &&
+                node.options &&
+                typeof node.options === 'object'
+            ) {
+                map.set(node.id, node.options);
+            }
+            for (const v of Object.values(node)) {
+                if (v && typeof v === 'object') {
+                    walk(v, depth + 1);
+                }
+            }
+        };
+        for (const key of ['config.dashboard', 'config.group-defs', 'config.popup-config']) {
+            try {
+                const st = await this.getStateAsync(key);
+                if (st && typeof st.val === 'string' && st.val.length > 2) {
+                    walk(JSON.parse(st.val), 0);
+                }
+            } catch (e) {
+                this.log.debug(`[status] ${key} not read: ${e.message}`);
+            }
         }
-        await this.setStateAsync(`status.${m[1]}.cmd`, raw, true);
+        return this._statusLatch.setWidgetOptions(map).changed;
+    }
+
+    /** Dashboard saved → filters again, a little later (an editor saves in bursts). */
+    _scheduleStatusWidgetOptions() {
+        if (!this._statusLatch) {
+            return;
+        }
+        if (this._statusOptionsTimer) {
+            this.clearTimeout(this._statusOptionsTimer);
+        }
+        this._statusOptionsTimer = this.setTimeout(() => {
+            this._statusOptionsTimer = null;
+            this._statusSerial(async () => {
+                if (await this._readStatusWidgetOptions()) {
+                    await this._syncStatusSubscriptions(false);
+                }
+            });
+        }, 1000);
+    }
+
+    /**
+     * A widget sends the datapoint's own name when it knows nothing better — for
+     * evcc.0.loadpoint.3.status.vehicleSoc that is "vehicleSoc", which tells nobody
+     * which car is meant. Such a name is replaced by the nearest title above it: a
+     * `title` state beside it or in a parent, else the name of a parent channel or
+     * device that says more than its own id segment.
+     *
+     * @param payload one registration (watch names are changed in place)
+     */
+    async _improveStatusNames(payload) {
+        const watch = payload && Array.isArray(payload.watch) ? payload.watch : [];
+        for (const w of watch) {
+            if (!w || typeof w.id !== 'string') {
+                continue;
+            }
+            const tail = w.id.slice(w.id.lastIndexOf('.') + 1).toLowerCase();
+            const name = typeof w.name === 'string' ? w.name.trim() : '';
+            if (name && name !== w.id && name.toLowerCase() !== tail) {
+                continue;
+            }
+            if (!this._statusNameCache.has(w.id)) {
+                this._statusNameCache.set(w.id, await this._statusParentTitle(w.id));
+            }
+            const better = this._statusNameCache.get(w.id);
+            if (better) {
+                w.name = better;
+            }
+        }
+    }
+
+    /**
+     * The nearest meaningful title above a datapoint (see _improveStatusNames).
+     *
+     * @param id datapoint id
+     * @returns {Promise<string|null>} the title, or null
+     */
+    async _statusParentTitle(id) {
+        const parts = id.split('.');
+        const textOf = (n) => {
+            if (typeof n === 'string') {
+                return n.trim();
+            }
+            if (n && typeof n === 'object') {
+                return String(n.de || n.en || Object.values(n)[0] || '').trim();
+            }
+            return '';
+        };
+        // Down to <adapter>.<instance>.<x> — the instance itself names nothing.
+        for (let i = parts.length - 1; i >= 3; i--) {
+            const parent = parts.slice(0, i).join('.');
+            try {
+                const st = await this.getForeignStateAsync(`${parent}.title`);
+                const t = st && typeof st.val === 'string' ? st.val.trim() : '';
+                if (t) {
+                    return t;
+                }
+            } catch {
+                /* no title state */
+            }
+            try {
+                const obj = await this.getForeignObjectAsync(parent);
+                const n = obj && (obj.type === 'channel' || obj.type === 'device') ? textOf(obj.common?.name) : '';
+                const seg = parts[i - 1].toLowerCase();
+                if (n && n.toLowerCase() !== seg && n !== parent && !/^\d+$/.test(n)) {
+                    return n;
+                }
+            } catch {
+                /* no object */
+            }
+        }
+        return null;
     }
 
     // ── onMessage: frontend → backend RPC (adapter-status widget) ───────────────
@@ -5227,6 +5407,10 @@ class Aura extends utils.Adapter {
             }
             if (this._countdowns) {
                 this._countdowns.dispose();
+            }
+            if (this._statusOptionsTimer) {
+                this.clearTimeout(this._statusOptionsTimer);
+                this._statusOptionsTimer = null;
             }
             if (this._statusLatchInterval) {
                 this.clearInterval(this._statusLatchInterval);

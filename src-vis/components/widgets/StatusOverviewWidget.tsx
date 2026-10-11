@@ -48,6 +48,9 @@ import {
     parseLatchList,
     applyLatch,
     countsAsHint,
+    isAdapterCategory,
+    parseIgnoredList,
+    ignoredItem,
     latchFacts,
     hashString,
     actionsFor,
@@ -477,6 +480,21 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [latchCatKey]);
 
+    // Ignored datapoints (adapter, status.<cat>.ignored) — hidden in every widget,
+    // latch or not: an ignore is meant for the whole installation.
+    const [ignoredLists, setIgnoredLists] = useState<Partial<Record<CategoryKey, Set<string>>>>({});
+    useEffect(() => {
+        const unsubs = LATCH_CATEGORIES.map((cat) => {
+            const id = `${NS}.status.${cat}.ignored`;
+            const apply = (s: ioBrokerState | null) =>
+                setIgnoredLists((prev) => ({ ...prev, [cat]: parseIgnoredList(s?.val) }));
+            getState(id).then(apply);
+            return subscribe(id, apply);
+        });
+        return () => unsubs.forEach((u) => u());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     // Tell the adapter which datapoints this widget watches, so it remembers them
     // while no browser is open. Sent only when it changed (or once a day, so the
     // adapter does not forget a widget that is still there).
@@ -579,6 +597,12 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 if (did && hiddenSet.has(did)) continue;
             }
             const lc = s?.lc && s.lc > 0 ? s.lc : s?.ts;
+            if (ignoredLists[c.cat]?.has(c.dp.id)) {
+                if (!opts.showIgnored) continue;
+                const live = evaluateItem(c.dp, s?.val ?? null, c.cat, opts, lc, true);
+                if (live) out.push(ignoredItem(live));
+                continue;
+            }
             const latchList = latchLists[c.cat];
             if (latchList) {
                 // The healthy row is needed too: a remembered entry whose datapoint
@@ -600,7 +624,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         }
         out.sort((a, b) => compareItems(a, b, sortBy));
         return out;
-    }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet, latchLists]);
+    }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet, latchLists, ignoredLists]);
 
     // ── Row cap ────────────────────────────────────────────────────────────────
     // The rows of this widget appear at runtime out of the discovered datapoints,
@@ -757,6 +781,12 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     };
     const latchCmd = (item: StatusItem, cmd: string) =>
         setStateDirect(`${NS}.status.${item.category}.cmd`, `${cmd}:${item.id}`, false);
+    /** "Ignorieren": a hint (live or remembered) of a category the adapter keeps. */
+    const canIgnore = (item: StatusItem) =>
+        opts.latchIgnore === true &&
+        isAdapterCategory(item.category) &&
+        !item.ignored &&
+        (!!item.latch || item.severity !== 'ok');
 
     /** Buttons at the end of a row: the latch's close/snooze, then the configured actions. */
     const rowButtons = (item: StatusItem, color: string) => {
@@ -789,6 +819,31 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 );
             }
         }
+        if (item.ignored) {
+            buttons.push(
+                <RowButton
+                    key="unignore"
+                    label="Aufnehmen"
+                    title="Nicht mehr ignorieren – wird wieder gemerkt und angezeigt"
+                    color="var(--text-secondary)"
+                    disabled={editMode}
+                    onRun={() => latchCmd(item, 'unignore')}
+                />,
+            );
+        } else if (canIgnore(item)) {
+            buttons.push(
+                <RowButton
+                    key="ignore"
+                    label="Ignorieren"
+                    title="Nie mehr melden – für Fehlalarme"
+                    confirm
+                    confirmLabel="Wirklich ignorieren?"
+                    color="var(--text-secondary)"
+                    disabled={editMode}
+                    onRun={() => latchCmd(item, 'ignore')}
+                />,
+            );
+        }
         actionsFor(opts.rowActions, item.category).forEach((a, i) =>
             buttons.push(
                 <RowButton
@@ -806,7 +861,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     };
 
     /** Remembered, but quiet right now or put back — shown muted in every layout. */
-    const isMuted = (item: StatusItem) => !!item.latch && (!item.latch.active || !!item.latch.snoozedUntil);
+    const isMuted = (item: StatusItem) =>
+        !!item.ignored || (!!item.latch && (!item.latch.active || !!item.latch.snoozedUntil));
 
     // A plain function, not a component: an inline component is a new type on every
     // render, and the remount would drop an armed confirm button mid-tap.
@@ -833,6 +889,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 key={item.id}
                 className={`flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0${buttons.length ? ' flex-wrap' : ''}`}
                 data-latch={item.latch ? (muted ? 'muted' : 'active') : undefined}
+                data-ignored={item.ignored ? '' : undefined}
                 style={{
                     ...(alert
                         ? {
@@ -933,6 +990,31 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 />,
             );
         }
+        if (item.ignored) {
+            buttons.push(
+                <TwoLineButton
+                    key="unignore"
+                    label="Aufnehmen"
+                    title="Nicht mehr ignorieren – wird wieder gemerkt und angezeigt"
+                    tone="neutral"
+                    disabled={editMode}
+                    onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `unignore:${item.id}`)}
+                />,
+            );
+        } else if (canIgnore(item)) {
+            buttons.push(
+                <TwoLineButton
+                    key="ignore"
+                    label="Ignorieren"
+                    title="Nie mehr melden – für Fehlalarme"
+                    confirm
+                    confirmLabel="Wirklich ignorieren?"
+                    tone="neutral"
+                    disabled={editMode}
+                    onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `ignore:${item.id}`)}
+                />,
+            );
+        }
         return buttons;
     };
     const renderTwoLineRow = (item: StatusItem, first: boolean) => {
@@ -953,6 +1035,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 key={item.id}
                 className="aura-status-row-2l flex items-center gap-x-3 gap-y-2 flex-wrap min-w-0"
                 data-latch={item.latch ? (isMuted(item) ? 'muted' : 'active') : undefined}
+                data-ignored={item.ignored ? '' : undefined}
                 style={{
                     padding: '8px 0',
                     borderTop: first ? undefined : '1px solid var(--widget-border)',
@@ -1002,8 +1085,9 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
 
     // ── all-clear (the intended normal state) — only when filtering to alerts ────
     // Defined before the layout branches so every layout can show it instead of an
-    // empty body when there is nothing to report.
-    const allClear = !anyHint && !showAll && !opts.showOkCategories && !loading;
+    // empty body when there is nothing to report. Ignored rows (showIgnored) are
+    // listed on purpose, so they keep the list.
+    const allClear = !anyHint && !showAll && !opts.showOkCategories && !loading && !allItems.some((i) => i.ignored);
     const allClearBlock =
         opts.showAllClear === false ? null : twoLine ? (
             <div

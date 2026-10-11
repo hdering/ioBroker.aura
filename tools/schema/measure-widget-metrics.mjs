@@ -702,7 +702,7 @@ const COUNTED = [
                 // latch only puts them on its own categories, so this errs on the
                 // roomy side.
                 key: 'rowButtons',
-                label: 'Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)',
+                label: 'Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm, latchIgnore)',
                 // The two-line layout puts its buttons beside both lines and is
                 // measured with them in it; the history has its own „Wieder öffnen“
                 // in every row and reads neither rowActions nor the latch.
@@ -713,6 +713,7 @@ const COUNTED = [
                         { path: 'latchBattery', equals: true },
                         { path: 'latchUnreach', equals: true },
                         { path: 'latchAlarm', equals: true },
+                        { path: 'latchIgnore', equals: true },
                     ],
                 },
                 build: (n) => ({

@@ -535,4 +535,149 @@ test('retention: count and age, but the newest entry per id stays', () => {
     assert.deepStrictEqual(ids, ['a@1', 'a@2', 'a@3', 'b@900']);
 });
 
+// ── ignore, several ids, widget filters (production 2026-10-10: evcc vehicleSoc) ──
+
+const SOC3 = 'evcc.0.loadpoint.3.status.vehicleSoc';
+const SOC4 = 'evcc.0.loadpoint.4.status.vehicleSoc';
+
+function registerSoc(engine, source = 'w-bat-liste') {
+    return engine.register({
+        source,
+        cat: 'battery',
+        watch: [
+            { id: SOC3, kind: 'pct', threshold: 20, name: 'Ladepunkt 3' },
+            { id: SOC4, kind: 'pct', threshold: 20, name: 'Ladepunkt 4' },
+        ],
+    });
+}
+
+test('parse: several ids per command, ignore/unignore', () => {
+    assert.deepStrictEqual(
+        parseStatusCommand(`remove:${SOC3}, ${SOC4}`).map((c) => `${c.cmd}:${c.id}`),
+        [`remove:${SOC3}`, `remove:${SOC4}`],
+    );
+    assert.deepStrictEqual(parseStatusCommand('snooze:a@3,b'), [
+        { cmd: 'snooze', id: 'a', days: 3 },
+        { cmd: 'snooze', id: 'b' },
+    ]);
+    assert.deepStrictEqual(parseStatusCommand(`IGNORE:${SOC3}`), [{ cmd: 'ignore', id: SOC3 }]);
+    assert.deepStrictEqual(parseStatusCommand('unignore:x'), [{ cmd: 'unignore', id: 'x' }]);
+});
+
+test('ignore: entry goes at once, closed/ignored event, no history, never comes back', () => {
+    let ignored = [];
+    const { engine, lists, events, histories, advance, now } = makeEngine({
+        writeIgnored: (cat, list) => {
+            ignored = list;
+        },
+    });
+    registerSoc(engine);
+    engine.update(SOC3, { val: 0, ts: now(), lc: T0 - 30 * DAY_MS });
+    assert.strictEqual(lists.battery.length, 1);
+    const r = engine.command('battery', `ignore:${SOC3}`);
+    assert.ok(r.ok && r.done === 1, JSON.stringify(r));
+    assert.strictEqual(lists.battery.length, 0, 'gone from the list');
+    assert.deepStrictEqual(
+        { type: events.at(-1).type, reason: events.at(-1).reason, id: events.at(-1).id },
+        { type: 'closed', reason: 'ignored', id: SOC3 },
+    );
+    assert.strictEqual(histories.battery.length, 0, 'not a change → no history');
+    assert.deepStrictEqual(ignored, [{ id: SOC3, name: 'Ladepunkt 3', ignoredAt: now() }]);
+    // evcc keeps writing 0 every 30 s.
+    const nEvents = events.length;
+    for (let i = 0; i < 10; i++) {
+        advance(30 * 1000);
+        engine.update(SOC3, { val: 0, ts: now(), lc: T0 - 30 * DAY_MS });
+    }
+    assert.strictEqual(lists.battery.length, 0, 'stays away');
+    assert.strictEqual(events.length, nEvents, 'no further event');
+    // Twice → nothing to do, no error.
+    assert.deepStrictEqual(engine.command('battery', `ignore:${SOC3}`), { ok: true, done: 0, errors: [] });
+    // add/ack refuse an ignored id.
+    assert.strictEqual(engine.command('battery', `add:${SOC3}`).ok, false);
+});
+
+test('ignore survives a restart; unignore brings the live alert back at once', () => {
+    let ignored = [];
+    const a = makeEngine({ writeIgnored: (cat, list) => (ignored = list) });
+    registerSoc(a.engine);
+    a.engine.command('battery', `ignore:${SOC3}`);
+    const b = makeEngine();
+    b.engine.restore('battery', { sources: a.sources.battery, ignored: JSON.stringify(ignored) });
+    assert.strictEqual(b.engine.isIgnored('battery', SOC3), true);
+    b.engine.update(SOC3, { val: 0, ts: b.now(), lc: T0 });
+    assert.strictEqual(b.lists.battery.length, 0, 'still ignored after restart');
+    const r = b.engine.command('battery', `unignore:${SOC3}`);
+    assert.ok(r.ok && r.done === 1, JSON.stringify(r));
+    assert.strictEqual(b.lists.battery.length, 1, 'last value counts again');
+    assert.strictEqual(b.lists.battery[0].id, SOC3);
+    assert.strictEqual(b.engine.command('battery', `unignore:${SOC3}`).ok, false, 'not ignored any more');
+});
+
+test('ignore of an id nobody watches is kept, with a note', () => {
+    const { engine } = makeEngine();
+    const r = engine.command('battery', 'ignore:foo.0.bar');
+    assert.strictEqual(r.ok, true);
+    assert.strictEqual(r.done, 1);
+    assert.ok(r.notes && /not watched/.test(r.notes[0]));
+});
+
+test('remove with two ids in one command removes both', () => {
+    const { engine, lists, now } = makeEngine();
+    registerSoc(engine);
+    engine.update(SOC3, { val: 0, ts: now(), lc: T0 });
+    engine.update(SOC4, { val: 0, ts: now(), lc: T0 });
+    assert.strictEqual(lists.battery.length, 2);
+    const r = engine.command('battery', `remove:${SOC3},${SOC4}`);
+    assert.ok(r.ok && r.done === 2, JSON.stringify(r));
+    assert.strictEqual(lists.battery.length, 0);
+    // One unknown id among them: the other still runs, the error names the bad one.
+    engine.update(SOC3, { val: 0, ts: now(), lc: T0 });
+    const r2 = engine.command('battery', `remove:${SOC3},nope.0.x`);
+    assert.strictEqual(r2.done, 1);
+    assert.strictEqual(r2.errors.length, 1);
+    assert.ok(/nope/.test(r2.errors[0]));
+});
+
+test('stored widget filters beat a stale registration (excludeIdPatterns)', () => {
+    const { engine, lists, now } = makeEngine();
+    registerSoc(engine);
+    assert.ok(engine.watchedIds().includes(SOC3));
+    // The dashboard now excludes evcc.0 — no browser has rendered the widget since.
+    const res = engine.setWidgetOptions({ 'w-bat-liste': { latchBattery: true, excludeIdPatterns: 'evcc.0' } });
+    assert.strictEqual(res.changed, true);
+    assert.ok(!engine.watchedIds().includes(SOC3), 'no longer watched');
+    engine.update(SOC3, { val: 0, ts: now(), lc: T0 });
+    assert.strictEqual(lists.battery.length, 0, 'not remembered');
+    // Another widget that does not exclude it still watches it.
+    registerSoc(engine, 'w-other');
+    assert.ok(engine.watchedIds().includes(SOC3));
+    // … until its latch is switched off in the dashboard.
+    engine.setWidgetOptions({
+        'w-bat-liste': { latchBattery: true, excludeIdPatterns: 'evcc.0' },
+        'w-other': { latchBattery: false },
+    });
+    assert.ok(!engine.watchedIds().includes(SOC3));
+    // Regex form and excludeIds, as the widget reads them.
+    const off = { 'w-other': { latchBattery: false } };
+    engine.setWidgetOptions({ ...off, 'w-bat-liste': { latchBattery: true, excludeIdPatterns: '/loadpoint\\.4/' } });
+    assert.deepStrictEqual(engine.watchedIds().sort(), [SOC3]);
+    engine.setWidgetOptions({ ...off, 'w-bat-liste': { latchBattery: true, excludeIds: [SOC3] } });
+    assert.deepStrictEqual(engine.watchedIds().sort(), [SOC4]);
+    // A widget the dashboard does not know (popup, preset): registration as sent.
+    engine.setWidgetOptions({});
+    assert.strictEqual(engine.watchedIds().length, 2);
+});
+
+test('remove holds once the stored filter excludes the id', () => {
+    const { engine, lists, advance, now } = makeEngine();
+    registerSoc(engine);
+    engine.update(SOC3, { val: 0, ts: now(), lc: T0 - DAY_MS });
+    engine.setWidgetOptions({ 'w-bat-liste': { latchBattery: true, excludeIdPatterns: 'evcc.0' } });
+    assert.ok(engine.command('battery', `remove:${SOC3}`).ok);
+    advance(30 * 1000);
+    engine.update(SOC3, { val: 0, ts: now(), lc: T0 - DAY_MS });
+    assert.strictEqual(lists.battery.length, 0);
+});
+
 console.log(`\n${passed} passed${process.exitCode ? ', some FAILED' : ''}`);

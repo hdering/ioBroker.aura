@@ -31,6 +31,8 @@ Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz au
 | `latchRecheckDays` | 7 | Nachkontrolle nach dem Schließen |
 | `latchAutoClose` | aus | Batterie: schließt bei deutlichem Spannungs-/Prozentsprung |
 | `latchConfirm` | an | „Gewechselt“/„Quittieren“ erst nach zweitem Tippen |
+| `latchIgnore` | aus | Knopf „Ignorieren“ (mit Rückfrage) – für Fehlalarme, wirkt auch ohne Merkliste |
+| `showIgnored` | aus | ignorierte Datenpunkte gedämpft zeigen, mit „Aufnehmen“ |
 
 | Anzeige in der Zeile | Bedeutung |
 | --- | --- |
@@ -48,6 +50,15 @@ Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz au
 
 Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schließt überall gleichzeitig, und gemerkt wird auch ohne offenen Browser.
 
+| Ignorieren | |
+| --- | --- |
+| Wofür | Meldungen, die nie von selbst verschwinden – z. B. eine leere Wallbox, deren `vehicleSoc` dauerhaft 0 % meldet |
+| Wirkung | wird nie mehr gemerkt, kein Event mehr, in keiner Statusübersicht sichtbar |
+| Beim Ignorieren | vorhandener Eintrag verschwindet sofort; Event `closed` mit `reason: "ignored"`; kein Verlaufseintrag |
+| Zurücknehmen | „Aufnehmen“ (mit `showIgnored`) oder `unignore:<id>` – der aktuelle Wert zählt sofort wieder |
+
+`excludeIdPatterns`, `excludeIds` und `filterAdapters` wertet der Adapter aus der gespeicherten Konfiguration selbst aus – eine Änderung wirkt sofort, auch ohne offenen Browser.
+
 ### Adapter-States
 
 | State | Richtung | Inhalt |
@@ -56,6 +67,8 @@ Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schl
 | `aura.0.status.<cat>.cmd` | Widget / Skript → Adapter | Befehle, siehe unten |
 | `aura.0.status.<cat>.event` | Adapter → Skript | `new` · `reopened` · `closed` (JSON) |
 | `aura.0.status.<cat>.history` | Adapter → alle | geschlossene Einträge, neueste zuerst (JSON) |
+| `aura.0.status.<cat>.ignored` | Adapter → alle | ignorierte Datenpunkte `{id, name, ignoredAt}` (JSON) |
+| `aura.0.status.<cat>.cmdResult` | Adapter → Skript | Ergebnis des letzten Befehls `{ts, cmd, ok, done, errors, notes}` |
 | `aura.0.status.<cat>.sources` | Adapter | welche Widgets was beobachten |
 | `aura.0.status.register` | Widget → Adapter | Anmeldung der Widgets |
 
@@ -79,10 +92,14 @@ Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schl
 | `add:<id>` / `add:<id>@2026-09-20` | Eintrag anlegen, optional mit „seit“ |
 | `remove:<id>` | Eintrag löschen, ohne Nachkontrolle |
 | `reopen:<id>@<closedAt>` | Wechsel zurücknehmen: Verlaufseintrag weg, Eintrag wieder offen, Event `reopened` mit `reason: "manual"` |
+| `ignore:<id>` | nie mehr merken, Eintrag sofort weg |
+| `unignore:<id>` | Ignorieren aufheben |
 | `import:<JSON-Array>` | alten Verlauf übernehmen: `{datenpunkt, ts, seit, name, art}` oder das eigene Format; Doppelte werden übersprungen |
 | `{"cmd":"add","id":"…","since":…,"count":3}` | JSON, auch als Array |
 
-`<id>` ist der Datenpunkt, die Geräte-Id oder nur die Seriennummer (`ack:0020da499b8f41`).
+`<id>` ist der Datenpunkt, die Geräte-Id oder nur die Seriennummer (`ack:0020da499b8f41`). Mehrere Ids kommagetrennt: `remove:<id1>,<id2>`.
+
+Befehle laufen nacheinander. Jeder wird mit `ack=true` bestätigt; vorher steht sein Ergebnis in `cmdResult` (`ok: false` + `errors` bei unbekannter Id oder Tippfehler).
 
 ```js
 // Benachrichtigung bei neuem oder wieder geöffnetem Eintrag
@@ -90,6 +107,9 @@ on({ id: 'aura.0.status.battery.event', change: 'any' }, (obj) => {
     const e = JSON.parse(obj.state.val);
     if (e.type === 'new') sendTo('telegram.0', `Batterie schwach: ${e.name}`);
     if (e.type === 'reopened') sendTo('telegram.0', `Batterie wieder schwach: ${e.name}`);
+    // closed: reason ack / auto = gewechselt; remove / ignored = keine Wechsel-Meldung
+    if (e.type === 'closed' && (e.reason === 'ack' || e.reason === 'auto'))
+        sendTo('telegram.0', `Batterie gewechselt: ${e.name}`);
 });
 
 // Bestehenden Verlauf übernehmen (0_userdata.0.Batterien.Verlauf holt der Adapter

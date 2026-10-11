@@ -194,7 +194,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     const catOn = (cat: keyof typeof CAT_KEY) => o[CAT_KEY[cat]] !== false;
     const latchOn = (cat: keyof typeof LATCH_KEY) => o[LATCH_KEY[cat]] === true;
     const latchActive = LATCH_TOGGLES.filter(({ cat }) => catOn(cat) && latchOn(cat)).map((t) => t.short);
-    const latchSummary = latchActive.length ? `an: ${latchActive.join(', ')}` : 'aus';
+    const latchSummary =
+        (latchActive.length ? `an: ${latchActive.join(', ')}` : 'aus') + (o.latchIgnore ? ' · Ignorieren' : '');
     const rowActionCount = (o.rowActions ?? []).filter((a) => a.label && a.targetDp).length;
 
     // Default highlight colour per category (severity): crit = red, warn = amber.
@@ -846,6 +847,23 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 />
                             </>
                         )}
+                        <div className="space-y-2 pt-1" data-ignore-settings>
+                            <Toggle
+                                checked={!!o.latchIgnore}
+                                onChange={(v) => set({ latchIgnore: v || undefined })}
+                                label="Knopf „Ignorieren“ in der Zeile"
+                            />
+                            <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Für Fehlalarme, die nie von selbst verschwinden (z. B. eine leere Wallbox mit 0 %). Der
+                                Adapter merkt den Datenpunkt nie mehr, und keine Statusübersicht zeigt ihn – fragt
+                                vorher nach. Wirkt auch ohne Merkliste.
+                            </p>
+                            <Toggle
+                                checked={!!o.showIgnored}
+                                onChange={(v) => set({ showIgnored: v || undefined })}
+                                label="Ignorierte anzeigen (mit „Aufnehmen“)"
+                            />
+                        </div>
                     </div>
                 </details>
             )}

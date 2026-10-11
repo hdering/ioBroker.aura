@@ -2088,6 +2088,8 @@ Neue Optionen an `statusoverview` (alle aus `StatusOverviewOptions`, Beschreibun
 | `latchSnoozeDays` (2) | „Später“ |
 | `latchAutoClose` | Schließt bei Spannungssprung (≥ 0,3 V und ≥ 25 %) bzw. Prozent (≥ 40 % und ≥ 30 Punkte) |
 | `latchConfirm` (true) | „Gewechselt“/„Quittieren“ erst nach zweitem Tippen |
+| `latchIgnore` | Zeilenaktion „Ignorieren“ (immer mit Rückfrage) — auch ohne Merkliste |
+| `showIgnored` | Ignorierte gedämpft zeigen, mit „Aufnehmen“ (`unignore:`) |
 | `rowActions: StatusRowAction[]` | Knöpfe am Zeilenende (default/compact/twoline), Platzhalter `{id} {device} {serial} {name} {room}` |
 | `sinceCategories` (`['window']`) | „seit …“ auch für `battery` / `unreach` |
 
@@ -2098,9 +2100,20 @@ Adapter-Seite (`lib/statusLatch.js`, Verdrahtung in `main.js` `_initStatusLatch`
 | `status.register` | Widgets melden ihre Datenpunkte (JSON, `source` = Widget-Id, Hash; nur bei Änderung, sonst 1×/Tag) |
 | `status.<cat>.sources` | zusammengeführte Anmeldungen; ohne Erneuerung nach 30 Tagen vergessen |
 | `status.<cat>.list` | Einträge: id, name, room, since, last, count, active, snoozedUntil, ackedAt, closedBy, reopenedAfter, minLevel, unit |
-| `status.<cat>.cmd` | `ack:` `snooze:[@Tage]` `unsnooze:` `add:[@since]` `remove:` `reopen:<id>[@closedAt]` `import:<JSON>` — Text oder JSON (auch Array); `<id>` darf Seriennummer/Geräte-Id sein |
-| `status.<cat>.event` | `new` / `reopened` (mit `ackedAt`; nach `reopen:` zusätzlich `reason: "manual"`) / `closed` (`reason` ack, auto, remove) |
+| `status.<cat>.cmd` | `ack:` `snooze:[@Tage]` `unsnooze:` `add:[@since]` `remove:` `reopen:<id>[@closedAt]` `import:<JSON>` `ignore:` `unignore:` — Text oder JSON (auch Array); Text nimmt mehrere Ids kommagetrennt; `<id>` darf Seriennummer/Geräte-Id sein. Abarbeitung nacheinander (`_statusSerial`), danach ack=true |
+| `status.<cat>.cmdResult` | Ergebnis des letzten Befehls: `{ts, cmd, ok, done, errors, notes?}` — vor dem ack geschrieben |
+| `status.<cat>.ignored` | nie zu merkende Datenpunkte: `{id, name, ignoredAt}`; Widgets blenden sie aus |
+| `status.<cat>.event` | `new` / `reopened` (mit `ackedAt`; nach `reopen:` zusätzlich `reason: "manual"`) / `closed` (`reason` ack, auto, remove, ignored) |
 | `status.<cat>.history` | geschlossene Einträge, neueste zuerst: id, name, room, since, closedAt, reason (ack/auto), levelBefore, levelAfter, unit, count, prevClosedAt, imported |
+
+Gespeicherte Filter: `main.js` liest `config.dashboard`, `config.group-defs` und
+`config.popup-config` (beim Start und 1 s nach jeder Änderung), sammelt die Optionen jeder
+`statusoverview` und gibt sie an `engine.setWidgetOptions`. Eine Anmeldung, deren Widget dort
+gefunden wird, zählt nur noch mit dessen `excludeIds` / `excludeIdPatterns` /
+`filterAdapters` und nur, solange dort `latch<Cat>` an ist. Räume/Funktionen bleiben beim
+Browser (bräuchten die Enums). Namen: ist der gemeldete Name nur das letzte Id-Segment
+(`vehicleSoc`), nimmt der Adapter einen `title`-State darüber oder den Namen des Kanals/Geräts.
+Test: `test/status-latch-adapter.test.js`.
 
 Schema: `RowClickSetting` (`"auto" | ClickAction`) kam als nackter `tsType` heraus. Der
 Generator kennt jetzt „String-Literale + EIN benannter Objekttyp“ → `type: ['string','object']`,

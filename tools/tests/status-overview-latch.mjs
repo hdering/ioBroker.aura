@@ -283,5 +283,24 @@ eq('battery script value', m.fillRowTemplate(presets['battery-script'].action.va
     );
 }
 
+// ── ignored (status.<cat>.ignored) ───────────────────────────────────────────
+eq(
+    'parseIgnoredList: ids of the JSON list',
+    [...m.parseIgnoredList('[{"id":"evcc.0.loadpoint.3.status.vehicleSoc","name":"x"},{"nope":1}]')],
+    ['evcc.0.loadpoint.3.status.vehicleSoc'],
+);
+eq('parseIgnoredList: garbage → empty', m.parseIgnoredList('{').size, 0);
+const ign = m.ignoredItem(liveLow);
+eq('ignored row: muted, not an alert', [ign.severity, ign.ignored, ign.latch], ['ok', true, undefined]);
+eq('ignored row: not counted', m.countsAsHint({ ...liveLow, ignored: true }), false);
+eq('ignored row: facts', m.latchFacts(ign, true), ['ignoriert']);
+eq('adapter categories', ['battery', 'unreach', 'alarm', 'window', 'light'].map(m.isAdapterCategory), [
+    true,
+    true,
+    true,
+    false,
+    false,
+]);
+
 console.log(failed ? `\n${failed} FAILED` : '\nall passed');
 process.exit(failed ? 1 : 0);

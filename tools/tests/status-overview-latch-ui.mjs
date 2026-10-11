@@ -64,7 +64,7 @@ const browser = await chromium.launch();
 const pageErrors = [];
 
 /** Fresh context per scenario: the datapoint cache is module-level (5 min TTL). */
-async function open(options, list = LIST, layout = 'compact', width = 900, cols = 8) {
+async function open(options, list = LIST, layout = 'compact', width = 900, cols = 8, extra = {}) {
     const ctx = await browser.newContext({ viewport: { width, height: 700 } });
     const page = await ctx.newPage();
     page.on('pageerror', (e) => pageErrors.push(e.message));
@@ -87,6 +87,7 @@ async function open(options, list = LIST, layout = 'compact', width = 900, cols 
                 [GRIFF_V]: 2.4,
                 [`${NS}.status.battery.list`]: JSON.stringify(list),
                 [`${NS}.status.battery.sources`]: '{}',
+                ...extra,
             },
         ],
     );
@@ -567,6 +568,69 @@ const rows2 = (page) =>
     const txt = await ctx.page.locator('.react-grid-item p.font-semibold').last().textContent();
     check('twoline: all clear says "Alle Batterien in Ordnung"', txt === 'Alle Batterien in Ordnung', txt);
     await ctx.ctx.close();
+}
+
+// ── Ignorieren (latchIgnore, status.<cat>.ignored) ──────────────────────────────
+{
+    // Without the latch: the button still works — an ignore is the adapter's, not the latch's.
+    const { ctx, page } = await open({ latchIgnore: true }, []);
+    let r = await rows(page);
+    const griff = r.find((x) => x.text.includes('Drehgriff'));
+    check('ignore: button on the live hint', JSON.stringify(griff?.buttons) === '["Ignorieren"]', JSON.stringify(r));
+    await page.evaluate(() => window.__auraShot.writes(true));
+    const row = page.locator('.react-grid-item div.flex.items-center.gap-2.py-1', { hasText: 'Drehgriff' });
+    await row.locator('button', { hasText: 'Ignorieren' }).click();
+    check('ignore: first tap writes nothing', (await writes(page)).length === 0);
+    await row.locator('button.aura-status-action').first().click();
+    const w = await writes(page);
+    check(
+        'ignore: second tap writes ignore:<id>',
+        w.length === 1 && w[0].id === `${NS}.status.battery.cmd` && w[0].val === `ignore:${GRIFF}`,
+        JSON.stringify(w),
+    );
+    // The adapter answers with the ignored list → the row is gone at once.
+    await page.evaluate(
+        ([id, gid]) => window.__auraShot.mock({ [id]: JSON.stringify([{ id: gid, name: 'Drehgriff', ignoredAt: 1 }]) }),
+        [`${NS}.status.battery.ignored`, GRIFF],
+    );
+    await page.waitForTimeout(400);
+    r = await rows(page);
+    check('ignore: row gone once the adapter lists it', r.length === 0, JSON.stringify(r));
+    await ctx.close();
+}
+{
+    // Ignored in the adapter: hidden in a widget without any new option, too.
+    const ignored = { [`${NS}.status.battery.ignored`]: JSON.stringify([{ id: GRIFF, name: 'Drehgriff' }]) };
+    let c = await open({}, [], 'compact', 900, 8, ignored);
+    check('ignored: hidden in every widget', (await rows(c.page)).length === 0, JSON.stringify(await rows(c.page)));
+    await c.ctx.close();
+    c = await open({ latchBattery: true }, LIST, 'compact', 900, 8, ignored);
+    let r = await rows(c.page);
+    check(
+        'ignored: hidden even with a list entry',
+        r.length === 1 && r[0].text.includes('Golf'),
+        JSON.stringify(r.map((x) => x.text)),
+    );
+    await c.ctx.close();
+    // showIgnored: muted, "Aufnehmen" writes unignore without asking.
+    c = await open({ showIgnored: true, latchIgnore: true }, [], 'compact', 900, 8, ignored);
+    r = await rows(c.page);
+    const g = r.find((x) => x.text.includes('Drehgriff'));
+    check('showIgnored: listed, says so', !!g?.text.includes('ignoriert'), JSON.stringify(r));
+    check('showIgnored: "Aufnehmen" only', JSON.stringify(g?.buttons) === '["Aufnehmen"]', JSON.stringify(g?.buttons));
+    check('showIgnored: not counted', !(await chipText(c.page)).includes('Hinweis'), await chipText(c.page));
+    await c.page.evaluate(() => window.__auraShot.writes(true));
+    await c.page
+        .locator('.react-grid-item div.flex.items-center.gap-2.py-1', { hasText: 'Drehgriff' })
+        .locator('button', { hasText: 'Aufnehmen' })
+        .click();
+    const w = await writes(c.page);
+    check(
+        'showIgnored: Aufnehmen writes unignore',
+        w.length === 1 && w[0].val === `unignore:${GRIFF}`,
+        JSON.stringify(w),
+    );
+    await c.ctx.close();
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));

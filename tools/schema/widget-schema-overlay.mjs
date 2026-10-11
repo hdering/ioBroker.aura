@@ -610,6 +610,8 @@ export const WIDGET_OPTION_NOTES = {
             'latchSnoozeDays',
             'latchAutoClose',
             'latchConfirm',
+            'latchIgnore',
+            'showIgnored',
             'showOkCategories',
             'showAllClear',
             'allClearText',
