@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type RefObject } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { Droplets } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -552,6 +552,11 @@ function TankHorizontal({
 }
 
 // ── LED Segments ──────────────────────────────────────────────────────────
+type SegmentValuePosition = 'below' | 'beside';
+
+/** Highest segment count the editor and the renderer accept (#765). */
+const MAX_SEGMENTS = 200;
+
 function SegmentsViz({
     pct,
     value,
@@ -567,6 +572,9 @@ function SegmentsViz({
     orientation,
     segmentCount,
     fillWidth,
+    autoCount,
+    valuePosition,
+    valueFontSize,
 }: Pick<
     TankProps,
     | 'pct'
@@ -580,41 +588,95 @@ function SegmentsViz({
     | 'zones'
     | 'colorZones'
     | 'showValue'
-> & { orientation: Orientation; segmentCount: number; fillWidth: boolean }) {
-    const gap = 3;
-    // Base box the segments are drawn in — the svg scales it to the host with `meet`,
-    // so a box wider (or taller) than this one used to leave empty margins (#756).
-    const BASE_LEN = 220;
+> & {
+    orientation: Orientation;
+    segmentCount: number;
+    fillWidth: boolean;
+    autoCount: boolean;
+    valuePosition: SegmentValuePosition;
+    valueFontSize: number;
+}) {
     const vertical = orientation === 'vertical';
-    const baseCross = vertical ? 80 : 70;
-    const baseSegs = Math.max(2, Math.min(60, Math.round(segmentCount) || 12));
+    const beside = valuePosition === 'beside';
+    const baseSegs = Math.max(2, Math.min(MAX_SEGMENTS, Math.round(segmentCount) || 12));
 
-    // "Fill width": stretch the box to the host's aspect along the bar and add segments
-    // of the configured size instead of widening them. Never fewer than configured, so
-    // a small tile keeps its compact look.
-    const svgRef = useRef<SVGSVGElement>(null);
-    const [aspect, setAspect] = useState(0);
-    useEffect(() => {
-        const el = svgRef.current;
-        if (!fillWidth || !el) return;
+    // Reference geometry the look was designed in (#756): a horizontal bar is 220 × 44 units
+    // in a 70-unit band that also holds the value, a vertical one 56 × 220 in an 80-unit
+    // band with the value below. Everything is drawn in pixels derived from it, so the
+    // value can live next to the segments as text with its own size (#765).
+    const REF_LEN = 220;
+    const REF_CROSS = vertical ? 56 : 44;
+    const REF_GAP = 3;
+
+    const boxRef = useRef<HTMLDivElement>(null);
+    const valueRef = useRef<HTMLDivElement>(null);
+    const [box, setBox] = useState({ w: 0, h: 0 });
+    const [valueW, setValueW] = useState(0);
+    useLayoutEffect(() => {
+        const el = boxRef.current;
+        if (!el) return;
         const measure = () => {
             const r = el.getBoundingClientRect();
-            if (r.width > 0 && r.height > 0) setAspect(vertical ? r.height / r.width : r.width / r.height);
+            setBox((b) => (b.w === r.width && b.h === r.height ? b : { w: r.width, h: r.height }));
         };
         measure();
         const ro = new ResizeObserver(measure);
         ro.observe(el);
         return () => ro.disconnect();
-    }, [fillWidth, vertical]);
+    }, []);
 
-    const valueRoom = vertical && showValue ? 18 : 0;
-    const fitLen = fillWidth && aspect > 0 ? aspect * baseCross - valueRoom : 0;
-    const totalLen = Math.max(BASE_LEN, fitLen);
-    const pitch = (BASE_LEN + gap) / baseSegs;
-    const SEGS = Math.min(200, Math.max(baseSegs, Math.floor((totalLen + gap) / pitch)));
+    const { w: W, h: H } = box;
+    // Pixels per reference unit before the value takes its room. "Fill" stretches the
+    // length to the tile and only the cross size scales, otherwise the whole box fits in.
+    const s0 = vertical
+        ? fillWidth
+            ? W / 80
+            : Math.min(W / 80, H / (REF_LEN + (showValue && !beside ? 18 : 0)))
+        : fillWidth
+          ? H / 70
+          : Math.min(W / REF_LEN, H / 70);
+    // Auto size follows the old in-svg text; beside a flat bar it has the full height to
+    // grow into. A fixed size never pushes the segments out: below it takes at most 60 %.
+    const fontCap = (beside ? H : H * 0.6) / 1.2;
+    const fontPx = Math.max(
+        6,
+        Math.min(
+            valueFontSize > 0 ? valueFontSize : Math.max(9, (vertical ? 13 : beside ? 22 : 14) * s0),
+            fontCap || Infinity,
+        ),
+    );
+    const spacing = beside ? Math.max(4, fontPx * 0.4) : Math.max(2, fontPx * 0.15);
+    const availW = Math.max(0, W - (showValue && beside ? valueW + spacing : 0));
+    const availH = Math.max(0, H - (showValue && !beside ? fontPx * 1.2 + spacing : 0));
+    const availLen = vertical ? availH : availW;
+    const availCross = vertical ? availW : availH;
+
+    let cross = Math.min(REF_CROSS * s0, availCross);
+    let len = fillWidth ? availLen : Math.min(availLen, (cross * REF_LEN) / REF_CROSS);
+    if (!fillWidth) cross = Math.min(cross, (len * REF_CROSS) / REF_LEN);
+    cross = Math.max(0, cross);
+    len = Math.max(0, len);
+
+    const u = cross / REF_CROSS;
+    // Filling stretches the configured count across the length (#765). Only with
+    // autoCount it adds segments of the configured size instead (#756) — never fewer.
+    const pitch = ((REF_LEN + REF_GAP) / baseSegs) * u;
+    const SEGS =
+        fillWidth && autoCount && pitch > 0
+            ? Math.min(MAX_SEGMENTS, Math.max(baseSegs, Math.floor((len + REF_GAP * u) / pitch)))
+            : baseSegs;
+    // A fixed gap would eat a fine bar — beyond ~22 segments it shrinks with the pitch.
+    const gap = Math.min(REF_GAP * u, (0.3 * len) / SEGS);
+    const segLen = Math.max(0, (len - (SEGS - 1) * gap) / SEGS);
+    const rx = Math.min(REF_GAP * u, segLen / 2, cross / 2);
     const lit = Math.round((pct / 100) * SEGS);
 
     const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
+    // Beside the bar the value's width comes off the segments — follows every new value.
+    useLayoutEffect(() => {
+        const w = showValue && beside ? Math.ceil(valueRef.current?.getBoundingClientRect().width ?? 0) : 0;
+        if (w !== valueW) setValueW(w);
+    }, [showValue, beside, valueW, displayVal, unit, valueFontSize, box]);
 
     const zoneColor = (frac: number) => {
         if (colorZones && zones.length > 0) {
@@ -625,96 +687,76 @@ function SegmentsViz({
         return fillColor;
     };
 
-    if (vertical) {
-        const totalH = totalLen;
-        const segW = 56;
-        const segH = (totalH - (SEGS - 1) * gap) / SEGS;
-        return (
-            <svg ref={svgRef} viewBox={`0 4 80 ${totalH + valueRoom}`} style={{ width: '100%', height: '100%' }}>
-                {Array.from({ length: SEGS }, (_, i) => {
-                    // i=0 top, i=11 bottom; bottom segments = low values → lit first
-                    const isLit = i >= SEGS - lit;
-                    const frac = (SEGS - 1 - i + 0.5) / SEGS; // bottom segment → low fraction
-                    const color = isLit ? zoneColor(frac) : undefined;
-                    return (
-                        <rect
-                            key={i}
-                            x={12}
-                            y={4 + i * (segH + gap)}
-                            width={segW}
-                            height={segH}
-                            rx={3}
-                            fill={color ?? 'var(--app-border)'}
-                            opacity={color ? 1 : 0.25}
-                            // A lit segment is this layout's fill — the charging blink
-                            // reaches it through exactly this marker (#671).
-                            {...(color ? { 'data-aura-fill-level': '' } : null)}
-                        />
-                    );
-                })}
-                {showValue && (
-                    <text
-                        x={40}
-                        y={4 + totalH + 18}
-                        fontSize={13}
-                        fontWeight="bold"
-                        textAnchor="middle"
-                        fill="var(--text-primary)"
-                    >
-                        {displayVal}
-                        {unit && (
-                            <tspan fontSize={9} dx={1} fill="var(--text-secondary)">
-                                {unit}
-                            </tspan>
-                        )}
-                    </text>
-                )}
-            </svg>
-        );
-    }
-
-    // ── horizontal ────────────────────────────────────────────────────────────
-    const totalW = totalLen;
-    const segH = 44;
-    const segW = (totalW - (SEGS - 1) * gap) / SEGS;
+    const svgW = vertical ? cross : len;
+    const svgH = vertical ? len : cross;
     return (
-        <svg ref={svgRef} viewBox={`0 0 ${totalW} 70`} style={{ width: '100%', height: '100%' }}>
-            {Array.from({ length: SEGS }, (_, i) => {
-                const isLit = i < lit;
-                const frac = (i + 0.5) / SEGS;
-                const color = isLit ? zoneColor(frac) : undefined;
-                return (
-                    <rect
-                        key={i}
-                        x={i * (segW + gap)}
-                        y={4}
-                        width={segW}
-                        height={segH}
-                        rx={3}
-                        fill={color ?? 'var(--app-border)'}
-                        opacity={color ? 1 : 0.25}
-                        {...(color ? { 'data-aura-fill-level': '' } : null)}
-                    />
-                );
-            })}
+        <div
+            ref={boxRef}
+            style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: beside ? 'row' : 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: showValue ? spacing : 0,
+                overflow: 'hidden',
+            }}
+        >
+            {svgW > 0 && svgH > 0 && (
+                <svg
+                    width={svgW}
+                    height={svgH}
+                    viewBox={`0 0 ${svgW} ${svgH}`}
+                    style={{ display: 'block', flexShrink: 0 }}
+                >
+                    {Array.from({ length: SEGS }, (_, i) => {
+                        // Vertical: i=0 top, the bottom segments are the low values and light first.
+                        const isLit = vertical ? i >= SEGS - lit : i < lit;
+                        const frac = vertical ? (SEGS - 1 - i + 0.5) / SEGS : (i + 0.5) / SEGS;
+                        const color = isLit ? zoneColor(frac) : undefined;
+                        const at = i * (segLen + gap);
+                        return (
+                            <rect
+                                key={i}
+                                x={vertical ? 0 : at}
+                                y={vertical ? at : 0}
+                                width={vertical ? cross : segLen}
+                                height={vertical ? segLen : cross}
+                                rx={rx}
+                                fill={color ?? 'var(--app-border)'}
+                                opacity={color ? 1 : 0.25}
+                                // A lit segment is this layout's fill — the charging blink
+                                // reaches it through exactly this marker (#671).
+                                {...(color ? { 'data-aura-fill-level': '' } : null)}
+                            />
+                        );
+                    })}
+                </svg>
+            )}
             {showValue && (
-                <text
-                    x={totalW / 2}
-                    y={segH + 18}
-                    fontSize={14}
-                    fontWeight="bold"
-                    textAnchor="middle"
-                    fill="var(--text-primary)"
+                <div
+                    ref={valueRef}
+                    className="aura-fill-segments-value"
+                    style={{
+                        fontSize: fontPx,
+                        lineHeight: 1.2,
+                        fontWeight: 700,
+                        color: 'var(--text-primary)',
+                        whiteSpace: 'nowrap',
+                        fontVariantNumeric: 'tabular-nums',
+                        flexShrink: 0,
+                    }}
                 >
                     {displayVal}
                     {unit && (
-                        <tspan fontSize={9} dx={1} fill="var(--text-secondary)">
+                        <span style={{ fontSize: '0.65em', marginLeft: '0.1em', color: 'var(--text-secondary)' }}>
                             {unit}
-                        </tspan>
+                        </span>
                     )}
-                </text>
+                </div>
             )}
-        </svg>
+        </div>
     );
 }
 
@@ -1805,6 +1847,9 @@ export function FillWidget({ config }: WidgetProps) {
                             orientation={orientation}
                             segmentCount={(opts.segmentCount as number) ?? 12}
                             fillWidth={(opts.segmentFillWidth as boolean) ?? false}
+                            autoCount={opts.segmentAutoCount === true}
+                            valuePosition={opts.segmentValuePosition === 'beside' ? 'beside' : 'below'}
+                            valueFontSize={Number(opts.valueFontSize) || 0}
                         />
                         {/* No continuous bar to measure — the badges hang on the whole block. */}
                         {statusLayerFor(null)}

@@ -399,14 +399,30 @@ export const WIDGET_OPTION_NOTES = {
         baseBandColor: { description: 'Farbe des untersten Abschnitts. Leer = normale Füllfarbe.' },
         segmentCount: {
             description:
-                'Nur Layout segments: Anzahl der LED-Segmente (2–60, Standard 12) (#756). Mit segmentFillWidth ' +
-                'die Mindestanzahl und zugleich die Segmentgröße.',
+                'Nur Layout segments: Anzahl der LED-Segmente (2–200, Standard 12) (#756, #765). Gilt unabhängig ' +
+                'von der Kachelgröße — nur mit segmentAutoCount ist sie die Mindestanzahl und zugleich die Segmentgröße.',
         },
         segmentFillWidth: {
             description:
-                'Nur Layout segments: Länge der Kachel ausfüllen (#756) — statt leerer Ränder kommen weitere ' +
-                'Segmente in der Größe von segmentCount dazu (horizontal mehr Spalten, vertikal mehr Zeilen). ' +
-                'Nie weniger als segmentCount.',
+                'Nur Layout segments: Länge der Kachel ausfüllen (#765) — die segmentCount Segmente werden ' +
+                'gleichmäßig über die ganze Breite (vertikal: Höhe) verteilt statt leere Ränder zu lassen.',
+        },
+        segmentAutoCount: {
+            description:
+                'Nur Layout segments mit segmentFillWidth: statt breiterer Segmente kommen weitere Segmente in ' +
+                'der Größe von segmentCount dazu (#756) — die Anzahl hängt dann von Breite UND Höhe der Kachel ab, ' +
+                'nie weniger als segmentCount, höchstens 200.',
+        },
+        segmentValuePosition: {
+            type: 'string',
+            enum: ['below', 'beside'],
+            default: 'below',
+            description:
+                'Nur Layout segments: Wert unter (below, Standard) oder neben (beside, rechts) den Segmenten (#765).',
+        },
+        valueFontSize: {
+            description:
+                'Nur Layout segments: Schriftgröße des Werts in px (#765). Leer/0 = automatisch, wächst mit der Kachel.',
         },
         overActive: { description: 'Farbwechsel ab einer Schwelle einschalten.' },
         overThreshold: {

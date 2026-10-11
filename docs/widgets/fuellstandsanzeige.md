@@ -31,8 +31,11 @@ LED-Segmente, die je nach Füllstand aufleuchten.
 
 | Option | Standard | |
 | --- | --- | --- |
-| Anzahl Segmente | 12 | 2–60 |
-| Breite/Höhe ausfüllen | aus | weitere Segmente gleicher Größe bis zum Kachelrand; nie weniger als die eingestellte Anzahl |
+| Anzahl Segmente | 12 | 2–200; gilt unabhängig von der Kachelgröße |
+| Breite/Höhe ausfüllen | aus | die eingestellten Segmente gleichmäßig über die ganze Länge verteilen |
+| Anzahl an Länge anpassen | aus | nur mit „ausfüllen“: weitere Segmente gleicher Größe statt breiterer; die eingestellte Anzahl ist das Minimum |
+| Wert-Position | unter | unter oder neben den Segmenten |
+| Wert-Größe | auto | Schriftgröße in px; leer = wächst mit der Kachel |
 
 ### Wave
 Behälter mit animierter Wellen-Oberfläche.

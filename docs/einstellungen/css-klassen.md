@@ -159,6 +159,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-custom-grid` | Raster des Benutzerdefinierten Widgets |
 | `.aura-custom-cell-<index>` | eine Zelle darin, von `0` an gezählt |
 | `.aura-custom-cell-clickable` | Hülle um eine Zelle mit Klick-Aktion (`display: contents`) — die Zelle selbst trifft `.aura-custom-cell-clickable > *` |
+| `.aura-fill-segments-value` | Füllstand, Layout LED-Segmente: der Wert unter oder neben den Segmenten |
 | `.aura-marquee-track` | Lauftext im Karussell |
 | `.aura-carousel-shake` | kurzer Anstoß beim Öffnen (Karussell) |
 | `.aura-map-pin` | Markierung im Karten-Widget |

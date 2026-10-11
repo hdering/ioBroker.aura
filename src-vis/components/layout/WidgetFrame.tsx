@@ -13980,7 +13980,7 @@ function WidgetFrameInner({
                                                     <input
                                                         type="number"
                                                         min={2}
-                                                        max={60}
+                                                        max={200}
                                                         defaultValue={(o.segmentCount as number) ?? 12}
                                                         onChange={(e) => {
                                                             if (e.target.value === '') return;
@@ -13988,14 +13988,14 @@ function WidgetFrameInner({
                                                             if (!isNaN(n))
                                                                 set({
                                                                     segmentCount: Math.min(
-                                                                        60,
+                                                                        200,
                                                                         Math.max(2, Math.round(n)),
                                                                     ),
                                                                 });
                                                         }}
                                                         onBlur={(e) => {
                                                             const v = Math.min(
-                                                                60,
+                                                                200,
                                                                 Math.max(2, Math.round(Number(e.target.value)) || 12),
                                                             );
                                                             set({ segmentCount: v });
@@ -14012,7 +14012,7 @@ function WidgetFrameInner({
                                                     <label
                                                         className="text-[11px]"
                                                         style={{ color: 'var(--text-secondary)' }}
-                                                        title="Mehr Segmente gleicher Größe statt leerer Ränder; nie weniger als die eingestellte Anzahl"
+                                                        title="Die eingestellte Anzahl Segmente gleichmäßig über die ganze Länge verteilen"
                                                     >
                                                         {(o.orientation ?? 'vertical') === 'vertical'
                                                             ? 'Höhe ausfüllen'
@@ -14038,6 +14038,39 @@ function WidgetFrameInner({
                                                         />
                                                     </button>
                                                 </div>
+                                                {(o.segmentFillWidth ?? false) && (
+                                                    <div className="flex items-center justify-between">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                            title="Statt breiterer Segmente weitere Segmente gleicher Größe; die eingestellte Anzahl ist dann das Minimum"
+                                                        >
+                                                            Anzahl an Länge anpassen
+                                                        </label>
+                                                        <button
+                                                            onClick={() =>
+                                                                set({
+                                                                    segmentAutoCount: !(o.segmentAutoCount ?? false),
+                                                                })
+                                                            }
+                                                            className="relative w-9 h-5 rounded-full transition-colors"
+                                                            style={{
+                                                                background:
+                                                                    (o.segmentAutoCount ?? false)
+                                                                        ? 'var(--accent)'
+                                                                        : 'var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                style={{
+                                                                    left:
+                                                                        (o.segmentAutoCount ?? false) ? '18px' : '2px',
+                                                                }}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </>
                                         )}
                                         <div className="flex items-center justify-between">
@@ -14076,6 +14109,58 @@ function WidgetFrameInner({
                                                 />
                                             </button>
                                         </div>
+                                        {config.layout === 'segments' && (o.showValue ?? true) && (
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Wert-Position
+                                                    </label>
+                                                    <select
+                                                        value={o.segmentValuePosition === 'beside' ? 'beside' : 'below'}
+                                                        onChange={(e) => set({ segmentValuePosition: e.target.value })}
+                                                        className={fCls}
+                                                        style={fSty}
+                                                    >
+                                                        <option value="below">Unter den Segmenten</option>
+                                                        <option value="beside">Neben den Segmenten</option>
+                                                    </select>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                        title="Schriftgröße des Werts in px; leer = passt sich der Größe an"
+                                                    >
+                                                        Wert-Größe <span style={{ opacity: 0.6 }}>(px)</span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={6}
+                                                        max={200}
+                                                        placeholder="auto"
+                                                        defaultValue={(o.valueFontSize as number) || ''}
+                                                        onChange={(e) => {
+                                                            const n = Number(e.target.value);
+                                                            set({
+                                                                valueFontSize:
+                                                                    e.target.value === '' || !(n > 0)
+                                                                        ? undefined
+                                                                        : Math.min(200, n),
+                                                            });
+                                                        }}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter')
+                                                                (e.target as HTMLInputElement).blur();
+                                                        }}
+                                                        className={fCls}
+                                                        style={fSty}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                         {/* Same block as the Universal widget's progress cell (#719, #720). */}
                                         <BarValueFields
                                             fillOnly={config.layout !== 'bar'}
