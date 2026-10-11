@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.81.0",
+    "auraVersion": "0.81.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -14198,6 +14198,18 @@
             "count"
           ]
         },
+        "latchIgnore": {
+          "type": "boolean",
+          "description": "Row action \"Ignorieren\" (batteries, reachability, alarms): the AURA adapter never remembers that datapoint again and every Statusübersicht hides it — for false alarms such as an empty wallbox reporting 0 %. Asks before it runs (default false).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
         "latchRecheckDays": {
           "type": "number",
           "description": "Recheck after closing, in days (default 7): a new report in that time reopens the entry (\"trotz Wechsel am …\").",
@@ -14381,6 +14393,18 @@
           "default": true,
           "onlyLayouts": [
             "history"
+          ]
+        },
+        "showIgnored": {
+          "type": "boolean",
+          "description": "Also list the ignored datapoints of this widget, muted, with \"Aufnehmen\" to take the ignore back (default false).",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
           ]
         },
         "showLifetime": {
