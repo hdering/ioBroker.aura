@@ -10261,15 +10261,29 @@
           "default": 100,
           "description": "Prozent der Skala, ab dem die Warnfarbe gilt (100 = der Max-Wert). Der Rohwert zählt, nicht der begrenzte."
         },
+        "segmentAutoCount": {
+          "type": "boolean",
+          "default": false,
+          "description": "Nur Layout segments mit segmentFillWidth: statt breiterer Segmente kommen weitere Segmente in der Größe von segmentCount dazu (#756) — die Anzahl hängt dann von Breite UND Höhe der Kachel ab, nie weniger als segmentCount, höchstens 200."
+        },
         "segmentCount": {
           "type": "number",
           "default": 12,
-          "description": "Nur Layout segments: Anzahl der LED-Segmente (2–60, Standard 12) (#756). Mit segmentFillWidth die Mindestanzahl und zugleich die Segmentgröße."
+          "description": "Nur Layout segments: Anzahl der LED-Segmente (2–200, Standard 12) (#756, #765). Gilt unabhängig von der Kachelgröße — nur mit segmentAutoCount ist sie die Mindestanzahl und zugleich die Segmentgröße."
         },
         "segmentFillWidth": {
           "type": "boolean",
           "default": false,
-          "description": "Nur Layout segments: Länge der Kachel ausfüllen (#756) — statt leerer Ränder kommen weitere Segmente in der Größe von segmentCount dazu (horizontal mehr Spalten, vertikal mehr Zeilen). Nie weniger als segmentCount."
+          "description": "Nur Layout segments: Länge der Kachel ausfüllen (#765) — die segmentCount Segmente werden gleichmäßig über die ganze Breite (vertikal: Höhe) verteilt statt leere Ränder zu lassen."
+        },
+        "segmentValuePosition": {
+          "type": "string",
+          "enum": [
+            "below",
+            "beside"
+          ],
+          "default": "below",
+          "description": "Nur Layout segments: Wert unter (below, Standard) oder neben (beside, rechts) den Segmenten (#765)."
         },
         "showChargeIcon": {
           "type": "boolean",
@@ -10309,6 +10323,11 @@
           "type": "string",
           "description": "Nur Layout bar mit valuePlacement inside: Schriftfarbe des Werts über dem gefüllten Teil (#720). Leer = weiß. Der Wert wechselt die Farbe genau an der Füllkante.",
           "color": true
+        },
+        "valueFontSize": {
+          "type": "number",
+          "default": 0,
+          "description": "Nur Layout segments: Schriftgröße des Werts in px (#765). Leer/0 = automatisch, wächst mit der Kachel."
         },
         "valuePlacement": {
           "description": "Nur Layout bar: outside (Standard) = Wert neben dem schmalen Balken, inside = Wert im Balken (#719). Bei inside ist der Balken barSize % der Breite (vertikal) bzw. Höhe (horizontal) breit statt einer festen Pille — gedacht für schmale Kacheln wie Tintenpatronen. Wirkt nur mit showValue. Gleiche Einstellung wie valuePlacement der progress-Zelle im universal-Widget."
@@ -14173,6 +14192,29 @@
         "includeLowbatBoolean": {
           "type": "boolean",
           "description": "also match boolean LOWBAT-style DPs (default true)",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
+        "latchActionColors": {
+          "type": "object",
+          "fields": {
+            "ack": {
+              "type": "string"
+            },
+            "snooze": {
+              "type": "string"
+            },
+            "ignore": {
+              "type": "string"
+            }
+          },
+          "description": "Colour of the latch buttons — text and border (armed: fill). CSS colour or theme token like categoryColors. Unset: \"Gewechselt\"/\"Quittieren\" keep the row colour (Zweizeilig: green), \"Später\" and \"Ignorieren\" stay neutral.",
           "onlyLayouts": [
             "default",
             "compact",
