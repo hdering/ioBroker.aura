@@ -1926,6 +1926,7 @@ export const en: Record<TranslationKey, string> = {
     'rangeChips.remove': 'Remove',
     'rangeChips.value': 'Amount',
     'rangeChips.unit': 'Unit',
+    'rangeChips.unit.m': 'Minutes',
     'rangeChips.unit.h': 'Hours',
     'rangeChips.unit.d': 'Days',
     'rangeChips.unit.w': 'Weeks',

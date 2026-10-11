@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Click popups without a configured width now size to their content (e.g. the popup view's own width) instead of stopping at 600 px
+- Chart / Advanced chart - time ranges can now be set in minutes (custom range and own range chips like `15m`) for watching live values (#766)

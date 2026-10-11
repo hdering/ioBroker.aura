@@ -1944,6 +1944,7 @@ export const de = {
     'rangeChips.remove': 'Entfernen',
     'rangeChips.value': 'Anzahl',
     'rangeChips.unit': 'Einheit',
+    'rangeChips.unit.m': 'Minuten',
     'rangeChips.unit.h': 'Stunden',
     'rangeChips.unit.d': 'Tage',
     'rangeChips.unit.w': 'Wochen',

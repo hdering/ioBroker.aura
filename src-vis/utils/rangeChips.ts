@@ -11,11 +11,15 @@
  */
 import type { EChartTimeRange } from '../hooks/useMultiSeriesData';
 
-/** Units of a custom range: hours, days, weeks, calendar months, calendar years. */
-export type RangeUnit = 'h' | 'd' | 'w' | 'M' | 'y';
+/**
+ * Units of a custom range: minutes, hours, days, weeks, calendar months, calendar years. Minutes are a
+ * lowercase `m`, months an uppercase `M` (#766).
+ */
+export type RangeUnit = 'm' | 'h' | 'd' | 'w' | 'M' | 'y';
 
-export const RANGE_UNITS: RangeUnit[] = ['h', 'd', 'w', 'M', 'y'];
+export const RANGE_UNITS: RangeUnit[] = ['m', 'h', 'd', 'w', 'M', 'y'];
 
+const MINUTE = 60_000;
 const HOUR = 3_600_000;
 const DAY = 86_400_000;
 
@@ -39,6 +43,7 @@ export interface RangeChip {
  */
 export function unitSpanMs(value: number, unit: RangeUnit, now: number = Date.now()): number {
     const n = Math.max(1, Math.round(value) || 1);
+    if (unit === 'm') return n * MINUTE;
     if (unit === 'h') return n * HOUR;
     if (unit === 'd') return n * DAY;
     if (unit === 'w') return n * 7 * DAY;
@@ -56,6 +61,8 @@ export function unitSpanMs(value: number, unit: RangeUnit, now: number = Date.no
 export function rangeLabel(value: number, unit: RangeUnit): string {
     const one = value === 1;
     switch (unit) {
+        case 'm':
+            return `${value} Min`;
         case 'h':
             return `${value} Std`;
         case 'd':
@@ -97,8 +104,8 @@ export function parseRangeToken(raw: unknown): RangeChip | null {
     if (/^(total|gesamt|all)$/i.test(body)) {
         return { key: 'total', range: 'total', label: caption || PRESET_LABELS.total };
     }
-    // Case matters for the unit: `M` is a month, a lowercase `m` would read as minutes.
-    const m = /^(\d{1,3})\s*(h|d|w|M|y)$/.exec(body);
+    // Case matters for the unit: `M` is a month, a lowercase `m` a minute.
+    const m = /^(\d{1,3})\s*(m|h|d|w|M|y)$/.exec(body);
     if (!m) return null;
     const value = Number(m[1]);
     if (value < 1) return null;

@@ -371,7 +371,7 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | ------------------------ | -------- | --------------------------------------------------------------------------------- |
 | `echartRange`            | `24h`    | `1h` · `6h` · `24h` · `7d` · `30d` · `1y` · `total` · `custom`                    |
 | `echartRangeCustomValue` | `24`     | nur bei `custom`                                                                  |
-| `echartRangeCustomUnit`  | `h`      | `h` · `d` · `w` · `M` · `y`, nur bei `custom`                                     |
+| `echartRangeCustomUnit`  | `h`      | `m` · `h` · `d` · `w` · `M` · `y`, nur bei `custom`                               |
 | `lockRange`              | `false`  | Zeitraum-Umschalter im Frontend ausblenden                                        |
 | `echartVisibleRanges`    | alle     | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]`  |
 | `rangeChips`             | —        | Eigene Zeitraum-Chips, ersetzt `echartVisibleRanges`, z. B. `["1M","3M","12M","total"]` |
@@ -396,7 +396,7 @@ Mit `echartDayNavDefault` startet das Widget so, als wäre **Heute** gedrückt: 
 laufenden Tages, jeden Tag neu. Die Zeitraum-Knöpfe verlassen den Tagesmodus wie bisher; zusammen
 mit `lockRange` bleibt nur die Tages-Navigation übrig — ein reines Tagesdiagramm.
 
-`rangeChips` nimmt Kürzel aus Zahl + Einheit: `h` · `d` · `w` · `M` (Kalendermonat) · `y` (Kalenderjahr) oder `total`, eigene Beschriftung nach `=` (`3M=Quartal`). Liegt `echartRange` nicht in der Liste, startet das Diagramm mit dem ersten Chip. Im Editor: **Eigene Liste anlegen**.
+`rangeChips` nimmt Kürzel aus Zahl + Einheit: `m` (Minute) · `h` · `d` · `w` · `M` (Kalendermonat) · `y` (Kalenderjahr) oder `total`, eigene Beschriftung nach `=` (`3M=Quartal`). Liegt `echartRange` nicht in der Liste, startet das Diagramm mit dem ersten Chip. Im Editor: **Eigene Liste anlegen**.
 
 `total` (Umschalter: **Gesamt**) zeichnet alles, was der Verlaufs-Adapter hergibt.
 

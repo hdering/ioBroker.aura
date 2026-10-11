@@ -47,7 +47,7 @@ import { axisIsBoolean, axisIsZeroBased, axisValueLabels, gridLineAxis, parseVal
 import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
-import { parseRangeChips, rangeKey, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
+import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -398,15 +398,14 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                                 range: 'custom' as const,
                                 value: cfgCustomVal,
                                 unit: cfgCustomUnit,
-                                label: `${cfgCustomVal} ${
+                                label:
                                     cfgCustomUnit === 'h'
-                                        ? t('echart.unitHoursShort')
+                                        ? `${cfgCustomVal} ${t('echart.unitHoursShort')}`
                                         : cfgCustomUnit === 'd'
-                                          ? cfgCustomVal === 1
-                                              ? t('echart.daySingular')
-                                              : t('echart.dayPlural')
-                                          : cfgCustomUnit
-                                }`,
+                                          ? `${cfgCustomVal} ${
+                                                cfgCustomVal === 1 ? t('echart.daySingular') : t('echart.dayPlural')
+                                            }`
+                                          : rangeLabel(cfgCustomVal, cfgCustomUnit),
                             },
                         ]
                       : []),

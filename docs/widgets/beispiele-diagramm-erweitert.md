@@ -214,7 +214,7 @@ Aus [#709](https://github.com/hdering/ioBroker.aura/issues/709) · [#280](https:
 
 | Option | Wert | |
 | --- | --- | --- |
-| `rangeChips` | `["1M","3M=Quartal","6M","12M","24M","total"]` | Zahl + Einheit (h, d, w, M, y) oder total; Text nach `=` ist die Beschriftung |
+| `rangeChips` | `["1M","3M=Quartal","6M","12M","24M","total"]` | Zahl + Einheit (m, h, d, w, M, y) oder total; Text nach `=` ist die Beschriftung |
 | `echartRange` | `custom` + `echartRangeCustomValue: 12`, `echartRangeCustomUnit: M` | Startzeitraum |
 | `echartSeries[].deltaBucket` | `auto` | wechselt mit dem gewählten Chip |
 
