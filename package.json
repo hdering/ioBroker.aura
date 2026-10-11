@@ -296,6 +296,7 @@
     "test:status-loading": "node tools/tests/status-overview-loading.mjs",
     "test:status-latch": "node test/status-latch.test.js && node test/status-latch-adapter.test.js && node tools/tests/status-overview-latch.mjs",
     "test:status-latch-ui": "node tools/tests/status-overview-latch-ui.mjs",
+    "test:connection-lost": "node tools/tests/connection-lost.mjs",
     "test:status-history-ui": "node tools/tests/status-overview-history-ui.mjs",
     "test:clause-logic": "node tools/tests/clause-logic.mjs",
     "test:range-chips": "node tools/tests/range-chips.mjs",

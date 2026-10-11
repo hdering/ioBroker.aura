@@ -60,6 +60,33 @@ let socket: IoBrokerSocket | null = null;
 const subscribers = new Map<string, Set<(state: ioBrokerState) => void>>();
 const connectionListeners = new Set<(connected: boolean) => void>();
 
+// When the connection went away — null while connected. Kept at module level so
+// every consumer of useConnectionLost() agrees on the same moment, even one that
+// mounts in the middle of an outage. Starts set: until the first connect nothing
+// on screen is live either.
+let disconnectedSince: number | null = Date.now();
+const offlineListeners = new Set<() => void>();
+
+function notifyConnection(connected: boolean): void {
+    const was = disconnectedSince;
+    if (connected) disconnectedSince = null;
+    else if (disconnectedSince === null) disconnectedSince = Date.now();
+    connectionListeners.forEach((fn) => fn(connected));
+    if (was !== disconnectedSince) offlineListeners.forEach((fn) => fn());
+}
+
+/** Epoch ms the socket went offline, null while connected. */
+export function getDisconnectedSince(): number | null {
+    return disconnectedSince;
+}
+
+export function onDisconnectedSinceChange(fn: () => void): () => void {
+    offlineListeners.add(fn);
+    return () => {
+        offlineListeners.delete(fn);
+    };
+}
+
 // Perf: time from (re)connect to the first live stateChange — a proxy for how
 // quickly the dashboard receives usable data. Reported once per connection.
 let connectPerfMark = 0;
@@ -448,7 +475,7 @@ function createSocket(url: string): IoBrokerSocket {
                     'is the ioBroker web/socketio adapter reachable? Showing offline and retrying…',
             );
         }
-        connectionListeners.forEach((fn) => fn(false));
+        notifyConnection(false);
         scheduleIoRetry();
         return makeStubSocket();
     }
@@ -484,7 +511,7 @@ function createSocket(url: string): IoBrokerSocket {
             'background:#10b981;color:#fff;font-weight:bold;padding:2px 6px;',
             'background:#0f172a;color:#94a3b8;border-radius:0 3px 3px 0;padding:2px 6px;',
         );
-        connectionListeners.forEach((fn) => fn(true));
+        notifyConnection(true);
         // Re-subscribe and fetch current state for all active subscriptions.
         // Drop any stale entries with invalid ID pattern (would crash backend with "Invalid pattern on subscribe").
         Array.from(subscribers.keys()).forEach((id) => {
@@ -515,7 +542,7 @@ function createSocket(url: string): IoBrokerSocket {
             'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
             'background:#ef4444;color:#fff;font-weight:bold;border-radius:0 3px 3px 0;padding:2px 6px;',
         );
-        connectionListeners.forEach((fn) => fn(false));
+        notifyConnection(false);
     });
     s.on('stateChange', (...args: unknown[]) => {
         const id = args[0] as string;
@@ -585,7 +612,7 @@ function bounceSocket(): void {
         socket.disconnect();
         socket = null;
     }
-    connectionListeners.forEach((fn) => fn(false));
+    notifyConnection(false);
     getSocket();
 }
 

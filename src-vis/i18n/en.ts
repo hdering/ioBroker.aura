@@ -2671,6 +2671,9 @@ export const en: Record<TranslationKey, string> = {
     'tabSleep.pathChrome':
         'Chrome: Settings → Performance → Memory Saver → add the Aura address under "Always keep these sites active"',
     'tabSleep.dismiss': 'Got it',
+    'connection.lost': 'No connection to ioBroker since {time} – values are not current',
+    'connection.statusUnknown': 'Status unknown',
+    'connection.statusUnknownHint': 'No connection to ioBroker – values not current',
 
     // ── Messages (issue #429) ─────────────────────────────────────────────────────
     'messages.title': 'Messages',

@@ -192,6 +192,15 @@ Setzt eine [Bedingung](./editor) einen Effekt, landet die passende Klasse auf de
 | `.aura-cond-icon-*` | Icon: `-color`, `-hide` |
 | `.aura-cond-value-*` | Wert: `-color`, `-bold`, `-italic`, `-size`, `-hide` |
 
+## Verbindung verloren
+
+Ist die Verbindung zu ioBroker länger als 5 s weg, trägt die Seite `[data-aura-offline]`.
+
+| Selektor | trifft |
+| --- | --- |
+| `[data-aura-offline] .aura-widget` | ausgegraute Karten (Aussehen über `--widget-offline-filter` / `--widget-offline-opacity`) |
+| `.aura-offline-banner` | Hinweis oben mittig „Keine Verbindung … seit“ |
+
 ## Hilfsklassen
 
 | Selektor | trifft |

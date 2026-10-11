@@ -2690,6 +2690,9 @@ export const de = {
     'tabSleep.pathChrome':
         'Chrome: Einstellungen → Leistung → Speichersparmodus → Aura-Adresse unter „Diese Websites immer aktiv lassen“ eintragen',
     'tabSleep.dismiss': 'Verstanden',
+    'connection.lost': 'Keine Verbindung zu ioBroker seit {time} – Werte sind nicht aktuell',
+    'connection.statusUnknown': 'Status unbekannt',
+    'connection.statusUnknownHint': 'Keine Verbindung zu ioBroker – Werte nicht aktuell',
 
     // ── Meldungen (Issue #429) ────────────────────────────────────────────────────
     'messages.title': 'Meldungen',

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Sun, Moon, Settings } from 'lucide-react';
+import { Sun, Moon, Settings, WifiOff } from 'lucide-react';
 import {
     useIoBroker,
     setStateDirect,
@@ -19,6 +19,7 @@ import { useCustomCss } from './hooks/useCustomCss';
 import { useConfigSync } from './hooks/useConfigSync';
 import { useActiveSelectionSync } from './hooks/useActiveSelectionSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
+import { useConnectionLost } from './hooks/useConnectionLost';
 import { useConnectionStore, legacyFingerprintId } from './store/connectionStore';
 import { useGlobalSettingsStore } from './store/globalSettingsStore';
 import { useConfigStore } from './store/configStore';
@@ -222,6 +223,31 @@ function TabSleepHint() {
             >
                 {t('tabSleep.dismiss')}
             </button>
+        </div>
+    );
+}
+
+// ── ConnectionLostBanner ────────────────────────────────────────────────────
+// After a few seconds without a socket every widget still shows its last value,
+// and a status overview would keep saying "all fine" although nothing is watched
+// any more. The banner says so in words; the greyed widgets (data-aura-offline on
+// the page root, index.css) say it at a glance.
+
+function ConnectionLostBanner({ since }: { since: number }) {
+    const t = useT();
+    const time = new Date(since).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return (
+        <div
+            role="status"
+            className="aura-offline-banner fixed top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg max-w-[calc(100vw-2rem)]"
+            style={{
+                background: 'var(--app-surface)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--accent-red)',
+            }}
+        >
+            <WifiOff size={14} className="shrink-0" style={{ color: 'var(--accent-red)' }} />
+            <span className="truncate">{t('connection.lost', { time })}</span>
         </div>
     );
 }
@@ -1033,6 +1059,7 @@ export default function App() {
 
     const showBadge = effectiveSettings.showHeader && effectiveSettings.showConnectionBadge;
     const showClientIdBadge = useGlobalSettingsStore((s) => s.showClientIdBadge);
+    const connectionLostSince = useConnectionLost();
 
     const activeTabSlug = useMemo(() => {
         const t = tabs.find((t) => t.id === activeTabId);
@@ -1351,11 +1378,13 @@ export default function App() {
         <div
             data-aura-app="frontend"
             data-aura-scale=""
+            data-aura-offline={connectionLostSince !== null ? '' : undefined}
             className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`}
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
         >
             <ConnectionIndicator showBadge={showBadge} />
             <TabSleepHint />
+            {connectionLostSince !== null && <ConnectionLostBanner since={connectionLostSince} />}
             {showClientIdBadge && <ClientIdBadge />}
             <DpPopupTriggers layoutId={layout?.id} tabId={activeTabId} />
             <ToastLayer scope={messageScope} />

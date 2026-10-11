@@ -46,6 +46,7 @@ import {
 import { __devForceDpTriggers } from '../components/widgets/popup/DpPopupTriggers';
 import { __devForceConditionRefresh, __devForceConditionNotify } from '../hooks/useConditionStyle';
 import { __devForceHealthChecks } from '../hooks/healthChecks';
+import { __devForceConnectionLost } from '../hooks/useConnectionLost';
 import {
     useMessagesStore,
     __devForceMessages,
@@ -441,6 +442,13 @@ function installScreenshotApi(): void {
          *  before the overview mounts, the hooks read it once per refresh. */
         healthChecks(on = true): void {
             __devForceHealthChecks(on);
+        },
+
+        /** Fake a lost ioBroker connection (offline banner, greyed widgets, status
+         *  overview "unknown"). Screenshot mode ignores the real socket, which is
+         *  always dead behind the harness. */
+        connectionLost(on = true): void {
+            __devForceConnectionLost(on);
         },
 
         /** Arm condition rules with "reload widget". Off in screenshot mode by

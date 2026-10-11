@@ -221,6 +221,20 @@ iframe {
     cursor: not-allowed;
     pointer-events: auto !important;
 }
+/* Connection to ioBroker lost for longer than the grace period (App.tsx sets
+   data-aura-offline): every value on screen is the last one received, so the
+   widgets fade to say "not live". Themes/custom CSS can tune or drop it. The
+   card's inline opacity reads --widget-opacity (a condition's "Deckkraft" sets it
+   inline and then wins). */
+[data-aura-offline] .aura-widget {
+    filter: var(--widget-offline-filter, grayscale(0.7));
+    --widget-opacity: var(--widget-offline-opacity, 0.6);
+}
+/* Group children are widgets too — fade once, not once per nesting level. */
+[data-aura-offline] .aura-widget .aura-widget {
+    filter: none;
+    --widget-opacity: 1;
+}
 @keyframes auraCondRingPulse {
     0%,
     100% {

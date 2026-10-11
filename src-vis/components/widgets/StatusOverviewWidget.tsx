@@ -6,6 +6,7 @@ import {
     DoorOpen,
     Lightbulb,
     WifiOff,
+    CloudOff,
     Siren,
     RefreshCw,
     BatteryFull,
@@ -18,6 +19,7 @@ import {
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { useIoBroker, setStateDirect, setStateDirectAsync, getStateDirect } from '../../hooks/useIoBroker';
+import { useConnectionLost } from '../../hooks/useConnectionLost';
 import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
@@ -300,6 +302,9 @@ function readingFor(item: StatusItem): string {
 
 function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const { subscribe, getState } = useIoBroker();
+    // Without a connection nothing is being watched: "Alles in Ordnung" would only
+    // repeat the last verdict, so the all-clear turns into "Status unbekannt".
+    const connectionLost = useConnectionLost() !== null;
     const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides);
     const hiddenDevices = useConfigStore((s) => s.frontend.batteryHiddenDevices) ?? EMPTY_HIDDEN;
     // Global reachability escape hatch — merged into the effective options.
@@ -714,36 +719,47 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // ── Attention chip (the one "loud" element) ────────────────────────────────
     // While loading it stays neutral: a green "OK" would claim a verdict the widget
     // does not have yet. Already known hints are counted, the count can still grow.
-    const chip = loading ? (
-        <span
-            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0"
-            style={{
-                color: 'var(--text-secondary)',
-                background: 'color-mix(in srgb, var(--text-secondary) 12%, var(--widget-bg, var(--app-surface)))',
-            }}
-        >
-            <RefreshCw size={12} className="animate-spin" />
-            {total > 0 ? `${total} …` : 'Lädt…'}
-        </span>
-    ) : (
-        <span
-            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0 transition-colors"
-            style={
-                total > 0
-                    ? {
-                          color: hasCrit ? SEVERITY_COLOR.crit : SEVERITY_COLOR.warn,
-                          background: `color-mix(in srgb, ${hasCrit ? SEVERITY_COLOR.crit : SEVERITY_COLOR.warn} 15%, var(--widget-bg, var(--app-surface)))`,
-                      }
-                    : {
-                          color: SEVERITY_COLOR.ok,
-                          background: `color-mix(in srgb, ${SEVERITY_COLOR.ok} 12%, var(--widget-bg, var(--app-surface)))`,
-                      }
-            }
-        >
-            {total > 0 ? <TriangleAlert size={12} /> : <ShieldCheck size={12} />}
-            {total > 0 ? `${total} ${total === 1 ? 'Hinweis' : 'Hinweise'}` : 'OK'}
-        </span>
-    );
+    const chip =
+        connectionLost && total === 0 ? (
+            <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0"
+                style={{
+                    color: 'var(--text-secondary)',
+                    background: 'color-mix(in srgb, var(--text-secondary) 12%, var(--widget-bg, var(--app-surface)))',
+                }}
+            >
+                <CloudOff size={12} />?
+            </span>
+        ) : loading ? (
+            <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0"
+                style={{
+                    color: 'var(--text-secondary)',
+                    background: 'color-mix(in srgb, var(--text-secondary) 12%, var(--widget-bg, var(--app-surface)))',
+                }}
+            >
+                <RefreshCw size={12} className="animate-spin" />
+                {total > 0 ? `${total} …` : 'Lädt…'}
+            </span>
+        ) : (
+            <span
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0 transition-colors"
+                style={
+                    total > 0
+                        ? {
+                              color: hasCrit ? SEVERITY_COLOR.crit : SEVERITY_COLOR.warn,
+                              background: `color-mix(in srgb, ${hasCrit ? SEVERITY_COLOR.crit : SEVERITY_COLOR.warn} 15%, var(--widget-bg, var(--app-surface)))`,
+                          }
+                        : {
+                              color: SEVERITY_COLOR.ok,
+                              background: `color-mix(in srgb, ${SEVERITY_COLOR.ok} 12%, var(--widget-bg, var(--app-surface)))`,
+                          }
+                }
+            >
+                {total > 0 ? <TriangleAlert size={12} /> : <ShieldCheck size={12} />}
+                {total > 0 ? `${total} ${total === 1 ? 'Hinweis' : 'Hinweise'}` : 'OK'}
+            </span>
+        );
 
     // ── count layout: just the chip, centered ──────────────────────────────────
     if (layout === 'count') {
@@ -1109,8 +1125,13 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // Defined before the layout branches so every layout can show it instead of an
     // empty body when there is nothing to report. Ignored rows (showIgnored) are
     // listed on purpose, so they keep the list.
-    const allClear = !anyHint && !showAll && !opts.showOkCategories && !loading && !allItems.some((i) => i.ignored);
-    const allClearBlock =
+    const allClear =
+        !anyHint &&
+        !showAll &&
+        !opts.showOkCategories &&
+        (!loading || connectionLost) &&
+        !allItems.some((i) => i.ignored);
+    const okBlock =
         opts.showAllClear === false ? null : twoLine ? (
             <div
                 className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center text-center px-2`}
@@ -1135,11 +1156,27 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                 </p>
             </div>
         );
+    // Offline: same slot, but no verdict — shown even with showAllClear off, since an
+    // empty body would read as "nothing to report" just the same.
+    const unknownBlock = (
+        <div
+            className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} aura-status-unknown flex flex-col items-center justify-center gap-1.5 text-center px-2`}
+        >
+            <CloudOff size={22} style={{ color: 'var(--text-secondary)' }} />
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                {t('connection.statusUnknown')}
+            </p>
+            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                {t('connection.statusUnknownHint')}
+            </p>
+        </div>
+    );
+    const allClearBlock = connectionLost ? unknownBlock : okBlock;
 
     // Still loading and nothing to show yet: the same slot as the all-clear panel, so
     // the widget looks busy instead of reporting a verdict it cannot have yet. Hints
     // that are already in are listed right away (with the spinner in the header).
-    const showLoading = loading && items.length === 0;
+    const showLoading = loading && items.length === 0 && !connectionLost;
     const loadingBlock = (
         <div
             className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center gap-1.5 text-center px-2`}
