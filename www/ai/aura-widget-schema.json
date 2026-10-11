@@ -2103,6 +2103,7 @@
     "RangeUnit": {
       "type": "string",
       "enum": [
+        "m",
         "h",
         "d",
         "w",
@@ -8109,7 +8110,7 @@
           "type": "string",
           "ref": "RangeUnit",
           "default": "h",
-          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
+          "description": "Einheit des eigenen Zeitraums: m (Minuten), h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
         },
         "historyRangeCustomValue": {
           "type": "number",
@@ -8132,7 +8133,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (h, d, w, M = Monat, y = Jahr) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
+          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (m = Minute, h, d, w, M = Monat, y = Jahr; Groß-/Kleinschreibung zählt) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
         },
         "showAverage": {
           "type": "boolean",
@@ -8383,7 +8384,7 @@
           "type": "string",
           "ref": "RangeUnit",
           "default": "h",
-          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
+          "description": "Einheit des eigenen Zeitraums: m (Minuten), h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
         },
         "historyRangeCustomValue": {
           "type": "number",
@@ -9371,7 +9372,7 @@
         "echartRangeCustomUnit": {
           "type": "string",
           "ref": "RangeUnit",
-          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
+          "description": "Einheit des eigenen Zeitraums: m (Minuten), h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
         },
         "echartRangeCustomValue": {
           "type": "number",
@@ -9472,7 +9473,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (h, d, w, M = Monat, y = Jahr) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
+          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (m = Minute, h, d, w, M = Monat, y = Jahr; Groß-/Kleinschreibung zählt) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
         }
       }
     },
@@ -10918,7 +10919,7 @@
           "type": "string",
           "ref": "RangeUnit",
           "default": "h",
-          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
+          "description": "Einheit des eigenen Zeitraums: m (Minuten), h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
         },
         "historyRangeCustomValue": {
           "type": "number",
