@@ -192,6 +192,11 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
     const title = subAll(getTitle(widget, action, titleOverride), buildPopupSubMap(widget, mainDp));
     const customWidth = widget.options?.popupWidth as number | undefined;
     const customHeight = widget.options?.popupHeight as number | undefined;
+    // Without a configured width the dialog sizes to its body: popup views and embedded
+    // widgets report their designed grid width, the device/media bodies their own fixed
+    // width. Only free-flowing HTML keeps a reading cap — its paragraphs would otherwise
+    // stretch to one line across the whole screen.
+    const autoMaxWidth = action.kind === 'popup-html' ? 'min(calc(100vw - 16px), 600px)' : 'calc(100vw - 16px)';
 
     // The scrollbar lane is only reserved while the body really scrolls (issue #621).
     // `stable both-edges` keeps a long popup view centred and clear of the scrollbar, but
@@ -266,7 +271,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                     // together with the dialog chrome instead of staying solid.
                     opacity: transparency > 0 ? 1 - transparency / 100 : undefined,
                     width: isIframe ? undefined : customWidth ? `min(calc(100vw - 16px), ${customWidth}px)` : undefined,
-                    maxWidth: isIframe ? undefined : customWidth ? undefined : 'min(calc(100vw - 16px), 600px)',
+                    maxWidth: isIframe ? undefined : customWidth ? undefined : autoMaxWidth,
                     maxHeight: isIframe ? undefined : customHeight ? `min(85dvh, ${customHeight}px)` : '85dvh',
                 }}
                 onClick={(e) => e.stopPropagation()}

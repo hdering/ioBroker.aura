@@ -61,7 +61,7 @@ Wert: Name oder ID einer Popup-View, oder JSON. Der Datenpunkt wird nach dem Öf
 | `view` | Name oder ID der Popup-View (Pflicht) |
 | `dp` | Haupt-Datenpunkt, im Popup als `{{dp}}` |
 | `title` | Popup-Titel; leer = Name der View |
-| `width` | Breite in px; leer = automatisch (max. `600 px`) |
+| `width` | Breite in px; leer = nach Inhalt (Breite der View) |
 | `height` | Höhe in px (höchstens `85 %` der Bildschirmhöhe); leer = nach Inhalt |
 
 Breite und Höhe werden auf kleinen Bildschirmen automatisch begrenzt (volle Breite minus Rand, `85 %` der Höhe) — ein `900 px`-Popup bleibt auf dem Handy also bedienbar.

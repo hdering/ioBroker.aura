@@ -1038,7 +1038,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                                 onChange={(e) =>
                                     setOpts({ popupWidth: e.target.value ? Number(e.target.value) : undefined })
                                 }
-                                placeholder="600"
+                                placeholder="auto"
                                 className={inputCls}
                                 style={inputStyle}
                             />
