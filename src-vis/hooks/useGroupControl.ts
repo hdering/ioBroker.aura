@@ -16,7 +16,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIoBroker } from './useIoBroker';
-import { isActiveVal, type GroupTarget } from '../utils/groupTargets';
+import { isActiveVal, nextTurnOn, type GroupTarget } from '../utils/groupTargets';
 
 export type GroupAggregate = 'on' | 'off' | 'mixed' | 'none';
 
@@ -28,7 +28,7 @@ export function aggregateState(targets: GroupTarget[]): GroupAggregate {
     return 'mixed';
 }
 
-export function useGroupControl(targets: GroupTarget[]) {
+export function useGroupControl(targets: GroupTarget[], mixedAction: 'on' | 'off' = 'on') {
     const { setState, getState } = useIoBroker();
     const parentAggregate = useMemo(() => aggregateState(targets), [targets]);
     const activeCount = useMemo(() => targets.reduce((n, t) => n + (t.active ? 1 : 0), 0), [targets]);
@@ -45,14 +45,13 @@ export function useGroupControl(targets: GroupTarget[]) {
 
     const aggregate = override ?? parentAggregate;
 
-    // off / mixed → turn everything on; on → turn everything off (HomeKit-style).
+    const turnsOn = nextTurnOn(aggregate, mixedAction);
     const toggleAll = () => {
         if (targets.length === 0) return;
-        const turnOn = aggregate !== 'on';
-        setOverride(turnOn ? 'on' : 'off');
+        setOverride(turnsOn ? 'on' : 'off');
         const ids = targets.map((t) => t.id);
         for (const t of targets) {
-            setState(t.id, turnOn ? t.onWrite : t.offWrite);
+            setState(t.id, turnsOn ? t.onWrite : t.offWrite);
         }
         // Confirm via getState — a live stateChange push may never arrive.
         globalThis.setTimeout(() => {
@@ -63,5 +62,5 @@ export function useGroupControl(targets: GroupTarget[]) {
         }, 700);
     };
 
-    return { aggregate, toggleAll, activeCount, total: targets.length };
+    return { aggregate, toggleAll, activeCount, total: targets.length, turnsOn };
 }

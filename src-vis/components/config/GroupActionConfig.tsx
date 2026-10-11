@@ -139,6 +139,37 @@ export function GroupActionConfig({ opts, setOpts, candidates }: Props) {
                             </div>
                             <div>
                                 <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Klick aus Mittelstellung
+                                </label>
+                                <div className="flex gap-1">
+                                    {(
+                                        [
+                                            ['on', 'Alle an'],
+                                            ['off', 'Alle aus'],
+                                        ] as const
+                                    ).map(([v, lbl]) => {
+                                        const active = (opts.groupMixedAction ?? 'on') === v;
+                                        return (
+                                            <button
+                                                key={v}
+                                                onClick={() =>
+                                                    setOpts({ groupMixedAction: v === 'on' ? undefined : v })
+                                                }
+                                                className="flex-1 text-[10px] py-1 rounded transition-colors"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                            >
+                                                {lbl}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                     {'Dimmer „AN“-Wert (AUS = 0)'}
                                 </label>
                                 <input

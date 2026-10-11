@@ -39,6 +39,7 @@ Ein Steuerelement im Titel schaltet alle steuerbaren Kind-Datenpunkte gemeinsam.
 | `groupSwitch` | `false` | Master-Aktion aktivieren |
 | `groupActionType` | `switch` | `switch` · `dimmer` · `shutter` · `momentary` |
 | `groupSwitchStyle` | `slide` | `slide` · `checkbox` (nur `switch`; gemischter Zustand = Strich) |
+| `groupMixedAction` | `on` | Klick aus Mittelstellung: `on` alle an · `off` alle aus (nur `switch`) |
 | `groupExcludeIds` | — | ausgeschlossene Kind-IDs |
 | `groupDimmerOnValue` | `100` | „AN"-Wert für Dimmer (nur `switch`) |
 | `groupIncludeNumbers` | `false` | Zahlenwerte einbeziehen (nur `switch`) |

@@ -340,6 +340,7 @@ erste Änderung im Dialog ersetzt sie durch `sortRules[]`.
 | `groupSwitch` | `false` | Sammelschalter im Header |
 | `groupActionType` | `switch` | `switch` · `dimmer` · `shutter` · `momentary` |
 | `groupSwitchStyle` | `slide` | `slide` · `checkbox` (nur `switch`) |
+| `groupMixedAction` | `on` | Klick aus Mittelstellung: `on` alle an · `off` alle aus (nur `switch`) |
 | `groupDimmerOnValue` | `100` | Schreibwert bei „alle an" (Dimmer) |
 | `groupExcludeIds` | — | ausgenommene Einträge |
 

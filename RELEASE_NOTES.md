@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Settings - web adapter extension: hint that the Visu App / ioBroker.pro remote access needs the same web instance as the cloud adapter (usually web.0) (#688)
+- Group / List - group switch: choose whether a click from the mixed state turns all devices on or off (#764)

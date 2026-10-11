@@ -86,7 +86,7 @@ export function GroupActionControl({
     className = '',
 }: Props) {
     // Hooks must run unconditionally regardless of the active type.
-    const { aggregate, toggleAll, activeCount, total } = useGroupControl(switchTargets);
+    const { aggregate, toggleAll, activeCount, total, turnsOn } = useGroupControl(switchTargets, cfg.groupMixedAction);
     const [level, setLevel] = useState(0);
     const pulsePendingRef = useRef(false);
 
@@ -96,7 +96,7 @@ export function GroupActionControl({
                 aggregate={aggregate}
                 onToggle={toggleAll}
                 style={cfg.groupSwitchStyle}
-                title={`${activeCount}/${total}`}
+                title={`${activeCount}/${total} · Klick: alle ${turnsOn ? 'an' : 'aus'}`}
                 editing={editing}
                 placeholderHint={placeholderHint}
                 placeholderLabel={placeholderLabel}
