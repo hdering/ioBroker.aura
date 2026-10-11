@@ -23,6 +23,14 @@ const AdminBatteries = lazy(() =>
     import('../../pages/admin/AdminBatteries').then((m) => ({ default: m.AdminBatteries })),
 );
 
+type LatchActionKey = keyof NonNullable<StatusOverviewOptions['latchActionColors']>;
+/** The picker's swatch when unset — "Gewechselt" really takes the row colour (Zweizeilig: green). */
+const LATCH_ACTION_COLOR_FIELDS: { key: LatchActionKey; label: string; fallback: string }[] = [
+    { key: 'ack', label: 'Gewechselt / Quittieren', fallback: '#22c55e' },
+    { key: 'snooze', label: 'Später', fallback: '#94a3b8' },
+    { key: 'ignore', label: 'Ignorieren', fallback: '#94a3b8' },
+];
+
 /** Near-fullscreen popup that hosts the battery-type assignment page. */
 function BatteryAssignModal({ onClose }: { onClose: () => void }) {
     return (
@@ -211,6 +219,12 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         if (color) next[cat] = color;
         else delete next[cat];
         set({ categoryColors: next });
+    };
+    const setLatchActionColor = (key: LatchActionKey, color: string | null) => {
+        const next = { ...(o.latchActionColors ?? {}) };
+        if (color) next[key] = color;
+        else delete next[key];
+        set({ latchActionColors: Object.keys(next).length ? next : undefined });
     };
     const setCatBg = (cat: CategoryKey, color: string | null) => {
         const next = { ...(o.categoryBgColors ?? {}) };
@@ -863,6 +877,50 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                 onChange={(v) => set({ showIgnored: v || undefined })}
                                 label="Ignorierte anzeigen (mit „Aufnehmen“)"
                             />
+                        </div>
+                        <div className="space-y-1 pt-1" data-latch-action-colors>
+                            <label className={labelCls} style={labelStyle}>
+                                Farbe der Knöpfe (Text und Rahmen)
+                            </label>
+                            <div className="flex flex-wrap gap-4">
+                                {LATCH_ACTION_COLOR_FIELDS.map(({ key, label, fallback }) => {
+                                    const custom = o.latchActionColors?.[key];
+                                    return (
+                                        <div key={key}>
+                                            <span className="block text-[11px] mb-0.5" style={labelStyle}>
+                                                {label}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <ColorPicker
+                                                    value={custom || fallback}
+                                                    onChange={(v) => setLatchActionColor(key, v)}
+                                                    className="w-8 h-7 rounded cursor-pointer p-0.5"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                />
+                                                {custom ? (
+                                                    <button
+                                                        onClick={() => setLatchActionColor(key, null)}
+                                                        className="text-[11px] hover:opacity-80"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        ↩ Standard
+                                                    </button>
+                                                ) : (
+                                                    <span
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                    >
+                                                        Standard
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </details>

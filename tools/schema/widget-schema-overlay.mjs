@@ -611,6 +611,7 @@ export const WIDGET_OPTION_NOTES = {
             'latchAutoClose',
             'latchConfirm',
             'latchIgnore',
+            'latchActionColors',
             'showIgnored',
             'showOkCategories',
             'showAllClear',

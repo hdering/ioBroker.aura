@@ -148,6 +148,7 @@ function RowButton({
     confirm,
     confirmLabel,
     color,
+    kind,
     disabled,
     onRun,
 }: {
@@ -158,6 +159,8 @@ function RowButton({
     confirm?: boolean;
     confirmLabel?: string;
     color: string;
+    /** Adds the class aura-status-action-<kind> (ack, snooze, ignore, unignore). */
+    kind?: string;
     disabled?: boolean;
     onRun: () => void;
 }) {
@@ -170,7 +173,7 @@ function RowButton({
     return (
         <button
             type="button"
-            className="aura-status-action shrink-0 rounded px-1.5 text-[10px] font-semibold leading-[14px] border transition-colors"
+            className={`aura-status-action${kind ? ` aura-status-action-${kind}` : ''} shrink-0 rounded px-1.5 text-[10px] font-semibold leading-[14px] border transition-colors`}
             title={title}
             aria-label={armed ? undefined : ariaLabel}
             disabled={disabled}
@@ -214,6 +217,8 @@ function TwoLineButton({
     confirm,
     confirmLabel,
     tone,
+    color,
+    kind,
     disabled,
     onRun,
 }: {
@@ -222,6 +227,10 @@ function TwoLineButton({
     confirm?: boolean;
     confirmLabel?: string;
     tone: 'neutral' | 'confirm';
+    /** Own colour for text and border (latchActionColors), instead of the tone's. */
+    color?: string;
+    /** Adds the class aura-status-action-<kind> (ack, snooze, ignore, unignore). */
+    kind?: string;
     disabled?: boolean;
     onRun: () => void | Promise<void>;
 }) {
@@ -237,12 +246,13 @@ function TwoLineButton({
         const t = setTimeout(() => setBusy(false), BUSY_MAX_MS);
         return () => clearTimeout(t);
     }, [busy]);
-    const strong = tone === 'confirm' ? 'var(--accent-green, #22c55e)' : 'var(--accent, var(--text-primary))';
+    const strong =
+        color || (tone === 'confirm' ? 'var(--accent-green, #22c55e)' : 'var(--accent, var(--text-primary))');
     const off = disabled || busy;
     return (
         <button
             type="button"
-            className="aura-status-action aura-status-action-lg shrink-0 text-xs leading-tight border transition-colors"
+            className={`aura-status-action aura-status-action-lg${kind ? ` aura-status-action-${kind}` : ''} shrink-0 text-xs leading-tight border transition-colors`}
             title={title}
             disabled={off}
             style={{
@@ -251,9 +261,9 @@ function TwoLineButton({
                 borderRadius: 8,
                 fontWeight: tone === 'confirm' ? 600 : 500,
                 whiteSpace: 'nowrap',
-                color: armed ? '#fff' : tone === 'confirm' ? strong : 'var(--text-primary)',
+                color: armed ? '#fff' : color || tone === 'confirm' ? strong : 'var(--text-primary)',
                 background: armed ? strong : 'transparent',
-                borderColor: armed || tone === 'confirm' ? strong : 'var(--widget-border)',
+                borderColor: armed || color || tone === 'confirm' ? strong : 'var(--widget-border)',
                 opacity: off ? 0.5 : undefined,
                 pointerEvents: off ? 'none' : undefined,
             }}
@@ -788,6 +798,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         !item.ignored &&
         (!!item.latch || item.severity !== 'ok');
 
+    const actionColors = opts.latchActionColors;
     /** Buttons at the end of a row: the latch's close/snooze, then the configured actions. */
     const rowButtons = (item: StatusItem, color: string) => {
         const buttons: React.ReactNode[] = [];
@@ -801,7 +812,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     label={isBattery ? 'Gewechselt' : 'Quittieren'}
                     title={isBattery ? 'Batterie gewechselt – Hinweis schließen' : 'Hinweis schließen'}
                     confirm={opts.latchConfirm !== false}
-                    color={color}
+                    color={actionColors?.ack || color}
+                    kind="ack"
                     disabled={editMode}
                     onRun={() => latchCmd(item, 'ack')}
                 />,
@@ -812,7 +824,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                         key="latch-snooze"
                         label="Später"
                         title={`Zurückstellen um ${snoozeDays} ${snoozeDays === 1 ? 'Tag' : 'Tage'}`}
-                        color="var(--text-secondary)"
+                        color={actionColors?.snooze || 'var(--text-secondary)'}
+                        kind="snooze"
                         disabled={editMode}
                         onRun={() => latchCmd(item, `snooze`)}
                     />,
@@ -826,6 +839,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     label="Aufnehmen"
                     title="Nicht mehr ignorieren – wird wieder gemerkt und angezeigt"
                     color="var(--text-secondary)"
+                    kind="unignore"
                     disabled={editMode}
                     onRun={() => latchCmd(item, 'unignore')}
                 />,
@@ -838,7 +852,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     title="Nie mehr melden – für Fehlalarme"
                     confirm
                     confirmLabel="Wirklich ignorieren?"
-                    color="var(--text-secondary)"
+                    color={actionColors?.ignore || 'var(--text-secondary)'}
+                    kind="ignore"
                     disabled={editMode}
                     onRun={() => latchCmd(item, 'ignore')}
                 />,
@@ -972,6 +987,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                         label={`${snoozeDays} ${snoozeDays === 1 ? 'Tag' : 'Tage'} später`}
                         title={`Zurückstellen um ${snoozeDays} ${snoozeDays === 1 ? 'Tag' : 'Tage'}`}
                         tone="neutral"
+                        color={actionColors?.snooze}
+                        kind="snooze"
                         disabled={editMode}
                         onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `snooze:${item.id}`)}
                     />,
@@ -985,6 +1002,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     confirm={opts.latchConfirm !== false}
                     confirmLabel={isBattery ? 'Wirklich gewechselt?' : 'Wirklich quittieren?'}
                     tone="confirm"
+                    color={actionColors?.ack}
+                    kind="ack"
                     disabled={editMode}
                     onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `ack:${item.id}`)}
                 />,
@@ -997,6 +1016,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     label="Aufnehmen"
                     title="Nicht mehr ignorieren – wird wieder gemerkt und angezeigt"
                     tone="neutral"
+                    kind="unignore"
                     disabled={editMode}
                     onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `unignore:${item.id}`)}
                 />,
@@ -1010,6 +1030,8 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     confirm
                     confirmLabel="Wirklich ignorieren?"
                     tone="neutral"
+                    color={actionColors?.ignore}
+                    kind="ignore"
                     disabled={editMode}
                     onRun={() => setStateDirectAsync(`${NS}.status.${item.category}.cmd`, `ignore:${item.id}`)}
                 />,

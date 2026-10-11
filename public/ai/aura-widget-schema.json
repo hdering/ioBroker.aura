@@ -14182,6 +14182,29 @@
             "count"
           ]
         },
+        "latchActionColors": {
+          "type": "object",
+          "fields": {
+            "ack": {
+              "type": "string"
+            },
+            "snooze": {
+              "type": "string"
+            },
+            "ignore": {
+              "type": "string"
+            }
+          },
+          "description": "Colour of the latch buttons — text and border (armed: fill). CSS colour or theme token like categoryColors. Unset: \"Gewechselt\"/\"Quittieren\" keep the row colour (Zweizeilig: green), \"Später\" and \"Ignorieren\" stay neutral.",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ]
+        },
         "latchAlarm": {
           "type": "boolean",
           "description": "Remember smoke/water alarms that went off until they are acknowledged (\"Quittieren\"), even after the sensor is quiet again. Needs the AURA adapter.",

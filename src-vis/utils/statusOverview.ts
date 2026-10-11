@@ -216,6 +216,12 @@ export interface StatusOverviewOptions extends RowPopupOptions {
      * reporting 0 %. Asks before it runs (default false).
      */
     latchIgnore?: boolean;
+    /**
+     * Colour of the latch buttons — text and border (armed: fill). CSS colour or theme token
+     * like categoryColors. Unset: "Gewechselt"/"Quittieren" keep the row colour (Zweizeilig: green),
+     * "Später" and "Ignorieren" stay neutral.
+     */
+    latchActionColors?: { ack?: string; snooze?: string; ignore?: string };
     /** Also list the ignored datapoints of this widget, muted, with "Aufnehmen" to take the ignore back (default false). */
     showIgnored?: boolean;
     /**

@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Settings - web adapter extension: hint that the Visu App / ioBroker.pro remote access needs the same web instance as the cloud adapter (usually web.0) (#688)
 - Group / List - group switch: choose whether a click from the mixed state turns all devices on or off (#764)
+- Status overview: the colour of the row buttons "Replaced/Acknowledge", "Later" and "Ignore" can be set per button, and each button carries its own CSS class.

@@ -32,6 +32,7 @@ Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz au
 | `latchAutoClose` | aus | Batterie: schließt bei deutlichem Spannungs-/Prozentsprung |
 | `latchConfirm` | an | „Gewechselt“/„Quittieren“ erst nach zweitem Tippen |
 | `latchIgnore` | aus | Knopf „Ignorieren“ (mit Rückfrage) – für Fehlalarme, wirkt auch ohne Merkliste |
+| `latchActionColors` | – | Farbe je Knopf `{ ack, snooze, ignore }` (Text + Rahmen), CSS-Farbe oder Token |
 | `showIgnored` | aus | ignorierte Datenpunkte gedämpft zeigen, mit „Aufnehmen“ |
 
 | Anzeige in der Zeile | Bedeutung |
