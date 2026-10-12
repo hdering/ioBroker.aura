@@ -90,9 +90,14 @@ function BtnRow({
     );
 }
 
-/** Slat re-set via the actual position: quiet period that ends a drive, and the wait for its first report. */
-const SETTLE_QUIET_MS = 3000;
-const SETTLE_START_MS = 8000;
+/**
+ * Slat re-set via the actual position: the pause after the target is reported,
+ * the quiet period that ends a drive short of it (KNX reports only every few
+ * seconds), and the wait for the first report.
+ */
+const SETTLE_AT_TARGET_MS = 1000;
+const SETTLE_QUIET_MS = 8000;
+const SETTLE_START_MS = 10000;
 
 /**
  * Valid presets only; a bare number (as an AI might write it) counts as `{ pos }`.
@@ -192,13 +197,15 @@ export function ShutterWidget({ config }: WidgetProps) {
     // Slat angle wanted across a drive – see reapplyTiltAfterMove below. Only
     // set while a drive this widget started is pending; null = nothing to restore.
     const preMoveTiltRef = useRef<number | null>(null);
+    // Raw position written for that drive; null = unknown (button mode).
+    const preMoveTargetRef = useRef<number | null>(null);
     const reapplyTilt = !!(opts.reapplyTiltAfterMove as boolean);
     const hasActivityDp = !!(opts.activityDp as string | undefined);
     const wasMovingRef = useRef(isMoving);
     const reapplyTimerRef = useRef<number | undefined>(undefined);
     // Without an activity DP, a separate actual-position DP tells when the drive
-    // is over: it stops changing. KNX actuators report every few percent and may
-    // end a point or two off the target, so "quiet for a while" is the signal (#745).
+    // is over: it reports the target, or stops changing. KNX actuators report only
+    // every few seconds and may end a point or two off the target (#745).
     const settleOnActual = reapplyTilt && !!tiltDp && !hasActivityDp && !!actualPositionDp;
     // A separately reported position may stop a point or two off the written one.
     const posTolerance = actualPositionDp ? 3 : 1;
@@ -233,12 +240,14 @@ export function ShutterWidget({ config }: WidgetProps) {
         preMoveTiltRef.current = null;
     };
 
-    // Every actual-position report restarts the quiet period; once it stays
-    // quiet, the drive is over and the angle goes out.
+    // The drive is over once the actual position reports the target (±2) or
+    // stays quiet for a while; every report restarts the wait.
     useEffect(() => {
         if (!settleOnActual || preMoveTiltRef.current === null) return;
+        const target = preMoveTargetRef.current;
+        const arrived = target !== null && typeof actualVal === 'number' && Math.abs(actualVal - target) < posTolerance;
         window.clearTimeout(reapplyTimerRef.current);
-        reapplyTimerRef.current = window.setTimeout(flushTilt, SETTLE_QUIET_MS);
+        reapplyTimerRef.current = window.setTimeout(flushTilt, arrived ? SETTLE_AT_TARGET_MS : SETTLE_QUIET_MS);
         // Only the reported position matters here.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [actualVal]);
@@ -246,8 +255,9 @@ export function ShutterWidget({ config }: WidgetProps) {
     useEffect(() => () => window.clearTimeout(reapplyTimerRef.current), []);
 
     /** Remember the wanted slat angle for the drive about to start and re-send it once it is over. */
-    const keepTiltAcrossMove = (wanted?: number) => {
+    const keepTiltAcrossMove = (wanted?: number, targetRaw?: number) => {
         if (!tiltActive) return;
+        preMoveTargetRef.current = targetRaw ?? null;
         preMoveTiltRef.current = wanted ?? dragTilt ?? tiltPct;
         if (!reapplyTilt) return;
         window.clearTimeout(reapplyTimerRef.current);
@@ -267,8 +277,8 @@ export function ShutterWidget({ config }: WidgetProps) {
 
     const writePos = (p: number, wantedTilt?: number) => {
         preMoveRawRef.current = rawPos; // snapshot before command
-        keepTiltAcrossMove(wantedTilt);
         const raw = (opts.invertPosition as boolean) ? 100 - p : p;
+        keepTiltAcrossMove(wantedTilt, raw);
         setValue(raw);
     };
     const openFully = () => {

@@ -171,7 +171,7 @@ check(
     'actual DP: no re-set after the fixed 3 s',
     (await writes()) === '[{"id":"demo.tilt","val":50},{"id":"demo.level","val":0}]',
 );
-await page.waitForTimeout(5000);
+await page.waitForTimeout(7000);
 check(
     'actual DP: without any report the angle still goes out',
     (await writes()) === '[{"id":"demo.tilt","val":50},{"id":"demo.level","val":0},{"id":"demo.tilt","val":50}]',

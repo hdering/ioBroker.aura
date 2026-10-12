@@ -546,7 +546,7 @@ export const WIDGET_OPTION_NOTES = {
         reapplyTiltAfterMove: {
             description:
                 'Lamellen nach einer vom Widget gestarteten Fahrt einmal erneut auf den gewünschten Winkel setzen; Fahrten von außen (Wandtaster, Logik) bleiben unberührt. Fahrtende: activityDp fällt ab; ohne activityDp, aber mit actualPositionDp, ' +
-                'wenn die Ist-Position 3 s ruht (spätestens 8 s ohne Meldung); sonst pauschal nach 3 s.',
+                'sobald die Ist-Position das Ziel (±2) meldet oder 8 s ruht (10 s ohne jede Meldung); sonst pauschal nach 3 s.',
         },
         buttonSize: { description: 'Größe der Auf/Stopp/Zu-Tasten in px.' },
         sliderHeight: { description: 'Höhe des Positionsreglers in px.' },
