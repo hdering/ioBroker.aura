@@ -175,6 +175,8 @@ export function ClockWidget({ config }: WidgetProps) {
                     'sunset-icon': cellIcon(Sunset),
                     'city-icon': cellIcon(MapPin),
                     'week-icon': cellIcon(CalendarDays),
+                    // The chips row of the fixed layouts (#768).
+                    extras: extrasRow,
                 }}
             />
         );

@@ -13,6 +13,13 @@ import { buildEnumGrid } from './enum';
 import { buildButtonGrid } from './button';
 import { buildHttpRequestGrid } from './httpRequest';
 import { buildInputGrid } from './input';
+import { buildClockGrid } from './clock';
+import { buildTimerGrid } from './timer';
+import { buildCountdownGrid } from './countdown';
+import { buildMediaplayerGrid } from './mediaplayer';
+import { buildLightGrid } from './light';
+import { buildCalendarGrid } from './calendar';
+import { buildEvccGrid } from './evcc';
 
 /**
  * Custom grids that rebuild a widget's fixed layouts (#768).
@@ -47,6 +54,13 @@ const PRESETS: Record<string, PresetBuilder> = {
     button: buildButtonGrid,
     httpRequest: buildHttpRequestGrid,
     input: buildInputGrid,
+    clock: buildClockGrid,
+    timer: buildTimerGrid,
+    countdown: buildCountdownGrid,
+    mediaplayer: buildMediaplayerGrid,
+    light: buildLightGrid,
+    calendar: buildCalendarGrid,
+    evcc: buildEvccGrid,
 };
 
 /**

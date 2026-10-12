@@ -30,6 +30,21 @@ const DP = 'demo.768.main';
 const DP_ACTUAL = 'demo.768.actual';
 const DP_BATT = 'demo.768.batt';
 
+// ical adapter table: three events from now on, fixed relative to the run.
+function calendarRows() {
+    const at = (days, h, m = 0) => {
+        const d = new Date();
+        d.setDate(d.getDate() + days);
+        d.setHours(h, m, 0, 0);
+        return d.toISOString();
+    };
+    return [
+        { event: 'Zahnarzt', _date: at(0, 23, 30), _end: at(0, 23, 59), _calName: 'Familie' },
+        { event: 'Elternabend', _date: at(1, 19), _end: at(1, 21), _calName: 'Familie', location: 'Schule' },
+        { event: 'Müllabfuhr', _date: at(3, 0), _allDay: true, _calName: 'Familie' },
+    ];
+}
+
 // [type, layouts, options, values, w, h per layout]
 const CASES = [
     {
@@ -288,6 +303,171 @@ const CASES = [
         val: 'Hallo',
         title: 'Notiz',
     },
+    {
+        type: 'clock',
+        layouts: { default: [6, 4], card: [6, 4], minimal: [6, 3] },
+        options: {},
+        val: null,
+        title: 'Uhrzeit',
+        noDp: true,
+    },
+    {
+        type: 'clock',
+        variant: 'date+time, extras',
+        layouts: { default: [8, 5], card: [8, 5], minimal: [8, 4] },
+        options: { display: 'datetime', dateLength: 'long', showWeek: true, showSeconds: true },
+        val: null,
+        title: 'Heute',
+        noDp: true,
+    },
+    {
+        type: 'clock',
+        variant: 'date only',
+        layouts: { default: [6, 4], card: [6, 4], minimal: [6, 3] },
+        options: { display: 'date' },
+        val: null,
+        title: 'Datum',
+        noDp: true,
+    },
+    {
+        type: 'clock',
+        variant: 'custom format',
+        layouts: { default: [6, 4], card: [6, 4], minimal: [6, 3] },
+        options: { customFormat: 'HH:mm · KW ww' },
+        val: null,
+        title: 'Format',
+        noDp: true,
+    },
+    {
+        type: 'timer',
+        layouts: { default: [8, 7], compact: [8, 5] },
+        options: {
+            targetDp: 'demo.768.target',
+            events: [
+                {
+                    id: 'e1',
+                    enabled: true,
+                    label: 'Morgens',
+                    weekdays: [1, 2, 3, 4, 5],
+                    trigger: { kind: 'time', hour: 6, minute: 30 },
+                    filter: 'all-days',
+                },
+                {
+                    id: 'e2',
+                    enabled: false,
+                    weekdays: [0, 6],
+                    trigger: { kind: 'time', hour: 22, minute: 0 },
+                    filter: 'all-days',
+                },
+            ],
+        },
+        val: null,
+        title: 'Zeitschaltuhr',
+        noDp: true,
+    },
+    {
+        type: 'countdown',
+        layouts: { default: [8, 7], compact: [10, 2] },
+        options: { durationSec: 600, presets: [300, 600, 1800] },
+        val: null,
+        title: 'Waschmaschine',
+        noDp: true,
+    },
+    {
+        type: 'mediaplayer',
+        layouts: { default: [12, 8], compact: [12, 3] },
+        options: {
+            titleDp: 'demo.768.mtitle',
+            artistDp: 'demo.768.martist',
+            prevDp: 'demo.768.prev',
+            nextDp: 'demo.768.next',
+            volumeDp: 'demo.768.vol',
+            mediaProgressDp: 'demo.768.mprog',
+            mediaLengthDp: 'demo.768.mlen',
+            chips: [{ id: 'c1', label: 'Radio', dp: 'demo.768.x', value: 1 }],
+            batteryDp: DP_BATT,
+            batteryMode: 'percent',
+        },
+        val: true,
+        extra: {
+            'demo.768.mtitle': 'Bohemian Rhapsody',
+            'demo.768.martist': 'Queen',
+            'demo.768.vol': 40,
+            'demo.768.mprog': 90,
+            'demo.768.mlen': 354,
+        },
+        title: 'Wohnzimmer',
+    },
+    {
+        type: 'light',
+        layouts: {
+            'light-all': [8, 10],
+            'light-brightness': [8, 9],
+            'light-color': [8, 10],
+            'light-temperature': [8, 9],
+        },
+        options: {
+            switchDp: 'demo.768.lsw',
+            brightnessDp: 'demo.768.lbri',
+            temperatureDp: 'demo.768.lct',
+            colorMode: 'hex',
+            colorDp: 'demo.768.lcol',
+        },
+        val: null,
+        extra: { 'demo.768.lsw': true, 'demo.768.lbri': 60, 'demo.768.lct': 3000, 'demo.768.lcol': '#ff8800' },
+        title: 'Stehlampe',
+        noDp: true,
+    },
+    {
+        type: 'calendar',
+        layouts: { default: [8, 8], card: [8, 5], compact: [12, 2], minimal: [5, 4], agenda: [10, 6] },
+        options: {
+            calendars: [
+                {
+                    id: 'c1',
+                    type: 'adapter',
+                    datapoint: 'demo.768.cal',
+                    name: 'Familie',
+                    color: '#3b82f6',
+                    showName: true,
+                },
+            ],
+        },
+        val: null,
+        extra: { 'demo.768.cal': JSON.stringify(calendarRows()) },
+        title: 'Termine',
+        noDp: true,
+    },
+    {
+        type: 'evcc',
+        layouts: {
+            default: [12, 12],
+            compact: [12, 4],
+            flow: [12, 15],
+            battery: [6, 5],
+            production: [6, 5],
+            consumption: [6, 5],
+            loadpoints: [12, 7],
+        },
+        options: {
+            evccPrefix: '',
+            pvPowerDatapoint: 'demo.768.pv',
+            homePowerDatapoint: 'demo.768.home',
+            gridPowerDatapoint: 'demo.768.grid',
+            batterySocDatapoint: 'demo.768.soc',
+            batteryPowerDatapoint: 'demo.768.bpow',
+        },
+        val: null,
+        extra: {
+            'demo.768.pv': 4200,
+            'demo.768.home': 1100,
+            'demo.768.grid': -2500,
+            'demo.768.soc': 76,
+            'demo.768.bpow': 600,
+        },
+        title: 'Energie',
+        noDp: true,
+    },
 ];
 
 // The forecast the weather widget would fetch — fixed, so nothing reaches out.
@@ -335,7 +515,7 @@ for (const c of CASES) {
         seq += 1;
         const idA = `p${seq}a`;
         const idB = `p${seq}b`;
-        const vals = { [DP]: c.val, [DP_ACTUAL]: c.actual ?? null, [DP_BATT]: 64 };
+        const vals = { [DP]: c.val, [DP_ACTUAL]: c.actual ?? null, [DP_BATT]: 64, ...(c.extra ?? {}) };
         const customOptions = await page.evaluate(
             async ([type, layout, options]) => {
                 const m = await import('/src-vis/utils/customGridPresets/index.ts');
@@ -365,7 +545,7 @@ for (const c of CASES) {
                         id: idA,
                         type: c.type,
                         title: c.title,
-                        datapoint: DP,
+                        datapoint: c.noDp ? '' : DP,
                         layout,
                         gridPos: { x: 0, y: 0, w, h },
                         options: c.options,
@@ -374,7 +554,7 @@ for (const c of CASES) {
                         id: idB,
                         type: c.type,
                         title: c.title,
-                        datapoint: DP,
+                        datapoint: c.noDp ? '' : DP,
                         layout: 'custom',
                         gridPos: { x: w + 1, y: 0, w, h },
                         options: customOptions,
@@ -384,6 +564,9 @@ for (const c of CASES) {
         );
         await page.waitForSelector(`.aura-widget-${idA}`, { timeout: 15000 });
         await page.waitForSelector(`.aura-widget-${idB}`, { timeout: 15000 });
+        // Once more after the mount: against a live instance the subscribe answers with
+        // the (missing) server state and would replace the injected value.
+        await page.evaluate((vals) => window.__auraShot.mock(vals), vals);
         await page.waitForTimeout(400);
 
         // Where do the pieces sit, relative to the widget box?

@@ -34,7 +34,7 @@ Eine Kopfzeile mit Icon, Titel, Master und Zähler; darunter die Ereignisse in e
 <!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-compact.png -->
 
 ### Custom
-Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, `status`, `events`, `add`.
+Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, `status`, `events`, `add`. Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `status-line`, `event-list`, `master-sm`, `events-compact` und das Feld `countShort`.
 
 <!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-custom.png -->
 

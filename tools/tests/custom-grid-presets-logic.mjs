@@ -59,9 +59,27 @@ const SOURCE = {
     button: 'ButtonWidget.tsx',
     httpRequest: 'HttpRequestWidget.tsx',
     input: 'InputWidget.tsx',
+    clock: 'ClockWidget.tsx',
+    timer: 'TimerWidget.tsx',
+    countdown: 'CountdownWidget.tsx',
+    mediaplayer: 'MediaplayerWidget.tsx',
+    light: 'LightWidget.tsx',
+    calendar: 'CalendarWidget.tsx',
+    evcc: 'EvccWidget.tsx',
 };
 // Types whose layouts draw no status badges (no battery / reach DPs).
-const NO_BADGES = new Set(['weather', 'knob', 'button', 'httpRequest', 'input']);
+const NO_BADGES = new Set([
+    'weather',
+    'knob',
+    'button',
+    'httpRequest',
+    'input',
+    'clock',
+    'timer',
+    'countdown',
+    'calendar',
+    'evcc',
+]);
 // Keys every widget gets from useStatusFields.
 const SHARED_COMPONENTS = new Set(['status-badges']);
 

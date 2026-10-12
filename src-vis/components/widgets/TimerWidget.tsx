@@ -574,6 +574,97 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         />
     );
 
+    // Status line of the default layout (long wording).
+    const statusLine = (
+        <p
+            className="text-[10px] truncate"
+            style={{ color: 'var(--text-secondary)' }}
+            title={hasTarget ? `Ziel: ${targetDp} ← ${targetValue ?? 'true'}` : 'Kein Ziel-Datenpunkt — bitte Admin'}
+        >
+            {!hasTarget
+                ? '⚠ Admin: Ziel-DP fehlt'
+                : events.length === 0
+                  ? 'Keine Ereignisse — über „+“ hinzufügen'
+                  : `${enabledCount} aktiv${enabledCount === 1 ? '' : 'e'} / ${events.length} Ereignis${events.length === 1 ? '' : 'se'}`}
+        </p>
+    );
+
+    // Smaller master switch of the compact header.
+    const masterSwitchSm = (
+        <button
+            onClick={interactive ? toggleMaster : undefined}
+            disabled={!interactive}
+            className="nodrag relative w-8 h-4 rounded-full transition-colors shrink-0"
+            style={{
+                background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)',
+                cursor: interactive ? 'pointer' : 'default',
+                opacity: interactive ? 1 : 0.6,
+            }}
+        >
+            <span
+                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                style={{ left: masterEnabled ? '18px' : '2px' }}
+            />
+        </button>
+    );
+
+    // Tight event list of the compact layout, add button below.
+    const compactEvents = (
+        <div className="flex-1 min-h-0 flex flex-col gap-0.5 w-full h-full">
+            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-0.5">
+                {visibleEvents.map((ev) => (
+                    <button
+                        key={ev.id}
+                        onClick={interactive ? () => setEditing(ev) : undefined}
+                        disabled={!interactive}
+                        className="nodrag flex items-center gap-1 text-[10px] text-left hover:opacity-80"
+                        style={{
+                            color: 'var(--text-primary)',
+                            cursor: interactive ? 'pointer' : 'default',
+                            opacity: interactive ? 1 : 0.7,
+                        }}
+                    >
+                        <span
+                            className="w-2 h-2 rounded-full shrink-0"
+                            style={{
+                                background: ev.enabled && masterEnabled ? 'var(--accent-green)' : 'var(--app-border)',
+                            }}
+                        />
+                        <TriggerIcon trigger={ev.trigger} />
+                        <span className="font-mono">{triggerLabel(ev.trigger)}</span>
+                        <ValueBadge
+                            raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
+                            isRange={ev.trigger.kind === 'range'}
+                            iconOnly
+                        />
+                        <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
+                            {ev.label ||
+                                (ev.trigger.kind === 'time' || ev.trigger.kind === 'astro'
+                                    ? weekdaysText(ev.weekdays)
+                                    : '')}
+                        </span>
+                    </button>
+                ))}
+            </div>
+            {showAdd && (
+                <button
+                    onClick={interactive ? () => setEditing('new') : undefined}
+                    disabled={!interactive}
+                    className="nodrag shrink-0 py-1 text-[10px] rounded-md hover:opacity-80 flex items-center justify-center gap-1"
+                    style={{
+                        background: 'transparent',
+                        color: 'var(--text-secondary)',
+                        border: '1px dashed var(--app-border)',
+                        cursor: interactive ? 'pointer' : 'default',
+                        opacity: interactive ? 1 : 0.6,
+                    }}
+                >
+                    {useAddIcon ? <AddIcon size={addIconSize} /> : '+ Ereignis'}
+                </button>
+            )}
+        </div>
+    );
+
     // ── Custom layout: user-defined grid via CustomGridView ────────────────────
     if (isCustom) {
         return (
@@ -587,6 +678,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         value: targetValue ?? '',
                         count: String(events.length),
                         enabled: String(enabledCount),
+                        countShort: events.length === 0 ? '—' : `${enabledCount}/${events.length}`,
                     }}
                     extraComponents={{
                         icon: iconNode,
@@ -594,6 +686,16 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         status: statusBubble,
                         events: eventList,
                         add: showAdd ? addButton : null,
+                        // The pieces of the fixed layouts (#768).
+                        'status-line': statusLine,
+                        'event-list': (
+                            <div className="w-full h-full overflow-hidden flex flex-col gap-1">
+                                {eventList}
+                                {showAdd && <div className="mt-auto pt-1">{addButton}</div>}
+                            </div>
+                        ),
+                        'master-sm': showMaster ? masterSwitchSm : null,
+                        'events-compact': compactEvents,
                     }}
                 />
                 {modal}
@@ -621,23 +723,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                         {events.length === 0 ? '—' : `${enabledCount}/${events.length}`}
                     </span>
-                    {showMaster && (
-                        <button
-                            onClick={interactive ? toggleMaster : undefined}
-                            disabled={!interactive}
-                            className="nodrag relative w-8 h-4 rounded-full transition-colors shrink-0"
-                            style={{
-                                background: masterEnabled ? 'var(--accent-green)' : 'var(--app-border)',
-                                cursor: interactive ? 'pointer' : 'default',
-                                opacity: interactive ? 1 : 0.6,
-                            }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                style={{ left: masterEnabled ? '18px' : '2px' }}
-                            />
-                        </button>
-                    )}
+                    {showMaster && masterSwitchSm}
                 </div>
                 {showEvents && (
                     <div className="flex-1 min-h-0 flex flex-col gap-0.5">
@@ -726,19 +812,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             </HeaderGroup>
 
             {/* Status sub-line */}
-            <p
-                className="text-[10px] truncate"
-                style={{ color: 'var(--text-secondary)' }}
-                title={
-                    hasTarget ? `Ziel: ${targetDp} ← ${targetValue ?? 'true'}` : 'Kein Ziel-Datenpunkt — bitte Admin'
-                }
-            >
-                {!hasTarget
-                    ? '⚠ Admin: Ziel-DP fehlt'
-                    : events.length === 0
-                      ? 'Keine Ereignisse — über „+“ hinzufügen'
-                      : `${enabledCount} aktiv${enabledCount === 1 ? '' : 'e'} / ${events.length} Ereignis${events.length === 1 ? '' : 'se'}`}
-            </p>
+            {statusLine}
 
             {/* Event list */}
             {showEvents && (

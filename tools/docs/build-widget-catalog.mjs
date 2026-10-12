@@ -155,6 +155,34 @@ const CUSTOM_KEYS = {
     button: { components: ['icon'], fields: [] },
     'http-aktion': { components: ['button', 'button-wide', 'icon'], fields: ['status'] },
     eingabefeld: { components: ['input', 'submit', 'input-row', 'submit-auto', 'icon'], fields: [] },
+    uhrzeit: {
+        components: ['icon', 'sunrise-icon', 'sunset-icon', 'city-icon', 'week-icon', 'extras'],
+        fields: ['time', 'date', 'custom', 'city', 'sunrise', 'sunset', 'week', 'kw', 'relative'],
+    },
+    zeitschaltuhr: {
+        components: ['icon', 'master', 'master-sm', 'status', 'status-line', 'events', 'event-list', 'events-compact', 'add'],
+        fields: ['status', 'target', 'value', 'count', 'enabled', 'countShort'],
+    },
+    countdown: {
+        components: ['icon', 'digits', 'digits-fill', 'digits-inline', 'progress', 'controls', 'step', 'presets', 'primary-sm', 'stop-sm'],
+        fields: ['remaining', 'state', 'duration', 'target'],
+    },
+    mediaplayer: {
+        components: ['cover', 'play-pause', 'stop', 'prev', 'next', 'shuffle', 'repeat', 'mute', 'volume-slider', 'chips', 'chips-row', 'player', 'player-compact', 'progress', 'status-badges', 'battery-icon', 'reach-icon'],
+        fields: ['title', 'artist', 'album', 'source', 'volume', 'battery', 'reach'],
+    },
+    'rgb-licht': {
+        components: ['power', 'brightness', 'color', 'temperature', 'effects', 'presets', 'title', 'status', 'icon', 'tabs-all', 'tabs-brightness', 'tabs-color', 'tabs-temperature', 'palette'],
+        fields: [],
+    },
+    kalender: {
+        components: ['icon', 'cal-icon', 'cal-icon1 …', 'refresh', 'events-list', 'events-agenda', 'next-event', 'next-row', 'count'],
+        fields: ['summary', 'date', 'time', 'endtime', 'timespan', 'calname', 'location', 'running', 'count', 'week', 'kw', 'day', 'daycount', 'summary1 … (je Termin)'],
+    },
+    evcc: {
+        components: ['header', 'flow-row', 'flow-diagram', 'compact-row', 'battery-view', 'production-view', 'consumption-view', 'loadpoints', 'loadpoints-compact', 'tariff'],
+        fields: ['pvPower', 'gridPower', 'homePower', 'batterySoc', 'batteryPower', 'gridImport', 'gridExport'],
+    },
 };
 
 // ── Derive one catalog entry per widget ──────────────────────────────────────

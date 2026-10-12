@@ -20,7 +20,7 @@ Eine Zeile mit Icon, nächstem Termin und Datum — für Listen.
 Nur die Anzahl der Termine als große Zahl zentriert — für sehr kleine Zellen.
 
 ### Custom
-Terminfelder frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout) und [Custom-Layout: Felder](#custom-layout-felder).
+Terminfelder frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout) und [Custom-Layout: Felder](#custom-layout-felder). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `events-list`, `events-agenda`, `next-event` (Karte), `next-row` (Kompakt), `count` (Minimal) und `refresh`.
 
 ## Einstellungen
 

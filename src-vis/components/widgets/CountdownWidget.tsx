@@ -453,6 +453,17 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
         />
     );
 
+    // Digits of the compact row.
+    const digitsInline = (
+        <span
+            className="aura-countdown-digits font-semibold tabular-nums shrink-0"
+            style={{ color, fontSize: digitSize > 0 ? `${digitSize}px` : undefined }}
+            title={stateLabel}
+        >
+            {isDp && !config.datapoint ? t('countdown.noDatapoint') : digits}
+        </span>
+    );
+
     // ── Custom layout ──────────────────────────────────────────────────────────
     if (layout === 'custom') {
         return (
@@ -473,6 +484,12 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
                         controls: showControls ? controlsNode : null,
                         step: showStep ? stepNode : null,
                         presets: showPresets ? presetsNode : null,
+                        // The pieces of the fixed layouts (#768): the digits filling their
+                        // cell (they size themselves to it), the compact row's digits and buttons.
+                        'digits-fill': <div className="w-full h-full flex flex-col">{digitsNode}</div>,
+                        'digits-inline': digitsInline,
+                        'primary-sm': showControls ? primaryButton(7) : null,
+                        'stop-sm': showControls ? stopButton(7) : null,
                     }}
                 />
                 {modal}
@@ -489,13 +506,7 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
             >
                 {iconNode}
                 {titleNode}
-                <span
-                    className="aura-countdown-digits font-semibold tabular-nums shrink-0"
-                    style={{ color, fontSize: digitSize > 0 ? `${digitSize}px` : undefined }}
-                    title={stateLabel}
-                >
-                    {isDp && !config.datapoint ? t('countdown.noDatapoint') : digits}
-                </span>
+                {digitsInline}
                 {showControls && primaryButton(7)}
                 {showControls && stopButton(7)}
                 {modal}

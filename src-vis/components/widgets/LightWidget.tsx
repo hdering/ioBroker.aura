@@ -594,39 +594,38 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     );
 
     // ── Tabs ────────────────────────────────────────────────────────────────────
-    const allowedTabs: LightTab[] = useMemo(() => {
-        const fromLayout = (): LightTab[] => {
-            switch (layout) {
-                case 'light-brightness':
-                    return ['brightness'];
-                case 'light-color':
-                    return ['color'];
-                case 'light-temperature':
-                    return ['temperature'];
-                default:
-                    return ['brightness', 'color', 'temperature'];
-            }
-        };
-        const base = fromLayout();
-        const withPower: LightTab[] = switchDp ? ['power', ...base] : base;
-        const list = withPower.filter((tab) => {
-            if (tab === 'power') return !!switchDp;
-            if (tab === 'brightness') return !!brightnessDp;
-            if (tab === 'color') return colorMode !== 'none';
-            if (tab === 'temperature') return !!temperatureDp || colorMode === 'hm-color';
-            if (tab === 'effects') return !!effectDp;
-            return true;
-        });
-        return list.length ? list : brightnessDp ? ['brightness'] : ['color'];
-    }, [layout, switchDp, brightnessDp, temperatureDp, effectDp, colorMode]);
-
-    // Include effects tab automatically if effectDp set and layout=all
-    const tabs: LightTab[] = useMemo(() => {
-        if (layout === 'light-all' && effectDp && !allowedTabs.includes('effects')) {
-            return [...allowedTabs, 'effects'];
-        }
-        return allowedTabs;
-    }, [allowedTabs, layout, effectDp]);
+    const tabsForLayout = useCallback(
+        (lay: string): LightTab[] => {
+            const fromLayout = (): LightTab[] => {
+                switch (lay) {
+                    case 'light-brightness':
+                        return ['brightness'];
+                    case 'light-color':
+                        return ['color'];
+                    case 'light-temperature':
+                        return ['temperature'];
+                    default:
+                        return ['brightness', 'color', 'temperature'];
+                }
+            };
+            const base = fromLayout();
+            const withPower: LightTab[] = switchDp ? ['power', ...base] : base;
+            const list = withPower.filter((tab) => {
+                if (tab === 'power') return !!switchDp;
+                if (tab === 'brightness') return !!brightnessDp;
+                if (tab === 'color') return colorMode !== 'none';
+                if (tab === 'temperature') return !!temperatureDp || colorMode === 'hm-color';
+                if (tab === 'effects') return !!effectDp;
+                return true;
+            });
+            const allowed: LightTab[] = list.length ? list : brightnessDp ? ['brightness'] : ['color'];
+            // Include effects tab automatically if effectDp set and layout=all
+            if (lay === 'light-all' && effectDp && !allowed.includes('effects')) return [...allowed, 'effects'];
+            return allowed;
+        },
+        [switchDp, brightnessDp, temperatureDp, effectDp, colorMode],
+    );
+    const tabs: LightTab[] = useMemo(() => tabsForLayout(layout), [tabsForLayout, layout]);
 
     // The "power" entry in the pill is a direct on/off toggle, NOT a view that
     // occupies the main control area. View tabs (brightness/color/…) are the only
@@ -822,8 +821,88 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
         />
     );
 
+    // Main control and tab pill of a tabbed layout (also the custom grid's 'tabs-*').
+    const renderTabbed = (lay: string) => {
+        const tbs = lay === layout ? tabs : tabsForLayout(lay);
+        const views = tbs.filter((t) => t !== 'power');
+        const mains = views.length ? views : tbs;
+        const shown = mains.includes(activeTab) ? activeTab : (mains[0] ?? 'brightness');
+        const tabContent: Record<LightTab, React.ReactNode> = {
+            power: powerEl,
+            brightness: brightnessEl,
+            color: colorEl,
+            temperature: temperatureEl,
+            effects: effectsEl,
+        };
+        return (
+            <>
+                {/* Main control – fills available space */}
+                <div className="aura-widget-action flex-1 min-h-0 flex items-stretch justify-center">
+                    {tabContent[shown]}
+                </div>
+
+                {/* Tab pill */}
+                {tbs.length > 1 && (
+                    <div className="flex justify-center shrink-0">
+                        <div
+                            className="inline-flex items-center gap-1 rounded-full p-1"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                        >
+                            {tbs.map((t) => {
+                                const TabIcon = TAB_META[t].icon;
+                                // Power acts as a direct toggle (reflecting on/off) whenever there
+                                // is a separate view to keep above; otherwise it is the main view.
+                                const isPowerToggle = t === 'power' && views.length > 0;
+                                const active = isPowerToggle ? isOn : shown === t;
+                                return (
+                                    <button
+                                        key={t}
+                                        onClick={() => (isPowerToggle ? togglePower() : persistTab(t))}
+                                        className="nodrag w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                                        style={{
+                                            background: active ? (isPowerToggle ? accent : '#1a1a1a') : 'transparent',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                        }}
+                                    >
+                                        <TabIcon size={16} />
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </>
+        );
+    };
+
+    // Swatch row under the tabbed layouts.
+    const paletteEl =
+        colorMode !== 'none' && presets.length > 0 ? (
+            <div className="flex flex-wrap justify-center gap-2 px-2 shrink-0">
+                {presets.slice(0, 8).map((hex, i) => (
+                    <button
+                        key={i}
+                        onClick={() => applyPreset(hex)}
+                        className="nodrag rounded-full"
+                        style={{
+                            width: paletteSwatchPx,
+                            height: paletteSwatchPx,
+                            background: hex,
+                            border: '1px solid color-mix(in srgb, var(--app-border) 60%, transparent)',
+                        }}
+                        title={hex}
+                    />
+                ))}
+            </div>
+        ) : null;
+
     // ── Custom grid layout — user places elements freely ──────────────────────
     if (layout === 'custom') {
+        const tabbed = (lay: string) => (
+            <div className="w-full h-full flex flex-col" style={{ gap: 8 }}>
+                {renderTabbed(lay)}
+            </div>
+        );
         return (
             <CustomGridView
                 config={config}
@@ -839,20 +918,18 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
                     title: titleEl,
                     status: statusEl,
                     icon: iconEl,
+                    // Main control + tab pill of the fixed layouts, and their swatch row (#768).
+                    'tabs-all': tabbed('light-all'),
+                    'tabs-brightness': tabbed('light-brightness'),
+                    'tabs-color': tabbed('light-color'),
+                    'tabs-temperature': tabbed('light-temperature'),
+                    palette: paletteEl ? <div className="w-full">{paletteEl}</div> : null,
                 }}
             />
         );
     }
 
     // ── Tabbed layouts ─────────────────────────────────────────────────────────
-    const tabContent: Record<LightTab, React.ReactNode> = {
-        power: powerEl,
-        brightness: brightnessEl,
-        color: colorEl,
-        temperature: temperatureEl,
-        effects: effectsEl,
-    };
-
     return (
         <div className="aura-widget-row flex flex-col h-full" style={{ position: 'relative', gap: 8 }}>
             {/* Header */}
@@ -870,61 +947,10 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
             {/* Status – between title and main control */}
             {showState && <div className="shrink-0">{statusEl}</div>}
 
-            {/* Main control – fills available space */}
-            <div className="aura-widget-action flex-1 min-h-0 flex items-stretch justify-center">
-                {tabContent[activeTab]}
-            </div>
-
-            {/* Tab pill */}
-            {tabs.length > 1 && (
-                <div className="flex justify-center shrink-0">
-                    <div
-                        className="inline-flex items-center gap-1 rounded-full p-1"
-                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                    >
-                        {tabs.map((t) => {
-                            const TabIcon = TAB_META[t].icon;
-                            // Power acts as a direct toggle (reflecting on/off) whenever there
-                            // is a separate view to keep above; otherwise it is the main view.
-                            const isPowerToggle = t === 'power' && viewTabs.length > 0;
-                            const active = isPowerToggle ? isOn : activeTab === t;
-                            return (
-                                <button
-                                    key={t}
-                                    onClick={() => (isPowerToggle ? togglePower() : persistTab(t))}
-                                    className="nodrag w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                                    style={{
-                                        background: active ? (isPowerToggle ? accent : '#1a1a1a') : 'transparent',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                    }}
-                                >
-                                    <TabIcon size={16} />
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
+            {renderTabbed(layout)}
 
             {/* Preset palette */}
-            {showPalette && colorMode !== 'none' && presets.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-2 px-2 shrink-0">
-                    {presets.slice(0, 8).map((hex, i) => (
-                        <button
-                            key={i}
-                            onClick={() => applyPreset(hex)}
-                            className="nodrag rounded-full"
-                            style={{
-                                width: paletteSwatchPx,
-                                height: paletteSwatchPx,
-                                background: hex,
-                                border: '1px solid color-mix(in srgb, var(--app-border) 60%, transparent)',
-                            }}
-                            title={hex}
-                        />
-                    ))}
-                </div>
-            )}
+            {showPalette && paletteEl}
 
             <StatusBadges config={config} />
         </div>

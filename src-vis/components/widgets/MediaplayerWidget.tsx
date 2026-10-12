@@ -313,6 +313,163 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Music);
     const iconSize = (o.iconSize as number) || 20;
 
+    // Rows of the fixed layouts, also handed to the custom grid (#768).
+    // Default: cover filling the row height, track info and controls beside it.
+    const playerMain = (
+        <div className="flex gap-3 flex-1 min-h-0">
+            {/* Cover: self-stretch + aspect-ratio → quadratisch, so groß wie die Zeile */}
+            {showCover && (
+                <div
+                    className="aura-widget-icon shrink-0 self-stretch rounded-xl overflow-hidden"
+                    style={{ '--aura-icon-color': 'var(--text-secondary)', aspectRatio: '1 / 1' }}
+                >
+                    <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
+                </div>
+            )}
+
+            {/* Rechte Spalte */}
+            <div className="flex flex-col flex-1 min-w-0 gap-1 min-h-0">
+                {/* Track info */}
+                <div className="shrink-0 space-y-0.5 min-w-0">
+                    <p
+                        className="aura-widget-title text-sm font-semibold truncate leading-snug"
+                        style={{ '--aura-title-color': 'var(--text-primary)' }}
+                    >
+                        {titleStr || '–'}
+                    </p>
+                    {showSubtitle && subtitle && (
+                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                            {subtitle}
+                        </p>
+                    )}
+                    {showSource && sourceStr && (
+                        <p
+                            className="flex items-center gap-1 text-[11px] truncate"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <Speaker size={11} />
+                            {sourceStr}
+                        </p>
+                    )}
+                </div>
+
+                {/* Flex-Spacer: schiebt Steuerung nach unten */}
+                <div className="flex-1 min-h-0" />
+
+                {/* Fortschrittsbalken */}
+                {showProgress && (
+                    <div className="shrink-0">
+                        <ProgressBar
+                            pct={progressPct}
+                            progressStr={mediaProgressStr != null ? String(mediaProgressStr) : undefined}
+                            durationStr={mediaLengthStr != null ? String(mediaLengthStr) : undefined}
+                        />
+                    </div>
+                )}
+
+                {/* Steuerung */}
+                <div className="shrink-0 flex items-center gap-1">
+                    {showShuffle && <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />}
+                    {showPrev && <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />}
+                    <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
+                    {showStop && <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />}
+                    {showNext && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
+                    {showRepeat && <IconBtn icon={Repeat} onClick={() => trigger(o.repeatDp)} />}
+                </div>
+
+                {/* Lautstärke: Mute + voller Slider + Zahl */}
+                {(showMute || showVolume) && (
+                    <div className="shrink-0 flex items-center gap-1.5">
+                        {showMute && <IconBtn icon={isActuallyMuted ? VolumeX : Volume2} onClick={handleMute} />}
+                        {showVolume && (
+                            <>
+                                <VolumeSlider pct={volPct} step={volStep} onChange={writeVol} />
+                                <span
+                                    className="shrink-0 text-[10px] tabular-nums"
+                                    style={{ color: 'var(--text-secondary)', minWidth: '24px' }}
+                                >
+                                    {volPct}%
+                                </span>
+                            </>
+                        )}
+                    </div>
+                )}
+
+                {/* Lautstärke-Schnellwahl */}
+                {showVolumePresets && (
+                    <div className="shrink-0 flex gap-1">
+                        {[25, 50, 75, 100].map((p) => (
+                            <button
+                                key={p}
+                                onClick={() => writeVol(p)}
+                                className="flex-1 text-[10px] py-0.5 rounded hover:opacity-80 transition-opacity"
+                                style={{
+                                    background: volPct === p ? 'var(--accent)22' : 'var(--app-bg)',
+                                    color: volPct === p ? 'var(--accent)' : 'var(--text-secondary)',
+                                    border: `1px solid ${volPct === p ? 'var(--accent)44' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {p}%
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+    // Compact: thumbnail, title, controls and volume in one row.
+    const compactRow = (
+        <div className="flex items-center gap-2 min-w-0">
+            {/* Cover thumbnail */}
+            {showCover && (
+                <div
+                    className="aura-widget-icon shrink-0 rounded-md overflow-hidden"
+                    style={{ '--aura-icon-color': 'var(--text-secondary)', width: 36, height: 36 }}
+                >
+                    <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
+                </div>
+            )}
+
+            {/* Title + Artist */}
+            <div className="flex flex-col flex-1 min-w-0 leading-tight">
+                <p
+                    className="aura-widget-title text-xs font-semibold truncate"
+                    style={{ '--aura-title-color': 'var(--text-primary)' }}
+                >
+                    {titleStr || '–'}
+                </p>
+                {showSubtitle && subtitle && (
+                    <p className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
+                        {subtitle}
+                    </p>
+                )}
+            </div>
+
+            {/* Controls */}
+            <div className="shrink-0 flex items-center gap-0.5">
+                {showPrev && <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />}
+                <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
+                {showStop && <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />}
+                {showNext && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
+            </div>
+
+            {/* Volume */}
+            {(showMute || showVolume) && (
+                <div className="shrink-0 flex items-center gap-1">
+                    {showMute && <IconBtn icon={isActuallyMuted ? VolumeX : Volume2} onClick={handleMute} />}
+                    {showVolume && <VolumeSlider pct={volPct} step={volStep} onChange={writeVol} compact />}
+                </div>
+            )}
+        </div>
+    );
+    const progressBar = (
+        <ProgressBar
+            pct={progressPct}
+            progressStr={mediaProgressStr != null ? String(mediaProgressStr) : undefined}
+            durationStr={mediaLengthStr != null ? String(mediaLengthStr) : undefined}
+        />
+    );
+
     // ── CUSTOM ───────────────────────────────────────────────────────────────────
     if (layout === 'custom') {
         const customGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_MEDIAPLAYER_GRID;
@@ -343,6 +500,14 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     'status-badges': statusBadges,
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
+                    player: <div className="w-full h-full flex flex-col">{playerMain}</div>,
+                    'player-compact': <div className="w-full">{compactRow}</div>,
+                    progress: showProgress ? <div className="w-full">{progressBar}</div> : null,
+                    'chips-row': showChips ? (
+                        <div className="w-full min-w-0">
+                            <ChipRow chips={chips} onTrigger={handleChip} />
+                        </div>
+                    ) : null,
                 }}
             />
         );
@@ -461,48 +626,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     if (layout === 'compact') {
         return (
             <div className="aura-widget-row flex flex-col h-full gap-1 justify-center">
-                <div className="flex items-center gap-2 min-w-0">
-                    {/* Cover thumbnail */}
-                    {showCover && (
-                        <div
-                            className="aura-widget-icon shrink-0 rounded-md overflow-hidden"
-                            style={{ '--aura-icon-color': 'var(--text-secondary)', width: 36, height: 36 }}
-                        >
-                            <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
-                        </div>
-                    )}
-
-                    {/* Title + Artist */}
-                    <div className="flex flex-col flex-1 min-w-0 leading-tight">
-                        <p
-                            className="aura-widget-title text-xs font-semibold truncate"
-                            style={{ '--aura-title-color': 'var(--text-primary)' }}
-                        >
-                            {titleStr || '–'}
-                        </p>
-                        {showSubtitle && subtitle && (
-                            <p className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
-                                {subtitle}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Controls */}
-                    <div className="shrink-0 flex items-center gap-0.5">
-                        {showPrev && <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />}
-                        <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
-                        {showStop && <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />}
-                        {showNext && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
-                    </div>
-
-                    {/* Volume */}
-                    {(showMute || showVolume) && (
-                        <div className="shrink-0 flex items-center gap-1">
-                            {showMute && <IconBtn icon={isActuallyMuted ? VolumeX : Volume2} onClick={handleMute} />}
-                            {showVolume && <VolumeSlider pct={volPct} step={volStep} onChange={writeVol} compact />}
-                        </div>
-                    )}
-                </div>
+                {compactRow}
 
                 {/* Progress bar */}
                 {showProgress && (
@@ -521,107 +645,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     // ── DEFAULT ──────────────────────────────────────────────────────────────────
     return (
         <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
-            {/* Main row: cover füllt volle Höhe, rechts alle Elemente */}
-            <div className="flex gap-3 flex-1 min-h-0">
-                {/* Cover: self-stretch + aspect-ratio → quadratisch, so groß wie die Zeile */}
-                {showCover && (
-                    <div
-                        className="aura-widget-icon shrink-0 self-stretch rounded-xl overflow-hidden"
-                        style={{ '--aura-icon-color': 'var(--text-secondary)', aspectRatio: '1 / 1' }}
-                    >
-                        <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />
-                    </div>
-                )}
-
-                {/* Rechte Spalte */}
-                <div className="flex flex-col flex-1 min-w-0 gap-1 min-h-0">
-                    {/* Track info */}
-                    <div className="shrink-0 space-y-0.5 min-w-0">
-                        <p
-                            className="aura-widget-title text-sm font-semibold truncate leading-snug"
-                            style={{ '--aura-title-color': 'var(--text-primary)' }}
-                        >
-                            {titleStr || '–'}
-                        </p>
-                        {showSubtitle && subtitle && (
-                            <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                                {subtitle}
-                            </p>
-                        )}
-                        {showSource && sourceStr && (
-                            <p
-                                className="flex items-center gap-1 text-[11px] truncate"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
-                                <Speaker size={11} />
-                                {sourceStr}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Flex-Spacer: schiebt Steuerung nach unten */}
-                    <div className="flex-1 min-h-0" />
-
-                    {/* Fortschrittsbalken */}
-                    {showProgress && (
-                        <div className="shrink-0">
-                            <ProgressBar
-                                pct={progressPct}
-                                progressStr={mediaProgressStr != null ? String(mediaProgressStr) : undefined}
-                                durationStr={mediaLengthStr != null ? String(mediaLengthStr) : undefined}
-                            />
-                        </div>
-                    )}
-
-                    {/* Steuerung */}
-                    <div className="shrink-0 flex items-center gap-1">
-                        {showShuffle && <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />}
-                        {showPrev && <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />}
-                        <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
-                        {showStop && <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />}
-                        {showNext && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
-                        {showRepeat && <IconBtn icon={Repeat} onClick={() => trigger(o.repeatDp)} />}
-                    </div>
-
-                    {/* Lautstärke: Mute + voller Slider + Zahl */}
-                    {(showMute || showVolume) && (
-                        <div className="shrink-0 flex items-center gap-1.5">
-                            {showMute && <IconBtn icon={isActuallyMuted ? VolumeX : Volume2} onClick={handleMute} />}
-                            {showVolume && (
-                                <>
-                                    <VolumeSlider pct={volPct} step={volStep} onChange={writeVol} />
-                                    <span
-                                        className="shrink-0 text-[10px] tabular-nums"
-                                        style={{ color: 'var(--text-secondary)', minWidth: '24px' }}
-                                    >
-                                        {volPct}%
-                                    </span>
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Lautstärke-Schnellwahl */}
-                    {showVolumePresets && (
-                        <div className="shrink-0 flex gap-1">
-                            {[25, 50, 75, 100].map((p) => (
-                                <button
-                                    key={p}
-                                    onClick={() => writeVol(p)}
-                                    className="flex-1 text-[10px] py-0.5 rounded hover:opacity-80 transition-opacity"
-                                    style={{
-                                        background: volPct === p ? 'var(--accent)22' : 'var(--app-bg)',
-                                        color: volPct === p ? 'var(--accent)' : 'var(--text-secondary)',
-                                        border: `1px solid ${volPct === p ? 'var(--accent)44' : 'var(--app-border)'}`,
-                                    }}
-                                >
-                                    {p}%
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
+            {playerMain}
 
             {/* Chip-Zeile (volle Breite) */}
             {showChips && <ChipRow chips={chips} onTrigger={handleChip} />}

@@ -31,6 +31,11 @@ Im Raster-Editor holt **Aus Layout übernehmen …** jedes Layout später noch e
 | [Auswahlfeld](./auswahlfeld) | Standard · Kompakt · Minimal · Karte |
 | [Button](./button) · [HTTP-Aktion](./http-aktion) | Standard · Kompakt · Minimal |
 | [Eingabefeld](./eingabefeld) | Standard · Kompakt |
+| [Uhrzeit](./uhrzeit) | Standard · Karte · Minimal |
+| [Zeitschaltuhr](./zeitschaltuhr) · [Countdown](./countdown) · [Mediaplayer](./mediaplayer) | Standard · Kompakt |
+| [RGB-Licht](./rgb-licht) | Standard · Nur Helligkeit · Nur Farbe · Nur Lichtwärme |
+| [Kalender](./kalender) | Standard · Karte · Kompakt · Minimal · Agenda |
+| [evcc](./evcc) | alle sieben Layouts |
 
 Links Rundskala, rechts dasselbe als Custom-Raster mit einer `dp`-Zeile (Luftfeuchte) darunter:
 
@@ -42,6 +47,7 @@ Links Rundskala, rechts dasselbe als Custom-Raster mit einer `dp`-Zeile (Luftfeu
 | Karten-Hintergrund | `bg` + `borderColor` am Raster (Verlauf + Rahmen) — **Karten-Hintergrund entfernen** im Raster-Editor |
 | Rundskala · Vorhersage · Schnellwahl | als Komponente (`dial` · `forecast` · `presets` …) |
 | Bedienblöcke | als Komponente, so wie das Layout sie zeichnet (`viz` + `btn-col` beim Rollladen, `slider-line`, `input-row` …) |
+| Listen · Diagramme · Player | als ganzer Block (`events-list` beim Kalender, `flow-diagram` bei evcc, `player` beim Mediaplayer) — Zeilen davor oder danach ergänzen |
 
 ## Raster
 

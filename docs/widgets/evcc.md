@@ -67,7 +67,7 @@ Nur die PV-Erzeugung groß, mit Einspeisung und Eigenanteil.
 Nur der Hausverbrauch groß, mit Netzbezug/-einspeisung und Tarif.
 
 ### Custom
-Felder `pvPower`, `gridPower`, `homePower`, `batterySoc`, `batteryPower`, `gridImport`, `gridExport` frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Felder `pvPower`, `gridPower`, `homePower`, `batterySoc`, `batteryPower`, `gridImport`, `gridExport` frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `header`, `flow-row`, `flow-diagram`, `compact-row`, `battery-view` · `production-view` · `consumption-view`, `loadpoints`, `loadpoints-compact` und `tariff` — sie skalieren wie im Layout.
 
 ## Einstellungen
 

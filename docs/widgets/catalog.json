@@ -200,7 +200,26 @@
       ],
       "options": [],
       "crosscutting": [],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "icon",
+          "digits",
+          "digits-fill",
+          "digits-inline",
+          "progress",
+          "controls",
+          "step",
+          "presets",
+          "primary-sm",
+          "stop-sm"
+        ],
+        "fields": [
+          "remaining",
+          "state",
+          "duration",
+          "target"
+        ]
+      },
       "screenshots": {
         "hero": "assets/countdown/runtime.png",
         "config": "assets/countdown/config.png",
@@ -1164,7 +1183,25 @@
       ],
       "options": [],
       "crosscutting": [],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "power",
+          "brightness",
+          "color",
+          "temperature",
+          "effects",
+          "presets",
+          "title",
+          "status",
+          "icon",
+          "tabs-all",
+          "tabs-brightness",
+          "tabs-color",
+          "tabs-temperature",
+          "palette"
+        ],
+        "fields": []
+      },
       "screenshots": {
         "hero": "assets/rgb-licht/runtime.png",
         "config": "assets/rgb-licht/config.png",
@@ -1188,7 +1225,36 @@
       ],
       "options": [],
       "crosscutting": [],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "cover",
+          "play-pause",
+          "stop",
+          "prev",
+          "next",
+          "shuffle",
+          "repeat",
+          "mute",
+          "volume-slider",
+          "chips",
+          "chips-row",
+          "player",
+          "player-compact",
+          "progress",
+          "status-badges",
+          "battery-icon",
+          "reach-icon"
+        ],
+        "fields": [
+          "title",
+          "artist",
+          "album",
+          "source",
+          "volume",
+          "battery",
+          "reach"
+        ]
+      },
       "screenshots": {
         "hero": "assets/mediaplayer/runtime.png",
         "config": "assets/mediaplayer/config.png",
@@ -1350,7 +1416,27 @@
         "popupTitle",
         "popupShowHistory"
       ],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "icon",
+          "sunrise-icon",
+          "sunset-icon",
+          "city-icon",
+          "week-icon",
+          "extras"
+        ],
+        "fields": [
+          "time",
+          "date",
+          "custom",
+          "city",
+          "sunrise",
+          "sunset",
+          "week",
+          "kw",
+          "relative"
+        ]
+      },
       "screenshots": {
         "hero": "assets/uhrzeit/runtime.png",
         "config": "assets/uhrzeit/config.png",
@@ -1402,7 +1488,35 @@
       ],
       "options": [],
       "crosscutting": [],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "icon",
+          "cal-icon",
+          "cal-icon1 …",
+          "refresh",
+          "events-list",
+          "events-agenda",
+          "next-event",
+          "next-row",
+          "count"
+        ],
+        "fields": [
+          "summary",
+          "date",
+          "time",
+          "endtime",
+          "timespan",
+          "calname",
+          "location",
+          "running",
+          "count",
+          "week",
+          "kw",
+          "day",
+          "daycount",
+          "summary1 … (je Termin)"
+        ]
+      },
       "screenshots": {
         "hero": "assets/kalender/runtime.png",
         "config": "assets/kalender/config.png",
@@ -1431,7 +1545,29 @@
       ],
       "options": [],
       "crosscutting": [],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "header",
+          "flow-row",
+          "flow-diagram",
+          "compact-row",
+          "battery-view",
+          "production-view",
+          "consumption-view",
+          "loadpoints",
+          "loadpoints-compact",
+          "tariff"
+        ],
+        "fields": [
+          "pvPower",
+          "gridPower",
+          "homePower",
+          "batterySoc",
+          "batteryPower",
+          "gridImport",
+          "gridExport"
+        ]
+      },
       "screenshots": {
         "hero": "assets/evcc/runtime.png",
         "config": "assets/evcc/config.png",

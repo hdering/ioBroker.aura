@@ -1074,496 +1074,9 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         );
     }
 
-    if (layout === 'custom') {
-        const next = visibleEvents[0];
-        // Every visible event carries its own 1-based field set (summary1, date2, …)
-        // so a grid can lay out a whole agenda — one grid row per event — the way the
-        // Wetter widget exposes its forecast days. The unindexed keys stay what they
-        // always were: aliases of event 1, so old grids keep working.
-        const perEventFields: Record<string, string> = {};
-        const perEventComponents: Record<string, React.ReactNode> = {};
-        visibleEvents.forEach((ev, i) => {
-            const n = i + 1;
-            perEventFields[`summary${n}`] = ev.summary ?? '';
-            perEventFields[`date${n}`] = formatEventDate(ev, t, showSpan, showEndTime);
-            perEventFields[`time${n}`] = clockLabel(ev.start);
-            perEventFields[`endtime${n}`] = endClockLabel(ev);
-            perEventFields[`timespan${n}`] = timeSpanLabel(ev);
-            perEventFields[`calname${n}`] = ev.sourceName ?? '';
-            perEventFields[`location${n}`] = ev.location ?? '';
-            // Same label the RunningBadge of the list layouts prints: which day of a
-            // split run this is, or how much of a multi-day event is left.
-            perEventFields[`running${n}`] = ev.dayCount
-                ? t('calendar.dayOfRun', { day: ev.dayIndex ?? 1, days: ev.dayCount })
-                : (runningBadge(ev, t) ?? '');
-            perEventFields[`week${n}`] = String(isoWeek(ev.start));
-            perEventFields[`kw${n}`] = weekLabel(ev.start, t);
-            // Only the row that opens a calendar week carries this one, the way the
-            // agenda layout prints it — "KW 36" on every row reads badly.
-            perEventFields[`kwnew${n}`] = weekFirst[i] ? weekLabel(ev.start, t) : '';
-            perEventFields[`day${n}`] = ev.dayIndex ? String(ev.dayIndex) : '';
-            perEventFields[`daycount${n}`] = ev.dayCount ? String(ev.dayCount) : '';
-            const SrcIcon = ev.sourceIcon ? getWidgetIcon(ev.sourceIcon, CalendarDays) : null;
-            perEventComponents[`cal-icon${n}`] = SrcIcon ? (
-                <SrcIcon
-                    className="aura-cal-source-icon"
-                    size={calIconPx(20)}
-                    style={{ color: ev.sourceColor ?? 'var(--accent)' }}
-                />
-            ) : null;
-        });
-        return (
-            <CustomGridView
-                config={config}
-                value={next?.summary ?? ''}
-                extraFields={{
-                    summary: perEventFields.summary1 ?? '',
-                    date: perEventFields.date1 ?? '',
-                    time: perEventFields.time1 ?? '',
-                    endtime: perEventFields.endtime1 ?? '',
-                    timespan: perEventFields.timespan1 ?? '',
-                    calname: perEventFields.calname1 ?? '',
-                    location: perEventFields.location1 ?? '',
-                    running: perEventFields.running1 ?? '',
-                    count: String(visibleEvents.length),
-                    week: perEventFields.week1 ?? '',
-                    kw: perEventFields.kw1 ?? '',
-                    day: perEventFields.day1 ?? '',
-                    daycount: perEventFields.daycount1 ?? '',
-                    ...perEventFields,
-                }}
-                extraComponents={{
-                    icon: (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ '--aura-icon-color': 'var(--text-secondary)' }}
-                        />
-                    ),
-                    'cal-icon': perEventComponents['cal-icon1'] ?? null,
-                    ...perEventComponents,
-                }}
-            />
-        );
-    }
-
-    // ── MINIMAL ──────────────────────────────────────────────────────────────
-    if (layout === 'minimal') {
-        return (
-            <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
-                <HeaderGroup>
-                    {(showTitle || showIcon) && (
-                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                            {showIcon && (
-                                <WidgetIcon
-                                    className="aura-widget-icon"
-                                    size={iconSize}
-                                    style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
-                                />
-                            )}
-                            {showTitle && (
-                                <p
-                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                    style={{
-                                        '--aura-title-color': 'var(--text-secondary)',
-                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                    }}
-                                >
-                                    {config.title}
-                                </p>
-                            )}
-                            <HeaderSlotsInline />
-                        </TitleRow>
-                    )}
-                    <HeaderSlotsRow2 />
-                </HeaderGroup>
-                <div className={`flex flex-col items-center justify-center ${autoHeight ? 'py-2' : 'flex-1'} gap-1`}>
-                    <p
-                        className="font-black tabular-nums leading-none"
-                        style={{ color: 'var(--accent)', fontSize: fs(30) }}
-                    >
-                        {loading ? '…' : visibleEvents.length}
-                    </p>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: fs(10) }}>{t('calendar.events')}</p>
-                </div>
-            </div>
-        );
-    }
-
-    // ── COMPACT ──────────────────────────────────────────────────────────────
-    if (layout === 'compact') {
-        const next = visibleEvents[0];
-        const important = next ? imp(next) : false;
-        const color = important ? highlightColor : (next?.sourceColor ?? 'var(--accent)');
-        const meta = next ? eventMeta(next, 0) : null;
-        const showCalName = options.showCalName !== false;
-        const showDate = options.showDate !== false;
-        return (
-            <div
-                ref={measureRef}
-                className={`flex items-center gap-2 ${rootHCls}${meta ? ` ${meta.className}` : ''}`}
-                data-calendar-event={meta?.dataAttr}
-            >
-                {important && !hideImportantIcon ? (
-                    <ImportantIcon size={14} style={{ color, flexShrink: 0 }} />
-                ) : (
-                    <CalendarDays size={14} style={{ color, flexShrink: 0 }} />
-                )}
-                {showCalIcon && next && <CalSourceIcon ev={next} size={calIconPx(13)} />}
-                {showWeek && next && <CalWeek label={weekLabel(next.start, t)} show fontSize={fs(10)} />}
-                {showCalName && next?.showSourceName && next.sourceName && (
-                    <span
-                        className="aura-cal-name shrink-0 font-medium"
-                        style={{ color: next.sourceColor, fontSize: fs(9), textAlign: calNameAlign }}
-                    >
-                        {next.sourceName}
-                    </span>
-                )}
-                {loading && !next ? (
-                    <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(12) }}>
-                        {t('calendar.loading')}
-                    </span>
-                ) : next ? (
-                    <span
-                        className="aura-cal-summary flex-1 font-medium truncate min-w-0"
-                        style={{ color: important ? highlightColor : 'var(--text-primary)', fontSize: fs(12) }}
-                    >
-                        {next.summary}
-                    </span>
-                ) : (
-                    <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(12) }}>
-                        {t('calendar.noEvents')}
-                    </span>
-                )}
-                {showBadge && next && <RunningBadge ev={next} t={t} color={color} fontSize={fs(10)} />}
-                {showDate && next && (
-                    <span className="aura-cal-date shrink-0" style={{ color, fontSize: fs(12) }}>
-                        {formatEventDate(next, t, showSpan, showEndTime)}
-                    </span>
-                )}
-                <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
-                    <Spinner loading={loading} />
-                </button>
-            </div>
-        );
-    }
-
-    // ── CARD ─────────────────────────────────────────────────────────────────
-    if (layout === 'card') {
-        const next = visibleEvents[0];
-        const important = next ? imp(next) : false;
-        const meta = next ? eventMeta(next, 0) : null;
-
-        // Visibility options (all shown by default)
-        const showCalName = options.showCalName !== false;
-        const showSummary = options.showSummary !== false;
-        const showDate = options.showDate !== false;
-        const showLocation = options.showLocation !== false;
-        const showMore = options.showMore !== false;
-
-        return (
-            <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
-                {/* header row */}
-                <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
-                    <div className="flex items-center gap-1 min-w-0 flex-1">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title truncate flex-1 min-w-0"
-                                style={{
-                                    '--aura-title-color': 'var(--text-secondary)',
-                                    fontSize: fs(11),
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                    <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
-                        <Spinner loading={loading} />
-                    </button>
-                </div>
-
-                {/* centered content */}
-                <div className={`${autoHeight ? 'py-1' : 'flex-1'} flex flex-col justify-center`}>
-                    {next ? (
-                        <div className={meta?.className} data-calendar-event={meta?.dataAttr}>
-                            {(() => {
-                                const nameShown = showCalName && next.showSourceName && !!next.sourceName;
-                                const iconShown = showCalIcon && !!next.sourceIcon;
-                                if (!nameShown && !iconShown && !showWeek) return null;
-                                return (
-                                    <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
-                                        {iconShown && <CalSourceIcon ev={next} size={calIconPx(11)} />}
-                                        {nameShown && (
-                                            <p
-                                                // Only a name that fills the row can move; the
-                                                // default keeps it packed next to the icon.
-                                                className={`aura-cal-name${calNameAlign === 'left' ? '' : ' flex-1 min-w-0'}`}
-                                                style={{
-                                                    color: next.sourceColor,
-                                                    fontSize: fs(9),
-                                                    textAlign: calNameAlign,
-                                                }}
-                                            >
-                                                {next.sourceName}
-                                            </p>
-                                        )}
-                                        {showWeek && <CalWeek label={weekLabel(next.start, t)} show fontSize={fs(9)} />}
-                                    </div>
-                                );
-                            })()}
-                            {showSummary && (
-                                <p
-                                    className="aura-cal-summary font-bold leading-tight"
-                                    style={{ color: important ? highlightColor : 'var(--accent)', fontSize: fs(20) }}
-                                >
-                                    {important && !hideImportantIcon && (
-                                        <ImportantIcon
-                                            size={14}
-                                            style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }}
-                                        />
-                                    )}
-                                    {next.summary}
-                                </p>
-                            )}
-                            {(showDate || showBadge) && (
-                                <div className="flex items-center gap-1.5 flex-wrap" style={{ marginTop: 2 }}>
-                                    {showDate && (
-                                        <p
-                                            className="aura-cal-date"
-                                            style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}
-                                        >
-                                            {formatEventDate(next, t, showSpan, showEndTime)}
-                                        </p>
-                                    )}
-                                    {showBadge && (
-                                        <RunningBadge
-                                            ev={next}
-                                            t={t}
-                                            color={important ? highlightColor : next.sourceColor}
-                                            fontSize={fs(10)}
-                                        />
-                                    )}
-                                </div>
-                            )}
-                            {showLocation && next.location && (
-                                <div className="flex items-center gap-1" style={{ marginTop: 4 }}>
-                                    <MapPin size={10} style={{ color: 'var(--text-secondary)' }} />
-                                    <p
-                                        className="aura-cal-location truncate"
-                                        style={{ color: 'var(--text-secondary)', fontSize: fs(10) }}
-                                    >
-                                        {next.location}
-                                    </p>
-                                </div>
-                            )}
-                            {showMore && visibleEvents.length > 1 && (
-                                <p
-                                    className="aura-cal-more"
-                                    style={{ color: 'var(--text-secondary)', fontSize: fs(10), marginTop: 6 }}
-                                >
-                                    {t('calendar.more', { count: visibleEvents.length - 1 })}
-                                </p>
-                            )}
-                        </div>
-                    ) : (
-                        <p className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(18) }}>
-                            {t('calendar.noEvents')}
-                        </p>
-                    )}
-                </div>
-            </div>
-        );
-    }
-
-    // ── AGENDA ───────────────────────────────────────────────────────────────
-    if (layout === 'agenda') {
-        return (
-            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1 ${eventRootCls}`} style={agendaBleed}>
-                <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
-                    <div className="flex items-center gap-1 min-w-0 flex-1">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title font-medium truncate flex-1 min-w-0"
-                                style={{
-                                    '--aura-title-color': 'var(--text-secondary)',
-                                    fontSize: fs(11),
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                    <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
-                        <Spinner loading={loading} />
-                    </button>
-                </div>
-                {loading && events.length === 0 ? (
-                    <div className={`${emptyCls} flex items-center justify-center`}>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.loading')}</p>
-                    </div>
-                ) : visibleEvents.length === 0 ? (
-                    <div className={`${emptyCls} flex items-center justify-center`}>
-                        <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.noEvents')}</p>
-                    </div>
-                ) : (
-                    <div className={`${listFillCls} flex flex-col gap-0.5`}>
-                        {(() => {
-                            const showCalName = options.showCalName !== false;
-                            const showDate = options.showDate !== false;
-                            // Every visible name – sizes the shared name column so the
-                            // titles line up however uneven the names are.
-                            const calNames = showCalName
-                                ? [
-                                      ...new Set(
-                                          visibleEvents
-                                              .filter((ev) => ev.showSourceName && ev.sourceName)
-                                              .map((ev) => ev.sourceName),
-                                      ),
-                                  ]
-                                : [];
-                            return visibleEvents.map((ev, idx) => {
-                                const meta = eventMeta(ev, idx);
-                                const important = imp(ev);
-                                return (
-                                    <div
-                                        key={ev.uid}
-                                        className={`${meta.className} aura-bleed-row flex items-center gap-2 min-h-0 shrink-0 py-0.5 rounded px-1 transition-colors`}
-                                        data-calendar-event={meta.dataAttr}
-                                        style={{
-                                            background: important
-                                                ? `${highlightColor}18`
-                                                : meta.isToday || meta.isNext
-                                                  ? `${ev.sourceColor}18`
-                                                  : undefined,
-                                            ...(important
-                                                ? { borderLeft: `2px solid ${highlightColor}`, paddingLeft: 4 }
-                                                : {}),
-                                        }}
-                                    >
-                                        {showCalDot && (
-                                            <div
-                                                className="aura-cal-bar self-stretch rounded-full shrink-0 transition-all"
-                                                style={{
-                                                    width: meta.isNext ? 3 : 2,
-                                                    background: important ? highlightColor : ev.sourceColor,
-                                                }}
-                                            />
-                                        )}
-                                        {showCalIcon && <CalSourceIcon ev={ev} size={calIconPx(11)} />}
-                                        {showWeek && (
-                                            <CalWeek
-                                                label={weekLabel(ev.start, t)}
-                                                show={weekFirst[idx]}
-                                                fontSize={fs(9)}
-                                            />
-                                        )}
-                                        {showCalName && ev.showSourceName && ev.sourceName && (
-                                            <AgendaCalName
-                                                name={ev.sourceName}
-                                                allNames={calNames}
-                                                color={ev.sourceColor}
-                                                fontSize={fs(9)}
-                                                widthPercent={calNameWidth}
-                                                align={calNameAlign}
-                                            />
-                                        )}
-                                        <p
-                                            className="aura-cal-summary flex-1 truncate min-w-0"
-                                            style={{
-                                                color: important ? highlightColor : 'var(--text-primary)',
-                                                fontWeight: important || meta.isNext ? 700 : 500,
-                                                fontSize: fs(11),
-                                            }}
-                                        >
-                                            {important && !hideImportantIcon && (
-                                                <ImportantIcon
-                                                    size={9}
-                                                    style={{
-                                                        display: 'inline',
-                                                        marginRight: 3,
-                                                        verticalAlign: 'middle',
-                                                    }}
-                                                />
-                                            )}
-                                            {ev.summary}
-                                        </p>
-                                        {showBadge && (
-                                            <RunningBadge
-                                                ev={ev}
-                                                t={t}
-                                                color={important ? highlightColor : ev.sourceColor}
-                                                fontSize={fs(9)}
-                                            />
-                                        )}
-                                        {showDate && (
-                                            <p
-                                                className="aura-cal-date shrink-0 tabular-nums"
-                                                style={{
-                                                    color: meta.isToday ? ev.sourceColor : 'var(--text-secondary)',
-                                                    fontWeight: meta.isNext ? 600 : 400,
-                                                    fontSize: fs(10),
-                                                }}
-                                            >
-                                                {formatEventDate(ev, t, showSpan, showEndTime)}
-                                            </p>
-                                        )}
-                                    </div>
-                                );
-                            });
-                        })()}
-                    </div>
-                )}
-            </div>
-        );
-    }
-
-    // ── DEFAULT ──────────────────────────────────────────────────────────────
-    return (
-        <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1.5 ${eventRootCls}`}>
-            <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
-                <div className="flex items-center gap-1 min-w-0 flex-1">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title font-medium truncate flex-1 min-w-0"
-                            style={{
-                                '--aura-title-color': 'var(--text-secondary)',
-                                fontSize: fs(11),
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-                <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
-                    <Spinner loading={loading} />
-                </button>
-            </div>
-
+    // Bodies of the fixed layouts — used there and handed to the custom grid (#768).
+    const renderDefaultList = () => (
+        <>
             {loading && events.length === 0 ? (
                 <div className={`${emptyCls} flex items-center justify-center`}>
                     <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>Lädt…</p>
@@ -1712,6 +1225,543 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                     })()}
                 </div>
             )}
+        </>
+    );
+    const renderAgendaList = () => (
+        <>
+            {loading && events.length === 0 ? (
+                <div className={`${emptyCls} flex items-center justify-center`}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.loading')}</p>
+                </div>
+            ) : visibleEvents.length === 0 ? (
+                <div className={`${emptyCls} flex items-center justify-center`}>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.noEvents')}</p>
+                </div>
+            ) : (
+                <div className={`${listFillCls} flex flex-col gap-0.5`}>
+                    {(() => {
+                        const showCalName = options.showCalName !== false;
+                        const showDate = options.showDate !== false;
+                        // Every visible name – sizes the shared name column so the
+                        // titles line up however uneven the names are.
+                        const calNames = showCalName
+                            ? [
+                                  ...new Set(
+                                      visibleEvents
+                                          .filter((ev) => ev.showSourceName && ev.sourceName)
+                                          .map((ev) => ev.sourceName),
+                                  ),
+                              ]
+                            : [];
+                        return visibleEvents.map((ev, idx) => {
+                            const meta = eventMeta(ev, idx);
+                            const important = imp(ev);
+                            return (
+                                <div
+                                    key={ev.uid}
+                                    className={`${meta.className} aura-bleed-row flex items-center gap-2 min-h-0 shrink-0 py-0.5 rounded px-1 transition-colors`}
+                                    data-calendar-event={meta.dataAttr}
+                                    style={{
+                                        background: important
+                                            ? `${highlightColor}18`
+                                            : meta.isToday || meta.isNext
+                                              ? `${ev.sourceColor}18`
+                                              : undefined,
+                                        ...(important
+                                            ? { borderLeft: `2px solid ${highlightColor}`, paddingLeft: 4 }
+                                            : {}),
+                                    }}
+                                >
+                                    {showCalDot && (
+                                        <div
+                                            className="aura-cal-bar self-stretch rounded-full shrink-0 transition-all"
+                                            style={{
+                                                width: meta.isNext ? 3 : 2,
+                                                background: important ? highlightColor : ev.sourceColor,
+                                            }}
+                                        />
+                                    )}
+                                    {showCalIcon && <CalSourceIcon ev={ev} size={calIconPx(11)} />}
+                                    {showWeek && (
+                                        <CalWeek
+                                            label={weekLabel(ev.start, t)}
+                                            show={weekFirst[idx]}
+                                            fontSize={fs(9)}
+                                        />
+                                    )}
+                                    {showCalName && ev.showSourceName && ev.sourceName && (
+                                        <AgendaCalName
+                                            name={ev.sourceName}
+                                            allNames={calNames}
+                                            color={ev.sourceColor}
+                                            fontSize={fs(9)}
+                                            widthPercent={calNameWidth}
+                                            align={calNameAlign}
+                                        />
+                                    )}
+                                    <p
+                                        className="aura-cal-summary flex-1 truncate min-w-0"
+                                        style={{
+                                            color: important ? highlightColor : 'var(--text-primary)',
+                                            fontWeight: important || meta.isNext ? 700 : 500,
+                                            fontSize: fs(11),
+                                        }}
+                                    >
+                                        {important && !hideImportantIcon && (
+                                            <ImportantIcon
+                                                size={9}
+                                                style={{
+                                                    display: 'inline',
+                                                    marginRight: 3,
+                                                    verticalAlign: 'middle',
+                                                }}
+                                            />
+                                        )}
+                                        {ev.summary}
+                                    </p>
+                                    {showBadge && (
+                                        <RunningBadge
+                                            ev={ev}
+                                            t={t}
+                                            color={important ? highlightColor : ev.sourceColor}
+                                            fontSize={fs(9)}
+                                        />
+                                    )}
+                                    {showDate && (
+                                        <p
+                                            className="aura-cal-date shrink-0 tabular-nums"
+                                            style={{
+                                                color: meta.isToday ? ev.sourceColor : 'var(--text-secondary)',
+                                                fontWeight: meta.isNext ? 600 : 400,
+                                                fontSize: fs(10),
+                                            }}
+                                        >
+                                            {formatEventDate(ev, t, showSpan, showEndTime)}
+                                        </p>
+                                    )}
+                                </div>
+                            );
+                        });
+                    })()}
+                </div>
+            )}
+        </>
+    );
+    const renderCardBody = () => {
+        const next = visibleEvents[0];
+        const important = next ? imp(next) : false;
+        const meta = next ? eventMeta(next, 0) : null;
+
+        // Visibility options (all shown by default)
+        const showCalName = options.showCalName !== false;
+        const showSummary = options.showSummary !== false;
+        const showDate = options.showDate !== false;
+        const showLocation = options.showLocation !== false;
+        const showMore = options.showMore !== false;
+
+        return (
+            <>
+                {/* centered content */}
+                <div className={`${autoHeight ? 'py-1' : 'flex-1'} flex flex-col justify-center`}>
+                    {next ? (
+                        <div className={meta?.className} data-calendar-event={meta?.dataAttr}>
+                            {(() => {
+                                const nameShown = showCalName && next.showSourceName && !!next.sourceName;
+                                const iconShown = showCalIcon && !!next.sourceIcon;
+                                if (!nameShown && !iconShown && !showWeek) return null;
+                                return (
+                                    <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
+                                        {iconShown && <CalSourceIcon ev={next} size={calIconPx(11)} />}
+                                        {nameShown && (
+                                            <p
+                                                // Only a name that fills the row can move; the
+                                                // default keeps it packed next to the icon.
+                                                className={`aura-cal-name${calNameAlign === 'left' ? '' : ' flex-1 min-w-0'}`}
+                                                style={{
+                                                    color: next.sourceColor,
+                                                    fontSize: fs(9),
+                                                    textAlign: calNameAlign,
+                                                }}
+                                            >
+                                                {next.sourceName}
+                                            </p>
+                                        )}
+                                        {showWeek && <CalWeek label={weekLabel(next.start, t)} show fontSize={fs(9)} />}
+                                    </div>
+                                );
+                            })()}
+                            {showSummary && (
+                                <p
+                                    className="aura-cal-summary font-bold leading-tight"
+                                    style={{ color: important ? highlightColor : 'var(--accent)', fontSize: fs(20) }}
+                                >
+                                    {important && !hideImportantIcon && (
+                                        <ImportantIcon
+                                            size={14}
+                                            style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }}
+                                        />
+                                    )}
+                                    {next.summary}
+                                </p>
+                            )}
+                            {(showDate || showBadge) && (
+                                <div className="flex items-center gap-1.5 flex-wrap" style={{ marginTop: 2 }}>
+                                    {showDate && (
+                                        <p
+                                            className="aura-cal-date"
+                                            style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}
+                                        >
+                                            {formatEventDate(next, t, showSpan, showEndTime)}
+                                        </p>
+                                    )}
+                                    {showBadge && (
+                                        <RunningBadge
+                                            ev={next}
+                                            t={t}
+                                            color={important ? highlightColor : next.sourceColor}
+                                            fontSize={fs(10)}
+                                        />
+                                    )}
+                                </div>
+                            )}
+                            {showLocation && next.location && (
+                                <div className="flex items-center gap-1" style={{ marginTop: 4 }}>
+                                    <MapPin size={10} style={{ color: 'var(--text-secondary)' }} />
+                                    <p
+                                        className="aura-cal-location truncate"
+                                        style={{ color: 'var(--text-secondary)', fontSize: fs(10) }}
+                                    >
+                                        {next.location}
+                                    </p>
+                                </div>
+                            )}
+                            {showMore && visibleEvents.length > 1 && (
+                                <p
+                                    className="aura-cal-more"
+                                    style={{ color: 'var(--text-secondary)', fontSize: fs(10), marginTop: 6 }}
+                                >
+                                    {t('calendar.more', { count: visibleEvents.length - 1 })}
+                                </p>
+                            )}
+                        </div>
+                    ) : (
+                        <p className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(18) }}>
+                            {t('calendar.noEvents')}
+                        </p>
+                    )}
+                </div>
+            </>
+        );
+    };
+    const renderCompactRow = (sizeCls: string, withRef: boolean) => {
+        const next = visibleEvents[0];
+        const important = next ? imp(next) : false;
+        const color = important ? highlightColor : (next?.sourceColor ?? 'var(--accent)');
+        const meta = next ? eventMeta(next, 0) : null;
+        const showCalName = options.showCalName !== false;
+        const showDate = options.showDate !== false;
+        return (
+            <div
+                ref={withRef ? measureRef : undefined}
+                className={`flex items-center gap-2 ${sizeCls}${meta ? ` ${meta.className}` : ''}`}
+                data-calendar-event={meta?.dataAttr}
+            >
+                {important && !hideImportantIcon ? (
+                    <ImportantIcon size={14} style={{ color, flexShrink: 0 }} />
+                ) : (
+                    <CalendarDays size={14} style={{ color, flexShrink: 0 }} />
+                )}
+                {showCalIcon && next && <CalSourceIcon ev={next} size={calIconPx(13)} />}
+                {showWeek && next && <CalWeek label={weekLabel(next.start, t)} show fontSize={fs(10)} />}
+                {showCalName && next?.showSourceName && next.sourceName && (
+                    <span
+                        className="aura-cal-name shrink-0 font-medium"
+                        style={{ color: next.sourceColor, fontSize: fs(9), textAlign: calNameAlign }}
+                    >
+                        {next.sourceName}
+                    </span>
+                )}
+                {loading && !next ? (
+                    <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(12) }}>
+                        {t('calendar.loading')}
+                    </span>
+                ) : next ? (
+                    <span
+                        className="aura-cal-summary flex-1 font-medium truncate min-w-0"
+                        style={{ color: important ? highlightColor : 'var(--text-primary)', fontSize: fs(12) }}
+                    >
+                        {next.summary}
+                    </span>
+                ) : (
+                    <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)', fontSize: fs(12) }}>
+                        {t('calendar.noEvents')}
+                    </span>
+                )}
+                {showBadge && next && <RunningBadge ev={next} t={t} color={color} fontSize={fs(10)} />}
+                {showDate && next && (
+                    <span className="aura-cal-date shrink-0" style={{ color, fontSize: fs(12) }}>
+                        {formatEventDate(next, t, showSpan, showEndTime)}
+                    </span>
+                )}
+                <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
+                    <Spinner loading={loading} />
+                </button>
+            </div>
+        );
+    };
+    const renderMinimalCount = () => (
+        <>
+            <div className={`flex flex-col items-center justify-center ${autoHeight ? 'py-2' : 'flex-1'} gap-1`}>
+                <p
+                    className="font-black tabular-nums leading-none"
+                    style={{ color: 'var(--accent)', fontSize: fs(30) }}
+                >
+                    {loading ? '…' : visibleEvents.length}
+                </p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: fs(10) }}>{t('calendar.events')}</p>
+            </div>
+        </>
+    );
+    const refreshBtn = (
+        <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
+            <Spinner loading={loading} />
+        </button>
+    );
+
+    if (layout === 'custom') {
+        const next = visibleEvents[0];
+        // Every visible event carries its own 1-based field set (summary1, date2, …)
+        // so a grid can lay out a whole agenda — one grid row per event — the way the
+        // Wetter widget exposes its forecast days. The unindexed keys stay what they
+        // always were: aliases of event 1, so old grids keep working.
+        const perEventFields: Record<string, string> = {};
+        const perEventComponents: Record<string, React.ReactNode> = {};
+        visibleEvents.forEach((ev, i) => {
+            const n = i + 1;
+            perEventFields[`summary${n}`] = ev.summary ?? '';
+            perEventFields[`date${n}`] = formatEventDate(ev, t, showSpan, showEndTime);
+            perEventFields[`time${n}`] = clockLabel(ev.start);
+            perEventFields[`endtime${n}`] = endClockLabel(ev);
+            perEventFields[`timespan${n}`] = timeSpanLabel(ev);
+            perEventFields[`calname${n}`] = ev.sourceName ?? '';
+            perEventFields[`location${n}`] = ev.location ?? '';
+            // Same label the RunningBadge of the list layouts prints: which day of a
+            // split run this is, or how much of a multi-day event is left.
+            perEventFields[`running${n}`] = ev.dayCount
+                ? t('calendar.dayOfRun', { day: ev.dayIndex ?? 1, days: ev.dayCount })
+                : (runningBadge(ev, t) ?? '');
+            perEventFields[`week${n}`] = String(isoWeek(ev.start));
+            perEventFields[`kw${n}`] = weekLabel(ev.start, t);
+            // Only the row that opens a calendar week carries this one, the way the
+            // agenda layout prints it — "KW 36" on every row reads badly.
+            perEventFields[`kwnew${n}`] = weekFirst[i] ? weekLabel(ev.start, t) : '';
+            perEventFields[`day${n}`] = ev.dayIndex ? String(ev.dayIndex) : '';
+            perEventFields[`daycount${n}`] = ev.dayCount ? String(ev.dayCount) : '';
+            const SrcIcon = ev.sourceIcon ? getWidgetIcon(ev.sourceIcon, CalendarDays) : null;
+            perEventComponents[`cal-icon${n}`] = SrcIcon ? (
+                <SrcIcon
+                    className="aura-cal-source-icon"
+                    size={calIconPx(20)}
+                    style={{ color: ev.sourceColor ?? 'var(--accent)' }}
+                />
+            ) : null;
+        });
+        return (
+            <CustomGridView
+                config={config}
+                value={next?.summary ?? ''}
+                extraFields={{
+                    summary: perEventFields.summary1 ?? '',
+                    date: perEventFields.date1 ?? '',
+                    time: perEventFields.time1 ?? '',
+                    endtime: perEventFields.endtime1 ?? '',
+                    timespan: perEventFields.timespan1 ?? '',
+                    calname: perEventFields.calname1 ?? '',
+                    location: perEventFields.location1 ?? '',
+                    running: perEventFields.running1 ?? '',
+                    count: String(visibleEvents.length),
+                    week: perEventFields.week1 ?? '',
+                    kw: perEventFields.kw1 ?? '',
+                    day: perEventFields.day1 ?? '',
+                    daycount: perEventFields.daycount1 ?? '',
+                    ...perEventFields,
+                }}
+                extraComponents={{
+                    icon: (
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)' }}
+                        />
+                    ),
+                    'cal-icon': perEventComponents['cal-icon1'] ?? null,
+                    ...perEventComponents,
+                    // The bodies of the fixed layouts (#768).
+                    refresh: refreshBtn,
+                    'events-list': (
+                        <div className="aura-bleed-host aura-bleed-clip flex-1 min-w-0 h-full overflow-hidden flex flex-col">
+                            {renderDefaultList()}
+                        </div>
+                    ),
+                    'events-agenda': (
+                        <div
+                            className="aura-bleed-host aura-bleed-clip flex-1 min-w-0 h-full overflow-hidden flex flex-col"
+                            style={agendaBleed}
+                        >
+                            {renderAgendaList()}
+                        </div>
+                    ),
+                    'next-event': <div className="w-full h-full flex flex-col">{renderCardBody()}</div>,
+                    'next-row': renderCompactRow('w-full', false),
+                    count: <div className="w-full h-full flex flex-col">{renderMinimalCount()}</div>,
+                }}
+            />
+        );
+    }
+
+    // ── MINIMAL ──────────────────────────────────────────────────────────────
+    if (layout === 'minimal') {
+        return (
+            <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        '--aura-title-color': 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </TitleRow>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
+                {renderMinimalCount()}
+            </div>
+        );
+    }
+
+    // ── COMPACT ──────────────────────────────────────────────────────────────
+    if (layout === 'compact') {
+        return renderCompactRow(rootHCls, true);
+    }
+
+    // ── CARD ─────────────────────────────────────────────────────────────────
+    if (layout === 'card') {
+        return (
+            <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
+                {/* header row */}
+                <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
+                    <div className="flex items-center gap-1 min-w-0 flex-1">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title truncate flex-1 min-w-0"
+                                style={{
+                                    '--aura-title-color': 'var(--text-secondary)',
+                                    fontSize: fs(11),
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                    </div>
+                    <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
+                        <Spinner loading={loading} />
+                    </button>
+                </div>
+
+                {renderCardBody()}
+            </div>
+        );
+    }
+
+    // ── AGENDA ───────────────────────────────────────────────────────────────
+    if (layout === 'agenda') {
+        return (
+            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1 ${eventRootCls}`} style={agendaBleed}>
+                <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
+                    <div className="flex items-center gap-1 min-w-0 flex-1">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title font-medium truncate flex-1 min-w-0"
+                                style={{
+                                    '--aura-title-color': 'var(--text-secondary)',
+                                    fontSize: fs(11),
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                    </div>
+                    <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
+                        <Spinner loading={loading} />
+                    </button>
+                </div>
+                {renderAgendaList()}
+            </div>
+        );
+    }
+
+    // ── DEFAULT ──────────────────────────────────────────────────────────────
+    return (
+        <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1.5 ${eventRootCls}`}>
+            <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
+                <div className="flex items-center gap-1 min-w-0 flex-1">
+                    {showIcon && (
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                        />
+                    )}
+                    {showTitle && (
+                        <p
+                            className="aura-widget-title font-medium truncate flex-1 min-w-0"
+                            style={{
+                                '--aura-title-color': 'var(--text-secondary)',
+                                fontSize: fs(11),
+                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                            }}
+                        >
+                            {config.title}
+                        </p>
+                    )}
+                </div>
+                <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
+                    <Spinner loading={loading} />
+                </button>
+            </div>
+
+            {renderDefaultList()}
         </div>
     );
 }

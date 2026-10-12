@@ -34,7 +34,7 @@ Eine Zeile mit Cover-Thumbnail, Titel/Interpret, Steuerung und kompaktem Lautst�
 Auf Mobilgeräten automatisch: vertikaler Aufbau mit zentriertem Cover, Steuerzeile und Lautstärke.
 
 ### Custom
-Cover, Play/Pause, Prev/Next, Shuffle/Repeat, Mute, Lautstärkeregler, Chips, Felder und Status-Badges frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Cover, Play/Pause, Prev/Next, Shuffle/Repeat, Mute, Lautstärkeregler, Chips, Felder und Status-Badges frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `player` (Cover, Titel, Steuerung, Lautstärke), `player-compact`, `progress` und `chips-row`.
 
 ## Einstellungen
 

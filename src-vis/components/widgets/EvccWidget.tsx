@@ -1504,12 +1504,90 @@ export function EvccWidget({ config }: WidgetProps) {
         : [];
     const flowLpIndices = showLoadpoints ? visibleLpIndices : [];
 
+    const flowH = (showBattery ? 190 : 160) * flowScale;
+    const tariffEl =
+        site.tariffGrid > 0 ? (
+            <div className="text-right shrink-0" style={{ color: 'var(--text-secondary)', fontSize: 10 * tariffScale }}>
+                {site.tariffGrid.toFixed(4)} €/kWh
+            </div>
+        ) : null;
+
     if (layout === 'custom')
         return (
             <div ref={boxRef} className="w-full h-full">
                 <CustomGridView
                     config={config}
                     value={fmtKW(site.pvPower)}
+                    // The pieces of the fixed layouts, scaled like there (#768).
+                    extraComponents={{
+                        header: headerEl ? <div className="w-full min-w-0">{headerEl}</div> : null,
+                        'flow-row': (
+                            <div className="w-full">
+                                <EnergyFlowRow site={site} showBattery={showBattery} scale={flowScale} />
+                            </div>
+                        ),
+                        'flow-diagram': (
+                            <div className="w-full shrink-0" style={{ height: flowH }}>
+                                <EnergyFlowSVG
+                                    site={site}
+                                    loadpoints={loadpoints}
+                                    showBattery={showBattery}
+                                    visibleLpIndices={flowLpIndices}
+                                />
+                            </div>
+                        ),
+                        'compact-row': (
+                            <div className="w-full">
+                                <CompactRow site={site} showBattery={showBattery} scale={mainScale} />
+                            </div>
+                        ),
+                        'battery-view': (
+                            <div className="w-full h-full">
+                                <BatteryView site={site} scale={mainScale} />
+                            </div>
+                        ),
+                        'production-view': (
+                            <div className="w-full h-full">
+                                <ProductionView site={site} scale={mainScale} />
+                            </div>
+                        ),
+                        'consumption-view': (
+                            <div className="w-full h-full">
+                                <ConsumptionView site={site} scale={mainScale} />
+                            </div>
+                        ),
+                        loadpoints:
+                            visLps.length > 0 ? (
+                                <div className="w-full flex flex-col" style={{ gap: 8 * lpScale }}>
+                                    {visLps.map(({ lp, idx }) => (
+                                        <LoadpointCard
+                                            key={idx}
+                                            lp={lp}
+                                            idx={idx}
+                                            prefix={prefix}
+                                            compact={false}
+                                            scale={lpScale}
+                                        />
+                                    ))}
+                                </div>
+                            ) : null,
+                        'loadpoints-compact':
+                            visLps.length > 0 ? (
+                                <div className="w-full flex flex-col" style={{ gap: 6 * mainScale }}>
+                                    {visLps.map(({ lp, idx }) => (
+                                        <LoadpointCard
+                                            key={idx}
+                                            lp={lp}
+                                            idx={idx}
+                                            prefix={prefix}
+                                            compact
+                                            scale={lpScale}
+                                        />
+                                    ))}
+                                </div>
+                            ) : null,
+                        tariff: tariffEl ? <div className="w-full">{tariffEl}</div> : null,
+                    }}
                     extraFields={{
                         pvPower: fmtKW(site.pvPower),
                         gridPower: fmtKW(Math.abs(site.gridPower)),
@@ -1585,7 +1663,6 @@ export function EvccWidget({ config }: WidgetProps) {
     }
 
     if (layout === 'flow') {
-        const flowH = (showBattery ? 190 : 160) * flowScale;
         return (
             <div
                 ref={boxRef}
@@ -1624,14 +1701,7 @@ export function EvccWidget({ config }: WidgetProps) {
                 <LoadpointCard key={idx} lp={lp} idx={idx} prefix={prefix} compact={false} scale={lpScale} />
             ))}
 
-            {site.tariffGrid > 0 && (
-                <div
-                    className="text-right shrink-0"
-                    style={{ color: 'var(--text-secondary)', fontSize: 10 * tariffScale }}
-                >
-                    {site.tariffGrid.toFixed(4)} €/kWh
-                </div>
-            )}
+            {tariffEl}
         </div>
     );
 }

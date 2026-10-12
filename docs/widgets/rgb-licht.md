@@ -32,7 +32,7 @@ Nur der Farbrad-Tab.
 Nur der Farbtemperatur-Tab.
 
 ### Custom
-Power, Helligkeit, Farbrad, Temperatur, Effekte, Palette, Titel, Status und Icon frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Power, Helligkeit, Farbrad, Temperatur, Effekte, Palette, Titel, Status und Icon frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `tabs-all` · `tabs-brightness` · `tabs-color` · `tabs-temperature` (Bedienelement mit Umschalter) und `palette`.
 
 ## Einstellungen
 

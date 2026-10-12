@@ -18,7 +18,7 @@ Große zentrierte Uhrzeit/Datum, Titelzeile darunter — für prominente Anzeige
 Nur Uhrzeit (bzw. Datum/Format) zentriert — für sehr kleine Zellen.
 
 ### Custom
-Uhrzeit, Datum, Format und Extra-Felder frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Uhrzeit, Datum, Format und Extra-Felder frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponente `extras` (Chip-Zeile).
 
 ## Einstellungen
 

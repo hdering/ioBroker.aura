@@ -52,7 +52,7 @@ Eine Zeile: Icon, Titel, Ziffern, Start/Pause und Stopp – für Listen.
 ![](./assets/countdown/layout-compact.png)
 
 ### Custom
-Komponenten `icon`, `digits`, `progress`, `controls`, `step`, `presets` und Felder `remaining`, `state`, `duration`, `target` frei in einer Zellenmatrix – siehe [Custom-Layout](./custom-layout).
+Komponenten `icon`, `digits`, `progress`, `controls`, `step`, `presets` und Felder `remaining`, `state`, `duration`, `target` frei in einer Zellenmatrix – siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `digits-fill` (Ziffern füllen die Zelle), `digits-inline`, `primary-sm` und `stop-sm`.
 
 ## Zustände
 
