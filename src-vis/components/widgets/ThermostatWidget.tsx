@@ -80,6 +80,18 @@ function fitDialText(text: string, fontSize: number): string {
     return text.length > maxChars ? `${text.slice(0, maxChars - 1)}…` : text;
 }
 
+/**
+ * Read a temperature datapoint as a number. Numeric strings count too — a timer
+ * exception value typed as "14,5" lands as a string, and showing a made-up
+ * fallback instead of it reads as a stale setpoint (#769).
+ */
+function toTemp(v: unknown): number | null {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    if (typeof v !== 'string') return null;
+    const s = v.trim();
+    return /^-?\d+([.,]\d+)?$/.test(s) ? Number(s.replace(',', '.')) : null;
+}
+
 /** Shrink the big setpoint until it fits the ring — "-10.50 °C" is twice as wide as "22 °C". */
 function fitDialValue(text: string): number {
     return Math.max(15, Math.min(30, DIAL_TEXT_W / (text.length * 0.62)));
@@ -112,11 +124,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const decimals = (o.decimals as number) ?? defaultDecimals;
     const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
 
-    const target = typeof rawTarget === 'number' ? rawTarget : 20;
-    const actual = typeof rawActual === 'number' ? rawActual : null;
+    const setpoint = toTemp(rawTarget);
+    // Base for +/- and the dial while the setpoint is unreadable; never displayed.
+    const target = setpoint ?? 20;
+    const actual = toTemp(rawActual);
+    const setpointText = setpoint !== null ? formatNum(setpoint, decimals, numFmt) : '–';
 
-    const isHeating = actual !== null && target > actual + 0.2;
-    const isCooling = actual !== null && target < actual - 0.2;
+    const isHeating = actual !== null && setpoint !== null && setpoint > actual + 0.2;
+    const isCooling = actual !== null && setpoint !== null && setpoint < actual - 0.2;
     const accentColor = isHeating
         ? 'var(--climate-heat, var(--accent-red))'
         : isCooling
@@ -261,7 +276,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
         // the dial stays balanced whichever of them is switched off.
         const lines: { key: string; text: string; fs: number; weight: number; fill: string }[] = [];
         if (showSetpoint) {
-            const valueText = `${formatNum(dialTarget, decimals, numFmt)} °C`;
+            const valueText = `${dialDrag !== null ? formatNum(dialDrag, decimals, numFmt) : setpointText} °C`;
             lines.push({ key: 'value', text: valueText, fs: fitDialValue(valueText), weight: 700, fill: arcColor });
         }
         if (showTitle)
@@ -423,14 +438,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
         return (
             <CustomGridView
                 config={config}
-                value={typeof rawTarget === 'number' ? formatNum(rawTarget, decimals, numFmt) : '–'}
-                rawValue={typeof rawTarget === 'number' ? rawTarget : null}
+                value={setpointText}
+                rawValue={setpoint}
                 cssVars={{
                     '--aura-state-color': accentColor,
                     '--aura-actual-color': thresholdColor ?? 'var(--text-secondary)',
                 }}
                 extraFields={{
-                    setpoint: typeof rawTarget === 'number' ? formatNum(rawTarget, decimals, numFmt) : '–',
+                    setpoint: setpointText,
                     actual: actual !== null ? formatNum(actual, decimals, numFmt) : '–',
                     actualTemp: actual !== null ? `${formatNum(actual, decimals, numFmt)}°C` : '',
                     actualSlash: actual !== null ? `/ ${formatNum(actual, decimals, numFmt)}°C` : '',
@@ -532,7 +547,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     {!showTitle && <span className="flex-1" />}
                     {showSetpoint && (
                         <span className="aura-widget-value text-xl font-bold shrink-0" style={{ color: accentColor }}>
-                            {formatNum(target, decimals, numFmt)}°C
+                            {setpointText}°C
                             {showActualTemp && actual !== null && (
                                 <span
                                     className="font-normal text-xs ml-1"
@@ -587,7 +602,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                             className="aura-widget-value text-xl font-bold"
                             style={{ color: accentColor, lineHeight: 1 }}
                         >
-                            {formatNum(target, decimals, numFmt)}°C
+                            {setpointText}°C
                         </span>
                     )}
                     {showActualTemp && actual !== null && (
@@ -679,7 +694,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     <div className="aura-widget-value">
                         {showSetpoint && (
                             <p className="text-xl font-bold leading-none" style={{ color: accentColor }}>
-                                {formatNum(target, decimals, numFmt)}°C
+                                {setpointText}°C
                             </p>
                         )}
                         {showActualTemp && actual !== null && (

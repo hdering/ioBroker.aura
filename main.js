@@ -4036,7 +4036,8 @@ class Aura extends utils.Adapter {
         if (s === '') return '';
         if (s.toLowerCase() === 'true') return true;
         if (s.toLowerCase() === 'false') return false;
-        if (/^-?\d+(\.\d+)?$/.test(s)) return Number(s);
+        // German decimal comma too: "14,5" must reach a number DP as 14.5 (#769).
+        if (/^-?\d+([.,]\d+)?$/.test(s)) return Number(s.replace(',', '.'));
         return s;
     }
 
