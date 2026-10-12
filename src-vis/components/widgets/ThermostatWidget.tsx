@@ -223,7 +223,15 @@ export function ThermostatWidget({ config }: WidgetProps) {
         );
 
     const layout = config.layout ?? 'default';
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const {
+        battery,
+        reach,
+        window: windowText,
+        batteryIcon,
+        reachIcon,
+        windowIcon,
+        statusBadges,
+    } = useStatusFields(config);
 
     // ── DIAL (Rundskala) as a reusable element ───────────────────────────────
     // Drawn by the dial layout and offered to the custom grid as 'dial' (#768).
@@ -453,6 +461,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     status: isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
                     battery,
                     reach,
+                    window: windowText,
                 }}
                 extraComponents={{
                     icon: showIcon ? (
@@ -512,6 +521,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         ) : null,
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
+                    'window-icon': windowIcon,
                     'status-badges': statusBadges,
                     dial: <div className="w-full h-full min-h-0 flex items-center justify-center">{renderDial()}</div>,
                     presets: presets.length > 0 ? <PresetButtons /> : null,

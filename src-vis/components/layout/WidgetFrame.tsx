@@ -165,7 +165,14 @@ import { DpRangeHint } from '../config/DpRangeHint';
 import { detectMediaDevices, type DetectedMediaDevice } from '../../utils/mediaDeviceDetectors';
 import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE, conditionSlotsFor } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
-import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLightDps } from '../../utils/dpTemplates';
+import {
+    DP_TEMPLATES,
+    findMainDpForSecondary,
+    autoDetectStatusDps,
+    autoDetectLightDps,
+    WINDOW_NAMES,
+} from '../../utils/dpTemplates';
+import { WINDOW_OPEN_DEFAULT } from '../widgets/StatusBadges';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
@@ -6655,6 +6662,7 @@ const PICKER_OPTION_KEYS = {
     windowcontact_batteryDp: 'batteryDp',
     status_batteryDp: 'batteryDp',
     status_unreachDp: 'unreachDp',
+    status_windowDp: 'windowDp',
     camera_wakeUpDp: 'wakeUpDp',
     camera_urlDp: 'streamUrlDp',
     climate_humidityDp: 'humidityDatapoint',
@@ -18838,6 +18846,8 @@ function WidgetFrameInner({
                                 };
                                 const showBadges = (o.showStatusBadges as boolean) !== false;
                                 const alertOnly = (o.statusBadgesAlertOnly as boolean) === true;
+                                // A window contact is the window itself — a window badge there is noise.
+                                const showWindow = config.type !== 'windowcontact';
                                 const autoFillStatus = async () => {
                                     if (!config.datapoint) return;
                                     const parts = config.datapoint.split('.');
@@ -18877,6 +18887,10 @@ function WidgetFrameInner({
                                             find('UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline') ??
                                             findUp('UNREACH', 'UNREACHABLE');
                                         if (v) patch.unreachDp = v;
+                                    }
+                                    if (showWindow) {
+                                        const v = find(...WINDOW_NAMES);
+                                        if (v) patch.windowDp = v;
                                     }
                                     if (Object.keys(patch).length) setO(patch);
                                 };
@@ -19185,6 +19199,68 @@ function WidgetFrameInner({
                                                         </div>
                                                     );
                                                 })()}
+                                            {/* Window DP (#767) */}
+                                            {showWindow && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Fenster-DP (z.B. WINDOW_OPEN_REPORTING)
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        <input
+                                                            type="text"
+                                                            value={(o.windowDp as string) ?? ''}
+                                                            onChange={(e) =>
+                                                                setO({ windowDp: e.target.value || undefined })
+                                                            }
+                                                            placeholder="optional"
+                                                            className={`flex-1 ${stInputCls} min-w-0`}
+                                                            style={stInputStyle}
+                                                        />
+                                                        <button
+                                                            onClick={() => setPickerTarget('status_windowDp')}
+                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                            title={t('wf.edit.fromIoBroker')}
+                                                        >
+                                                            <Database size={13} />
+                                                        </button>
+                                                        <JsonPathButton
+                                                            value={o.windowDp as string}
+                                                            onChange={(ref) => setO({ windowDp: ref || undefined })}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {showWindow && (o.windowDp as string) && (
+                                                <div
+                                                    className="space-y-1.5 pl-2"
+                                                    style={{ borderLeft: '2px solid var(--app-border)' }}
+                                                >
+                                                    <label
+                                                        className="text-[11px] block mb-1"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Werte für &bdquo;offen&ldquo; (kommagetrennt)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={(o.windowOpenValues as string) ?? ''}
+                                                        onChange={(e) =>
+                                                            setO({ windowOpenValues: e.target.value || undefined })
+                                                        }
+                                                        placeholder={WINDOW_OPEN_DEFAULT}
+                                                        className={`w-full ${stInputCls} font-mono`}
+                                                        style={stInputStyle}
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );

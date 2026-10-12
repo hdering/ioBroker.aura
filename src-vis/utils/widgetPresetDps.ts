@@ -50,6 +50,7 @@ export const DP_KEY_LABELS: Record<string, string> = {
     lockDp: 'Verriegelung',
     batteryDp: 'Batterie',
     unreachDp: 'Erreichbarkeit',
+    windowDp: 'Fenster',
     lastChangeDatapoint: 'Letzte Änderung',
 };
 

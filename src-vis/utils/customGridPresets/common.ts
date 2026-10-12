@@ -64,7 +64,7 @@ export function iconCell(extra: Partial<CustomCell> = {}): CustomCell {
 /** Battery / reach DPs configured and the badges not switched off? */
 export function hasStatusBadges(o: Opts): boolean {
     if (o.showStatusBadges === false) return false;
-    return !!(o.batteryDp || o.unreachDp || o.lockDp);
+    return !!(o.batteryDp || o.unreachDp || o.lockDp || o.windowDp);
 }
 
 /**

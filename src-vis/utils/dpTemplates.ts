@@ -170,6 +170,17 @@ const SHUTTER_SECONDARY_DPS: DpTemplate['secondaryDps'] = [
     },
 ];
 
+/** Window-open siblings of a thermostat channel (HM: WINDOW_OPEN_REPORTING, HmIP:
+ *  WINDOW_STATE, zigbee2mqtt: window_open) — fills the status badge `windowDp`. */
+export const WINDOW_NAMES = [
+    'WINDOW_OPEN_REPORTING',
+    'WINDOW_STATE',
+    'WINDOW_OPEN',
+    'window_open',
+    'windowOpen',
+    'window_state',
+];
+
 export const DP_TEMPLATES: DpTemplate[] = [
     // ── BESCHATTUNG ───────────────────────────────────────────────────────────
     {
@@ -241,6 +252,7 @@ export const DP_TEMPLATES: DpTemplate[] = [
             },
             { optionKey: 'batteryDp', siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat'] },
             { optionKey: 'unreachDp', siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE'] },
+            { optionKey: 'windowDp', siblingNames: WINDOW_NAMES },
         ],
     },
 
@@ -542,6 +554,9 @@ export function findMainDpForSecondary(
         if (!tpl.primarySiblingNames?.length) continue;
         let matchedOptionKey: string | null = null;
         for (const sdp of tpl.secondaryDps) {
+            // A window DP picked as main DP is meant for a window widget, not a
+            // reason to turn the widget into the thermostat next to it.
+            if (sdp.optionKey === 'windowDp') continue;
             if (sdp.siblingNames.includes(lastSeg)) {
                 matchedOptionKey = sdp.optionKey;
                 break;

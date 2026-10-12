@@ -94,3 +94,11 @@ Nur im Layout **Rundskala**.
 ### Status-Datenpunkte
 
 Optionale Batterie- und Erreichbarkeits-DPs werden als kleine Badges eingeblendet (Abschnitt **Status-Datenpunkte** im Dialog).
+
+| Status-DP | Badge | Auto-Erkennen |
+|---|---|---|
+| Batterie | Batterie grün / orange | `LOWBAT`, `LOW_BAT` … |
+| Erreichbarkeit | Funk grün / rot | `UNREACH` … |
+| Fenster | Fenster grün (zu) / blau (offen) | `WINDOW_OPEN_REPORTING`, `WINDOW_STATE`, `window_open` |
+
+**Fenster – Werte für „offen“:** leer = `true,1,2,open,tilted` (gekippt zählt als offen). Mit **Nur bei Alarm** erscheint der Fenster-Badge nur, solange das Fenster offen ist.

@@ -45,7 +45,12 @@ export const KEY_DESCRIPTIONS = {
     batteryDp: 'Datenpunkt für den Batteriestatus (Badge in der Ecke).',
     unreachDp: 'Datenpunkt für die Erreichbarkeit (Badge in der Ecke).',
     lockDp: 'Datenpunkt für die Kindersicherung (Badge in der Ecke).',
-    showStatusBadges: 'Batterie-/Erreichbarkeits-/Sperr-Badges anzeigen.',
+    windowDp:
+        'Datenpunkt „Fenster offen“ (Badge in der Ecke), z. B. WINDOW_OPEN_REPORTING oder WINDOW_STATE des ' +
+        'Thermostat-Kanals. Zählt bei statusBadgesAlertOnly als Meldung.',
+    windowOpenValues:
+        'Kommagetrennte Werte von windowDp, die „offen“ bedeuten. Leer = true,1,2,open,tilted (gekippt zählt als offen).',
+    showStatusBadges: 'Batterie-/Erreichbarkeits-/Sperr-/Fenster-Badges anzeigen.',
     namePattern: 'Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>.',
     showRoom: 'Raum des Geräts mit anzeigen.',
     showCount: 'Anzahl-Chip in der Kopfzeile anzeigen.',

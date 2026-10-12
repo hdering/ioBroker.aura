@@ -2,6 +2,39 @@ import { Battery, BatteryLow, Lock, LockOpen, Wifi, WifiOff } from 'lucide-react
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetConfig } from '../../types';
 
+/** Values of `windowDp` that mean "open" unless `windowOpenValues` says otherwise —
+ *  covers booleans (WINDOW_OPEN_REPORTING), HmIP WINDOW_STATE (1 = open on a TRV,
+ *  1/2 = tilted/open on rotary handles) and string states (OPEN / TILTED). */
+export const WINDOW_OPEN_DEFAULT = 'true,1,2,open,tilted';
+
+/** Lucide-style window glyph — lucide has no open/closed window pair. */
+export function WindowGlyph({ open, size, color }: { open: boolean; size: number; color: string }) {
+    return (
+        <svg
+            width={size}
+            height={size}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={color}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            {open ? (
+                <>
+                    <path d="M12 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h7" />
+                    <path d="M12 3l8 3v15l-8-3z" />
+                </>
+            ) : (
+                <>
+                    <rect x="4" y="3" width="16" height="18" rx="1" />
+                    <path d="M12 3v18M4 12h16" />
+                </>
+            )}
+        </svg>
+    );
+}
+
 // Options read from config.options:
 //   batteryDp           – DP ID
 //   batteryMode         – 'boolean' (default) | 'percent'
@@ -12,10 +45,12 @@ import type { WidgetConfig } from '../../types';
 //   reachTrueValues     – comma-separated values meaning the "true" state (default 'true,1')
 //   lockDp              – DP ID (optional)
 //   lockLockedValues    – comma-separated values meaning "locked" (default 'true,1')
+//   windowDp            – DP ID (optional), e.g. WINDOW_OPEN_REPORTING / WINDOW_STATE
+//   windowOpenValues    – comma-separated values meaning "open" (default WINDOW_OPEN_DEFAULT)
 //   showStatusBadges    – boolean, default true
 //   statusBadgesAlertOnly – boolean, only show when something is wrong
 
-function matchesValues(value: unknown, valList: string): boolean {
+export function matchesValues(value: unknown, valList: string): boolean {
     if (!valList.trim()) return false;
     const str = String(value ?? '')
         .toLowerCase()
@@ -39,13 +74,15 @@ export function StatusBadges({ config }: Props) {
     const battDpId = (opts.batteryDp as string) ?? '';
     const unreachDpId = (opts.unreachDp as string) ?? '';
     const lockDpId = (opts.lockDp as string) ?? '';
+    const windowDpId = (opts.windowDp as string) ?? '';
 
     const { value: battVal } = useDatapoint(battDpId);
     const { value: unreachVal } = useDatapoint(unreachDpId);
     const { value: lockVal } = useDatapoint(lockDpId);
+    const { value: windowVal } = useDatapoint(windowDpId);
 
     if (!show) return null;
-    if (!battDpId && !unreachDpId && !lockDpId) return null;
+    if (!battDpId && !unreachDpId && !lockDpId && !windowDpId) return null;
 
     // ── battery ────────────────────────────────────────────────────────────────
     const battMode = (opts.batteryMode as 'boolean' | 'percent') ?? 'boolean';
@@ -77,7 +114,11 @@ export function StatusBadges({ config }: Props) {
     const lockLockedValues = (opts.lockLockedValues as string) ?? 'true,1';
     const isLocked = lockDpId ? matchesValues(lockVal, lockLockedValues) : null;
 
-    if (alertOnly && !isBattLow && !isUnreach) return null;
+    // ── window ─────────────────────────────────────────────────────────────────
+    const windowOpenValues = (opts.windowOpenValues as string) || WINDOW_OPEN_DEFAULT;
+    const isWindowOpen = windowDpId ? matchesValues(windowVal, windowOpenValues) : false;
+
+    if (alertOnly && !isBattLow && !isUnreach && !isWindowOpen) return null;
 
     const green = 'var(--badge-ok, var(--accent-green, #22c55e))';
     const orange = 'var(--badge-warn, #f59e0b)';
@@ -87,6 +128,7 @@ export function StatusBadges({ config }: Props) {
     const battColor = isBattLow ? orange : green;
     const reachColor = isUnreach ? red : green;
     const lockColor = isLocked ? blue : green;
+    const windowColor = isWindowOpen ? 'var(--badge-info, #0ea5e9)' : green;
 
     const battTitle = battDpId
         ? battMode === 'percent' && battPercent !== null
@@ -132,6 +174,20 @@ export function StatusBadges({ config }: Props) {
                     ) : (
                         <Wifi size={10} style={{ color: reachColor }} />
                     )}
+                </span>
+            )}
+            {windowDpId && (!alertOnly || isWindowOpen) && (
+                <span
+                    title={isWindowOpen ? 'Fenster offen' : 'Fenster geschlossen'}
+                    className="flex items-center justify-center rounded-full"
+                    style={{
+                        width: 18,
+                        height: 18,
+                        background: `color-mix(in srgb, ${windowColor} 20%, var(--app-surface))`,
+                        border: `1px solid color-mix(in srgb, ${windowColor} 50%, transparent)`,
+                    }}
+                >
+                    <WindowGlyph open={isWindowOpen} size={10} color={windowColor} />
                 </span>
             )}
             {lockDpId && isLocked !== null && (

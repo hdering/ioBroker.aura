@@ -101,6 +101,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'btn-minus', label: '− Temperatur' },
         { key: 'battery-icon', label: 'Batterie-Icon' },
         { key: 'reach-icon', label: 'Erreichbarkeit-Icon' },
+        { key: 'window-icon', label: 'Fenster-Icon' },
         { key: 'status-badges', label: 'Status-Badges (alle)' },
     ],
     shutter: [
@@ -360,6 +361,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'status', label: 'Heizstatus' },
         { key: 'battery', label: 'Batterie' },
         { key: 'reach', label: 'Erreichbarkeit' },
+        { key: 'window', label: 'Fenster' },
     ],
     shutter: [
         { key: 'position', label: 'Position (%)' },

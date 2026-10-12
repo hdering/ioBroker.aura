@@ -2,18 +2,7 @@ import { Battery, BatteryLow, Wifi, WifiOff } from 'lucide-react';
 import { useDatapoint } from './useDatapoint';
 import type { WidgetConfig } from '../types';
 import type React from 'react';
-
-function matchesValues(value: unknown, valList: string): boolean {
-    if (!valList.trim()) return false;
-    const str = String(value ?? '')
-        .toLowerCase()
-        .trim();
-    return valList
-        .split(',')
-        .map((v) => v.trim().toLowerCase())
-        .filter(Boolean)
-        .some((v) => v === str);
-}
+import { matchesValues, WindowGlyph, WINDOW_OPEN_DEFAULT } from '../components/widgets/StatusBadges';
 
 const BADGE_SIZE = 18;
 
@@ -39,6 +28,8 @@ interface StatusFields {
     reach: string;
     batteryIcon: React.ReactNode;
     reachIcon: React.ReactNode;
+    window: string;
+    windowIcon: React.ReactNode;
     /** All configured status badge icons in a single flex row. */
     statusBadges: React.ReactNode;
 }
@@ -56,6 +47,8 @@ export function useStatusFields(config: WidgetConfig): StatusFields {
     const reachDpId = (opts.unreachDp as string) ?? '';
     const { value: battRaw } = useDatapoint(battDpId);
     const { value: reachRaw } = useDatapoint(reachDpId);
+    const windowDpId = (opts.windowDp as string) ?? '';
+    const { value: windowRaw } = useDatapoint(windowDpId);
 
     // ── battery ─────────────────────────────────────────────────────────────────
     const battMode = (opts.batteryMode as 'percent' | 'boolean') ?? 'boolean';
@@ -112,13 +105,26 @@ export function useStatusFields(config: WidgetConfig): StatusFields {
         </Badge>
     ) : null;
 
+    // ── window ──────────────────────────────────────────────────────────────────
+    const isWindowOpen = windowDpId
+        ? matchesValues(windowRaw, (opts.windowOpenValues as string) || WINDOW_OPEN_DEFAULT)
+        : false;
+    const windowText = windowDpId ? (isWindowOpen ? 'Fenster offen' : 'Fenster zu') : '';
+    const windowColor = isWindowOpen ? 'var(--badge-info, #0ea5e9)' : green;
+    const windowIcon: React.ReactNode = windowDpId ? (
+        <Badge color={windowColor}>
+            <WindowGlyph open={isWindowOpen} size={10} color={windowColor} />
+        </Badge>
+    ) : null;
+
     const statusBadges: React.ReactNode =
-        batteryIcon || reachIcon ? (
+        batteryIcon || reachIcon || windowIcon ? (
             <span className="flex items-center gap-0.5">
                 {batteryIcon}
                 {reachIcon}
+                {windowIcon}
             </span>
         ) : null;
 
-    return { battery, reach, batteryIcon, reachIcon, statusBadges };
+    return { battery, reach, window: windowText, batteryIcon, reachIcon, windowIcon, statusBadges };
 }

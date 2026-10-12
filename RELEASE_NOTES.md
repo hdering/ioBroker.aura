@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Status badges - optional window datapoint shows an open/closed window badge next to battery and reachability, e.g. on the thermostat; auto-detected from WINDOW_OPEN_REPORTING / WINDOW_STATE (#767)
