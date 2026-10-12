@@ -1,5 +1,6 @@
 import { Database } from 'lucide-react';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
+import { EmbedMobileHeightField } from './EmbedMobileHeightField';
 import { HtmlApiExamples } from './HtmlApiExamples';
 
 interface Props {
@@ -155,6 +156,8 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     onToggle={() => set({ scrollable: !((o.scrollable as boolean) ?? true) })}
                 />
             </div>
+
+            <EmbedMobileHeightField options={o} onChange={set} />
 
             {/* Datenpunkte schreiben (window.aura im iframe) */}
             <div>

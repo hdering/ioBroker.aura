@@ -43,6 +43,7 @@ import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
 import { reportMetric } from '../../utils/perfMetrics';
+import { resolveEmbedMobileHeight } from '../../utils/embedMobileHeight';
 import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../../utils/renderReport';
 
 // Default gap — overridden by config at runtime
@@ -52,7 +53,8 @@ const DEFAULT_MARGIN = 10;
  * Widgets whose whole body is an embedded foreign document: the page inside scales
  * with the frame's width, so on the narrow mobile column the stored row count leaves
  * a tall empty band above and below the content (issue #645). They keep their desktop
- * aspect ratio on mobile instead — see the mobile branch.
+ * aspect ratio on mobile instead, unless `mobileHeight` asks for rows or a fixed height
+ * (#772) — see utils/embedMobileHeight and the mobile branch.
  */
 const EMBED_TYPES = new Set(['iframe', 'html']);
 /** Floor for that shrink, so a wide-and-flat frame doesn't collapse to a few pixels. */
@@ -764,7 +766,13 @@ export function Dashboard({
                                                 // box the desktop aspect ratio instead of the raw row count:
                                                 // maxHeight keeps it from ever growing past the stored height,
                                                 // minHeight catches the wide-and-flat case.
-                                                const keepsAspect = EMBED_TYPES.has(ew.type);
+                                                // Responsive pages (Grafana) reflow instead of scaling and
+                                                // got squashed to a strip by that ratio (#772) — the widget
+                                                // picks rows or a fixed px height instead.
+                                                const embedHeight = EMBED_TYPES.has(ew.type)
+                                                    ? resolveEmbedMobileHeight(ew.options)
+                                                    : undefined;
+                                                const keepsAspect = embedHeight?.mode === 'aspect';
                                                 const desktopWidth = Math.max(
                                                     1,
                                                     w.gridPos.w * snapX + (w.gridPos.w - 1) * MARGIN,
@@ -782,15 +790,17 @@ export function Dashboard({
                                                               maxHeight: boxHeight,
                                                               minHeight: Math.min(boxHeight, EMBED_MOBILE_MIN_H),
                                                           }
-                                                        : {
-                                                              // 'panels' is a fixed-viewport carousel: its
-                                                              // slide track is absolutely positioned, so with
-                                                              // auto height the flex-1 viewport collapses to 0
-                                                              // (only title + dots show). It needs a definite
-                                                              // height like a normal widget — unlike group/
-                                                              // mediaplayer which size to their stacked content.
-                                                              height: boxHeight,
-                                                          };
+                                                        : embedHeight?.mode === 'px'
+                                                          ? { height: embedHeight.px }
+                                                          : {
+                                                                // 'panels' is a fixed-viewport carousel: its
+                                                                // slide track is absolutely positioned, so with
+                                                                // auto height the flex-1 viewport collapses to 0
+                                                                // (only title + dots show). It needs a definite
+                                                                // height like a normal widget — unlike group/
+                                                                // mediaplayer which size to their stacked content.
+                                                                height: boxHeight,
+                                                            };
                                                 return (
                                                     <div
                                                         key={w.id}

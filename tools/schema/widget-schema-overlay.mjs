@@ -1337,6 +1337,25 @@ export const WIDGET_OPTION_NOTES = {
 // own options binding. Offered for utils/autoHeight AUTO_HEIGHT_TYPES only.
 const AUTO_HEIGHT_OPTION = { autoHeight: { type: 'boolean', default: false } };
 
+// Read by the Dashboard's mobile flow (utils/embedMobileHeight), not by the widget (#772).
+const EMBED_MOBILE_HEIGHT_OPTIONS = {
+    mobileHeight: {
+        type: 'string',
+        enum: ['aspect', 'rows', 'px'],
+        default: 'aspect',
+        description:
+            'Höhe im schmalen Handy-/Tablet-Fluss: "aspect" (Standard) behält das Seitenverhältnis vom ' +
+            'Desktop - richtig für Inhalte, die mit der Breite skalieren. "rows" nimmt die Zeilenhöhe wie am ' +
+            'Desktop - richtig für Seiten, die sich selbst umbrechen (Grafana), die das Seitenverhältnis sonst ' +
+            'flach drückt. "px" setzt mobileHeightPx.',
+    },
+    mobileHeightPx: {
+        type: 'number',
+        default: 300,
+        description: 'Feste Höhe in Pixeln im Handy-/Tablet-Fluss, nur bei mobileHeight "px".',
+    },
+};
+
 /**
  * Keys the readers cannot see. Group and panels keep their children in a
  * separate store, so the component never reads them off `options`.
@@ -1367,7 +1386,9 @@ export const EXTRA_OPTIONS = {
                 'dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst ' +
                 'bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht.',
         },
+        ...EMBED_MOBILE_HEIGHT_OPTIONS,
     },
+    html: { ...EMBED_MOBILE_HEIGHT_OPTIONS },
     calendar: {
         ...AUTO_HEIGHT_OPTION,
         // Read inside getMultiDayMode(options), i.e. through a parameter rather

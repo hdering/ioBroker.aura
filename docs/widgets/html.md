@@ -28,6 +28,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `valueDatapoint` | — | Datenpunkt für den Platzhalter `{dp}` |
 | `decimals` | global | Nachkommastellen für Zahlen aus Platzhaltern |
 | `scrollable` | `true` | Scrollen im iFrame erlauben |
+| `mobileHeight` | `aspect` | Höhe auf dem Handy: `aspect` (Desktop-Seitenverhältnis) · `rows` (Zeilenhöhe, z. B. Grafana) · `px` |
+| `mobileHeightPx` | `300` | feste Höhe in px bei `mobileHeight: px` |
 
 ### Platzhalter
 

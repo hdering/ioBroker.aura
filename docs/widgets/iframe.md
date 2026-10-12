@@ -31,6 +31,8 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 | `iframeColorScheme` | `theme` | `theme` · `device` · `neutral` — siehe unten |
 | `iframeZoom` | `100` | Zoomstufe in % (25–400), gilt auf allen Geräten |
 | `iframeZoomControls` | `false` | Zoom-Tasten am Widget; Stufe gilt nur auf dem Gerät |
+| `mobileHeight` | `aspect` | Höhe auf dem Handy: `aspect` (Desktop-Seitenverhältnis) · `rows` (Zeilenhöhe, z. B. Grafana) · `px` |
+| `mobileHeightPx` | `300` | feste Höhe in px bei `mobileHeight: px` |
 
 `reloadOnWake` ist für eingebettete Videos/Streams gedacht: Der Browser bricht sie im
 Standby ab, und ohne Nutzer-Tipp startet der Player nicht wieder. Für Seiten mit

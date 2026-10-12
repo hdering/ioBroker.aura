@@ -77,6 +77,7 @@ import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { IFRAME_COLOR_SCHEME_MODES, resolveIframeColorSchemeMode } from '../../utils/iframeColorScheme';
 import { IFRAME_ZOOM_STOPS, clampIframeZoom } from '../../utils/iframeZoom';
+import { EmbedMobileHeightField } from '../config/EmbedMobileHeightField';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { baseDpId } from '../../utils/dpRef';
 import { defaultLayoutFor, getLayoutOptions, isUnknownLayout } from '../../utils/widgetLayouts';
@@ -13784,6 +13785,7 @@ function WidgetFrameInner({
                                                 />
                                             </button>
                                         </div>
+                                        <EmbedMobileHeightField options={o} onChange={set} />
                                         {!(o.keepAlive ?? false) && (
                                             <div>
                                                 <label

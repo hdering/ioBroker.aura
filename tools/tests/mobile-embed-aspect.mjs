@@ -62,13 +62,16 @@ async function show(widget) {
     }, widget.id);
 }
 
-const widget = (id, type, w, h) => ({
+const widget = (id, type, w, h, extra = {}) => ({
     id,
     type,
     title: 'Energiefluss',
     layout: 'default',
     gridPos: { x: 0, y: 0, w, h },
-    options: type === 'html' ? { htmlContent: '<div style="height:2000px"></div>' } : { iframeUrl: PAGE },
+    options: {
+        ...(type === 'html' ? { htmlContent: '<div style="height:2000px"></div>' } : { iframeUrl: PAGE }),
+        ...extra,
+    },
 });
 
 // ── 1. Der Fall aus dem Issue: breite Kachel, schmale Spalte ──────────────────────────
@@ -107,6 +110,14 @@ check(
     `${html.h}px, erwartet ${expected}px`,
 );
 
+// ── 3b. #772: responsive Seiten (Grafana) wählen Zeilen- oder feste Höhe ──────────────
+const byRows = await show(widget('embed-rows', 'iframe', 94, 27, { mobileHeight: 'rows' }));
+check('mobileHeight "rows": Rasterhöhe wie am Desktop', byRows.h === rows(27), `${byRows.h}px statt ${rows(27)}px`);
+const byPx = await show(widget('embed-px', 'iframe', 94, 27, { mobileHeight: 'px', mobileHeightPx: 420 }));
+check('mobileHeight "px": feste Höhe', byPx.h === 420, `${byPx.h}px statt 420px`);
+const htmlRows = await show(widget('embed-html-rows', 'html', 47, 29, { mobileHeight: 'rows' }));
+check('HTML-Widget: mobileHeight "rows"', htmlRows.h === rows(29), `${htmlRows.h}px statt ${rows(29)}px`);
+
 // ── 4. Alle anderen Widgets bleiben bei ihrer Rasterhöhe ──────────────────────────────
 const value = await show({
     id: 'plain',
@@ -124,6 +135,8 @@ await page.setViewportSize(DESKTOP);
 await page.waitForTimeout(300);
 const desktop = await show(wide);
 check('Desktop: iFrame behält seine Rasterhöhe', desktop.h === rows(29), `${desktop.h}px statt ${rows(29)}px`);
+const desktopPx = await show(widget('embed-px-desk', 'iframe', 47, 29, { mobileHeight: 'px', mobileHeightPx: 420 }));
+check('Desktop: mobileHeightPx wirkt nicht', desktopPx.h === rows(29), `${desktopPx.h}px statt ${rows(29)}px`);
 
 check('keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
 
