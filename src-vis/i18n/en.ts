@@ -612,6 +612,11 @@ export const en: Record<TranslationKey, string> = {
     'pin.setPlaceholder': 'PIN set – type a new one to change it',
     'pin.protectedHint': 'Protected server-side. Type a new PIN to change it, “Remove PIN” lifts the protection.',
     'pin.hint': 'Empty = no protection. The content only appears once the PIN was entered.',
+    'pin.linkFrom': 'Use PIN from',
+    'pin.linkNone': 'Own PIN',
+    'pin.linkedPlaceholder': 'Linked PIN – type one to use your own',
+    'pin.linkedHint': 'Uses the PIN of “{name}”. Change it there and it changes here too (on save).',
+    'pin.linkLost': 'The linked view no longer has a PIN – the last PIN is kept.',
     'pin.keepUnlocked': 'Stay unlocked',
     'pin.keepUnlockedHint':
         'Stay open after unlocking until the page is reloaded. Off: locks again as soon as you navigate away.',

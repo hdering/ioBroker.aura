@@ -263,6 +263,7 @@ export interface Tab {
     pinLength?: number; // digit count of the PIN (keypad hint), never the PIN itself
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the tab button - the gate stays, only the badge goes (#692)
+    pinFrom?: string; // vault key of the section/tab whose PIN this one follows (linked PIN)
     idleReturnExempt?: boolean; // never left automatically by the idle-return timer (#638)
     /** Background image behind this tab's widgets; unset = the section's, then the layout's (#442). */
     backgroundImage?: BackgroundImage;
@@ -289,6 +290,7 @@ export interface Section {
     pinLength?: number; // digit count of the PIN (keypad hint), never the PIN itself
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the section menu entry - the gate stays, only the badge goes (#692)
+    pinFrom?: string; // vault key of the section/tab whose PIN this one follows (linked PIN)
     settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
     /** Background image for every tab of the section that sets none itself; unset = the layout's (#442). */
     backgroundImage?: BackgroundImage;
@@ -523,6 +525,7 @@ interface DashboardState {
                 | 'pin'
                 | 'pinRelock'
                 | 'pinHideLock'
+                | 'pinFrom'
                 // Cleared together with `pin` when the protection is removed — a
                 // leftover stub flag would keep the view locked with no PIN.
                 | 'pinProtected'
@@ -882,6 +885,7 @@ export const useDashboardStore = create<DashboardState>()(
                                         pinProtected: undefined,
                                         pinLength: undefined,
                                         pinRelock: sEntry?.open ? undefined : sEntry?.pinRelock,
+                                        pinFrom: sEntry?.open ? undefined : next.pinFrom,
                                     };
                                 }
                                 return {
@@ -900,6 +904,7 @@ export const useDashboardStore = create<DashboardState>()(
                                             pinProtected: undefined,
                                             pinLength: undefined,
                                             pinRelock: tEntry.open ? undefined : tEntry.pinRelock,
+                                            pinFrom: tEntry.open ? undefined : tb.pinFrom,
                                         };
                                     }),
                                 };

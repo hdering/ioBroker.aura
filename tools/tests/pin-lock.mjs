@@ -43,6 +43,7 @@ const {
     unlocksFor,
     usePinStore,
     unlockedReader,
+    pinSourceOptions,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
@@ -271,6 +272,42 @@ check(
     'a section whose every tab is locked offers nothing',
     pinEscapeTarget([{ id: 's1', name: 'A', tabs: [{ id: 't', name: 'T', pin: '5' }] }], 's1', null, none) === null,
 );
+
+// ── pinSourceOptions (link to an existing PIN) ────────────────────────────────
+{
+    const layouts = [
+        {
+            id: 'l1',
+            name: 'Haus',
+            sections: [
+                { id: 'sLock', name: 'Musik', pin: '1234', tabs: [{ id: 'tIn', name: 'Innen', pin: '9' }] },
+                {
+                    id: 'sOpen',
+                    name: 'Mixed',
+                    tabs: [
+                        { id: 'tA', name: 'A', pinProtected: true },
+                        { id: 'tB', name: 'B', pin: '__aura_link__', pinFrom: 'tab:sOpen:tA' },
+                        { id: 'tC', name: 'C' },
+                    ],
+                },
+            ],
+        },
+        { id: 'l2', name: 'Tablet', sections: [{ id: 'sX', name: 'X', tabs: [{ id: 't', name: 'T' }] }] },
+    ];
+    const keys = (self) => pinSourceOptions(layouts, self).map((o) => o.key);
+    check(
+        'free tab sees every PIN view, never the tabs of a locked section',
+        keys('tab:sOpen:tC').join() === 'section:sLock,tab:sOpen:tA,tab:sOpen:tB',
+    );
+    check('a view never offers itself', !keys('section:sLock').includes('section:sLock'));
+    check('a tab does not link to its own (locked) section', !keys('tab:sLock:tIn').includes('section:sLock'));
+    check('a section does not link to its own tabs', keys('section:sOpen').join() === 'section:sLock');
+    check('no option whose link leads back (cycle)', !keys('tab:sOpen:tA').includes('tab:sOpen:tB'));
+    check(
+        'layout name prefixes the label with several layouts',
+        pinSourceOptions(layouts, 'tab:sX:t')[0].label === 'Haus › Musik',
+    );
+}
 
 // ── summary ───────────────────────────────────────────────────────────────────
 const failed = results.filter((r) => !r.ok);

@@ -228,6 +228,38 @@ try {
     eq('… the MCP release is there', await visible(mcp), true);
     eq('… and so is the remove button', await visible(remove), true);
 
+    // ── 4b. link a free tab to the existing PIN instead of inventing one ─────
+    const link = page.locator('select.aura-pin-link');
+    await openTabPanel('Frei');
+    eq('a free tab offers the existing PIN as a source', await link.first().locator('option').allInnerTexts(), [
+        'Eigene PIN',
+        'Bereich › Gesperrt',
+    ]);
+    await link.first().selectOption('tab:sec1:tKeep');
+    await page.waitForTimeout(200);
+    eq('linking sets the LINK sentinel + source', await tabState('tFree'), {
+        pin: '__aura_link__',
+        pinFrom: 'tab:sec1:tKeep',
+        widgets: 1,
+    });
+    eq('… the field stays empty (the code is not known here)', await input.first().inputValue(), '');
+    check(
+        '… and says whose PIN it follows',
+        (await pinBlockText()).includes('Nutzt die PIN von'),
+        await pinBlockText(),
+    );
+    eq('… with the PIN settings shown', await visible(remove), true);
+    await input.first().fill('7777');
+    await page.waitForTimeout(200);
+    eq('typing an own PIN ends the link', await tabState('tFree'), { pin: '7777', widgets: 1 });
+    await link.first().selectOption('tab:sec1:tKeep');
+    await link.first().selectOption('');
+    await page.waitForTimeout(200);
+    eq('„Eigene PIN“ on an unsaved link clears it again', await tabState('tFree'), { widgets: 1 });
+    // A stored view keeps KEEP when linked — its vault entry must not look unsaved.
+    await openTabPanel('Gesperrt');
+    eq('the stored tab has no source to offer (only itself has a PIN)', await visible(link), false);
+
     // ── 5. the same panel on a bare stub — the state right after a save ──────
     // The editor has NOT pulled the content (the vault read fails here), so `pin`
     // is undefined and only `pinProtected` says the view is locked. That is what

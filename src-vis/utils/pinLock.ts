@@ -53,6 +53,73 @@ export type PinScope = 'section' | 'tab';
  */
 export const KEEP_PIN = '__aura_keep__';
 
+/**
+ * Sentinel for a view that has no stored PIN yet and takes its PIN from the view
+ * named in `pinFrom` (linked PIN). A view that is already stored keeps KEEP_PIN and
+ * only gains `pinFrom`. Either way the adapter resolves the source's hash on every
+ * save, so changing the source PIN changes it here too. Must equal LINK_PIN in
+ * lib/security/dashboardVault.js.
+ */
+export const LINK_PIN = '__aura_link__';
+
+export interface PinSourceNode extends PinProtected {
+    id: string;
+    name: string;
+    pinFrom?: string;
+}
+
+export interface PinSourceLayout {
+    id: string;
+    name: string;
+    sections: (PinSourceNode & { tabs: PinSourceNode[] })[];
+}
+
+export interface PinSourceOption {
+    key: string;
+    /** „Layout › Bereich › Tab“ — the layout part only when there is more than one. */
+    label: string;
+}
+
+/**
+ * Every other section/tab whose PIN `selfKey` may follow. Left out: the view itself,
+ * tabs of a PIN-gated section (their own PIN is subsumed and never stored), the own
+ * section of a tab and the own tabs of a section (same reason), and views whose link
+ * chain already leads back to `selfKey` (a cycle could never resolve).
+ */
+export function pinSourceOptions(layouts: readonly PinSourceLayout[], selfKey: string): PinSourceOption[] {
+    const linkOf = new Map<string, string | undefined>();
+    for (const l of layouts)
+        for (const sec of l.sections) {
+            linkOf.set(sectionPinKey(sec.id), sec.pinFrom);
+            for (const tab of sec.tabs) linkOf.set(tabPinKey(sec.id, tab.id), tab.pinFrom);
+        }
+    const leadsToSelf = (key: string): boolean => {
+        const seen = new Set<string>();
+        for (let k: string | undefined = key; k && !seen.has(k); k = linkOf.get(k)) {
+            if (k === selfKey) return true;
+            seen.add(k);
+        }
+        return false;
+    };
+    const multi = layouts.length > 1;
+    const out: PinSourceOption[] = [];
+    for (const l of layouts)
+        for (const sec of l.sections) {
+            const sKey = sectionPinKey(sec.id);
+            const base = multi ? `${l.name} › ${sec.name}` : sec.name;
+            if (hasPin(sec)) {
+                if (!selfKey.startsWith(`tab:${sec.id}:`) && !leadsToSelf(sKey)) out.push({ key: sKey, label: base });
+                continue; // its tabs are covered by the section PIN
+            }
+            if (selfKey === sKey) continue;
+            for (const tab of sec.tabs) {
+                const tKey = tabPinKey(sec.id, tab.id);
+                if (hasPin(tab) && !leadsToSelf(tKey)) out.push({ key: tKey, label: `${base} › ${tab.name}` });
+            }
+        }
+    return out;
+}
+
 /** Trim + coerce; anything non-string counts as "no PIN". */
 export function normalizePin(raw: unknown): string {
     return typeof raw === 'string' ? raw.trim() : '';

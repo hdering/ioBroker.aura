@@ -617,6 +617,11 @@ export const de = {
     'pin.setPlaceholder': 'PIN gesetzt – neue eingeben zum Ändern',
     'pin.protectedHint': 'Serverseitig geschützt. Neue PIN eingeben zum Ändern, „PIN entfernen“ hebt den Schutz auf.',
     'pin.hint': 'Leer = kein Schutz. Der Inhalt erscheint erst nach Eingabe der PIN.',
+    'pin.linkFrom': 'PIN übernehmen von',
+    'pin.linkNone': 'Eigene PIN',
+    'pin.linkedPlaceholder': 'Verknüpfte PIN – eigene eingeben zum Lösen',
+    'pin.linkedHint': 'Nutzt die PIN von „{name}“. Wird sie dort geändert, gilt sie beim Speichern auch hier.',
+    'pin.linkLost': 'Die verknüpfte Ansicht hat keine PIN mehr – die letzte PIN bleibt bestehen.',
     'pin.keepUnlocked': 'Offen lassen',
     'pin.keepUnlockedHint':
         'Nach dem Entsperren bis zum Neuladen der Seite offen bleiben. Aus: sperrt beim Verlassen sofort wieder.',

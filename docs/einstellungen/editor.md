@@ -196,6 +196,7 @@ Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach E
 | Option | |
 | --- | --- |
 | PIN | Beliebiger Code; leer = kein Schutz. Bereich im Zahnrad des Bereichs-Chips, Tab im Zahnrad des Tabs |
+| PIN übernehmen von | Verknüpft die PIN mit einem anderen Bereich oder Tab, der schon eine hat — keine neue ausdenken. Ändert sich die PIN dort, gilt sie beim Speichern auch hier. Eine eigene PIN eintippen oder **Eigene PIN** wählen löst die Verknüpfung; die zuletzt gültige PIN bleibt dann bestehen |
 | Offen lassen | Aus (Standard): sperrt beim Verlassen sofort wieder. An: bleibt bis zum Neuladen der Seite offen |
 | Schloss-Symbol zeigen | An (Standard): gesperrte Einträge tragen ein Schloss im Bereichs-Menü bzw. in der Tab-Leiste. Aus: kein Symbol – die PIN wird trotzdem abgefragt |
 | Über MCP bearbeitbar | Aus (Standard): der [KI-Zugriff](./mcp#pin-geschützte-bereiche-und-tabs) sieht nur die Struktur und darf nicht schreiben. An: liest und ändert den Inhalt. Erscheint, sobald eine PIN im Feld steht; vor dem ersten Speichern wird die Freigabe vorgemerkt |

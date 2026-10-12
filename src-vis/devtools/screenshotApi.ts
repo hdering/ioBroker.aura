@@ -310,7 +310,7 @@ function installScreenshotApi(): void {
         tabPin(
             sectionId: string,
             tabId: string,
-        ): { pin?: string; pinProtected?: boolean; pinHideLock?: boolean; widgets: number } {
+        ): { pin?: string; pinProtected?: boolean; pinHideLock?: boolean; pinFrom?: string; widgets: number } {
             const tab = useDashboardStore
                 .getState()
                 .layouts.flatMap((l) => l.sections)
@@ -320,6 +320,7 @@ function installScreenshotApi(): void {
                 pin: tab?.pin,
                 pinProtected: tab?.pinProtected,
                 pinHideLock: tab?.pinHideLock,
+                pinFrom: tab?.pinFrom,
                 widgets: tab?.widgets.length ?? 0,
             };
         },

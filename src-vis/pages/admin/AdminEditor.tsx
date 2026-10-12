@@ -41,7 +41,7 @@ import { useDashboardStore, useActiveSection } from '../../store/dashboardStore'
 import { BackgroundImageButton } from '../../components/config/BackgroundImageField';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/common/BackgroundImageLayer';
 import { tabBgImage } from '../../utils/backgroundImage';
-import { KEEP_PIN } from '../../utils/pinLock';
+import { KEEP_PIN, LINK_PIN, pinSourceOptions, sectionPinKey } from '../../utils/pinLock';
 import { useMcpReleaseStore } from '../../store/mcpReleaseStore';
 import { vaultSetMcp, vaultRemove } from '../../utils/pinApi';
 import { adminToken } from '../../store/authStore';
@@ -1242,9 +1242,20 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                 type="text"
                                 inputMode="numeric"
                                 autoComplete="off"
-                                placeholder={sectionPinStored ? t('pin.setPlaceholder') : t('pin.placeholder')}
-                                value={openSection.pin === KEEP_PIN ? '' : (openSection.pin ?? '')}
-                                onChange={(e) => updateSection(openSection.id, { pin: e.target.value || undefined })}
+                                placeholder={
+                                    openSection.pinFrom
+                                        ? t('pin.linkedPlaceholder')
+                                        : sectionPinStored
+                                          ? t('pin.setPlaceholder')
+                                          : t('pin.placeholder')
+                                }
+                                value={isPinSentinel(openSection.pin) ? '' : (openSection.pin ?? '')}
+                                onChange={(e) =>
+                                    updateSection(openSection.id, {
+                                        pin: e.target.value || undefined,
+                                        pinFrom: undefined,
+                                    })
+                                }
                                 className="aura-pin-input w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                                 style={{
                                     background: 'var(--app-bg)',
@@ -1252,7 +1263,12 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                     border: '1px solid var(--app-border)',
                                 }}
                             />
-                            {sectionPinStored && (
+                            <PinLinkSelect
+                                selfKey={sectionPinKey(openSection.id)}
+                                node={openSection}
+                                onChange={(patch) => updateSection(openSection.id, patch)}
+                            />
+                            {sectionPinStored && !openSection.pinFrom && (
                                 <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                                     {t('pin.protectedHint')}
                                 </p>
@@ -1317,6 +1333,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                             pinHideLock: undefined,
                                             pinProtected: undefined,
                                             pinLength: undefined,
+                                            pinFrom: undefined,
                                         })
                                     }
                                 />
@@ -1965,9 +1982,20 @@ const TabBar = memo(function TabBar() {
                                     type="text"
                                     inputMode="numeric"
                                     autoComplete="off"
-                                    placeholder={tabPinStored ? t('pin.setPlaceholder') : t('pin.placeholder')}
-                                    value={settingsTab.pin === KEEP_PIN ? '' : (settingsTab.pin ?? '')}
-                                    onChange={(e) => updateTab(settingsTabId, { pin: e.target.value || undefined })}
+                                    placeholder={
+                                        settingsTab.pinFrom
+                                            ? t('pin.linkedPlaceholder')
+                                            : tabPinStored
+                                              ? t('pin.setPlaceholder')
+                                              : t('pin.placeholder')
+                                    }
+                                    value={isPinSentinel(settingsTab.pin) ? '' : (settingsTab.pin ?? '')}
+                                    onChange={(e) =>
+                                        updateTab(settingsTabId, {
+                                            pin: e.target.value || undefined,
+                                            pinFrom: undefined,
+                                        })
+                                    }
                                     className="aura-pin-input w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                                     style={{
                                         background: 'var(--app-bg)',
@@ -1975,7 +2003,12 @@ const TabBar = memo(function TabBar() {
                                         border: '1px solid var(--app-border)',
                                     }}
                                 />
-                                {tabPinStored && (
+                                <PinLinkSelect
+                                    selfKey={tabVaultKey}
+                                    node={settingsTab}
+                                    onChange={(patch) => updateTab(settingsTabId, patch)}
+                                />
+                                {tabPinStored && !settingsTab.pinFrom && (
                                     <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                                         {t('pin.protectedHint')}
                                     </p>
@@ -2044,6 +2077,7 @@ const TabBar = memo(function TabBar() {
                                                 pinHideLock: undefined,
                                                 pinProtected: undefined,
                                                 pinLength: undefined,
+                                                pinFrom: undefined,
                                             })
                                         }
                                     />
@@ -2319,6 +2353,73 @@ function PinRemoveButton({ vaultKey, stored, onRemove }: { vaultKey: string; sto
             {failed && (
                 <p className="text-[9px] mt-1" style={{ color: 'var(--accent-red)' }}>
                     {t('pin.removeFailed')}
+                </p>
+            )}
+        </>
+    );
+}
+
+/** The PIN field shows nothing for a stored or linked PIN — the editor never knows the digits. */
+function isPinSentinel(pin: string | undefined): boolean {
+    return pin === KEEP_PIN || pin === LINK_PIN;
+}
+
+/**
+ * „PIN übernehmen von“: let this view follow the PIN of another section/tab instead
+ * of inventing a new one. The link is kept (`pinFrom`), and the adapter takes the
+ * source's current PIN on every save — change it there and it changes here too.
+ * Typing an own PIN, or picking „Eigene PIN“, ends the link; a stored view then
+ * keeps the PIN it had last.
+ */
+function PinLinkSelect({
+    selfKey,
+    node,
+    onChange,
+}: {
+    selfKey: string;
+    node: { pin?: string; pinFrom?: string; pinProtected?: boolean };
+    onChange: (patch: { pin?: string; pinFrom?: string }) => void;
+}) {
+    const t = useT();
+    const layouts = useDashboardStore((s) => s.layouts);
+    const options = useMemo(() => pinSourceOptions(layouts, selfKey), [layouts, selfKey]);
+    const source = options.find((o) => o.key === node.pinFrom);
+    if (!options.length && !node.pinFrom) return null;
+    const stored = node.pin === KEEP_PIN || node.pinProtected === true;
+    return (
+        <>
+            <label className="text-[11px] block mt-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
+                {t('pin.linkFrom')}
+            </label>
+            <select
+                className="aura-pin-link w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                style={{
+                    background: 'var(--app-bg)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--app-border)',
+                }}
+                value={source ? source.key : ''}
+                onChange={(e) => {
+                    const key = e.target.value;
+                    if (key) onChange({ pinFrom: key, pin: stored ? KEEP_PIN : LINK_PIN });
+                    else onChange({ pinFrom: undefined, pin: node.pin === LINK_PIN ? undefined : node.pin });
+                }}
+            >
+                <option value="">{t('pin.linkNone')}</option>
+                {options.map((o) => (
+                    <option key={o.key} value={o.key}>
+                        {o.label}
+                    </option>
+                ))}
+            </select>
+            {source && (
+                <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    {t('pin.linkedHint', { name: source.label })}
+                </p>
+            )}
+            {node.pinFrom && !source && (
+                <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    {t('pin.linkLost')}
                 </p>
             )}
         </>

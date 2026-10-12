@@ -258,6 +258,82 @@ const fullConfig = () => ({
     ok(orphan.unresolved.indexOf('section:sLocked') >= 0, 'orphan KEEP is reported as unresolved');
 }
 
+// ── Linked PIN (pinFrom): a view follows the PIN of another one ──────────────
+{
+    // A new tab takes the PIN of the section: no own hash yet → LINK sentinel.
+    const first = fullConfig();
+    const tOpen = first.layouts[0].sections[2].tabs[0];
+    tOpen.pin = vault.LINK_PIN;
+    tOpen.pinFrom = 'section:sLocked';
+    const split1 = vault.splitDashboard(first);
+    const stub = split1.publicConfig.layouts[0].sections[2].tabs[0];
+    ok(stub.pinProtected === true && stub.pinFrom === 'section:sLocked', 'linked tab is redacted, link on the stub');
+    const s1 = vault.buildVaultSections(split1.protected).sections;
+    ok(
+        auth.verifySecret('1234', s1['tab:sTabLock:tOpen'].salt, s1['tab:sTabLock:tOpen'].hash),
+        'link takes the source PIN',
+    );
+    ok(s1['tab:sTabLock:tOpen'].len === 4, 'link carries the digit count');
+
+    // The source PIN changes; the linked view holds KEEP — it follows in the same save.
+    const second = fullConfig();
+    second.layouts[0].sections[1].pin = '5678';
+    Object.assign(second.layouts[0].sections[2].tabs[0], { pin: vault.KEEP_PIN, pinFrom: 'section:sLocked' });
+    const s2 = vault.buildVaultSections(vault.splitDashboard(second).protected, s1).sections;
+    ok(
+        auth.verifySecret('5678', s2['tab:sTabLock:tOpen'].salt, s2['tab:sTabLock:tOpen'].hash),
+        'link follows a changed source PIN',
+    );
+
+    // Source unchanged (KEEP) → link resolves against the stored source hash.
+    const third = fullConfig();
+    third.layouts[0].sections[1].pin = vault.KEEP_PIN;
+    Object.assign(third.layouts[0].sections[2].tabs[0], { pin: vault.KEEP_PIN, pinFrom: 'section:sLocked' });
+    const s3 = vault.buildVaultSections(vault.splitDashboard(third).protected, s2).sections;
+    ok(s3['tab:sTabLock:tOpen'].hash === s2['section:sLocked'].hash, 'link reuses the stored source hash');
+
+    // Chain: tPin → tOpen → sLocked, listed before its source.
+    const chain = fullConfig();
+    Object.assign(chain.layouts[0].sections[2].tabs[1], { pin: vault.LINK_PIN, pinFrom: 'tab:sTabLock:tOpen' });
+    Object.assign(chain.layouts[0].sections[2].tabs[0], { pin: vault.LINK_PIN, pinFrom: 'section:sLocked' });
+    const sc = vault.buildVaultSections(vault.splitDashboard(chain).protected);
+    ok(sc.unresolved.length === 0, 'a chain resolves');
+    ok(
+        auth.verifySecret('1234', sc.sections['tab:sTabLock:tPin'].salt, sc.sections['tab:sTabLock:tPin'].hash),
+        'chain end gets the root PIN',
+    );
+
+    // Source no longer protected → the view keeps its own last PIN.
+    const gone = fullConfig();
+    delete gone.layouts[0].sections[1].pin;
+    Object.assign(gone.layouts[0].sections[2].tabs[0], { pin: vault.KEEP_PIN, pinFrom: 'section:sLocked' });
+    const { ['section:sLocked']: _dropped, ...withoutSource } = s2;
+    const sg = vault.buildVaultSections(vault.splitDashboard(gone).protected, withoutSource);
+    ok(sg.unresolved.length === 0, 'a lost source is not an error');
+    ok(sg.sections['tab:sTabLock:tOpen'].hash === s2['tab:sTabLock:tOpen'].hash, 'lost source → own last PIN kept');
+
+    // Cycle with nothing stored → unresolved (the caller opens the view, content kept).
+    const cyc = fullConfig();
+    Object.assign(cyc.layouts[0].sections[2].tabs[0], { pin: vault.LINK_PIN, pinFrom: 'tab:sTabLock:tPin' });
+    Object.assign(cyc.layouts[0].sections[2].tabs[1], { pin: vault.LINK_PIN, pinFrom: 'tab:sTabLock:tOpen' });
+    const sy = vault.buildVaultSections(vault.splitDashboard(cyc).protected);
+    ok(sy.unresolved.length === 2, 'a cycle without stored hashes is reported, not looped on');
+
+    // A typed PIN wins over a leftover link.
+    const typed = fullConfig();
+    Object.assign(typed.layouts[0].sections[2].tabs[0], { pin: '4321', pinFrom: 'section:sLocked' });
+    const st = vault.buildVaultSections(vault.splitDashboard(typed).protected).sections;
+    ok(
+        auth.verifySecret('4321', st['tab:sTabLock:tOpen'].salt, st['tab:sTabLock:tOpen'].hash),
+        'typed PIN beats pinFrom',
+    );
+
+    // Removing the PIN drops the link marker too.
+    const pub = vault.splitDashboard(first).publicConfig;
+    vault.restoreView(pub, 'tab:sTabLock:tOpen', { widgets: [] });
+    ok(pub.layouts[0].sections[2].tabs[0].pinFrom === undefined, 'restoreView drops pinFrom');
+}
+
 // ── VaultFile round-trip ────────────────────────────────────────────────────
 {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'aura-vault-'));
