@@ -122,6 +122,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.81.5 (2026-10-12)
+- Lost connection to ioBroker is now visible: after 5 s offline a banner shows since when, widgets are greyed out, and the status overview says "Status unknown" instead of "All clear"
+- Shutter - "Re-set after drive" detects the end of a drive by the actual position reaching the target, so slow-reporting KNX actuators no longer get the slat angle mid-drive ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+
+
 ### 0.81.4 (2026-10-11)
 - Click popups without a configured width now size to their content (e.g. the popup view's own width) instead of stopping at 600 px
 - Chart / Advanced chart - time ranges can now be set in minutes (custom range and own range chips like `15m`) for watching live values ([#766](https://github.com/hdering/ioBroker.aura/issues/766))
@@ -225,15 +230,6 @@ Release v0.77.4
 - 🌟 **New feature:** New widget "Device card" - build a card once with {{dp}}/{{parent}} placeholders and reuse it for any number of identical devices; copies share the layout, so a change applies to all cards, and linked cards get the same colored frame in the editor ([#743](https://github.com/hdering/ioBroker.aura/issues/743))
 
 
-### 0.75.0 (2026-10-02)
-- Shutter - the up/stop/down buttons work again in the card itself; in a flat card the value and slider row covered them, so only the popup reacted ([#739](https://github.com/hdering/ioBroker.aura/issues/739))
-- 🌟 **New feature:** Trash schedule - new option to limit the number of entries shown, e.g. only the next 3 pickups ([#736](https://github.com/hdering/ioBroker.aura/issues/736))
-- 🌟 **New feature:** Universal widget - text cells can run vertically: turned 90° clockwise, 90° counter-clockwise or as upright stacked letters ([#734](https://github.com/hdering/ioBroker.aura/issues/734))
-- 🌟 **New feature:** Timer - holiday and vacation lists accept date ranges ("2026-07-20/2026-08-07" or {"from","to"}) next to single days, and a plain true/false datapoint; examples in the settings are collapsed ([#738](https://github.com/hdering/ioBroker.aura/issues/738))
-- 🌟 **New feature:** Advanced chart - series can be shifted back in time to compare periods, e.g. last year's monthly consumption next to this year's bars; "+ Add previous-year series" creates one in a click ([#730](https://github.com/hdering/ioBroker.aura/issues/730))
-- Dynamic list - removed datapoints no longer come back with the next automatic sync: with a filter set they are added to the exclude list, and "Delete all" clears the stored filter
-
-
 ## License
 
 MIT License
@@ -245,6 +241,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

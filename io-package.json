@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.81.4",
+    "version": "0.81.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.81.5": {
+        "en": "Lost connection to ioBroker is now visible: after 5 s offline a banner shows since when, widgets are greyed out, and the status overview says \"Status unknown\" instead of \"All clear\"\nShutter - \"Re-set after drive\" detects the end of a drive by the actual position reaching the target, so slow-reporting KNX actuators no longer get the slat angle mid-drive (#745)",
+        "de": "Abgebrochene Verbindung zu ioBroker ist jetzt sichtbar: Nach 5 s Offline wird ein Banner angezeigt, seit wann, Widgets sind ausgegraut und in der Statusübersicht steht „Status unbekannt“ statt „Alles klar“.\nJalousie - „Nach Fahrt zurücksetzen“ erkennt das Ende einer Fahrt anhand der Ist-Position, die das Ziel erreicht, sodass langsam meldende KNX-Aktoren den Lamellenwinkel nicht mehr mitten in der Fahrt erhalten (#745)",
+        "ru": "Потерянное соединение с ioBroker теперь видно: через 5 секунд в автономном режиме отображается баннер с момента появления, виджеты становятся серыми, а в обзоре статуса отображается «Статус неизвестен» вместо «Все ясно».\nЗатвор — «Переустановка после движения» определяет конец движения по фактическому положению, достигающему цели, поэтому приводы KNX с медленными отчетами больше не получают угол наклона планки в середине движения (# 745). (#745)",
+        "pt": "A conexão perdida com o ioBroker agora é visível: após 5 s off-line, um banner é exibido desde quando, os widgets ficam esmaecidos e a visão geral do status diz \"Status desconhecido\" em vez de \"Tudo limpo\"\nObturador - \"Redefinir após acionamento\" detecta o final de um acionamento pela posição real que atinge o alvo, de modo que os atuadores KNX de relatório lento não obtenham mais o ângulo da lâmina no meio do acionamento (#745)",
+        "nl": "Verbroken verbinding met ioBroker is nu zichtbaar: na 5 s offline verschijnt er een banner sinds wanneer, widgets zijn grijs en in het statusoverzicht staat \"Status onbekend\" in plaats van \"Alles duidelijk\"\nSluiter - \"Reset na rit\" detecteert het einde van een rit doordat de daadwerkelijke positie het doel bereikt, zodat langzaam rapporterende KNX-actuators niet langer de lamelhoek middenaandrijving krijgen (#745)",
+        "fr": "La connexion perdue à ioBroker est désormais visible : après 5 s hors ligne, une bannière s'affiche depuis quand, les widgets sont grisés et l'aperçu du statut indique \"Statut inconnu\" au lieu de \"Tout est clair\".\nVolet - \"Réinitialisation après entraînement\" détecte la fin d'un entraînement par la position réelle atteignant la cible, de sorte que les actionneurs KNX à rapport lent n'obtiennent plus l'angle des lamelles à mi-entraînement (#745)",
+        "it": "La connessione persa con ioBroker è ora visibile: dopo 5 s offline viene mostrato un banner da quando, i widget sono disattivati ​​e la panoramica dello stato dice \"Stato sconosciuto\" invece di \"Tutto cancellato\"\nTapparella - \"Reimposta dopo l'azionamento\" rileva la fine di un azionamento in base alla posizione effettiva che raggiunge il target, quindi gli attuatori KNX a rapporto lento non ottengono più l'angolo delle lamelle a metà azionamento (#745)",
+        "es": "La conexión perdida con ioBroker ahora es visible: después de 5 segundos sin conexión, se muestra un banner desde cuándo, los widgets están atenuados y la descripción general del estado dice \"Estado desconocido\" en lugar de \"Todo limpio\".\nObturador: \"Reiniciar después del recorrido\" detecta el final de un recorrido cuando la posición real alcanza el objetivo, por lo que los actuadores KNX que informan lentamente ya no obtienen el ángulo de las lamas a mitad del recorrido (#745)",
+        "pl": "Utracone połączenie z ioBroker jest teraz widoczne: po 5 s w trybie offline wyświetla się baner od kiedy, widżety są wyszarzone, a przegląd statusu wyświetla „Status nieznany” zamiast „Wszystko jasne”\nRoleta — „Reset po napędzie” wykrywa koniec napędu w oparciu o rzeczywistą pozycję dotarcia do celu, dzięki czemu siłowniki KNX z wolnym raportowaniem nie uzyskują już kąta lameli w połowie napędu (nr 745) (#745)",
+        "uk": "Втрачене з’єднання з ioBroker тепер видно: через 5 секунд у автономному режимі банер показує, з якого часу, віджети неактивні, а в огляді статусу відображається «Статус невідомий» замість «Все ясно»\nЗатвор — «Перезадати після приводу» визначає кінець приводу за фактичним положенням, що досягає мети, тому приводи KNX, що повідомляють повільно, більше не отримують значення кута ламелі посередині приводу (#745)",
+        "zh-cn": "现在可以看到与 ioBroker 失去的连接：离线 5 秒后，会显示横幅，小部件呈灰色，状态概览显示“状态未知”而不是“全部清除”\n快门 - “驱动后重置”通过到达目标的实际位置检测驱动的结束，因此报告缓慢的 KNX 执行器不再获得驱动中间的板条角度 (#745)"
+      },
       "0.81.4": {
         "en": "Click popups without a configured width now size to their content (e.g. the popup view's own width) instead of stopping at 600 px\nChart / Advanced chart - time ranges can now be set in minutes (custom range and own range chips like `15m`) for watching live values (#766)",
         "de": "Klick-Popups ohne konfigurierte Breite passen sich jetzt der Größe ihres Inhalts an (z. B. der eigenen Breite der Popup-Ansicht), anstatt bei 600 Pixel anzuhalten\nDiagramm / Erweitertes Diagramm – Zeitbereiche können jetzt in Minuten eingestellt werden (benutzerdefinierter Bereich und eigene Bereichschips wie „15 m“), um Live-Werte anzuzeigen (#766)",
@@ -185,19 +198,6 @@
         "pl": "🌟 Nowa funkcja: Warunki - nowy efekt „Wyłącz widżet”: gdy warunek jest zgodny, widżet jest wyszarzony i nie można go obsługiwać; jego wygląd można regulować w sekcji Motyw i CSS",
         "uk": "🌟 Нова функція: Умови - новий ефект «Вимкнути віджет»: поки умова збігається, віджет неактивний, і ним не можна керувати; його вигляд можна налаштувати в розділі Тема та CSS",
         "zh-cn": "🌟 新功能：条件-新增效果“禁用小部件”：条件匹配时，小部件灰显且无法操作；其外观可在主题和 CSS 下进行调整"
-      },
-      "0.80.3": {
-        "en": "Popups - `popup.open` datapoints accept `width` and `height` (px) in the JSON payload to set the popup size (#762)",
-        "de": "Popups – „popup.open“-Datenpunkte akzeptieren „width“ und „height“ (px) in der JSON-Nutzlast, um die Popup-Größe festzulegen (#762)",
-        "ru": "Всплывающие окна — точки данных popup.open принимают ширину и высоту (px) в полезных данных JSON для установки размера всплывающего окна (#762).",
-        "pt": "Popups - os pontos de dados `popup.open` aceitam `width` e `height` (px) na carga JSON para definir o tamanho do pop-up (#762)",
-        "nl": "Pop-ups - `popup.open` datapunten accepteren `width` en `height` (px) in de JSON-payload om de pop-upgrootte in te stellen (#762)",
-        "fr": "Popups - Les points de données « popup.open » acceptent la « largeur » et la « hauteur » (px) dans la charge utile JSON pour définir la taille du popup (#762)",
-        "it": "Popup: i datapoint \"popup.open\" accettano \"larghezza\" e \"altezza\" (px) nel payload JSON per impostare la dimensione del popup (#762)",
-        "es": "Ventanas emergentes: los puntos de datos `popup.open` aceptan `ancho` y `alto` (px) en la carga útil JSON para establecer el tamaño de la ventana emergente (#762)",
-        "pl": "Wyskakujące okienka — punkty danych `popup.open` akceptują `szerokość` i `wysokość` (px) w ładunku JSON w celu ustawienia rozmiaru wyskakującego okienka (#762)",
-        "uk": "Спливаючі вікна – точки даних `popup.open` приймають `width` і `height` (px) у корисному навантаженні JSON для встановлення розміру спливаючого вікна (#762)",
-        "zh-cn": "弹出窗口 - `popup.open` 数据点接受 JSON 负载中的 `width` 和 `height` (px) 以设置弹出窗口大小 (#762)"
       }
     }
   },
