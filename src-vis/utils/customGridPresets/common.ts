@@ -1,0 +1,94 @@
+import type { CustomCell, CustomCellAlign } from '../../types';
+import type { GridBuilder } from './gridBuilder';
+
+export type Opts = Record<string, unknown>;
+
+// Pixel sizes of the Tailwind steps the standard layouts use (at font scale 1).
+export const FS = { xs: 12, sm: 14, base: 16, lg: 18, xl: 20 } as const;
+
+// Colours a widget hands to its custom grid as CSS variables (CustomGridView
+// `cssVars`). A preset cell refers to them instead of a fixed colour, so the
+// state-dependent colour of the standard layout (on/off, threshold, heating …)
+// carries over. The fallback keeps the cell readable in a widget without them.
+export const STATE_COLOR = 'var(--aura-state-color, var(--accent))';
+export const VALUE_COLOR = 'var(--aura-value-color, var(--text-primary))';
+export const SECONDARY = 'var(--text-secondary)';
+export const PRIMARY = 'var(--text-primary)';
+
+// The coloured card face of the card layouts (gradient when active, outline in the
+// state colour). The widget hands the current colours over as variables, the grid
+// paints them through CustomGridDef.bg / borderColor and the cells' colours.
+export const CARD = {
+    bg: 'var(--aura-card-bg, var(--app-bg))',
+    border: 'var(--aura-card-border, var(--aura-state-color, var(--accent)))',
+    icon: 'var(--aura-card-icon, var(--aura-state-color, var(--accent)))',
+    title: 'var(--aura-card-title, var(--text-primary))',
+    label: 'var(--aura-card-label, var(--aura-state-color, var(--accent)))',
+} as const;
+
+export const showTitleOf = (o: Opts) => o.showTitle !== false;
+export const showIconOf = (o: Opts) => o.showIcon !== false;
+
+export function titleAlignOf(o: Opts): CustomCellAlign {
+    const a = o.titleAlign as string | undefined;
+    return a === 'center' || a === 'right' ? a : 'left';
+}
+
+export function titleCell(o: Opts, extra: Partial<CustomCell> = {}): CustomCell {
+    return {
+        type: 'title',
+        fontSize: FS.xs,
+        color: SECONDARY,
+        align: titleAlignOf(o),
+        valign: 'middle',
+        ...extra,
+    };
+}
+
+/**
+ * Track of the icon column: the icon plus the cell's 2px padding on both sides. A
+ * fixed width instead of 'auto' — a cell spanning the icon column and the next
+ * one (the value under the title row) would otherwise widen both and push the
+ * title away from the icon.
+ */
+export function iconCol(o: Opts, fallback = 20, extra = 0): string {
+    return `${(Number(o.iconSize) || fallback) + 4 + extra}px`;
+}
+
+export function iconCell(extra: Partial<CustomCell> = {}): CustomCell {
+    // allowOverflow: in a compact row the icon is taller than the content box and, like in
+    // the standard layout, reaches into the widget padding instead of being clipped.
+    return { type: 'component', componentKey: 'icon', align: 'left', valign: 'middle', allowOverflow: true, ...extra };
+}
+
+/** Battery / reach DPs configured and the badges not switched off? */
+export function hasStatusBadges(o: Opts): boolean {
+    if (o.showStatusBadges === false) return false;
+    return !!(o.batteryDp || o.unreachDp || o.lockDp);
+}
+
+/**
+ * The standard layouts draw the status badges as an overlay in the bottom-right
+ * corner. The grid has no overlay, so the badges take the bottom-right slot when
+ * it is free, otherwise a narrow column of their own on the right — a row of their
+ * own would push the bottom-aligned value of the layout upwards.
+ */
+export function addStatusBadges(b: GridBuilder, o: Opts) {
+    if (!hasStatusBadges(o)) return;
+    // allowOverflow: like the overlay, the badges may reach up out of a thin spacer row.
+    const cell: CustomCell = {
+        type: 'component',
+        componentKey: 'status-badges',
+        align: 'right',
+        valign: 'bottom',
+        allowOverflow: true,
+    };
+    const lastRow = b.rowCount - 1;
+    if (!b.isFree(lastRow, b.colCount - 1)) b.appendColumn('auto');
+    b.put(lastRow, b.colCount - 1, cell);
+}
+
+/** The card layouts' coloured bar on the left edge, spanning `rows` rows (component 'accent-bar'). */
+export function accentBar(rows: number): CustomCell {
+    return { type: 'component', componentKey: 'accent-bar', align: 'left', valign: 'middle', rowSpan: rows };
+}

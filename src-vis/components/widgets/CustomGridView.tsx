@@ -69,7 +69,10 @@ export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDe
         while (cells.length < need) cells.push({ type: 'empty' });
         const colSizes = Array.isArray(def.colSizes) && def.colSizes.length === cols ? def.colSizes : undefined;
         const rowSizes = Array.isArray(def.rowSizes) && def.rowSizes.length === rows ? def.rowSizes : undefined;
-        return { cols, rows, cells, colSizes, rowSizes };
+        const out: CustomGridDef = { cols, rows, cells, colSizes, rowSizes };
+        if (typeof def.bg === 'string' && def.bg) out.bg = def.bg;
+        if (typeof def.borderColor === 'string' && def.borderColor) out.borderColor = def.borderColor;
+        return out;
     }
     if (Array.isArray(raw)) {
         const cells = raw.slice(0, 9);
@@ -446,11 +449,19 @@ function ComponentCellView({
     return (
         <div
             className={`aura-custom-cell-${index}`}
-            style={{ ...cellWrapStyle(cell, index, cols, rows), padding: '2px' }}
+            style={{
+                ...cellWrapStyle(cell, index, cols, rows),
+                padding: '2px',
+                // A component may follow the cell's colour (the widget icons do) — set as a
+                // variable so a component without that hook simply ignores it.
+                ...(cell.color ? { '--aura-cell-color': cell.color } : null),
+            }}
         >
             {size ? (
                 <div
                     style={{
+                        // Components that size themselves (e.g. +/− buttons) may follow it.
+                        '--aura-cell-size': `${size}px`,
                         width: size,
                         height: size,
                         display: 'flex',
@@ -1911,6 +1922,12 @@ interface CustomGridViewProps {
     fallback?: CustomGrid | CustomGridDef;
     /** Override fallback color for 'value' static cells (e.g. EnumWidget passes the current entry's color). */
     valueColor?: string;
+    /**
+     * CSS custom properties set on the grid root — the widget's state colours
+     * (`--aura-state-color`, `--aura-value-color` …) that cells of a layout preset
+     * refer to, so on/off, threshold or heating colours reach the custom grid (#768).
+     */
+    cssVars?: Record<string, string | undefined>;
 }
 
 export function CustomGridView({
@@ -1922,9 +1939,10 @@ export function CustomGridView({
     extraComponents,
     fallback,
     valueColor,
+    cssVars,
 }: CustomGridViewProps) {
     const grid = normalizeGrid(config.options?.customGrid, fallback);
-    const { cols, rows, cells, colSizes, rowSizes } = grid;
+    const { cols, rows, cells, colSizes, rowSizes, bg, borderColor } = grid;
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     // Per-cell click actions reuse the list rows' popup machinery (issue #729).
     const editMode = useDashboardStore((s) => s.editMode);
@@ -1959,6 +1977,11 @@ export function CustomGridView({
                 width: '100%',
                 height: '100%',
                 gap: '2px',
+                // Face and outline of a grid built from a card layout (#768).
+                ...(bg ? { background: bg } : null),
+                ...(borderColor ? { border: `2px solid ${borderColor}` } : null),
+                ...(bg || borderColor ? { borderRadius: 'var(--widget-radius)', boxSizing: 'border-box' } : null),
+                ...(cssVars as React.CSSProperties | undefined),
             }}
         >
             {cells.map((cell, i) => {

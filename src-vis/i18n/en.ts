@@ -1297,6 +1297,14 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.layout.minimal': 'Minimal',
     'wf.edit.layout.agenda': 'Agenda',
     'wf.edit.layout.dial': 'Dial',
+    'wf.edit.layout.customPrompt': 'How should the custom grid start?',
+    'wf.edit.layout.customFrom': 'Start from layout “{layout}”',
+    'wf.edit.layout.customKeep': 'Keep previous grid',
+    'wf.edit.layout.customBlank': 'Default grid',
+    'wf.edit.custom.fromLayout': 'Rebuild from layout …',
+    'wf.edit.custom.reset': 'Reset grid',
+    'wf.edit.custom.faceRemove': 'Remove card background',
+    'wf.edit.custom.faceHint': 'Background and frame come from the card layout',
     'wf.edit.layout.unknown': 'Stored style “{layout}” does not exist here — the default is shown.',
 
     // Clock config

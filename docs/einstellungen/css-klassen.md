@@ -95,6 +95,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | --- | --- |
 | `.aura-widget-row` | Inhaltswurzel des Widgets |
 | `.aura-widget-icon` | Icon |
+| `.aura-widget-accent-bar` | farbige Leiste links (Wert-Anzeige „Karte“, auch als Custom-Komponente `accent-bar`) |
 | `.aura-widget-title` | Titelzeile |
 | `.aura-widget-value` | Wertanzeige |
 | `.aura-widget-action` | Bedienelement-Gruppe (nicht ziehbar) |

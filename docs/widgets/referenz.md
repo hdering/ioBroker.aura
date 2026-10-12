@@ -97,7 +97,7 @@ Bislang formal erfasst (weitere folgen; alle Optionen stehen auf der jeweiligen 
 | `step` | `number` | `0.5` |  |
 | `colorThresholds` | `[number,color][]` | `—` | färbt die Ist-Temperatur |
 
-**Custom-Layout-Schlüssel** — Komponenten: `icon`, `btn-plus`, `btn-minus`, `battery-icon`, `reach-icon`, `status-badges` · Felder: `setpoint`, `actual`, `status`, `battery`, `reach`
+**Custom-Layout-Schlüssel** — Komponenten: `icon`, `dial`, `presets`, `status-icon`, `actual-line`, `btn-plus`, `btn-minus`, `btn-plus-round`, `btn-minus-round`, `battery-icon`, `reach-icon`, `status-badges` · Felder: `setpoint`, `actual`, `actualTemp`, `actualSlash`, `actualLine`, `status`, `battery`, `reach`
 
 ### Diagramm (Verteilung) `energiebilanz`
 

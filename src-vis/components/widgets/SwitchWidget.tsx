@@ -128,20 +128,77 @@ export function SwitchWidget({ config }: WidgetProps) {
         />
     );
 
+    // The control in the size of the default layout — 'toggle-lg' in the custom grid (#768).
+    const largeToggle =
+        isIconMode || isImageMode ? (
+            iconControlButton()
+        ) : isCheckboxMode ? (
+            checkboxControl(24)
+        ) : (
+            <button
+                onClick={handleToggle}
+                className="aura-widget-action nodrag relative w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none"
+                style={{
+                    background: isOn
+                        ? 'var(--switch-bg, var(--accent-green))'
+                        : 'var(--switch-off-bg, var(--app-border))',
+                    border: '1px solid var(--switch-border, transparent)',
+                }}
+                aria-label={stateLabel}
+            >
+                <span
+                    className={`absolute top-1/2 -translate-y-1/2 left-0.5 w-5 h-5 rounded-full shadow transition-transform duration-200 ${isOn ? 'translate-x-6' : 'translate-x-0'}`}
+                    style={{ background: 'var(--switch-thumb-color, #fff)' }}
+                />
+            </button>
+        );
+
     if (layout === 'custom')
         return (
             <div className="relative w-full h-full">
                 <CustomGridView
                     config={config}
                     value={stateLabel}
+                    cssVars={{
+                        '--aura-state-color': isOn ? 'var(--accent-green)' : 'var(--text-secondary)',
+                        // Card face (#768) — the same colours the card layout paints.
+                        '--aura-card-bg': isOn
+                            ? 'linear-gradient(135deg, var(--accent-green), color-mix(in srgb, var(--accent-green) 60%, black))'
+                            : 'var(--app-bg)',
+                        '--aura-card-border': isOn ? 'var(--accent-green)' : 'var(--app-border)',
+                        '--aura-card-icon': isOn ? '#fff' : 'var(--text-secondary)',
+                        '--aura-card-title': isOn ? '#fff' : 'var(--text-secondary)',
+                        '--aura-card-label': isOn
+                            ? 'color-mix(in srgb, #fff 70%, transparent)'
+                            : 'color-mix(in srgb, var(--text-secondary) 70%, transparent)',
+                    }}
                     extraFields={{ battery, reach }}
                     extraComponents={{
+                        'toggle-lg': largeToggle,
+                        // The card layout toggles on a click anywhere; in the grid the icon takes that role.
+                        'icon-button': (
+                            <button
+                                onClick={handleToggle}
+                                className="aura-widget-action nodrag flex items-center justify-center focus:outline-none"
+                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
+                                aria-label={stateLabel}
+                            >
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{
+                                        '--aura-icon-color': `var(--aura-cell-color, ${isOn ? 'var(--accent-green)' : 'var(--text-secondary)'})`,
+                                        filter: isOn ? 'drop-shadow(0 0 8px rgba(255,255,255,0.5))' : 'none',
+                                    }}
+                                />
+                            </button>
+                        ),
                         icon: showIcon ? (
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
                                 style={{
-                                    '--aura-icon-color': isOn ? 'var(--accent-green)' : 'var(--text-secondary)',
+                                    '--aura-icon-color': `var(--aura-cell-color, ${isOn ? 'var(--accent-green)' : 'var(--text-secondary)'})`,
                                     flexShrink: 0,
                                 }}
                             />

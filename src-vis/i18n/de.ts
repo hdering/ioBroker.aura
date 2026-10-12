@@ -1308,6 +1308,14 @@ export const de = {
     'wf.edit.layout.minimal': 'Minimal',
     'wf.edit.layout.agenda': 'Agenda',
     'wf.edit.layout.dial': 'Rundskala',
+    'wf.edit.layout.customPrompt': 'Womit soll das Custom-Raster starten?',
+    'wf.edit.layout.customFrom': 'Layout „{layout}“ übernehmen',
+    'wf.edit.layout.customKeep': 'Bisheriges Raster behalten',
+    'wf.edit.layout.customBlank': 'Standard-Raster',
+    'wf.edit.custom.fromLayout': 'Aus Layout übernehmen …',
+    'wf.edit.custom.reset': 'Raster zurücksetzen',
+    'wf.edit.custom.faceRemove': 'Karten-Hintergrund entfernen',
+    'wf.edit.custom.faceHint': 'Hintergrund und Rahmen stammen aus dem Karten-Layout',
     'wf.edit.layout.unknown':
         'Gespeichert ist „{layout}“ — diesen Stil gibt es hier nicht, angezeigt wird der Standard.',
 

@@ -20,6 +20,7 @@ import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { AccentBar } from './AccentBar';
 
 export function ValueWidget({ config }: WidgetProps) {
     const t = useT();
@@ -119,13 +120,33 @@ export function ValueWidget({ config }: WidgetProps) {
                 value={displayValue}
                 rawValue={typeof tValue === 'number' ? tValue : null}
                 unit={unit}
+                cssVars={{ '--aura-state-color': accentColor, '--aura-value-color': valueColor }}
                 extraFields={{ unit: unit ?? '', battery, reach }}
                 extraComponents={{
+                    'accent-bar': <AccentBar color={accentColor} />,
                     icon: (
                         <DefaultIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
+                            style={{ '--aura-icon-color': `var(--aura-cell-color, ${accentColor})`, flexShrink: 0 }}
+                        />
+                    ),
+                    // The symbol the card / compact layout draws when no icon is configured.
+                    'icon-card': (
+                        <CardIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': `var(--aura-cell-color, ${accentColor})`, flexShrink: 0 }}
+                        />
+                    ),
+                    'icon-compact': (
+                        <CompactIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{
+                                '--aura-icon-color': 'var(--aura-cell-color, var(--text-secondary))',
+                                flexShrink: 0,
+                            }}
                         />
                     ),
                     'battery-icon': batteryIcon,
@@ -139,7 +160,7 @@ export function ValueWidget({ config }: WidgetProps) {
     if (layout === 'card') {
         return (
             <div className="aura-widget-row flex h-full gap-3" style={{ position: 'relative' }}>
-                <div className="w-1 rounded-full self-stretch" style={{ background: accentColor }} />
+                <AccentBar color={accentColor} />
                 <div className="flex flex-col justify-between flex-1">
                     <HeaderGroup>
                         {(showTitle || showIcon) && (

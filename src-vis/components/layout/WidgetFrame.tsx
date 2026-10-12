@@ -210,7 +210,7 @@ import {
 import { EChartConfig } from '../config/EChartConfig';
 import { EvccConfig } from '../widgets/EvccWidget';
 
-import { buildWeatherCustomGrid } from '../widgets/WeatherWidget';
+import { buildCustomGridFromLayout, hasCustomGridPreset } from '../../utils/customGridPresets';
 import { TrashConfig } from '../widgets/TrashWidget';
 import { TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
 // Single source of truth for type → component. WidgetFrame, the mirror widget and the
@@ -6954,6 +6954,9 @@ function WidgetFrameInner({
     const [wcImagePickerState, setWcImagePickerState] = useState<'closed' | 'tilted' | 'open' | null>(null);
     const [siImagePickerState, setSiImagePickerState] = useState<'true' | 'false' | null>(null);
     const [selectedCustomCell, setSelectedCustomCell] = useState<number | null>(null);
+    // Switching to "Custom" asks first how the grid should start (#768): the layout the
+    // widget had, the grid it had before, or the default one. Holds the layout it came from.
+    const [pendingCustomFrom, setPendingCustomFrom] = useState<WidgetConfig['layout'] | null>(null);
     const [flashCell, setFlashCell] = useState<{ idx: number; key: number } | null>(null);
     const flashCellTimerRef = useRef<number | null>(null);
     const flashCellKeyRef = useRef(0);
@@ -9065,21 +9068,17 @@ function WidgetFrameInner({
                                                     key={value}
                                                     onClick={() => {
                                                         const nextLayout = value as WidgetConfig['layout'];
-                                                        const next: WidgetConfig = { ...config, layout: nextLayout };
-                                                        // Pre-populate weather custom grid from current settings on first switch.
                                                         if (
                                                             nextLayout === 'custom' &&
-                                                            config.type === 'weather' &&
-                                                            !config.options?.customGrid
+                                                            activeLayout !== 'custom' &&
+                                                            activeLayout &&
+                                                            hasCustomGridPreset(config.type, activeLayout)
                                                         ) {
-                                                            next.options = {
-                                                                ...(config.options ?? {}),
-                                                                customGrid: buildWeatherCustomGrid(
-                                                                    config.options ?? {},
-                                                                ),
-                                                            };
+                                                            setPendingCustomFrom(activeLayout);
+                                                            return;
                                                         }
-                                                        onConfigChange(next);
+                                                        setPendingCustomFrom(null);
+                                                        onConfigChange({ ...config, layout: nextLayout });
                                                     }}
                                                     className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
                                                     style={{
@@ -9100,6 +9099,82 @@ function WidgetFrameInner({
                                                 {t('wf.edit.layout.unknown', { layout: String(config.layout) })}
                                             </span>
                                         )}
+                                        {pendingCustomFrom &&
+                                            pendingCustomFrom === activeLayout &&
+                                            (() => {
+                                                const fromLabel =
+                                                    layouts.find((l) => l.value === pendingCustomFrom)?.label ??
+                                                    String(pendingCustomFrom);
+                                                const hasGrid = !!config.options?.customGrid;
+                                                const applyCustom = (grid: CustomGridDef | undefined | 'keep') => {
+                                                    const o = config.options ?? {};
+                                                    onConfigChange({
+                                                        ...config,
+                                                        layout: 'custom',
+                                                        options: grid === 'keep' ? o : { ...o, customGrid: grid },
+                                                    });
+                                                    setSelectedCustomCell(null);
+                                                    setPendingCustomFrom(null);
+                                                };
+                                                const btnSty = (primary: boolean): React.CSSProperties => ({
+                                                    background: primary ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: primary ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${primary ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                });
+                                                return (
+                                                    <div
+                                                        className="aura-custom-start w-full mt-1 p-2 rounded-lg flex flex-col gap-1.5"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-primary)' }}
+                                                        >
+                                                            {t('wf.edit.layout.customPrompt')}
+                                                        </span>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            <button
+                                                                data-aura-custom-start="layout"
+                                                                onClick={() =>
+                                                                    applyCustom(
+                                                                        buildCustomGridFromLayout(
+                                                                            config,
+                                                                            pendingCustomFrom,
+                                                                        ) ?? undefined,
+                                                                    )
+                                                                }
+                                                                className="text-[11px] px-2 py-1 rounded-md"
+                                                                style={btnSty(true)}
+                                                            >
+                                                                {t('wf.edit.layout.customFrom', { layout: fromLabel })}
+                                                            </button>
+                                                            <button
+                                                                data-aura-custom-start={hasGrid ? 'keep' : 'blank'}
+                                                                onClick={() =>
+                                                                    applyCustom(hasGrid ? 'keep' : undefined)
+                                                                }
+                                                                className="text-[11px] px-2 py-1 rounded-md"
+                                                                style={btnSty(false)}
+                                                            >
+                                                                {hasGrid
+                                                                    ? t('wf.edit.layout.customKeep')
+                                                                    : t('wf.edit.layout.customBlank')}
+                                                            </button>
+                                                            <button
+                                                                data-aura-custom-start="cancel"
+                                                                onClick={() => setPendingCustomFrom(null)}
+                                                                className="text-[11px] px-2 py-1 rounded-md"
+                                                                style={btnSty(false)}
+                                                            >
+                                                                {t('common.cancel')}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
                                     </div>
                                 );
                             })()}
@@ -19170,6 +19245,7 @@ function WidgetFrameInner({
                                         return out;
                                     };
                                     writeGrid({
+                                        ...grid,
                                         cols: c,
                                         rows: r,
                                         cells: nextCells,
@@ -19628,28 +19704,85 @@ function WidgetFrameInner({
                                                 )}
                                             </div>
 
-                                            {/* Reset grid */}
-                                            <button
-                                                onClick={() => {
-                                                    const nextGrid: CustomGridDef | undefined =
-                                                        config.type === 'weather'
-                                                            ? buildWeatherCustomGrid(o)
-                                                            : undefined;
+                                            {(grid.bg || grid.borderColor) && (
+                                                <button
+                                                    data-aura-custom-face=""
+                                                    onClick={() =>
+                                                        writeGrid({ ...grid, bg: undefined, borderColor: undefined })
+                                                    }
+                                                    title={t('wf.edit.custom.faceHint')}
+                                                    className="text-[10px] px-2 py-1 rounded"
+                                                    style={{
+                                                        background: 'var(--widget-bg)',
+                                                        color: 'var(--text-secondary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                >
+                                                    {t('wf.edit.custom.faceRemove')}
+                                                </button>
+                                            )}
+                                            {/* Rebuild from a layout (#768) / reset to the default grid */}
+                                            {(() => {
+                                                const presetLayouts = isUniversal
+                                                    ? []
+                                                    : getLayoutOptions(config.type, t).filter(
+                                                          (l) =>
+                                                              l.value !== 'custom' &&
+                                                              hasCustomGridPreset(config.type, l.value),
+                                                      );
+                                                const apply = (nextGrid: CustomGridDef | undefined) => {
                                                     onConfigChange({
                                                         ...config,
                                                         options: { ...o, customGrid: nextGrid },
                                                     });
                                                     setSelectedCustomCell(null);
-                                                }}
-                                                className="text-[10px] px-2 py-1 rounded"
-                                                style={{
+                                                };
+                                                const sty: React.CSSProperties = {
                                                     background: 'var(--widget-bg)',
                                                     color: 'var(--text-secondary)',
                                                     border: '1px solid var(--app-border)',
-                                                }}
-                                            >
-                                                Raster zurücksetzen
-                                            </button>
+                                                };
+                                                if (presetLayouts.length === 0)
+                                                    return (
+                                                        <button
+                                                            onClick={() => apply(undefined)}
+                                                            className="text-[10px] px-2 py-1 rounded"
+                                                            style={sty}
+                                                        >
+                                                            {t('wf.edit.custom.reset')}
+                                                        </button>
+                                                    );
+                                                return (
+                                                    <select
+                                                        data-aura-custom-rebuild=""
+                                                        value=""
+                                                        onChange={(e) => {
+                                                            const v = e.target.value;
+                                                            if (!v) return;
+                                                            apply(
+                                                                v === '__blank'
+                                                                    ? undefined
+                                                                    : (buildCustomGridFromLayout(
+                                                                          config,
+                                                                          v as NonNullable<WidgetConfig['layout']>,
+                                                                      ) ?? undefined),
+                                                            );
+                                                        }}
+                                                        className="text-[10px] px-1.5 py-1 rounded focus:outline-none"
+                                                        style={sty}
+                                                    >
+                                                        <option value="">{t('wf.edit.custom.fromLayout')}</option>
+                                                        {presetLayouts.map((l) => (
+                                                            <option key={l.value} value={l.value}>
+                                                                {l.label}
+                                                            </option>
+                                                        ))}
+                                                        <option value="__blank">
+                                                            {t('wf.edit.layout.customBlank')}
+                                                        </option>
+                                                    </select>
+                                                );
+                                            })()}
                                         </div>
                                     </div>
                                 );

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Cloud, Loader } from 'lucide-react';
-import type { WidgetProps, CustomGrid, CustomGridDef, CustomCell } from '../../types';
+import type { WidgetProps, CustomGrid } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useAdapterWeather } from '../../hooks/useAdapterWeather';
 import { useT, type Language } from '../../i18n';
@@ -21,153 +21,6 @@ export const DEFAULT_WEATHER_GRID: CustomGrid = [
     { type: 'empty' },
     { type: 'empty' },
 ];
-
-/**
- * Build a custom-grid that mirrors the standard (default/card) layout, based on the current
- * widget options. All non-empty cells are 'field' type so they can be styled via fontSize /
- * color / bold like any other widget-field cell.
- *
- * Layout (3 columns, up to 8 rows due to grid hard cap):
- *   - optional title row: [title cs=3]
- *   - header block: big 'emoji' field (rowSpan=N) on the left + condition / temp /
- *     humidityLine / feelsLikeLine stacked on the right
- *   - per-day forecast rows: [day_i] [emoji_i] [tempRange_i]
- *   - optional warnings row: [warningsLine cs=3]
- */
-export function buildWeatherCustomGrid(opts: Record<string, unknown>): CustomGridDef {
-    const showTitle = opts.showTitle !== false;
-    const showIcon = opts.showIcon !== false;
-    const showForecast = (opts.showForecast as boolean) ?? true;
-    const showWarnings = (opts.showWarnings as boolean) ?? false;
-    const showCondition = (opts.showCondition as boolean) ?? true;
-    const showToday = (opts.showToday as boolean) ?? true;
-    const showCloudCvr = (opts.showCloudCover as boolean) ?? false;
-    const forecastDays = (opts.forecastDays as number) ?? 5;
-
-    const cols = 3;
-    const hasTitleRow = showTitle || showIcon;
-    const headerRows = (showCondition ? 1 : 0) + 1 /* temp */ + 1 /* humidity */ + 1; /* feels-like */
-
-    // Grid hard cap is 8 rows — distribute fixed rows first, fill remainder with forecast days.
-    const titleRowCount = hasTitleRow ? 1 : 0;
-    const warningsRowCount = showWarnings ? 1 : 0;
-    const maxFcRows = Math.max(0, 8 - titleRowCount - headerRows - warningsRowCount);
-    const fcRowCount = showForecast ? Math.min(forecastDays, maxFcRows) : 0;
-    const rows = titleRowCount + headerRows + fcRowCount + warningsRowCount;
-
-    const cells: CustomCell[] = [];
-
-    // ── Title row ────────────────────────────────────────────────────────────
-    if (hasTitleRow) {
-        cells.push({
-            type: 'field',
-            fieldKey: 'title',
-            align: 'left',
-            valign: 'middle',
-            colSpan: 3,
-            fontSize: 12,
-            color: 'var(--text-secondary)',
-        });
-        cells.push({ type: 'empty' });
-        cells.push({ type: 'empty' });
-    }
-
-    // ── Header block ─────────────────────────────────────────────────────────
-    let firstHeaderRow = true;
-    const pushHeaderRow = (rightCell: CustomCell) => {
-        if (firstHeaderRow) {
-            cells.push({
-                type: 'field',
-                fieldKey: 'emoji',
-                align: 'center',
-                valign: 'middle',
-                rowSpan: headerRows,
-                fontSize: 40,
-            });
-            firstHeaderRow = false;
-        } else {
-            cells.push({ type: 'empty' });
-        }
-        cells.push({ ...rightCell, colSpan: 2 });
-        cells.push({ type: 'empty' });
-    };
-
-    if (showCondition) {
-        pushHeaderRow({
-            type: 'field',
-            fieldKey: 'condition',
-            align: 'left',
-            valign: 'bottom',
-            fontSize: 14,
-            bold: true,
-            color: 'var(--text-secondary)',
-        });
-    }
-    pushHeaderRow({ type: 'field', fieldKey: 'temp', align: 'left', valign: 'middle', fontSize: 28, bold: true });
-    pushHeaderRow({
-        type: 'field',
-        fieldKey: showCloudCvr ? 'humidityCloud' : 'humidityLine',
-        align: 'left',
-        valign: 'middle',
-        fontSize: 12,
-        color: 'var(--text-secondary)',
-    });
-    pushHeaderRow({
-        type: 'field',
-        fieldKey: 'feelsLikeLine',
-        align: 'left',
-        valign: 'top',
-        fontSize: 12,
-        color: 'var(--text-secondary)',
-    });
-
-    // ── Per-day forecast rows ────────────────────────────────────────────────
-    // Each row: [day name | weather emoji | temperature bar (min° + bar + max°)]
-    const dayOffset = showToday ? 0 : 1;
-    for (let i = 0; i < fcRowCount; i++) {
-        const apiIdx = i + dayOffset;
-        cells.push({
-            type: 'field',
-            fieldKey: `day${apiIdx}`,
-            align: 'left',
-            valign: 'middle',
-            fontSize: 12,
-            color: 'var(--text-secondary)',
-            bold: true,
-        });
-        cells.push({ type: 'field', fieldKey: `emoji${apiIdx}`, align: 'center', valign: 'middle', fontSize: 16 });
-        cells.push({ type: 'component', componentKey: `tempBar${apiIdx}`, align: 'left', valign: 'middle' });
-    }
-
-    // ── Warnings row ─────────────────────────────────────────────────────────
-    if (showWarnings) {
-        cells.push({
-            type: 'field',
-            fieldKey: 'warningsLine',
-            align: 'left',
-            valign: 'middle',
-            colSpan: 3,
-            fontSize: 11,
-            color: 'var(--accent-red, #ef4444)',
-        });
-        cells.push({ type: 'empty' });
-        cells.push({ type: 'empty' });
-    }
-
-    // Track sizes — col 1 narrow (day name / big emoji), col 2 narrow (per-day emoji / header text),
-    // col 3 greedy (temp bar / header text continues). Content-sized rows mirror the standard flex layout.
-    const colSizes: string[] = ['auto', 'auto', '1fr'];
-    const rowSizes: string[] = [];
-    if (hasTitleRow) rowSizes.push('auto');
-    if (showCondition) rowSizes.push('auto');
-    rowSizes.push('auto'); // temp
-    rowSizes.push('auto'); // humidity
-    rowSizes.push('auto'); // feels-like
-    for (let i = 0; i < fcRowCount; i++) rowSizes.push('auto');
-    if (showWarnings) rowSizes.push('auto');
-
-    return { cols, rows, cells, colSizes, rowSizes };
-}
 
 // ── Open-Meteo types ──────────────────────────────────────────────────────────
 interface WeatherData {
@@ -788,8 +641,112 @@ export function WeatherWidget({ config }: WidgetProps) {
     const tomorrowRainP = hasTomorrow ? data!.daily.precipitation_probability_max?.[tomorrowIdx] : undefined;
     const tomorrowRainS = hasTomorrow ? data!.daily.precipitation_sum?.[tomorrowIdx] : undefined;
 
+    // ── Pieces of the standard layouts (#768) ──────────────────────────────────
+    // The layouts below draw these, and the custom grid offers them as components
+    // ('current', 'current-line', 'current-big', 'title-row'), so a grid built from
+    // a layout looks like it — same markup, same size-driven scale (fs). The custom
+    // branch measures its box through containerRef as well.
+    const currentBlock = (
+        <div className="flex items-start gap-3 shrink-0 w-full min-w-0">
+            <span style={{ fontSize: fs(2.2), lineHeight: 1 }}>{info.emoji}</span>
+            <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                    {showCondition && (
+                        <span className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.85) }}>
+                            {info.desc}
+                        </span>
+                    )}
+                    <span
+                        className="font-bold tabular-nums"
+                        style={{
+                            color: showCondition ? 'var(--text-secondary)' : 'var(--text-primary)',
+                            fontSize: fs(tempFontSize > 0 ? tempFontSize : 0.85),
+                        }}
+                    >
+                        {showCondition ? `, ${tempStr}` : tempStr}
+                    </span>
+                </div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
+                    💧 {cur.relative_humidity_2m}%{showHumidityLabel ? ` ${t('weather.humidity')}` : ''}
+                    {showCloudCover && cur.cloud_cover !== undefined && (
+                        <span> · ☁️ {Math.round(cur.cloud_cover)}%</span>
+                    )}
+                </div>
+                <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
+                    {feelsLikeStyle === 'text' && (
+                        <span>{t('weather.feelsLike', { feel, wind: Math.round(cur.wind_speed_10m) })}</span>
+                    )}
+                    {feelsLikeStyle === 'icon' && (
+                        <span>
+                            🌡️ {feel} · 💨 {Math.round(cur.wind_speed_10m)} km/h
+                        </span>
+                    )}
+                    {feelsLikeStyle === 'hidden' && (
+                        <span>
+                            {feel} · 💨 {Math.round(cur.wind_speed_10m)} km/h
+                        </span>
+                    )}
+                    {locationName ? ` · ${locationName}` : ''}
+                    {error && (
+                        <span className="ml-1" style={{ color: 'var(--accent-red, #ef4444)' }}>
+                            !
+                        </span>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+    const currentLineBlock = (
+        <div className="flex items-center gap-2 w-full min-w-0">
+            <span style={{ fontSize: fs(1.4), lineHeight: 1, flexShrink: 0 }}>{info.emoji}</span>
+            <span
+                className="font-bold tabular-nums shrink-0"
+                style={{ color: 'var(--text-primary)', fontSize: fs(1.25) }}
+            >
+                {tempStr}
+            </span>
+            <span className="flex-1 truncate min-w-0" style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
+                {info.desc}
+                {locationName ? ` · ${locationName}` : ''}
+            </span>
+        </div>
+    );
+    const currentBigBlock = (
+        <>
+            <span style={{ fontSize: fs(2.5), lineHeight: 1 }}>{info.emoji}</span>
+            <span className="font-black tabular-nums" style={{ color: 'var(--text-primary)', fontSize: fs(1.875) }}>
+                {displayTemp}°
+            </span>
+        </>
+    );
+
     if (layout === 'custom') {
         const customGrid = (opts.customGrid as CustomGrid | undefined) ?? DEFAULT_WEATHER_GRID;
+        // The default layout's title row (symbol + title, scaled like the layout).
+        const titleRowBlock =
+            showTitle || showIcon ? (
+                <div className="flex items-center gap-1 min-w-0 w-full">
+                    {showIcon && (
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize * scale}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                        />
+                    )}
+                    {showTitle && (
+                        <p
+                            className="aura-widget-title truncate flex-1 min-w-0"
+                            style={{
+                                '--aura-title-color': 'var(--text-secondary)',
+                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                fontSize: fs(0.75),
+                            }}
+                        >
+                            {config.title}
+                        </p>
+                    )}
+                </div>
+            ) : null;
         // Custom-layout typography & sizing for the temp-bar component.
         const barFontSize = (opts.customForecastBarFontSize as number) || 0.75; // rem
         const barHeight = (opts.customForecastBarHeight as number) || 0.9; // rem
@@ -904,72 +861,84 @@ export function WeatherWidget({ config }: WidgetProps) {
         }
 
         return (
-            <CustomGridView
-                config={{ ...config, options: { ...opts, customGrid } }}
-                value={displayTemp ? `${displayTemp}°C` : ''}
-                extraFields={{
-                    temp: `${displayTemp}°C`,
-                    tempValue: `${displayTemp}`,
-                    feelsLike: `${feel}C`,
-                    feelsLikeValue: feel,
-                    humidity: `${cur.relative_humidity_2m}%`,
-                    humidityValue: `${cur.relative_humidity_2m}`,
-                    wind: `${Math.round(cur.wind_speed_10m)} km/h`,
-                    windValue: `${Math.round(cur.wind_speed_10m)}`,
-                    condition: info.desc,
-                    emoji: info.emoji,
-                    cloudCover: cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}%` : '',
-                    cloudCoverValue: cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}` : '',
-                    rainNow: cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
-                    rainNowValue: cur.precipitation !== undefined ? cur.precipitation.toFixed(1) : '',
-                    // Combined "current" rain line — uses today's daily prob + current precipitation amount.
-                    rainLine: fmtRainLine(
-                        data!.daily.precipitation_probability_max?.[0] ?? null,
-                        cur.precipitation ?? null,
-                    ),
-                    location: locationName,
-                    // Combined lines that mirror the standard layout
-                    title: config.title,
-                    humidityLine: `💧 ${cur.relative_humidity_2m}%${showHumidityLabel ? ` ${t('weather.humidity')}` : ''}`,
-                    humidityCloud: `💧 ${cur.relative_humidity_2m}%${showHumidityLabel ? ` ${t('weather.humidity')}` : ''}${cur.cloud_cover !== undefined ? ` · ☁️ ${Math.round(cur.cloud_cover)}%` : ''}`,
-                    feelsLikeLine: (() => {
-                        const w = Math.round(cur.wind_speed_10m);
-                        if (feelsLikeStyle === 'text')
-                            return `${t('weather.feelsLike', { feel, wind: w })}${locationName ? ` · ${locationName}` : ''}`;
-                        if (feelsLikeStyle === 'icon')
-                            return `🌡️ ${feel} · 💨 ${w} km/h${locationName ? ` · ${locationName}` : ''}`;
-                        return `${feel} · 💨 ${w} km/h${locationName ? ` · ${locationName}` : ''}`;
-                    })(),
-                    warningsLine: warningsLoading
-                        ? t('weather.warnings')
-                        : warnings.length === 0
-                          ? `✅ ${t('weather.noWarnings')}`
-                          : warnings
-                                .map((w) => `${SEVERITY_EMOJI[w.severity] ?? '⚠️'} ${w.headline || w.event}`)
-                                .join(' · '),
-                    // Backwards-compatible tomorrow shortcuts (= day1)
-                    dayTomorrow: tomorrowDay,
-                    emojiTomorrow: tomorrowInfo?.emoji ?? '',
-                    conditionTomorrow: tomorrowInfo?.desc ?? '',
-                    tempMaxTomorrow: tomorrowMax !== null ? `${tomorrowMax}°` : '',
-                    tempMinTomorrow: tomorrowMin !== null ? `${tomorrowMin}°` : '',
-                    tempRangeTomorrow:
-                        tomorrowMin !== null && tomorrowMax !== null ? `${tomorrowMin}° / ${tomorrowMax}°` : '',
-                    rainProbTomorrow: tomorrowRainP !== undefined && tomorrowRainP !== null ? `${tomorrowRainP}%` : '',
-                    rainSumTomorrow:
-                        tomorrowRainS !== undefined && tomorrowRainS !== null ? `${fmtRainMm(tomorrowRainS)} mm` : '',
-                    rainLineTomorrow: fmtRainLine(tomorrowRainP, tomorrowRainS),
-                    ...perDayFields,
-                }}
-                extraComponents={{
-                    icon: cellWidgetIcon,
-                    'weather-icon': cellEmoji,
-                    'weather-icon-tomorrow': cellEmojiTomorrow,
-                    forecast: forecastRows,
-                    warnings: cellWarnings,
-                    ...perDayComponents,
-                }}
-            />
+            // Measured like the layouts' root, so the components above scale the same way.
+            <div ref={containerRef} className="w-full h-full">
+                <CustomGridView
+                    config={{ ...config, options: { ...opts, customGrid } }}
+                    value={displayTemp ? `${displayTemp}°C` : ''}
+                    extraFields={{
+                        temp: `${displayTemp}°C`,
+                        tempShort: `${displayTemp}°`,
+                        tempValue: `${displayTemp}`,
+                        feelsLike: `${feel}C`,
+                        feelsLikeValue: feel,
+                        humidity: `${cur.relative_humidity_2m}%`,
+                        humidityValue: `${cur.relative_humidity_2m}`,
+                        wind: `${Math.round(cur.wind_speed_10m)} km/h`,
+                        windValue: `${Math.round(cur.wind_speed_10m)}`,
+                        condition: info.desc,
+                        emoji: info.emoji,
+                        cloudCover: cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}%` : '',
+                        cloudCoverValue: cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}` : '',
+                        rainNow: cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
+                        rainNowValue: cur.precipitation !== undefined ? cur.precipitation.toFixed(1) : '',
+                        // Combined "current" rain line — uses today's daily prob + current precipitation amount.
+                        rainLine: fmtRainLine(
+                            data!.daily.precipitation_probability_max?.[0] ?? null,
+                            cur.precipitation ?? null,
+                        ),
+                        location: locationName,
+                        conditionLine: `${info.desc}${locationName ? ` · ${locationName}` : ''}`,
+                        // Combined lines that mirror the standard layout
+                        title: config.title,
+                        humidityLine: `💧 ${cur.relative_humidity_2m}%${showHumidityLabel ? ` ${t('weather.humidity')}` : ''}`,
+                        humidityCloud: `💧 ${cur.relative_humidity_2m}%${showHumidityLabel ? ` ${t('weather.humidity')}` : ''}${cur.cloud_cover !== undefined ? ` · ☁️ ${Math.round(cur.cloud_cover)}%` : ''}`,
+                        feelsLikeLine: (() => {
+                            const w = Math.round(cur.wind_speed_10m);
+                            if (feelsLikeStyle === 'text')
+                                return `${t('weather.feelsLike', { feel, wind: w })}${locationName ? ` · ${locationName}` : ''}`;
+                            if (feelsLikeStyle === 'icon')
+                                return `🌡️ ${feel} · 💨 ${w} km/h${locationName ? ` · ${locationName}` : ''}`;
+                            return `${feel} · 💨 ${w} km/h${locationName ? ` · ${locationName}` : ''}`;
+                        })(),
+                        warningsLine: warningsLoading
+                            ? t('weather.warnings')
+                            : warnings.length === 0
+                              ? `✅ ${t('weather.noWarnings')}`
+                              : warnings
+                                    .map((w) => `${SEVERITY_EMOJI[w.severity] ?? '⚠️'} ${w.headline || w.event}`)
+                                    .join(' · '),
+                        // Backwards-compatible tomorrow shortcuts (= day1)
+                        dayTomorrow: tomorrowDay,
+                        emojiTomorrow: tomorrowInfo?.emoji ?? '',
+                        conditionTomorrow: tomorrowInfo?.desc ?? '',
+                        tempMaxTomorrow: tomorrowMax !== null ? `${tomorrowMax}°` : '',
+                        tempMinTomorrow: tomorrowMin !== null ? `${tomorrowMin}°` : '',
+                        tempRangeTomorrow:
+                            tomorrowMin !== null && tomorrowMax !== null ? `${tomorrowMin}° / ${tomorrowMax}°` : '',
+                        rainProbTomorrow:
+                            tomorrowRainP !== undefined && tomorrowRainP !== null ? `${tomorrowRainP}%` : '',
+                        rainSumTomorrow:
+                            tomorrowRainS !== undefined && tomorrowRainS !== null
+                                ? `${fmtRainMm(tomorrowRainS)} mm`
+                                : '',
+                        rainLineTomorrow: fmtRainLine(tomorrowRainP, tomorrowRainS),
+                        ...perDayFields,
+                    }}
+                    extraComponents={{
+                        icon: cellWidgetIcon,
+                        'weather-icon': cellEmoji,
+                        'weather-icon-tomorrow': cellEmojiTomorrow,
+                        forecast: forecastRows,
+                        warnings: cellWarnings,
+                        current: currentBlock,
+                        'current-line': currentLineBlock,
+                        'current-big': <div className="flex flex-col items-center gap-1">{currentBigBlock}</div>,
+                        'title-row': titleRowBlock,
+                        ...perDayComponents,
+                    }}
+                />
+            </div>
         );
     }
 
@@ -977,15 +946,7 @@ export function WeatherWidget({ config }: WidgetProps) {
     if (layout === 'minimal') {
         return (
             <div ref={containerRef} className="aura-widget-row flex flex-col h-full gap-1.5">
-                <div className="flex flex-col items-center justify-center flex-1 gap-1">
-                    <span style={{ fontSize: fs(2.5), lineHeight: 1 }}>{info.emoji}</span>
-                    <span
-                        className="font-black tabular-nums"
-                        style={{ color: 'var(--text-primary)', fontSize: fs(1.875) }}
-                    >
-                        {displayTemp}°
-                    </span>
-                </div>
+                <div className="flex flex-col items-center justify-center flex-1 gap-1">{currentBigBlock}</div>
                 {showWarnings && (
                     <div className="shrink-0 min-h-0 aura-scroll overflow-auto">
                         <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={warnScale} />
@@ -999,20 +960,7 @@ export function WeatherWidget({ config }: WidgetProps) {
     if (layout === 'compact') {
         return (
             <div ref={containerRef} className="aura-widget-row flex items-center gap-2 h-full">
-                <span style={{ fontSize: fs(1.4), lineHeight: 1, flexShrink: 0 }}>{info.emoji}</span>
-                <span
-                    className="font-bold tabular-nums shrink-0"
-                    style={{ color: 'var(--text-primary)', fontSize: fs(1.25) }}
-                >
-                    {tempStr}
-                </span>
-                <span
-                    className="flex-1 truncate min-w-0"
-                    style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}
-                >
-                    {info.desc}
-                    {locationName ? ` · ${locationName}` : ''}
-                </span>
+                {currentLineBlock}
             </div>
         );
     }
@@ -1054,54 +1002,7 @@ export function WeatherWidget({ config }: WidgetProps) {
                 <HeaderSlotsRow2 />
             </HeaderGroup>
             {/* ── Current weather header ── */}
-            <div className="flex items-start gap-3 shrink-0">
-                <span style={{ fontSize: fs(2.2), lineHeight: 1 }}>{info.emoji}</span>
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                        {showCondition && (
-                            <span className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.85) }}>
-                                {info.desc}
-                            </span>
-                        )}
-                        <span
-                            className="font-bold tabular-nums"
-                            style={{
-                                color: showCondition ? 'var(--text-secondary)' : 'var(--text-primary)',
-                                fontSize: fs(tempFontSize > 0 ? tempFontSize : 0.85),
-                            }}
-                        >
-                            {showCondition ? `, ${tempStr}` : tempStr}
-                        </span>
-                    </div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
-                        💧 {cur.relative_humidity_2m}%{showHumidityLabel ? ` ${t('weather.humidity')}` : ''}
-                        {showCloudCover && cur.cloud_cover !== undefined && (
-                            <span> · ☁️ {Math.round(cur.cloud_cover)}%</span>
-                        )}
-                    </div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
-                        {feelsLikeStyle === 'text' && (
-                            <span>{t('weather.feelsLike', { feel, wind: Math.round(cur.wind_speed_10m) })}</span>
-                        )}
-                        {feelsLikeStyle === 'icon' && (
-                            <span>
-                                🌡️ {feel} · 💨 {Math.round(cur.wind_speed_10m)} km/h
-                            </span>
-                        )}
-                        {feelsLikeStyle === 'hidden' && (
-                            <span>
-                                {feel} · 💨 {Math.round(cur.wind_speed_10m)} km/h
-                            </span>
-                        )}
-                        {locationName ? ` · ${locationName}` : ''}
-                        {error && (
-                            <span className="ml-1" style={{ color: 'var(--accent-red, #ef4444)' }}>
-                                !
-                            </span>
-                        )}
-                    </div>
-                </div>
-            </div>
+            {currentBlock}
 
             {/* ── Forecast ── */}
             {forecastRows && <div className="shrink-0">{forecastRows}</div>}

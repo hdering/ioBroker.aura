@@ -10,5 +10,9 @@ declare module 'react' {
         '--aura-icon-color'?: string;
         '--aura-header-item-color'?: string;
         '--aura-header-item-icon-color'?: string;
+        // Explicit size of a custom-grid component cell (CustomGridView, #768).
+        '--aura-cell-size'?: string;
+        // Colour a custom-grid cell hands to its component (icons follow it, #768).
+        '--aura-cell-color'?: string;
     }
 }

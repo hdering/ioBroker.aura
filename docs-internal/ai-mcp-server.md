@@ -144,7 +144,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------ |
 | `aura_dashboard`                      | Layouts, Bereiche, Tabs, Rastermaße, Spalten, Zielbildschirm                                                   | read         |
 | `aura_widget_types`                   | Alle Typen kompakt, mit `group=` auf eine Kategorie eingegrenzt                                                | read         |
-| `aura_widget_schema`                  | Optionen der genannten Typen, mit `brief=true` nur Namen und Typen                                             | read         |
+| `aura_widget_schema`                  | Optionen der genannten Typen, mit `brief=true` nur Namen und Typen; `customFrom=<layout>` druckt das Custom-Start-Raster | read         |
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs` (`groupDefs: summary/none`, `images: full`)                                | read         |
 | `aura_types`                          | Benannte Typen einzeln holen (`WidgetCondition`, `CustomCell` …) statt sie je Widget-Typ mitzuschleppen        | read         |
 | `aura_measure`                        | Zeilen in Pixel, gegen die gemessene Höhe des Typs — Layout, Optionen und Zeilendarstellung, plus Tab-URL      | read         |
@@ -2134,3 +2134,16 @@ damit ein Layoutwechsel neu mountet). Meldet nichts an — die Latch-Optionen si
 | Messung | Variante `history` in `COUNTED.statusoverview` mit eigenem `mock` (12 Verlaufseinträge); `line()` nimmt ein Varianten-`mock`. `rowButtons` ist `notForVariants` |
 | Adapter | `list` behält geschlossene Einträge für die Nachkontrolle, `history` hält den Wechsel; Aufbewahrung `statusHistorySize` (50) / `statusHistoryDays` (730), der neueste Eintrag je id bleibt immer; Einmal-Import aus `0_userdata.0.Batterien.Verlauf`, solange `history` leer ist |
 | Tests | `test/status-latch.test.js` (Verlauf, reopen, import, Aufbewahrung), `tools/tests/status-overview-latch.mjs` (Helfer), `npm run test:status-history-ui` (Dev-Server) |
+
+### Custom-Raster aus festem Layout (#768)
+
+Beim Wechsel auf `custom` baut der Editor das bisherige Layout als Raster nach — Vorlagen in
+`src-vis/utils/customGridPresets/` (rein, ohne React). Der Schema-Generator rechnet sie mit
+Standard-Optionen als `widgets.<typ>.customFromLayout.<layout>` ins Schema; sie sind die einzige
+Stelle, an der ein Modell die Felder/Komponenten eines Widgets für das Raster sieht.
+
+| Teil | |
+| --- | --- |
+| MCP | `aura_widget_schema` nennt die Layouts mit Vorlage, `customFrom` gibt das JSON aus; Warnung „custom ohne customGrid“ verweist darauf; Rezept `custom-aus-layout` |
+| Raster | neue Felder `CustomGridDef.bg` / `borderColor` (Karten-Fläche); Zellfarben über Widget-Variablen `--aura-state-color`, `--aura-value-color`, `--aura-card-*` (`CustomGridView cssVars`) |
+| Tests | `tools/tests/custom-grid-presets-logic.mjs` (in `npm test`), `tools/tests/custom-grid-from-layout.mjs` (Browser: Original neben Custom, Editor-Ablauf), MCP-Check in `tools/tests/mcp.mjs` |

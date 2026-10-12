@@ -79,6 +79,17 @@ export function BinarySensorWidget({ config }: WidgetProps) {
             <CustomGridView
                 config={config}
                 value={isActive ? labelOn : labelOff}
+                cssVars={{
+                    '--aura-state-color': color,
+                    // Card face (#768) — the same colours the card layout paints.
+                    '--aura-card-bg': isActive
+                        ? `linear-gradient(135deg, ${colorOn}, color-mix(in srgb, ${colorOn} 60%, black))`
+                        : 'var(--app-bg)',
+                    '--aura-card-border': color,
+                    '--aura-card-icon': isActive ? '#fff' : color,
+                    '--aura-card-title': isActive ? '#fff' : 'var(--text-primary)',
+                    '--aura-card-label': `color-mix(in srgb, ${isActive ? '#fff' : color} 80%, transparent)`,
+                }}
                 extraFields={{
                     label: isActive ? labelOn : labelOff,
                     labelOn: labelOn,
@@ -92,7 +103,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                         <Icon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ '--aura-icon-color': color, flexShrink: 0 }}
+                            style={{ '--aura-icon-color': `var(--aura-cell-color, ${color})`, flexShrink: 0 }}
                         />
                     ),
                     'battery-icon': batteryIcon,

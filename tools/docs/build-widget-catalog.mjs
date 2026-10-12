@@ -119,8 +119,21 @@ const OPTION_SEED = {
 // Component keys usable in a widget's custom-layout cells (extraComponents / extraFields).
 const CUSTOM_KEYS = {
     thermostat: {
-        components: ['icon', 'btn-plus', 'btn-minus', 'battery-icon', 'reach-icon', 'status-badges'],
-        fields: ['setpoint', 'actual', 'status', 'battery', 'reach'],
+        components: [
+            'icon',
+            'dial',
+            'presets',
+            'status-icon',
+            'actual-line',
+            'btn-plus',
+            'btn-minus',
+            'btn-plus-round',
+            'btn-minus-round',
+            'battery-icon',
+            'reach-icon',
+            'status-badges',
+        ],
+        fields: ['setpoint', 'actual', 'actualTemp', 'actualSlash', 'actualLine', 'status', 'battery', 'reach'],
     },
 };
 

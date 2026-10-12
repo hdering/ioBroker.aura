@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-10-08",
+  "generatedAt": "2026-10-12",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -301,8 +301,14 @@
       "customComponentKeys": {
         "components": [
           "icon",
+          "dial",
+          "presets",
+          "status-icon",
+          "actual-line",
           "btn-plus",
           "btn-minus",
+          "btn-plus-round",
+          "btn-minus-round",
           "battery-icon",
           "reach-icon",
           "status-badges"
@@ -310,6 +316,9 @@
         "fields": [
           "setpoint",
           "actual",
+          "actualTemp",
+          "actualSlash",
+          "actualLine",
           "status",
           "battery",
           "reach"

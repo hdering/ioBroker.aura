@@ -95,6 +95,7 @@ export function StateImageWidget({ config }: WidgetProps) {
             <CustomGridView
                 config={config}
                 value={stateLabel}
+                cssVars={{ '--aura-state-color': cfg.color, '--aura-card-border': cfg.color }}
                 extraFields={{
                     label: stateLabel,
                     battery,

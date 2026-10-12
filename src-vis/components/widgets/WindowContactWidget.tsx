@@ -133,6 +133,14 @@ export function WindowContactWidget({ config }: WidgetProps) {
             <CustomGridView
                 config={config}
                 value={stateLabel}
+                cssVars={{
+                    '--aura-state-color': cfg.color,
+                    // Card face (#768) — the same colours the card layout paints.
+                    '--aura-card-bg': `linear-gradient(135deg, ${cfg.color}, color-mix(in srgb, ${cfg.color} 60%, black))`,
+                    '--aura-card-border': cfg.color,
+                    '--aura-card-title': '#fff',
+                    '--aura-card-label': 'color-mix(in srgb, #fff 80%, transparent)',
+                }}
                 extraFields={{
                     label: stateLabel,
                     open: state === 'open' ? 'Ja' : 'Nein',

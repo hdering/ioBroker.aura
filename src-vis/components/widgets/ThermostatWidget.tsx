@@ -210,13 +210,208 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const layout = config.layout ?? 'default';
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
+    // ── DIAL (Rundskala) as a reusable element ───────────────────────────────
+    // Drawn by the dial layout and offered to the custom grid as 'dial' (#768).
+    const renderDial = () => {
+        const dialTarget = dialDrag ?? target;
+        // Threshold scale wins over the fixed colour, which in turn wins over the
+        // heat/cool accent.
+        const arcColor =
+            getThresholdColor(dialTarget, dialThresholds) ?? (o.dialColor as string | undefined) ?? dialAccent;
+        const trackColor =
+            (o.dialTrackColor as string | undefined) || 'color-mix(in srgb, var(--text-secondary) 28%, transparent)';
+        const sw = (o.dialThickness as number) ?? 11;
+        const ratio = dialRatio(dialTarget, minTemp, maxTemp);
+        const valueEnd = DIAL_START + ratio * (DIAL_END - DIAL_START);
+        const knob = polarToCartesian(DIAL_CX, DIAL_CY, DIAL_R, valueEnd);
+
+        const valueFromEvent = (e: React.PointerEvent): number | null => {
+            const svg = dialSvgRef.current;
+            if (!svg) return null;
+            const rect = svg.getBoundingClientRect();
+            if (!rect.width || !rect.height) return null;
+            // preserveAspectRatio="xMidYMid meet" letterboxes the square viewBox.
+            const side = Math.min(rect.width, rect.height);
+            const px = ((e.clientX - rect.left - (rect.width - side) / 2) / side) * 200;
+            const py = ((e.clientY - rect.top - (rect.height - side) / 2) / side) * 200;
+            const r = (dialAngleFromPoint(px, py) - DIAL_START) / (DIAL_END - DIAL_START);
+            return clamp(minTemp + r * (maxTemp - minTemp), minTemp, maxTemp, step);
+        };
+
+        const onArcDown = (e: React.PointerEvent) => {
+            e.stopPropagation();
+            (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
+            dialDragging.current = true;
+            const v = valueFromEvent(e);
+            if (v !== null) setDialDrag(v);
+        };
+        const onArcMove = (e: React.PointerEvent) => {
+            if (!dialDragging.current) return;
+            const v = valueFromEvent(e);
+            if (v !== null) setDialDrag(v);
+        };
+        const onArcUp = (e: React.PointerEvent) => {
+            if (!dialDragging.current) return;
+            e.stopPropagation();
+            dialDragging.current = false;
+            if (dialDrag !== null) setState(config.datapoint, dialDrag);
+        };
+
+        // Centre stack — only the enabled fields, vertically centred as a block so
+        // the dial stays balanced whichever of them is switched off.
+        const lines: { key: string; text: string; fs: number; weight: number; fill: string }[] = [];
+        if (showSetpoint) {
+            const valueText = `${formatNum(dialTarget, decimals, numFmt)} °C`;
+            lines.push({ key: 'value', text: valueText, fs: fitDialValue(valueText), weight: 700, fill: arcColor });
+        }
+        if (showTitle)
+            lines.push({
+                key: 'title',
+                text: displayTitle,
+                fs: 12,
+                weight: 400,
+                fill: 'var(--text-secondary)',
+            });
+        if (showActualTemp && actual !== null)
+            lines.push({
+                key: 'actual',
+                text: `${t('thermo.actual')} ${formatNum(actual, decimals, numFmt)} °C`,
+                fs: 11,
+                weight: 400,
+                fill: thresholdColor ?? 'var(--text-secondary)',
+            });
+        const stackH = lines.reduce((sum, l) => sum + l.fs * 1.3, 0);
+        let cursor = (showControls ? 94 : 100) - stackH / 2;
+
+        return (
+            <svg
+                ref={dialSvgRef}
+                viewBox="0 0 200 200"
+                preserveAspectRatio="xMidYMid meet"
+                data-aura-thermo-dial={config.id}
+                className="aura-widget-value"
+                style={{ width: '100%', height: '100%', maxHeight: '100%', display: 'block' }}
+            >
+                <path
+                    data-aura-thermo-track=""
+                    d={describeArc(DIAL_CX, DIAL_CY, DIAL_R, DIAL_START, DIAL_END)}
+                    fill="none"
+                    stroke={trackColor}
+                    strokeWidth={sw}
+                    strokeLinecap="round"
+                />
+                {ratio > 0.001 && (
+                    <path
+                        data-aura-thermo-arc=""
+                        d={describeArc(DIAL_CX, DIAL_CY, DIAL_R, DIAL_START, valueEnd)}
+                        fill="none"
+                        stroke={arcColor}
+                        strokeWidth={sw}
+                        strokeLinecap="round"
+                    />
+                )}
+                {/* Wide invisible copy of the track: the drag/tap target. */}
+                <path
+                    className="aura-widget-action nodrag"
+                    d={describeArc(DIAL_CX, DIAL_CY, DIAL_R, DIAL_START, DIAL_END)}
+                    fill="none"
+                    stroke="transparent"
+                    strokeWidth={Math.max(sw + 16, 28)}
+                    strokeLinecap="round"
+                    style={{ cursor: 'pointer', touchAction: 'none' }}
+                    onPointerDown={onArcDown}
+                    onPointerMove={onArcMove}
+                    onPointerUp={onArcUp}
+                    onPointerCancel={onArcUp}
+                />
+                <circle
+                    data-aura-thermo-knob=""
+                    cx={knob.x}
+                    cy={knob.y}
+                    r={sw * 0.78}
+                    fill="#fff"
+                    stroke="var(--app-border)"
+                    strokeWidth={0.75}
+                    pointerEvents="none"
+                />
+                {lines.map((l) => {
+                    const y = cursor + l.fs * 0.9;
+                    cursor += l.fs * 1.3;
+                    return (
+                        <text
+                            key={l.key}
+                            data-aura-thermo-line={l.key}
+                            x={DIAL_CX}
+                            y={y}
+                            textAnchor="middle"
+                            fontSize={l.fs}
+                            fontWeight={l.weight}
+                            // The title line is the widget's title: class + colour
+                            // variable, so custom CSS on .aura-widget-title reaches it.
+                            {...(l.key === 'title'
+                                ? {
+                                      className: 'aura-widget-title',
+                                      fill: 'currentColor',
+                                      style: { '--aura-title-color': l.fill },
+                                  }
+                                : { fill: l.fill })}
+                        >
+                            {fitDialText(l.text, l.fs)}
+                        </text>
+                    );
+                })}
+                {showControls &&
+                    (
+                        [
+                            { key: 'minus', x: 74, label: '−', delta: -step },
+                            { key: 'plus', x: 126, label: '+', delta: step },
+                        ] as const
+                    ).map((b) => (
+                        <g
+                            key={b.key}
+                            className="aura-widget-action nodrag"
+                            data-aura-thermo-btn={b.key}
+                            style={{ cursor: 'pointer' }}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setTemp(target + b.delta);
+                            }}
+                        >
+                            <circle
+                                cx={b.x}
+                                cy={160}
+                                r={18}
+                                fill="transparent"
+                                pointerEvents="all"
+                                stroke="var(--app-border)"
+                                strokeWidth={1.5}
+                            />
+                            <text
+                                x={b.x}
+                                y={160}
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                fontSize={22}
+                                fill="var(--text-primary)"
+                                pointerEvents="none"
+                            >
+                                {b.label}
+                            </text>
+                        </g>
+                    ))}
+            </svg>
+        );
+    };
+
     if (layout === 'custom') {
         const btnSty: React.CSSProperties = {
             background: 'var(--app-border)',
             color: 'var(--text-primary)',
             borderRadius: 6,
-            width: 28,
-            height: 28,
+            // A preset sizes the buttons through the cell (fontSize → --aura-cell-size).
+            width: 'var(--aura-cell-size, 28px)',
+            height: 'var(--aura-cell-size, 28px)',
             fontWeight: 'bold',
             fontSize: 16,
             cursor: 'pointer',
@@ -230,9 +425,16 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 config={config}
                 value={typeof rawTarget === 'number' ? formatNum(rawTarget, decimals, numFmt) : '–'}
                 rawValue={typeof rawTarget === 'number' ? rawTarget : null}
+                cssVars={{
+                    '--aura-state-color': accentColor,
+                    '--aura-actual-color': thresholdColor ?? 'var(--text-secondary)',
+                }}
                 extraFields={{
                     setpoint: typeof rawTarget === 'number' ? formatNum(rawTarget, decimals, numFmt) : '–',
                     actual: actual !== null ? formatNum(actual, decimals, numFmt) : '–',
+                    actualTemp: actual !== null ? `${formatNum(actual, decimals, numFmt)}°C` : '',
+                    actualSlash: actual !== null ? `/ ${formatNum(actual, decimals, numFmt)}°C` : '',
+                    actualLine: actual !== null ? `${t('thermo.actual')} ${formatNum(actual, decimals, numFmt)}°C` : '',
                     status: isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
                     battery,
                     reach,
@@ -242,7 +444,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         <ThermoIcon
                             className="aura-widget-icon"
                             size={iconSize}
-                            style={{ '--aura-icon-color': accentColor, flexShrink: 0 }}
+                            style={{ '--aura-icon-color': `var(--aura-cell-color, ${accentColor})`, flexShrink: 0 }}
                         />
                     ) : null,
                     'btn-plus': (
@@ -263,9 +465,42 @@ export function ThermostatWidget({ config }: WidgetProps) {
                             −
                         </button>
                     ),
+                    // Round variants — the minimal layout's buttons.
+                    'btn-plus-round': (
+                        <button
+                            className="aura-widget-action nodrag"
+                            style={{ ...btnSty, borderRadius: '50%' }}
+                            onClick={() => setTemp(target + step)}
+                        >
+                            +
+                        </button>
+                    ),
+                    'btn-minus-round': (
+                        <button
+                            className="aura-widget-action nodrag"
+                            style={{ ...btnSty, borderRadius: '50%' }}
+                            onClick={() => setTemp(target - step)}
+                        >
+                            −
+                        </button>
+                    ),
+                    // "Ist: 20,5°C" as the default layout draws it — label grey, reading in
+                    // its threshold colour.
+                    'actual-line':
+                        actual !== null ? (
+                            <span className="text-xs" style={{ color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                                {t('thermo.actual')}:{' '}
+                                <span style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
+                                    {formatNum(actual, decimals, numFmt)}°C
+                                </span>
+                            </span>
+                        ) : null,
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    dial: <div className="w-full h-full min-h-0 flex items-center justify-center">{renderDial()}</div>,
+                    presets: presets.length > 0 ? <PresetButtons /> : null,
+                    'status-icon': <StatusIcon />,
                 }}
             />
         );
@@ -391,197 +626,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
 
     // ── DIAL (Rundskala) ──────────────────────────────────────────────────────
     if (layout === 'dial') {
-        const dialTarget = dialDrag ?? target;
-        // Threshold scale wins over the fixed colour, which in turn wins over the
-        // heat/cool accent.
-        const arcColor =
-            getThresholdColor(dialTarget, dialThresholds) ?? (o.dialColor as string | undefined) ?? dialAccent;
-        const trackColor =
-            (o.dialTrackColor as string | undefined) || 'color-mix(in srgb, var(--text-secondary) 28%, transparent)';
-        const sw = (o.dialThickness as number) ?? 11;
-        const ratio = dialRatio(dialTarget, minTemp, maxTemp);
-        const valueEnd = DIAL_START + ratio * (DIAL_END - DIAL_START);
-        const knob = polarToCartesian(DIAL_CX, DIAL_CY, DIAL_R, valueEnd);
-
-        const valueFromEvent = (e: React.PointerEvent): number | null => {
-            const svg = dialSvgRef.current;
-            if (!svg) return null;
-            const rect = svg.getBoundingClientRect();
-            if (!rect.width || !rect.height) return null;
-            // preserveAspectRatio="xMidYMid meet" letterboxes the square viewBox.
-            const side = Math.min(rect.width, rect.height);
-            const px = ((e.clientX - rect.left - (rect.width - side) / 2) / side) * 200;
-            const py = ((e.clientY - rect.top - (rect.height - side) / 2) / side) * 200;
-            const r = (dialAngleFromPoint(px, py) - DIAL_START) / (DIAL_END - DIAL_START);
-            return clamp(minTemp + r * (maxTemp - minTemp), minTemp, maxTemp, step);
-        };
-
-        const onArcDown = (e: React.PointerEvent) => {
-            e.stopPropagation();
-            (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
-            dialDragging.current = true;
-            const v = valueFromEvent(e);
-            if (v !== null) setDialDrag(v);
-        };
-        const onArcMove = (e: React.PointerEvent) => {
-            if (!dialDragging.current) return;
-            const v = valueFromEvent(e);
-            if (v !== null) setDialDrag(v);
-        };
-        const onArcUp = (e: React.PointerEvent) => {
-            if (!dialDragging.current) return;
-            e.stopPropagation();
-            dialDragging.current = false;
-            if (dialDrag !== null) setState(config.datapoint, dialDrag);
-        };
-
-        // Centre stack — only the enabled fields, vertically centred as a block so
-        // the dial stays balanced whichever of them is switched off.
-        const lines: { key: string; text: string; fs: number; weight: number; fill: string }[] = [];
-        if (showSetpoint) {
-            const valueText = `${formatNum(dialTarget, decimals, numFmt)} °C`;
-            lines.push({ key: 'value', text: valueText, fs: fitDialValue(valueText), weight: 700, fill: arcColor });
-        }
-        if (showTitle)
-            lines.push({
-                key: 'title',
-                text: displayTitle,
-                fs: 12,
-                weight: 400,
-                fill: 'var(--text-secondary)',
-            });
-        if (showActualTemp && actual !== null)
-            lines.push({
-                key: 'actual',
-                text: `${t('thermo.actual')} ${formatNum(actual, decimals, numFmt)} °C`,
-                fs: 11,
-                weight: 400,
-                fill: thresholdColor ?? 'var(--text-secondary)',
-            });
-        const stackH = lines.reduce((sum, l) => sum + l.fs * 1.3, 0);
-        let cursor = (showControls ? 94 : 100) - stackH / 2;
-
         return (
             <div className="aura-widget-row flex flex-col h-full min-h-0 gap-1" style={{ position: 'relative' }}>
-                <div className="flex-1 min-h-0 flex items-center justify-center">
-                    <svg
-                        ref={dialSvgRef}
-                        viewBox="0 0 200 200"
-                        preserveAspectRatio="xMidYMid meet"
-                        data-aura-thermo-dial={config.id}
-                        className="aura-widget-value"
-                        style={{ width: '100%', height: '100%', maxHeight: '100%', display: 'block' }}
-                    >
-                        <path
-                            data-aura-thermo-track=""
-                            d={describeArc(DIAL_CX, DIAL_CY, DIAL_R, DIAL_START, DIAL_END)}
-                            fill="none"
-                            stroke={trackColor}
-                            strokeWidth={sw}
-                            strokeLinecap="round"
-                        />
-                        {ratio > 0.001 && (
-                            <path
-                                data-aura-thermo-arc=""
-                                d={describeArc(DIAL_CX, DIAL_CY, DIAL_R, DIAL_START, valueEnd)}
-                                fill="none"
-                                stroke={arcColor}
-                                strokeWidth={sw}
-                                strokeLinecap="round"
-                            />
-                        )}
-                        {/* Wide invisible copy of the track: the drag/tap target. */}
-                        <path
-                            className="aura-widget-action nodrag"
-                            d={describeArc(DIAL_CX, DIAL_CY, DIAL_R, DIAL_START, DIAL_END)}
-                            fill="none"
-                            stroke="transparent"
-                            strokeWidth={Math.max(sw + 16, 28)}
-                            strokeLinecap="round"
-                            style={{ cursor: 'pointer', touchAction: 'none' }}
-                            onPointerDown={onArcDown}
-                            onPointerMove={onArcMove}
-                            onPointerUp={onArcUp}
-                            onPointerCancel={onArcUp}
-                        />
-                        <circle
-                            data-aura-thermo-knob=""
-                            cx={knob.x}
-                            cy={knob.y}
-                            r={sw * 0.78}
-                            fill="#fff"
-                            stroke="var(--app-border)"
-                            strokeWidth={0.75}
-                            pointerEvents="none"
-                        />
-                        {lines.map((l) => {
-                            const y = cursor + l.fs * 0.9;
-                            cursor += l.fs * 1.3;
-                            return (
-                                <text
-                                    key={l.key}
-                                    data-aura-thermo-line={l.key}
-                                    x={DIAL_CX}
-                                    y={y}
-                                    textAnchor="middle"
-                                    fontSize={l.fs}
-                                    fontWeight={l.weight}
-                                    // The title line is the widget's title: class + colour
-                                    // variable, so custom CSS on .aura-widget-title reaches it.
-                                    {...(l.key === 'title'
-                                        ? {
-                                              className: 'aura-widget-title',
-                                              fill: 'currentColor',
-                                              style: { '--aura-title-color': l.fill },
-                                          }
-                                        : { fill: l.fill })}
-                                >
-                                    {fitDialText(l.text, l.fs)}
-                                </text>
-                            );
-                        })}
-                        {showControls &&
-                            (
-                                [
-                                    { key: 'minus', x: 74, label: '−', delta: -step },
-                                    { key: 'plus', x: 126, label: '+', delta: step },
-                                ] as const
-                            ).map((b) => (
-                                <g
-                                    key={b.key}
-                                    className="aura-widget-action nodrag"
-                                    data-aura-thermo-btn={b.key}
-                                    style={{ cursor: 'pointer' }}
-                                    onPointerDown={(e) => e.stopPropagation()}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setTemp(target + b.delta);
-                                    }}
-                                >
-                                    <circle
-                                        cx={b.x}
-                                        cy={160}
-                                        r={18}
-                                        fill="transparent"
-                                        pointerEvents="all"
-                                        stroke="var(--app-border)"
-                                        strokeWidth={1.5}
-                                    />
-                                    <text
-                                        x={b.x}
-                                        y={160}
-                                        textAnchor="middle"
-                                        dominantBaseline="central"
-                                        fontSize={22}
-                                        fill="var(--text-primary)"
-                                        pointerEvents="none"
-                                    >
-                                        {b.label}
-                                    </text>
-                                </g>
-                            ))}
-                    </svg>
-                </div>
+                <div className="flex-1 min-h-0 flex items-center justify-center">{renderDial()}</div>
                 {showPresets && presets.length > 0 && (
                     <div className="flex justify-center">
                         <PresetButtons />

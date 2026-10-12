@@ -460,6 +460,10 @@ export interface CustomGridDef {
     colSizes?: string[];
     /** Optional per-row CSS grid-template-rows track sizes (e.g. 'auto', '1fr', '0.25fr', '40px'). Length must equal rows. 'Nfr' = share of the widget height (1fr / 0.25fr / 1fr gives a thin separator row), 'auto' = as tall as the content. */
     rowSizes?: string[];
+    /** Background of the whole grid — any CSS background (colour, gradient, var(...)). The card layouts' coloured face when a grid was built from one (#768); unset = none. */
+    bg?: string;
+    /** Colour of a 2px frame around the whole grid, rounded like the widget — the card layouts' outline (#768); unset = no frame. */
+    borderColor?: string;
 }
 
 export interface ioBrokerState {

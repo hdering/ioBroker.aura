@@ -4,6 +4,38 @@ Jedes Widget mit Layout-Auswahl kennt den Layout-Typ **Custom**: ein freies Zell
 
 Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
 
+## Aus Layout übernehmen
+
+Beim Wechsel auf **Custom** fragt der Editor, womit das Raster startet.
+
+| Auswahl | |
+| --- | --- |
+| Layout „…“ übernehmen | baut das bisherige Layout als Raster nach — danach Zeilen ergänzen oder umbauen |
+| Bisheriges Raster behalten | nur wenn das Widget schon ein Custom-Raster hatte |
+| Standard-Raster | Titel · Wert · Einheit |
+| Abbruch | Layout bleibt |
+
+![](./assets/custom-layout/from-layout-prompt.png)
+
+Im Raster-Editor holt **Aus Layout übernehmen …** jedes Layout später noch einmal.
+
+| Widget | Layouts |
+| --- | --- |
+| [Wert-Anzeige](./wert-anzeige) · [Binärsensor](./binaersensor) · [Fensterkontakt](./fensterkontakt) · [Zustandsbild](./zustandsbild) | Standard · Karte · Kompakt · Minimal |
+| [Schalter](./schalter) | Standard · Karte · Kompakt |
+| [Thermostat](./thermostat) | Standard · Kompakt · Minimal · Rundskala |
+| [Wetter](./wetter) | Standard · Kompakt · Minimal |
+
+Links Rundskala, rechts dasselbe als Custom-Raster mit einer `dp`-Zeile (Luftfeuchte) darunter:
+
+![](./assets/custom-layout/from-layout-dial.png)
+
+| Übernommen | |
+| --- | --- |
+| Farben je Zustand | Zellen mit `var(--aura-state-color)` · `var(--aura-value-color)` folgen an/aus, Schwellwert, Heizen/Kühlen |
+| Karten-Hintergrund | `bg` + `borderColor` am Raster (Verlauf + Rahmen) — **Karten-Hintergrund entfernen** im Raster-Editor |
+| Rundskala · Vorhersage · Schnellwahl | als Komponente (`dial` · `forecast` · `presets` …) |
+
 ## Raster
 
 Größe per Spinner. Zellen werden zeilenweise gelesen (oben links → unten rechts).

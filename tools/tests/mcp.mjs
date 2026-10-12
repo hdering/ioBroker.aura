@@ -3362,6 +3362,23 @@ check('aura_widget_schema documents only what was asked for', () => {
     assert.ok(!/## value —/.test(t));
 });
 
+// #768: the grid the editor builds from a fixed layout is the model's starting point
+// for layout "custom" — announced on every type that has one, printed on request.
+const customFromRes = await client.callTool({
+    name: 'aura_widget_schema',
+    arguments: { types: ['thermostat', 'gauge'], customFrom: 'dial', sharedTypes: false, shape: false },
+});
+check('aura_widget_schema customFrom prints the preset grid', () => {
+    const t = customFromRes.content[0].text;
+    assert.match(t, /Layout "custom" ab Vorlage: customFrom=<layout>/);
+    const m = t.match(/## thermostat: Custom-Raster aus „dial“\n.*\n(\{.*\})/);
+    assert.ok(m, 'thermostat dial grid printed');
+    const grid = JSON.parse(m[1]);
+    assert.equal(grid.cells.length, grid.cols * grid.rows);
+    assert.ok(grid.cells.some((c) => c.componentKey === 'dial'));
+    assert.match(t, /## gauge: keine Vorlage für „dial“/);
+});
+
 // ── Answer size ──────────────────────────────────────────────────────────────
 // The named-type block is two thirds of the answer and used to be reprinted on
 // every call, so four widget types fetched one at a time paid for CustomCell four

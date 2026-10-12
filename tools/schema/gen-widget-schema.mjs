@@ -61,6 +61,7 @@ async function loadRegistry() {
         [
             `export { WIDGET_REGISTRY, WIDGET_GROUPS, DEFAULT_CONDITION_SLOTS } from ${JSON.stringify(path.join(SRC, 'widgetRegistry').replace(/\\/g, '/'))};`,
             `export { getAvailableLayouts } from ${JSON.stringify(path.join(SRC, 'utils/widgetLayouts').replace(/\\/g, '/'))};`,
+            `export { buildCustomGridFromLayout } from ${JSON.stringify(path.join(SRC, 'utils/customGridPresets').replace(/\\/g, '/'))};`,
         ].join('\n'),
     );
 
@@ -89,6 +90,21 @@ async function loadRegistry() {
         plugins: [stubLucide],
     });
     return import(`${pathToFileURL(outfile).href}?t=${Date.now()}`);
+}
+
+/**
+ * The custom grids the editor builds when a widget switches from one of its fixed
+ * layouts to "custom" (#768), computed with the default options. They are the only
+ * place a model learns which fields and components a widget hands to its custom
+ * grid — and a far better start than an empty 3×3.
+ */
+function customFromLayout(reg, type) {
+    const out = {};
+    for (const layout of reg.getAvailableLayouts(type)) {
+        const grid = reg.buildCustomGridFromLayout({ type, options: {} }, layout);
+        if (grid) out[layout] = grid;
+    }
+    return Object.keys(out).length ? { customFromLayout: out } : {};
 }
 
 // ── 2. Type normalisation ─────────────────────────────────────────────────────
@@ -795,6 +811,7 @@ async function build() {
             ...(meta.hidden ? { deprecated: true } : {}),
             defaultSize: { w: meta.defaultW, h: meta.defaultH },
             layouts: reg.getAvailableLayouts(type),
+            ...customFromLayout(reg, type),
             conditionSlots: meta.conditionSlots ?? reg.DEFAULT_CONDITION_SLOTS,
             ...(meta.popupDefaults ? { popupOptionKeys: Object.keys(meta.popupDefaults) } : {}),
             commonOptions: common,
@@ -818,6 +835,9 @@ async function build() {
                 'options accepts the keys under widgets.<type>.options plus every key ' +
                     'listed in widgets.<type>.commonOptions (defined once under commonOptions).',
                 'layout must be one of widgets.<type>.layouts; omit it for "default".',
+                'For layout "custom", widgets.<type>.customFromLayout.<layout> (where present) is the grid the editor ' +
+                    'builds from that fixed layout — start from it as options.customGrid and add or change rows; its ' +
+                    'cells name the fields and components the widget provides.',
                 'An option marked "datapoint": true must be an existing ioBroker state id — never invent one.',
                 'Names referenced as "ref" are defined under types.',
                 'A missing "description" means the key is only documented by its name, type and default.',
