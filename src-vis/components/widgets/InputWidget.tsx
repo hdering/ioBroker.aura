@@ -265,6 +265,17 @@ export function InputWidget({ config }: WidgetProps) {
                         input: inputEl,
                         submit: renderSubmitButton(true),
                         icon: iconEl,
+                        // The field as the fixed layouts draw it — with unit and, per the
+                        // submit mode, the send button (#768).
+                        'input-row': multiline ? (
+                            <div className="flex gap-2 w-full h-full min-h-0">
+                                {inputEl}
+                                {unitEl}
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 w-full min-w-0">{singleLineContent}</div>
+                        ),
+                        'submit-auto': submitButton,
                     }}
                 />
                 {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}

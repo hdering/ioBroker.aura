@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Gauge, HelpCircle } from 'lucide-react';
+import { Gauge } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, CustomGrid, CustomGridDef } from '../../types';
@@ -888,7 +888,6 @@ export function KnobWidget({ config }: WidgetProps) {
                 rowSizes: isLegacyKnobAxis(customGrid.rowSizes) ? undefined : customGrid.rowSizes,
             };
         }
-        const TitleIcon = getWidgetIcon(o.icon as string | undefined, HelpCircle);
         return (
             <CustomGridView
                 config={{ ...config, options: { ...o, customGrid } }}
@@ -903,8 +902,9 @@ export function KnobWidget({ config }: WidgetProps) {
                 }}
                 extraComponents={{
                     dial: dialEl,
+                    // The same icon as the title row of the fixed layouts (#768).
                     icon: (
-                        <TitleIcon
+                        <WidgetIcon
                             className="aura-widget-icon"
                             size={iconSize}
                             style={{ '--aura-icon-color': 'var(--text-secondary)' }}

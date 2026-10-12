@@ -88,7 +88,42 @@
         "popupTitle",
         "popupShowHistory"
       ],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "icon",
+          "viz",
+          "btn-col",
+          "btn-row",
+          "btn-up",
+          "btn-stop",
+          "btn-down",
+          "btn-up-min",
+          "btn-stop-min",
+          "btn-down-min",
+          "slider",
+          "tilt-slider-v",
+          "tilt-slider-h",
+          "btn-tilt",
+          "btn-tilt-open",
+          "btn-tilt-close",
+          "tilt-aside",
+          "tilt-aside-flat",
+          "tilt-row",
+          "presets",
+          "battery-icon",
+          "reach-icon",
+          "status-badges"
+        ],
+        "fields": [
+          "position",
+          "status",
+          "movingArrow",
+          "moving",
+          "tilt",
+          "battery",
+          "reach"
+        ]
+      },
       "screenshots": {
         "hero": "assets/rollladen/runtime.png",
         "config": "assets/rollladen/config.png",
@@ -121,7 +156,27 @@
         "popupTitle",
         "popupShowHistory"
       ],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "icon",
+          "slider",
+          "toggle",
+          "control",
+          "state-dot",
+          "level-slider",
+          "level-slider-sm",
+          "battery-icon",
+          "reach-icon",
+          "status-badges"
+        ],
+        "fields": [
+          "level",
+          "status",
+          "on",
+          "battery",
+          "reach"
+        ]
+      },
       "screenshots": {
         "hero": "assets/dimmer/runtime.png",
         "config": "assets/dimmer/config.png",
@@ -176,7 +231,25 @@
         "popupTitle",
         "popupShowHistory"
       ],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "slider",
+          "slider-line",
+          "icon",
+          "actions",
+          "battery-icon",
+          "reach-icon",
+          "status-badges"
+        ],
+        "fields": [
+          "value",
+          "unit",
+          "min",
+          "max",
+          "battery",
+          "reach"
+        ]
+      },
       "screenshots": {
         "hero": "assets/schieberegler/runtime.png",
         "config": "assets/schieberegler/config.png",
@@ -462,7 +535,18 @@
         "popupTitle",
         "popupShowHistory"
       ],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "dial",
+          "icon"
+        ],
+        "fields": [
+          "value",
+          "unit",
+          "min",
+          "max"
+        ]
+      },
       "screenshots": {
         "hero": "assets/drehregler/runtime.png",
         "config": "assets/drehregler/config.png",
@@ -625,7 +709,16 @@
         "popupTitle",
         "popupShowHistory"
       ],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "input",
+          "submit",
+          "input-row",
+          "submit-auto",
+          "icon"
+        ],
+        "fields": []
+      },
       "screenshots": {
         "hero": "assets/eingabefeld/runtime.png",
         "config": "assets/eingabefeld/config.png",
@@ -651,7 +744,22 @@
       ],
       "options": [],
       "crosscutting": [],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "icon",
+          "select",
+          "label",
+          "label-lg",
+          "accent-bar",
+          "battery-icon",
+          "reach-icon",
+          "status-badges"
+        ],
+        "fields": [
+          "battery",
+          "reach"
+        ]
+      },
       "screenshots": {
         "hero": "assets/auswahlfeld/runtime.png",
         "config": "assets/auswahlfeld/config.png",
@@ -1178,7 +1286,16 @@
       ],
       "options": [],
       "crosscutting": [],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "button",
+          "button-wide",
+          "icon"
+        ],
+        "fields": [
+          "status"
+        ]
+      },
       "screenshots": {
         "hero": "assets/http-aktion/runtime.png",
         "config": "assets/http-aktion/config.png",
@@ -1728,7 +1845,12 @@
         "popupTitle",
         "popupShowHistory"
       ],
-      "customComponentKeys": null,
+      "customComponentKeys": {
+        "components": [
+          "icon"
+        ],
+        "fields": []
+      },
       "screenshots": {
         "hero": "assets/button/runtime.png",
         "config": "assets/button/config.png",

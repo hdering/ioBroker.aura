@@ -30,9 +30,13 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { buildCustomGridFromLayout, hasCustomGridPreset, CUSTOM_GRID_PRESET_TYPES, getAvailableLayouts } = await import(
-    pathToFileURL(bundle).href
-);
+const {
+    buildCustomGridFromLayout,
+    customOptionsFromLayout,
+    hasCustomGridPreset,
+    CUSTOM_GRID_PRESET_TYPES,
+    getAvailableLayouts,
+} = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -47,14 +51,29 @@ const SOURCE = {
     switch: 'SwitchWidget.tsx',
     thermostat: 'ThermostatWidget.tsx',
     weather: 'WeatherWidget.tsx',
+    knob: 'KnobWidget.tsx',
+    dimmer: 'DimmerWidget.tsx',
+    shutter: 'ShutterWidget.tsx',
+    slider: 'SliderWidget.tsx',
+    enum: 'EnumWidget.tsx',
+    button: 'ButtonWidget.tsx',
+    httpRequest: 'HttpRequestWidget.tsx',
+    input: 'InputWidget.tsx',
 };
+// Types whose layouts draw no status badges (no battery / reach DPs).
+const NO_BADGES = new Set(['weather', 'knob', 'button', 'httpRequest', 'input']);
 // Keys every widget gets from useStatusFields.
 const SHARED_COMPONENTS = new Set(['status-badges']);
 
 /** Is `key` an entry of the extraFields / extraComponents object literal in the widget source? */
 function handedOver(src, key) {
     const esc = key.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
-    return new RegExp(`(^|[\\s{,])('${esc}'|${/^[a-z]\w*$/i.test(key) ? esc : '\\u0000'})\\s*:`, 'm').test(src);
+    // key: value — or the shorthand `{ key, }` of a plain identifier
+    const plain = /^[a-z]\w*$/i.test(key);
+    return (
+        new RegExp(`(^|[\\s{,])('${esc}'|${plain ? esc : '\\u0000'})\\s*:`, 'm').test(src) ||
+        (plain && new RegExp(`^\\s*${esc},\\s*$`, 'm').test(src))
+    );
 }
 
 /** Structural checks: cell count, spans inside the grid, no two cells claiming one slot. */
@@ -133,7 +152,7 @@ for (const type of CUSTOM_GRID_PRESET_TYPES) {
             `${type} ${layout}: showIcon off → no icon cell`,
             !noIcon.cells.some((c) => c.type === 'component' && /^icon(-card|-compact|-button)?$/.test(c.componentKey)),
         );
-        if (type !== 'weather') {
+        if (!NO_BADGES.has(type)) {
             const badges = buildCustomGridFromLayout({ type, options: { batteryDp: 'x.b' } }, layout);
             check(
                 `${type} ${layout}: battery DP → one status-badges cell`,
@@ -162,6 +181,23 @@ check(
 );
 const valueNoUnit = buildCustomGridFromLayout({ type: 'value', options: {} }, 'default');
 check('value without unit option → no unit cell', !valueNoUnit.cells.some((c) => c.type === 'unit'));
+const knobScale = customOptionsFromLayout({ type: 'knob', options: { unit: '%' } }, 'knob-scale');
+check(
+    'knob scale → grid with the dial plus dialStyle skala, other options kept',
+    knobScale.dialStyle === 'skala' &&
+        knobScale.unit === '%' &&
+        knobScale.customGrid?.cells.some((c) => c.componentKey === 'dial'),
+);
+const blank = customOptionsFromLayout(
+    { type: 'knob', options: { customGrid: { cols: 1, rows: 1, cells: [] } } },
+    '__blank',
+);
+check('"__blank" drops the grid', blank.customGrid === undefined);
+const noPreset = customOptionsFromLayout({ type: 'gauge', options: { a: 1 } }, 'default');
+check(
+    'no preset → no grid, no patch',
+    noPreset.customGrid === undefined && noPreset.a === 1 && !('dialStyle' in noPreset),
+);
 
 const failed = results.filter((r) => !r.ok);
 for (const r of failed) console.log(`  FAIL ${r.name}${r.detail ? ` — ${r.detail}` : ''}`);

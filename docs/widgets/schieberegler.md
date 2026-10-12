@@ -20,7 +20,7 @@ Titel/Icon und Wert oben, Schieberegler darunter (optional mit Min/Max-Beschrift
 Wert oben, hochkant stehender Regler, Aktions-Tasten unten — bei `orientation: vertical`.
 
 ### Custom
-Wert, Regler und Aktions-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Wert, Regler und Aktions-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `slider-line` (Regler mit Min/Max) und `icon`.
 
 ## Einstellungen
 

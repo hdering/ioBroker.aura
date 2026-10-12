@@ -135,6 +135,26 @@ const CUSTOM_KEYS = {
         ],
         fields: ['setpoint', 'actual', 'actualTemp', 'actualSlash', 'actualLine', 'status', 'battery', 'reach'],
     },
+    drehregler: { components: ['dial', 'icon'], fields: ['value', 'unit', 'min', 'max'] },
+    dimmer: {
+        components: ['icon', 'slider', 'toggle', 'control', 'state-dot', 'level-slider', 'level-slider-sm', 'battery-icon', 'reach-icon', 'status-badges'],
+        fields: ['level', 'status', 'on', 'battery', 'reach'],
+    },
+    rollladen: {
+        components: ['icon', 'viz', 'btn-col', 'btn-row', 'btn-up', 'btn-stop', 'btn-down', 'btn-up-min', 'btn-stop-min', 'btn-down-min', 'slider', 'tilt-slider-v', 'tilt-slider-h', 'btn-tilt', 'btn-tilt-open', 'btn-tilt-close', 'tilt-aside', 'tilt-aside-flat', 'tilt-row', 'presets', 'battery-icon', 'reach-icon', 'status-badges'],
+        fields: ['position', 'status', 'movingArrow', 'moving', 'tilt', 'battery', 'reach'],
+    },
+    schieberegler: {
+        components: ['slider', 'slider-line', 'icon', 'actions', 'battery-icon', 'reach-icon', 'status-badges'],
+        fields: ['value', 'unit', 'min', 'max', 'battery', 'reach'],
+    },
+    auswahlfeld: {
+        components: ['icon', 'select', 'label', 'label-lg', 'accent-bar', 'battery-icon', 'reach-icon', 'status-badges'],
+        fields: ['battery', 'reach'],
+    },
+    button: { components: ['icon'], fields: [] },
+    'http-aktion': { components: ['button', 'button-wide', 'icon'], fields: ['status'] },
+    eingabefeld: { components: ['input', 'submit', 'input-row', 'submit-auto', 'icon'], fields: [] },
 };
 
 // ── Derive one catalog entry per widget ──────────────────────────────────────

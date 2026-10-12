@@ -114,6 +114,180 @@ const CASES = [
         val: null,
         title: 'Wetter',
     },
+    {
+        type: 'knob',
+        layouts: { default: [6, 6], 'knob-scale': [6, 6], 'knob-endless': [6, 6] },
+        options: { unit: '%', showMinMax: true },
+        val: 42,
+        title: 'Lüftung',
+    },
+    {
+        type: 'dimmer',
+        layouts: { default: [8, 4], compact: [8, 3], minimal: [6, 5] },
+        options: {},
+        val: 60,
+        title: 'Deckenlicht',
+    },
+    {
+        type: 'dimmer',
+        variant: 'bar+icon+threshold',
+        layouts: { default: [8, 4], compact: [8, 3], minimal: [6, 5] },
+        options: { barStyle: true, controlMode: 'icon', colorThresholds: [[50, '#ef4444']], batteryDp: DP_BATT },
+        val: 60,
+        title: 'Deckenlicht',
+    },
+    {
+        type: 'dimmer',
+        variant: 'checkbox, no value',
+        layouts: { default: [8, 4], compact: [8, 3], minimal: [6, 5] },
+        options: { controlMode: 'checkbox', showValue: false },
+        val: 0,
+        title: 'Deckenlicht',
+    },
+    {
+        type: 'shutter',
+        layouts: { default: [8, 7], compact: [10, 2], minimal: [4, 7] },
+        options: {},
+        val: 40,
+        title: 'Rollladen Küche',
+    },
+    {
+        type: 'shutter',
+        variant: 'tilt+presets+badges',
+        layouts: { default: [9, 8], compact: [10, 2], minimal: [4, 8] },
+        options: {
+            icon: 'blinds',
+            tiltDp: DP_ACTUAL,
+            positionPresets: [{ pos: 0 }, { pos: 50, label: 'Halb' }, { pos: 100 }],
+            batteryDp: DP_BATT,
+            batteryMode: 'percent',
+            showTiltValue: true,
+        },
+        val: 40,
+        actual: 30,
+        title: 'Raffstore',
+    },
+    {
+        type: 'shutter',
+        variant: 'tilt slider-h, popup',
+        layouts: { default: [9, 8] },
+        options: { tiltDp: DP_ACTUAL, tiltControl: 'slider-h' },
+        val: 70,
+        actual: 30,
+        title: 'Raffstore',
+    },
+    {
+        type: 'slider',
+        layouts: { default: [8, 3] },
+        options: { unit: '%' },
+        val: 35,
+        title: 'Lautstärke',
+    },
+    {
+        type: 'slider',
+        variant: 'min/max, bar, actions, badge',
+        layouts: { default: [8, 4] },
+        options: {
+            unit: '%',
+            showMinMax: true,
+            barStyle: true,
+            barSize: 60,
+            actions: [{ id: 'a1', icon: 'volume-x', dp: 'demo.768.x', value: 0 }],
+            batteryDp: DP_BATT,
+            batteryMode: 'percent',
+        },
+        val: 35,
+        title: 'Lautstärke',
+    },
+    {
+        type: 'slider',
+        variant: 'scale',
+        layouts: { default: [8, 4] },
+        options: { unit: '°', showScale: true },
+        val: 35,
+        title: 'Winkel',
+    },
+    {
+        type: 'slider',
+        variant: 'vertical',
+        layouts: { default: [3, 8] },
+        options: { unit: '%', orientation: 'vertical', showMinMax: true },
+        val: 35,
+        title: 'Pegel',
+    },
+    {
+        type: 'enum',
+        layouts: { default: [8, 3], compact: [10, 2], minimal: [6, 5], card: [8, 4] },
+        options: {
+            entries: [
+                { value: '0', label: 'Aus' },
+                { value: '1', label: 'Eco', color: '#22c55e' },
+                { value: '2', label: 'Komfort' },
+            ],
+        },
+        val: 1,
+        title: 'Heizmodus',
+    },
+    {
+        type: 'enum',
+        variant: 'no colour, badge',
+        layouts: { default: [8, 3], compact: [10, 2], minimal: [6, 5], card: [8, 4] },
+        options: {
+            entries: [
+                { value: '0', label: 'Aus' },
+                { value: '2', label: 'Komfort' },
+            ],
+            batteryDp: DP_BATT,
+            batteryMode: 'percent',
+        },
+        val: 2,
+        title: 'Heizmodus',
+    },
+    {
+        type: 'button',
+        layouts: { default: [6, 4], compact: [8, 2], minimal: [4, 3] },
+        options: { icon: 'lightbulb', buttonLabel: 'Alles aus' },
+        val: null,
+        title: 'Szene',
+    },
+    {
+        type: 'button',
+        variant: 'no icon, top left',
+        layouts: { default: [6, 4], compact: [8, 2], minimal: [4, 3] },
+        options: { contentPosition: 'tl' },
+        val: null,
+        title: 'Szene Kino',
+    },
+    {
+        type: 'httpRequest',
+        layouts: { default: [8, 4], compact: [10, 2], minimal: [6, 3] },
+        options: { url: 'http://127.0.0.1:9/x', buttonLabel: 'Auslösen' },
+        val: null,
+        title: 'Webhook',
+    },
+    {
+        type: 'httpRequest',
+        variant: 'centred',
+        layouts: { default: [8, 4] },
+        options: { url: 'http://127.0.0.1:9/x', contentPosition: 'cc', showIcon: false },
+        val: null,
+        title: 'Webhook',
+    },
+    {
+        type: 'input',
+        layouts: { default: [8, 3], compact: [10, 2] },
+        options: { unit: 'min', placeholder: 'Dauer' },
+        val: '15',
+        title: 'Timer',
+    },
+    {
+        type: 'input',
+        variant: 'multiline',
+        layouts: { default: [8, 5] },
+        options: { multiline: true },
+        val: 'Hallo',
+        title: 'Notiz',
+    },
 ];
 
 // The forecast the weather widget would fetch — fixed, so nothing reaches out.
@@ -162,13 +336,14 @@ for (const c of CASES) {
         const idA = `p${seq}a`;
         const idB = `p${seq}b`;
         const vals = { [DP]: c.val, [DP_ACTUAL]: c.actual ?? null, [DP_BATT]: 64 };
-        const grid = await page.evaluate(
+        const customOptions = await page.evaluate(
             async ([type, layout, options]) => {
                 const m = await import('/src-vis/utils/customGridPresets/index.ts');
-                return m.buildCustomGridFromLayout({ type, options }, layout);
+                return m.customOptionsFromLayout({ type, options }, layout);
             },
             [c.type, layout, c.options],
         );
+        const grid = customOptions.customGrid;
         const label = `${c.type}${c.variant ? ` (${c.variant})` : ''} ${layout}`;
         if (!grid) {
             check(`${label}: preset exists`, false);
@@ -202,7 +377,7 @@ for (const c of CASES) {
                         datapoint: DP,
                         layout: 'custom',
                         gridPos: { x: w + 1, y: 0, w, h },
-                        options: { ...c.options, customGrid: grid },
+                        options: customOptions,
                     },
                 ],
             ],
@@ -340,6 +515,70 @@ if (!ONLY || ONLY === 'controls') {
     await page.locator('.aura-widget-ct3 button.aura-widget-action').first().click();
     w = await last();
     check('switch compact grid: the toggle toggles', w?.id === 'demo.768.sw' && w?.val === true, JSON.stringify(w));
+
+    // Phase 2: shutter buttons, dimmer control, knob dial style.
+    const opts2 = await page.evaluate(async () => {
+        const m = await import('/src-vis/utils/customGridPresets/index.ts');
+        return {
+            shutter: m.customOptionsFromLayout({ type: 'shutter', options: {} }, 'default'),
+            dimmer: m.customOptionsFromLayout({ type: 'dimmer', options: {} }, 'default'),
+            knob: m.customOptionsFromLayout({ type: 'knob', options: {} }, 'knob-endless'),
+        };
+    });
+    await page.evaluate((o) => {
+        const v = { 'demo.768.sh': 40, 'demo.768.dim': 60, 'demo.768.knob': 30 };
+        window.__auraShot.mockServerState(v);
+        window.__auraShot.mock(v);
+        window.__auraShot.showWidgets([
+            {
+                id: 'ct4',
+                type: 'shutter',
+                title: 'Rollladen',
+                datapoint: 'demo.768.sh',
+                layout: 'custom',
+                gridPos: { x: 0, y: 0, w: 8, h: 7 },
+                options: o.shutter,
+            },
+            {
+                id: 'ct5',
+                type: 'dimmer',
+                title: 'Licht',
+                datapoint: 'demo.768.dim',
+                layout: 'custom',
+                gridPos: { x: 9, y: 0, w: 8, h: 4 },
+                options: o.dimmer,
+            },
+            {
+                id: 'ct6',
+                type: 'knob',
+                title: 'Regler',
+                datapoint: 'demo.768.knob',
+                layout: 'custom',
+                gridPos: { x: 18, y: 0, w: 6, h: 6 },
+                options: o.knob,
+            },
+        ]);
+    }, opts2);
+    await page.waitForSelector('.aura-widget-ct4 button', { timeout: 15000 });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__auraShot.writes(true));
+    // Up/stop/down column: the first button opens fully.
+    await page.locator('.aura-widget-ct4 .aura-widget-action button').first().click();
+    w = await last();
+    check('shutter grid: "up" in the button column drives', w?.id === 'demo.768.sh', JSON.stringify(w));
+    await page.evaluate(() => window.__auraShot.writes(true));
+    await page.locator('.aura-widget-ct5 button.aura-widget-action').first().click();
+    w = await last();
+    check('dimmer grid: the control switches off', w?.id === 'demo.768.dim' && w?.val === 0, JSON.stringify(w));
+    check(
+        'knob grid from "Endlos" draws the endless dial',
+        opts2.knob.dialStyle === 'endless' &&
+            (await page
+                .locator(
+                    '.aura-widget-ct6 svg.aura-widget-value radialGradient, .aura-widget-ct6 svg.aura-widget-value circle',
+                )
+                .count()) > 1,
+    );
 }
 
 // ── Editor flow ──────────────────────────────────────────────────────────────

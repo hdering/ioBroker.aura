@@ -5,6 +5,14 @@ import { buildStateSensorGrid } from './stateSensor';
 import { buildSwitchGrid } from './switch';
 import { buildThermostatGrid } from './thermostat';
 import { buildWeatherGrid } from './weather';
+import { buildKnobGrid, knobOptionPatch } from './knob';
+import { buildDimmerGrid } from './dimmer';
+import { buildShutterGrid } from './shutter';
+import { buildSliderGrid } from './slider';
+import { buildEnumGrid } from './enum';
+import { buildButtonGrid } from './button';
+import { buildHttpRequestGrid } from './httpRequest';
+import { buildInputGrid } from './input';
 
 /**
  * Custom grids that rebuild a widget's fixed layouts (#768).
@@ -31,6 +39,22 @@ const PRESETS: Record<string, PresetBuilder> = {
     switch: buildSwitchGrid,
     thermostat: buildThermostatGrid,
     weather: buildWeatherGrid,
+    knob: buildKnobGrid,
+    dimmer: buildDimmerGrid,
+    shutter: buildShutterGrid,
+    slider: buildSliderGrid,
+    enum: buildEnumGrid,
+    button: buildButtonGrid,
+    httpRequest: buildHttpRequestGrid,
+    input: buildInputGrid,
+};
+
+/**
+ * Options a preset needs besides the grid — e.g. which dial the knob's custom
+ * layout draws. Written together with the grid.
+ */
+const OPTION_PATCHES: Record<string, (layout: WidgetLayout, opts: Opts) => Opts | null> = {
+    knob: knobOptionPatch,
 };
 
 /** Widget types (as stored in `config.type`) the registry knows, for tests. */
@@ -46,6 +70,24 @@ export function buildCustomGridFromLayout(cfg: PresetSource, fromLayout: WidgetL
     if (fromLayout === 'custom') return null;
     const builder = PRESETS[cfg.type];
     return builder ? builder(fromLayout, cfg.options ?? {}) : null;
+}
+
+/** Options besides `customGrid` the preset of `fromLayout` sets, or null. */
+export function customGridOptionPatch(cfg: PresetSource, fromLayout: WidgetLayout): Opts | null {
+    if (fromLayout === 'custom') return null;
+    return OPTION_PATCHES[cfg.type]?.(fromLayout, cfg.options ?? {}) ?? null;
+}
+
+/**
+ * The widget's options after starting the custom layout from `fromLayout`: the
+ * preset grid plus whatever else the preset needs. No preset (or '__blank') =
+ * no grid, the custom layout falls back to its default grid.
+ */
+export function customOptionsFromLayout(cfg: PresetSource, fromLayout: WidgetLayout | '__blank'): Opts {
+    const o = cfg.options ?? {};
+    if (fromLayout === '__blank') return { ...o, customGrid: undefined };
+    const grid = buildCustomGridFromLayout(cfg, fromLayout) ?? undefined;
+    return { ...o, ...(grid ? customGridOptionPatch(cfg, fromLayout) : null), customGrid: grid };
 }
 
 /** Does `fromLayout` of this widget type have a preset? */

@@ -264,6 +264,29 @@ export function SliderWidget({ config }: WidgetProps) {
         )
     ) : null;
 
+    // The horizontal layout's control line: [min] [slider] [max].
+    const sliderLine = (
+        <div className="flex-1 flex items-center gap-2 min-h-0 w-full h-full">
+            {showMinMax && (
+                <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                    {min}
+                </span>
+            )}
+            {controlBlock ? (
+                <div className="flex-1 self-stretch min-w-0">{controlBlock}</div>
+            ) : barStyle ? (
+                <div className="flex-1 self-stretch flex items-center">{barTrack}</div>
+            ) : (
+                <div className="flex-1">{sliderEl}</div>
+            )}
+            {showMinMax && (
+                <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                    {max}
+                </span>
+            )}
+        </div>
+    );
+
     if (layout === 'custom') {
         const customGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_SLIDER_GRID;
         return (
@@ -274,6 +297,15 @@ export function SliderWidget({ config }: WidgetProps) {
                 extraFields={{ value: String(displayVal), unit, min: String(min), max: String(max), battery, reach }}
                 extraComponents={{
                     slider: controlBlock ?? (barStyle ? barTrack : sliderEl),
+                    // The pieces of the fixed layout (#768).
+                    'slider-line': sliderLine,
+                    icon: showIcon ? (
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                        />
+                    ) : null,
                     actions: actionsEl,
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
@@ -355,25 +387,7 @@ export function SliderWidget({ config }: WidgetProps) {
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            <div className="flex-1 flex items-center gap-2 min-h-0">
-                {showMinMax && (
-                    <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                        {min}
-                    </span>
-                )}
-                {controlBlock ? (
-                    <div className="flex-1 self-stretch min-w-0">{controlBlock}</div>
-                ) : barStyle ? (
-                    <div className="flex-1 self-stretch flex items-center">{barTrack}</div>
-                ) : (
-                    <div className="flex-1">{sliderEl}</div>
-                )}
-                {showMinMax && (
-                    <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                        {max}
-                    </span>
-                )}
-            </div>
+            {sliderLine}
             {actionsEl}
             <StatusBadges config={config} />
         </div>

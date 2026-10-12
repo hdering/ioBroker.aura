@@ -24,7 +24,7 @@ Eine Zeile mit Icon, Titel, Wert und Schalter, Regler darunter — für Listen m
 Nur Prozentwert, Regler und Schalter zentriert — für sehr kleine Zellen.
 
 ### Custom
-Icon, Wert, Regler und Schalter frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Icon, Wert, Regler und Schalter frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `control` (Schalter im eingestellten Modus), `state-dot`, `level-slider`, `level-slider-sm` und das Feld `level`.
 
 ## Einstellungen
 

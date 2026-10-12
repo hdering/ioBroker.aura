@@ -180,6 +180,33 @@ export function DimmerWidget({ config }: WidgetProps) {
         />
     );
 
+    // Thin slider of the compact layout.
+    const thinSlider = (
+        <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={displayLevel}
+            onChange={(e) => handleSliderChange(Number(e.target.value))}
+            onMouseUp={handleSliderRelease}
+            onTouchEnd={handleSliderRelease}
+            style={{ '--slider-thumb-color': 'var(--light-on, var(--accent-yellow))' } as CSSProperties}
+            className="aura-widget-action nodrag w-full h-1.5 rounded-full appearance-none cursor-pointer"
+        />
+    );
+
+    // Lamp dot of the default layout when the control is switched off.
+    const stateDot = (
+        <div
+            className="w-3 h-3 rounded-full transition-all"
+            style={{
+                background: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--app-border)',
+                boxShadow: isOn ? '0 0 6px var(--light-on, var(--accent-yellow))' : 'none',
+            }}
+        />
+    );
+
     const barTrack = (
         <div
             className="aura-widget-action nodrag relative rounded-2xl overflow-hidden cursor-pointer select-none"
@@ -218,8 +245,14 @@ export function DimmerWidget({ config }: WidgetProps) {
                 config={config}
                 value={`${level}`}
                 rawValue={level}
+                cssVars={{
+                    // Colours of the fixed layouts, for grids built from them (#768).
+                    '--aura-state-color': isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)',
+                    '--aura-value-color': valueColor,
+                    '--aura-threshold-color': thresholdColor ?? undefined,
+                }}
                 extraFields={{
-                    level: `${level}%`,
+                    level: `${displayLevel}%`,
                     status: level === 0 ? 'Aus' : level === 100 ? 'Voll' : `${level}%`,
                     on: isOn ? 'Ein' : 'Aus',
                     battery,
@@ -258,6 +291,19 @@ export function DimmerWidget({ config }: WidgetProps) {
                         />
                     ),
                     toggle: isIconMode ? iconToggleBtn : sliderToggleBtn,
+                    // The pieces as the fixed layouts draw them (#768).
+                    control: isIconMode ? iconToggleBtn : isCheckboxMode ? checkboxToggleBtn : sliderToggleBtn,
+                    'state-dot': stateDot,
+                    'level-slider': barStyle ? (
+                        <div style={{ height: 40, maxHeight: '100%', width: '100%' }}>{barTrack}</div>
+                    ) : (
+                        slider
+                    ),
+                    'level-slider-sm': barStyle ? (
+                        <div style={{ height: 40, maxHeight: '100%', width: '100%' }}>{barTrack}</div>
+                    ) : (
+                        thinSlider
+                    ),
                 }}
             />
         );
@@ -305,18 +351,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                     (barStyle ? (
                         <div style={{ height: 40, width: '100%' }}>{barTrack}</div>
                     ) : (
-                        <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={displayLevel}
-                            onChange={(e) => handleSliderChange(Number(e.target.value))}
-                            onMouseUp={handleSliderRelease}
-                            onTouchEnd={handleSliderRelease}
-                            style={{ '--slider-thumb-color': 'var(--light-on, var(--accent-yellow))' } as CSSProperties}
-                            className="aura-widget-action nodrag ml-6 h-1.5 rounded-full appearance-none cursor-pointer"
-                        />
+                        <div className="ml-6 flex">{thinSlider}</div>
                     ))}
                 <StatusBadges config={config} />
             </div>
@@ -390,17 +425,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                         <span className="aura-widget-value text-xl font-bold" style={{ color: valueColor }}>
                             {level}%
                         </span>
-                        {showToggle ? (
-                            toggleBtn
-                        ) : (
-                            <div
-                                className="w-3 h-3 rounded-full transition-all"
-                                style={{
-                                    background: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--app-border)',
-                                    boxShadow: isOn ? '0 0 6px var(--light-on, var(--accent-yellow))' : 'none',
-                                }}
-                            />
-                        )}
+                        {showToggle ? toggleBtn : stateDot}
                     </div>
                 )}
                 {!showValue && toggleBtn && <div className="flex justify-end">{toggleBtn}</div>}

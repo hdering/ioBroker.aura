@@ -22,7 +22,7 @@ Dicker äußerer Bogen mit Zahlen-Labels und Zeiger an der Bogenspitze.
 Voller 3D-Kreisknopf mit Tick-Ring; relatives Ziehen ohne festen Anschlag — der Wert läuft endlos weiter.
 
 ### Custom
-Drehknopf in einer Zellenmatrix frei platzieren — der Stil wird über `dialStyle` (`bogen` · `skala` · `endless`) gewählt; siehe [Custom-Layout](./custom-layout).
+Drehknopf in einer Zellenmatrix frei platzieren — der Stil wird über `dialStyle` (`bogen` · `skala` · `endless`) gewählt; siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dabei wird `dialStyle` passend gesetzt.
 
 ## Einstellungen
 

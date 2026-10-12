@@ -70,17 +70,19 @@ export function HttpRequestWidget({ config }: WidgetProps) {
 
     const statusLabel = status === 'loading' ? 'Sende…' : status !== 'idle' ? statusText : '';
 
-    const btn = (
+    // `wide`: as the default layout stretches it over the full width.
+    const renderBtn = (wide = false) => (
         <button
             onClick={handleClick}
             disabled={status === 'loading' || !url}
-            className="aura-widget-action nodrag flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all active:scale-95 focus:outline-none disabled:opacity-40 shrink-0"
+            className={`aura-widget-action nodrag flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-all active:scale-95 focus:outline-none disabled:opacity-40 shrink-0${wide ? ' w-full' : ''}`}
             style={{ background: buttonColor, color: '#fff' }}
         >
             <Globe size={14} />
             <span className="text-sm font-medium whitespace-nowrap">{buttonLabel}</span>
         </button>
     );
+    const btn = renderBtn();
 
     // ── CUSTOM ───────────────────────────────────────────────────────────────
     if (layout === 'custom') {
@@ -90,7 +92,19 @@ export function HttpRequestWidget({ config }: WidgetProps) {
                     config={config}
                     value={statusLabel}
                     extraFields={{ status: statusLabel }}
-                    extraComponents={{ button: btn }}
+                    // Colour of the status text, for grids built from the layouts (#768).
+                    cssVars={{ '--aura-state-color': statusColor }}
+                    extraComponents={{
+                        button: btn,
+                        'button-wide': renderBtn(true),
+                        icon: showIcon ? (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ '--aura-icon-color': buttonColor, flexShrink: 0 }}
+                            />
+                        ) : null,
+                    }}
                 />
                 {pending && <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancel} />}
             </div>

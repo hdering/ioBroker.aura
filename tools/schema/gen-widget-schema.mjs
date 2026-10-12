@@ -61,7 +61,7 @@ async function loadRegistry() {
         [
             `export { WIDGET_REGISTRY, WIDGET_GROUPS, DEFAULT_CONDITION_SLOTS } from ${JSON.stringify(path.join(SRC, 'widgetRegistry').replace(/\\/g, '/'))};`,
             `export { getAvailableLayouts } from ${JSON.stringify(path.join(SRC, 'utils/widgetLayouts').replace(/\\/g, '/'))};`,
-            `export { buildCustomGridFromLayout } from ${JSON.stringify(path.join(SRC, 'utils/customGridPresets').replace(/\\/g, '/'))};`,
+            `export { buildCustomGridFromLayout, customGridOptionPatch } from ${JSON.stringify(path.join(SRC, 'utils/customGridPresets').replace(/\\/g, '/'))};`,
         ].join('\n'),
     );
 
@@ -100,11 +100,20 @@ async function loadRegistry() {
  */
 function customFromLayout(reg, type) {
     const out = {};
+    const patches = {};
     for (const layout of reg.getAvailableLayouts(type)) {
         const grid = reg.buildCustomGridFromLayout({ type, options: {} }, layout);
-        if (grid) out[layout] = grid;
+        if (!grid) continue;
+        out[layout] = grid;
+        // Options the preset sets besides the grid (e.g. the knob's dialStyle).
+        const patch = reg.customGridOptionPatch({ type, options: {} }, layout);
+        if (patch) patches[layout] = patch;
     }
-    return Object.keys(out).length ? { customFromLayout: out } : {};
+    if (!Object.keys(out).length) return {};
+    return {
+        customFromLayout: out,
+        ...(Object.keys(patches).length ? { customFromLayoutOptions: patches } : {}),
+    };
 }
 
 // ── 2. Type normalisation ─────────────────────────────────────────────────────

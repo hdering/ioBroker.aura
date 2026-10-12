@@ -10,6 +10,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CustomGridView } from './CustomGridView';
+import { AccentBar } from './AccentBar';
+import { useStatusFields } from '../../hooks/useStatusFields';
 import { HtmlSelect, type HtmlSelectSize } from '../common/HtmlSelect';
 import { EnumCurrent, EnumOptionLabel, type EnumEntry, type EnumEntryDisplay } from './enumEntry';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
@@ -144,6 +146,8 @@ export function EnumWidget({ config }: WidgetProps) {
             selectCore
         );
 
+    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+
     // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
     if (layout === 'custom') {
         return (
@@ -152,12 +156,20 @@ export function EnumWidget({ config }: WidgetProps) {
                     config={config}
                     value={currentLabel}
                     valueColor={currentColor}
+                    extraFields={{ battery, reach }}
                     extraComponents={{
+                        'battery-icon': batteryIcon,
+                        'reach-icon': reachIcon,
+                        'status-badges': statusBadges,
                         icon: showIcon ? (
                             <WidgetIcon
                                 className="aura-widget-icon"
                                 size={iconSize}
-                                style={{ '--aura-icon-color': currentColor ?? 'var(--accent)', flexShrink: 0 }}
+                                style={{
+                                    // A cell colour wins (grids built from the default layout grey it, #768).
+                                    '--aura-icon-color': `var(--aura-cell-color, ${currentColor ?? 'var(--accent)'})`,
+                                    flexShrink: 0,
+                                }}
                             />
                         ) : null,
                         select: selectEl,
@@ -166,6 +178,13 @@ export function EnumWidget({ config }: WidgetProps) {
                                   color: currentColor ?? 'var(--text-primary)',
                               })
                             : null,
+                        // The big label of the minimal and card layouts (#768).
+                        'label-lg': showValue
+                            ? renderCurrent('aura-widget-value text-xl font-bold truncate max-w-full', {
+                                  color: currentColor ?? 'var(--accent)',
+                              })
+                            : null,
+                        'accent-bar': <AccentBar color={currentColor ?? 'var(--accent)'} />,
                     }}
                 />
                 {confirmOverlay}
@@ -252,7 +271,7 @@ export function EnumWidget({ config }: WidgetProps) {
         const accent = currentColor ?? 'var(--accent)';
         return (
             <div className="aura-widget-row flex h-full gap-3" style={{ position: 'relative' }}>
-                <div className="w-1 rounded-full self-stretch" style={{ background: accent }} />
+                <AccentBar color={accent} />
                 <div className="flex flex-col justify-between flex-1 min-w-0">
                     <HeaderGroup>
                         {(showTitle || showIcon) && (

@@ -210,7 +210,7 @@ import {
 import { EChartConfig } from '../config/EChartConfig';
 import { EvccConfig } from '../widgets/EvccWidget';
 
-import { buildCustomGridFromLayout, hasCustomGridPreset } from '../../utils/customGridPresets';
+import { customOptionsFromLayout, hasCustomGridPreset } from '../../utils/customGridPresets';
 import { TrashConfig } from '../widgets/TrashWidget';
 import { TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
 // Single source of truth for type → component. WidgetFrame, the mirror widget and the
@@ -9106,12 +9106,20 @@ function WidgetFrameInner({
                                                     layouts.find((l) => l.value === pendingCustomFrom)?.label ??
                                                     String(pendingCustomFrom);
                                                 const hasGrid = !!config.options?.customGrid;
-                                                const applyCustom = (grid: CustomGridDef | undefined | 'keep') => {
+                                                const applyCustom = (start: 'layout' | 'keep' | 'blank') => {
                                                     const o = config.options ?? {};
                                                     onConfigChange({
                                                         ...config,
                                                         layout: 'custom',
-                                                        options: grid === 'keep' ? o : { ...o, customGrid: grid },
+                                                        options:
+                                                            start === 'keep'
+                                                                ? o
+                                                                : customOptionsFromLayout(
+                                                                      config,
+                                                                      start === 'layout'
+                                                                          ? pendingCustomFrom
+                                                                          : '__blank',
+                                                                  ),
                                                     });
                                                     setSelectedCustomCell(null);
                                                     setPendingCustomFrom(null);
@@ -9138,14 +9146,7 @@ function WidgetFrameInner({
                                                         <div className="flex flex-wrap gap-1">
                                                             <button
                                                                 data-aura-custom-start="layout"
-                                                                onClick={() =>
-                                                                    applyCustom(
-                                                                        buildCustomGridFromLayout(
-                                                                            config,
-                                                                            pendingCustomFrom,
-                                                                        ) ?? undefined,
-                                                                    )
-                                                                }
+                                                                onClick={() => applyCustom('layout')}
                                                                 className="text-[11px] px-2 py-1 rounded-md"
                                                                 style={btnSty(true)}
                                                             >
@@ -9153,9 +9154,7 @@ function WidgetFrameInner({
                                                             </button>
                                                             <button
                                                                 data-aura-custom-start={hasGrid ? 'keep' : 'blank'}
-                                                                onClick={() =>
-                                                                    applyCustom(hasGrid ? 'keep' : undefined)
-                                                                }
+                                                                onClick={() => applyCustom(hasGrid ? 'keep' : 'blank')}
                                                                 className="text-[11px] px-2 py-1 rounded-md"
                                                                 style={btnSty(false)}
                                                             >
@@ -19730,10 +19729,12 @@ function WidgetFrameInner({
                                                               l.value !== 'custom' &&
                                                               hasCustomGridPreset(config.type, l.value),
                                                       );
-                                                const apply = (nextGrid: CustomGridDef | undefined) => {
+                                                const apply = (
+                                                    from: NonNullable<WidgetConfig['layout']> | '__blank',
+                                                ) => {
                                                     onConfigChange({
                                                         ...config,
-                                                        options: { ...o, customGrid: nextGrid },
+                                                        options: customOptionsFromLayout(config, from),
                                                     });
                                                     setSelectedCustomCell(null);
                                                 };
@@ -19745,7 +19746,7 @@ function WidgetFrameInner({
                                                 if (presetLayouts.length === 0)
                                                     return (
                                                         <button
-                                                            onClick={() => apply(undefined)}
+                                                            onClick={() => apply('__blank')}
                                                             className="text-[10px] px-2 py-1 rounded"
                                                             style={sty}
                                                         >
@@ -19759,14 +19760,7 @@ function WidgetFrameInner({
                                                         onChange={(e) => {
                                                             const v = e.target.value;
                                                             if (!v) return;
-                                                            apply(
-                                                                v === '__blank'
-                                                                    ? undefined
-                                                                    : (buildCustomGridFromLayout(
-                                                                          config,
-                                                                          v as NonNullable<WidgetConfig['layout']>,
-                                                                      ) ?? undefined),
-                                                            );
+                                                            apply(v as NonNullable<WidgetConfig['layout']> | '__blank');
                                                         }}
                                                         className="text-[10px] px-1.5 py-1 rounded focus:outline-none"
                                                         style={sty}

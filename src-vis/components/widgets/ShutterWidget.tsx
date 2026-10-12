@@ -471,11 +471,14 @@ export function ShutterWidget({ config }: WidgetProps) {
     // button. Compact/Minimal have no room for a slider, so an inline control
     // degrades to the step buttons there.
     const flatLayout = layout === 'compact' || layout === 'minimal';
-    const tiltPlacement = tiltActive
-        ? ((opts.tiltPlacement as string) ?? (flatLayout ? 'popup' : 'inline'))
-        : ('off' as string);
-    const tiltControl =
-        tiltPlacement === 'inline' ? (flatLayout ? 'buttons' : ((opts.tiltControl as string) ?? 'slider-v')) : null;
+    // As functions of the layout kind: a custom grid built from the compact layout
+    // (#768) needs the flat variant while the grid itself counts as "not flat".
+    const tiltPlacementFor = (flat: boolean): string =>
+        tiltActive ? ((opts.tiltPlacement as string) ?? (flat ? 'popup' : 'inline')) : 'off';
+    const tiltControlFor = (flat: boolean): string | null =>
+        tiltPlacementFor(flat) === 'inline' ? (flat ? 'buttons' : ((opts.tiltControl as string) ?? 'slider-v')) : null;
+    const tiltPlacement = tiltPlacementFor(flatLayout);
+    const tiltControl = tiltControlFor(flatLayout);
 
     const tiltPad = Math.max(2, Math.round(buttonSize / 4));
     const tiltBtnStyle: React.CSSProperties = {
@@ -501,8 +504,8 @@ export function ShutterWidget({ config }: WidgetProps) {
     );
 
     /** Tilt control that rides along in a button row: popover button or ± steps. */
-    const tiltAside = (vertical: boolean) =>
-        tiltPlacement === 'popup' ? (
+    const tiltAside = (vertical: boolean, flat = flatLayout) =>
+        tiltPlacementFor(flat) === 'popup' ? (
             <TiltButton
                 btnRef={tiltBtnRef}
                 onToggle={() => setTiltOpen((o) => !o)}
@@ -510,7 +513,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                 btnStyle={tiltBtnStyle}
                 label={tiltLabel}
             />
-        ) : tiltControl === 'buttons' ? (
+        ) : tiltControlFor(flat) === 'buttons' ? (
             <TiltStepButtons
                 onOpenStep={() => stepTilt(1)}
                 onCloseStep={() => stepTilt(-1)}
@@ -570,6 +573,28 @@ export function ShutterWidget({ config }: WidgetProps) {
 
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
+    // Buttons of the minimal layout: a bit roomier, the stop button wide and flat.
+    const minBtnPad = Math.max(4, Math.round(buttonSize / 2));
+    const minBtnRadius = Math.max(6, Math.round(buttonSize / 1.3));
+    const minDirStyle = (dir: 'up' | 'stop' | 'down'): React.CSSProperties => ({
+        background: `var(--blind-${dir}-bg, var(--app-bg))`,
+        color: `var(--blind-${dir}-color, var(--text-secondary))`,
+        border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
+        padding: minBtnPad,
+        borderRadius: minBtnRadius,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    });
+    const minBtnStyle = minDirStyle('up');
+    const stopBtnStyle: React.CSSProperties = {
+        ...minDirStyle('stop'),
+        padding: `${Math.max(2, Math.round(buttonSize / 3))}px ${Math.max(6, Math.round(buttonSize))}px`,
+    };
+    const downBtnStyle = minDirStyle('down');
+    const stopSz = Math.max(8, Math.round(buttonSize * 0.7));
+    const movingArrow = isMoving ? (movingDir === 'up' ? '▲' : movingDir === 'down' ? '▼' : '↕') : '';
+
     if (layout === 'custom') {
         const dirBtnStyle = (dir: 'up' | 'stop' | 'down' | 'tilt'): React.CSSProperties => ({
             background: `var(--blind-${dir}-bg, var(--app-bg))`,
@@ -585,9 +610,17 @@ export function ShutterWidget({ config }: WidgetProps) {
                     config={config}
                     value={`${pos}`}
                     rawValue={pos}
+                    cssVars={{
+                        // Colours of the fixed layouts, for grids built from them (#768).
+                        '--aura-state-color': accentColor,
+                        '--aura-value-color': valueColor,
+                        '--aura-threshold-color': thresholdColor ?? undefined,
+                        '--aura-moving-color': isMoving ? 'var(--accent-yellow)' : undefined,
+                    }}
                     extraFields={{
                         position: `${displayPct}%`,
                         status: statusText,
+                        movingArrow,
                         moving: isMoving ? 'Ja' : 'Nein',
                         tilt: tiltActive ? tiltPctText : '',
                         battery,
@@ -666,6 +699,86 @@ export function ShutterWidget({ config }: WidgetProps) {
                             </button>
                         ) : null,
                         presets: presetRow,
+                        // The pieces of the fixed layouts (#768).
+                        viz: (
+                            <div className="flex gap-2 w-full h-full min-h-0">
+                                {tiltSliderSide === 'left' && tiltColumn}
+                                <ShutterViz
+                                    closedFrac={closedFrac}
+                                    accentColor={accentColor}
+                                    isMoving={isMoving}
+                                    tiltFrac={tiltFrac}
+                                    className="flex-1"
+                                />
+                                {tiltSliderSide === 'right' && tiltColumn}
+                            </div>
+                        ),
+                        'btn-col': (
+                            <div className="h-full flex">
+                                <BtnRow
+                                    onUp={openFully}
+                                    onStop={stop}
+                                    onDown={closeFully}
+                                    iconSz={buttonSize}
+                                    vertical
+                                />
+                            </div>
+                        ),
+                        'btn-row': (
+                            <BtnRow
+                                onUp={openFully}
+                                onStop={stop}
+                                onDown={closeFully}
+                                iconSz={buttonSize}
+                                extra={tiltAside(false, true)}
+                            />
+                        ),
+                        'tilt-aside': tiltAside(false, false),
+                        'tilt-aside-flat': tiltAside(false, true),
+                        'tilt-row':
+                            tiltControl === 'slider-h' ? (
+                                <div className="aura-widget-tilt flex items-center gap-2 w-full">
+                                    <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                        {tiltLabel}
+                                    </span>
+                                    {tiltSliderEl(false)}
+                                    {showTiltValue && (
+                                        <span
+                                            className="text-[10px] tabular-nums shrink-0 text-right"
+                                            style={{ color: 'var(--text-secondary)', minWidth: '4ch' }}
+                                        >
+                                            {tiltPctText}
+                                        </span>
+                                    )}
+                                </div>
+                            ) : null,
+                        'btn-up-min': (
+                            <button
+                                onClick={openFully}
+                                className="aura-widget-action hover:opacity-80 transition-opacity"
+                                style={minBtnStyle}
+                            >
+                                <ChevronUp size={buttonSize} />
+                            </button>
+                        ),
+                        'btn-stop-min': (
+                            <button
+                                onClick={stop}
+                                className="aura-widget-action hover:opacity-80 transition-opacity"
+                                style={stopBtnStyle}
+                            >
+                                <Square size={stopSz} />
+                            </button>
+                        ),
+                        'btn-down-min': (
+                            <button
+                                onClick={closeFully}
+                                className="aura-widget-action hover:opacity-80 transition-opacity"
+                                style={downBtnStyle}
+                            >
+                                <ChevronDown size={buttonSize} />
+                            </button>
+                        ),
                         'battery-icon': batteryIcon,
                         'reach-icon': reachIcon,
                         'status-badges': statusBadges,
@@ -755,25 +868,6 @@ export function ShutterWidget({ config }: WidgetProps) {
 
     // ── MINIMAL ───────────────────────────────────────────────────────────────
     if (layout === 'minimal') {
-        const minBtnPad = Math.max(4, Math.round(buttonSize / 2));
-        const minBtnRadius = Math.max(6, Math.round(buttonSize / 1.3));
-        const minDirStyle = (dir: 'up' | 'stop' | 'down'): React.CSSProperties => ({
-            background: `var(--blind-${dir}-bg, var(--app-bg))`,
-            color: `var(--blind-${dir}-color, var(--text-secondary))`,
-            border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
-            padding: minBtnPad,
-            borderRadius: minBtnRadius,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-        });
-        const minBtnStyle = minDirStyle('up');
-        const stopBtnStyle: React.CSSProperties = {
-            ...minDirStyle('stop'),
-            padding: `${Math.max(2, Math.round(buttonSize / 3))}px ${Math.max(6, Math.round(buttonSize))}px`,
-        };
-        const downBtnStyle = minDirStyle('down');
-        const stopSz = Math.max(8, Math.round(buttonSize * 0.7));
         return (
             <div
                 className="aura-widget-row flex flex-col items-center justify-center h-full gap-1.5"

@@ -92,3 +92,47 @@ export function addStatusBadges(b: GridBuilder, o: Opts) {
 export function accentBar(rows: number): CustomCell {
     return { type: 'component', componentKey: 'accent-bar', align: 'left', valign: 'middle', rowSpan: rows };
 }
+
+// Threshold colour if one matches, otherwise the state colour — the value of the
+// minimal layouts that light up with the state (dimmer, …).
+export const THRESHOLD_OR_STATE = 'var(--aura-threshold-color, var(--aura-state-color, var(--accent)))';
+
+/** One component cell (centred unless `extra` says otherwise). */
+export function comp(componentKey: string, extra: Partial<CustomCell> = {}): CustomCell {
+    return { type: 'component', componentKey, align: 'center', valign: 'middle', ...extra };
+}
+
+/** One field cell. */
+export function field(fieldKey: string, extra: Partial<CustomCell> = {}): CustomCell {
+    return { type: 'field', fieldKey, valign: 'middle', ...extra };
+}
+
+/**
+ * Height of a title row: as tall as the icon, like the layouts' flex row. An 'auto'
+ * row adds the cells' 2px padding on top and bottom and pushes everything below
+ * 4px down. Without an icon the row is as tall as the text-xs title line (16px).
+ */
+export function titleRowSize(o: Opts, fallback = 20): string {
+    return showIconOf(o) ? `${Math.max(Number(o.iconSize) || fallback, 16)}px` : '16px';
+}
+
+/**
+ * Empty row standing in for a flex gap of `px` between two stacked cells. Two cells
+ * are 6px apart already (padding 2 + grid gap 2 + padding 2); the empty row adds
+ * its own height plus one more grid gap.
+ */
+export function gapRow(b: GridBuilder, px: number) {
+    if (px > 6) b.row(`${Math.max(0, px - 8)}px`, []);
+}
+
+/** The layouts' content position option (tl … br, see contentPositionClass) split into its axes. */
+export function contentPosOf(
+    pos: unknown,
+    fallback: string | undefined,
+): { v: 'between' | 'start' | 'center' | 'end'; h: CustomCellAlign | undefined } {
+    const p = typeof pos === 'string' && /^[tcb][lcr]$/.test(pos) ? pos : fallback;
+    if (!p) return { v: 'between', h: undefined };
+    const v = p[0] === 't' ? 'start' : p[0] === 'c' ? 'center' : 'end';
+    const h = p[1] === 'l' ? 'left' : p[1] === 'c' ? 'center' : 'right';
+    return { v, h };
+}

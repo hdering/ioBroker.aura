@@ -16,7 +16,7 @@ Icon und Beschriftung in einer Zeile mit Pfeil rechts — für Listen.
 Nur Icon (oder Beschriftung, falls kein Icon) zentriert — für sehr kleine Zellen.
 
 ### Custom
-Icon und Beschriftung frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Icon und Beschriftung frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)).
 
 ## Einstellungen
 

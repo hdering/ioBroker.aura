@@ -19,7 +19,7 @@ Titel/Icon oben, darunter das Eingabefeld mit Senden-Button — für mittlere Ze
 Eine Zeile mit Icon, Titel, Eingabefeld und Senden-Button — für Listen.
 
 ### Custom
-Icon, Eingabefeld und Senden-Button frei in einer Zellenmatrix platzieren; der Senden-Button ist hier immer verfügbar — siehe [Custom-Layout](./custom-layout).
+Icon, Eingabefeld und Senden-Button frei in einer Zellenmatrix platzieren; der Senden-Button ist hier immer verfügbar — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `input-row` (Feld mit Einheit und Senden-Button je nach Sende-Modus) und `submit-auto`.
 
 ## Einstellungen
 

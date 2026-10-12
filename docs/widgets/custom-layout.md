@@ -25,6 +25,12 @@ Im Raster-Editor holt **Aus Layout übernehmen …** jedes Layout später noch e
 | [Schalter](./schalter) | Standard · Karte · Kompakt |
 | [Thermostat](./thermostat) | Standard · Kompakt · Minimal · Rundskala |
 | [Wetter](./wetter) | Standard · Kompakt · Minimal |
+| [Drehregler](./drehregler) | Bogen · Skala · Endlos (3D) — setzt zusätzlich `dialStyle` |
+| [Dimmer](./dimmer) · [Rollladen](./rollladen) | Standard · Kompakt · Minimal |
+| [Schieberegler](./schieberegler) | Standard (waagrecht und senkrecht) |
+| [Auswahlfeld](./auswahlfeld) | Standard · Kompakt · Minimal · Karte |
+| [Button](./button) · [HTTP-Aktion](./http-aktion) | Standard · Kompakt · Minimal |
+| [Eingabefeld](./eingabefeld) | Standard · Kompakt |
 
 Links Rundskala, rechts dasselbe als Custom-Raster mit einer `dp`-Zeile (Luftfeuchte) darunter:
 
@@ -35,6 +41,7 @@ Links Rundskala, rechts dasselbe als Custom-Raster mit einer `dp`-Zeile (Luftfeu
 | Farben je Zustand | Zellen mit `var(--aura-state-color)` · `var(--aura-value-color)` folgen an/aus, Schwellwert, Heizen/Kühlen |
 | Karten-Hintergrund | `bg` + `borderColor` am Raster (Verlauf + Rahmen) — **Karten-Hintergrund entfernen** im Raster-Editor |
 | Rundskala · Vorhersage · Schnellwahl | als Komponente (`dial` · `forecast` · `presets` …) |
+| Bedienblöcke | als Komponente, so wie das Layout sie zeichnet (`viz` + `btn-col` beim Rollladen, `slider-line`, `input-row` …) |
 
 ## Raster
 

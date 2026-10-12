@@ -22,7 +22,7 @@ Eine Zeile mit Titel, Status und Taste — für Listen.
 Nur Taste und Status zentriert — für sehr kleine Zellen.
 
 ### Custom
-Taste und Status frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Taste und Status frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `button-wide` (volle Breite) und `icon`.
 
 ## Einstellungen
 
