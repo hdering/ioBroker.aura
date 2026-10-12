@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.81.4",
+    "auraVersion": "0.81.5",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -9,6 +9,7 @@
       "gridPos is in grid cells, not pixels: x/w are columns, y/h are rows. The column count is NOT fixed — it follows the dashboard width and the configured horizontal snap, so take it from the prompt.",
       "options accepts the keys under widgets.<type>.options plus every key listed in widgets.<type>.commonOptions (defined once under commonOptions).",
       "layout must be one of widgets.<type>.layouts; omit it for \"default\".",
+      "For layout \"custom\", widgets.<type>.customFromLayout.<layout> (where present) is the grid the editor builds from that fixed layout — start from it as options.customGrid and add or change rows; its cells name the fields and components the widget provides.",
       "An option marked \"datapoint\": true must be an existing ioBroker state id — never invent one.",
       "Names referenced as \"ref\" are defined under types.",
       "A missing \"description\" means the key is only documented by its name, type and default.",
@@ -1293,6 +1294,16 @@
             "type": "string"
           },
           "description": "Optional per-row CSS grid-template-rows track sizes (e.g. 'auto', '1fr', '0.25fr', '40px'). Length must equal rows. 'Nfr' = share of the widget height (1fr / 0.25fr / 1fr gives a thin separator row), 'auto' = as tall as the content."
+        },
+        "bg": {
+          "type": "string",
+          "description": "Background of the whole grid — any CSS background (colour, gradient, var(...)). The card layouts' coloured face when a grid was built from one (#768); unset = none.",
+          "color": true
+        },
+        "borderColor": {
+          "type": "string",
+          "description": "Colour of a 2px frame around the whole grid, rounded like the widget — the card layouts' outline (#768); unset = no frame.",
+          "color": true
         }
       }
     },
@@ -7392,6 +7403,168 @@
         "minimal",
         "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 3,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 12,
+              "bold": true,
+              "align": "right",
+              "valign": "middle",
+              "bg": "color-mix(in srgb, var(--aura-state-color, var(--accent)) 13%, transparent)",
+              "bgMode": "content"
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 20,
+              "bold": true,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title",
@@ -13835,6 +14008,168 @@
         "minimal",
         "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "52px",
+            "1fr"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 3,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 12,
+              "bold": true,
+              "align": "right",
+              "valign": "middle",
+              "bg": "color-mix(in srgb, var(--aura-state-color, var(--accent)) 13%, transparent)",
+              "bgMode": "content"
+            }
+          ],
+          "colSizes": [
+            "52px",
+            "1fr",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 20,
+              "bold": true,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title",
@@ -14597,6 +14932,135 @@
         "compact",
         "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "toggle-lg",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon-button",
+              "align": "center",
+              "valign": "middle",
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 3,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-primary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "toggle-lg",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title",
@@ -14765,6 +15229,274 @@
         "dial",
         "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 3,
+          "rows": 4,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-icon",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "value",
+              "suffix": "°C",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-state-color, var(--accent))",
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-plus",
+              "align": "center",
+              "valign": "bottom",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "actual-line",
+              "align": "left",
+              "valign": "top",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-minus",
+              "align": "center",
+              "valign": "top",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "presets",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr",
+            "1fr",
+            "auto"
+          ]
+        },
+        "compact": {
+          "cols": 6,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "suffix": "°C",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-state-color, var(--accent))",
+              "align": "right",
+              "valign": "middle"
+            },
+            {
+              "type": "field",
+              "fieldKey": "actualSlash",
+              "fontSize": 12,
+              "color": "var(--aura-actual-color, var(--text-secondary))",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-minus",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 24
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-plus",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 24
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 2,
+          "rows": 7,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "suffix": "°C",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-state-color, var(--accent))",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "field",
+              "fieldKey": "actualLine",
+              "fontSize": 12,
+              "color": "var(--aura-actual-color, var(--text-secondary))",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-minus-round",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-plus-round",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "presets",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "1fr"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        },
+        "dial": {
+          "cols": 1,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "dial",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "presets",
+              "align": "center",
+              "valign": "middle"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto"
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title"
@@ -15259,6 +15991,233 @@
         "minimal",
         "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--text-secondary)"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "left",
+              "valign": "bottom",
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 5,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "accent-bar",
+              "align": "left",
+              "valign": "middle",
+              "rowSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon-card",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "left",
+              "valign": "bottom",
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "8px",
+            "4px",
+            "24px",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "compact": {
+          "cols": 4,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon-compact",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-primary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "right",
+              "valign": "middle",
+              "color": "var(--aura-value-color, var(--text-primary))"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 4,
+          "rows": 4,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "right",
+              "valign": "bottom",
+              "color": "var(--aura-state-color, var(--accent))",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 4
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title",
@@ -15358,6 +16317,61 @@
         "minimal",
         "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 1,
+          "rows": 3,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "title-row",
+              "align": "left",
+              "valign": "top"
+            },
+            {
+              "type": "component",
+              "componentKey": "current",
+              "align": "left",
+              "valign": "top"
+            },
+            {
+              "type": "component",
+              "componentKey": "forecast",
+              "align": "left",
+              "valign": "top"
+            }
+          ],
+          "rowSizes": [
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "compact": {
+          "cols": 1,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "current-line",
+              "align": "left",
+              "valign": "middle"
+            }
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "current-big",
+              "align": "center",
+              "valign": "middle"
+            }
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title"
@@ -15534,6 +16548,169 @@
         "minimal",
         "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 3,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-primary)",
+              "align": "left",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 12,
+              "bold": true,
+              "align": "right",
+              "valign": "middle",
+              "bg": "color-mix(in srgb, var(--aura-state-color, var(--accent)) 13%, transparent)",
+              "bgMode": "content"
+            }
+          ],
+          "colSizes": [
+            "30px",
+            "1fr",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 20,
+              "bold": true,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title",
