@@ -12580,6 +12580,21 @@
           "description": "Datenpunkt, der den HTML-Inhalt liefert.",
           "datapoint": true
         },
+        "mobileHeight": {
+          "type": "string",
+          "enum": [
+            "aspect",
+            "rows",
+            "px"
+          ],
+          "default": "aspect",
+          "description": "Höhe im schmalen Handy-/Tablet-Fluss: \"aspect\" (Standard) behält das Seitenverhältnis vom Desktop - richtig für Inhalte, die mit der Breite skalieren. \"rows\" nimmt die Zeilenhöhe wie am Desktop - richtig für Seiten, die sich selbst umbrechen (Grafana), die das Seitenverhältnis sonst flach drückt. \"px\" setzt mobileHeightPx."
+        },
+        "mobileHeightPx": {
+          "type": "number",
+          "default": 300,
+          "description": "Feste Höhe in Pixeln im Handy-/Tablet-Fluss, nur bei mobileHeight \"px\"."
+        },
         "sandboxCustom": {
           "type": "string",
           "description": "Eigene sandbox-Attribute, wenn sandboxPreset \"custom\" ist."
@@ -12921,6 +12936,21 @@
           "type": "boolean",
           "default": false,
           "description": "Seite beim Tab- und Bereichswechsel geladen lassen (Zustand bleibt). Aus: verborgen wird sie verworfen und beim Zurückkehren frisch geladen."
+        },
+        "mobileHeight": {
+          "type": "string",
+          "enum": [
+            "aspect",
+            "rows",
+            "px"
+          ],
+          "default": "aspect",
+          "description": "Höhe im schmalen Handy-/Tablet-Fluss: \"aspect\" (Standard) behält das Seitenverhältnis vom Desktop - richtig für Inhalte, die mit der Breite skalieren. \"rows\" nimmt die Zeilenhöhe wie am Desktop - richtig für Seiten, die sich selbst umbrechen (Grafana), die das Seitenverhältnis sonst flach drückt. \"px\" setzt mobileHeightPx."
+        },
+        "mobileHeightPx": {
+          "type": "number",
+          "default": 300,
+          "description": "Feste Höhe in Pixeln im Handy-/Tablet-Fluss, nur bei mobileHeight \"px\"."
         },
         "refreshInterval": {
           "type": "number",
