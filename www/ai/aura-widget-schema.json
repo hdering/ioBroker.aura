@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.81.5",
+    "auraVersion": "0.82.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -141,7 +141,7 @@
     "showStatusBadges": {
       "type": "boolean",
       "default": true,
-      "description": "Batterie-/Erreichbarkeits-/Sperr-Badges anzeigen."
+      "description": "Batterie-/Erreichbarkeits-/Sperr-/Fenster-Badges anzeigen."
     },
     "statusBadgesAlertOnly": {
       "type": "boolean",
@@ -164,6 +164,12 @@
       "default": "",
       "datapoint": true,
       "description": "Datenpunkt für die Kindersicherung (Badge in der Ecke)."
+    },
+    "windowDp": {
+      "type": "string",
+      "default": "",
+      "datapoint": true,
+      "description": "Datenpunkt „Fenster offen“ (Badge in der Ecke), z. B. WINDOW_OPEN_REPORTING oder WINDOW_STATE des Thermostat-Kanals. Zählt bei statusBadgesAlertOnly als Meldung."
     },
     "batteryMode": {
       "type": "string",
@@ -196,6 +202,10 @@
     "lockLockedValues": {
       "type": "string",
       "default": "true,1"
+    },
+    "windowOpenValues": {
+      "type": "string",
+      "description": "Kommagetrennte Werte von windowDp, die „offen“ bedeuten. Leer = true,1,2,open,tilted (gekippt zählt als offen)."
     },
     "customGrid": {
       "type": "object",
@@ -7611,7 +7621,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "colorOff": {
@@ -8853,7 +8865,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "avgColor": {
@@ -9659,7 +9673,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "fontSize": {
@@ -10143,7 +10159,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "barSize": {
@@ -11085,7 +11103,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "confirmAction": {
@@ -13941,7 +13961,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "activeTab": {
@@ -14867,7 +14889,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "albumDp": {
@@ -15883,7 +15907,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "activityDp": {
@@ -16151,7 +16177,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "actions": {
@@ -16472,7 +16500,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "falseBase64": {
@@ -17365,7 +17395,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "confirmAction": {
@@ -17805,7 +17837,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "actualDatapoint": {
@@ -18655,7 +18689,9 @@
         "unit",
         "unreachDp",
         "valueFactor",
-        "valueOffset"
+        "valueOffset",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "htmlTemplate": {
@@ -19140,7 +19176,9 @@
         "titleSize",
         "transparency",
         "transparent",
-        "unreachDp"
+        "unreachDp",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "showLabel": {
