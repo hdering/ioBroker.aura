@@ -203,7 +203,7 @@ export function TrashWidget({ config }: WidgetProps) {
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            <div className="flex-1 flex flex-wrap items-center justify-center gap-4 content-center min-h-0">
+            <div className="flex-1 flex flex-wrap items-start justify-center gap-4 content-start min-h-0">
                 {bins.map((bin) => (
                     <BinDisplay key={bin.id} bin={bin} size={binSize} />
                 ))}
