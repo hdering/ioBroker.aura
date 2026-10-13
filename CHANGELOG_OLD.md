@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.77.4 (2026-10-05)
+Release v0.77.4
+
 ## 0.77.3 (2026-10-05)
 - Shutter - quick-select buttons can set only the slat angle, and skip the drive when the blind is already at the preset position ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
 

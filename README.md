@@ -122,6 +122,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.82.5 (2026-10-13)
+- Settings - the guidelines page explains why the frontend hides the lines while "Fill window width" is on
+- Status overview - classic HomeMatic battery devices (window contacts, handles, smoke detectors …) now show "battery low"; mains actuators stay out, one row per device
+- Status overview - remembered batteries imported by their full datapoint id are now picked up by the widget (snooze, recheck, quiet entries)
+- 🌟 **New feature:** Timer - switch any number of datapoints with one schedule (e.g. several thermostats), all get the same value ([#774](https://github.com/hdering/ioBroker.aura/issues/774))
+- 🌟 **New feature:** Widgets - the background image (Advanced) can come from a datapoint holding a URL, path or Base64 image; the fixed image stays the fallback ([#775](https://github.com/hdering/ioBroker.aura/issues/775))
+
+
 ### 0.82.4 (2026-10-13)
 - Status overview - dimmers in the "Light" function now count as lights ("On · 60 %"), and the "Off" row action sets them to 0
 - Dynamic list - a list with filters but no entries searches right away instead of waiting for the sync interval; new option to drop entries the filters no longer find
@@ -223,10 +231,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Status overview - configurable row buttons that write a value with placeholders ({id}, {device}, {serial}, {name}, {room}), optionally after a second tap; "since …" can also be shown for batteries and reachability
 
 
-### 0.77.4 (2026-10-05)
-Release v0.77.4
-
-
 ## License
 
 MIT License
@@ -238,6 +242,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
