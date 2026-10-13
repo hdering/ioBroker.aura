@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.78.1 (2026-10-06)
+- Timer - entries added in a timer that sits inside a popup view are now saved and survive a page reload ([#750](https://github.com/hdering/ioBroker.aura/issues/750))
+
 ## 0.78.0 (2026-10-05)
 - iFrame - "Keep alive" now keeps the page across tab and section switches, also with "Fill tab"; without it, a hidden iFrame is unloaded and reloads fresh when shown again ([#65](https://github.com/hdering/ioBroker.aura/issues/65))
 - 🌟 **New feature:** Widgets, popups and tabs can have a background image (fit, alignment, darken): per widget under Edit → Advanced, for popups globally, per popup view and per click action, behind a tab per tab, section or layout ([#442](https://github.com/hdering/ioBroker.aura/issues/442))

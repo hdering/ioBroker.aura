@@ -122,6 +122,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.82.7 (2026-10-13)
+- Advanced chart - the current-time line also works on a JSON category axis, placed at the label containing a chosen text (e.g. "now")
+
+
 ### 0.82.6 (2026-10-13)
 - Advanced chart - optional vertical line marking the current time, with a freely selectable colour
 - Thermostat - on the round-scale layout, dragging the dial by touch now follows the finger instead of stopping after one step, and setting the temperature no longer triggers the widget click action ([#776](https://github.com/hdering/ioBroker.aura/issues/776))
@@ -226,10 +230,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Fill level - LED segments: configurable segment count and a "fill width" option that adds segments to span wide (or tall) tiles ([#756](https://github.com/hdering/ioBroker.aura/issues/756))
 
 
-### 0.78.1 (2026-10-06)
-- Timer - entries added in a timer that sits inside a popup view are now saved and survive a page reload ([#750](https://github.com/hdering/ioBroker.aura/issues/750))
-
-
 ## License
 
 MIT License
@@ -241,6 +241,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
