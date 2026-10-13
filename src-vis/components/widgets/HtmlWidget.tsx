@@ -6,6 +6,7 @@ import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
+import { iframeScrollingAttr, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
 import { injectBridge, sandboxAllowsScripts } from '../../utils/htmlBridge';
@@ -22,6 +23,10 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const htmlContent = (opts.htmlContent as string) ?? '';
     const htmlDatapoint = (opts.htmlDatapoint as string) ?? '';
     const scrollable = (opts.scrollable as boolean) ?? true;
+    // Same trade-off as the iFrame widget: the srcDoc frame is its own document,
+    // so a click inside it never reaches the click action. `action` lays a blocker
+    // over the content and turns the whole surface into the click target (#773).
+    const interactionMode = resolveIframeInteractionMode(opts);
     const sandboxPreset = opts.sandboxPreset as SandboxPreset | undefined;
     const sandboxCustom = opts.sandboxCustom as string | undefined;
     const sandboxAttr = resolveSandboxAttr(sandboxPreset, sandboxCustom, 'standard');
@@ -90,9 +95,10 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
 
     // The sandboxed srcDoc frame is its own document, so clicks in the rendered
     // HTML never reach the frame's click action — ask for the action button.
+    // `action` has its own blocker below and `contentOnly` opts out.
     useEffect(() => {
-        onNeedsActionButton?.(!!html);
-    }, [onNeedsActionButton, html]);
+        onNeedsActionButton?.(!!html && interactionMode === 'content');
+    }, [onNeedsActionButton, html, interactionMode]);
 
     if (!html) {
         return (
@@ -162,15 +168,22 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            <iframe
-                ref={frameRef}
-                srcDoc={html}
-                sandbox={sandboxAttr}
-                title={config.title || 'HTML'}
-                className="aura-widget-value aura-frame-neutral flex-1 min-h-0 w-full block"
-                style={{ border: 'none' }}
-                scrolling={scrollable ? 'auto' : 'no'}
-            />
+            <div className="relative flex-1 min-h-0 flex flex-col">
+                <iframe
+                    ref={frameRef}
+                    srcDoc={html}
+                    sandbox={sandboxAttr}
+                    title={config.title || 'HTML'}
+                    className="aura-widget-value aura-frame-neutral flex-1 min-h-0 w-full block"
+                    style={{ border: 'none' }}
+                    // A blocked frame cannot be scrolled — its scrollbar would be dead chrome.
+                    scrolling={scrollable ? iframeScrollingAttr(interactionMode) : 'no'}
+                />
+                {/* Interaction blocker — also the click path for the widget's action (#773) */}
+                {interactionMode === 'action' && (
+                    <div className="absolute inset-0 z-[1]" style={{ pointerEvents: 'all' }} />
+                )}
+            </div>
         </div>
     );
 }

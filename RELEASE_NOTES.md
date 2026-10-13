@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- HTML - the whole widget surface can now trigger the click action (e.g. open a popup), selectable via the new Interaction option like on the iFrame widget (#773)

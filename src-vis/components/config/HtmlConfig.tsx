@@ -7,6 +7,8 @@ interface Props {
     options: Record<string, unknown>;
     onChange: (patch: Record<string, unknown>) => void;
     onOpenPicker: (key: 'htmlDatapoint' | 'valueDatapoint') => void;
+    /** Interaction vs. click action (#773) — the selector lives with the iFrame config. */
+    interactionSlot?: React.ReactNode;
 }
 
 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -31,7 +33,7 @@ function Toggle({ value, onToggle }: { value: boolean; onToggle: () => void }) {
     );
 }
 
-export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
+export function HtmlConfig({ options: o, onChange, onOpenPicker, interactionSlot }: Props) {
     const set = (patch: Record<string, unknown>) => onChange(patch);
 
     return (
@@ -156,6 +158,8 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     onToggle={() => set({ scrollable: !((o.scrollable as boolean) ?? true) })}
                 />
             </div>
+
+            {interactionSlot}
 
             <EmbedMobileHeightField options={o} onChange={set} />
 

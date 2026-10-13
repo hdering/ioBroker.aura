@@ -137,6 +137,17 @@ for (const [label, chrome] of [
 await show('html', { htmlContent: '<b>hi</b>', clickAction: CLICK_ACTION });
 check('html widget shows the action button', (await actionBtn().count()) === 1);
 
+// HTML widget in action mode: the whole surface is the click target (#773).
+await show('html', { htmlContent: '<b>hi</b>', interactionMode: 'action', clickAction: CLICK_ACTION });
+check('html action mode shows no button', (await actionBtn().count()) === 0);
+await page.locator('.aura-widget-embed-test').click({ position: { x: 120, y: 120 } });
+await settle();
+check('html action mode opens the popup on a surface click', await popupVisible());
+await closePopup();
+
+await show('html', { htmlContent: '<b>hi</b>', interactionMode: 'contentOnly', clickAction: CLICK_ACTION });
+check('html contentOnly shows no button', (await actionBtn().count()) === 0);
+
 await show('echartsPreset', { presetId: 'demo-preset', clickAction: CLICK_ACTION });
 check('echartsPreset widget shows the action button', (await actionBtn().count()) === 1);
 

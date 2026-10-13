@@ -3191,11 +3191,14 @@ function IframeInteractionSelect({
     set,
     sty,
     hasClickAction,
+    html = false,
 }: {
     o: Record<string, unknown>;
     set: (patch: Record<string, unknown>) => void;
     sty: React.CSSProperties;
     hasClickAction: boolean;
+    /** HTML widget (#773): no legacy allowInteraction, its scrolling has a toggle of its own. */
+    html?: boolean;
 }) {
     const mode = resolveIframeInteractionMode(o);
     return (
@@ -3206,12 +3209,16 @@ function IframeInteractionSelect({
             <select
                 value={mode}
                 onChange={(e) =>
-                    set({
-                        interactionMode: e.target.value,
-                        // Kept in sync so exports, backups and older docs referring to
-                        // allowInteraction stay valid.
-                        allowInteraction: e.target.value !== 'action',
-                    })
+                    set(
+                        html
+                            ? { interactionMode: e.target.value }
+                            : {
+                                  interactionMode: e.target.value,
+                                  // Kept in sync so exports, backups and older docs referring to
+                                  // allowInteraction stay valid.
+                                  allowInteraction: e.target.value !== 'action',
+                              },
+                    )
                 }
                 className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                 style={sty}
@@ -3224,7 +3231,8 @@ function IframeInteractionSelect({
             </select>
             {mode === 'contentOnly' && hasClickAction && (
                 <p className="text-[10px] mt-1" style={{ color: '#f59e0b' }}>
-                    Klicks gehen in die eingebettete Seite — die Klick-Aktion wird nicht ausgelöst.
+                    Klicks gehen in {html ? 'den HTML-Inhalt' : 'die eingebettete Seite'} — die Klick-Aktion wird nicht
+                    ausgelöst.
                 </p>
             )}
             {mode === 'content' && !hasClickAction && (
@@ -3232,7 +3240,12 @@ function IframeInteractionSelect({
                     Ohne Klick-Aktion wird kein Aktions-Button eingeblendet.
                 </p>
             )}
-            {mode !== 'action' && (
+            {mode === 'action' && html && (
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    Die ganze Fläche löst die Klick-Aktion aus; Knöpfe und Links im HTML sind nicht bedienbar.
+                </p>
+            )}
+            {mode !== 'action' && !html && (
                 <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                     Bedienbarer Inhalt darf scrollen — passt die Seite nicht exakt, zeigt der Desktop-Browser dafür eine
                     Scrollleiste. {'„Nur Klick-Aktion“'} blendet sie aus.
@@ -12614,6 +12627,24 @@ function WidgetFrameInner({
                                 options={config.options ?? {}}
                                 onChange={(patch) =>
                                     onConfigChange({ ...config, options: { ...(config.options ?? {}), ...patch } })
+                                }
+                                interactionSlot={
+                                    <IframeInteractionSelect
+                                        o={config.options ?? {}}
+                                        set={(patch) =>
+                                            onConfigChange({
+                                                ...config,
+                                                options: { ...(config.options ?? {}), ...patch },
+                                            })
+                                        }
+                                        sty={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                        hasClickAction={hasClickAction}
+                                        html
+                                    />
                                 }
                                 onOpenPicker={(key) => {
                                     if (key === 'htmlDatapoint') {

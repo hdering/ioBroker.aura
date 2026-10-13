@@ -1369,6 +1369,21 @@ const EMBED_MOBILE_HEIGHT_OPTIONS = {
     },
 };
 
+// Read through utils/iframeInteraction (resolveIframeInteractionMode), not off the
+// widget's own options binding (#527, #773).
+const INTERACTION_MODE_OPTION = {
+    interactionMode: {
+        type: 'string',
+        enum: ['action', 'content', 'contentOnly'],
+        default: 'content',
+        description:
+            'Klick-Aktion vs. eingebetteter Inhalt: "action" legt eine Sperrschicht über den Inhalt - die ganze ' +
+            'Fläche löst die Klick-Aktion aus (z. B. Popup öffnen), Links/Knöpfe im Inhalt sind nicht bedienbar. ' +
+            '"content" (Standard) lässt den Inhalt bedienbar und blendet für die Klick-Aktion einen kleinen ' +
+            'Aktions-Button ein. "contentOnly" = nur Inhalt, die Klick-Aktion bleibt wirkungslos.',
+    },
+};
+
 /**
  * Keys the readers cannot see. Group and panels keep their children in a
  * separate store, so the component never reads them off `options`.
@@ -1399,9 +1414,10 @@ export const EXTRA_OPTIONS = {
                 'dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst ' +
                 'bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht.',
         },
+        ...INTERACTION_MODE_OPTION,
         ...EMBED_MOBILE_HEIGHT_OPTIONS,
     },
-    html: { ...EMBED_MOBILE_HEIGHT_OPTIONS },
+    html: { ...INTERACTION_MODE_OPTION, ...EMBED_MOBILE_HEIGHT_OPTIONS },
     calendar: {
         ...AUTO_HEIGHT_OPTION,
         // Read inside getMultiDayMode(options), i.e. through a parameter rather

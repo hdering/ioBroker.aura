@@ -28,6 +28,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `valueDatapoint` | — | Datenpunkt für den Platzhalter `{dp}` |
 | `decimals` | global | Nachkommastellen für Zahlen aus Platzhaltern |
 | `scrollable` | `true` | Scrollen im iFrame erlauben |
+| `interactionMode` | `content` | `action` · `content` · `contentOnly` — wie beim [iFrame](./iframe.md#interaktion-vs-klick-aktion); `action` macht die ganze Fläche zur Klick-Fläche |
 | `mobileHeight` | `aspect` | Höhe auf dem Handy: `aspect` (Desktop-Seitenverhältnis) · `rows` (Zeilenhöhe, z. B. Grafana) · `px` |
 | `mobileHeightPx` | `300` | feste Höhe in px bei `mobileHeight: px` |
 
