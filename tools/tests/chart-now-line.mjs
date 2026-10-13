@@ -6,7 +6,9 @@
 // The line is a markLine on the first series. Checked: off by default, drawn at the current time
 // in today's day view with the chosen or the default colour, no extra series, and gone where "now"
 // lies outside the plotted span (yesterday) — written as an empty markLine there, since the
-// timeseries chart merges its options and would otherwise keep the old one.
+// timeseries chart merges its options and would otherwise keep the old one. A JSON category axis
+// puts the line at the label containing `echartNowLineMatch`. JSON series only load while the
+// socket is connected, so run the dev server against a live instance (not the 127.0.0.1:9 target).
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -129,6 +131,41 @@ const near = (x) => typeof x === 'number' && Math.abs(x - Date.now()) < 120_000;
         path: 'node_modules/.cache/chart-now-line.png',
         clip: { x: 0, y: 0, width: 800, height: 400 },
     });
+}
+
+// ── 4. JSON category axis: the line goes to the label containing the text ─────
+{
+    // Shape of a real weather payload: the current hour is labelled by the script itself.
+    const payload = JSON.stringify({
+        hours: ['heute 18:00', 'heute 19:00', '▶ jetzt', 'heute 21:00', 'morgen 00:00'].map((label, i) => ({
+            label,
+            v: 14 + i / 10,
+        })),
+    });
+    const series = [
+        {
+            id: 's1',
+            name: 'Temperatur',
+            datapointId: 'demo.weather',
+            chartType: 'line',
+            source: 'json',
+            jsonPath: 'hours',
+            jsonLabelKey: 'label',
+            jsonValueKey: 'v',
+            yAxisIndex: 0,
+        },
+    ];
+    const lines = await render(
+        { echartMode: 'json', echartNowLine: true, echartNowLineMatch: 'JETZT', echartSeries: series },
+        { 'demo.weather': payload },
+    );
+    check('category axis: line at the matching label', lines?.[0]?.x === '▶ jetzt', JSON.stringify(lines));
+
+    const none = await render(
+        { echartMode: 'json', echartNowLine: true, echartSeries: series },
+        { 'demo.weather': payload },
+    );
+    check('category axis without a text: no line', Array.isArray(none) && none.length === 0, JSON.stringify(none));
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

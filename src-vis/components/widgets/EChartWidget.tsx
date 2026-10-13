@@ -230,6 +230,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Vertical marker at the current time on a time axis — forecasts, price curves and the day view
     // show where "now" sits between past and future.
     const echartNowLine = (o.echartNowLine as boolean | undefined) ?? false;
+    // A category axis has no clock: the line goes to the category whose label contains this text
+    // (e.g. "jetzt" for a payload labelled "heute 19:00", "▶ jetzt", "heute 21:00").
+    const echartNowLineMatch = ((o.echartNowLineMatch as string | undefined) ?? '').trim().toLowerCase();
     const [nowLineColor] = useResolvedColors(containerRef, [
         (o.echartNowLineColor as string | undefined) || DEFAULT_NOW_LINE_COLOR,
     ]);
@@ -530,22 +533,25 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
      * Puts the now line onto the first series as a markLine — a series of its own would need a
      * name-less carrier, and the merging `setOption` of the timeseries chart keeps a series the
      * option no longer lists. The markLine is therefore written always, empty when there is no
-     * line: outside the plotted span too, since an x-only markLine is never clipped by echarts and
-     * would otherwise be drawn beside the grid.
+     * line. `at` is the x value — a time, or a category label — and null for no line.
      */
-    const withNowLine = <S extends object>(series: S[], extent: { min: number; max: number } | null): S[] => {
+    const withNowLine = <S extends object>(series: S[], at: number | string | null): S[] => {
         if (series.length === 0) return series;
-        const show = echartNowLine && !!extent && nowTs >= extent.min && nowTs <= extent.max;
+        const show = echartNowLine && at !== null;
         const markLine = {
             silent: true,
             symbol: 'none',
             animation: false,
             label: { show: false },
             lineStyle: { color: nowLineColor ?? DEFAULT_NOW_LINE_COLOR, width: 1.5, type: 'solid' },
-            data: show ? [{ xAxis: nowTs }] : [],
+            data: show ? [{ xAxis: at }] : [],
         };
         return [{ ...series[0], markLine }, ...series.slice(1)];
     };
+    /** The current time when it lies within the plotted span — an x-only markLine is never clipped
+     *  by echarts and would otherwise be drawn beside the grid. */
+    const nowWithin = (extent: { min: number; max: number } | null): number | null =>
+        extent && nowTs >= extent.min && nowTs <= extent.max ? nowTs : null;
     // Single ResizeObserver handles both initial sizing and tab-switch resize.
     // Avoids the two-effect race where the first effect returns early on visible
     // mount and the second effect never fires when switching to a hidden tab.
@@ -1122,6 +1128,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             }
         }
 
+        // The category the now line marks: the first label containing the configured text.
+        const nowCategory =
+            !jsonTimeAxis && echartNowLineMatch
+                ? (categories.find((c) => c.toLowerCase().includes(echartNowLineMatch)) ?? null)
+                : null;
+
         // Time axis: labels become x coordinates. Entries whose label isn't a timestamp are
         // dropped — plotting them at an arbitrary position would be worse than omitting them.
         const timePointsPerSeries = jsonTimeAxis
@@ -1286,7 +1298,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                       splitLine: { show: false },
                   },
             yAxis: [leftAxis, rightAxis],
-            series: jsonTimeAxis ? withNowLine(jsonSeriesList, jsonTimeExtent) : jsonSeriesList,
+            series: withNowLine(jsonSeriesList, jsonTimeAxis ? nowWithin(jsonTimeExtent) : nowCategory),
         };
 
         let mergedJson = jsonOption;
@@ -1572,7 +1584,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             max: dayWindow ? dayWindow.end : rollingAxisMax,
         },
         yAxis: [leftAxis, rightAxis],
-        series: withNowLine(seriesList, nowLineExtent),
+        series: withNowLine(seriesList, nowWithin(nowLineExtent)),
     };
 
     let merged = option;

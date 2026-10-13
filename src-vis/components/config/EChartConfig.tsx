@@ -144,9 +144,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartAnimation = (o.echartAnimation as boolean | undefined) ?? true;
-    // Now line — only a time axis has a "now" to mark.
-    const hasTimeAxis = !isComparison && (!isJson || jsonTimeAxis);
+    // Now line — a time axis marks the clock, a JSON category axis the label matching a text.
+    const nowLineOffered = !isComparison;
+    const nowLineByLabel = isJson && !jsonTimeAxis;
     const echartNowLine = (o.echartNowLine as boolean | undefined) ?? false;
+    const echartNowLineMatch = (o.echartNowLineMatch as string | undefined) ?? '';
     const echartNowLineColor = (o.echartNowLineColor as string | undefined) || '#ef4444';
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
@@ -624,7 +626,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 </div>
 
                 {/* Vertical line at the current time */}
-                {hasTimeAxis && (
+                {nowLineOffered && (
                     <div className="flex items-center justify-between mb-2">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                             {t('echart.nowLine')}
@@ -641,8 +643,29 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         </button>
                     </div>
                 )}
-                {hasTimeAxis && echartNowLine && (
+                {nowLineOffered && echartNowLine && (
                     <div className="mb-2 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        {nowLineByLabel && (
+                            <div className="mb-2">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('echart.nowLineMatch')}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={echartNowLineMatch}
+                                    onChange={(e) => setO({ echartNowLineMatch: e.target.value })}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                    placeholder={t('echart.nowLineMatchPlaceholder')}
+                                />
+                                <p
+                                    className="text-[10px] mt-1 leading-tight"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('echart.nowLineMatchHint')}
+                                </p>
+                            </div>
+                        )}
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             {t('echart.nowLineColor')}
                         </label>

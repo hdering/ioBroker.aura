@@ -1904,6 +1904,10 @@ export const en: Record<TranslationKey, string> = {
     'echart.gridLines': 'Horizontal grid lines',
     'echart.nowLine': 'Current time as a line',
     'echart.nowLineColor': 'Time line colour',
+    'echart.nowLineMatch': 'Line at label',
+    'echart.nowLineMatchPlaceholder': 'e.g. now',
+    'echart.nowLineMatchHint':
+        'The categories are not timestamps — the line sits at the first label containing this text.',
     'echart.areaOpacity': 'Area opacity: {value}%',
     'echart.areaOpacityAuto': 'Area opacity: auto ({value}%)',
     'echart.animation': 'Animation',

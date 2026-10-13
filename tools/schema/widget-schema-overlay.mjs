@@ -1061,10 +1061,17 @@ export const WIDGET_OPTION_NOTES = {
         echartShowGridLines: { description: 'Gitternetz einzeichnen.' },
         echartNowLine: {
             description:
-                'Senkrechte Linie bei der aktuellen Uhrzeit (wandert alle 30 s mit). Nur mit Zeitachse ' +
-                '(Zeitreihe, JSON mit Zeitachse) und nur, wenn „jetzt“ im gezeigten Zeitraum liegt — ' +
+                'Senkrechte Linie bei der aktuellen Uhrzeit (wandert alle 30 s mit). Mit Zeitachse ' +
+                '(Zeitreihe, JSON mit Zeitachse) nur, wenn „jetzt“ im gezeigten Zeitraum liegt — ' +
                 'also in der Tagesansicht von heute, bei Prognosen/Preiskurven mit Zukunftswerten; ' +
-                'bei rollenden Zeiträumen endet die Achse am letzten Messwert.',
+                'bei rollenden Zeiträumen endet die Achse am letzten Messwert. Im JSON-Modus mit ' +
+                'Kategorie-Achse steht sie bei der Beschriftung aus echartNowLineMatch. Nicht im Vergleichs-Modus.',
+        },
+        echartNowLineMatch: {
+            description:
+                'Nur JSON-Modus ohne Zeitachse: Text, den die Beschriftung der „aktuellen“ Kategorie enthält ' +
+                '(Groß/klein egal, erste Fundstelle) — z. B. "jetzt" bei Labels wie "heute 19:00", "▶ jetzt". ' +
+                'Leer = keine Linie auf der Kategorie-Achse.',
         },
         echartNowLineColor: { description: 'Farbe der Jetzt-Linie (Hex oder CSS-Variable), Standard #ef4444.' },
         echartAnimation: { description: 'Übergänge animieren.' },

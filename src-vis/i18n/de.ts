@@ -1922,6 +1922,10 @@ export const de = {
     'echart.gridLines': 'Horizontale Linien',
     'echart.nowLine': 'Aktuelle Zeit als Linie',
     'echart.nowLineColor': 'Farbe der Zeitlinie',
+    'echart.nowLineMatch': 'Linie bei Beschriftung',
+    'echart.nowLineMatchPlaceholder': 'z. B. jetzt',
+    'echart.nowLineMatchHint':
+        'Die Kategorien sind keine Zeitstempel — die Linie steht bei der ersten Beschriftung, die diesen Text enthält.',
     'echart.areaOpacity': 'Flächen-Deckkraft: {value} %',
     'echart.areaOpacityAuto': 'Flächen-Deckkraft: Auto ({value} %)',
     'echart.animation': 'Animation',
