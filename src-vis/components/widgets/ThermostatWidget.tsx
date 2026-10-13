@@ -313,7 +313,18 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 preserveAspectRatio="xMidYMid meet"
                 data-aura-thermo-dial={config.id}
                 className="aura-widget-value"
-                style={{ width: '100%', height: '100%', maxHeight: '100%', display: 'block' }}
+                // The root takes no hits, so the letterboxed space beside the dial stays
+                // the card's and a swipe there scrolls. `touch-action` still has to sit
+                // here: Chromium ignores it on the arc path, took the touch for a pan and
+                // cancelled the drag after the first step (#776).
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    maxHeight: '100%',
+                    display: 'block',
+                    pointerEvents: 'none',
+                    touchAction: 'none',
+                }}
             >
                 <path
                     data-aura-thermo-track=""
@@ -333,9 +344,13 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         strokeLinecap="round"
                     />
                 )}
-                {/* Wide invisible copy of the track: the drag/tap target. */}
+                {/* Wide invisible copy of the track: the drag/tap target. Marked
+                    interactive so a tap or drag does not also fire the widget's
+                    click action (#776). */}
                 <path
                     className="aura-widget-action nodrag"
+                    data-widget-interactive=""
+                    pointerEvents="stroke"
                     d={describeArc(DIAL_CX, DIAL_CY, DIAL_R, DIAL_START, DIAL_END)}
                     fill="none"
                     stroke="transparent"
@@ -393,6 +408,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                         <g
                             key={b.key}
                             className="aura-widget-action nodrag"
+                            data-widget-interactive=""
                             data-aura-thermo-btn={b.key}
                             style={{ cursor: 'pointer' }}
                             onPointerDown={(e) => e.stopPropagation()}
