@@ -7,6 +7,27 @@ import type { WidgetConfig } from '../../types';
  *  1/2 = tilted/open on rotary handles) and string states (OPEN / TILTED). */
 export const WINDOW_OPEN_DEFAULT = 'true,1,2,open,tilted';
 
+/** Alarm colours of the badges unless `batteryColor` / `reachColor` / `windowColor`
+ *  override them — theme tokens, so a theme retints every badge at once. */
+export const STATUS_BADGE_COLORS = {
+    battery: 'var(--badge-warn, #f59e0b)',
+    reach: 'var(--badge-crit, var(--accent-red, #ef4444))',
+    window: 'var(--badge-warn, #f59e0b)',
+} as const;
+/** The same defaults as plain hex — what the colour picker shows as preselected
+ *  (it only reads bare `var(--x)`, and --badge-warn/-crit exist only when a theme sets them). */
+export const STATUS_BADGE_COLOR_HEX: Record<keyof typeof STATUS_BADGE_COLORS, string> = {
+    battery: '#f59e0b',
+    reach: '#ef4444',
+    window: '#f59e0b',
+};
+export const STATUS_BADGE_OK_COLOR = 'var(--badge-ok, var(--accent-green, #22c55e))';
+
+/** Alarm colour of one badge kind: the widget's own option, else the theme default. */
+export function statusBadgeColor(own: unknown, kind: keyof typeof STATUS_BADGE_COLORS): string {
+    return typeof own === 'string' && own.trim() ? own : STATUS_BADGE_COLORS[kind];
+}
+
 /** Lucide-style window glyph — lucide has no open/closed window pair. */
 export function WindowGlyph({ open, size, color }: { open: boolean; size: number; color: string }) {
     return (
@@ -47,6 +68,7 @@ export function WindowGlyph({ open, size, color }: { open: boolean; size: number
 //   lockLockedValues    – comma-separated values meaning "locked" (default 'true,1')
 //   windowDp            – DP ID (optional), e.g. WINDOW_OPEN_REPORTING / WINDOW_STATE
 //   windowOpenValues    – comma-separated values meaning "open" (default WINDOW_OPEN_DEFAULT)
+//   batteryColor / reachColor / windowColor – alarm colour per badge (default STATUS_BADGE_COLORS)
 //   showStatusBadges    – boolean, default true
 //   statusBadgesAlertOnly – boolean, only show when something is wrong
 
@@ -120,15 +142,13 @@ export function StatusBadges({ config }: Props) {
 
     if (alertOnly && !isBattLow && !isUnreach && !isWindowOpen) return null;
 
-    const green = 'var(--badge-ok, var(--accent-green, #22c55e))';
-    const orange = 'var(--badge-warn, #f59e0b)';
-    const red = 'var(--badge-crit, var(--accent-red, #ef4444))';
+    const green = STATUS_BADGE_OK_COLOR;
     const blue = 'var(--accent, #3b82f6)';
 
-    const battColor = isBattLow ? orange : green;
-    const reachColor = isUnreach ? red : green;
+    const battColor = isBattLow ? statusBadgeColor(opts.batteryColor, 'battery') : green;
+    const reachColor = isUnreach ? statusBadgeColor(opts.reachColor, 'reach') : green;
     const lockColor = isLocked ? blue : green;
-    const windowColor = isWindowOpen ? 'var(--badge-info, #0ea5e9)' : green;
+    const windowColor = isWindowOpen ? statusBadgeColor(opts.windowColor, 'window') : green;
 
     const battTitle = battDpId
         ? battMode === 'percent' && battPercent !== null

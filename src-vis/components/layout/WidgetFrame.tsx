@@ -173,7 +173,8 @@ import {
     autoDetectLightDps,
     WINDOW_NAMES,
 } from '../../utils/dpTemplates';
-import { WINDOW_OPEN_DEFAULT } from '../widgets/StatusBadges';
+import type { STATUS_BADGE_COLORS } from '../widgets/StatusBadges';
+import { WINDOW_OPEN_DEFAULT, STATUS_BADGE_COLOR_HEX } from '../widgets/StatusBadges';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
@@ -18850,6 +18851,41 @@ function WidgetFrameInner({
                                 const alertOnly = (o.statusBadgesAlertOnly as boolean) === true;
                                 // A window contact is the window itself — a window badge there is noise.
                                 const showWindow = config.type !== 'windowcontact';
+                                // Alarm colour per badge; the default is shown as the picked colour (#767).
+                                const badgeColorRow = (kind: keyof typeof STATUS_BADGE_COLORS, label: string) => {
+                                    const key = `${kind}Color`;
+                                    const own = (o[key] as string) || undefined;
+                                    return (
+                                        <div className="flex items-center justify-between gap-2">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {label}
+                                            </label>
+                                            <div className="flex items-center gap-1">
+                                                {own && (
+                                                    <button
+                                                        onClick={() => setO({ [key]: undefined })}
+                                                        className="px-1.5 rounded-lg hover:opacity-80 shrink-0 text-xs"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                        title="Standardfarbe"
+                                                    >
+                                                        ↺
+                                                    </button>
+                                                )}
+                                                <ColorPicker
+                                                    value={own ?? STATUS_BADGE_COLOR_HEX[kind]}
+                                                    onChange={(v) => setO({ [key]: v || undefined })}
+                                                    title={label}
+                                                    className="rounded shrink-0 cursor-pointer p-0"
+                                                    style={{
+                                                        width: 24,
+                                                        height: 24,
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                };
                                 const autoFillStatus = async () => {
                                     if (!config.datapoint) return;
                                     const parts = config.datapoint.split('.');
@@ -19102,6 +19138,7 @@ function WidgetFrameInner({
                                                                     />
                                                                 </div>
                                                             )}
+                                                            {badgeColorRow('battery', 'Farbe bei schwacher Batterie')}
                                                         </div>
                                                     );
                                                 })()}
@@ -19198,6 +19235,7 @@ function WidgetFrameInner({
                                                                     style={stInputStyle}
                                                                 />
                                                             </div>
+                                                            {badgeColorRow('reach', 'Farbe bei nicht erreichbar')}
                                                         </div>
                                                     );
                                                 })()}
@@ -19261,6 +19299,7 @@ function WidgetFrameInner({
                                                         className={`w-full ${stInputCls} font-mono`}
                                                         style={stInputStyle}
                                                     />
+                                                    {badgeColorRow('window', 'Farbe bei offenem Fenster')}
                                                 </div>
                                             )}
                                         </div>

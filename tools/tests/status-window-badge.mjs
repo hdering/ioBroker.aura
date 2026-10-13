@@ -8,6 +8,8 @@
 //   - statusBadgesAlertOnly hides everything while closed and shows only the window
 //     badge once it is open
 //   - custom layout: the window-icon component and the window text field render
+//   - alarm colour: open window defaults to --badge-warn, windowColor / batteryColor override it;
+//     custom layout honours statusBadgesAlertOnly
 /* global window, document */
 import { chromium } from 'playwright';
 
@@ -111,6 +113,35 @@ const svgCount = await page.evaluate(
     () => [...document.querySelectorAll('svg path')].filter((p) => p.getAttribute('d') === 'M12 3l8 3v15l-8-3z').length,
 );
 check('custom layout: window-icon renders the open glyph', svgCount >= 1, String(svgCount));
+
+/** Border style of the badge with the given title. */
+const badgeBorder = (title) =>
+    page.evaluate((t) => document.querySelector(`[title="${t}"]`)?.getAttribute('style') ?? '', title);
+
+await show({}, { WIN: true });
+check('open window defaults to --badge-warn', (await badgeBorder('Fenster offen')).includes('--badge-warn'));
+await show({ windowColor: '#123456' }, { WIN: true });
+check('windowColor overrides the alarm colour', (await badgeBorder('Fenster offen')).includes('#123456'));
+await show({ windowColor: '#123456' }, { WIN: false });
+check('windowColor leaves the closed badge green', (await badgeBorder('Fenster geschlossen')).includes('--badge-ok'));
+await show({ batteryDp: 'BAT', batteryColor: '#abcdef' }, { WIN: false, BAT: true });
+check('batteryColor overrides the low-battery colour', (await badgeBorder('Batterie schwach')).includes('#abcdef'));
+
+await show(
+    {
+        statusBadgesAlertOnly: true,
+        customGrid: { cols: 1, rows: 1, cells: [{ type: 'component', componentKey: 'window-icon' }] },
+    },
+    { WIN: false },
+    { layout: 'custom' },
+);
+const closedGlyphs = await page.evaluate(
+    () =>
+        [...document.querySelectorAll('svg rect')].filter(
+            (r) => r.getAttribute('x') === '4' && r.getAttribute('y') === '3',
+        ).length,
+);
+check('custom layout alert-only: no window icon while closed', closedGlyphs === 0, String(closedGlyphs));
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

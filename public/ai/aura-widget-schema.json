@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.82.0",
+    "auraVersion": "0.82.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -206,6 +206,15 @@
     "windowOpenValues": {
       "type": "string",
       "description": "Kommagetrennte Werte von windowDp, die „offen“ bedeuten. Leer = true,1,2,open,tilted (gekippt zählt als offen)."
+    },
+    "batteryColor": {
+      "description": "Farbe des Batterie-Badges bei schwacher Batterie. Leer = var(--badge-warn) (orange)."
+    },
+    "reachColor": {
+      "description": "Farbe des Erreichbarkeits-Badges bei „nicht erreichbar“. Leer = var(--badge-crit) (rot)."
+    },
+    "windowColor": {
+      "description": "Farbe des Fenster-Badges bei offenem Fenster. Leer = var(--badge-warn) (orange)."
     },
     "customGrid": {
       "type": "object",
@@ -7582,6 +7591,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -7607,6 +7617,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -7622,6 +7633,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -8826,6 +8838,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -8851,6 +8864,7 @@
         "lockDp",
         "lockLockedValues",
         "numberFormat",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -8866,6 +8880,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -9635,6 +9650,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -9659,6 +9675,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -9674,6 +9691,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -10119,6 +10137,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -10144,6 +10163,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -10160,6 +10180,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -11063,6 +11084,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -11088,6 +11110,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -11104,6 +11127,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -13953,6 +13977,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -13977,6 +14002,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -13992,6 +14018,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -14883,6 +14910,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -14907,6 +14935,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -14920,6 +14949,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -15897,6 +15927,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -15922,6 +15953,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -15938,6 +15970,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -16168,6 +16201,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -16192,6 +16226,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -16208,6 +16243,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -16493,6 +16529,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -16516,6 +16553,7 @@
         "iconPlace",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -16531,6 +16569,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -17386,6 +17425,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -17411,6 +17451,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -17426,6 +17467,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -17826,6 +17868,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -17853,6 +17896,7 @@
         "lockDp",
         "lockLockedValues",
         "numberFormat",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -17868,6 +17912,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -18673,6 +18718,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -18701,6 +18747,7 @@
         "lockDp",
         "lockLockedValues",
         "numberFormat",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -18720,6 +18767,7 @@
         "unreachDp",
         "valueFactor",
         "valueOffset",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
@@ -19168,6 +19216,7 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
@@ -19192,6 +19241,7 @@
         "iconSize",
         "lockDp",
         "lockLockedValues",
+        "reachColor",
         "reachMode",
         "reachTrueValues",
         "showIcon",
@@ -19207,6 +19257,7 @@
         "transparency",
         "transparent",
         "unreachDp",
+        "windowColor",
         "windowDp",
         "windowOpenValues"
       ],
