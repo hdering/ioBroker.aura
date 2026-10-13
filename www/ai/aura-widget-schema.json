@@ -12601,11 +12601,10 @@
           "type": "string",
           "enum": [
             "action",
-            "content",
-            "contentOnly"
+            "content"
           ],
           "default": "content",
-          "description": "Klick-Aktion vs. eingebetteter Inhalt: \"action\" legt eine Sperrschicht über den Inhalt - die ganze Fläche löst die Klick-Aktion aus (z. B. Popup öffnen), Links/Knöpfe im Inhalt sind nicht bedienbar. \"content\" (Standard) lässt den Inhalt bedienbar und blendet für die Klick-Aktion einen kleinen Aktions-Button ein. \"contentOnly\" = nur Inhalt, die Klick-Aktion bleibt wirkungslos."
+          "description": "Klick-Aktion vs. eingebetteter Inhalt: \"action\" legt eine Sperrschicht über den Inhalt - die ganze Fläche löst die Klick-Aktion aus (z. B. Popup öffnen), Links/Knöpfe im Inhalt sind nicht bedienbar. \"content\" (Standard) lässt den Inhalt bedienbar und blendet für die Klick-Aktion einen kleinen Aktions-Button ein (ohne Klick-Aktion keinen)."
         },
         "mobileHeight": {
           "type": "string",
@@ -12967,7 +12966,7 @@
             "contentOnly"
           ],
           "default": "content",
-          "description": "Klick-Aktion vs. eingebetteter Inhalt: \"action\" legt eine Sperrschicht über den Inhalt - die ganze Fläche löst die Klick-Aktion aus (z. B. Popup öffnen), Links/Knöpfe im Inhalt sind nicht bedienbar. \"content\" (Standard) lässt den Inhalt bedienbar und blendet für die Klick-Aktion einen kleinen Aktions-Button ein. \"contentOnly\" = nur Inhalt, die Klick-Aktion bleibt wirkungslos."
+          "description": "Klick-Aktion vs. eingebetteter Inhalt: \"action\" legt eine Sperrschicht über den Inhalt - die ganze Fläche löst die Klick-Aktion aus (z. B. Popup öffnen), Links/Knöpfe im Inhalt sind nicht bedienbar. \"content\" (Standard) lässt den Inhalt bedienbar und blendet für die Klick-Aktion einen kleinen Aktions-Button ein (ohne Klick-Aktion keinen). \"contentOnly\" ist veraltet (Klick-Aktion wirkungslos) - nicht setzen; keine Klick-Aktion = clickAction \"none\"."
         },
         "keepAlive": {
           "type": "boolean",
