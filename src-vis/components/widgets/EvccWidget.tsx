@@ -1752,12 +1752,13 @@ function DpField({
                     style={style}
                 />
                 <button
+                    type="button"
                     onClick={() => setPicking(true)}
-                    className={`aura-evcc-pick-${optionKey} text-xs px-2 rounded-lg shrink-0`}
-                    style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                    className={`aura-evcc-pick-${optionKey} px-2 rounded-lg hover:opacity-80 shrink-0`}
+                    style={{ ...style, color: 'var(--text-secondary)' }}
                     title={t('evcc.pickDp')}
                 >
-                    <Database size={12} />
+                    <Database size={13} />
                 </button>
             </div>
             {picking && (
@@ -2004,10 +2005,14 @@ export function EvccConfig({
                 {(sourceAdapter || (onKnownInstance && isEvccInstance(prefix))) && !scanning && (
                     <button
                         onClick={() => void pickSource(sourceAdapter || prefix)}
-                        className="aura-evcc-rescan text-[10px] mt-1 underline"
-                        style={{ color: 'var(--accent)' }}
+                        className="aura-evcc-rescan w-full text-[11px] px-2.5 py-1.5 mt-1 rounded-lg transition-colors hover:opacity-80 text-left"
+                        style={{
+                            background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                            color: 'var(--accent)',
+                            border: '1px solid color-mix(in srgb, var(--accent) 27%, transparent)',
+                        }}
                     >
-                        {t('evcc.scanAgain')}
+                        ✨ {t('evcc.scanAgain')}
                     </button>
                 )}
             </div>
