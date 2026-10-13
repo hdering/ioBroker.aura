@@ -18836,6 +18836,12 @@ function WidgetFrameInner({
                             'binarysensor',
                             'stateimage',
                             'value',
+                            'slider',
+                            'knob',
+                            'light',
+                            'enum',
+                            'datepicker',
+                            'mediaplayer',
                         ].includes(config.type) &&
                             (() => {
                                 const o = config.options ?? {};
@@ -18849,8 +18855,11 @@ function WidgetFrameInner({
                                 };
                                 const showBadges = (o.showStatusBadges as boolean) !== false;
                                 const alertOnly = (o.statusBadgesAlertOnly as boolean) === true;
-                                // A window contact is the window itself — a window badge there is noise.
-                                const showWindow = config.type !== 'windowcontact';
+                                // An open window only matters where it changes what the device does:
+                                // heating / room climate and shutters (lock-out). Elsewhere the field
+                                // stays only while a window DP is already set, so nothing goes invisible.
+                                const showWindow =
+                                    ['thermostat', 'climate', 'shutter'].includes(config.type) || !!o.windowDp;
                                 // Alarm colour per badge; the default is shown as the picked colour (#767).
                                 const badgeColorRow = (kind: keyof typeof STATUS_BADGE_COLORS, label: string) => {
                                     const key = `${kind}Color`;

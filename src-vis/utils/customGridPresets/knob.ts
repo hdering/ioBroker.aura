@@ -1,6 +1,6 @@
 import type { CustomGridDef, WidgetLayout } from '../../types';
 import { GridBuilder } from './gridBuilder';
-import { iconCell, iconCol, showIconOf, showTitleOf, titleCell, type Opts } from './common';
+import { addStatusBadges, iconCell, iconCol, showIconOf, showTitleOf, titleCell, type Opts } from './common';
 
 // Knob (KnobWidget): default (arc), knob-scale, knob-endless. All three are a title
 // row over the dial; which dial the custom layout draws is the option `dialStyle`,
@@ -25,6 +25,7 @@ export function buildKnobGrid(layout: WidgetLayout, o: Opts): CustomGridDef | nu
             showTitle ? titleCell(o) : null,
         ]);
     b.row('1fr', [{ type: 'component', componentKey: 'dial', align: 'center', valign: 'middle', colSpan: b.colCount }]);
+    addStatusBadges(b, o);
     return b.build();
 }
 

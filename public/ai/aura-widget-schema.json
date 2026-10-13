@@ -170,7 +170,7 @@
       "type": "string",
       "default": "",
       "datapoint": true,
-      "description": "Datenpunkt „Fenster offen“ (Badge in der Ecke), z. B. WINDOW_OPEN_REPORTING oder WINDOW_STATE des Thermostat-Kanals. Zählt bei statusBadgesAlertOnly als Meldung."
+      "description": "Datenpunkt „Fenster offen“ (Badge in der Ecke), z. B. WINDOW_OPEN_REPORTING oder WINDOW_STATE des Thermostat-Kanals. Gedacht für thermostat, climate und shutter (Aussperrschutz). Zählt bei statusBadgesAlertOnly als Meldung."
     },
     "batteryMode": {
       "type": "string",
@@ -13571,6 +13571,10 @@
       ],
       "commonOptions": [
         "badges",
+        "batteryColor",
+        "batteryDp",
+        "batteryLowThreshold",
+        "batteryMode",
         "bgImage",
         "clickAction",
         "clickActionIcon",
@@ -13589,17 +13593,28 @@
         "icon",
         "iconColor",
         "iconPlace",
+        "lockDp",
+        "lockLockedValues",
         "numberFormat",
+        "reachColor",
+        "reachMode",
+        "reachTrueValues",
         "showIcon",
+        "showStatusBadges",
         "showTitle",
         "showValue",
+        "statusBadgesAlertOnly",
         "styleOverride",
         "textLines",
         "titleColor",
         "titleRow",
         "titleSize",
         "transparency",
-        "transparent"
+        "transparent",
+        "unreachDp",
+        "windowColor",
+        "windowDp",
+        "windowOpenValues"
       ],
       "options": {
         "color": {

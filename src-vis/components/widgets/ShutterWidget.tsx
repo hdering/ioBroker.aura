@@ -571,7 +571,15 @@ export function ShutterWidget({ config }: WidgetProps) {
             </div>
         ) : null;
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const {
+        battery,
+        reach,
+        window: windowText,
+        batteryIcon,
+        reachIcon,
+        windowIcon,
+        statusBadges,
+    } = useStatusFields(config);
 
     // Buttons of the minimal layout: a bit roomier, the stop button wide and flat.
     const minBtnPad = Math.max(4, Math.round(buttonSize / 2));
@@ -625,6 +633,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                         tilt: tiltActive ? tiltPctText : '',
                         battery,
                         reach,
+                        window: windowText,
                     }}
                     extraComponents={{
                         icon: showIcon ? (
@@ -781,6 +790,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                         ),
                         'battery-icon': batteryIcon,
                         'reach-icon': reachIcon,
+                        'window-icon': windowIcon,
                         'status-badges': statusBadges,
                     }}
                 />

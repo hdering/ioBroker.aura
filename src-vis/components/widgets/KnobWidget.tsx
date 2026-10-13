@@ -7,6 +7,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { CustomGridView } from './CustomGridView';
+import { StatusBadges } from './StatusBadges';
+import { useStatusFields } from '../../hooks/useStatusFields';
 import { controlValueTransform } from '../../utils/valueTransform';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
@@ -98,6 +100,7 @@ export function KnobWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
     const { setState } = useIoBroker();
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
+    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
     const min = (o.minValue as number) ?? 0;
     const max = (o.maxValue as number) ?? 100;
@@ -899,9 +902,14 @@ export function KnobWidget({ config }: WidgetProps) {
                     unit,
                     min: String(min),
                     max: String(max),
+                    battery,
+                    reach,
                 }}
                 extraComponents={{
                     dial: dialEl,
+                    'battery-icon': batteryIcon,
+                    'reach-icon': reachIcon,
+                    'status-badges': statusBadges,
                     // The same icon as the title row of the fixed layouts (#768).
                     icon: (
                         <WidgetIcon
@@ -945,6 +953,7 @@ export function KnobWidget({ config }: WidgetProps) {
             <div className="flex-1 flex items-center justify-center min-h-0" style={{ position: 'relative' }}>
                 {dialEl}
             </div>
+            <StatusBadges config={config} />
         </div>
     );
 }

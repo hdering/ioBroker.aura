@@ -118,6 +118,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'presets', label: 'Schnellwahl' },
         { key: 'battery-icon', label: 'Batterie-Icon' },
         { key: 'reach-icon', label: 'Erreichbarkeit-Icon' },
+        { key: 'window-icon', label: 'Fenster-Icon' },
         { key: 'status-badges', label: 'Status-Badges (alle)' },
     ],
     windowcontact: [
@@ -144,6 +145,9 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'select', label: 'Dropdown' },
         { key: 'label', label: 'Aktuelle Auswahl' },
+        { key: 'battery-icon', label: 'Batterie-Icon' },
+        { key: 'reach-icon', label: 'Erreichbarkeit-Icon' },
+        { key: 'status-badges', label: 'Status-Badges (alle)' },
     ],
     knob: [
         { key: 'dial', label: '🎛 Drehknopf' },
@@ -162,6 +166,9 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'title', label: 'Titel' },
         { key: 'status', label: 'Status-Text' },
         { key: 'icon', label: 'Widget-Icon' },
+        { key: 'battery-icon', label: 'Batterie-Icon' },
+        { key: 'reach-icon', label: 'Erreichbarkeit-Icon' },
+        { key: 'status-badges', label: 'Status-Badges (alle)' },
     ],
     button: [{ key: 'icon', label: 'Button-Icon' }],
     input: [
@@ -370,6 +377,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'moving', label: 'Fährt' },
         { key: 'battery', label: 'Batterie' },
         { key: 'reach', label: 'Erreichbarkeit' },
+        { key: 'window', label: 'Fenster' },
     ],
     dimmer: [
         { key: 'level', label: 'Helligkeit (%)' },

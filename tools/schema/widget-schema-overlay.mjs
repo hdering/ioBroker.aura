@@ -47,7 +47,8 @@ export const KEY_DESCRIPTIONS = {
     lockDp: 'Datenpunkt für die Kindersicherung (Badge in der Ecke).',
     windowDp:
         'Datenpunkt „Fenster offen“ (Badge in der Ecke), z. B. WINDOW_OPEN_REPORTING oder WINDOW_STATE des ' +
-        'Thermostat-Kanals. Zählt bei statusBadgesAlertOnly als Meldung.',
+        'Thermostat-Kanals. Gedacht für thermostat, climate und shutter (Aussperrschutz). Zählt bei ' +
+        'statusBadgesAlertOnly als Meldung.',
     windowOpenValues:
         'Kommagetrennte Werte von windowDp, die „offen“ bedeuten. Leer = true,1,2,open,tilted (gekippt zählt als offen).',
     reachTrueValues:

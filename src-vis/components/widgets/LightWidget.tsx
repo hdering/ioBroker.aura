@@ -6,6 +6,7 @@ import type { LightColorMode, LightEffect, LightTab, WidgetProps } from '../../t
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
+import { useStatusFields } from '../../hooks/useStatusFields';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 // ── Color math helpers ────────────────────────────────────────────────────────
@@ -403,6 +404,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     // see a brand-new object reference on every render when options is undefined.
     const o = useMemo(() => config.options ?? {}, [config.options]);
     const { setState } = useIoBroker();
+    const { batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
     // ── Resolved options ────────────────────────────────────────────────────────
     const colorMode = (o.colorMode as LightColorMode) ?? 'none';
@@ -924,6 +926,9 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
                     'tabs-color': tabbed('light-color'),
                     'tabs-temperature': tabbed('light-temperature'),
                     palette: paletteEl ? <div className="w-full">{paletteEl}</div> : null,
+                    'battery-icon': batteryIcon,
+                    'reach-icon': reachIcon,
+                    'status-badges': statusBadges,
                 }}
             />
         );

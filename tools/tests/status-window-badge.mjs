@@ -11,6 +11,7 @@
 //   - alarm colour: open window defaults to --badge-warn, windowColor / batteryColor override it;
 //     custom layout honours statusBadgesAlertOnly
 //   - batteryLowValues (incl. the legacy batteryInvert) and empty value lists = default
+//   - knob / light / enum / shutter draw the badges; editor status section + window field per type
 /* global window, document */
 import { chromium } from 'playwright';
 
@@ -185,6 +186,100 @@ const closedGlyphs = await page.evaluate(
         ).length,
 );
 check('custom layout alert-only: no window icon while closed', closedGlyphs === 0, String(closedGlyphs));
+
+// ── Coverage: widgets that only lately draw / offer the badges ──────────────────
+/** Mount one widget of any type with a low battery and an open window. */
+async function showType(type, extra = {}, options = {}) {
+    run++;
+    const base = `demo.cov${run}`;
+    const vals = { [`${base}.main`]: 1, [`${base}.LOWBAT`]: true, [`${base}.WIN`]: true };
+    const widget = {
+        id: `w-cov-${run}`,
+        type,
+        title: 'Cov',
+        datapoint: `${base}.main`,
+        gridPos: { x: 0, y: 0, w: 4, h: 4 },
+        options: { batteryDp: `${base}.LOWBAT`, windowDp: `${base}.WIN`, ...options },
+        ...extra,
+    };
+    await page.evaluate(
+        ([w, v]) => {
+            window.__auraShot.mock(v);
+            window.__auraShot.mockServerState(v);
+            window.__auraShot.showWidgets([w]);
+        },
+        [widget, vals],
+    );
+    await page.waitForTimeout(500);
+}
+const statusGrid = (keys) => ({
+    customGrid: { cols: keys.length, rows: 1, cells: keys.map((k) => ({ type: 'component', componentKey: k })) },
+});
+
+await showType('knob');
+check('knob: fixed layout draws the badges', (await badgeTitles()).includes('Batterie schwach'), await badgeTitles());
+await showType('knob', { layout: 'custom' }, statusGrid(['battery-icon']));
+check(
+    'knob: custom grid battery-icon renders',
+    (await badgeTitles()).includes('Batterie schwach') ||
+        (await page.evaluate(() => !!document.querySelector('.lucide-battery-low'))),
+);
+for (const type of ['light', 'enum']) {
+    await showType(type, { layout: 'custom' }, statusGrid(['status-badges']));
+    const glyph = await page.evaluate(() =>
+        [...document.querySelectorAll('svg path')].some((p) => p.getAttribute('d') === 'M12 3l8 3v15l-8-3z'),
+    );
+    check(`${type}: custom grid status-badges include the open window`, glyph);
+}
+await showType('shutter', { layout: 'custom' }, statusGrid(['window-icon']));
+check(
+    'shutter: custom grid window-icon renders',
+    await page.evaluate(() =>
+        [...document.querySelectorAll('svg path')].some((p) => p.getAttribute('d') === 'M12 3l8 3v15l-8-3z'),
+    ),
+);
+
+// Editor: status section on the new types, window field only where it matters.
+async function editorHas(type, options = {}) {
+    run++;
+    const w = {
+        id: `w-ed-${run}`,
+        type,
+        title: 'Ed',
+        datapoint: `demo.ed${run}.main`,
+        gridPos: { x: 0, y: 0, w: 4, h: 4 },
+        options,
+    };
+    await page.evaluate((w) => {
+        window.__auraShot.showWidgets([w]);
+        window.__auraShot.setEditMode(true);
+    }, w);
+    await page.waitForTimeout(600);
+    const card = page.locator('.react-grid-item').first();
+    await card.hover();
+    await card.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    await page.waitForTimeout(900);
+    const dlg = page.locator('.aura-widget-edit-modal');
+    const res = {
+        status: (await dlg.getByText('Status-Datenpunkte').count()) > 0,
+        window: (await dlg.getByText('Fenster-DP (z.B. WINDOW_OPEN_REPORTING)').count()) > 0,
+    };
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+    return res;
+}
+for (const type of ['slider', 'knob', 'light', 'enum', 'datepicker', 'mediaplayer']) {
+    const r = await editorHas(type);
+    check(`editor: ${type} has the status section without window field`, r.status && !r.window, JSON.stringify(r));
+}
+for (const type of ['thermostat', 'climate', 'shutter']) {
+    const r = await editorHas(type);
+    check(`editor: ${type} offers the window field`, r.status && r.window, JSON.stringify(r));
+}
+const kept = await editorHas('switch', { windowDp: 'demo.kept.WIN' });
+check('editor: a set window DP stays visible on a switch', kept.window, JSON.stringify(kept));
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
