@@ -122,6 +122,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.82.8 (2026-10-13)
+- Energy flow (evcc) - datapoint picker next to the production, consumption, grid and battery fields; with an evcc instance as source these fields now fill in automatically
+
+
 ### 0.82.7 (2026-10-13)
 - Advanced chart - the current-time line also works on a JSON category axis, placed at the label containing a chosen text (e.g. "now")
 
@@ -222,14 +226,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Advanced chart - series aggregated as max, min or sum (and averages over 30 days and more) no longer end in a spike to the live value at the right edge; the current value above the chart still shows the live reading
 
 
-### 0.79.0 (2026-10-08)
-- 🌟 **New feature:** Status overview - new layout "Two lines": severity dot, bold device name, reading and facts on a second line, large touch buttons ("2 days later", "Replaced" with a second-tap confirmation)
-- Auto height - widgets with "fit height to content" (also inside groups) no longer keep empty space below their content when the fluid grid stretches its rows ([#759](https://github.com/hdering/ioBroker.aura/issues/759))
-- Timer - schedule entries added in the frontend are no longer lost when the widget is edited in the admin open in the same browser ([#758](https://github.com/hdering/ioBroker.aura/issues/758))
-- Timer - optional fixed value for vacation and holiday days: written once when the exception starts, regular events pause meanwhile and the normal schedule is restored when it ends ([#757](https://github.com/hdering/ioBroker.aura/issues/757))
-- Fill level - LED segments: configurable segment count and a "fill width" option that adds segments to span wide (or tall) tiles ([#756](https://github.com/hdering/ioBroker.aura/issues/756))
-
-
 ## License
 
 MIT License
@@ -241,6 +237,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

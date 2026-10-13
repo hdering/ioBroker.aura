@@ -6,4 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Energy flow (evcc) - datapoint picker next to the production, consumption, grid and battery fields; with an evcc instance as source these fields now fill in automatically

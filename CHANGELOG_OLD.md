@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.79.0 (2026-10-08)
+- 🌟 **New feature:** Status overview - new layout "Two lines": severity dot, bold device name, reading and facts on a second line, large touch buttons ("2 days later", "Replaced" with a second-tap confirmation)
+- Auto height - widgets with "fit height to content" (also inside groups) no longer keep empty space below their content when the fluid grid stretches its rows ([#759](https://github.com/hdering/ioBroker.aura/issues/759))
+- Timer - schedule entries added in the frontend are no longer lost when the widget is edited in the admin open in the same browser ([#758](https://github.com/hdering/ioBroker.aura/issues/758))
+- Timer - optional fixed value for vacation and holiday days: written once when the exception starts, regular events pause meanwhile and the normal schedule is restored when it ends ([#757](https://github.com/hdering/ioBroker.aura/issues/757))
+- Fill level - LED segments: configurable segment count and a "fill width" option that adds segments to span wide (or tall) tiles ([#756](https://github.com/hdering/ioBroker.aura/issues/756))
+
 ## 0.78.1 (2026-10-06)
 - Timer - entries added in a timer that sits inside a popup view are now saved and survive a page reload ([#750](https://github.com/hdering/ioBroker.aura/issues/750))
 
