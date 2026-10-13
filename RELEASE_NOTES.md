@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Advanced chart - the current-time line on a category axis now shows which label it hits, warns when none matches and offers the labels from the data to pick from
+- MCP - the per-widget "last change" display options are now part of the widget schema; three false validator warnings are gone (frame options called ineffective, universal widget with a custom grid but no defId, JSON chart on a string datapoint)

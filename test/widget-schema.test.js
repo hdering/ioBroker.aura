@@ -67,6 +67,24 @@ for (const key of UNIVERSAL) {
     assert.ok(schema.commonOptions[key], `"${key}" must be a shared option — run: npm run schema`);
 }
 
+// ── 0c. Every option of the Darstellung panel is in the schema ───────────────
+// The panel writes DISPLAY_OPTION_KEYS for every widget, but the source reader
+// never sees the frame — a new display option fell through each time (the four
+// showLastChange keys did, and the validator then called them ineffective).
+const displayKeys = [
+    ...frame
+        .split('const DISPLAY_OPTION_KEYS = [')[1]
+        .split(']')[0]
+        .matchAll(/'([A-Za-z0-9_]+)'/g),
+].map((m) => m[1]);
+assert.ok(displayKeys.length > 10, `expected DISPLAY_OPTION_KEYS in WidgetFrame, got ${displayKeys.length}`);
+assert.deepStrictEqual(
+    displayKeys.filter((k) => !schema.commonOptions[k]),
+    [],
+    'Darstellung options missing from commonOptions — add them to UNIVERSAL_OPTIONS ' +
+        '(tools/schema/widget-schema-overlay.mjs) and run: npm run schema',
+);
+
 // ── 1. Type coverage ─────────────────────────────────────────────────────────
 // A union member may carry a JSDoc comment of its own ('framed' does), so the
 // comments come out before the members are split apart — otherwise the comment

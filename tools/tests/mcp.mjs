@@ -490,6 +490,74 @@ check('the object behind the datapoint is compared with the widget', () => {
     );
 });
 
+// Reported from use: a Netzwerk tab of 20 widgets drew 68 warnings, all false —
+// the frame's last-change options were "ineffective", a JSON chart on a string
+// "did not compute", a universal with customGrid "lacked a defId".
+check('frame options, JSON charts and customGrid universals raise no false warnings', () => {
+    const lc = { showLastChange: true, lastChangeSource: 'lastUpdate', lastChangePosition: 'right' };
+    const meta = new Map([
+        ['0_userdata.0.N.Clients', { type: 'number', write: true }],
+        ['0_userdata.0.N.Top', { type: 'string', write: true }],
+    ]);
+    const ctx = { knownDatapoints: new Set(meta.keys()), datapointMeta: meta };
+    const widgets = [
+        {
+            id: 'v',
+            type: 'value',
+            layout: 'compact',
+            title: 'V',
+            datapoint: '0_userdata.0.N.Clients',
+            gridPos: { x: 0, y: 0, w: 15, h: 3 },
+            options: lc,
+        },
+        {
+            id: 'j',
+            type: 'echart',
+            layout: 'default',
+            title: 'J',
+            datapoint: '0_userdata.0.N.Top',
+            gridPos: { x: 0, y: 3, w: 60, h: 15 },
+            options: {
+                ...lc,
+                echartMode: 'json',
+                echartSeries: [
+                    {
+                        id: 's',
+                        name: 'D',
+                        datapointId: '0_userdata.0.N.Top',
+                        chartType: 'bar',
+                        source: 'json',
+                        jsonPath: 'down',
+                    },
+                ],
+            },
+        },
+        {
+            id: 'u',
+            type: 'universal',
+            layout: 'custom',
+            title: 'U',
+            datapoint: '',
+            gridPos: { x: 60, y: 3, w: 30, h: 6 },
+            options: {
+                ...lc,
+                lastChangeDatapoint: '0_userdata.0.N.Clients',
+                customGrid: { cols: 1, rows: 1, cells: [{ type: 'text', text: 'IoT' }] },
+            },
+        },
+    ];
+    for (const w of widgets) {
+        const res = validateWidget(w, schema, ctx);
+        assert.deepEqual(res.errors, [], `${w.id}: errors`);
+        assert.deepEqual(res.warnings, [], `${w.id}: warnings`);
+    }
+    // The checks themselves stay: a universal with nothing to draw, a number chart on a string.
+    const bare = { ...widgets[2], options: {} };
+    assert.ok(hasWarning(validateWidget(bare, schema, ctx), /keine "defId"/));
+    const numberChart = { ...widgets[1], options: { echartSeries: [] } };
+    assert.ok(hasWarning(validateWidget(numberChart, schema, ctx), /erwartet number/));
+});
+
 // ── Chart colours: a token, resolved before it reaches the canvas ───────────
 // Reported from use: `var(--accent)` in echartSeries[].color and a chart that
 // stayed empty — a canvas drops a CSS variable (measured: fillStyle unchanged,
@@ -2145,7 +2213,7 @@ const AUDIT_PLACES = [
                 title: 'Temperatur',
                 datapoint: 'zigbee.0.WEG',
                 gridPos: { x: 0, y: 0, w: 8, h: 3 },
-                options: { showLastChange: true },
+                options: { showTrend: true },
             },
             // The datapoint exists but nothing has written to it in months.
             {
@@ -2203,8 +2271,8 @@ check('a datapoint nothing has written to in months is reported with its age', (
 
 check('an option the widget no longer reads is reported, not silently ignored', () => {
     const f = auditResult.findings.find((x) => x.id === 'ignored-options');
-    assert.ok(f, 'showLastChange on a value widget must be named');
-    assert.match(f.items.join(' '), /showLastChange/);
+    assert.ok(f, 'showTrend on a value widget must be named');
+    assert.match(f.items.join(' '), /showTrend/);
 });
 
 check('a shared setting written one level too high is reported', () => {

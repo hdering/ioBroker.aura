@@ -84,10 +84,8 @@ export const KEY_DESCRIPTIONS = {
     scaleTicks: 'Skala: Striche zeichnen. Aus lässt nur die Zahlen stehen.',
     showDate: 'Datum anzeigen.',
     showId: 'Datenpunkt-Id statt/neben dem Namen anzeigen.',
-    showLastChange: 'Zeitpunkt der letzten Änderung anzeigen.',
-    lastChangePosition: 'Wo die letzte Änderung steht: left, center oder right.',
-    lastChangeSource:
-        "Welcher Zeitstempel bei showLastChange erscheint: 'lastChange' (Standard) = letzte Wertänderung (lc), 'lastUpdate' = letzte Aktualisierung (ts), auch wenn der Wert gleich blieb.",
+    // showLastChange, lastChangePosition, lastChangeSource, lastChangeDatapoint: the
+    // frame reads them for every widget, so their wording lives in UNIVERSAL_OPTIONS.
     striped: 'Zeilen abwechselnd einfärben.',
     compact: 'Dichtere Darstellung mit kleineren Zeilen.',
     sortable: 'Spalten per Klick auf die Kopfzeile sortierbar machen.',
@@ -1626,6 +1624,36 @@ export const UNIVERSAL_OPTIONS = {
             '/vis.0/…-Pfad, aura-file:, data:). Mit dp liefert ein Datenpunkt das Bild (URL, Pfad oder ' +
             'Base64, z. B. Kamera-Snapshot); src bleibt dann der Rückfall, solange der DP leer ist. Für Text auf hellen Bildern dim setzen (30–50). Nicht beim ' +
             'Abschnittstitel "header" ohne Layout "framed" — der hat keine Karte.',
+    },
+    showLastChange: {
+        ts: 'boolean',
+        default: false,
+        description:
+            'Zeigt klein unten in der Karte, wann sich der Datenpunkt zuletzt geändert hat, relativ ' +
+            '("vor 2 Minuten", alle 10 s neu). Quelle ist der Datenpunkt des Widgets oder ' +
+            'lastChangeDatapoint. Bei eingeklapptem Widget ausgeblendet. Kostet keine Rasterhöhe: die ' +
+            'Zeile liegt absolut am unteren Rand (8 px Schrift) und kann dort Inhalt überdecken — kein ' +
+            'Zuschlag in aura_measure.',
+    },
+    lastChangeSource: {
+        ts: "'lastChange' | 'lastUpdate'",
+        default: 'lastChange',
+        description:
+            "Welcher Zeitstempel bei showLastChange erscheint: 'lastChange' (Standard) = letzte " +
+            "Wertänderung (lc), 'lastUpdate' = letzter Schreibzugriff (ts), auch wenn der Wert gleich " +
+            "blieb. Für Werte, die ein Skript oder Adapter regelmäßig schreibt (Live-Daten), 'lastUpdate' nehmen.",
+    },
+    lastChangePosition: {
+        ts: "'left' | 'center' | 'right'",
+        default: 'left',
+        description: 'Ausrichtung der showLastChange-Zeile: left (Standard), center oder right.',
+    },
+    lastChangeDatapoint: {
+        ts: 'string',
+        description:
+            'Datenpunkt-Id, deren Zeitstempel showLastChange zeigt. Leer = der Datenpunkt des Widgets. ' +
+            'Pflicht für Widgets ohne eigenen Datenpunkt (universal, group, panels …): ohne sie ' +
+            'erscheint dort nichts.',
     },
     fullscreenWidget: {
         ts: 'boolean',

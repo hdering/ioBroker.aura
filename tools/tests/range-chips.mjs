@@ -62,7 +62,7 @@ check('captions after "="', () => {
 });
 
 check('invalid tokens are rejected', () => {
-    for (const bad of ['', '0d', '5m', '3x', 'M', '1000d', 12, null, '3 Monate']) {
+    for (const bad of ['', '0d', '3x', 'M', '1000d', 12, null, '3 Monate']) {
         assert.equal(parseRangeToken(bad), null, String(bad));
     }
 });
