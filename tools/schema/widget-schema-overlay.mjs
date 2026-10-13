@@ -1059,6 +1059,14 @@ export const WIDGET_OPTION_NOTES = {
                 'standardmäßig aus (die Balken stehen dort schon an der x-Achse).',
         },
         echartShowGridLines: { description: 'Gitternetz einzeichnen.' },
+        echartNowLine: {
+            description:
+                'Senkrechte Linie bei der aktuellen Uhrzeit (wandert alle 30 s mit). Nur mit Zeitachse ' +
+                '(Zeitreihe, JSON mit Zeitachse) und nur, wenn „jetzt“ im gezeigten Zeitraum liegt — ' +
+                'also in der Tagesansicht von heute, bei Prognosen/Preiskurven mit Zukunftswerten; ' +
+                'bei rollenden Zeiträumen endet die Achse am letzten Messwert.',
+        },
+        echartNowLineColor: { description: 'Farbe der Jetzt-Linie (Hex oder CSS-Variable), Standard #ef4444.' },
         echartAnimation: { description: 'Übergänge animieren.' },
         echartShowXAxis: { description: 'X-Achse anzeigen.' },
         echartShowYAxis: { description: 'Linke Y-Achse anzeigen.' },

@@ -85,6 +85,8 @@ function plotRect(inst: unknown): { x: number; width: number } | null {
     }
 }
 
+const DEFAULT_NOW_LINE_COLOR = '#ef4444';
+
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total'];
 
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
@@ -225,6 +227,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const onCanvasGrid = gridColor ?? '#333';
     /** The unfilled part of the gauge arc. */
     const onCanvasTrack = trackColor ?? '#333';
+    // Vertical marker at the current time on a time axis — forecasts, price curves and the day view
+    // show where "now" sits between past and future.
+    const echartNowLine = (o.echartNowLine as boolean | undefined) ?? false;
+    const [nowLineColor] = useResolvedColors(containerRef, [
+        (o.echartNowLineColor as string | undefined) || DEFAULT_NOW_LINE_COLOR,
+    ]);
 
     // Comparison mode names its bars on the x axis, so it only draws a legend when asked to (issue #742).
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? o.echartMode !== 'comparison';
@@ -510,6 +518,34 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const [hasSize, setHasSize] = useState(false);
     // The legend wraps at the chart's width, so the grid can only clear it once we know that width.
     const [chartWidth, setChartWidth] = useState(0);
+    // The now line walks along by itself, also while no datapoint changes.
+    const [nowTs, setNowTs] = useState(() => Date.now());
+    useEffect(() => {
+        if (!echartNowLine) return;
+        setNowTs(Date.now());
+        const id = setInterval(() => setNowTs(Date.now()), 30_000);
+        return () => clearInterval(id);
+    }, [echartNowLine]);
+    /**
+     * Puts the now line onto the first series as a markLine — a series of its own would need a
+     * name-less carrier, and the merging `setOption` of the timeseries chart keeps a series the
+     * option no longer lists. The markLine is therefore written always, empty when there is no
+     * line: outside the plotted span too, since an x-only markLine is never clipped by echarts and
+     * would otherwise be drawn beside the grid.
+     */
+    const withNowLine = <S extends object>(series: S[], extent: { min: number; max: number } | null): S[] => {
+        if (series.length === 0) return series;
+        const show = echartNowLine && !!extent && nowTs >= extent.min && nowTs <= extent.max;
+        const markLine = {
+            silent: true,
+            symbol: 'none',
+            animation: false,
+            label: { show: false },
+            lineStyle: { color: nowLineColor ?? DEFAULT_NOW_LINE_COLOR, width: 1.5, type: 'solid' },
+            data: show ? [{ xAxis: nowTs }] : [],
+        };
+        return [{ ...series[0], markLine }, ...series.slice(1)];
+    };
     // Single ResizeObserver handles both initial sizing and tab-switch resize.
     // Avoids the two-effect race where the first effect returns early on visible
     // mount and the second effect never fires when switching to a hidden tab.
@@ -1250,7 +1286,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                       splitLine: { show: false },
                   },
             yAxis: [leftAxis, rightAxis],
-            series: jsonSeriesList,
+            series: jsonTimeAxis ? withNowLine(jsonSeriesList, jsonTimeExtent) : jsonSeriesList,
         };
 
         let mergedJson = jsonOption;
@@ -1368,6 +1404,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (!Number.isFinite(dataMin) || !Number.isFinite(lastBucket)) return null;
         return bucketAxisMax(dataMin, dataMax, lastBucket, axisBucket);
     })();
+
+    // The x span the axis shows: the framed day, or the data stretched to the bucket reserve.
+    const nowLineExtent = dayWindow
+        ? { min: dayWindow.start, max: dayWindow.end }
+        : tooltipExtent && { min: tooltipExtent.min, max: Math.max(tooltipExtent.max, rollingAxisMax ?? -Infinity) };
 
     const seriesList = echartSeries.map((s, idx) => {
         const data = alignedData[idx];
@@ -1531,7 +1572,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             max: dayWindow ? dayWindow.end : rollingAxisMax,
         },
         yAxis: [leftAxis, rightAxis],
-        series: seriesList,
+        series: withNowLine(seriesList, nowLineExtent),
     };
 
     let merged = option;

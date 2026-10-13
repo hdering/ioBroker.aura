@@ -740,6 +740,22 @@ function installScreenshotApi(): void {
             );
         },
 
+        /** Vertical mark lines of the chart on screen (the "now" line): x value and colour each. */
+        chartMarkLines(): { x: unknown; color: unknown }[] | null {
+            const el = document.querySelector('[_echarts_instance_]');
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return null;
+            const opt = inst.getOption() as
+                | { series?: { markLine?: { data?: { xAxis?: unknown }[]; lineStyle?: { color?: unknown } } }[] }
+                | undefined;
+            if (!opt) return null;
+            return (opt.series ?? []).flatMap((s) =>
+                (s.markLine?.data ?? [])
+                    .filter((d) => d.xAxis !== undefined)
+                    .map((d) => ({ x: d.xAxis, color: s.markLine?.lineStyle?.color })),
+            );
+        },
+
         /** Every text echarts painted, in the order zrender draws it. Axis labels are canvas
          *  pixels with no DOM node, so this is the only way a test can read what a tick
          *  actually says — e.g. that it honours the widget's decimals (issue #548). */

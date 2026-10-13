@@ -16,6 +16,7 @@ import {
     type EChartTimeRange,
 } from '../../hooks/useMultiSeriesData';
 import { useT } from '../../i18n';
+import { ColorPicker } from '../common/ColorPicker';
 import { RangeChipsEditor } from './RangeChipsEditor';
 import { parseRangeChips, RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { DatapointManagerField } from './list/DatapointManagerField';
@@ -143,6 +144,10 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartAnimation = (o.echartAnimation as boolean | undefined) ?? true;
+    // Now line — only a time axis has a "now" to mark.
+    const hasTimeAxis = !isComparison && (!isJson || jsonTimeAxis);
+    const echartNowLine = (o.echartNowLine as boolean | undefined) ?? false;
+    const echartNowLineColor = (o.echartNowLineColor as string | undefined) || '#ef4444';
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
     const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
@@ -617,6 +622,47 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </button>
                 </div>
+
+                {/* Vertical line at the current time */}
+                {hasTimeAxis && (
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.nowLine')}
+                        </label>
+                        <button
+                            onClick={() => setO({ echartNowLine: !echartNowLine })}
+                            className="relative w-9 h-5 rounded-full transition-colors"
+                            style={{ background: echartNowLine ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: echartNowLine ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                )}
+                {hasTimeAxis && echartNowLine && (
+                    <div className="mb-2 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.nowLineColor')}
+                        </label>
+                        <div className="flex gap-1.5 items-center">
+                            <ColorPicker
+                                value={echartNowLineColor}
+                                onChange={(v) => setO({ echartNowLineColor: v })}
+                                className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent shrink-0"
+                            />
+                            <input
+                                type="text"
+                                value={echartNowLineColor}
+                                onChange={(e) => setO({ echartNowLineColor: e.target.value })}
+                                className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
+                                style={inputStyle}
+                                placeholder="#ef4444"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* Animation */}
                 <div className="flex items-center justify-between mb-2">

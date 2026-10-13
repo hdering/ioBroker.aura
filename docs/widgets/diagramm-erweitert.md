@@ -155,6 +155,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartShowLegend`       | im Vergleichs-Modus `false`, sonst `true` | Legende anzeigen; Klick auf einen Eintrag blendet die Serie aus (im Vergleichs-Modus: den Balken)                                                         |
 | `echartPeriodPlacement`  | `legend`                                  | wo die [Zeitraum-Kennzahl](#zeitraum-kennzahl) steht: `legend` (hinter dem Legendeneintrag) · `row` (eigene Zeile über dem Diagramm); ohne Legende immer `row` |
 | `echartAnimation`        | `true`                                    | Aufbau- und Übergangsanimation; aus, wenn Werte, Achsen oder Zeitraum ständig wechseln                                                                     |
+| `echartNowLine`          | `false`                                   | senkrechte Linie bei der aktuellen Uhrzeit — nur mit Zeitachse und wenn „jetzt“ im gezeigten Zeitraum liegt (Tagesansicht heute, Prognosen)              |
+| `echartNowLineColor`     | `#ef4444`                                 | Farbe der Jetzt-Linie                                                                                                                                      |
 | `decimals`               | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung — Vorgabe für alle Serien, je Serie überschreibbar                         |
 | `numberFormat`           | globale Einstellung                       | 1000er-Trennzeichen: `plain` · `de` · `en` · `space` · `apostrophe` — Vorgabe für alle Serien, je Serie überschreibbar                                     |
 

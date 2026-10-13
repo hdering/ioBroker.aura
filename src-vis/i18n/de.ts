@@ -1920,6 +1920,8 @@ export const de = {
     'echart.showYAxisRight': 'Rechte Y-Achse anzeigen',
     'echart.showXAxis': 'X-Achse anzeigen',
     'echart.gridLines': 'Horizontale Linien',
+    'echart.nowLine': 'Aktuelle Zeit als Linie',
+    'echart.nowLineColor': 'Farbe der Zeitlinie',
     'echart.areaOpacity': 'Flächen-Deckkraft: {value} %',
     'echart.areaOpacityAuto': 'Flächen-Deckkraft: Auto ({value} %)',
     'echart.animation': 'Animation',

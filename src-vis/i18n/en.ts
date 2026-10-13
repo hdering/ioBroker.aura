@@ -1902,6 +1902,8 @@ export const en: Record<TranslationKey, string> = {
     'echart.showYAxisRight': 'Show right Y axis',
     'echart.showXAxis': 'Show X axis',
     'echart.gridLines': 'Horizontal grid lines',
+    'echart.nowLine': 'Current time as a line',
+    'echart.nowLineColor': 'Time line colour',
     'echart.areaOpacity': 'Area opacity: {value}%',
     'echart.areaOpacityAuto': 'Area opacity: auto ({value}%)',
     'echart.animation': 'Animation',
