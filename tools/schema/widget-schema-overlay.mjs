@@ -656,6 +656,16 @@ export const WIDGET_OPTION_NOTES = {
             'lightIncludeDimmers',
             { onlyLayouts: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'], default: true },
         ],
+        [
+            'catBattery',
+            {
+                description:
+                    'Kategorie Batterien (Vorgabe an): value.battery (Prozent) und LOWBAT/LOW_BAT. HomeMatic-LOWBAT ' +
+                    'zählt nur bei OPERATING_VOLTAGE am Gerät, einem Batteriegerät-Modell aus der Batterie-Bibliothek ' +
+                    '(klassisch: HM-Sec-SCo, HM-Sec-RHS, HM-Sec-SD-2 …) oder einem zugewiesenen Batterietyp — ' +
+                    'Netz-Aktoren tragen ebenfalls LOWBAT. LOWBAT in Kanal 0 und 1 ergibt eine Zeile.',
+            },
+        ],
     ]),
     mediaplayer: {
         // Reported from use: set, accepted by the validator, and without any

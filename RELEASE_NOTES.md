@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Settings - the guidelines page explains why the frontend hides the lines while "Fill window width" is on
+- Status overview - classic HomeMatic battery devices (window contacts, handles, smoke detectors …) now show "battery low"; mains actuators stay out, one row per device

@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.82.3",
+    "auraVersion": "0.82.4",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -16781,7 +16781,8 @@
           "type": "boolean"
         },
         "catBattery": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Kategorie Batterien (Vorgabe an): value.battery (Prozent) und LOWBAT/LOW_BAT. HomeMatic-LOWBAT zählt nur bei OPERATING_VOLTAGE am Gerät, einem Batteriegerät-Modell aus der Batterie-Bibliothek (klassisch: HM-Sec-SCo, HM-Sec-RHS, HM-Sec-SD-2 …) oder einem zugewiesenen Batterietyp — Netz-Aktoren tragen ebenfalls LOWBAT. LOWBAT in Kanal 0 und 1 ergibt eine Zeile."
         },
         "catLight": {
           "type": "boolean",

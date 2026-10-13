@@ -18,6 +18,17 @@ Knöpfe (Zeilen-Aktionen, „Gewechselt“, „Später“) gibt es in `default`,
 
 ![Layout „Zweizeilig“](assets/statusuebersicht/layout-twoline.png)
 
+## Batterien erkennen
+
+| Quelle | zählt als Batterie |
+| --- | --- |
+| Rolle `value.battery` (Zahl) | immer, Prozent gegen `batteryThreshold` |
+| `LOWBAT`/`LOW_BAT` (Rolle `indicator.lowbat` oder Name) | außer HomeMatic immer |
+| HomeMatic-`LOWBAT` | nur wenn das Gerät `OPERATING_VOLTAGE` hat **oder** sein Modell in der Batterie-Bibliothek steht (klassische Geräte wie HM-Sec-SCo, HM-Sec-RHS, HM-Sec-SD-2) **oder** ihm ein Batterietyp zugewiesen ist |
+| HomeMatic, Modell unbekannt, ohne Spannung | nein – Netz-Aktoren tragen ebenfalls ein `LOWBAT` |
+
+`LOWBAT` in Kanal 0 und 1 desselben Geräts ergibt eine Zeile (Kanal 0).
+
 ## Merkliste
 
 Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz auf `true` und danach wieder auf `false`. Mit der **Merkliste** (eigener Abschnitt unter den Kategorien) bleibt ein solcher Hinweis stehen, bis er geschlossen wird – für Batterien, nicht erreichbare Geräte und ausgelöste Rauch-/Wassermelder.
@@ -48,6 +59,7 @@ Batteriegeräte (vor allem HomeMatic) setzen LOWBAT bei Kälte oder Last kurz au
 | Nachkontrolle | Nur eine Meldung mindestens 10 min nach dem Schließen öffnet wieder – ein alter, stehengebliebener Wert nicht. |
 | Automatisch schließen (Spannung) | `OPERATING_VOLTAGE` mindestens 0,3 V **und** 25 % über dem tiefsten Wert des Eintrags |
 | Automatisch schließen (Prozent) | mindestens 40 % **und** 30 Punkte über dem tiefsten Wert |
+| Automatisch schließen (nur `LOWBAT`) | nie – klassische HomeMatic-Geräte ohne Spannung schließt „Gewechselt“; `LOWBAT` flattert bei Kälte |
 
 Die Liste führt der Adapter: alle Browser sehen dieselbe, „Gewechselt“ schließt überall gleichzeitig, und gemerkt wird auch ohne offenen Browser.
 

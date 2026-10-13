@@ -271,22 +271,61 @@ function hmSerialKey(id: string): string {
 }
 
 /**
- * Collects HomeMatic devices that are actually battery-powered: they expose an
- * OPERATING_VOLTAGE datapoint (or a value.battery). Mains-powered HomeMatic actuators
- * (HM-LC-Sw…, dimmers, …) also carry a LOWBAT flag but no voltage — so LOWBAT alone must
- * not qualify them. Returns a set of serial keys; pass it to categoryOf to gate LOWBAT.
+ * Collects HomeMatic devices that are actually battery-powered. Mains-powered HomeMatic
+ * actuators (HM-LC-Sw…, dimmers, …) also carry a LOWBAT flag — so LOWBAT alone must not
+ * qualify them. Two signals count:
+ *  - an OPERATING_VOLTAGE datapoint (or a value.battery) — HmIP devices;
+ *  - `isBatteryDevice(deviceId)` — the device model is a battery device in the battery
+ *    library. Classic HomeMatic (HM-Sec-SCo, HM-Sec-RHS, …) has no voltage at all, only
+ *    LOWBAT; the library knows them and does not know the mains actuators.
+ * Returns a set of serial keys; pass it to categoryOf to gate LOWBAT.
  */
-export function collectHmBatterySerials(cache: DatapointEntry[]): Set<string> {
+export function collectHmBatterySerials(
+    cache: DatapointEntry[],
+    isBatteryDevice?: (deviceId: string) => boolean,
+): Set<string> {
     const set = new Set<string>();
+    const asked = new Set<string>();
     for (const dp of cache) {
         const adapter = dp.id.split('.')[0] ?? '';
         if (!HM_ADAPTERS.has(adapter)) continue;
+        const key = hmSerialKey(dp.id);
+        if (set.has(key)) continue;
         const r = (dp.role ?? '').toLowerCase();
         if (dp.id.toLowerCase().includes('operating_voltage') || r === 'value.battery') {
-            set.add(hmSerialKey(dp.id));
+            set.add(key);
+            continue;
         }
+        if (!isBatteryDevice || asked.has(key)) continue;
+        asked.add(key);
+        if (isBatteryDevice(dp.id.split('.').slice(0, 3).join('.'))) set.add(key);
     }
     return set;
+}
+
+/**
+ * Classic HomeMatic sensors report LOWBAT in channel 0 and again in channel 1
+ * (HM-Sec-SCo, HM-Sec-SD-2, HM-Sec-RHS, …). One row per device: keep channel 0 (else the
+ * lowest channel) and drop the other low-battery flags of the same serial.
+ */
+export function dedupeHmLowbat<T extends { dp: DatapointEntry; cat: CategoryKey }>(found: T[]): T[] {
+    const isFlag = (c: T) =>
+        c.cat === 'battery' &&
+        HM_ADAPTERS.has(c.dp.id.split('.')[0] ?? '') &&
+        c.dp.type !== 'number' &&
+        (c.dp.role ?? '').toLowerCase() !== 'value.battery';
+    const channelOf = (id: string) => {
+        const n = parseInt(id.split('.')[3] ?? '', 10);
+        return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+    };
+    const keep = new Map<string, string>();
+    for (const c of found) {
+        if (!isFlag(c)) continue;
+        const key = hmSerialKey(c.dp.id);
+        const cur = keep.get(key);
+        if (cur === undefined || channelOf(c.dp.id) < channelOf(cur)) keep.set(key, c.dp.id);
+    }
+    return found.filter((c) => !isFlag(c) || keep.get(hmSerialKey(c.dp.id)) === c.dp.id);
 }
 
 /**
@@ -320,7 +359,7 @@ export function categoryOf(
     if (opts.catBattery !== false) {
         if (r === 'value.battery' && dp.type === 'number') return 'battery';
         // LOWBAT: HomeMatic mains devices also expose it → require a real battery signal
-        // (OPERATING_VOLTAGE) for HomeMatic before trusting LOWBAT.
+        // (OPERATING_VOLTAGE or a battery model, see collectHmBatterySerials) first.
         const isHm = HM_ADAPTERS.has(id.split('.')[0] ?? '');
         const hmOk = !isHm || !hmBatterySerials || hmBatterySerials.has(hmSerialKey(id));
         if (r === 'indicator.lowbat' || r === 'indicator.battery') return hmOk ? 'battery' : null;

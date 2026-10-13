@@ -8,6 +8,7 @@ import {
     loadBatteryLibrary,
     autoBatteryType,
     resolveDeviceIdForDp,
+    batteryDeviceTest,
     fetchDeviceModelForDp,
     BATTERY_TYPES,
     type BatteryLibIndex,
@@ -132,7 +133,7 @@ export function AdminBatteries() {
             ]);
             if (cancelled) return;
             const battOpts = { catWindow: false, catLight: false, catUnreach: false, catAlarm: false } as const;
-            const hmBatterySerials = collectHmBatterySerials(cache);
+            const hmBatterySerials = collectHmBatterySerials(cache, batteryDeviceTest(index, library));
             const byDevice = new Map<string, DeviceRow>();
             for (const dp of cache) {
                 if (categoryOf(dp, battOpts, hmBatterySerials) !== 'battery') continue;

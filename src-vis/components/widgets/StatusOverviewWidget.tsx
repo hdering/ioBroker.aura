@@ -30,6 +30,7 @@ import {
     loadBatteryLibrary,
     resolveBatteryType,
     resolveDeviceIdForDp,
+    loadBatteryDeviceTest,
     type BatteryResolution,
 } from '../../utils/batteryLibrary';
 
@@ -37,6 +38,7 @@ const EMPTY_HIDDEN: string[] = [];
 import {
     categoryOf,
     collectHmBatterySerials,
+    dedupeHmLowbat,
     passesScope,
     evaluateItem,
     compareItems,
@@ -308,6 +310,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // repeat the last verdict, so the all-clear turns into "Status unbekannt".
     const connectionLost = useConnectionLost() !== null;
     const overrides = useConfigStore((s) => s.frontend.batteryTypeOverrides);
+    const overridesKey = JSON.stringify(overrides ?? {});
     const hiddenDevices = useConfigStore((s) => s.frontend.batteryHiddenDevices) ?? EMPTY_HIDDEN;
     // Global reachability escape hatch — merged into the effective options.
     const offlineExtraPatterns = useConfigStore((s) => s.frontend.offlineExtraPatterns);
@@ -327,6 +330,9 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
     // Discovery finished (the datapoint cache is in) — see the loading block below.
     const [discovered, setDiscovered] = useState(false);
+    // The battery gate knows the device models (second discovery pass) — until then the
+    // adapter registration waits, so it never sees a list without the classic devices.
+    const [batteryGateDone, setBatteryGateDone] = useState(false);
     // Grace period for the outstanding values expired (LOADING_GRACE_MS).
     const [settled, setSettled] = useState(false);
     const [batteryInfo, setBatteryInfo] = useState<
@@ -368,29 +374,45 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     useEffect(() => {
         let cancelled = false;
         setDiscovered(false);
+        setBatteryGateDone(false);
         ensureDatapointCache().then((cache) => {
             if (cancelled) return;
-            const hmBatterySerials = collectHmBatterySerials(cache);
-            const found: Candidate[] = [];
             const wantLevel = latchEnabled(opts, 'battery');
-            for (const dp of cache) {
-                const cat = categoryOf(dp, opts, hmBatterySerials);
-                if (!cat) continue;
-                if (!passesScope(dp, opts)) continue;
-                found.push({
-                    dp,
-                    cat,
-                    ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
-                });
+            const run = (isBatteryDevice?: (deviceId: string) => boolean) => {
+                const hmBatterySerials = collectHmBatterySerials(cache, isBatteryDevice);
+                const found: Candidate[] = [];
+                for (const dp of cache) {
+                    const cat = categoryOf(dp, opts, hmBatterySerials);
+                    if (!cat) continue;
+                    if (!passesScope(dp, opts)) continue;
+                    found.push({
+                        dp,
+                        cat,
+                        ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
+                    });
+                }
+                setCandidates(dedupeHmLowbat(dedupeLights(found)));
+                setDiscovered(true);
+            };
+            // First pass with the voltage gate only; classic HomeMatic battery devices
+            // (no voltage, known by model) join once the device index and library are in.
+            // The second pass only adds rows, so no mains actuator flickers in.
+            run();
+            if (opts.catBattery === false) {
+                setBatteryGateDone(true);
+                return;
             }
-            setCandidates(dedupeLights(found));
-            setDiscovered(true);
+            loadBatteryDeviceTest(overrides).then((test) => {
+                if (cancelled) return;
+                if (test) run(test);
+                setBatteryGateDone(true);
+            });
         });
         return () => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [scopeKey]);
+    }, [scopeKey, overridesKey]);
 
     // ── Live subscriptions on the matched datapoints ───────────────────────────
     const candidateKey = candidates.map((c) => c.dp.id).join(',');
@@ -425,7 +447,6 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // device ("Garage Oeffner Golf"), not the LOW_BAT datapoint.
     const needBatteryMeta = wantBatteryTypes || hiddenDevices.length > 0 || latchEnabled(opts, 'battery');
     const batteryCandKey = batteryCandidates.map((c) => c.dp.id).join(',');
-    const overridesKey = JSON.stringify(overrides ?? {});
     useEffect(() => {
         if (!needBatteryMeta || batteryCandidates.length === 0) {
             setBatteryInfo({});
@@ -519,7 +540,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const prevLatchCats = useRef<string[]>([]);
     const batteryInfoReady = !needBatteryMeta || batteryCandidates.length === 0 || Object.keys(batteryInfo).length > 0;
     useEffect(() => {
-        if (!discovered || !batteryInfoReady) return;
+        if (!discovered || !batteryGateDone || !batteryInfoReady) return;
         const source = config.id;
         if (!source) return;
         const send = (cat: CategoryKey, watch: LatchWatch[]) => {
@@ -573,6 +594,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         discovered,
+        batteryGateDone,
         batteryInfoReady,
         latchCatKey,
         candidateKey,

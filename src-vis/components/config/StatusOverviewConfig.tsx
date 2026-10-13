@@ -4,6 +4,7 @@ import type { WidgetConfig } from '../../types';
 import {
     categoryOf,
     collectHmBatterySerials,
+    dedupeHmLowbat,
     passesScope,
     CATEGORY_ORDER,
     type StatusOverviewOptions,
@@ -11,6 +12,7 @@ import {
 } from '../../utils/statusOverview';
 import type { NameSource } from '../../utils/nameFilter';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
+import { loadBatteryDeviceTest } from '../../utils/batteryLibrary';
 import { useConfigStore } from '../../store/configStore';
 import { ColorPicker } from '../common/ColorPicker';
 import { ConfigModal } from './ConfigModal';
@@ -171,26 +173,32 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     useEffect(() => {
         let cancelled = false;
         const opts: StatusOverviewOptions = { ...o, offlineExtraPatterns, offlineInvert };
-        ensureDatapointCache().then((cache) => {
-            if (cancelled) return;
-            const hm = collectHmBatterySerials(cache);
-            const byCat = new Map<CategoryKey, NameSource[]>();
-            let count = 0;
-            for (const dp of cache) {
-                const cat = categoryOf(dp, opts, hm);
-                if (!cat) continue;
-                if (!passesScope(dp, opts)) continue;
-                count++;
-                const list = byCat.get(cat) ?? [];
-                if (list.length < 2) list.push({ id: dp.id, name: dp.name, room: dp.rooms[0] });
-                byCat.set(cat, list);
-            }
-            // Spread the examples over the active categories instead of showing six batteries.
-            const spread: NameSource[] = [];
-            for (const cat of CATEGORY_ORDER) spread.push(...(byCat.get(cat) ?? []));
-            setSamples(spread.slice(0, 6));
-            setSampleTotal(count);
-        });
+        Promise.all([ensureDatapointCache(), opts.catBattery === false ? undefined : loadBatteryDeviceTest()]).then(
+            ([cache, isBatteryDevice]) => {
+                if (cancelled) return;
+                const hm = collectHmBatterySerials(cache, isBatteryDevice);
+                const byCat = new Map<CategoryKey, NameSource[]>();
+                const found: { dp: (typeof cache)[number]; cat: CategoryKey }[] = [];
+                for (const dp of cache) {
+                    const cat = categoryOf(dp, opts, hm);
+                    if (!cat) continue;
+                    if (!passesScope(dp, opts)) continue;
+                    found.push({ dp, cat });
+                }
+                const kept = dedupeHmLowbat(found);
+                const count = kept.length;
+                for (const { dp, cat } of kept) {
+                    const list = byCat.get(cat) ?? [];
+                    if (list.length < 2) list.push({ id: dp.id, name: dp.name, room: dp.rooms[0] });
+                    byCat.set(cat, list);
+                }
+                // Spread the examples over the active categories instead of showing six batteries.
+                const spread: NameSource[] = [];
+                for (const cat of CATEGORY_ORDER) spread.push(...(byCat.get(cat) ?? []));
+                setSamples(spread.slice(0, 6));
+                setSampleTotal(count);
+            },
+        );
         return () => {
             cancelled = true;
         };
