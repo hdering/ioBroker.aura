@@ -309,6 +309,39 @@ test('import by serial number before and after the widget registered', () => {
     assert.ok(lists.battery.find((x) => x.id === GRIFF).ackedAt);
 });
 
+test('import by full datapoint id before the widget registered resolves on register', () => {
+    const { engine, lists } = makeEngine();
+    const RHS = 'hm-rpc.2.OEQ1127049.0.LOWBAT';
+    const BAD = 'hm-rpc.2.PEQ0578212.0.LOWBAT';
+    engine.command(
+        'battery',
+        JSON.stringify([
+            { cmd: 'add', id: RHS, name: 'Schlafzimmer.Fenster.Drehgriffkontakt', since: T0 - DAY_MS, count: 2 },
+            { cmd: 'add', id: BAD, since: T0 - DAY_MS },
+        ]),
+    );
+    assert.deepStrictEqual(
+        lists.battery.map((x) => x.unresolved),
+        [true, true],
+    );
+    engine.register({
+        source: 'w1',
+        cat: 'battery',
+        watch: [
+            { id: RHS, kind: 'bool', name: 'Drehgriff Schlafzimmer' },
+            { id: BAD, kind: 'bool', name: 'Fenster Bad OG' },
+        ],
+    });
+    const rhs = lists.battery.find((x) => x.id === RHS);
+    const bad = lists.battery.find((x) => x.id === BAD);
+    assert.strictEqual(lists.battery.length, 2);
+    assert.strictEqual(rhs.unresolved, undefined);
+    assert.strictEqual(rhs.count, 2);
+    assert.strictEqual(rhs.name, 'Schlafzimmer.Fenster.Drehgriffkontakt', 'a given name stays');
+    assert.strictEqual(bad.unresolved, undefined);
+    assert.strictEqual(bad.name, 'Fenster Bad OG', 'the raw id is replaced by the watch name');
+});
+
 test('imported entry becomes active with the live value, inactive stays quiet', () => {
     const { engine, lists } = makeEngine();
     register(engine);
