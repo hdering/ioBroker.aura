@@ -1608,7 +1608,8 @@ export const UNIVERSAL_OPTIONS = {
         description:
             'Hintergrundbild der Karte, liegt über der Hintergrundfarbe und unter dem Inhalt. Mit ' +
             'transparent: true zeigt die Karte nur das Bild. Quellen wie beim image-Widget (URL, ' +
-            '/vis.0/…-Pfad, aura-file:, data:). Für Text auf hellen Bildern dim setzen (30–50). Nicht beim ' +
+            '/vis.0/…-Pfad, aura-file:, data:). Mit dp liefert ein Datenpunkt das Bild (URL, Pfad oder ' +
+            'Base64, z. B. Kamera-Snapshot); src bleibt dann der Rückfall, solange der DP leer ist. Für Text auf hellen Bildern dim setzen (30–50). Nicht beim ' +
             'Abschnittstitel "header" ohne Layout "framed" — der hat keine Karte.',
     },
     fullscreenWidget: {

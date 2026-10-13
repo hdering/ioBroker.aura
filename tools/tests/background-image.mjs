@@ -49,8 +49,8 @@ const widget = (id, options, extra = {}) => ({
 });
 
 await page.evaluate(
-    ([w]) => {
-        window.__auraShot.mock({ 'demo.bgValue': 21.5 });
+    ([w, blue]) => {
+        window.__auraShot.mock({ 'demo.bgValue': 21.5, 'demo.bgUrl': blue });
         window.__auraShot.showWidgets(w);
     },
     [
@@ -71,7 +71,15 @@ await page.evaluate(
                 gridPos: { x: 4, y: 4, w: 4, h: 2 },
                 options: { bgImage: { src: RED } },
             },
+            // #775: the datapoint's value wins over src; an empty datapoint falls back to src.
+            widget('w-dp', { bgImage: { src: RED, dp: 'demo.bgUrl' } }, { gridPos: { x: 8, y: 4, w: 4, h: 4 } }),
+            widget(
+                'w-dp-empty',
+                { bgImage: { src: GREEN, dp: 'demo.bgUnset' } },
+                { gridPos: { x: 0, y: 8, w: 4, h: 4 } },
+            ),
         ],
+        BLUE,
     ],
 );
 await settle(800);
@@ -157,6 +165,12 @@ const [tr, tg, tb] = await pixel('w-transp', 0.5, 0.85);
 check('transparent card paints the image', tg > 200 && tr < 60 && tb < 60, `${tr},${tg},${tb}`);
 check('bare section title draws no image', !(await layerStyle('w-head')).layer);
 
+// ── 4b. Image from a datapoint (#775) ─────────────────────────────────────────
+const [dr, dg, db] = await pixel('w-dp', 0.5, 0.85);
+check('datapoint value wins over src', db > 200 && dr < 60 && dg < 60, `${dr},${dg},${db}`);
+const [er, eg, eb] = await pixel('w-dp-empty', 0.5, 0.85);
+check('empty datapoint falls back to src', eg > 200 && er < 60 && eb < 60, `${er},${eg},${eb}`);
+
 // ── 5. Editor: Erweitert writes options.bgImage ───────────────────────────────
 await page.evaluate(() => window.__auraShot.setEditMode(true));
 await settle();
@@ -167,7 +181,9 @@ const dlg = page.locator('.aura-widget-edit-modal');
 await dlg.locator('summary:has-text("Erweitert")').click();
 const field = dlg.locator('.aura-bg-image-field');
 check('Erweitert offers the background image field', (await field.count()) === 1);
-await field.locator('input[type="text"]').fill('/vis.0/test/bild.png');
+const srcInput = field.locator('input[type="text"]').first();
+const dpInput = field.locator('input[type="text"]').nth(1);
+await srcInput.fill('/vis.0/test/bild.png');
 await settle();
 let opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-plain'));
 check(
@@ -193,6 +209,19 @@ const relLayer = await card('w-plain').evaluate(
     (el) => getComputedStyle(el.querySelector(':scope > .aura-bg-image')).backgroundImage,
 );
 check('relative adapter path is served through /webfs', /\/webfs\/vis\.0\/test\/bild\.png/.test(relLayer), relLayer);
+await dpInput.fill('demo.bgUrl');
+await srcInput.fill('');
+await settle();
+opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-plain'));
+check(
+    'a datapoint alone keeps the image',
+    opts?.bgImage?.dp === 'demo.bgUrl' && !opts?.bgImage?.src,
+    JSON.stringify(opts?.bgImage),
+);
+const dpLayer = await card('w-plain').evaluate(
+    (el) => getComputedStyle(el.querySelector(':scope > .aura-bg-image')).backgroundImage,
+);
+check('layer shows the datapoint image', /0000ff/i.test(decodeURIComponent(dpLayer)), dpLayer.slice(0, 60));
 await field.locator('button:text-is("Entfernen")').click();
 await settle();
 opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-plain'));

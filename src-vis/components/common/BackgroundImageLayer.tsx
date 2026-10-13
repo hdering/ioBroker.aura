@@ -8,13 +8,25 @@
  * z-index or position of a single child.
  */
 import type { CSSProperties } from 'react';
-import { bgImageStyle } from '../../utils/backgroundImage';
+import { useDatapoint } from '../../hooks/useDatapoint';
+import { activeBgImage, bgImageStyle } from '../../utils/backgroundImage';
 
 /** Spread into the host's style whenever a layer is rendered inside it. */
 export const BG_IMAGE_HOST_STYLE: CSSProperties = { isolation: 'isolate' };
 
 export function BackgroundImageLayer({ image }: { image: unknown }) {
-    const style = bgImageStyle(image);
+    const dp = activeBgImage(image)?.dp?.trim();
+    // Only an image bound to a datapoint subscribes one (#775).
+    return dp ? <DpImageLayer image={image} dp={dp} /> : <ImageLayer image={image} />;
+}
+
+function DpImageLayer({ image, dp }: { image: unknown; dp: string }) {
+    const { value } = useDatapoint(dp);
+    return <ImageLayer image={image} dpValue={value} />;
+}
+
+function ImageLayer({ image, dpValue }: { image: unknown; dpValue?: unknown }) {
+    const style = bgImageStyle(image, dpValue);
     if (!style) return null;
     return (
         <div

@@ -10,3 +10,4 @@
 - Status overview - classic HomeMatic battery devices (window contacts, handles, smoke detectors …) now show "battery low"; mains actuators stay out, one row per device
 - Status overview - remembered batteries imported by their full datapoint id are now picked up by the widget (snooze, recheck, quiet entries)
 - Timer - switch any number of datapoints with one schedule (e.g. several thermostats), all get the same value (#774)
+- Widgets - the background image (Advanced) can come from a datapoint holding a URL, path or Base64 image; the fixed image stays the fallback (#775)

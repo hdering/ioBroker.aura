@@ -432,6 +432,7 @@ export interface CellPopupOptions {
  */
 export interface BackgroundImage {
     src: string; // image URL, aura-file: path, adapter path (/vis.0/…) or data: URI — same sources as the image widget
+    dp?: string; // datapoint whose value supplies the image (URL, path or Base64); wins over src while it holds a value, src stays the fallback
     fit?: BackgroundImageFit; // cover = fill and crop (default), contain = whole image, stretch = distort to fill, repeat = tile at natural size
     position?: BackgroundImagePosition; // which part stays visible when the image is cropped (default center)
     dim?: number; // darken the image in % (0…90) so text on it stays legible; default 0

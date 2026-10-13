@@ -9,7 +9,7 @@
  * drops them with it, so nothing half-configured stays behind.
  */
 import { useState } from 'react';
-import { FolderOpen } from 'lucide-react';
+import { Database, FolderOpen } from 'lucide-react';
 import type { BackgroundImage, BackgroundImageFit, BackgroundImagePosition } from '../../types';
 import { useT } from '../../i18n';
 import {
@@ -44,12 +44,15 @@ const labelStyle = { color: 'var(--text-secondary)' };
 export function BackgroundImageField({ value, onChange, label, inheritLabel }: Props) {
     const t = useT();
     const [picking, setPicking] = useState(false);
+    const [pickingDp, setPickingDp] = useState(false);
     const src = value?.src ?? '';
-    const active = src.trim() !== '';
+    const dp = value?.dp ?? '';
+    const active = src.trim() !== '' || dp.trim() !== '';
 
     const patch = (p: Partial<BackgroundImage>) => {
         const next = { ...(value ?? { src: '' }), ...p };
-        if (!next.src.trim()) return onChange(undefined);
+        if (!next.dp?.trim()) delete next.dp;
+        if (!next.src.trim() && !next.dp) return onChange(undefined);
         // Defaults are not stored — an unset key keeps following the documented default.
         if (next.fit === 'cover') delete next.fit;
         if (next.position === 'center') delete next.position;
@@ -98,6 +101,33 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
                 </p>
             )}
             {!active && <ImagePathHint />}
+            <label className={labelCls} style={labelStyle}>
+                {t('bgImage.dp')}
+            </label>
+            <div className="flex gap-1">
+                <input
+                    type="text"
+                    value={dp}
+                    onChange={(e) => patch({ dp: e.target.value })}
+                    placeholder={t('bgImage.dpPlaceholder')}
+                    className={`flex-1 min-w-0 font-mono ${inputCls}`}
+                    style={inputStyle}
+                />
+                <button
+                    type="button"
+                    onClick={() => setPickingDp(true)}
+                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                    style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                    title={t('bgImage.dpPick')}
+                >
+                    <Database size={13} />
+                </button>
+            </div>
+            {dp.trim() !== '' && (
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    {t('bgImage.dpHint')}
+                </p>
+            )}
             {active && (
                 <div className="grid grid-cols-3 gap-2">
                     <div>
@@ -169,6 +199,13 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
                     onClose={() => setPicking(false)}
                 />
             )}
+            {pickingDp && (
+                <DatapointPicker
+                    currentValue={dp}
+                    onSelect={(id) => patch({ dp: id })}
+                    onClose={() => setPickingDp(false)}
+                />
+            )}
         </div>
     );
 }
@@ -208,7 +245,7 @@ export function BackgroundImageButton({ value, onChange, title, inheritLabel }: 
                     />
                 )}
                 <span className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                    {active ? sourceLabel(active.src) : (inheritLabel ?? t('bgImage.none'))}
+                    {active ? active.dp?.trim() || sourceLabel(active.src) : (inheritLabel ?? t('bgImage.none'))}
                 </span>
             </span>
             <span className="flex items-center gap-1.5 shrink-0">

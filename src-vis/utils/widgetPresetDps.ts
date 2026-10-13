@@ -1,4 +1,4 @@
-import type { WidgetConfig, CustomCell } from '../types';
+import type { WidgetConfig, CustomCell, BackgroundImage } from '../types';
 import { WIDGET_BY_TYPE } from '../widgetRegistry';
 import { isDpOptionKey } from './dpOptionKeys';
 import { DEF_HOST_TYPES } from './groupTypes';
@@ -178,6 +178,24 @@ export function collectDpSlots(widget: WidgetConfig, groupDefs?: Record<string, 
                     },
                 });
             });
+
+            // Background image bound to a datapoint (Erweitert → Hintergrundbild).
+            const bg = opts.bgImage as BackgroundImage | undefined;
+            if (bg && typeof bg.dp === 'string' && bg.dp.trim()) {
+                slots.push({
+                    id: `slot-${seq++}`,
+                    label: 'Hintergrundbild',
+                    group: groupName,
+                    originalDpId: bg.dp,
+                    isAuto: false,
+                    isMain: false,
+                    optionKey: 'bgImage.dp',
+                    ownerKey,
+                    apply: (v) => {
+                        bg.dp = v;
+                    },
+                });
+            }
 
             // ECharts series datapoints.
             const series = opts.echartSeries;

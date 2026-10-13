@@ -27,11 +27,13 @@ export const BG_IMAGE_POSITIONS: BackgroundImagePosition[] = [
 /** Darker than this and the image is gone — the colour picker is the tool for that. */
 export const MAX_BG_IMAGE_DIM = 90;
 
-/** A stored value that actually names an image, else undefined (inherit / off). */
+/** A stored value that actually names an image (fixed source or datapoint), else undefined (inherit / off). */
 export function activeBgImage(raw: unknown): BackgroundImage | undefined {
     if (!raw || typeof raw !== 'object') return undefined;
     const bg = raw as BackgroundImage;
-    return typeof bg.src === 'string' && bg.src.trim() ? bg : undefined;
+    const hasSrc = typeof bg.src === 'string' && bg.src.trim() !== '';
+    const hasDp = typeof bg.dp === 'string' && bg.dp.trim() !== '';
+    return hasSrc || hasDp ? bg : undefined;
 }
 
 /** Quote a URL for `url("…")` — data URIs of raw SVG markup carry quotes and parentheses. */
@@ -39,11 +41,15 @@ function cssUrl(src: string): string {
     return `url("${src.replace(/["\\\n\r]/g, (c) => (c === '\n' || c === '\r' ? '' : `\\${c}`))}")`;
 }
 
-/** Styles of the image layer itself; undefined when the value names no image. */
-export function bgImageStyle(raw: unknown): CSSProperties | undefined {
+/**
+ * Styles of the image layer itself; undefined when the value names no image.
+ * `dpValue` is the current value of `bg.dp` — while it holds an image it wins
+ * over the fixed `src`, which stays the fallback (#775).
+ */
+export function bgImageStyle(raw: unknown, dpValue?: unknown): CSSProperties | undefined {
     const bg = activeBgImage(raw);
     if (!bg) return undefined;
-    const src = resolveImageSource(bg.src);
+    const src = resolveImageSource(dpValue) || resolveImageSource(bg.src);
     if (!src) return undefined;
     const fit = bg.fit ?? 'cover';
     const dim = Math.max(0, Math.min(MAX_BG_IMAGE_DIM, Number(bg.dim) || 0)) / 100;
