@@ -1159,6 +1159,10 @@ export const WIDGET_OPTION_NOTES = {
         events: { description: 'Die Schaltzeiten.' },
         enabled: { description: 'Ob die Zeitschaltuhr aktiv ist.' },
         targetDp: { description: 'Datenpunkt, den die Schaltzeiten schreiben.' },
+        extraTargetDps: {
+            description:
+                'Weitere Datenpunkte, die bei jeder Schaltzeit (und bei Ausnahme-Werten) denselben Wert wie targetDp bekommen — z. B. mehrere Thermostate mit einem Zeitplan.',
+        },
         value: { description: 'Wert, den eine Schaltzeit ohne eigenen Wert schreibt.' },
         allowEventValue: { description: 'Je Schaltzeit einen eigenen Wert erlauben.' },
         stateBaseId: { description: 'Objektpfad, unter dem der Adapter die Schaltzeiten ablegt.' },

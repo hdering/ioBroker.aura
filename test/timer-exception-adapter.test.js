@@ -169,6 +169,52 @@ const payload = {
         );
     });
 
+    await test('extra target DPs get the same value, duplicates and blanks skipped (#774)', async () => {
+        const now = new Date();
+        const multi = {
+            targetDp: 'x.0.setpoint',
+            extraTargetDps: ['y.0.setpoint', ' ', 'x.0.setpoint', ' z.0.setpoint '],
+            value: '21',
+            events: [
+                {
+                    id: 'now',
+                    enabled: true,
+                    weekdays: ALL,
+                    trigger: { kind: 'time', hour: now.getHours(), minute: now.getMinutes() },
+                    filter: 'all-days',
+                },
+            ],
+        };
+        const { a, writes } = makeAdapter(multi);
+        a._timerTickMs = 120000;
+        await a._timerTick();
+        assert.deepStrictEqual(writes, [
+            { id: 'x.0.setpoint', val: 21 },
+            { id: 'y.0.setpoint', val: 21 },
+            { id: 'z.0.setpoint', val: 21 },
+        ]);
+    });
+
+    await test('extra target DPs alone are enough to fire', async () => {
+        const now = new Date();
+        const extraOnly = {
+            extraTargetDps: ['y.0.on'],
+            events: [
+                {
+                    id: 'now',
+                    enabled: true,
+                    weekdays: ALL,
+                    trigger: { kind: 'time', hour: now.getHours(), minute: now.getMinutes() },
+                    filter: 'all-days',
+                },
+            ],
+        };
+        const { a, writes } = makeAdapter(extraOnly);
+        a._timerTickMs = 120000;
+        await a._timerTick();
+        assert.deepStrictEqual(writes, [{ id: 'y.0.on', val: true }]);
+    });
+
     console.log(`timer-exception-adapter: ${n} tests passed`);
 })().catch((e) => {
     console.error(e);

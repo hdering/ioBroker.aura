@@ -6,7 +6,7 @@
  * Also exposes the global holiday/vacation DPs used by the per-event filters.
  */
 import { useState } from 'react';
-import { Database, X } from 'lucide-react';
+import { Database, Plus, X } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
@@ -23,7 +23,8 @@ interface Props {
     onConfigChange: (c: WidgetConfig) => void;
 }
 
-type PickerTarget = 'target' | 'holidays' | 'vacation';
+// A number picks into extraTargetDps at that index (#774).
+type PickerTarget = 'target' | 'holidays' | 'vacation' | number;
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -125,6 +126,7 @@ function ExceptionValueField({
 export function TimerConfig({ config, onConfigChange }: Props) {
     const o = config.options ?? {};
     const targetDp = (o.targetDp as string | undefined) ?? '';
+    const extraTargetDps = (o.extraTargetDps as string[] | undefined) ?? [];
     const value = (o.value as string | undefined) ?? 'true';
     const allowEventValue = o.allowEventValue === true;
     const holidaysDp = (o.holidaysDp as string | undefined) ?? '';
@@ -143,17 +145,22 @@ export function TimerConfig({ config, onConfigChange }: Props) {
 
     const setOpts = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
+    const setExtra = (next: string[]) => setOpts({ extraTargetDps: next.length > 0 ? next : undefined });
+
     const currentPickerValue =
-        pickerTarget === 'target'
-            ? targetDp
-            : pickerTarget === 'holidays'
-              ? holidaysDp
-              : pickerTarget === 'vacation'
-                ? vacationDp
-                : '';
+        typeof pickerTarget === 'number'
+            ? (extraTargetDps[pickerTarget] ?? '')
+            : pickerTarget === 'target'
+              ? targetDp
+              : pickerTarget === 'holidays'
+                ? holidaysDp
+                : pickerTarget === 'vacation'
+                  ? vacationDp
+                  : '';
 
     const onPick = (id: string) => {
-        if (pickerTarget === 'target') setOpts({ targetDp: id });
+        if (typeof pickerTarget === 'number') setExtra(extraTargetDps.map((v, i) => (i === pickerTarget ? id : v)));
+        else if (pickerTarget === 'target') setOpts({ targetDp: id });
         else if (pickerTarget === 'holidays') setOpts({ holidaysDp: id });
         else if (pickerTarget === 'vacation') setOpts({ vacationDp: id });
         setPickerTarget(null);
@@ -316,7 +323,59 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             >
                                 <Database size={13} />
                             </button>
+                            {/* Same width as the remove button below, so all inputs line up. */}
+                            {extraTargetDps.length > 0 && (
+                                <span className="px-1.5 shrink-0 invisible" aria-hidden>
+                                    <X size={13} />
+                                </span>
+                            )}
                         </div>
+                        {extraTargetDps.map((dp, i) => (
+                            <div key={i} className="flex gap-1 mt-1">
+                                <input
+                                    type="text"
+                                    value={dp}
+                                    onChange={(e) =>
+                                        setExtra(extraTargetDps.map((v, j) => (j === i ? e.target.value : v)))
+                                    }
+                                    placeholder="weiterer Datenpunkt"
+                                    className={`flex-1 font-mono min-w-0 ${inputCls}`}
+                                    style={inputStyle}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setPickerTarget(i)}
+                                    className="px-2 rounded-lg shrink-0"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    <Database size={13} />
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setExtra(extraTargetDps.filter((_, j) => j !== i))}
+                                    className="px-1.5 rounded-lg shrink-0 hover:opacity-70"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                    title="Datenpunkt entfernen"
+                                >
+                                    <X size={13} />
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setExtra([...extraTargetDps, ''])}
+                            className="mt-1 flex items-center gap-1 text-[11px] hover:opacity-80"
+                            style={{ color: 'var(--accent)' }}
+                        >
+                            <Plus size={12} /> Weiterer Datenpunkt
+                        </button>
+                        <p className={hintCls} style={hintStyle}>
+                            Alle Datenpunkte bekommen beim Auslösen denselben Wert — z. B. mehrere Thermostate.
+                        </p>
                     </div>
 
                     <div>

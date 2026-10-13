@@ -41,6 +41,7 @@ export function timerEnabledStateId(widgetId: string): string {
 export interface TimerConfigPayload {
     events: TimerEvent[];
     targetDp?: string; // widget-level: where to write when an event fires
+    extraTargetDps?: string[]; // further DPs written with the same value (#774)
     value?: string; // widget-level: what to write (parsed bool/number/string)
     allowEventValue?: boolean; // when true, backend honors per-event ev.value overrides
     holidaysDp?: string;

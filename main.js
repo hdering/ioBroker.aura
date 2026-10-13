@@ -4095,14 +4095,21 @@ class Aura extends utils.Adapter {
         return timerFilterPasses(ev, date, holidays, vacation);
     }
 
-    async _writeTarget(targetDp, baseValue, ev, override) {
-        if (!targetDp) return;
+    /** Every DP a timer writes: targetDp plus extraTargetDps (#774), trimmed and deduplicated. */
+    _timerTargets(payload) {
+        const all = [payload.targetDp, ...(Array.isArray(payload.extraTargetDps) ? payload.extraTargetDps : [])];
+        return [...new Set(all.filter((id) => typeof id === 'string' && id.trim()).map((id) => id.trim()))];
+    }
+
+    async _writeTarget(targets, baseValue, ev, override) {
         const val = override !== undefined ? override : this._parseValue(baseValue);
-        try {
-            await this.setForeignStateAsync(targetDp, val, false);
-            this.log.info(`[timers] fired ${ev.label || ev.id}: ${targetDp} ← ${JSON.stringify(val)}`);
-        } catch (e) {
-            this.log.warn(`[timers] write failed (${targetDp}): ${e.message}`);
+        for (const targetDp of targets) {
+            try {
+                await this.setForeignStateAsync(targetDp, val, false);
+                this.log.info(`[timers] fired ${ev.label || ev.id}: ${targetDp} ← ${JSON.stringify(val)}`);
+            } catch (e) {
+                this.log.warn(`[timers] write failed (${targetDp}): ${e.message}`);
+            }
         }
     }
 
@@ -4139,7 +4146,7 @@ class Aura extends utils.Adapter {
         this._timerException.set(widgetId, sig);
         const label = (kind) => (kind === 'vacation' ? 'vacation exception' : 'holiday exception');
         if (exc) {
-            await this._writeTarget(payload.targetDp, exc.value, { label: label(exc.kind) });
+            await this._writeTarget(this._timerTargets(payload), exc.value, { label: label(exc.kind) });
             return;
         }
         const last = lastDueWrite(payload, now, holidays, vacation, (event, date, offsetMin) =>
@@ -4154,7 +4161,7 @@ class Aura extends utils.Adapter {
             const v = this._parseValue(last.baseValue);
             override = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
         }
-        await this._writeTarget(payload.targetDp, last.baseValue, last.ev, override);
+        await this._writeTarget(this._timerTargets(payload), last.baseValue, last.ev, override);
     }
 
     async _timerTick() {
@@ -4171,8 +4178,8 @@ class Aura extends utils.Adapter {
             if (!entry.enabled) continue;
             const payload = entry.payload;
             if (!payload || !Array.isArray(payload.events)) continue;
-            const targetDp = payload.targetDp;
-            if (!targetDp) continue; // admin hasn't configured the target yet
+            const targets = this._timerTargets(payload);
+            if (targets.length === 0) continue; // admin hasn't configured the target yet
             const widgetBaseValue = payload.value != null ? payload.value : 'true';
             const allowEventValue = payload.allowEventValue === true;
 
@@ -4232,7 +4239,7 @@ class Aura extends utils.Adapter {
                         const v = this._parseValue(baseValue);
                         writeVal = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
                     }
-                    await this._writeTarget(targetDp, baseValue, ev, writeVal);
+                    await this._writeTarget(targets, baseValue, ev, writeVal);
                     this._timerFired.add(c.key);
 
                     if (c.isOnce) {

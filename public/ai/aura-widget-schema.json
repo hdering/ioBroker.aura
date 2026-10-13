@@ -18225,6 +18225,13 @@
           },
           "description": "Die Schaltzeiten."
         },
+        "extraTargetDps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Weitere Datenpunkte, die bei jeder Schaltzeit (und bei Ausnahme-Werten) denselben Wert wie targetDp bekommen — z. B. mehrere Thermostate mit einem Zeitplan."
+        },
         "holidaysDp": {
           "type": "string",
           "description": "Datenpunkt für Feiertagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" und {from,to} (inklusive).",

@@ -66,7 +66,8 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 
 | Option | Standard | |
 | --- | --- | --- |
-| `targetDp` | — | Pflichtfeld — ohne Ziel-DP feuert nichts |
+| `targetDp` | — | Ziel-DP — ohne Ziel-DP feuert nichts |
+| `extraTargetDps` | — | Weitere Ziel-DPs („+ Weiterer Datenpunkt“), bekommen denselben Wert — z. B. mehrere Thermostate |
 | `value` | `true` | Wert beim Auslösen |
 
 Beim Auslöser-Typ **Zeitraum** schreibt der Scheduler am Ende den invertierten Wert (`true → false`, `42 → 0`, sonst leerer String).

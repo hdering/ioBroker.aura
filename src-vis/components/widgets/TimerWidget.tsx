@@ -263,6 +263,12 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const events = useMemo(() => (o.events as TimerEvent[] | undefined) ?? [], [o.events]);
     const masterEnabled = (o.enabled as boolean | undefined) ?? true;
     const targetDp = o.targetDp as string | undefined;
+    const extraTargetDps = o.extraTargetDps as string[] | undefined;
+    // Everything the adapter writes (#774) — targetDp plus the extra DPs, as main.js _timerTargets.
+    const targets = useMemo(
+        () => [...new Set([targetDp, ...(extraTargetDps ?? [])].map((id) => id?.trim() ?? '').filter(Boolean))],
+        [targetDp, extraTargetDps],
+    );
     const targetValue = o.value as string | undefined;
     const allowEventValue = o.allowEventValue === true;
     const holidaysDp = o.holidaysDp as string | undefined;
@@ -284,7 +290,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const useAddIcon = !!addIconName;
     const posClass = contentPositionClass(o.contentPosition as string | undefined);
 
-    const hasTarget = !!targetDp;
+    const hasTarget = targets.length > 0;
     const statusCol = statusColor(masterEnabled, events, hasTarget);
     const enabledCount = events.filter((e) => e.enabled && e.weekdays.length > 0).length;
 
@@ -325,6 +331,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         const payload: TimerConfigPayload = {
             events,
             targetDp,
+            extraTargetDps,
             value: targetValue,
             allowEventValue,
             holidaysDp,
@@ -343,6 +350,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         config.title,
         events,
         targetDp,
+        extraTargetDps,
         targetValue,
         allowEventValue,
         holidaysDp,
@@ -436,7 +444,11 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         <span
             className="text-[10px] truncate"
             style={{ color: 'var(--text-secondary)' }}
-            title={hasTarget ? `Ziel: ${targetDp} ← ${targetValue ?? 'true'}` : 'Kein Ziel-Datenpunkt — bitte Admin'}
+            title={
+                hasTarget
+                    ? `Ziel: ${targets.join(', ')} ← ${targetValue ?? 'true'}`
+                    : 'Kein Ziel-Datenpunkt — bitte Admin'
+            }
         >
             {!hasTarget
                 ? '⚠ Admin: Ziel-DP fehlt'
@@ -579,7 +591,11 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         <p
             className="text-[10px] truncate"
             style={{ color: 'var(--text-secondary)' }}
-            title={hasTarget ? `Ziel: ${targetDp} ← ${targetValue ?? 'true'}` : 'Kein Ziel-Datenpunkt — bitte Admin'}
+            title={
+                hasTarget
+                    ? `Ziel: ${targets.join(', ')} ← ${targetValue ?? 'true'}`
+                    : 'Kein Ziel-Datenpunkt — bitte Admin'
+            }
         >
             {!hasTarget
                 ? '⚠ Admin: Ziel-DP fehlt'
@@ -674,7 +690,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     value={hasTarget ? (events.length === 0 ? '0' : String(enabledCount)) : '—'}
                     extraFields={{
                         status: hasTarget ? `${enabledCount}/${events.length}` : 'Ziel-DP fehlt',
-                        target: targetDp ?? '',
+                        target: targets.join(', '),
                         value: targetValue ?? '',
                         count: String(events.length),
                         enabled: String(enabledCount),
