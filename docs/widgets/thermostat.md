@@ -101,6 +101,8 @@ Optionale Batterie- und Erreichbarkeits-DPs werden als kleine Badges eingeblende
 | Erreichbarkeit | Funk grün / rot | `UNREACH` … |
 | Fenster | Fenster grün (zu) / orange (offen) | `WINDOW_OPEN_REPORTING`, `WINDOW_STATE`, `window_open` |
 
+**Werte (kommagetrennt):** Batterie „schwach“ `true,1`, Erreichbarkeit `true,1`, Fenster „offen“ siehe unten — vorausgefüllt, leeres Feld = Standard.
+
 **Fenster – Werte für „offen“:** leer = `true,1,2,open,tilted` (gekippt zählt als offen). Mit **Nur bei Alarm** erscheint jeder Badge nur, solange er selbst Alarm meldet (Batterie schwach, nicht erreichbar, Fenster offen).
 
 **Farbe bei Alarm:** je Badge eigener Farbwähler (Batterie schwach, nicht erreichbar, Fenster offen); vorausgewählt ist die Theme-Farbe, ↺ setzt sie zurück.

@@ -174,7 +174,7 @@ import {
     WINDOW_NAMES,
 } from '../../utils/dpTemplates';
 import type { STATUS_BADGE_COLORS } from '../widgets/StatusBadges';
-import { WINDOW_OPEN_DEFAULT, STATUS_BADGE_COLOR_HEX } from '../widgets/StatusBadges';
+import { WINDOW_OPEN_DEFAULT, batteryLowValues, STATUS_BADGE_COLOR_HEX } from '../widgets/StatusBadges';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
@@ -19083,31 +19083,31 @@ function WidgetFrameInner({
                                                                 ))}
                                                             </div>
                                                             {battMode === 'boolean' && (
-                                                                <div className="flex items-center justify-between">
+                                                                <div>
                                                                     <label
-                                                                        className="text-[11px]"
+                                                                        className="text-[11px] block mb-1"
                                                                         style={{ color: 'var(--text-secondary)' }}
                                                                     >
-                                                                        Invertiert (true=OK)
+                                                                        Werte für &bdquo;schwache Batterie&ldquo;
+                                                                        (kommagetrennt)
                                                                     </label>
-                                                                    <button
-                                                                        onClick={() =>
-                                                                            setO({ batteryInvert: !o.batteryInvert })
+                                                                    <input
+                                                                        type="text"
+                                                                        value={
+                                                                            (o.batteryLowValues as string) ??
+                                                                            batteryLowValues(o)
                                                                         }
-                                                                        className="relative w-8 h-4 rounded-full transition-colors"
-                                                                        style={{
-                                                                            background: o.batteryInvert
-                                                                                ? 'var(--accent)'
-                                                                                : 'var(--app-border)',
-                                                                        }}
-                                                                    >
-                                                                        <span
-                                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                                            style={{
-                                                                                left: o.batteryInvert ? '17px' : '2px',
-                                                                            }}
-                                                                        />
-                                                                    </button>
+                                                                        // Writing the values retires the old invert switch.
+                                                                        onChange={(e) =>
+                                                                            setO({
+                                                                                batteryLowValues: e.target.value,
+                                                                                batteryInvert: undefined,
+                                                                            })
+                                                                        }
+                                                                        placeholder={batteryLowValues({})}
+                                                                        className={`w-full ${stInputCls} font-mono`}
+                                                                        style={stInputStyle}
+                                                                    />
                                                                 </div>
                                                             )}
                                                             {battMode === 'percent' && (
@@ -19297,10 +19297,8 @@ function WidgetFrameInner({
                                                     </label>
                                                     <input
                                                         type="text"
-                                                        value={(o.windowOpenValues as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            setO({ windowOpenValues: e.target.value || undefined })
-                                                        }
+                                                        value={(o.windowOpenValues as string) ?? WINDOW_OPEN_DEFAULT}
+                                                        onChange={(e) => setO({ windowOpenValues: e.target.value })}
                                                         placeholder={WINDOW_OPEN_DEFAULT}
                                                         className={`w-full ${stInputCls} font-mono`}
                                                         style={stInputStyle}

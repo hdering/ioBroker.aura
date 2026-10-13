@@ -10,6 +10,7 @@
 //   - custom layout: the window-icon component and the window text field render
 //   - alarm colour: open window defaults to --badge-warn, windowColor / batteryColor override it;
 //     custom layout honours statusBadgesAlertOnly
+//   - batteryLowValues (incl. the legacy batteryInvert) and empty value lists = default
 /* global window, document */
 import { chromium } from 'playwright';
 
@@ -147,6 +148,27 @@ await show({ windowColor: '#123456' }, { WIN: false });
 check('windowColor leaves the closed badge green', (await badgeBorder('Fenster geschlossen')).includes('--badge-ok'));
 await show({ batteryDp: 'BAT', batteryColor: '#abcdef' }, { WIN: false, BAT: true });
 check('batteryColor overrides the low-battery colour', (await badgeBorder('Batterie schwach')).includes('#abcdef'));
+
+// "low" values for the battery, the retired invert switch and empty = default.
+const battTitle = async () => (await badgeTitles()).find((t) => t.startsWith('Batterie'));
+await show({ batteryDp: 'BAT', batteryLowValues: 'LOW' }, { WIN: false, BAT: 'low' });
+check('batteryLowValues: own value means low', (await battTitle()) === 'Batterie schwach', await battTitle());
+await show({ batteryDp: 'BAT', batteryLowValues: 'LOW' }, { WIN: false, BAT: true });
+check('batteryLowValues: true is ok once replaced', (await battTitle()) === 'Batterie OK', await battTitle());
+await show({ batteryDp: 'BAT', batteryInvert: true }, { WIN: false, BAT: false });
+check('legacy batteryInvert: false still means low', (await battTitle()) === 'Batterie schwach', await battTitle());
+await show({ batteryDp: 'BAT', batteryInvert: true }, { WIN: false, BAT: true });
+check('legacy batteryInvert: true still means ok', (await battTitle()) === 'Batterie OK', await battTitle());
+await show({ batteryDp: 'BAT', batteryLowValues: '' }, { WIN: false, BAT: true });
+check('empty batteryLowValues falls back to true,1', (await battTitle()) === 'Batterie schwach', await battTitle());
+await show({ unreachDp: 'UNR', reachTrueValues: '' }, { WIN: false, UNR: true });
+check(
+    'empty reachTrueValues falls back to true,1',
+    (await badgeTitles()).includes('Gerät nicht erreichbar'),
+    await badgeTitles(),
+);
+await show({ windowOpenValues: '' }, { WIN: true });
+check('empty windowOpenValues falls back to the default', (await badgeTitles()).includes('Fenster offen'));
 
 await show(
     {

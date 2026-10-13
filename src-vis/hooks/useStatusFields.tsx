@@ -3,6 +3,7 @@ import { useDatapoint } from './useDatapoint';
 import type { WidgetConfig } from '../types';
 import type React from 'react';
 import {
+    batteryLowValues,
     matchesValues,
     statusBadgeColor,
     STATUS_BADGE_OK_COLOR,
@@ -60,7 +61,6 @@ export function useStatusFields(config: WidgetConfig): StatusFields {
 
     // ── battery ─────────────────────────────────────────────────────────────────
     const battMode = (opts.batteryMode as 'percent' | 'boolean') ?? 'boolean';
-    const battInvert = opts.batteryInvert === true;
     const battThreshold = (opts.batteryLowThreshold as number) ?? 20;
     let battery = '';
     let isBattLow = false;
@@ -70,8 +70,7 @@ export function useStatusFields(config: WidgetConfig): StatusFields {
             battery = isNaN(num) ? '–' : `${Math.round(num)}%`;
             isBattLow = !isNaN(num) && num <= battThreshold;
         } else {
-            const low = matchesValues(battRaw, 'true,1');
-            isBattLow = battInvert ? !low : low;
+            isBattLow = matchesValues(battRaw, batteryLowValues(opts));
             battery = isBattLow ? 'Niedrig' : 'OK';
         }
     }
@@ -92,7 +91,7 @@ export function useStatusFields(config: WidgetConfig): StatusFields {
 
     // ── reach ───────────────────────────────────────────────────────────────────
     const reachMode = (opts.reachMode as 'unreachable' | 'available') ?? 'unreachable';
-    const reachTrueValues = (opts.reachTrueValues as string) ?? 'true,1';
+    const reachTrueValues = (opts.reachTrueValues as string) || 'true,1';
     let reach = '';
     let isUnreach = false;
     if (reachDpId) {

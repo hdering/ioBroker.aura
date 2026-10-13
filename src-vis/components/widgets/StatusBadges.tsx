@@ -7,6 +7,17 @@ import type { WidgetConfig } from '../../types';
  *  1/2 = tilted/open on rotary handles) and string states (OPEN / TILTED). */
 export const WINDOW_OPEN_DEFAULT = 'true,1,2,open,tilted';
 
+/** Values of `batteryDp` (boolean mode) that mean "low" unless `batteryLowValues` says otherwise. */
+export const BATTERY_LOW_DEFAULT = 'true,1';
+
+/** Effective "low" values: own list, else the retired `batteryInvert` switch read as
+ *  "false,0" (configs saved before the values field existed), else the default. */
+export function batteryLowValues(opts: Record<string, unknown>): string {
+    const own = opts.batteryLowValues;
+    if (typeof own === 'string' && own.trim()) return own;
+    return opts.batteryInvert === true ? 'false,0' : BATTERY_LOW_DEFAULT;
+}
+
 /** Alarm colours of the badges unless `batteryColor` / `reachColor` / `windowColor`
  *  override them — theme tokens, so a theme retints every badge at once. */
 export const STATUS_BADGE_COLORS = {
@@ -59,7 +70,8 @@ export function WindowGlyph({ open, size, color }: { open: boolean; size: number
 // Options read from config.options:
 //   batteryDp           – DP ID
 //   batteryMode         – 'boolean' (default) | 'percent'
-//   batteryInvert       – boolean, inverts boolean mode (true=OK instead of true=low)
+//   batteryLowValues    – comma-separated values meaning "low" in boolean mode (default BATTERY_LOW_DEFAULT)
+//   batteryInvert       – legacy: true = "false,0" mean low (see batteryLowValues())
 //   batteryLowThreshold – number, percent threshold for 'percent' mode (default 20)
 //   unreachDp           – DP ID
 //   reachMode           – 'unreachable' (default) | 'available'
@@ -108,7 +120,6 @@ export function StatusBadges({ config }: Props) {
 
     // ── battery ────────────────────────────────────────────────────────────────
     const battMode = (opts.batteryMode as 'boolean' | 'percent') ?? 'boolean';
-    const battInvert = opts.batteryInvert === true;
     const battThreshold = (opts.batteryLowThreshold as number) ?? 20;
     let isBattLow = false;
     let battPercent: number | null = null;
@@ -118,14 +129,13 @@ export function StatusBadges({ config }: Props) {
             battPercent = isNaN(num) ? null : num;
             isBattLow = battPercent !== null && battPercent <= battThreshold;
         } else {
-            const raw = matchesValues(battVal, 'true,1');
-            isBattLow = battInvert ? !raw : raw;
+            isBattLow = matchesValues(battVal, batteryLowValues(opts));
         }
     }
 
     // ── reach ──────────────────────────────────────────────────────────────────
     const reachMode = (opts.reachMode as 'unreachable' | 'available') ?? 'unreachable';
-    const reachTrueValues = (opts.reachTrueValues as string) ?? 'true,1';
+    const reachTrueValues = (opts.reachTrueValues as string) || 'true,1';
     let isUnreach = false;
     if (unreachDpId) {
         const rawBool = matchesValues(unreachVal, reachTrueValues);

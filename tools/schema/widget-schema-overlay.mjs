@@ -50,6 +50,12 @@ export const KEY_DESCRIPTIONS = {
         'Thermostat-Kanals. Zählt bei statusBadgesAlertOnly als Meldung.',
     windowOpenValues:
         'Kommagetrennte Werte von windowDp, die „offen“ bedeuten. Leer = true,1,2,open,tilted (gekippt zählt als offen).',
+    reachTrueValues:
+        'Kommagetrennte Werte von unreachDp, die den „true“-Zustand bedeuten (je nach reachMode nicht erreichbar ' +
+        'bzw. erreichbar). Leer = true,1.',
+    batteryLowValues:
+        'Kommagetrennte Werte von batteryDp (batteryMode boolean), die „schwache Batterie“ bedeuten. Leer = true,1 ' +
+        '(false,0, solange das ältere batteryInvert gesetzt ist).',
     batteryColor: 'Farbe des Batterie-Badges bei schwacher Batterie. Leer = var(--badge-warn) (orange).',
     reachColor: 'Farbe des Erreichbarkeits-Badges bei „nicht erreichbar“. Leer = var(--badge-crit) (rot).',
     windowColor: 'Farbe des Fenster-Badges bei offenem Fenster. Leer = var(--badge-warn) (orange).',
