@@ -6,6 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Advanced chart - optional vertical line marking the current time, with a freely selectable colour
-- Thermostat - on the round-scale layout, dragging the dial by touch now follows the finger instead of stopping after one step, and setting the temperature no longer triggers the widget click action (#776)
-- Timer - the datapoint picker now opens for the second switched datapoint too (#777)
