@@ -1371,16 +1371,27 @@ const EMBED_MOBILE_HEIGHT_OPTIONS = {
 
 // Read through utils/iframeInteraction (resolveIframeInteractionMode), not off the
 // widget's own options binding (#527, #773).
+const INTERACTION_MODE_TEXT =
+    'Klick-Aktion vs. eingebetteter Inhalt: "action" legt eine Sperrschicht über den Inhalt - die ganze ' +
+    'Fläche löst die Klick-Aktion aus (z. B. Popup öffnen), Links/Knöpfe im Inhalt sind nicht bedienbar. ' +
+    '"content" (Standard) lässt den Inhalt bedienbar und blendet für die Klick-Aktion einen kleinen ' +
+    'Aktions-Button ein (ohne Klick-Aktion keinen).';
 const INTERACTION_MODE_OPTION = {
     interactionMode: {
         type: 'string',
         enum: ['action', 'content', 'contentOnly'],
         default: 'content',
         description:
-            'Klick-Aktion vs. eingebetteter Inhalt: "action" legt eine Sperrschicht über den Inhalt - die ganze ' +
-            'Fläche löst die Klick-Aktion aus (z. B. Popup öffnen), Links/Knöpfe im Inhalt sind nicht bedienbar. ' +
-            '"content" (Standard) lässt den Inhalt bedienbar und blendet für die Klick-Aktion einen kleinen ' +
-            'Aktions-Button ein. "contentOnly" = nur Inhalt, die Klick-Aktion bleibt wirkungslos.',
+            INTERACTION_MODE_TEXT +
+            ' "contentOnly" ist veraltet (Klick-Aktion wirkungslos) - nicht setzen; keine Klick-Aktion = clickAction "none".',
+    },
+};
+const HTML_INTERACTION_MODE_OPTION = {
+    interactionMode: {
+        type: 'string',
+        enum: ['action', 'content'],
+        default: 'content',
+        description: INTERACTION_MODE_TEXT,
     },
 };
 
@@ -1417,7 +1428,7 @@ export const EXTRA_OPTIONS = {
         ...INTERACTION_MODE_OPTION,
         ...EMBED_MOBILE_HEIGHT_OPTIONS,
     },
-    html: { ...INTERACTION_MODE_OPTION, ...EMBED_MOBILE_HEIGHT_OPTIONS },
+    html: { ...HTML_INTERACTION_MODE_OPTION, ...EMBED_MOBILE_HEIGHT_OPTIONS },
     calendar: {
         ...AUTO_HEIGHT_OPTION,
         // Read inside getMultiDayMode(options), i.e. through a parameter rather

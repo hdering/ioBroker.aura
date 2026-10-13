@@ -6,7 +6,7 @@ import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
-import { iframeScrollingAttr, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
+import { iframeScrollingAttr, resolveHtmlInteractionMode } from '../../utils/iframeInteraction';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
 import { injectBridge, sandboxAllowsScripts } from '../../utils/htmlBridge';
@@ -26,7 +26,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     // Same trade-off as the iFrame widget: the srcDoc frame is its own document,
     // so a click inside it never reaches the click action. `action` lays a blocker
     // over the content and turns the whole surface into the click target (#773).
-    const interactionMode = resolveIframeInteractionMode(opts);
+    const interactionMode = resolveHtmlInteractionMode(opts);
     const sandboxPreset = opts.sandboxPreset as SandboxPreset | undefined;
     const sandboxCustom = opts.sandboxCustom as string | undefined;
     const sandboxAttr = resolveSandboxAttr(sandboxPreset, sandboxCustom, 'standard');
@@ -95,7 +95,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
 
     // The sandboxed srcDoc frame is its own document, so clicks in the rendered
     // HTML never reach the frame's click action — ask for the action button.
-    // `action` has its own blocker below and `contentOnly` opts out.
+    // `action` has its own blocker below.
     useEffect(() => {
         onNeedsActionButton?.(!!html && interactionMode === 'content');
     }, [onNeedsActionButton, html, interactionMode]);

@@ -18,8 +18,23 @@ export type IframeInteractionMode = 'action' | 'content' | 'contentOnly';
 export const IFRAME_INTERACTION_MODES: { value: IframeInteractionMode; label: string }[] = [
     { value: 'action', label: 'Nur Klick-Aktion (Inhalt gesperrt)' },
     { value: 'content', label: 'Inhalt bedienbar + Aktions-Button' },
-    { value: 'contentOnly', label: 'Nur Inhalt (Klick-Aktion inaktiv)' },
+    { value: 'contentOnly', label: 'Nur Inhalt, Klick-Aktion wirkungslos (veraltet)' },
 ];
+
+/**
+ * `contentOnly` only ever produced "click action configured, but it never fires" —
+ * the same as `content` with the click action switched off, minus the clue why
+ * nothing happens. The selector offers it only to widgets already stored with it,
+ * and the HTML widget (new in #773) never had it.
+ */
+export function interactionModeChoices(current: IframeInteractionMode): typeof IFRAME_INTERACTION_MODES {
+    return IFRAME_INTERACTION_MODES.filter((m) => m.value !== 'contentOnly' || current === 'contentOnly');
+}
+
+/** HTML widget: `action` or `content` — a stray `contentOnly` (import, MCP) reads as `content`. */
+export function resolveHtmlInteractionMode(opts: Record<string, unknown> | undefined): 'action' | 'content' {
+    return resolveIframeInteractionMode(opts) === 'action' ? 'action' : 'content';
+}
 
 /**
  * Resolves the mode from widget options, migrating the legacy `allowInteraction`

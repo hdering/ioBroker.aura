@@ -94,7 +94,9 @@ nicht möglich; `interactionMode` legt fest, was gilt.
 | --- | --- | --- | --- |
 | `action` | nein (transparente Sperrschicht) | Klick aufs Widget | aus |
 | `content` | ja | Aktions-Button oben rechts | an |
-| `contentOnly` | ja | inaktiv | an |
+| `contentOnly` (veraltet) | ja | wirkungslos | an |
+
+`contentOnly` steht im Editor nur noch für Widgets zur Auswahl, die es schon nutzen — ohne Klick-Aktion reicht `content` mit Klick-Aktion **Aus**.
 
 Die Scrollleiste gehört der eingebetteten Seite, nicht Aura: Passt sie nicht exakt in
 das Widget, zeigt der Desktop-Browser sie dauerhaft (Tablets blenden sie als Overlay

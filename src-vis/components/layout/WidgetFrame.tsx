@@ -74,7 +74,11 @@ import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { FillStatusSection } from '../config/FillStatusSection';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
-import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
+import {
+    interactionModeChoices,
+    resolveHtmlInteractionMode,
+    resolveIframeInteractionMode,
+} from '../../utils/iframeInteraction';
 import { IFRAME_COLOR_SCHEME_MODES, resolveIframeColorSchemeMode } from '../../utils/iframeColorScheme';
 import { IFRAME_ZOOM_STOPS, clampIframeZoom } from '../../utils/iframeZoom';
 import { EmbedMobileHeightField } from '../config/EmbedMobileHeightField';
@@ -3200,7 +3204,7 @@ function IframeInteractionSelect({
     /** HTML widget (#773): no legacy allowInteraction, its scrolling has a toggle of its own. */
     html?: boolean;
 }) {
-    const mode = resolveIframeInteractionMode(o);
+    const mode = html ? resolveHtmlInteractionMode(o) : resolveIframeInteractionMode(o);
     return (
         <div>
             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -3223,7 +3227,7 @@ function IframeInteractionSelect({
                 className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                 style={sty}
             >
-                {IFRAME_INTERACTION_MODES.map((m) => (
+                {interactionModeChoices(mode).map((m) => (
                     <option key={m.value} value={m.value}>
                         {m.label}
                     </option>
@@ -3231,8 +3235,8 @@ function IframeInteractionSelect({
             </select>
             {mode === 'contentOnly' && hasClickAction && (
                 <p className="text-[10px] mt-1" style={{ color: '#f59e0b' }}>
-                    Klicks gehen in {html ? 'den HTML-Inhalt' : 'die eingebettete Seite'} — die Klick-Aktion wird nicht
-                    ausgelöst.
+                    Die Klick-Aktion wird hier nie ausgelöst. Besser {'„Inhalt bedienbar + Aktions-Button“'} wählen und
+                    die Klick-Aktion auf {'„Aus“'} stellen, wenn keine gewünscht ist.
                 </p>
             )}
             {mode === 'content' && !hasClickAction && (

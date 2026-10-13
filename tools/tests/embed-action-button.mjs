@@ -145,8 +145,9 @@ await settle();
 check('html action mode opens the popup on a surface click', await popupVisible());
 await closePopup();
 
+// The HTML widget never offered contentOnly — a stray value reads as content.
 await show('html', { htmlContent: '<b>hi</b>', interactionMode: 'contentOnly', clickAction: CLICK_ACTION });
-check('html contentOnly shows no button', (await actionBtn().count()) === 0);
+check('html contentOnly falls back to the action button', (await actionBtn().count()) === 1);
 
 await show('echartsPreset', { presetId: 'demo-preset', clickAction: CLICK_ACTION });
 check('echartsPreset widget shows the action button', (await actionBtn().count()) === 1);
