@@ -48,6 +48,15 @@ const SMA_STATES = [
     st('sma.0.device.temperature', { unit: '°C' }),
 ];
 
+// evcc with resolved nodes: grid as Grid.Power, battery as one JSON object.
+const EVCC_STATES = [
+    st('evcc.0.status.pvPower', { role: 'value.power', unit: 'W' }),
+    st('evcc.0.status.homePower', { role: 'value.power', unit: 'W' }),
+    st('evcc.0.status.Grid.Power', { role: 'value.power', unit: 'W' }),
+    st('evcc.0.status.battery', { type: 'string', role: 'json' }),
+    st('evcc.0.loadpoint.1.status.chargePower', { role: 'value.power', unit: 'W' }),
+];
+
 // A meter that only knows the grid — the "partly found" case.
 const SHELLY_STATES = [
     st('shelly.0.em.gridPower', { role: 'value.power', unit: 'W', name: 'Netz Leistung' }),
@@ -100,23 +109,61 @@ await open(
         inst('javascript.0'),
         inst('hm-rpc.1'),
     ],
-    SMA_STATES,
+    [...SMA_STATES, ...EVCC_STATES],
 );
 
 const listed = await select.locator('option').allTextContents();
-check('the evcc instance is offered', listed.some((o) => o.includes('evcc.0')), listed.join(' | '));
-check('so is SMA, by its proper name', listed.some((o) => o === 'SMA (sma.0)'), listed.join(' | '));
-check('and Fronius', listed.some((o) => o.includes('fronius.1')), listed.join(' | '));
+check(
+    'the evcc instance is offered',
+    listed.some((o) => o.includes('evcc.0')),
+    listed.join(' | '),
+);
+check(
+    'so is SMA, by its proper name',
+    listed.some((o) => o === 'SMA (sma.0)'),
+    listed.join(' | '),
+);
+check(
+    'and Fronius',
+    listed.some((o) => o.includes('fronius.1')),
+    listed.join(' | '),
+);
 check('unrelated adapters are left out', !listed.some((o) => /admin|javascript|hm-rpc/.test(o)), listed.join(' | '));
 check('evcc comes first — it can do the most', listed[0].includes('evcc'), listed.join(' | '));
-check('there is a manual entry', listed.some((o) => o.includes('Manuell')), listed.join(' | '));
-check('and one for an evcc prefix by hand', listed.some((o) => o.includes('von Hand')), listed.join(' | '));
+check(
+    'there is a manual entry',
+    listed.some((o) => o.includes('Manuell')),
+    listed.join(' | '),
+);
+check(
+    'and one for an evcc prefix by hand',
+    listed.some((o) => o.includes('von Hand')),
+    listed.join(' | '),
+);
 
-// ── picking evcc is still just a prefix ──────────────────────────────────────
-await select.selectOption('evcc.0');
-await page.waitForTimeout(500);
-eq('picking evcc sets the prefix', (await opts()).evccPrefix, 'evcc.0');
-eq('and no auto-mapped adapter', (await opts()).sourceAdapter, undefined);
+// ── evcc fills its datapoints on its own ─────────────────────────────────────
+// The widget starts on the evcc.0 default with empty fields; opening the panel
+// fills them from the paths evcc publishes.
+{
+    const e = await opts();
+    eq('evcc stays the source', e.evccPrefix ?? 'evcc.0', 'evcc.0');
+    eq('and no auto-mapped adapter', e.sourceAdapter, undefined);
+    eq('evcc: production filled on open', e.pvPowerDatapoint, 'evcc.0.status.pvPower');
+    eq('evcc: consumption filled', e.homePowerDatapoint, 'evcc.0.status.homePower');
+    eq('evcc: grid from the resolved node', e.gridPowerDatapoint, 'evcc.0.status.Grid.Power');
+    eq('evcc: the JSON battery object as charge level', e.batterySocDatapoint, 'evcc.0.status.battery');
+    eq('evcc: no second battery power datapoint', e.batteryPowerDatapoint, undefined);
+    check('evcc offers a search again too', (await dlg.locator('.aura-evcc-rescan').count()) > 0);
+}
+
+// ── every field has a datapoint picker ───────────────────────────────────────
+await dlg.locator('button.aura-evcc-pick-homePowerDatapoint').click();
+await page.waitForTimeout(400);
+check('the picker button opens the datapoint picker', await page.locator('.aura-dp-picker').isVisible());
+await page.keyboard.press('Escape');
+await page.waitForTimeout(300);
+check('Escape closes the picker', (await page.locator('.aura-dp-picker').count()) === 0);
+check('and leaves the edit dialog open', await dlg.isVisible());
 
 // ── picking SMA maps its datapoints ──────────────────────────────────────────
 await select.selectOption('sma.0');
@@ -132,8 +179,11 @@ eq('the battery power is mapped separately', o.batteryPowerDatapoint, 'sma.0.bat
 
 const report = dlg.locator('.aura-evcc-scan-report');
 check('the panel says how much it found', (await report.textContent()).includes('5 von 5'), await report.textContent());
-check('the mapped datapoints are visible in the fields', (await dlg.locator('input.aura-evcc-dp-pvPowerDatapoint').inputValue()) === 'sma.0.pvPower');
-check('and can be corrected', (await dlg.locator('input.aura-evcc-dp-gridPowerDatapoint').isEditable()));
+check(
+    'the mapped datapoints are visible in the fields',
+    (await dlg.locator('input.aura-evcc-dp-pvPowerDatapoint').inputValue()) === 'sma.0.pvPower',
+);
+check('and can be corrected', await dlg.locator('input.aura-evcc-dp-gridPowerDatapoint').isEditable());
 check('there is a way to search again', (await dlg.locator('.aura-evcc-rescan').count()) > 0);
 
 // ── a source that only covers part of it says so ─────────────────────────────

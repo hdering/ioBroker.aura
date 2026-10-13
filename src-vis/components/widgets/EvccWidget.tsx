@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame } from 'lucide-react';
+import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame, Database } from 'lucide-react';
 import { useThemeEpoch } from '../../store/themeEpoch';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useIoBroker, getObjectViewDirect, getObjectDirect } from '../../hooks/useIoBroker';
@@ -7,6 +7,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
+import { DatapointPicker } from '../config/DatapointPicker';
 import {
     ENERGY_ADAPTERS,
     ENERGY_SLOTS,
@@ -14,6 +15,7 @@ import {
     instanceLabel,
     isEvccInstance,
     mapEnergyDatapoints,
+    mapEvccDatapoints,
     powerUnitFactor,
     type CandidateState,
     type EnergySlot,
@@ -149,12 +151,11 @@ function useEnergyInstances(): EnergyInstance[] | null {
 }
 
 /**
- * Every numeric state an instance publishes, in the shape the scoring wants.
- *
- * One object-view range query over the instance. Adapters with thousands of states
- * exist, so the result is filtered down to numbers here rather than carried around.
+ * Every state an instance publishes, in the shape the scoring wants — whatever its
+ * type, because evcc keeps some values as JSON strings. One object-view range query
+ * over the instance; the caller narrows it down to numbers for the scoring.
  */
-async function readInstanceStates(instance: string): Promise<CandidateState[]> {
+async function readInstanceObjects(instance: string): Promise<CandidateState[]> {
     const res = await getObjectViewDirect('state', `${instance}.`, `${instance}.${KEY_END}`);
     return (res.rows ?? [])
         .filter((row) => String(row.id ?? '').startsWith(`${instance}.`))
@@ -171,8 +172,7 @@ async function readInstanceStates(instance: string): Promise<CandidateState[]> {
                 min: typeof common.min === 'number' ? common.min : undefined,
                 max: typeof common.max === 'number' ? common.max : undefined,
             };
-        })
-        .filter((c) => c.type === undefined || c.type === 'number');
+        });
 }
 
 // ── unit normalisation ────────────────────────────────────────────────────────
@@ -1735,21 +1735,72 @@ function DpField({
     className: string;
     style: React.CSSProperties;
 }) {
+    const t = useT();
+    const [picking, setPicking] = useState(false);
     return (
         <div>
             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                 {label} {hint && <span style={{ opacity: 0.6 }}>{hint}</span>}
             </label>
-            <input
-                type="text"
-                value={value}
-                onChange={(e) => onChange(e.target.value || undefined)}
-                placeholder={placeholder}
-                className={`aura-evcc-dp-${optionKey} ${className} font-mono`}
-                style={style}
-            />
+            <div className="flex gap-1">
+                <input
+                    type="text"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value || undefined)}
+                    placeholder={placeholder}
+                    className={`aura-evcc-dp-${optionKey} ${className} font-mono flex-1 min-w-0`}
+                    style={style}
+                />
+                <button
+                    onClick={() => setPicking(true)}
+                    className={`aura-evcc-pick-${optionKey} text-xs px-2 rounded-lg shrink-0`}
+                    style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                    title={t('evcc.pickDp')}
+                >
+                    <Database size={12} />
+                </button>
+            </div>
+            {picking && (
+                <DatapointPicker
+                    currentValue={value}
+                    onSelect={(id) => {
+                        onChange(id || undefined);
+                        setPicking(false);
+                    }}
+                    onClose={() => setPicking(false)}
+                />
+            )}
         </div>
     );
+}
+
+/**
+ * The five datapoints for `instance`, as option values. evcc by its known paths,
+ * everything else — and whatever evcc left open — by scoring what it publishes.
+ */
+async function findDatapoints(instance: string): Promise<Partial<Record<EnergySlot, string>>> {
+    const all = await readInstanceObjects(instance);
+    const evcc = isEvccInstance(instance);
+    const out: Partial<Record<EnergySlot, string>> = evcc
+        ? mapEvccDatapoints(
+              instance,
+              all.map((c) => c.id),
+          )
+        : {};
+    // A JSON battery object already carries the power — see mapEvccDatapoints.
+    const powerInSoc = evcc && !!out.batterySoc && /\.status\.battery$/i.test(out.batterySoc);
+    const used = new Set(Object.values(out));
+    const numeric = all.filter((c) => (c.type === undefined || c.type === 'number') && !used.has(c.id));
+    const scored = mapEnergyDatapoints(numeric);
+    for (const slot of ENERGY_SLOTS) {
+        if (out[slot] || (slot === 'batteryPower' && powerInSoc)) continue;
+        const id = scored[slot]?.id;
+        if (id && !used.has(id)) {
+            out[slot] = id;
+            used.add(id);
+        }
+    }
+    return out;
 }
 
 export function EvccConfig({
@@ -1795,16 +1846,13 @@ export function EvccConfig({
             set({ evccPrefix: '', sourceAdapter: undefined });
             return;
         }
-        if (isEvccInstance(value)) {
-            set({ evccPrefix: value, sourceAdapter: undefined });
-            return;
-        }
         setScanning(true);
         try {
-            const states = await readInstanceStates(value);
-            const found = mapEnergyDatapoints(states);
-            const patch: Record<string, unknown> = { evccPrefix: '', sourceAdapter: value };
-            for (const slot of ENERGY_SLOTS) patch[SLOT_OPTION[slot]] = found[slot]?.id;
+            const found = await findDatapoints(value);
+            const patch: Record<string, unknown> = isEvccInstance(value)
+                ? { evccPrefix: value, sourceAdapter: undefined }
+                : { evccPrefix: '', sourceAdapter: value };
+            for (const slot of ENERGY_SLOTS) patch[SLOT_OPTION[slot]] = found[slot];
             set(patch);
             setScanReport({
                 instance: value,
@@ -1815,6 +1863,19 @@ export function EvccConfig({
             setScanning(false);
         }
     };
+
+    // A widget created with the evcc default (or saved before the fields were
+    // filled in) shows five empty fields although evcc knows every one of them.
+    // Fill them once when the panel opens — only when all are empty, so nothing
+    // the user typed is touched.
+    const slotsEmpty = ENERGY_SLOTS.every((slot) => !o[SLOT_OPTION[slot]]);
+    const autoFillFor = isEvccInstance(prefix) && onKnownInstance && slotsEmpty ? prefix : '';
+    useEffect(() => {
+        if (!autoFillFor) return;
+        void pickSource(autoFillFor);
+        // pickSource is recreated every render; the instance is what matters.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [autoFillFor]);
     const lpCount = (o.loadpointCount as number) ?? 1;
     const showBattery = (o.showBattery as boolean) ?? true;
     const showLoadpoints = (o.showLoadpoints as boolean) ?? true;
@@ -1940,9 +2001,9 @@ export function EvccConfig({
                             })}`}
                     </p>
                 )}
-                {sourceAdapter && !scanning && (
+                {(sourceAdapter || (onKnownInstance && isEvccInstance(prefix))) && !scanning && (
                     <button
-                        onClick={() => void pickSource(sourceAdapter)}
+                        onClick={() => void pickSource(sourceAdapter || prefix)}
                         className="aura-evcc-rescan text-[10px] mt-1 underline"
                         style={{ color: 'var(--accent)' }}
                     >

@@ -2449,6 +2449,7 @@ export const en: Record<TranslationKey, string> = {
     'evcc.scanFound': '{n} of {total} values mapped – check them below and change what is wrong.',
     'evcc.scanMissing': 'Not found: {slots}.',
     'evcc.scanAgain': 'Search again',
+    'evcc.pickDp': 'Pick datapoint',
     'evcc.slot.pv': 'Production',
     'evcc.slot.home': 'House consumption',
     'evcc.slot.grid': 'Grid',

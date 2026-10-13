@@ -21,7 +21,7 @@ const bundle = join(cache, `aura-energy-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export { mapEnergyDatapoints, scoreCandidate, powerUnitFactor, instanceLabel, isEvccInstance, SLOT_OPTION } from './src-vis/utils/energySources.ts';",
+            "export { mapEnergyDatapoints, scoreCandidate, powerUnitFactor, instanceLabel, isEvccInstance, SLOT_OPTION, mapEvccDatapoints } from './src-vis/utils/energySources.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -31,8 +31,15 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { mapEnergyDatapoints, scoreCandidate, powerUnitFactor, instanceLabel, isEvccInstance, SLOT_OPTION } =
-    await import(pathToFileURL(bundle).href);
+const {
+    mapEnergyDatapoints,
+    scoreCandidate,
+    powerUnitFactor,
+    instanceLabel,
+    isEvccInstance,
+    SLOT_OPTION,
+    mapEvccDatapoints,
+} = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -104,11 +111,7 @@ eq('… and a lookalike is not', isEvccInstance('evccfoo.0'), false);
 }
 
 // ── the traps ────────────────────────────────────────────────────────────────
-eq(
-    'a temperature is never a power reading',
-    scoreCandidate('pv', s('sma.0.pv.temperature', { unit: '°C' })),
-    null,
-);
+eq('a temperature is never a power reading', scoreCandidate('pv', s('sma.0.pv.temperature', { unit: '°C' })), null);
 eq('a kWh counter is not a power reading', scoreCandidate('pv', s('sma.0.pvPowerToday', { unit: 'kWh' })), null);
 eq('a string state is skipped', scoreCandidate('grid', { id: 'x.0.gridPower', type: 'string' }), null);
 eq('a write-only state is skipped', scoreCandidate('grid', s('x.0.gridPower', { read: false })), null);
@@ -148,6 +151,39 @@ check(
     const found = mapEnergyDatapoints([s('x.0.batteryPower', { role: 'value.power', unit: 'W' })]);
     eq('it goes to the better-fitting slot', found.batteryPower?.id, 'x.0.batteryPower');
     eq('and not to the other one as well', found.batterySoc, undefined);
+}
+
+// ── evcc: known paths, every adapter layout ──────────────────────────────────
+{
+    const flat = mapEvccDatapoints('evcc.0', [
+        'evcc.0.status.pvPower',
+        'evcc.0.status.homePower',
+        'evcc.0.status.gridPower',
+        'evcc.0.status.batterySoc',
+        'evcc.0.status.batteryPower',
+        'evcc.0.loadpoint.1.status.chargePower',
+    ]);
+    eq('flat: production', flat.pv, 'evcc.0.status.pvPower');
+    eq('flat: consumption', flat.home, 'evcc.0.status.homePower');
+    eq('flat: grid', flat.grid, 'evcc.0.status.gridPower');
+    eq('flat: charge level', flat.batterySoc, 'evcc.0.status.batterySoc');
+    eq('flat: battery power', flat.batteryPower, 'evcc.0.status.batteryPower');
+
+    const nodes = mapEvccDatapoints('evcc.1', [
+        'evcc.1.status.pvPower',
+        'evcc.1.status.Grid.Power',
+        'evcc.1.status.grid',
+        'evcc.1.status.battery',
+    ]);
+    eq('resolved nodes win over the JSON grid object', nodes.grid, 'evcc.1.status.Grid.Power');
+    eq('JSON battery object as the charge level', nodes.batterySoc, 'evcc.1.status.battery');
+    eq('and no separate battery power next to it', nodes.batteryPower, undefined);
+    eq('a missing value stays empty', nodes.home, undefined);
+    eq(
+        'old lowercase node spelling is found too',
+        mapEvccDatapoints('evcc.0', ['evcc.0.status.Grid.power']).grid,
+        'evcc.0.status.Grid.power',
+    );
 }
 
 // ── the slot→option mapping the config panel writes through ──────────────────

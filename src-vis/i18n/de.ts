@@ -2468,6 +2468,7 @@ export const de = {
     'evcc.scanFound': '{n} von {total} Werten zugeordnet – unten prüfen und bei Bedarf ändern.',
     'evcc.scanMissing': 'Nicht gefunden: {slots}.',
     'evcc.scanAgain': 'Erneut suchen',
+    'evcc.pickDp': 'Datenpunkt wählen',
     'evcc.slot.pv': 'Erzeugung',
     'evcc.slot.home': 'Hausverbrauch',
     'evcc.slot.grid': 'Netz',

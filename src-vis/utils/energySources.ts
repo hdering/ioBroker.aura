@@ -243,3 +243,43 @@ export function mapEnergyDatapoints(states: CandidateState[]): Partial<Record<En
     }
     return out;
 }
+
+// ── evcc ──────────────────────────────────────────────────────────────────────
+
+/**
+ * Where evcc keeps each value, newest adapter layout last. The adapter reshaped
+ * its tree several times — flat numbers (`status.gridPower`), resolved nodes
+ * (`status.Grid.Power`, `status.Grid.power` before 0.2.9) and JSON objects
+ * (`status.grid`, `status.battery`) — so each slot lists every spelling the widget
+ * can read. Compared case-insensitively.
+ */
+const EVCC_PATHS: Record<EnergySlot, string[]> = {
+    pv: ['status.pvPower'],
+    home: ['status.homePower'],
+    grid: ['status.gridPower', 'status.Grid.Power', 'status.grid'],
+    batterySoc: ['status.batterySoc', 'status.Battery.Soc', 'status.battery'],
+    batteryPower: ['status.batteryPower', 'status.Battery.Power'],
+};
+
+/**
+ * The five datapoints of an evcc instance, from the ids it actually publishes.
+ *
+ * `status.battery` is a JSON object carrying SoC and power together; picked as the
+ * SoC source it feeds both, so the power slot stays empty rather than pointing at
+ * a second datapoint the widget would ignore.
+ */
+export function mapEvccDatapoints(prefix: string, ids: string[]): Partial<Record<EnergySlot, string>> {
+    const byLower = new Map(ids.map((id) => [id.toLowerCase(), id]));
+    const out: Partial<Record<EnergySlot, string>> = {};
+    for (const slot of ENERGY_SLOTS) {
+        for (const rel of EVCC_PATHS[slot]) {
+            const id = byLower.get(`${prefix}.${rel}`.toLowerCase());
+            if (id) {
+                out[slot] = id;
+                break;
+            }
+        }
+    }
+    if (out.batterySoc && /\.status\.battery$/i.test(out.batterySoc)) delete out.batteryPower;
+    return out;
+}
