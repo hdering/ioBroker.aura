@@ -306,6 +306,10 @@ export const de = {
     'settings.grid.fluid': 'Fensterbreite füllen',
     'settings.grid.fluidHint':
         'Die Widgets strecken sich auf die volle Breite des Fensters. Die Anordnung bleibt, nur die Breite passt sich an; unterhalb der Tablet-/Mobile-Grenze gelten weiter die Spalten-Flüsse. Der Editor zeigt die Entwurfsansicht.',
+    'guidelines.fluidHintWidth':
+        '„Fensterbreite füllen“ ist aktiv: Im Frontend passt sich das Raster jeder Fensterbreite an, deshalb erscheint dort nur die waagerechte Linie. Die senkrechte zeigt der Editor.',
+    'guidelines.fluidHintBoth':
+        '„Fensterbreite füllen“ mit mitwachsender Höhe ist aktiv: Im Frontend passt sich das Raster jedem Fenster an, eine feste Gerätekante gibt es dort nicht. Die Hilfslinien zeigt nur der Editor.',
     'settings.grid.fluidOn': 'Fensterbreite',
     'settings.grid.fluidOff': 'Fest',
     'settings.grid.fluidDesignWidth': 'Entwurfsbreite',

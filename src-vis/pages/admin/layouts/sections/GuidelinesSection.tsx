@@ -4,6 +4,7 @@ import { ToggleRow } from '../shared/SettingControls';
 import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import type { LayoutSettings } from '../../../../store/dashboardStore';
+import { useT } from '../../../../i18n';
 
 const GUIDELINE_KEYS: (keyof LayoutSettings)[] = [
     'guidelinesEnabled',
@@ -18,6 +19,7 @@ interface GuidelinesSectionProps {
 }
 
 export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
+    const t = useT();
     const { eff, set, resetKeys, isDirty, level } = useLayoutSetting(contextId);
 
     const [w, wOv] = eff('guidelinesWidth');
@@ -31,6 +33,18 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
     const effectiveShowFe = (showFe ?? true) as boolean;
     const effectiveEnabled = (enabled ?? true) as boolean;
     const effectiveShowRes = (showRes ?? true) as boolean;
+    // The fluid grid fills every window, so the frontend has no device edge to
+    // mark: Dashboard drops the vertical line there, and the horizontal one too
+    // once the rows stretch. The editor (design view) keeps both — say so here,
+    // otherwise "Aktiv" looks broken in the frontend.
+    const [widthMode] = eff('gridWidthMode');
+    const [heightMode] = eff('gridHeightMode');
+    const fluidHint =
+        (widthMode ?? 'fixed') !== 'fluid'
+            ? null
+            : (heightMode ?? 'fixed') === 'fixed'
+              ? t('guidelines.fluidHintWidth')
+              : t('guidelines.fluidHintBoth');
 
     const cardStyle = { background: 'var(--app-surface)', border: '1px solid var(--app-border)' };
 
@@ -129,6 +143,15 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
                         ]}
                     />
                 </div>
+                {fluidHint && (
+                    <p
+                        className="text-xs rounded-lg px-3 py-2"
+                        style={{ color: 'var(--text-secondary)', background: 'var(--app-bg)' }}
+                        data-guidelines-fluid-hint=""
+                    >
+                        {fluidHint}
+                    </p>
+                )}
             </div>
 
             {/* ── Resolution ─────────────────────────────────────────────── */}

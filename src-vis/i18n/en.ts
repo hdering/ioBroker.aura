@@ -305,6 +305,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.fluid': 'Fill window width',
     'settings.grid.fluidHint':
         'Widgets stretch to the full window width. The arrangement stays, only the width adapts; below the tablet/mobile breakpoint the column flows still apply. The editor shows the design view.',
+    'guidelines.fluidHintWidth':
+        '"Fill window width" is on: in the frontend the grid adapts to any window width, so only the horizontal line shows there. The editor shows the vertical one.',
+    'guidelines.fluidHintBoth':
+        '"Fill window width" with growing height is on: in the frontend the grid adapts to any window, there is no fixed device edge. Only the editor shows the guidelines.',
     'settings.grid.fluidOn': 'Window width',
     'settings.grid.fluidOff': 'Fixed',
     'settings.grid.fluidDesignWidth': 'Design width',
