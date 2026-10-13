@@ -168,7 +168,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
 
     return (
         <>
-            {pickerTarget && (
+            {pickerTarget !== null && (
                 <DatapointPicker
                     currentValue={currentPickerValue}
                     onSelect={onPick}
