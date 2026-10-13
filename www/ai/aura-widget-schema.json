@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.82.4",
+    "auraVersion": "0.82.5",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -10428,6 +10428,16 @@
           "type": "string",
           "default": "timeseries",
           "description": "\"timeseries\" = Verlauf über die Zeit, \"comparison\" = Balkenvergleich, \"json\" = fertige ECharts-Option aus einem Datenpunkt."
+        },
+        "echartNowLine": {
+          "type": "boolean",
+          "default": false,
+          "description": "Senkrechte Linie bei der aktuellen Uhrzeit (wandert alle 30 s mit). Nur mit Zeitachse (Zeitreihe, JSON mit Zeitachse) und nur, wenn „jetzt“ im gezeigten Zeitraum liegt — also in der Tagesansicht von heute, bei Prognosen/Preiskurven mit Zukunftswerten; bei rollenden Zeiträumen endet die Achse am letzten Messwert."
+        },
+        "echartNowLineColor": {
+          "type": "string",
+          "description": "Farbe der Jetzt-Linie (Hex oder CSS-Variable), Standard #ef4444.",
+          "color": true
         },
         "echartPeriodPlacement": {
           "type": "string",
