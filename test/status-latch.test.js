@@ -394,6 +394,19 @@ test('restore from persisted JSON', () => {
     assert.strictEqual(b.engine.entries('battery')[0].count, 1);
 });
 
+test('restore resolves imported entries against the stored watch list', () => {
+    const RHS = 'hm-rpc.2.OEQ1127049.0.LOWBAT';
+    const a = makeEngine();
+    a.engine.register({ source: 'w1', cat: 'battery', watch: [{ id: RHS, kind: 'bool', name: 'Drehgriff' }] });
+    // A list persisted by an older adapter: the exact-id import never resolved.
+    const stale = [{ id: RHS, name: RHS, since: T0, count: 1, active: true, unresolved: true }];
+    const b = makeEngine();
+    b.engine.restore('battery', { list: JSON.stringify(stale), sources: JSON.stringify(a.sources.battery) });
+    assert.strictEqual(b.lists.battery.length, 1, 'the resolved list is written');
+    assert.strictEqual(b.lists.battery[0].unresolved, undefined);
+    assert.strictEqual(b.lists.battery[0].name, 'Drehgriff');
+});
+
 // ── history ─────────────────────────────────────────────────────────────────
 
 test('parse reopen and import', () => {
