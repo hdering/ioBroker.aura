@@ -145,7 +145,8 @@
     },
     "statusBadgesAlertOnly": {
       "type": "boolean",
-      "default": false
+      "default": false,
+      "description": "Jeder Status-Badge erscheint nur, solange er selbst Alarm meldet (Batterie schwach, nicht erreichbar, Fenster offen); der Sperr-Badge entfällt. Wirkt nur mit showStatusBadges."
     },
     "batteryDp": {
       "type": "string",

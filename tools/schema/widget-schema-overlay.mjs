@@ -54,6 +54,9 @@ export const KEY_DESCRIPTIONS = {
     reachColor: 'Farbe des Erreichbarkeits-Badges bei „nicht erreichbar“. Leer = var(--badge-crit) (rot).',
     windowColor: 'Farbe des Fenster-Badges bei offenem Fenster. Leer = var(--badge-warn) (orange).',
     showStatusBadges: 'Batterie-/Erreichbarkeits-/Sperr-/Fenster-Badges anzeigen.',
+    statusBadgesAlertOnly:
+        'Jeder Status-Badge erscheint nur, solange er selbst Alarm meldet (Batterie schwach, nicht erreichbar, ' +
+        'Fenster offen); der Sperr-Badge entfällt. Wirkt nur mit showStatusBadges.',
     namePattern: 'Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>.',
     showRoom: 'Raum des Geräts mit anzeigen.',
     showCount: 'Anzahl-Chip in der Kopfzeile anzeigen.',

@@ -18982,7 +18982,12 @@ function WidgetFrameInner({
                                                         />
                                                     </button>
                                                 </div>
-                                                <div className="flex items-center gap-1.5">
+                                                {/* Only meaningful while the badges are shown at all. */}
+                                                <div
+                                                    className="flex items-center gap-1.5"
+                                                    style={{ opacity: showBadges ? 1 : 0.4 }}
+                                                    title={showBadges ? undefined : 'Erst „Anzeigen“ einschalten'}
+                                                >
                                                     <span
                                                         className="text-[10px]"
                                                         style={{ color: 'var(--text-secondary)' }}
@@ -18990,6 +18995,7 @@ function WidgetFrameInner({
                                                         Nur bei Alarm
                                                     </span>
                                                     <button
+                                                        disabled={!showBadges}
                                                         onClick={() => setO({ statusBadgesAlertOnly: !alertOnly })}
                                                         className="relative w-8 h-4 rounded-full transition-colors"
                                                         style={{

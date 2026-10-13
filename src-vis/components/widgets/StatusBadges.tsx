@@ -140,7 +140,13 @@ export function StatusBadges({ config }: Props) {
     const windowOpenValues = (opts.windowOpenValues as string) || WINDOW_OPEN_DEFAULT;
     const isWindowOpen = windowDpId ? matchesValues(windowVal, windowOpenValues) : false;
 
-    if (alertOnly && !isBattLow && !isUnreach && !isWindowOpen) return null;
+    // Alert-only filters per badge: each one shows only while it is itself an alarm —
+    // a low battery must not drag a green reach badge along (#767). The lock is never one.
+    const showBatt = !!battDpId && (!alertOnly || isBattLow);
+    const showReach = !!unreachDpId && (!alertOnly || isUnreach);
+    const showWindow = !!windowDpId && (!alertOnly || isWindowOpen);
+    const showLock = !!lockDpId && isLocked !== null && !alertOnly;
+    if (!showBatt && !showReach && !showWindow && !showLock) return null;
 
     const green = STATUS_BADGE_OK_COLOR;
     const blue = 'var(--accent, #3b82f6)';
@@ -160,7 +166,7 @@ export function StatusBadges({ config }: Props) {
 
     return (
         <div className="absolute bottom-0 right-0 flex items-center gap-0.5 pointer-events-none" style={{ zIndex: 2 }}>
-            {battDpId && (
+            {showBatt && (
                 <span
                     title={battTitle}
                     className="flex items-center justify-center rounded-full"
@@ -178,7 +184,7 @@ export function StatusBadges({ config }: Props) {
                     )}
                 </span>
             )}
-            {unreachDpId && (
+            {showReach && (
                 <span
                     title={isUnreach ? 'Gerät nicht erreichbar' : 'Gerät erreichbar'}
                     className="flex items-center justify-center rounded-full"
@@ -196,7 +202,7 @@ export function StatusBadges({ config }: Props) {
                     )}
                 </span>
             )}
-            {windowDpId && (!alertOnly || isWindowOpen) && (
+            {showWindow && (
                 <span
                     title={isWindowOpen ? 'Fenster offen' : 'Fenster geschlossen'}
                     className="flex items-center justify-center rounded-full"
@@ -210,7 +216,7 @@ export function StatusBadges({ config }: Props) {
                     <WindowGlyph open={isWindowOpen} size={10} color={windowColor} />
                 </span>
             )}
-            {lockDpId && isLocked !== null && (
+            {showLock && (
                 <span
                     title={isLocked ? 'Abgeschlossen' : 'Nicht abgeschlossen'}
                     className="flex items-center justify-center rounded-full"

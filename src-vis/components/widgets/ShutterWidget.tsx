@@ -922,7 +922,8 @@ export function ShutterWidget({ config }: WidgetProps) {
     // ── DEFAULT ───────────────────────────────────────────────────────────────
     const badgeCount =
         opts.showStatusBadges !== false
-            ? [opts.batteryDp, opts.unreachDp, opts.lockDp].filter((v) => typeof v === 'string' && v).length
+            ? [opts.batteryDp, opts.unreachDp, opts.lockDp, opts.windowDp].filter((v) => typeof v === 'string' && v)
+                  .length
             : 0;
     const badgesWidth = badgeCount > 0 ? badgeCount * 18 + (badgeCount - 1) * 2 + 4 : 0;
     return (

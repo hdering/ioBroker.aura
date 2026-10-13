@@ -19,7 +19,7 @@ const SHOTS = process.env.AURA_SHOTS ?? '';
 // Every show() mounts a fresh widget on fresh datapoints: offline, useDatapoint only
 // picks a value up on mount, so a value change is tested as a new mount.
 let run = 0;
-let SET, ACT, WIN, BAT;
+let SET, ACT, WIN, BAT, UNR;
 
 const results = [];
 const check = (name, ok, detail = '') => {
@@ -38,15 +38,29 @@ await page.waitForFunction(() => !!window.__auraShot?.ready, null, { timeout: 90
 async function show(options, values, extra = {}) {
     run++;
     const base = `demo.thermo${run}`;
-    [SET, ACT, WIN, BAT] = [`${base}.set`, `${base}.act`, `${base}.WINDOW_OPEN_REPORTING`, `${base}.LOWBAT`];
-    values = Object.fromEntries(Object.entries(values).map(([k, v]) => [k.replace('WIN', WIN).replace('BAT', BAT), v]));
+    [SET, ACT, WIN, BAT, UNR] = [
+        `${base}.set`,
+        `${base}.act`,
+        `${base}.WINDOW_OPEN_REPORTING`,
+        `${base}.LOWBAT`,
+        `${base}.UNREACH`,
+    ];
+    values = Object.fromEntries(
+        Object.entries(values).map(([k, v]) => [k.replace('WIN', WIN).replace('BAT', BAT).replace('UNR', UNR), v]),
+    );
     const widget = {
         id: `w-thermo-window-${run}`,
         type: 'thermostat',
         title: 'Bad',
         datapoint: SET,
         gridPos: { x: 0, y: 0, w: 4, h: 4 },
-        options: { actualDatapoint: ACT, windowDp: WIN, ...options, ...(options.batteryDp ? { batteryDp: BAT } : {}) },
+        options: {
+            actualDatapoint: ACT,
+            windowDp: WIN,
+            ...options,
+            ...(options.batteryDp ? { batteryDp: BAT } : {}),
+            ...(options.unreachDp ? { unreachDp: UNR } : {}),
+        },
         ...extra,
     };
     const vals = { [SET]: 21, [ACT]: 20.5, ...values };
@@ -90,6 +104,13 @@ await show({ batteryDp: 'BAT', statusBadgesAlertOnly: true }, { WIN: false, BAT:
 check('alert-only: nothing while closed and battery ok', (await badgeTitles()).length === 0, await badgeTitles());
 await show({ batteryDp: 'BAT', statusBadgesAlertOnly: true }, { WIN: true, BAT: false });
 check('alert-only: window open shows up', (await badgeTitles()).includes('Fenster offen'), await badgeTitles());
+// Per badge: a low battery must not pull the closed window (or a reachable device) along.
+await show({ batteryDp: 'BAT', unreachDp: 'UNR', statusBadgesAlertOnly: true }, { WIN: false, BAT: true, UNR: false });
+check(
+    'alert-only: only the alarming badge shows',
+    JSON.stringify(await badgeTitles()) === '["Batterie schwach"]',
+    await badgeTitles(),
+);
 
 await show(
     {
