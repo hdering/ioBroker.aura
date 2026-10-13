@@ -52,6 +52,8 @@ export interface JsonProbe {
     /** First entry's label/value, shown as a live example. */
     sampleLabel?: string;
     sampleValue?: string;
+    /** Every label in payload order (capped) — the category axis' names, e.g. for the now line. */
+    labels?: string[];
     entries: number;
     /** Every sampled label parses as a timestamp → the time axis is the right choice. */
     timeLike: boolean;

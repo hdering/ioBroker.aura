@@ -222,6 +222,14 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const [adapterStates, setAdapterStates] = useState<Record<string, SeriesAdapterState>>({});
     const [jsonOpen, setJsonOpen] = useState(false);
     const [jsonProbes, setJsonProbes] = useState<Record<string, JsonProbe>>({});
+    // The category names the chart will show, in its order — to say which one the text hits.
+    const nowLineCategories = nowLineByLabel
+        ? [...new Set(series.flatMap((s) => jsonProbes[s.id]?.labels ?? []))].filter((l) => l !== '')
+        : [];
+    const nowLineNeedle = echartNowLineMatch.trim().toLowerCase();
+    const nowLineHit = nowLineNeedle
+        ? nowLineCategories.find((c) => c.toLowerCase().includes(nowLineNeedle))
+        : undefined;
 
     const setSeries = (next: EChartSeriesConfig[]) => setO({ echartSeries: next });
 
@@ -366,6 +374,12 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             valueKey,
                             sampleLabel: labelKey && first ? String(first[labelKey] ?? '') : undefined,
                             sampleValue: valueKey && first ? String(first[valueKey] ?? '') : undefined,
+                            labels: labelKey
+                                ? arr
+                                      .slice(0, 500)
+                                      .filter((i): i is Record<string, unknown> => !!i && typeof i === 'object')
+                                      .map((i) => String(i[labelKey] ?? ''))
+                                : undefined,
                             bounds: parseJsonAxisBounds(state?.val, s),
                             entries: arr.length,
                             timeLike,
@@ -650,14 +664,49 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                     {t('echart.nowLineMatch')}
                                 </label>
-                                <input
-                                    type="text"
-                                    value={echartNowLineMatch}
-                                    onChange={(e) => setO({ echartNowLineMatch: e.target.value })}
-                                    className={inputCls}
-                                    style={inputStyle}
-                                    placeholder={t('echart.nowLineMatchPlaceholder')}
-                                />
+                                <div className="flex gap-1.5">
+                                    <input
+                                        type="text"
+                                        value={echartNowLineMatch}
+                                        onChange={(e) => setO({ echartNowLineMatch: e.target.value })}
+                                        className={`${inputCls} flex-1 min-w-0`}
+                                        style={inputStyle}
+                                    />
+                                    {nowLineCategories.length > 0 && (
+                                        <select
+                                            value=""
+                                            onChange={(e) =>
+                                                e.target.value && setO({ echartNowLineMatch: e.target.value })
+                                            }
+                                            className={`${inputCls} shrink-0`}
+                                            style={{ ...inputStyle, width: 'auto', maxWidth: 170 }}
+                                        >
+                                            <option value="">{t('echart.nowLineMatchPick')}</option>
+                                            {nowLineCategories.map((c) => (
+                                                <option key={c} value={c}>
+                                                    {c}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    )}
+                                </div>
+                                <p
+                                    className="aura-nowline-status text-[10px] mt-1 leading-tight"
+                                    style={{
+                                        color:
+                                            nowLineNeedle && !nowLineHit && nowLineCategories.length > 0
+                                                ? 'var(--danger, #ef4444)'
+                                                : 'var(--text-secondary)',
+                                    }}
+                                >
+                                    {!nowLineNeedle
+                                        ? t('echart.nowLineMatchEmpty')
+                                        : nowLineHit
+                                          ? t('echart.nowLineMatchHit', { label: nowLineHit })
+                                          : nowLineCategories.length > 0
+                                            ? t('echart.nowLineMatchMiss', { text: echartNowLineMatch.trim() })
+                                            : null}
+                                </p>
                                 <p
                                     className="text-[10px] mt-1 leading-tight"
                                     style={{ color: 'var(--text-secondary)' }}

@@ -166,6 +166,61 @@ const near = (x) => typeof x === 'number' && Math.abs(x - Date.now()) < 120_000;
         { 'demo.weather': payload },
     );
     check('category axis without a text: no line', Array.isArray(none) && none.length === 0, JSON.stringify(none));
+
+    // The editor says whether the text hits a label, and offers the labels to pick from — a text
+    // that matches nothing (someone typed the label they WANTED) used to fail silently.
+    const id = `w-nowline-${++n}`;
+    await page.evaluate(
+        ([wid, opts, vals]) => {
+            window.__auraShot.mock(vals);
+            window.__auraShot.mockServerState(vals);
+            window.__auraShot.showWidgets(
+                [
+                    {
+                        id: wid,
+                        type: 'echart',
+                        title: 'Wetter',
+                        datapoint: '',
+                        layout: 'default',
+                        gridPos: { x: 0, y: 0, w: 12, h: 8 },
+                        options: opts,
+                    },
+                ],
+                { editMode: true },
+            );
+            window.__auraShot.setEditMode(true);
+        },
+        [
+            id,
+            { echartMode: 'json', echartNowLine: true, echartNowLineMatch: 'Aktuell', echartSeries: series },
+            { 'demo.weather': payload },
+        ],
+    );
+    await page.waitForTimeout(1200);
+    await page.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    const status = page.locator('.aura-nowline-status');
+    await status.waitFor({ timeout: 10000 });
+    await page.waitForFunction(
+        () => /Keine Beschriftung|Linie bei/.test(document.querySelector('.aura-nowline-status')?.textContent ?? ''),
+        null,
+        { timeout: 10000 },
+    );
+    const miss = await status.innerText();
+    check('editor reports a text that hits no label', miss.includes('Keine Beschriftung enthält „Aktuell“'), miss);
+    await status.locator('xpath=preceding-sibling::div[1]//select').selectOption('▶ jetzt');
+    await page.waitForTimeout(400);
+    const opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check(
+        'picking a label from the data sets the text',
+        opts?.echartNowLineMatch === '▶ jetzt',
+        opts?.echartNowLineMatch,
+    );
+    const hit = await status.innerText();
+    check('and the editor names the label the line sits at', hit.includes('Linie bei „▶ jetzt“'), hit);
+    const live = await page.evaluate(() => window.__auraShot.chartMarkLines());
+    check('the chart draws the line right away', live?.[0]?.x === '▶ jetzt', JSON.stringify(live));
+    await page.keyboard.press('Escape');
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
