@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.77.3 (2026-10-05)
+- Shutter - quick-select buttons can set only the slat angle, and skip the drive when the blind is already at the preset position ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+
 ## 0.77.2 (2026-10-04)
 - Adapter log - startup and routine status messages moved from info to debug, so the log stays quiet unless something needs attention
 
