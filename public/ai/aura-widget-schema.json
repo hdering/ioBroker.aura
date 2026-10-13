@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.82.2",
+    "auraVersion": "0.82.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -7367,6 +7367,11 @@
           "type": "number",
           "default": 5,
           "description": "Abstand in Minuten, in dem die Liste neu nach passenden Datenpunkten sucht."
+        },
+        "syncRemove": {
+          "type": "boolean",
+          "description": "Auto-sync also removes entries the filters no longer find — only those without own settings (default false).",
+          "default": false
         },
         "trueText": {
           "type": "string",
@@ -17035,13 +17040,26 @@
             "count"
           ]
         },
+        "lightIncludeDimmers": {
+          "type": "boolean",
+          "description": "also list dimmers (role level.dimmer/level.brightness) as lights — only those in a \"Licht\"/\"Light\" function, in every scope; on = value > 0, row label \"An · 60 %\"; a channel with both a switch and a dimmer counts once (default true)",
+          "onlyLayouts": [
+            "default",
+            "compact",
+            "twoline",
+            "card",
+            "minimal",
+            "count"
+          ],
+          "default": true
+        },
         "lightRoleScope": {
           "type": "string",
           "enum": [
             "light",
             "all"
           ],
-          "description": "'light' = only switch.light (default); 'all' = also switch/switch.power",
+          "description": "which switches count as a light: 'light' = only role switch.light (default); 'all' = also switch/switch.power. Dimmers are not affected by the scope — see lightIncludeDimmers",
           "onlyLayouts": [
             "default",
             "compact",
@@ -17053,7 +17071,7 @@
         },
         "lightsOnlyFunction": {
           "type": "boolean",
-          "description": "when scope 'all', require a \"Licht\"/\"Light\" function enum",
+          "description": "when scope 'all', require a \"Licht\"/\"Light\" function enum for the switches",
           "onlyLayouts": [
             "default",
             "compact",

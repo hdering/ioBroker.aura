@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState, useCallback } from 'react';
+import { Fragment, useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { RefreshCw, List } from 'lucide-react';
 import type { WidgetProps, ioBrokerObject, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
@@ -6,6 +6,7 @@ import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
+import { syncEntries } from '../../utils/autoListSync';
 import { isRelevantDp } from '../../utils/dpRelevance';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
@@ -151,6 +152,8 @@ export interface AutoListOptions
     excludeIdPatterns?: string;
     excludeIds?: string[];
     syncIntervalMin?: number;
+    /** Auto-sync also removes entries the filters no longer find — only those without own settings (default false). */
+    syncRemove?: boolean;
     decimals?: number;
     numberFormat?: NumberFormat;
     showRoom?: boolean;
@@ -1420,19 +1423,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         try {
             const found = await discoverDatapoints(opts);
             const filtered = (opts.filterRelevant ?? true) ? found.filter((d) => d.isRelevant) : found;
-            const existingIds = new Set(entries.map((e) => e.id));
-            const newEntries = filtered
-                .filter((d) => !existingIds.has(d.id))
-                .map((d) => ({
-                    id: d.id,
-                    label: undefined as string | undefined,
-                    rooms: d.rooms,
-                    unit: d.unit,
-                    role: d.role,
-                    writable: d.write,
-                }));
-            if (newEntries.length > 0) {
-                saveOpts({ entries: [...entries, ...newEntries] });
+            const next = syncEntries(entries, filtered, opts.syncRemove === true);
+            if (next.added > 0 || next.removed > 0) {
+                saveOpts({ entries: next.entries });
                 // Frontend only: in the editor the new entries are one more unsaved
                 // edit under the save bar — flushing here would push every other
                 // unsaved change along with them.
@@ -1452,6 +1445,16 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         const timer = setInterval(runSync, syncMs);
         return () => clearInterval(timer);
     }, [runSync, syncMs]);
+
+    // A list written with filters but no entries (aura_add_widget over the MCP, a
+    // copied config) would say "Noch keine Datenpunkte" until the first interval —
+    // search right away instead. Once per mount; the interval takes over after that.
+    const initialSyncDone = useRef(false);
+    useEffect(() => {
+        if (initialSyncDone.current || entries.length > 0 || !hasDiscoveryFilter(opts)) return;
+        initialSyncDone.current = true;
+        runSync().catch(() => {});
+    }, [runSync, entries.length, opts]);
 
     // Label pipeline: composed name → name pattern (incl. the `{{parent}}` variables) →
     // live `[[dp]]` values. The last step is a hook, so the raw labels of every entry are
@@ -1792,7 +1795,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         <div className="flex-1 flex items-center justify-center p-4">
             <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
                 {entries.length === 0
-                    ? `Noch keine Datenpunkte konfiguriert.${editMode ? ' Bearbeiten → Datenpunkte suchen.' : ''}`
+                    ? hasDiscoveryFilter(opts)
+                        ? syncing || !initialSyncDone.current
+                            ? 'Suche passende Datenpunkte …'
+                            : 'Die Filter finden keine passenden Datenpunkte.'
+                        : `Noch keine Datenpunkte konfiguriert.${editMode ? ' Bearbeiten → Datenpunkte suchen.' : ''}`
                     : filterEmptyText(
                           effectiveFilter,
                           effectiveSearch,

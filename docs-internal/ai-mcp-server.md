@@ -1089,13 +1089,17 @@ den Nutzer bitten müssen.
 
 `probe: true` (mit `tab`) schließt sie:
 
-1. `aura_rendered` schreibt `{tabId, ts}` nach `aura.0.info.renderProbe`
-   (`requestRenderProbe` in `auraConfig.js`).
+1. `aura_rendered` schreibt `{tabId, ts, width}` nach `aura.0.info.renderProbe`
+   (`requestRenderProbe` in `auraConfig.js`). `width` ist die Rasterbreite des
+   Zielgeräts: Parameter `width`, sonst Hilfslinien-Breite minus angedocktes Menü
+   (`designCanvas().usableWidth`), ohne Hilfslinien fehlt sie.
 2. Jedes lebende Frontend hört auf diesen Datenpunkt
    (`src-vis/components/layout/RenderProbe.tsx`) und zeichnet den verlangten Tab
    in einen Container, der bei `left: -20000px` parkt — **nicht** `display: none`
    (dann hätte der Inhalt keine Höhe) und nicht `visibility: hidden`. Breite: die
-   echte Rasterbreite. Gerendert wird der normale `Dashboard`, also messen Probe
+   verlangte `width`, sonst die eigene Rasterbreite des Browsers (früher immer
+   diese — ein Notebook mit 1920 px meldete „nichts abgeschnitten“ für einen Tab,
+   der auf dem 1280-px-Tablet sieben Karten abschnitt). Gerendert wird der normale `Dashboard`, also messen Probe
    und Wirklichkeit dasselbe; der Bericht kommt aus Dashboards eigenem Effekt und
    trägt `probe: true`.
 3. Der Tab, den dieser Browser gerade **zeigt**, wird nie geprobt: er meldet sich
@@ -1111,6 +1115,22 @@ Kamera startet beim Mounten einen Stream und schreibt beim Unmounten mit
 Wake-Up-Datenpunkt wieder `SLEEP` — eine Messung würde also eine Kamera
 ausschalten, die jemand anders gerade ansieht. Beide füllen ohnehin jede Höhe,
 ihre Höhe **ist** der Kasten. Die Antwort sagt das mit dazu.
+
+Der Bericht trägt `gridWidth` (gemessene Rasterbreite) und je Widget `clipX`:
+die Zahl der Text-Elemente, die waagerecht abgeschnitten sind (`scrollWidth >
+clientWidth` bei `overflow: hidden/clip` oder `text-overflow: ellipsis`). Die
+Höhenprüfung sieht einen auf „Küche Lic…“ gekürzten Titel nicht — dort scrollt
+nichts. `aura_rendered` nennt beides.
+
+Umbrechende Layouts (`WRAPPING_LAYOUTS` in `measure.js`, derzeit
+`statusoverview` `card`/`minimal`) bekommen von `aura_measure` keine Höhe,
+sondern den Hinweis auf `aura_rendered probe=true`: wie viele Kacheln in eine
+Zeile passen, hängt an der Breite, die gemessene Zeilenrechnung (195 px je
+„Zeile“ bei minimal) lag um Faktor 10 daneben.
+
+Eine `autolist` mit Filtern und leeren `entries` füllt das Frontend beim ersten
+Rendern sofort (nicht erst nach `syncIntervalMin`); `aura_validate` sagt das als
+Warnung dazu.
 
 `npm run test:render-probe` prüft das im Browser: Container off-screen und
 ausgelayoutet, die Widgets des verlangten Tabs mit echten Höhen, die zu kurze

@@ -146,8 +146,9 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     batteryThreshold?: number; // % (default 20)
     includeLowbatBoolean?: boolean; // also match boolean LOWBAT-style DPs (default true)
     // Lights
-    lightRoleScope?: 'light' | 'all'; // 'light' = only switch.light (default); 'all' = also switch/switch.power
-    lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum
+    lightRoleScope?: 'light' | 'all'; // which switches count as a light: 'light' = only role switch.light (default); 'all' = also switch/switch.power. Dimmers are not affected by the scope — see lightIncludeDimmers
+    lightsOnlyFunction?: boolean; // when scope 'all', require a "Licht"/"Light" function enum for the switches
+    lightIncludeDimmers?: boolean; // also list dimmers (role level.dimmer/level.brightness) as lights — only those in a "Licht"/"Light" function, in every scope; on = value > 0, row label "An · 60 %"; a channel with both a switch and a dimmer counts once (default true)
     // Reachability (global escape hatch — merged from config store)
     offlineExtraPatterns?: string; // extra DP id patterns to treat as offline indicators (text or /regex/)
     offlineInvert?: boolean; // for those extra DPs: true = value FALSE means offline (reachable semantics)
@@ -335,14 +336,54 @@ export function categoryOf(
     return null;
 }
 
+/** Roles of a dimmer level that can stand for a lamp. */
+const DIMMER_ROLES = new Set(['level.dimmer', 'level.brightness']);
+
+/** True for a numeric dimmer level — a light whose value is a brightness, not on/off. */
+export function isDimmerDp(dp: DatapointEntry): boolean {
+    return DIMMER_ROLES.has((dp.role ?? '').toLowerCase()) && (dp.type === undefined || dp.type === 'number');
+}
+
 function matchLight(dp: DatapointEntry, opts: StatusOverviewOptions): boolean {
     const r = (dp.role ?? '').toLowerCase();
     if (r === 'switch.light') return true;
+    // Dimmers only from the light function: a dimmer device also carries virtual
+    // channels and RGBW colour/program channels with the same role, and only the
+    // function enum knows which one is the lamp.
+    if (isDimmerDp(dp)) return opts.lightIncludeDimmers !== false && dp.funcs.some(isLightFunc);
     if ((opts.lightRoleScope ?? 'light') === 'all' && (r === 'switch' || r === 'switch.power')) {
         if (opts.lightsOnlyFunction) return dp.funcs.some(isLightFunc);
         return true;
     }
     return false;
+}
+
+/**
+ * A channel that exposes both a switch and a dimmer level (Zigbee/Hue lamp, some
+ * HomeMatic dimmers) is one lamp: keep the level, drop the switch of the same parent.
+ */
+export function dedupeLights<T extends { dp: DatapointEntry; cat: CategoryKey }>(found: T[]): T[] {
+    const parentOf = (id: string) => id.slice(0, id.lastIndexOf('.'));
+    const dimmerParents = new Set(
+        found.filter((c) => c.cat === 'light' && isDimmerDp(c.dp)).map((c) => parentOf(c.dp.id)),
+    );
+    if (!dimmerParents.size) return found;
+    return found.filter((c) => c.cat !== 'light' || isDimmerDp(c.dp) || !dimmerParents.has(parentOf(c.dp.id)));
+}
+
+/**
+ * Brightness of a dimmer value in percent (0 = off), normalised over common.min/max:
+ * HmIP LEVEL comes as 0–100 %, older devices as 0–1, Zigbee often 0–254.
+ */
+export function dimmerPercent(dp: DatapointEntry, val: unknown): number {
+    const num =
+        typeof val === 'number' ? val : typeof val === 'boolean' ? (val ? 100 : 0) : parseFloat(String(val ?? ''));
+    if (!Number.isFinite(num) || num <= 0) return 0;
+    const declaredMax = Number.isFinite(dp.max) && (dp.max as number) > 0 ? (dp.max as number) : undefined;
+    // No max declared: a % unit or a value above 1 means 0–100, else the 0–1 scale.
+    const max = declaredMax ?? ((dp.unit ?? '').trim() === '%' || num > 1 ? 100 : 1);
+    const min = Number.isFinite(dp.min) && (dp.min as number) < max ? (dp.min as number) : 0;
+    return Math.max(0, Math.min(100, ((num - min) / (max - min)) * 100));
 }
 
 /** User-defined extra offline-indicator DPs (global escape hatch). */
@@ -440,6 +481,13 @@ export function evaluateItem(
     }
 
     if (cat === 'light') {
+        if (isDimmerDp(dp)) {
+            const pct = dimmerPercent(dp, val);
+            if (pct <= 0) return ok('Aus');
+            // A tiny level still reads "1 %", never "0 %" next to "An".
+            const shown = Math.max(1, Math.round(pct));
+            return { ...base, severity: 'warn', label: `An · ${shown} %`, color: SEVERITY_COLOR.warn };
+        }
         if (!isOn(val)) return ok('Aus');
         return { ...base, severity: 'warn', label: 'An', color: SEVERITY_COLOR.warn };
     }
@@ -556,6 +604,20 @@ export function typedActionValue(raw: string): boolean | number | string {
 }
 
 /**
+ * Fits a typed row-action value to the datapoint it is written to: a boolean on a
+ * numeric datapoint (the "Licht aus" preset on a dimmer row) becomes min/0 or max.
+ * Unknown datapoint → the value as it is.
+ */
+export function coerceActionValue(
+    value: boolean | number | string,
+    dp: DatapointEntry | undefined,
+): boolean | number | string {
+    if (typeof value !== 'boolean' || !dp || dp.type !== 'number') return value;
+    if (!value) return Number.isFinite(dp.min) && (dp.min as number) > 0 ? (dp.min as number) : 0;
+    return Number.isFinite(dp.max) ? (dp.max as number) : 100;
+}
+
+/**
  * Ready-made row buttons the editor offers ("Vorlage hinzufügen"). `{id}` as target
  * writes the row's own datapoint, so "Licht aus" works as it is; the other two write
  * to a datapoint of the user's own (`needsDp`) that the editor asks to adjust.
@@ -570,7 +632,7 @@ export const ROW_ACTION_PRESETS: {
     {
         key: 'light-off',
         title: 'Licht aus',
-        hint: 'Schaltet das Licht der Zeile aus (schreibt false in seinen eigenen Datenpunkt).',
+        hint: 'Schaltet das Licht der Zeile aus (schreibt false in seinen eigenen Datenpunkt, bei einem Dimmer 0).',
         needsDp: false,
         action: { label: 'Aus', targetDp: '{id}', value: 'false', categories: ['light'] },
     },

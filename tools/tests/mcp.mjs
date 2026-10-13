@@ -3640,7 +3640,10 @@ check('every recipe validates against the real widget schema', () => {
         for (const widget of [...recipe.widgets, ...children]) {
             const { errors, warnings } = validateWidget(widget, schema, {});
             assert.deepEqual(errors, [], `${recipe.id}/${widget.id}: ${errors.join(' | ')}`);
-            assert.deepEqual(warnings, [], `${recipe.id}/${widget.id}: ${warnings.join(' | ')}`);
+            // An autolist recipe ships filters and no entries on purpose — the
+            // frontend fills it. The hint about that is advice, not a defect.
+            const real = warnings.filter((w) => !w.includes('autolist mit Filtern, aber leeren'));
+            assert.deepEqual(real, [], `${recipe.id}/${widget.id}: ${real.join(' | ')}`);
         }
     }
 });
@@ -5131,6 +5134,39 @@ check('a probe that is answered reads like any other measurement, and says it wa
 });
 delete adapter.states['info.rendered'];
 delete adapter.states['info.renderProbe'];
+
+// The probe renders at the width the tab is built for. Reported from use: a
+// notebook at 1920 px answered "nothing cut off" for a 1280 px tablet tab.
+await client.callTool({ name: 'aura_rendered', arguments: { tab: 'Klima', probe: true, width: 1000 } });
+check('a probe passes the requested grid width to the frontend', () => {
+    const req = JSON.parse(adapter.states['info.renderProbe']);
+    assert.equal(req.width, 1000);
+});
+delete adapter.states['info.renderProbe'];
+
+adapter.states['info.rendered'] = JSON.stringify({
+    ts: Date.now(),
+    tabs: {
+        [klimaTabId]: {
+            ts: Date.now(),
+            tab: 'Wohnzimmer / Start / Klima',
+            probe: true,
+            viewport: { w: 1920, h: 1080 },
+            gridWidth: 1270,
+            presentation: { fontScale: 1.3, widgetPadding: 16 },
+            grid: { rowHeight: 20, gap: 10, snapX: 20 },
+            widgets: [{ id: 'stack-a', type: 'switch', rows: 8, px: 230, contentPx: 230, scrolls: false, clipX: 2 }],
+        },
+    },
+});
+const clipped = await client.callTool({ name: 'aura_rendered', arguments: { tab: 'Klima' } });
+check('text cut off sideways is reported, with the grid width it was measured at', () => {
+    const t = clipped.content[0].text;
+    assert.match(t, /Rasterbreite 1270 px/);
+    assert.match(t, /stack-a .*senkrecht nichts abgeschnitten.*2 Text\(e\) waagerecht abgeschnitten/);
+    assert.match(t, /1 Widget\(s\) schneiden Text waagerecht ab/);
+});
+delete adapter.states['info.rendered'];
 
 // Everything the tab has but the browser never reported, plus a card that is in
 // the tree and measures nothing: both used to leave the table one line short.
@@ -7006,6 +7042,34 @@ const okStatus = await askWith(fresh);
 // One character off, and same length — the comparison must not shortcut on it.
 const nearMiss = await askWith(fresh.slice(0, -1) + (fresh.endsWith('a') ? 'b' : 'a'));
 const truncated = await askWith(fresh.slice(0, -1));
+check('a status overview that wraps by width gets no height, only the advice to look', () => {
+    for (const layout of ['card', 'minimal']) {
+        const m = measureWidget(
+            { id: 'so', type: 'statusoverview', layout, gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: { maxRows: 8 } },
+            { metrics: METRICS, grid: GRID, items: 8 },
+        );
+        assert.equal(m.heightClass, 'runtime', layout);
+        assert.ok(!m.requiredPx, `${layout}: ${m.requiredPx}`);
+        assert.match(m.unknown, /nebeneinander.*aura_rendered/);
+    }
+    const list = measureWidget(
+        { id: 'so', type: 'statusoverview', gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: { maxRows: 8 } },
+        { metrics: METRICS, grid: GRID },
+    );
+    assert.equal(list.heightClass, 'content', 'the stacked layout keeps its number');
+});
+
+check('an autolist with filters and no entries gets a hint, one with entries does not', () => {
+    const w = (entries) => ({
+        id: 'al',
+        type: 'autolist',
+        gridPos: { x: 0, y: 0, w: 8, h: 10 },
+        options: { filterFuncs: 'Licht', entries },
+    });
+    assert.ok(validateWidget(w([]), schema, {}).warnings.some((x) => x.includes('autolist mit Filtern')));
+    assert.ok(!validateWidget(w([{ id: 'a.0.b' }]), schema, {}).warnings.some((x) => x.includes('autolist mit')));
+});
+
 check('a valid token is accepted, a near-miss and a truncation are not', () => {
     assert.equal(okStatus, 200);
     assert.equal(nearMiss, 403);

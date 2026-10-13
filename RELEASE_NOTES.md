@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Status overview - dimmers in the "Light" function now count as lights ("On · 60 %"), and the "Off" row action sets them to 0
+- Dynamic list - a list with filters but no entries searches right away instead of waiting for the sync interval; new option to drop entries the filters no longer find

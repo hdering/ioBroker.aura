@@ -46,6 +46,11 @@ export interface RenderedWidget {
      * deviation.
      */
     autoBox: boolean;
+    /**
+     * Text elements cut off sideways (ellipsis / overflow hidden). The vertical
+     * check cannot see a title shortened to "Küche Lic…" — nothing scrolls there.
+     */
+    clipX?: number;
 }
 
 export interface RenderReport {
@@ -59,6 +64,8 @@ export interface RenderReport {
      */
     probe?: boolean;
     viewport: { w: number; h: number };
+    /** Width of the grid the widgets were laid out in (in a probe: the requested one). */
+    gridWidth?: number;
     presentation: { fontScale: number; widgetPadding: number };
     grid: { rowHeight: number; gap: number; snapX: number };
     widgets: RenderedWidget[];
@@ -100,6 +107,23 @@ function hiddenPxInside(card: HTMLElement): number {
 }
 
 /**
+ * Text elements inside one card that are cut off sideways: wider content than
+ * box, and a box that hides the rest (overflow hidden/clip, usually with an
+ * ellipsis). Only leaf-ish elements with text count — a scroll strip of chips
+ * that overflows on purpose is `overflow-x: auto` and stays out.
+ */
+function clippedTextInside(card: HTMLElement): number {
+    let n = 0;
+    for (const el of Array.from(card.querySelectorAll<HTMLElement>('*'))) {
+        if (el.scrollWidth - el.clientWidth <= 1 || el.clientWidth <= 0) continue;
+        if (!el.textContent?.trim() || el.children.length > 2) continue;
+        const cs = getComputedStyle(el);
+        if (cs.overflowX === 'hidden' || cs.overflowX === 'clip' || cs.textOverflow === 'ellipsis') n++;
+    }
+    return n;
+}
+
+/**
  * Measure every widget of one rendered tab.
  *
  * A card that measures 0 px is reported too, with px 0. It used to be dropped,
@@ -119,6 +143,7 @@ export function measureRenderedWidgets(root: ParentNode): RenderedWidget[] {
         }
         const px = Math.round(el.getBoundingClientRect().height);
         const hidden = px > 0 ? hiddenPxInside(el) : 0;
+        const clipX = px > 0 ? clippedTextInside(el) : 0;
         out.push({
             id,
             type: el.dataset.auraWidgetType ?? '',
@@ -131,6 +156,7 @@ export function measureRenderedWidgets(root: ParentNode): RenderedWidget[] {
             // leave it off for the content-sized ones. No inline height = the box
             // is whatever the content made it.
             autoBox: !el.style.height,
+            ...(clipX ? { clipX } : {}),
         });
     }
     return out;
@@ -143,7 +169,8 @@ export function reportSignature(report: RenderReport): string {
         report.viewport.w,
         report.viewport.h,
         report.hidden.join(','),
-        ...report.widgets.map((w) => `${w.id}:${w.px}:${w.contentPx}:${w.scrolls ? 1 : 0}`),
+        report.gridWidth ?? 0,
+        ...report.widgets.map((w) => `${w.id}:${w.px}:${w.contentPx}:${w.scrolls ? 1 : 0}:${w.clipX ?? 0}`),
     ].join('|');
 }
 

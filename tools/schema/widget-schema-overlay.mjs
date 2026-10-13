@@ -651,6 +651,11 @@ export const WIDGET_OPTION_NOTES = {
             'showAllClear',
             'allClearText',
         ].map((k) => [k, { onlyLayouts: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'] }]),
+        // Read as `!== false`: the generator cannot see that default.
+        [
+            'lightIncludeDimmers',
+            { onlyLayouts: ['default', 'compact', 'twoline', 'card', 'minimal', 'count'], default: true },
+        ],
     ]),
     mediaplayer: {
         // Reported from use: set, accepted by the validator, and without any

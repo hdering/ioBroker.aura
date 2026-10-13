@@ -58,6 +58,8 @@ import {
     actionsFor,
     fillRowTemplate,
     typedActionValue,
+    coerceActionValue,
+    dedupeLights,
     deviceIdFallback,
     historyCategories,
     parseHistory,
@@ -351,6 +353,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         opts.includeLowbatBoolean,
         opts.lightRoleScope,
         opts.lightsOnlyFunction,
+        opts.lightIncludeDimmers,
         opts.filterRooms,
         opts.filterFuncs,
         opts.filterAdapters,
@@ -380,7 +383,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                     ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
                 });
             }
-            setCandidates(found);
+            setCandidates(dedupeLights(found));
             setDiscovered(true);
         });
         return () => {
@@ -803,7 +806,9 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         const ctx = templateCtx(item);
         const dp = fillRowTemplate(a.targetDp, ctx).trim();
         if (!dp) return;
-        setStateDirect(dp, typedActionValue(fillRowTemplate(a.value ?? '', ctx)), false);
+        // "Licht aus" writes false — a dimmer row needs 0 instead.
+        const target = candidates.find((c) => c.dp.id === dp)?.dp;
+        setStateDirect(dp, coerceActionValue(typedActionValue(fillRowTemplate(a.value ?? '', ctx)), target), false);
     };
     const latchCmd = (item: StatusItem, cmd: string) =>
         setStateDirect(`${NS}.status.${item.category}.cmd`, `${cmd}:${item.id}`, false);

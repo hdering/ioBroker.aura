@@ -159,6 +159,7 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         o.includeLowbatBoolean,
         o.lightRoleScope,
         o.lightsOnlyFunction,
+        o.lightIncludeDimmers,
         o.filterRooms,
         o.filterFuncs,
         o.filterAdapters,
@@ -381,6 +382,11 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             label={'Nur Schalter in Funktion „Licht“'}
                         />
                     )}
+                    <Toggle
+                        checked={o.lightIncludeDimmers !== false}
+                        onChange={(v) => set({ lightIncludeDimmers: v })}
+                        label={'Dimmer in Funktion „Licht“ mitzählen (an ab 1 %, mit Helligkeit)'}
+                    />
                 </CatSection>
 
                 <CatSection

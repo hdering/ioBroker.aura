@@ -39,6 +39,8 @@ const PROBE_MS = 6000;
 interface ProbeRequest {
     tabId: string;
     ts: number;
+    /** Grid width the adapter asks for — the target device from the guidelines. */
+    width?: number;
 }
 
 function parseRequest(raw: unknown): ProbeRequest | null {
@@ -46,7 +48,8 @@ function parseRequest(raw: unknown): ProbeRequest | null {
     try {
         const parsed = JSON.parse(raw) as Partial<ProbeRequest>;
         if (!parsed || typeof parsed.tabId !== 'string' || !parsed.tabId) return null;
-        return { tabId: parsed.tabId, ts: Number(parsed.ts) || 0 };
+        const width = Number(parsed.width);
+        return { tabId: parsed.tabId, ts: Number(parsed.ts) || 0, ...(width > 200 ? { width } : {}) };
     } catch {
         return null;
     }
@@ -116,7 +119,9 @@ export function RenderProbe({
                 position: 'fixed',
                 left: -20000,
                 top: 0,
-                width: width && width > 200 ? width : 1280,
+                // The requested width wins: a tab built for a 1280 px tablet has to
+                // be measured at 1280 px, not at the notebook that happens to answer.
+                width: request.width ?? (width && width > 200 ? width : 1280),
                 // Tall enough that nothing is squeezed: the grid grows downwards
                 // and the widgets are measured individually, not as a stack.
                 height: 4000,

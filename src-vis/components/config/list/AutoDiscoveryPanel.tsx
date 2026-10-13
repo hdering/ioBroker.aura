@@ -458,6 +458,25 @@ export function AutoDiscoveryPanel({
                     </button>
                 </div>
             </div>
+            <div className="flex items-center justify-between gap-2">
+                <label
+                    className="text-[11px]"
+                    style={{ color: 'var(--text-secondary)' }}
+                    title="Einträge ohne eigene Einstellungen, die die Filter nicht mehr finden (z. B. aus dem Gewerk genommen), fliegen beim Abgleich wieder raus."
+                >
+                    Nicht mehr Gefundenes entfernen (Auto-Sync)
+                </label>
+                <button
+                    onClick={() => onOptsChange({ syncRemove: !opts.syncRemove })}
+                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                    style={{ background: opts.syncRemove ? 'var(--accent)' : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                        style={{ left: opts.syncRemove ? '18px' : '2px' }}
+                    />
+                </button>
+            </div>
 
             {/* ── DatapointPicker for exclude blacklist ── */}
             {showExcludePicker && (

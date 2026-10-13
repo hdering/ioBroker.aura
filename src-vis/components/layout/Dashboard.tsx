@@ -309,6 +309,7 @@ export function Dashboard({
                 tabId: activeTabId,
                 tab: `${activeLayout.name} / ${section.name} / ${tab.name}`,
                 viewport: { w: window.innerWidth, h: window.innerHeight },
+                gridWidth: Math.round(root.getBoundingClientRect().width),
                 presentation: { fontScale: settings.fontScale ?? 1, widgetPadding },
                 grid: { rowHeight: cellSize, gap: MARGIN, snapX },
                 widgets,
