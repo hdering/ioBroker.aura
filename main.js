@@ -4171,84 +4171,103 @@ class Aura extends utils.Adapter {
             this._timerFired.clear();
             this._timerLastDay = dayKey;
         }
-        const windowMs = this._timerTickMs;
-        const winStart = now.getTime() - windowMs;
+        // The window starts where the previous tick ended: setInterval drifts a few ms
+        // per tick (more under load), and a fixed now - tick window left those ms
+        // uncovered — an event due exactly in such a gap never fired. Capped at two
+        // ticks so a long stall or a clock jump does not replay a whole backlog.
+        const nowMs = now.getTime();
+        const prevEnd = this._timerWindowEnd;
+        const winStart = Number.isFinite(prevEnd)
+            ? Math.max(Math.min(prevEnd, nowMs), nowMs - 2 * this._timerTickMs)
+            : nowMs - this._timerTickMs;
+        this._timerWindowEnd = nowMs;
 
         for (const [widgetId, entry] of this._timerState.entries()) {
-            if (!entry.enabled) continue;
-            const payload = entry.payload;
-            if (!payload || !Array.isArray(payload.events)) continue;
-            const targets = this._timerTargets(payload);
-            if (targets.length === 0) continue; // admin hasn't configured the target yet
-            const widgetBaseValue = payload.value != null ? payload.value : 'true';
-            const allowEventValue = payload.allowEventValue === true;
+            // One broken timer (e.g. an event without a trigger) must not stop the others.
+            try {
+                await this._timerTickWidget(widgetId, entry, now, dayKey, winStart);
+            } catch (e) {
+                const msg = `[timers] ${widgetId} skipped: ${e.message}`;
+                if (this._timerWarned?.has(msg)) continue;
+                (this._timerWarned ??= new Set()).add(msg);
+                this.log.warn(msg);
+            }
+        }
+    }
 
-            const holidays = await this._resolveSpecialDays(payload.holidaysDp);
-            const vacation = await this._resolveSpecialDays(payload.vacationDp);
+    async _timerTickWidget(widgetId, entry, now, dayKey, winStart) {
+        if (!entry.enabled) return;
+        const payload = entry.payload;
+        if (!payload || !Array.isArray(payload.events)) return;
+        const targets = this._timerTargets(payload);
+        if (targets.length === 0) return; // admin hasn't configured the target yet
+        const widgetBaseValue = payload.value != null ? payload.value : 'true';
+        const allowEventValue = payload.allowEventValue === true;
 
-            const exc = activeException(payload, holidays, vacation, dayKey);
-            await this._applyTimerException(widgetId, payload, exc, now, holidays, vacation);
+        const holidays = await this._resolveSpecialDays(payload.holidaysDp);
+        const vacation = await this._resolveSpecialDays(payload.vacationDp);
 
-            for (const ev of payload.events) {
-                if (!ev || !ev.enabled) continue;
-                if (suppressedByException(ev, exc)) continue;
+        const exc = activeException(payload, holidays, vacation, dayKey);
+        await this._applyTimerException(widgetId, payload, exc, now, holidays, vacation);
 
-                // Determine candidate fire times for today (or absolute for once/range)
-                const candidates = []; // [{ ts, key, invert? }]
-                // The trigger is part of every dedupe key: an edited event keeps its id, and
-                // a time moved later on the same day has to fire again (#778).
-                const sig = JSON.stringify(ev.trigger);
+        for (const ev of payload.events) {
+            if (!ev || !ev.enabled) continue;
+            if (!ev.trigger || typeof ev.trigger !== 'object') continue; // malformed (e.g. hand-written) entry
+            if (suppressedByException(ev, exc)) continue;
 
-                if (ev.trigger.kind === 'time') {
-                    if (!this._weekdayMatches(ev.weekdays, now)) continue;
-                    const ts = new Date(now);
-                    ts.setHours(ev.trigger.hour, ev.trigger.minute, 0, 0);
-                    candidates.push({ ts: ts.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:time:${sig}` });
-                } else if (ev.trigger.kind === 'astro') {
-                    if (!this._weekdayMatches(ev.weekdays, now)) continue;
-                    let astroDate;
-                    try {
-                        astroDate = this._computeAstroDate(ev.trigger.event, now, ev.trigger.offsetMin || 0);
-                    } catch (e) {
-                        this.log.warn(`[timers] astro failed (${ev.trigger.event}): ${e.message}`);
-                        continue;
-                    }
-                    if (!astroDate) continue;
-                    candidates.push({ ts: astroDate.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:astro:${sig}` });
-                } else if (ev.trigger.kind === 'once') {
-                    const ts = Date.parse(ev.trigger.iso);
-                    if (!Number.isFinite(ts)) continue;
-                    candidates.push({ ts, key: `${widgetId}:${ev.id}:once:${sig}`, isOnce: true });
-                } else if (ev.trigger.kind === 'range') {
-                    const fts = Date.parse(ev.trigger.fromIso);
-                    const tts = Date.parse(ev.trigger.toIso);
-                    if (Number.isFinite(fts))
-                        candidates.push({ ts: fts, key: `${widgetId}:${ev.id}:range:start:${sig}` });
-                    if (Number.isFinite(tts))
-                        candidates.push({ ts: tts, key: `${widgetId}:${ev.id}:range:end:${sig}`, invert: true });
+            // Determine candidate fire times for today (or absolute for once/range)
+            const candidates = []; // [{ ts, key, invert? }]
+            // The trigger is part of every dedupe key: an edited event keeps its id, and
+            // a time moved later on the same day has to fire again (#778).
+            const sig = JSON.stringify(ev.trigger);
+
+            if (ev.trigger.kind === 'time') {
+                if (!this._weekdayMatches(ev.weekdays, now)) continue;
+                const ts = new Date(now);
+                ts.setHours(ev.trigger.hour, ev.trigger.minute, 0, 0);
+                candidates.push({ ts: ts.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:time:${sig}` });
+            } else if (ev.trigger.kind === 'astro') {
+                if (!this._weekdayMatches(ev.weekdays, now)) continue;
+                let astroDate;
+                try {
+                    astroDate = this._computeAstroDate(ev.trigger.event, now, ev.trigger.offsetMin || 0);
+                } catch (e) {
+                    this.log.warn(`[timers] astro failed (${ev.trigger.event}): ${e.message}`);
+                    continue;
                 }
+                if (!astroDate) continue;
+                candidates.push({ ts: astroDate.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:astro:${sig}` });
+            } else if (ev.trigger.kind === 'once') {
+                const ts = Date.parse(ev.trigger.iso);
+                if (!Number.isFinite(ts)) continue;
+                candidates.push({ ts, key: `${widgetId}:${ev.id}:once:${sig}`, isOnce: true });
+            } else if (ev.trigger.kind === 'range') {
+                const fts = Date.parse(ev.trigger.fromIso);
+                const tts = Date.parse(ev.trigger.toIso);
+                if (Number.isFinite(fts)) candidates.push({ ts: fts, key: `${widgetId}:${ev.id}:range:start:${sig}` });
+                if (Number.isFinite(tts))
+                    candidates.push({ ts: tts, key: `${widgetId}:${ev.id}:range:end:${sig}`, invert: true });
+            }
 
-                for (const c of candidates) {
-                    if (c.ts < winStart || c.ts > now.getTime()) continue;
-                    if (this._timerFired.has(c.key)) continue;
-                    if (!(await this._filterPasses(ev, now, holidays, vacation))) continue;
+            for (const c of candidates) {
+                if (c.ts <= winStart || c.ts > now.getTime()) continue;
+                if (this._timerFired.has(c.key)) continue;
+                if (!(await this._filterPasses(ev, now, holidays, vacation))) continue;
 
-                    // Per-event override only honored when admin opted in; empty string falls back too.
-                    const evValue =
-                        allowEventValue && typeof ev.value === 'string' && ev.value !== '' ? ev.value : null;
-                    const baseValue = evValue != null ? evValue : widgetBaseValue;
+                // Per-event override only honored when admin opted in; empty string falls back too.
+                const evValue = allowEventValue && typeof ev.value === 'string' && ev.value !== '' ? ev.value : null;
+                const baseValue = evValue != null ? evValue : widgetBaseValue;
 
-                    let writeVal;
-                    if (c.invert) {
-                        const v = this._parseValue(baseValue);
-                        writeVal = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
-                    }
-                    await this._writeTarget(targets, baseValue, ev, writeVal);
-                    this._timerFired.add(c.key);
+                let writeVal;
+                if (c.invert) {
+                    const v = this._parseValue(baseValue);
+                    writeVal = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
+                }
+                await this._writeTarget(targets, baseValue, ev, writeVal);
+                this._timerFired.add(c.key);
 
-                    if (c.isOnce) {
-                        await this._disableOnceEvent(widgetId, ev.id);
-                    }
+                if (c.isOnce) {
+                    await this._disableOnceEvent(widgetId, ev.id);
                 }
             }
         }

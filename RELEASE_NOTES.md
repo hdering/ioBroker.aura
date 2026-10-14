@@ -8,4 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Advanced chart - the current-time line on a category axis now shows which label it hits, warns when none matches and offers the labels from the data to pick from
 - MCP - the per-widget "last change" display options are now part of the widget schema; three false validator warnings are gone (frame options called ineffective, universal widget with a custom grid but no defId, JSON chart on a string datapoint)
-- Timer - an edited entry now fires again on the same day when its time is moved later; before, it was skipped until the next day (#778)
+- Timer - switches more reliably: an edited entry fires again on the same day when its time is moved later, an entry saved while the connection was briefly lost is sent again on reconnect, one broken entry no longer stops all other timers, and an event due in the split second between two checks is no longer skipped (#778)

@@ -11,7 +11,13 @@
  * states are created on-demand here. The adapter subscribes to timers.* and
  * rebuilds its in-memory schedule whenever a state changes.
  */
-import { setStateDirect, getSocket, sendToDirect } from '../hooks/useIoBroker';
+import {
+    setStateConfirmed,
+    getSocket,
+    sendToDirect,
+    getDisconnectedSince,
+    onDisconnectedSinceChange,
+} from '../hooks/useIoBroker';
 import type { TimerEvent } from '../types';
 import { NS } from './namespace';
 
@@ -93,20 +99,52 @@ function ensureObjects(widgetId: string, title: string): Promise<void> {
     return p;
 }
 
+/** Writes the server has not confirmed yet, keyed by state id → the retry.
+ *  A timer saved while the socket reconnects (tablet back from standby) was lost:
+ *  the client drops the emit without a callback, TimerWidget already counted it
+ *  as published, and the adapter kept the old schedule (#778). Re-sent on the
+ *  next connect; a confirmed write leaves the map, so a tab that was merely
+ *  offline never overwrites a newer edit made on another device meanwhile. */
+const unconfirmed = new Map<string, () => void>();
+let wasConnected = getDisconnectedSince() === null;
+// Before the very first connect the client queues emits itself — retry only after a drop.
+let everConnected = wasConnected;
+onDisconnectedSinceChange(() => {
+    const connected = getDisconnectedSince() === null;
+    if (connected && !wasConnected && everConnected && unconfirmed.size > 0) {
+        const retries = [...unconfirmed.values()];
+        // The object creation may hang on a dropped setObject as well — start over.
+        ensurePromises.clear();
+        retries.forEach((retry) => retry());
+    }
+    wasConnected = connected;
+    if (connected) everConnected = true;
+});
+
+function publishState(widgetId: string, title: string, stateId: string, val: string | boolean): void {
+    const attempt = (): void => {
+        void ensureObjects(widgetId, title)
+            .then(() => setStateConfirmed(stateId, val, false))
+            .then((ok) => {
+                if (ok && unconfirmed.get(stateId) === attempt) unconfirmed.delete(stateId);
+            });
+    };
+    unconfirmed.set(stateId, attempt);
+    attempt();
+}
+
 export function publishTimerConfig(widgetId: string, title: string, payload: TimerConfigPayload): void {
-    void ensureObjects(widgetId, title).then(() => {
-        setStateDirect(timerConfigStateId(widgetId), JSON.stringify(payload), false);
-    });
+    publishState(widgetId, title, timerConfigStateId(widgetId), JSON.stringify(payload));
 }
 
 export function publishTimerEnabled(widgetId: string, title: string, enabled: boolean): void {
-    void ensureObjects(widgetId, title).then(() => {
-        setStateDirect(timerEnabledStateId(widgetId), enabled, false);
-    });
+    publishState(widgetId, title, timerEnabledStateId(widgetId), enabled);
 }
 
 export async function unpublishTimer(widgetId: string): Promise<void> {
     ensurePromises.delete(widgetId);
+    unconfirmed.delete(timerConfigStateId(widgetId));
+    unconfirmed.delete(timerEnabledStateId(widgetId));
     // delObject over the web socket is permission-gated and silently dropped for
     // non-admin users. Route the cleanup through the adapter via sendTo so it
     // runs as the adapter instance (full permissions).

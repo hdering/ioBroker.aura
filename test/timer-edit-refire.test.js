@@ -1,8 +1,10 @@
 'use strict';
 
 /**
- * An edited timer event keeps its id (#778): moving an already fired event to
- * a later time on the same day must fire again, a plain re-tick must not.
+ * Scheduler gaps around #778. An edited timer event keeps its id: moving an
+ * already fired event to a later time on the same day must fire again, a plain
+ * re-tick must not. Tick windows must join up despite setInterval drift, and a
+ * malformed event must not stop the other timers.
  * Drives the real _timerTick of main.js with `@iobroker/adapter-core` stubbed
  * out and a fake clock.
  *
@@ -103,6 +105,30 @@ async function runUntil(a, h, m) {
         a._ingestTimerState('aura.0.timers.w1.config', JSON.stringify(config(at(5))));
         await runUntil(a, 10, 7);
         assert.deepStrictEqual(writes, ['10:01', '10:05']);
+    });
+
+    await test('event due in the drift gap between two ticks still fires', async () => {
+        const { a, writes } = makeAdapter();
+        a._ingestTimerState('aura.0.timers.w1.config', JSON.stringify(config({ kind: 'time', hour: 10, minute: 1 })));
+        clock = new RealDate(2026, 9, 14, 10, 0, 59, 990).getTime();
+        await a._timerTick();
+        // setInterval came 20 ms late: a fixed now − 30 s window starts at 10:01:00.010
+        clock += 30020;
+        await a._timerTick();
+        assert.deepStrictEqual(writes, ['10:01']);
+    });
+
+    await test('a timer with a malformed event does not stop the others', async () => {
+        const { a, writes } = makeAdapter();
+        const warnings = [];
+        a.log.warn = (m) => warnings.push(m);
+        const bad = config({ kind: 'time', hour: 10, minute: 1 });
+        bad.events.unshift({ id: 'broken', enabled: true, weekdays: ALL });
+        a._ingestTimerState('aura.0.timers.w0.config', JSON.stringify(bad));
+        a._ingestTimerState('aura.0.timers.w1.config', JSON.stringify(config({ kind: 'time', hour: 10, minute: 2 })));
+        await runUntil(a, 10, 3);
+        assert.deepStrictEqual(writes, ['10:01', '10:02']);
+        assert.deepStrictEqual(warnings, []);
     });
 
     console.log(`timer-edit-refire: ${n} tests passed`);

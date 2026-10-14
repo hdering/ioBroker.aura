@@ -1018,6 +1018,20 @@ export function setStateDirectAsync(id: string, val: boolean | number | string, 
     });
 }
 
+/**
+ * Write and report whether the server confirmed it. False for an error or the
+ * client's callback timeout. While the socket reconnects the client drops the
+ * emit without ever calling back, so the promise stays pending — callers that
+ * must not lose a write keep it until the next connect (publishTimerConfig).
+ */
+export function setStateConfirmed(id: string, val: boolean | number | string, ack = false): Promise<boolean> {
+    noteWrite(id, val);
+    if (devBlockWrites) return Promise.resolve(true);
+    return new Promise((resolve) => {
+        getSocket().emit('setState', id, { val, ack }, (err?: unknown) => resolve(!err));
+    });
+}
+
 /** Create or update an ioBroker object definition without a React hook. */
 export function setObjectDirect(id: string, obj: object): void {
     invalidateObjectCache(id);
