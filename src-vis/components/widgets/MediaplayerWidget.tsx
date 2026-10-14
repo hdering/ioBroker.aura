@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     Music,
     Play,
@@ -8,12 +8,16 @@ import {
     SkipForward,
     Shuffle,
     Repeat,
+    Repeat1,
     Volume2,
     VolumeX,
     Speaker,
 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import { useIoBroker } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
+import { normalizeStates } from '../../hooks/useDatapointList';
+import { baseDpId } from '../../utils/dpRef';
+import { modeView, nextModeValue, type ModeMeta } from '../../utils/mediaMode';
 import type { WidgetProps, CustomGrid } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
@@ -42,13 +46,16 @@ type MediaChip = {
  *    `/webfs/` proxy. Such paths are served by the ioBroker web adapter, NOT by
  *    aura's own HTTP server, so resolving against `window.location.origin`
  *    directly would 404. `/webfs/` forwards the request to the web backend.
- *  A cache-buster derived from the current track (title+artist) is appended to
- *  relative covers so the image refreshes on track change even when the adapter
- *  keeps writing the same filename (Sonos reuses `<ip>.png` per device). */
-function resolveCoverUrl(raw: string, title: string, artist: string): string {
+ *  A cache-buster is appended so the image refreshes on track change even when the
+ *  adapter keeps writing the same filename (Sonos reuses `<ip>.png` per device).
+ *  Title+artist alone was not enough (#782): Sonos often updates the title before
+ *  the new image file is written, so the browser cached the OLD picture under the
+ *  new track's key and kept it. The cover datapoint's own timestamp and a delayed
+ *  second fetch (`pass`) close that window. */
+function resolveCoverUrl(raw: string, title: string, artist: string, coverTs: number, pass: number): string {
     const url = resolveImageSource(raw);
     if (!url || url.startsWith('data:')) return url;
-    const bust = `${title}|${artist}`.trim();
+    const bust = [title.trim(), artist.trim(), coverTs || '', pass || ''].filter(Boolean).join('|');
     if (!bust) return url;
     const sep = url.includes('?') ? '&' : '?';
     return `${url}${sep}_aura_cb=${encodeURIComponent(bust)}`;
@@ -86,16 +93,53 @@ function IconBtn({
     return (
         <button
             onClick={onClick}
-            className={`aura-widget-action ${pad} rounded-full hover:opacity-80 transition-opacity`}
+            className={`aura-widget-action relative ${pad} rounded-full hover:opacity-80 transition-opacity`}
+            aria-pressed={active}
             style={{
-                background: active ? 'var(--accent)22' : 'var(--app-bg)',
+                background: active ? 'color-mix(in srgb, var(--accent) 13%, transparent)' : 'var(--app-bg)',
                 color: active ? 'var(--accent)' : 'var(--text-secondary)',
-                border: `1px solid ${active ? 'var(--accent)44' : 'var(--app-border)'}`,
+                border: `1px solid ${active ? 'color-mix(in srgb, var(--accent) 27%, transparent)' : 'var(--app-border)'}`,
             }}
         >
             <Icon size={sz} />
+            {active && (
+                <span
+                    className="absolute left-1/2 -translate-x-1/2 rounded-full pointer-events-none"
+                    style={{ bottom: 1, width: 3, height: 3, background: 'var(--accent)' }}
+                />
+            )}
         </button>
     );
+}
+
+const COVER_REFETCH_MS = 2500;
+
+/** Shuffle/repeat datapoint: current mode for the button, and the write that steps it (#782). */
+function useModeDatapoint(ref: string) {
+    const { setState } = useIoBroker();
+    const { value } = useDatapoint(ref);
+    const id = baseDpId(ref);
+    const [meta, setMeta] = useState<ModeMeta | null>(null);
+    useEffect(() => {
+        setMeta(null);
+        if (!id) return;
+        let alive = true;
+        getObjectDirect(id)
+            .then((obj) => {
+                if (!alive || !obj) return;
+                const c = obj.common ?? {};
+                setMeta({ type: c.type, role: c.role, states: normalizeStates(c.states) });
+            })
+            .catch(() => {});
+        return () => {
+            alive = false;
+        };
+    }, [id]);
+    const view = modeView(value, meta);
+    const toggle = () => {
+        if (id) setState(id, nextModeValue(value, meta));
+    };
+    return { ...view, toggle };
 }
 
 function PlayPauseBtn({ playing, onClick }: { playing: boolean; onClick: () => void }) {
@@ -207,7 +251,9 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     const { value: title } = useDatapoint((o.titleDp as string) ?? '');
     const { value: artist } = useDatapoint((o.artistDp as string) ?? '');
     const { value: album } = useDatapoint((o.albumDp as string) ?? '');
-    const { value: cover } = useDatapoint((o.coverDp as string) ?? '');
+    const { value: cover, state: coverState } = useDatapoint((o.coverDp as string) ?? '');
+    const shuffle = useModeDatapoint((o.shuffleDp as string) ?? '');
+    const repeat = useModeDatapoint((o.repeatDp as string) ?? '');
     const { value: source } = useDatapoint((o.sourceDp as string) ?? '');
     const { value: playState } = useDatapoint((o.playStateDp as string) ?? '');
     const { value: rawVol } = useDatapoint((o.volumeDp as string) ?? '');
@@ -301,9 +347,18 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     const artistStr = String(artist ?? '');
     const albumStr = String(album ?? '');
     const sourceStr = String(source ?? '');
+    const coverTs = typeof coverState?.ts === 'number' ? coverState.ts : 0;
+    // Second fetch shortly after every change: catches the image file the adapter
+    // writes only after it already announced the new track (#782).
+    const [coverPass, setCoverPass] = useState(0);
+    useEffect(() => {
+        setCoverPass(0);
+        const t = setTimeout(() => setCoverPass(1), COVER_REFETCH_MS);
+        return () => clearTimeout(t);
+    }, [cover, coverTs, titleStr, artistStr]);
     const coverStr = useMemo(
-        () => resolveCoverUrl(String(cover ?? ''), titleStr, artistStr),
-        [cover, titleStr, artistStr],
+        () => resolveCoverUrl(String(cover ?? ''), titleStr, artistStr, coverTs, coverPass),
+        [cover, titleStr, artistStr, coverTs, coverPass],
     );
     const subtitle = [artistStr, albumStr].filter(Boolean).join(' · ');
 
@@ -369,12 +424,14 @@ export function MediaplayerWidget({ config }: WidgetProps) {
 
                 {/* Steuerung */}
                 <div className="shrink-0 flex items-center gap-1">
-                    {showShuffle && <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />}
+                    {showShuffle && <IconBtn icon={Shuffle} active={shuffle.active} onClick={shuffle.toggle} />}
                     {showPrev && <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />}
                     <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
                     {showStop && <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />}
                     {showNext && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
-                    {showRepeat && <IconBtn icon={Repeat} onClick={() => trigger(o.repeatDp)} />}
+                    {showRepeat && (
+                        <IconBtn icon={repeat.one ? Repeat1 : Repeat} active={repeat.active} onClick={repeat.toggle} />
+                    )}
                 </div>
 
                 {/* Lautstärke: Mute + voller Slider + Zahl */}
@@ -404,9 +461,12 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                                 onClick={() => writeVol(p)}
                                 className="flex-1 text-[10px] py-0.5 rounded hover:opacity-80 transition-opacity"
                                 style={{
-                                    background: volPct === p ? 'var(--accent)22' : 'var(--app-bg)',
+                                    background:
+                                        volPct === p
+                                            ? 'color-mix(in srgb, var(--accent) 13%, transparent)'
+                                            : 'var(--app-bg)',
                                     color: volPct === p ? 'var(--accent)' : 'var(--text-secondary)',
-                                    border: `1px solid ${volPct === p ? 'var(--accent)44' : 'var(--app-border)'}`,
+                                    border: `1px solid ${volPct === p ? 'color-mix(in srgb, var(--accent) 27%, transparent)' : 'var(--app-border)'}`,
                                 }}
                             >
                                 {p}%
@@ -492,8 +552,10 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     stop: <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />,
                     prev: <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />,
                     next: <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />,
-                    shuffle: <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />,
-                    repeat: <IconBtn icon={Repeat} onClick={() => trigger(o.repeatDp)} />,
+                    shuffle: <IconBtn icon={Shuffle} active={shuffle.active} onClick={shuffle.toggle} />,
+                    repeat: (
+                        <IconBtn icon={repeat.one ? Repeat1 : Repeat} active={repeat.active} onClick={repeat.toggle} />
+                    ),
                     mute: <IconBtn icon={isActuallyMuted ? VolumeX : Volume2} onClick={handleMute} />,
                     'volume-slider': <VolumeSlider pct={volPct} step={volStep} onChange={writeVol} />,
                     chips: showChips ? <ChipRow chips={chips} onTrigger={handleChip} /> : null,
@@ -564,12 +626,14 @@ export function MediaplayerWidget({ config }: WidgetProps) {
 
                 {/* Steuerung */}
                 <div className="shrink-0 flex items-center justify-center gap-2">
-                    {showShuffle && <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />}
+                    {showShuffle && <IconBtn icon={Shuffle} active={shuffle.active} onClick={shuffle.toggle} />}
                     {showPrev && <IconBtn icon={SkipBack} size="md" onClick={() => trigger(o.prevDp)} />}
                     <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
                     {showStop && <IconBtn icon={Square} size="md" onClick={() => trigger(o.stopDp)} />}
                     {showNext && <IconBtn icon={SkipForward} size="md" onClick={() => trigger(o.nextDp)} />}
-                    {showRepeat && <IconBtn icon={Repeat} onClick={() => trigger(o.repeatDp)} />}
+                    {showRepeat && (
+                        <IconBtn icon={repeat.one ? Repeat1 : Repeat} active={repeat.active} onClick={repeat.toggle} />
+                    )}
                 </div>
 
                 {/* Lautstärke */}
@@ -595,9 +659,12 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                                         onClick={() => writeVol(p)}
                                         className="flex-1 text-[11px] py-1 rounded-lg hover:opacity-80 transition-opacity"
                                         style={{
-                                            background: volPct === p ? 'var(--accent)22' : 'var(--app-bg)',
+                                            background:
+                                                volPct === p
+                                                    ? 'color-mix(in srgb, var(--accent) 13%, transparent)'
+                                                    : 'var(--app-bg)',
                                             color: volPct === p ? 'var(--accent)' : 'var(--text-secondary)',
-                                            border: `1px solid ${volPct === p ? 'var(--accent)44' : 'var(--app-border)'}`,
+                                            border: `1px solid ${volPct === p ? 'color-mix(in srgb, var(--accent) 27%, transparent)' : 'var(--app-border)'}`,
                                         }}
                                     >
                                         {p}%

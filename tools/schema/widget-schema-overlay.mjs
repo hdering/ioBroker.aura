@@ -688,8 +688,14 @@ export const WIDGET_OPTION_NOTES = {
         pauseDp: { description: 'Datenpunkt für Pause.' },
         prevDp: { description: 'Datenpunkt für vorheriger Titel.' },
         nextDp: { description: 'Datenpunkt für nächster Titel.' },
-        shuffleDp: { description: 'Datenpunkt für Zufallswiedergabe.' },
-        repeatDp: { description: 'Datenpunkt für Wiederholung.' },
+        shuffleDp: {
+            description:
+                'Datenpunkt für Zufallswiedergabe. Boolean-Schalter wird umgeschaltet und als aktiv angezeigt, Button-Rolle bekommt nur true.',
+        },
+        repeatDp: {
+            description:
+                'Datenpunkt für Wiederholung. Mit common.states (z. B. aus/alle/eins) schaltet ein Klick zum nächsten Eintrag weiter; Boolean wird umgeschaltet, Button-Rolle bekommt nur true.',
+        },
         volumeDp: { description: 'Datenpunkt der Lautstärke.' },
         volumeMin: { description: 'Kleinster Lautstärkewert des Geräts.' },
         volumeMax: { description: 'Größter Lautstärkewert des Geräts.' },

@@ -243,7 +243,8 @@ function groupByParent(entries: DatapointEntry[]): Map<string, DatapointEntry[]>
 }
 
 /**
- * Shuffle and repeat are trigger-only in the widget, but adapters commonly expose
+ * The widget steps shuffle/repeat by the datapoint's own encoding (utils/mediaMode),
+ * but a read-only mode cannot be written at all, and adapters commonly expose
  * the mode read-only next to a writable `…Toggle` button (yamaha does). Prefer
  * whichever of the two can actually be written, otherwise leave the button off.
  */

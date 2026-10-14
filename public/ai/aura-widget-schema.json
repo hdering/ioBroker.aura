@@ -15260,7 +15260,8 @@
         },
         "repeatDp": {
           "type": "string",
-          "description": "Datenpunkt für Wiederholung.",
+          "default": "",
+          "description": "Datenpunkt für Wiederholung. Mit common.states (z. B. aus/alle/eins) schaltet ein Klick zum nächsten Eintrag weiter; Boolean wird umgeschaltet, Button-Rolle bekommt nur true.",
           "datapoint": true
         },
         "showChips": {
@@ -15324,7 +15325,8 @@
         },
         "shuffleDp": {
           "type": "string",
-          "description": "Datenpunkt für Zufallswiedergabe.",
+          "default": "",
+          "description": "Datenpunkt für Zufallswiedergabe. Boolean-Schalter wird umgeschaltet und als aktiv angezeigt, Button-Rolle bekommt nur true.",
           "datapoint": true
         },
         "sourceDp": {
