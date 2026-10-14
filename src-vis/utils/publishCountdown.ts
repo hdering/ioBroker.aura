@@ -10,6 +10,7 @@
  */
 import { setStateDirect, getSocket, sendToDirect } from '../hooks/useIoBroker';
 import { NS } from './namespace';
+import { instanceBase } from './templateInstanceKey';
 
 function setObjectAsync(id: string, obj: object): Promise<void> {
     const socket = getSocket();
@@ -109,7 +110,33 @@ export function unpublishCountdownForWidget(
     widget: { type?: string; options?: Record<string, unknown> } | null | undefined,
 ): void {
     const key = countdownBackendKey(widget);
-    if (key) void unpublishCountdown(key);
+    if (!key) return;
+    void unpublishCountdown(key);
+    // Per-device countdowns of a shared popup / device card widget (#778).
+    void listCountdownIds().then((ids) => {
+        for (const id of ids) if (id !== key && instanceBase(id) === key) void unpublishCountdown(id);
+    });
+}
+
+/** Which countdowns.<key> channels exist in ioBroker. */
+async function listCountdownIds(): Promise<string[]> {
+    const r = await sendToDirect<{ ok: boolean; widgetIds?: string[] }>(NS, 'listCountdowns', {});
+    const ids = r && typeof r === 'object' ? (r as { widgetIds?: unknown }).widgetIds : null;
+    return Array.isArray(ids) ? ids.map(String) : [];
+}
+
+/** Before #778 a countdown in a shared template ran ONE countdown under its base
+ *  key for every device. Removed once the per-device ones take over; checked once
+ *  per base key and page session. */
+const droppedShared = new Set<string>();
+let remoteIds: Promise<string[]> | null = null;
+export function dropSharedTemplateCountdown(baseKey: string): void {
+    if (droppedShared.has(baseKey)) return;
+    droppedShared.add(baseKey);
+    remoteIds ??= listCountdownIds();
+    void remoteIds.then((ids) => {
+        if (ids.includes(baseKey)) void unpublishCountdown(baseKey);
+    });
 }
 
 const lastRenameSent = new Map<string, string>();

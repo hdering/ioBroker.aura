@@ -207,6 +207,72 @@ await openFor('b');
     check('popup: device b schedule keeps it on', lastB?.payload.events[0].enabled === true);
 }
 
+// ── 4. Countdown in device cards: one countdown per device ──
+const CD_DEF = 'def-card-778-cd';
+const CD_KEY = 'c-778';
+await page.keyboard.press('Escape');
+await page.evaluate(
+    ([c, kids, def]) => {
+        window.__auraShot.writes(true);
+        window.__auraShot.groupDefs({ [def]: kids });
+        window.__auraShot.showWidgets(c, { editMode: false });
+    },
+    [
+        cards.map((c) => ({ ...c, id: `${c.id}-cd`, options: { defId: CD_DEF } })),
+        [
+            {
+                id: 'child-cd',
+                type: 'countdown',
+                title: 'Laufzeit',
+                datapoint: '',
+                gridPos: { x: 0, y: 0, w: 12, h: 8 },
+                options: { stateBaseId: `aura.0.countdowns.${CD_KEY}`, targetDp: '{{dp}}', durationSec: 600 },
+            },
+        ],
+        CD_DEF,
+    ],
+);
+await page.waitForTimeout(1500);
+{
+    const writes = (await page.evaluate(() => window.__auraShot.writes()))
+        .filter((w) => /\.countdowns\.[^.]+\.config$/.test(w.id))
+        .map((w) => ({ key: w.id.split('.')[3], payload: JSON.parse(w.val) }));
+    const keys = new Map(writes.map((w) => [w.payload.targetDp, w.key]));
+    const ka = keys.get('test.dev.a.1.SET');
+    const kb = keys.get('test.dev.b.1.SET');
+    check(
+        'countdown: each card under its own key',
+        !!ka && !!kb && ka !== kb && [ka, kb].every((k) => k.startsWith(`${CD_KEY}_`)),
+        JSON.stringify(writes.map((w) => [w.key, w.payload.targetDp])),
+    );
+    check(
+        'countdown: nothing under the shared base key',
+        writes.every((w) => w.key !== CD_KEY),
+    );
+    // Let the adapter "report" idle so the controls arm, then start card a only.
+    await page.evaluate(
+        ([a, b]) => {
+            const m = {
+                [`aura.0.countdowns.${a}.state`]: { val: 'idle' },
+                [`aura.0.countdowns.${b}.state`]: { val: 'idle' },
+            };
+            window.__auraShot.mockServerState(m);
+            window.__auraShot.mock(m);
+            window.__auraShot.writes(true);
+        },
+        [ka, kb],
+    );
+    await page.waitForTimeout(400);
+    await page.locator('[data-aura-widget="w-card-a-cd"] button[aria-label="Start"]').first().click();
+    await page.waitForTimeout(400);
+    const cmds = (await page.evaluate(() => window.__auraShot.writes())).filter((w) => w.id.endsWith('.cmd'));
+    check(
+        'countdown: Start in card a commands device a only',
+        cmds.length === 1 && cmds[0].id === `aura.0.countdowns.${ka}.cmd`,
+        JSON.stringify(cmds),
+    );
+}
+
 await page.screenshot({ path: process.env.SHOT ?? 'node_modules/.cache/timer-shared-template.png' });
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

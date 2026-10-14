@@ -1257,7 +1257,7 @@ export const WIDGET_OPTION_NOTES = {
         endedText: { description: 'Text statt 00:00 nach Ablauf, z. B. "Fertig". Leer = 00:00 bleibt stehen.' },
         stateBaseId: {
             description:
-                'Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen.',
+                'Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen. In Popup-Ansicht/Gerätekarte mit Platzhalter im targetDp (z. B. {{dp}}) läuft je Gerät ein eigener Countdown unter <key>_<hash>.',
         },
     },
     trashSchedule: {

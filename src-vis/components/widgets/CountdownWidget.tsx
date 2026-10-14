@@ -23,7 +23,14 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT, type TranslationKey } from '../../i18n';
 import { subscribeDpValue, useIoBroker } from '../../hooks/useIoBroker';
 import { NS } from '../../utils/namespace';
-import { publishCountdownConfig, countdownStateId, type CountdownConfigPayload } from '../../utils/publishCountdown';
+import {
+    publishCountdownConfig,
+    countdownStateId,
+    dropSharedTemplateCountdown,
+    type CountdownConfigPayload,
+} from '../../utils/publishCountdown';
+import { useSharedTemplateMode } from '../../contexts/RenderTransformContext';
+import { instanceBackendKey, templateInstanceKey } from '../../utils/templateInstanceKey';
 import { formatCountdown, formatPreset } from '../../utils/countdownFormat';
 import { CountdownDurationModal } from './CountdownDurationModal';
 import { CustomGridView } from './CustomGridView';
@@ -120,7 +127,29 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
                 : `c-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
         onConfigChange({ ...config, options: { ...o, stateBaseId: `${NS}.countdowns.${seg}` } });
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
-    const backendKey = isDp ? null : (o.stateBaseId as string | undefined)?.split('.').pop() || null;
+    // One stored countdown rendered for many devices (popup view, device card): a
+    // target with a {{token}} gets its own countdown per device, otherwise starting
+    // it for one device would run it — and write the end value — for the device
+    // resolved last (#778). A fixed or missing target keeps one shared countdown.
+    // The popup editor preview publishes nothing: its datapoint is a sample.
+    const sharedMode = useSharedTemplateMode();
+    const baseKey = isDp ? null : (o.stateBaseId as string | undefined)?.split('.').pop() || null;
+    const rawTarget = targetDp?.trim() ?? '';
+    const instanceKey = templateInstanceKey(rawTarget ? [rawTarget] : []);
+    const unresolved = rawTarget.includes('{{');
+    const backendKey =
+        !baseKey || sharedMode === 'template' || unresolved
+            ? null
+            : sharedMode === 'instance' && instanceKey
+              ? instanceBackendKey(baseKey, instanceKey)
+              : baseKey;
+    const publishTitle =
+        sharedMode === 'instance' && instanceKey
+            ? `${config.title || 'Countdown'} · ${rawTarget}`
+            : config.title || 'Countdown';
+    useEffect(() => {
+        if (sharedMode === 'instance' && instanceKey && baseKey) dropSharedTemplateCountdown(baseKey);
+    }, [sharedMode, instanceKey, baseKey]);
 
     // ── Publish config to the adapter whenever it changes ──────────────────────
     const lastPublishedRef = useRef('');
@@ -142,7 +171,7 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
         };
         const serialized = JSON.stringify(payload);
         if (serialized !== lastPublishedRef.current) {
-            publishCountdownConfig(backendKey, config.title || 'Countdown', payload);
+            publishCountdownConfig(backendKey, publishTitle, payload);
             lastPublishedRef.current = serialized;
         }
     }, [
@@ -155,6 +184,7 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
         stopWritesEnd,
         publishRemaining,
         config.title,
+        publishTitle,
     ]);
 
     // ── Mirror the adapter's status states ─────────────────────────────────────

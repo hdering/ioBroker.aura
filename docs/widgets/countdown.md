@@ -39,6 +39,15 @@ on({ id: 'aura.0.countdowns.<key>.state', change: 'ne' }, (obj) => {
 
 Blockly: Baustein „Steuere Datenpunkt“ auf `…cmd` mit einem Text-Wert wie `start` oder `+300`.
 
+### In Popup-Ansicht oder Gerätekarte
+
+| `targetDp` | Verhalten |
+| --- | --- |
+| mit Platzhalter, z. B. `{{dp}}` | je Gerät ein eigener Countdown, Kanal `aura.0.countdowns.<key>_<hash>` (Name: Titel · Ziel-DP) |
+| fest oder leer | ein gemeinsamer Countdown für alle |
+
+In der Vorschau des Popup-Editors läuft nichts.
+
 ## Layouts
 
 ### Default

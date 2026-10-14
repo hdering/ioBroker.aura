@@ -23,11 +23,10 @@ import {
     dropSharedTemplateTimer,
     publishTimerConfig,
     publishTimerEnabled,
-    timerInstanceBackendKey,
-    timerInstanceKey,
     type TimerConfigPayload,
 } from '../../utils/publishTimerConfig';
 import { useSharedTemplateMode } from '../../contexts/RenderTransformContext';
+import { instanceBackendKey, templateInstanceKey } from '../../utils/templateInstanceKey';
 import { TimerEventModal } from './TimerEventModal';
 import { CustomGridView } from './CustomGridView';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
@@ -281,7 +280,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // one schedule that writes only to the device opened last (#778). A device starts
     // with the template's events and gets its own copy on its first edit.
     const sharedMode = useSharedTemplateMode();
-    const instanceKey = sharedMode === 'instance' ? timerInstanceKey(targets) : null;
+    const instanceKey = sharedMode === 'instance' ? templateInstanceKey(targets) : null;
     const instances = o.timerInstances as Record<string, TimerInstanceState> | undefined;
     const instance = instanceKey ? instances?.[instanceKey] : undefined;
     // Wrap the ?? [] fallback so an unconfigured widget doesn't hand a fresh array
@@ -359,7 +358,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
           ? null
           : sharedMode === 'instance'
             ? instanceKey
-                ? timerInstanceBackendKey(baseKey, instanceKey)
+                ? instanceBackendKey(baseKey, instanceKey)
                 : null
             : baseKey;
     const publishTitle =

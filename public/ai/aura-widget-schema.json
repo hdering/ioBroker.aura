@@ -9686,7 +9686,7 @@
         },
         "stateBaseId": {
           "type": "string",
-          "description": "Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen."
+          "description": "Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen. In Popup-Ansicht/Gerätekarte mit Platzhalter im targetDp (z. B. {{dp}}) läuft je Gerät ein eigener Countdown unter <key>_<hash>."
         },
         "stepSec": {
           "type": "number",

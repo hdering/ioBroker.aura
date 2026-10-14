@@ -1402,7 +1402,7 @@
         "Der Countdown läuft im Adapter, nicht im Browser: Tab zu, Tablet aus — er endet trotzdem und schreibt targetDp.",
         "valueOnStart \"true\" + valueOnEnd \"false\" ist das Muster „für N Minuten einschalten“. Stopp schaltet dann ebenfalls zurück (stopWritesEnd greift automatisch, sobald valueOnStart gesetzt ist).",
         "Ohne valueOnStart ist der Countdown eine reine Endaktion (z. B. eine Meldung oder ein Skript-Trigger); Stopp bricht dann still ab.",
-        "Skripte steuern das Widget über aura.0.countdowns.<key>.cmd: start, pause, resume, toggle, stop, end, +60, -60, =300. Der Pfad steht nach dem ersten Rendern in stateBaseId — nicht selbst vergeben.",
+        "Skripte steuern das Widget über aura.0.countdowns.<key>.cmd: start, pause, resume, toggle, stop, end, +60, -60, =300. Der Pfad steht nach dem ersten Rendern in stateBaseId — nicht selbst vergeben. In Popup-Ansicht/Gerätekarte mit targetDp \"{{dp}}\" hat jedes Gerät einen eigenen Kanal <key>_<hash>.",
         "durationSec ist der Startwert; ±-Tasten, Chips und =N ändern die laufende Einstellung, ohne die Option zu überschreiben.",
         "Ein fremder Countdown (mytime.0.Countdowns.<n>.end) wird mit source \"datapoint\" und dpKind \"end-ts\" nur angezeigt — dann trägt das Widget den Datenpunkt in datapoint."
       ],
