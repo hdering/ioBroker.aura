@@ -4195,12 +4195,15 @@ class Aura extends utils.Adapter {
 
                 // Determine candidate fire times for today (or absolute for once/range)
                 const candidates = []; // [{ ts, key, invert? }]
+                // The trigger is part of every dedupe key: an edited event keeps its id, and
+                // a time moved later on the same day has to fire again (#778).
+                const sig = JSON.stringify(ev.trigger);
 
                 if (ev.trigger.kind === 'time') {
                     if (!this._weekdayMatches(ev.weekdays, now)) continue;
                     const ts = new Date(now);
                     ts.setHours(ev.trigger.hour, ev.trigger.minute, 0, 0);
-                    candidates.push({ ts: ts.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:time` });
+                    candidates.push({ ts: ts.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:time:${sig}` });
                 } else if (ev.trigger.kind === 'astro') {
                     if (!this._weekdayMatches(ev.weekdays, now)) continue;
                     let astroDate;
@@ -4211,17 +4214,18 @@ class Aura extends utils.Adapter {
                         continue;
                     }
                     if (!astroDate) continue;
-                    candidates.push({ ts: astroDate.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:astro` });
+                    candidates.push({ ts: astroDate.getTime(), key: `${widgetId}:${ev.id}:${dayKey}:astro:${sig}` });
                 } else if (ev.trigger.kind === 'once') {
                     const ts = Date.parse(ev.trigger.iso);
                     if (!Number.isFinite(ts)) continue;
-                    candidates.push({ ts, key: `${widgetId}:${ev.id}:once`, isOnce: true });
+                    candidates.push({ ts, key: `${widgetId}:${ev.id}:once:${sig}`, isOnce: true });
                 } else if (ev.trigger.kind === 'range') {
                     const fts = Date.parse(ev.trigger.fromIso);
                     const tts = Date.parse(ev.trigger.toIso);
-                    if (Number.isFinite(fts)) candidates.push({ ts: fts, key: `${widgetId}:${ev.id}:range:start` });
+                    if (Number.isFinite(fts))
+                        candidates.push({ ts: fts, key: `${widgetId}:${ev.id}:range:start:${sig}` });
                     if (Number.isFinite(tts))
-                        candidates.push({ ts: tts, key: `${widgetId}:${ev.id}:range:end`, invert: true });
+                        candidates.push({ ts: tts, key: `${widgetId}:${ev.id}:range:end:${sig}`, invert: true });
                 }
 
                 for (const c of candidates) {
