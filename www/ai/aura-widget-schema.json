@@ -9686,7 +9686,7 @@
         },
         "stateBaseId": {
           "type": "string",
-          "description": "Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen."
+          "description": "Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen. In Popup-Ansicht/Gerätekarte mit Platzhalter im targetDp (z. B. {{dp}}) läuft je Gerät ein eigener Countdown unter <key>_<hash>."
         },
         "stepSec": {
           "type": "number",
@@ -15260,7 +15260,8 @@
         },
         "repeatDp": {
           "type": "string",
-          "description": "Datenpunkt für Wiederholung.",
+          "default": "",
+          "description": "Datenpunkt für Wiederholung. Mit common.states (z. B. aus/alle/eins) schaltet ein Klick zum nächsten Eintrag weiter; Boolean wird umgeschaltet, Button-Rolle bekommt nur true.",
           "datapoint": true
         },
         "showChips": {
@@ -15324,7 +15325,8 @@
         },
         "shuffleDp": {
           "type": "string",
-          "description": "Datenpunkt für Zufallswiedergabe.",
+          "default": "",
+          "description": "Datenpunkt für Zufallswiedergabe. Boolean-Schalter wird umgeschaltet und als aktiv angezeigt, Button-Rolle bekommt nur true.",
           "datapoint": true
         },
         "sourceDp": {
