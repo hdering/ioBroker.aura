@@ -47,7 +47,7 @@ function makeAdapter() {
     const writes = [];
     a.config = {};
     a.getForeignStateAsync = async () => null;
-    a.setForeignStateAsync = async (id, val) => void writes.push(new RealDate(clock).toTimeString().slice(0, 5));
+    a.setForeignStateAsync = async () => void writes.push(new RealDate(clock).toTimeString().slice(0, 5));
     a.setStateAsync = async () => {};
     a._timerState = new Map();
     a._timerFired = new Set();
