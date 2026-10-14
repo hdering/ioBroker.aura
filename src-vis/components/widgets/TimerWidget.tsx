@@ -19,7 +19,15 @@ import { contentPositionClass } from '../../utils/widgetUtils';
 import { classifyTimerValue, effectiveEventValue } from '../../utils/timerValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useSystemConfig } from '../../hooks/useSystemConfig';
-import { publishTimerConfig, publishTimerEnabled, type TimerConfigPayload } from '../../utils/publishTimerConfig';
+import {
+    dropSharedTemplateTimer,
+    publishTimerConfig,
+    publishTimerEnabled,
+    timerInstanceBackendKey,
+    timerInstanceKey,
+    type TimerConfigPayload,
+} from '../../utils/publishTimerConfig';
+import { useSharedTemplateMode } from '../../contexts/RenderTransformContext';
 import { TimerEventModal } from './TimerEventModal';
 import { CustomGridView } from './CustomGridView';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
@@ -256,12 +264,11 @@ function weekdaysText(wd: TimerWeekday[]): string {
         .join(' ');
 }
 
+/** Events and master switch of one device in a shared popup / device card (#778). */
+type TimerInstanceState = { events: TimerEvent[]; enabled: boolean };
+
 export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const o = (config.options ?? {}) as Record<string, unknown>;
-    // Wrap the ?? [] fallback so an unconfigured widget doesn't hand a fresh array
-    // to the publish effect on every render, which would re-publish on every tick.
-    const events = useMemo(() => (o.events as TimerEvent[] | undefined) ?? [], [o.events]);
-    const masterEnabled = (o.enabled as boolean | undefined) ?? true;
     const targetDp = o.targetDp as string | undefined;
     const extraTargetDps = o.extraTargetDps as string[] | undefined;
     // Everything the adapter writes (#774) — targetDp plus the extra DPs, as main.js _timerTargets.
@@ -269,6 +276,28 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         () => [...new Set([targetDp, ...(extraTargetDps ?? [])].map((id) => id?.trim() ?? '').filter(Boolean))],
         [targetDp, extraTargetDps],
     );
+    // One stored timer rendered for many devices (popup view, device card): each
+    // resolved target keeps its own events and schedule, otherwise all devices share
+    // one schedule that writes only to the device opened last (#778). A device starts
+    // with the template's events and gets its own copy on its first edit.
+    const sharedMode = useSharedTemplateMode();
+    const instanceKey = sharedMode === 'instance' ? timerInstanceKey(targets) : null;
+    const instances = o.timerInstances as Record<string, TimerInstanceState> | undefined;
+    const instance = instanceKey ? instances?.[instanceKey] : undefined;
+    // Wrap the ?? [] fallback so an unconfigured widget doesn't hand a fresh array
+    // to the publish effect on every render, which would re-publish on every tick.
+    const ownEvents = instance?.events;
+    const events = useMemo(() => ownEvents ?? (o.events as TimerEvent[] | undefined) ?? [], [ownEvents, o.events]);
+    const masterEnabled = instance?.enabled ?? (o.enabled as boolean | undefined) ?? true;
+    /** Write events / master switch — to this device's entry inside a shared template. */
+    const writeTimerState = (patch: Partial<TimerInstanceState>) => {
+        if (!instanceKey) {
+            onConfigChange({ ...config, options: { ...o, ...patch } });
+            return;
+        }
+        const next = { events, enabled: masterEnabled, ...patch };
+        onConfigChange({ ...config, options: { ...o, timerInstances: { ...instances, [instanceKey]: next } } });
+    };
     const targetValue = o.value as string | undefined;
     const allowEventValue = o.allowEventValue === true;
     const holidaysDp = o.holidaysDp as string | undefined;
@@ -321,7 +350,26 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     // Path segment for publish*/unpublish* (last component of stateBaseId).
     // Null until useLayoutEffect has stamped one in — publish effects gate on it.
-    const backendKey = (o.stateBaseId as string | undefined)?.split('.').pop() || null;
+    // Shared template: one schedule per device, none at all in the popup editor
+    // preview (its datapoint is a sample) or while a {{token}} is unresolved.
+    const baseKey = (o.stateBaseId as string | undefined)?.split('.').pop() || null;
+    const backendKey = !baseKey
+        ? null
+        : sharedMode === 'template'
+          ? null
+          : sharedMode === 'instance'
+            ? instanceKey
+                ? timerInstanceBackendKey(baseKey, instanceKey)
+                : null
+            : baseKey;
+    const publishTitle =
+        sharedMode === 'instance' && targets[0]
+            ? `${config.title || 'Zeitschaltuhr'} · ${targets[0]}`
+            : config.title || 'Zeitschaltuhr';
+    // The pre-#778 schedule this template published under its base key goes away.
+    useEffect(() => {
+        if (sharedMode === 'instance' && baseKey) dropSharedTemplateTimer(baseKey);
+    }, [sharedMode, baseKey]);
 
     // ── Mirror config to backend DPs whenever it changes ──────────────────────
     // The adapter scheduler subscribes to aura.0.timers.<backendKey>.{config,enabled}.
@@ -342,11 +390,12 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         };
         const serialized = JSON.stringify(payload);
         if (serialized !== lastPublishedRef.current) {
-            publishTimerConfig(backendKey, config.title || 'Zeitschaltuhr', payload);
+            publishTimerConfig(backendKey, publishTitle, payload);
             lastPublishedRef.current = serialized;
         }
     }, [
         backendKey,
+        publishTitle,
         config.title,
         events,
         targetDp,
@@ -363,19 +412,19 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     useEffect(() => {
         if (!backendKey) return;
         if (lastEnabledRef.current !== masterEnabled) {
-            publishTimerEnabled(backendKey, config.title || 'Zeitschaltuhr', masterEnabled);
+            publishTimerEnabled(backendKey, publishTitle, masterEnabled);
             lastEnabledRef.current = masterEnabled;
         }
-    }, [backendKey, config.title, masterEnabled]);
+    }, [backendKey, publishTitle, masterEnabled]);
 
     const toggleMaster = () => {
-        onConfigChange({ ...config, options: { ...o, enabled: !masterEnabled } });
+        writeTimerState({ enabled: !masterEnabled });
         if (!editMode) setTimeout(flushDashboard, 0);
     };
 
     const toggleEvent = (eventId: string) => {
         const next = events.map((e) => (e.id === eventId ? { ...e, enabled: !e.enabled } : e));
-        onConfigChange({ ...config, options: { ...o, events: next } });
+        writeTimerState({ events: next });
         if (!editMode) setTimeout(flushDashboard, 0);
     };
 
@@ -385,9 +434,9 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     const saveFromModal = (ev: TimerEvent) => {
         if (editing === 'new') {
-            onConfigChange({ ...config, options: { ...o, events: [...events, ev] } });
+            writeTimerState({ events: [...events, ev] });
         } else {
-            onConfigChange({ ...config, options: { ...o, events: events.map((x) => (x.id === ev.id ? ev : x)) } });
+            writeTimerState({ events: events.map((x) => (x.id === ev.id ? ev : x)) });
         }
         setEditing(null);
         if (!editMode) setTimeout(flushDashboard, 0);
@@ -395,7 +444,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     const deleteFromModal = () => {
         if (editing && editing !== 'new') {
-            onConfigChange({ ...config, options: { ...o, events: events.filter((x) => x.id !== editing.id) } });
+            writeTimerState({ events: events.filter((x) => x.id !== editing.id) });
         }
         setEditing(null);
         if (!editMode) setTimeout(flushDashboard, 0);

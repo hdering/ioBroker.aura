@@ -508,6 +508,12 @@ function installScreenshotApi(): void {
             withSuppressedDirty(() => usePopupConfigStore.setState({ views }));
         },
 
+        /** The STORED widgets of one popup view — what an in-popup edit wrote back,
+         *  placeholders and all (#778). */
+        popupViewWidgets(viewId: string): WidgetConfig[] | null {
+            return usePopupConfigStore.getState().views.find((v) => v.id === viewId)?.widgets ?? null;
+        },
+
         /** Read back what the popup store currently holds (views by id/name plus the
          *  widget-type assignments), so a test can assert on state instead of DOM. */
         popupState(): { views: { id: string; name: string }[]; typeDefaults: Record<string, string> } {

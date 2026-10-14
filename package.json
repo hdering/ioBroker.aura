@@ -107,6 +107,7 @@
     "test:mirror-types": "node tools/tests/mirror-all-types.mjs",
     "test:menu-overview": "node tools/tests/menu-overview.mjs",
     "test:timer-extra-targets": "node tools/tests/timer-extra-targets.mjs",
+    "test:timer-shared-template": "node tools/tests/timer-shared-template.mjs",
     "test:custom-css-scope": "node tools/tests/custom-css-scope.mjs",
     "test:custom-css-hooks": "node tools/tests/custom-css-hooks-sweep.mjs",
     "test:admin-layouts-ui": "node tools/tests/admin-layouts-ui.mjs",

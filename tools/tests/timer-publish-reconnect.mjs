@@ -38,6 +38,7 @@ export function setStateConfirmed(id, val, ack) {
     return new Promise((resolve) => socket.emit('setState', id, { val, ack }, (err) => resolve(!err)));
 }
 export const sendToDirect = async () => null;
+export const devWritesBlocked = () => false;
 `;
 
 const cache = join(process.cwd(), 'node_modules', '.cache');

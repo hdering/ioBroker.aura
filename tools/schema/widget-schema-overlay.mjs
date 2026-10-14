@@ -1179,6 +1179,10 @@ export const WIDGET_OPTION_NOTES = {
         value: { description: 'Wert, den eine Schaltzeit ohne eigenen Wert schreibt.' },
         allowEventValue: { description: 'Je Schaltzeit einen eigenen Wert erlauben.' },
         stateBaseId: { description: 'Objektpfad, unter dem der Adapter die Schaltzeiten ablegt.' },
+        timerInstances: {
+            description:
+                'Nur in Popup-Ansichten und Gerätekarten: Schaltzeiten und Hauptschalter je Gerät, Schlüssel = aufgelöste Ziel-DPs mit "|" verbunden. Jedes Gerät bekommt einen eigenen Plan im Adapter (timers.<Basis>_<Hash>); ohne Eintrag gelten events/enabled der Vorlage. Wird vom Widget gepflegt — nicht selbst setzen.',
+        },
         holidaysDp: {
             description:
                 'Datenpunkt für Feiertagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus "YYYY-MM-DD", Zeiträumen "YYYY-MM-DD/YYYY-MM-DD" und {from,to} (inklusive).',

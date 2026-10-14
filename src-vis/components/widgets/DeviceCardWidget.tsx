@@ -1,7 +1,11 @@
 import { useCallback, useMemo } from 'react';
 import type { WidgetConfig, WidgetProps } from '../../types';
 import { GroupWidget } from './GroupWidget';
-import { RenderTransformContext, RuntimeScopeContext } from '../../contexts/RenderTransformContext';
+import {
+    RenderTransformContext,
+    RuntimeScopeContext,
+    SharedTemplateContext,
+} from '../../contexts/RenderTransformContext';
 import { deviceCardColor, deviceCardTransform, deviceCardVars } from '../../utils/deviceCard';
 import { subAll } from '../../utils/popupPlaceholders';
 import { useDeviceCardShareCount } from '../../hooks/useDeviceCardShareCount';
@@ -54,7 +58,9 @@ export function DeviceCardWidget(props: WidgetProps) {
         <div className="relative h-full w-full">
             <RuntimeScopeContext.Provider value={config.id}>
                 <RenderTransformContext.Provider value={transform}>
-                    <GroupWidget {...props} config={shown} onConfigChange={onShownChange} />
+                    <SharedTemplateContext.Provider value="instance">
+                        <GroupWidget {...props} config={shown} onConfigChange={onShownChange} />
+                    </SharedTemplateContext.Provider>
                 </RenderTransformContext.Provider>
             </RuntimeScopeContext.Provider>
             {linked && (

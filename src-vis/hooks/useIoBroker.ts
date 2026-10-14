@@ -227,6 +227,10 @@ let devBlockWrites = false;
 export function __devSetBlockWrites(on: boolean): void {
     devBlockWrites = on;
 }
+/** True while a harness test keeps writes off the socket (object writes included). */
+export function devWritesBlocked(): boolean {
+    return devBlockWrites;
+}
 
 // Optimistic writes: when enabled, setState reflects the written value locally
 // (cache + subscribers) immediately, instead of waiting for ioBroker to echo a

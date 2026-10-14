@@ -20,7 +20,11 @@ import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/comm
 import { ConfigModal } from '../../components/config/ConfigModal';
 import { activeBgImage } from '../../utils/backgroundImage';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
-import { RenderTransformContext, type RenderTransform } from '../../contexts/RenderTransformContext';
+import {
+    RenderTransformContext,
+    SharedTemplateContext,
+    type RenderTransform,
+} from '../../contexts/RenderTransformContext';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { buildPopupSubMap, resolvePopupWidget } from '../../utils/popupPlaceholders';
 import { findPopupPreviewTriggers } from '../../utils/popupPreviewTriggers';
@@ -620,32 +624,36 @@ export function PopupViewEditor() {
                         ) : (
                             containerWidth > 0 && (
                                 <RenderTransformContext.Provider value={renderTransform}>
-                                    <ReactGridLayout
-                                        className="layout"
-                                        layout={layout}
-                                        cols={cols}
-                                        rowHeight={cellSize}
-                                        width={containerWidth}
-                                        isDraggable
-                                        isResizable
-                                        draggableCancel=".nodrag"
-                                        onDragStop={syncLayout}
-                                        onResizeStop={syncLayout}
-                                        margin={[MARGIN, MARGIN]}
-                                        containerPadding={[0, 0]}
-                                    >
-                                        {widgets.map((w) => (
-                                            <div key={w.id}>
-                                                <WidgetFrame
-                                                    config={w}
-                                                    editMode
-                                                    onRemove={(id) => removeWidgetFromView(viewId, id)}
-                                                    onConfigChange={(cfg) => updateWidgetInView(viewId, cfg.id, cfg)}
-                                                    onCopy={(copy) => addWidgetToView(viewId, copy)}
-                                                />
-                                            </div>
-                                        ))}
-                                    </ReactGridLayout>
+                                    <SharedTemplateContext.Provider value="template">
+                                        <ReactGridLayout
+                                            className="layout"
+                                            layout={layout}
+                                            cols={cols}
+                                            rowHeight={cellSize}
+                                            width={containerWidth}
+                                            isDraggable
+                                            isResizable
+                                            draggableCancel=".nodrag"
+                                            onDragStop={syncLayout}
+                                            onResizeStop={syncLayout}
+                                            margin={[MARGIN, MARGIN]}
+                                            containerPadding={[0, 0]}
+                                        >
+                                            {widgets.map((w) => (
+                                                <div key={w.id}>
+                                                    <WidgetFrame
+                                                        config={w}
+                                                        editMode
+                                                        onRemove={(id) => removeWidgetFromView(viewId, id)}
+                                                        onConfigChange={(cfg) =>
+                                                            updateWidgetInView(viewId, cfg.id, cfg)
+                                                        }
+                                                        onCopy={(copy) => addWidgetToView(viewId, copy)}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </ReactGridLayout>
+                                    </SharedTemplateContext.Provider>
                                 </RenderTransformContext.Provider>
                             )
                         )}

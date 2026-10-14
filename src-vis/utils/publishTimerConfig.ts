@@ -17,6 +17,7 @@ import {
     sendToDirect,
     getDisconnectedSince,
     onDisconnectedSinceChange,
+    devWritesBlocked,
 } from '../hooks/useIoBroker';
 import type { TimerEvent } from '../types';
 import { NS } from './namespace';
@@ -25,6 +26,7 @@ import { NS } from './namespace';
  *  before writing the corresponding state — otherwise iobroker logs
  *  "State has no existing object" warnings. */
 function setObjectAsync(id: string, obj: object): Promise<void> {
+    if (devWritesBlocked()) return Promise.resolve();
     return new Promise((resolve) => {
         getSocket().emit('setObject', id, obj, () => resolve());
     });
@@ -167,6 +169,56 @@ export function unpublishTimerForWidget(
     const backendKey = stateBaseId.split('.').pop();
     if (!backendKey) return;
     void unpublishTimer(backendKey);
+    // Per-device schedules of a shared popup / device card timer (#778).
+    void listTimerIds().then((ids) => {
+        for (const id of ids) if (timerInstanceBase(id) === backendKey && id !== backendKey) void unpublishTimer(id);
+    });
+}
+
+// ── Shared templates (#778) ──────────────────────────────────────────────────
+// A timer inside a popup view or a device card is ONE stored widget rendered for
+// many devices. Each resolved target gets its own backend schedule under
+// <base>_<hash>; the events stay with the template until edited for a device.
+
+/** FNV-1a, base36 — short, stable, safe in an object id. */
+function hashKey(s: string): string {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+        h ^= s.charCodeAt(i);
+        h = Math.imul(h, 0x01000193);
+    }
+    return (h >>> 0).toString(36);
+}
+
+/** Backend key of one device's schedule. Base keys (UUID / t-…) contain no '_'. */
+export function timerInstanceBackendKey(baseKey: string, instanceKey: string): string {
+    return `${baseKey}_${hashKey(instanceKey)}`;
+}
+
+/** Base key a backend key belongs to — itself for a plain timer. */
+export function timerInstanceBase(backendKey: string): string {
+    return backendKey.split('_')[0];
+}
+
+/** Which device a templated timer runs for: its resolved targets. Null while a
+ *  `{{…}}` token is unresolved — such a schedule could only write to nowhere. */
+export function timerInstanceKey(targets: string[]): string | null {
+    if (targets.length === 0 || targets.some((t) => t.includes('{{'))) return null;
+    return targets.join('|');
+}
+
+/** Before #778 a shared template published ONE schedule under its base key, which
+ *  wrote to whichever device was opened last. Removed once its per-device
+ *  schedules take over; checked once per base key and page session. */
+const droppedShared = new Set<string>();
+let remoteTimerIds: Promise<string[]> | null = null;
+export function dropSharedTemplateTimer(baseKey: string): void {
+    if (droppedShared.has(baseKey)) return;
+    droppedShared.add(baseKey);
+    remoteTimerIds ??= listTimerIds();
+    void remoteTimerIds.then((ids) => {
+        if (ids.includes(baseKey)) void unpublishTimer(baseKey);
+    });
 }
 
 /** Push a title change to ioBroker for a timer widget. Runs via sendTo so the

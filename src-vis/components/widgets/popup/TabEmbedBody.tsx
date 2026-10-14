@@ -15,6 +15,7 @@ import { supportsAutoHeight } from '../../../utils/autoHeight';
 import { buildPopupSubMap, popupMainDp, resolvePopupWidget } from '../../../utils/popupPlaceholders';
 import { useResolvedTitle } from '../DynamicTitle';
 import type { WidgetConfig, WidgetCondition } from '../../../types';
+import { SharedTemplateContext } from '../../../contexts/RenderTransformContext';
 
 const DEFAULT_MARGIN = 10;
 
@@ -386,57 +387,59 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
     });
 
     return (
-        <div ref={containerRefCallback} style={{ padding, minWidth: naturalMinWidth }}>
-            {/* Render-free condition evaluators for every widget — kept mounted even
+        <SharedTemplateContext.Provider value="instance">
+            <div ref={containerRefCallback} style={{ padding, minWidth: naturalMinWidth }}>
+                {/* Render-free condition evaluators for every widget — kept mounted even
                 when a widget is reflowed out of the grid. */}
-            <div style={{ display: 'none' }}>
-                {widgets.map((w) => (
-                    <ConditionProbe key={w.id} w={w} onResult={onCondResult} />
-                ))}
-            </div>
-            {containerWidth > 0 && (
-                <ReactGridLayout
-                    className="layout"
-                    layout={layout}
-                    cols={cols}
-                    rowHeight={cellSize}
-                    width={containerWidth}
-                    isDraggable={false}
-                    isResizable={false}
-                    margin={[MARGIN, MARGIN]}
-                    containerPadding={[0, 0]}
-                >
-                    {gridWidgets.map((w) => {
-                        // Pre-substitution original — persist edits against it so
-                        // {{...}} placeholders in untouched option keys survive.
-                        const orig = view.widgets.find((o) => o.id === w.id) ?? w;
-                        const cellAuto = isAutoCell(w);
-                        return (
-                            <div key={w.id}>
-                                {/* Provider tells the widget (e.g. list) to render its full
+                <div style={{ display: 'none' }}>
+                    {widgets.map((w) => (
+                        <ConditionProbe key={w.id} w={w} onResult={onCondResult} />
+                    ))}
+                </div>
+                {containerWidth > 0 && (
+                    <ReactGridLayout
+                        className="layout"
+                        layout={layout}
+                        cols={cols}
+                        rowHeight={cellSize}
+                        width={containerWidth}
+                        isDraggable={false}
+                        isResizable={false}
+                        margin={[MARGIN, MARGIN]}
+                        containerPadding={[0, 0]}
+                    >
+                        {gridWidgets.map((w) => {
+                            // Pre-substitution original — persist edits against it so
+                            // {{...}} placeholders in untouched option keys survive.
+                            const orig = view.widgets.find((o) => o.id === w.id) ?? w;
+                            const cellAuto = isAutoCell(w);
+                            return (
+                                <div key={w.id}>
+                                    {/* Provider tells the widget (e.g. list) to render its full
                                     content without an inner scrollbar in auto-height mode. */}
-                                {/* The widget's own auto-height option is off here: the popup
+                                    {/* The widget's own auto-height option is off here: the popup
                                     sizes its cells itself (the dashboard store would be wrong). */}
-                                <PopupAutoHeightContext.Provider value={cellAuto}>
-                                    <ContentAutoHeightBlockedContext.Provider value={true}>
-                                        <PopupWidgetCell
-                                            w={w}
-                                            cond={conds[w.id] ?? EMPTY_COND}
-                                            widgetPadding={widgetPadding}
-                                            autoHeight={cellAuto}
-                                            onMeasure={onMeasure}
-                                            onConfigChange={(next) => {
-                                                const patch = mergedOptionsPatch(orig, w, next);
-                                                if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
-                                            }}
-                                        />
-                                    </ContentAutoHeightBlockedContext.Provider>
-                                </PopupAutoHeightContext.Provider>
-                            </div>
-                        );
-                    })}
-                </ReactGridLayout>
-            )}
-        </div>
+                                    <PopupAutoHeightContext.Provider value={cellAuto}>
+                                        <ContentAutoHeightBlockedContext.Provider value={true}>
+                                            <PopupWidgetCell
+                                                w={w}
+                                                cond={conds[w.id] ?? EMPTY_COND}
+                                                widgetPadding={widgetPadding}
+                                                autoHeight={cellAuto}
+                                                onMeasure={onMeasure}
+                                                onConfigChange={(next) => {
+                                                    const patch = mergedOptionsPatch(orig, w, next);
+                                                    if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
+                                                }}
+                                            />
+                                        </ContentAutoHeightBlockedContext.Provider>
+                                    </PopupAutoHeightContext.Provider>
+                                </div>
+                            );
+                        })}
+                    </ReactGridLayout>
+                )}
+            </div>
+        </SharedTemplateContext.Provider>
     );
 }

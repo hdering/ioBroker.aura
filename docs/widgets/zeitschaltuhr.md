@@ -72,6 +72,15 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 
 Beim Auslöser-Typ **Zeitraum** schreibt der Scheduler am Ende den invertierten Wert (`true → false`, `42 → 0`, sonst leerer String).
 
+### In Popup-Ansicht oder Gerätekarte
+
+| `targetDp` | Verhalten |
+| --- | --- |
+| mit Platzhalter, z. B. `{{dp}}` | je Gerät ein eigener Zeitplan; Ereignisse der Vorlage gelten, bis sie für das Gerät geändert werden |
+| fester Datenpunkt | ein gemeinsamer Zeitplan für alle |
+
+Ein Gerät wird erst geplant, wenn sein Popup einmal geöffnet bzw. seine Karte angezeigt wurde. In der Vorschau des Popup-Editors wird nichts geplant.
+
 ### Sondertage (optional)
 
 Wenn nicht gesetzt, sind die Filter „Nur Feiertage" / „Nur Urlaub" / „Ohne Sondertage" wirkungslos.

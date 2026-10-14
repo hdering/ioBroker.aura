@@ -5,7 +5,7 @@ import { usePopupConfigStore } from '../store/popupConfigStore';
 import { isDirty, subscribeDirty } from '../store/persistManager';
 import { healthChecksSuppressed } from './healthChecks';
 import { sendToDirect } from './useIoBroker';
-import { timerBackendKey } from '../utils/publishTimerConfig';
+import { timerBackendKey, timerInstanceBase } from '../utils/publishTimerConfig';
 import { NS } from '../utils/namespace';
 import type { WidgetConfig } from '../types';
 
@@ -78,7 +78,8 @@ export function useTimerOrphans(): OrphansState {
                 fetchRemoteItems('listLists'),
                 fetchRemoteItems('listPanels'),
             ]);
-            setTimer(remoteTimer.filter((it) => !knownTimer.has(it.id)));
+            // Per-device schedules of a shared popup / device card timer (#778) belong to their base.
+            setTimer(remoteTimer.filter((it) => !knownTimer.has(timerInstanceBase(it.id))));
             setList(remoteList.filter((it) => !knownList.has(it.id)));
             setPanel(remotePanel.filter((it) => !knownPanel.has(it.id)));
         } finally {

@@ -33,3 +33,20 @@ export function useRuntimeScope(): string | null {
 export function runtimeId(id: string, scope: string | null | undefined): string {
     return scope ? `${scope}~${id}` : id;
 }
+
+/**
+ * How the widgets below relate to the stored config (#778).
+ * - 'instance': one stored widget renders for several devices (popup view at
+ *   runtime, device card). A widget with backend state — the timer — keeps that
+ *   state per resolved datapoint, otherwise every device would share one schedule
+ *   that only ever writes to the device opened last.
+ * - 'template': the popup-view editor preview. Its datapoint is only a sample,
+ *   so nothing is published to the backend.
+ */
+export type SharedTemplateMode = 'instance' | 'template' | null;
+
+export const SharedTemplateContext = createContext<SharedTemplateMode>(null);
+
+export function useSharedTemplateMode(): SharedTemplateMode {
+    return useContext(SharedTemplateContext);
+}
