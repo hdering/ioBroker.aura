@@ -18499,6 +18499,11 @@
           "description": "Datenpunkt, den die Schaltzeiten schreiben.",
           "datapoint": true
         },
+        "timerInstances": {
+          "type": "object",
+          "tsType": "Record<string, TimerInstanceState>",
+          "description": "Nur in Popup-Ansichten und Gerätekarten: Schaltzeiten und Hauptschalter je Gerät, Schlüssel = aufgelöste Ziel-DPs mit \"|\" verbunden. Jedes Gerät bekommt einen eigenen Plan im Adapter (timers.<Basis>_<Hash>); ohne Eintrag gelten events/enabled der Vorlage. Wird vom Widget gepflegt — nicht selbst setzen."
+        },
         "vacationDp": {
           "type": "string",
           "description": "Datenpunkt für Urlaubstagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" und {from,to} (inklusive).",
