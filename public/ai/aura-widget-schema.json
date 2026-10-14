@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.82.8",
+    "auraVersion": "0.82.9",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2066,6 +2066,11 @@
           "type": "number",
           "description": "0 = never close automatically, >0 = seconds; unset = view/global"
         },
+        "autoCloseCountdown": {
+          "type": "string",
+          "ref": "PopupCountdownPosition",
+          "description": "corner where the seconds until auto-close run down; 'off' = none; unset = view/global"
+        },
         "transparency": {
           "type": "number",
           "description": "popup transparency in % (0 = opaque)"
@@ -2088,6 +2093,16 @@
           "description": "Popup background image; unset = view/global."
         }
       }
+    },
+    "PopupCountdownPosition": {
+      "type": "string",
+      "enum": [
+        "off",
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right"
+      ]
     },
     "ColorThreshold": {
       "type": "array",
@@ -7217,6 +7232,11 @@
             "ref": "ElementConditionRule"
           },
           "description": "Conditional formatting applied to EVERY row (issue #572). Clause datapoints may use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one rule work for a whole discovered list. Rules on the entry itself are applied afterwards and therefore win per field."
+        },
+        "rowPopupAutoCloseCountdown": {
+          "type": "string",
+          "ref": "PopupCountdownPosition",
+          "description": "Ecke des Zeilen-Popups, in der die Sekunden bis zum Auto-Schließen herunterlaufen: off, top-left, top-right, bottom-left, bottom-right. Leer = View/Global."
         },
         "rowPopupAutoCloseSec": {
           "type": "number",
@@ -14622,6 +14642,11 @@
           },
           "description": "Conditional formatting applied to EVERY row (issue #572). Clause datapoints may use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one rule work for a whole list. Rules on the entry itself are applied afterwards and therefore win per field."
         },
+        "rowPopupAutoCloseCountdown": {
+          "type": "string",
+          "ref": "PopupCountdownPosition",
+          "description": "Ecke des Zeilen-Popups, in der die Sekunden bis zum Auto-Schließen herunterlaufen: off, top-left, top-right, bottom-left, bottom-right. Leer = View/Global."
+        },
         "rowPopupAutoCloseSec": {
           "type": "number",
           "description": "Zeilen-Popup nach so vielen Sekunden schließen. 0 = nie."
@@ -17355,6 +17380,11 @@
           ],
           "ref": "RowClickSetting",
           "description": "undefined = off (rows are not clickable). `'auto'` derives from the role."
+        },
+        "rowPopupAutoCloseCountdown": {
+          "type": "string",
+          "ref": "PopupCountdownPosition",
+          "description": "Ecke des Zeilen-Popups, in der die Sekunden bis zum Auto-Schließen herunterlaufen: off, top-left, top-right, bottom-left, bottom-right. Leer = View/Global."
         },
         "rowPopupAutoCloseSec": {
           "type": "number",

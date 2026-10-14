@@ -1,6 +1,6 @@
 import type { WidgetConfig, WidgetPreset } from '../types';
 import type { Tab, Section, DashboardLayout } from '../store/dashboardStore';
-import type { PopupView } from '../store/popupConfigStore';
+import { isCountdownPosition, type PopupView } from '../store/popupConfigStore';
 import { useGroupDefsStore, newGroupDefId } from '../store/groupDefsStore';
 import { freshWidgetId } from './widgetCopy';
 import { newPresetId } from '../store/widgetPresetsStore';
@@ -484,6 +484,7 @@ export function exportPopupView(view: PopupView, anon?: AnonymizeOptions) {
         name: view.name,
         ...(view.version !== undefined ? { version: view.version } : {}),
         ...(view.autoCloseSec !== undefined ? { autoCloseSec: view.autoCloseSec } : {}),
+        ...(view.autoCloseCountdown !== undefined ? { autoCloseCountdown: view.autoCloseCountdown } : {}),
         ...(view.transparency !== undefined ? { transparency: view.transparency } : {}),
         ...(view.backdropDim !== undefined ? { backdropDim: view.backdropDim } : {}),
         ...(view.background !== undefined ? { background: view.background } : {}),
@@ -519,6 +520,7 @@ export function importPopupView(raw: unknown): PopupView | null {
         name: obj.name,
         widgets,
         ...(typeof obj.autoCloseSec === 'number' ? { autoCloseSec: obj.autoCloseSec } : {}),
+        ...(isCountdownPosition(obj.autoCloseCountdown) ? { autoCloseCountdown: obj.autoCloseCountdown } : {}),
         ...(typeof obj.transparency === 'number' ? { transparency: obj.transparency } : {}),
         ...(typeof obj.backdropDim === 'number' ? { backdropDim: obj.backdropDim } : {}),
         ...(typeof obj.background === 'string' ? { background: obj.background } : {}),

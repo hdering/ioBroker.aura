@@ -9,8 +9,10 @@ import {
     pctOrUndefined,
     pxOrUndefined,
     colorOrUndefined,
+    type PopupCountdownPosition,
 } from '../../store/popupConfigStore';
 import { PopupBackgroundField } from '../common/PopupBackgroundField';
+import { PopupCountdownSelect } from './PopupCountdownSelect';
 import { BackgroundImageField } from './BackgroundImageField';
 import { activeBgImage } from '../../utils/backgroundImage';
 import { DatapointPicker } from './DatapointPicker';
@@ -157,6 +159,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
     const popupWidth = o.popupWidth as number | undefined;
     const popupHeight = o.popupHeight as number | undefined;
     const popupAutoCloseSec = o.popupAutoCloseSec as number | undefined;
+    const popupAutoCloseCountdown = o.popupAutoCloseCountdown as PopupCountdownPosition | undefined;
     const popupTransparency = o.popupTransparency as number | undefined;
     const popupBackdropDim = o.popupBackdropDim as number | undefined;
     const popupBackground = o.popupBackground as string | undefined;
@@ -1079,6 +1082,18 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                                 setOpts({ popupAutoCloseSec: Number.isFinite(n) && n >= 0 ? n : undefined });
                             }}
                             placeholder="View/Global"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Countdown bis zum Schließen anzeigen
+                        </label>
+                        <PopupCountdownSelect
+                            value={popupAutoCloseCountdown}
+                            onChange={(pos) => setOpts({ popupAutoCloseCountdown: pos })}
+                            inheritLabel="View/Global"
                             className={inputCls}
                             style={inputStyle}
                         />

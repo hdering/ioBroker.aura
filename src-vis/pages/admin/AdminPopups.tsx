@@ -24,6 +24,7 @@ import { PopupBackgroundField } from '../../components/common/PopupBackgroundFie
 import { BackgroundImageField } from '../../components/config/BackgroundImageField';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { ClickActionEditor } from '../../components/config/ClickActionEditor';
+import { PopupCountdownSelect } from '../../components/config/PopupCountdownSelect';
 import { ClauseRow, newClause } from '../../components/config/ConditionEditor';
 import { ConfigModal } from '../../components/config/ConfigModal';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
@@ -1047,6 +1048,8 @@ function PercentSlider({
 function GlobalSettingsSection() {
     const globalAutoCloseSec = usePopupConfigStore((s) => s.globalAutoCloseSec);
     const setGlobalAutoCloseSec = usePopupConfigStore((s) => s.setGlobalAutoCloseSec);
+    const globalAutoCloseCountdown = usePopupConfigStore((s) => s.globalAutoCloseCountdown);
+    const setGlobalAutoCloseCountdown = usePopupConfigStore((s) => s.setGlobalAutoCloseCountdown);
     const globalPopupTransparency = usePopupConfigStore((s) => s.globalPopupTransparency);
     const setGlobalPopupTransparency = usePopupConfigStore((s) => s.setGlobalPopupTransparency);
     const globalBackdropDim = usePopupConfigStore((s) => s.globalBackdropDim);
@@ -1088,6 +1091,18 @@ function GlobalSettingsSection() {
                     />
                     <p className="text-[11px] mt-1" style={labelStyle}>
                         Automatisches Schließen für alle Popups.
+                    </p>
+                    <label className="text-[11px] block mb-1 mt-3" style={labelStyle}>
+                        Countdown anzeigen
+                    </label>
+                    <PopupCountdownSelect
+                        value={globalAutoCloseCountdown}
+                        onChange={setGlobalAutoCloseCountdown}
+                        className={inputCls}
+                        style={{ ...inputStyle, maxWidth: 200 }}
+                    />
+                    <p className="text-[11px] mt-1" style={labelStyle}>
+                        Ecke, in der die Sekunden bis zum Schließen herunterlaufen.
                     </p>
                 </div>
                 <PercentSlider

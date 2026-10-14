@@ -18,6 +18,7 @@ import { PopupBackgroundField } from '../../components/common/PopupBackgroundFie
 import { BackgroundImageField } from '../../components/config/BackgroundImageField';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/common/BackgroundImageLayer';
 import { ConfigModal } from '../../components/config/ConfigModal';
+import { PopupCountdownSelect } from '../../components/config/PopupCountdownSelect';
 import { activeBgImage } from '../../utils/backgroundImage';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import {
@@ -114,6 +115,7 @@ export function PopupViewEditor() {
         updateWidgetInView,
         copyView,
         setViewAutoCloseSec,
+        setViewAutoCloseCountdown,
         setViewTransparency,
         setViewBackdropDim,
         setViewPadding,
@@ -299,6 +301,24 @@ export function PopupViewEditor() {
                             }}
                             placeholder="global"
                             className="text-xs rounded-lg px-2 py-1.5 focus:outline-none w-20"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        />
+                    </label>
+                    <label
+                        className="flex items-center gap-1.5 text-[11px]"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title="Ecke, in der die Sekunden bis zum Auto-Schließen herunterlaufen (leer = global)"
+                    >
+                        Countdown
+                        <PopupCountdownSelect
+                            value={view.autoCloseCountdown}
+                            onChange={(pos) => setViewAutoCloseCountdown(viewId, pos)}
+                            inheritLabel="global"
+                            className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
                             style={{
                                 background: 'var(--app-bg)',
                                 color: 'var(--text-primary)',

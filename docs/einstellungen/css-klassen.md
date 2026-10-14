@@ -212,6 +212,9 @@ Ist die Verbindung zu ioBroker länger als 5 s weg, trägt die Seite `[data-aura
 | `.aura-scroll[data-aura-grid-height-mode="fill"]` | Höhe des Rasters: `"fixed"`, `"scale"` (mitskalieren) oder `"fill"` (Fensterhöhe füllen) |
 | `.aura-no-scrollbar` | Scrollbereich ohne sichtbare Leiste |
 | `.aura-bleed-host` · `.aura-bleed-row` · `.aura-bleed-clip` · `.aura-bleed-scroll` | Listenzeilen, die in den Innenabstand der Karte ragen |
+| `.aura-popup-countdown` | Countdown bis zum Auto-Schließen eines Popups |
+| `.aura-popup-countdown--top-left` · `--top-right` · `--bottom-left` · `--bottom-right` | derselbe Countdown je Ecke |
+| `.aura-popup-countdown-icon` · `.aura-popup-countdown-value` | Uhr-Symbol und Sekundenzahl darin |
 
 ## Im Editor
 
@@ -239,6 +242,7 @@ Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests �
 | `[data-aura-nav-icon="tab\|section\|menu"]` | Icon in einer Navigationsleiste |
 | `[data-aura-toasts="<position>"]` | Toast-Ecke der Meldungen |
 | `[data-aura-click-popup="<art>"]` | Popup eines Widget-Klicks |
+| `[data-aura-popup-countdown="<ecke>"]` | Countdown darin (`top-left`, `top-right`, `bottom-left`, `bottom-right`) |
 | `[data-aura-locked]` | Widget mit gesperrter Bedienung |
 
 ## CSS-Variablen
@@ -250,6 +254,7 @@ Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests �
 | `--aura-bleed-max` | wie weit Listenzeilen in den Innenabstand ragen dürfen |
 | `--aura-sbw` | gemessene Breite der Scrollleiste |
 | `--font-scale` | Schriftskalierung des Frontends |
+| `--popup-countdown-color` · `--popup-countdown-bg` · `--popup-countdown-border` | Schrift, Fläche und Rahmen des Popup-Countdowns |
 
 Eigener Inhalt am Kartenrand richtet sich nach `--aura-widget-pad` statt nach einem festen Wert:
 

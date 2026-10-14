@@ -412,6 +412,9 @@ export interface CustomCell {
     popup?: CellPopupOptions;
 }
 
+/** Corner of a popup where the seconds until its auto-close run down; 'off' = explicitly none. */
+export type PopupCountdownPosition = 'off' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
 /** Per-cell popup settings of a Universal-Widget cell (issue #729). */
 export interface CellPopupOptions {
     title?: string; // popup heading; empty = widget title
@@ -419,6 +422,7 @@ export interface CellPopupOptions {
     width?: number; // popup width in px; unset = view/global
     height?: number; // popup height in px; unset = view/global
     autoCloseSec?: number; // 0 = never close automatically, >0 = seconds; unset = view/global
+    autoCloseCountdown?: PopupCountdownPosition; // corner where the seconds until auto-close run down; 'off' = none; unset = view/global
     transparency?: number; // popup transparency in % (0 = opaque)
     backdropDim?: number; // backdrop dim in % (0 = clear)
     background?: string; // popup surface colour (any CSS colour)
@@ -561,6 +565,7 @@ export type ClickAction =
 // options.popupHideTitle?: boolean  – hide the title bar entirely
 // options.popupShowHistory?: boolean – show history icon in popup header
 // options.popupAutoCloseSec?: number – per-click-action auto-close override (0 = off, >0 = seconds; undefined = inherit view/global)
+// options.popupAutoCloseCountdown?: PopupCountdownPosition – per-click-action countdown corner for the auto-close ('off' = none; undefined = inherit view/global)
 // options.popupTransparency?: number – per-click-action popup transparency in % (0 = opaque; undefined = inherit view/global)
 // options.popupBackdropDim?: number – per-click-action backdrop dim in % (0 = clear; undefined = inherit view/global)
 // options.popupBackground?: string – per-click-action popup surface colour (any CSS colour; undefined = inherit view/global/theme)

@@ -131,6 +131,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                         popupWidth: po.rowPopupWidth,
                         popupHeight: po.rowPopupHeight,
                         popupAutoCloseSec: po.rowPopupAutoCloseSec,
+                        popupAutoCloseCountdown: po.rowPopupAutoCloseCountdown,
                         popupTransparency: po.rowPopupTransparency,
                         popupBackdropDim: po.rowPopupBackdropDim,
                         popupBackground: po.rowPopupBackground,

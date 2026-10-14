@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Popups - optional countdown in a corner of the popup (top/bottom, left/right) showing the seconds until it closes automatically

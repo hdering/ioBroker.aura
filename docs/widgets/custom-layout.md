@@ -222,7 +222,7 @@ Knopf **Klick-Aktion** im Zell-Editor — dieselben Aktionen wie beim Widget-Kli
 | Feld | |
 | --- | --- |
 | `clickAction` | Aktion dieser Zelle; leer = Klick geht an die Aktion des Widgets |
-| `popup` | `title` · `hideTitle` · `width` · `height` · `autoCloseSec` · `transparency` · `backdropDim` · `background` · `padding` |
+| `popup` | `title` · `hideTitle` · `width` · `height` · `autoCloseSec` · `autoCloseCountdown` · `transparency` · `backdropDim` · `background` · `padding` |
 
 | Zelltypen | |
 | --- | --- |

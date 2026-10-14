@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import type { WidgetConfig, ClickAction } from '../../../types';
+import type { WidgetConfig, ClickAction, PopupCountdownPosition } from '../../../types';
 import { usePortalTarget } from '../../../contexts/PortalTargetContext';
 import {
     usePopupConfigStore,
@@ -26,6 +26,7 @@ import { HtmlPopupBody } from './HtmlPopupBody';
 import { WidgetEmbedBody } from './WidgetEmbedBody';
 import { DeviceDpsBody } from './DeviceDpsBody';
 import { TabEmbedBody } from './TabEmbedBody';
+import { PopupCountdown } from './PopupCountdown';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../common/BackgroundImageLayer';
 import { activeBgImage } from '../../../utils/backgroundImage';
 
@@ -116,6 +117,14 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
     const actionAutoClose = widget.options?.popupAutoCloseSec as number | undefined;
     const globalAutoClose = usePopupConfigStore((s) => s.globalAutoCloseSec);
     const effectiveAutoCloseSec = actionAutoClose ?? view?.autoCloseSec ?? globalAutoClose ?? 0;
+    // Countdown corner, same three levels; only shown while an auto-close is pending.
+    const globalCountdown = usePopupConfigStore((s) => s.globalAutoCloseCountdown);
+    const countdownPos =
+        (widget.options?.popupAutoCloseCountdown as PopupCountdownPosition | undefined) ??
+        view?.autoCloseCountdown ??
+        globalCountdown ??
+        'off';
+    const countdown = effectiveAutoCloseSec > 0 && countdownPos !== 'off' ? countdownPos : null;
 
     // Appearance, both in percent.
     const globalTransparency = usePopupConfigStore((s) => s.globalPopupTransparency);
@@ -169,9 +178,12 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
 
     // Auto-close timer, reset on pointer activity inside the popup body.
     const timerRef = useRef<number | null>(null);
+    // Seeded on mount so the countdown's first paint already shows the full time.
+    const deadlineRef = useRef(Date.now() + effectiveAutoCloseSec * 1000);
     const armTimer = () => {
         if (timerRef.current !== null) window.clearTimeout(timerRef.current);
         if (effectiveAutoCloseSec > 0) {
+            deadlineRef.current = Date.now() + effectiveAutoCloseSec * 1000;
             timerRef.current = window.setTimeout(onClose, effectiveAutoCloseSec * 1000);
         }
     };
@@ -293,10 +305,12 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                     <X size={13} />
                 </button>
 
-                {/* Optional title header */}
+                {countdown && <PopupCountdown position={countdown} deadlineRef={deadlineRef} />}
+
+                {/* Optional title header — keeps clear of a countdown in a top corner */}
                 {!hideTitle && title && (
                     <div
-                        className="shrink-0 px-5 pr-12 py-3"
+                        className={`shrink-0 py-3 ${countdown === 'top-left' ? 'pl-20' : 'pl-5'} ${countdown === 'top-right' ? 'pr-28' : 'pr-12'}`}
                         style={{ borderBottom: `1px solid ${DEFAULT_POPUP_BORDER}` }}
                     >
                         <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>

@@ -1,4 +1,4 @@
-import type { BackgroundImage, ClickAction } from '../types';
+import type { BackgroundImage, ClickAction, PopupCountdownPosition } from '../types';
 import { detectWidgetTypeFromRole } from './dpTemplates';
 import { lookupDatapointEntry } from '../hooks/useDatapointList';
 
@@ -35,6 +35,7 @@ export interface RowPopupOptions {
     rowPopupWidth?: number;
     rowPopupHeight?: number;
     rowPopupAutoCloseSec?: number;
+    rowPopupAutoCloseCountdown?: PopupCountdownPosition; // corner of the auto-close countdown; undefined = inherit view/global
     /** Popup transparency / backdrop dim in percent; undefined = inherit view/global. */
     rowPopupTransparency?: number;
     rowPopupBackdropDim?: number;

@@ -1,4 +1,4 @@
-import type { BackgroundImage, ClickAction, WidgetConfig } from '../../types';
+import type { BackgroundImage, ClickAction, PopupCountdownPosition, WidgetConfig } from '../../types';
 import { DEFAULT_ROW_CLICK_ACTION, type RowClickSetting, type RowPopupOptions } from '../../utils/rowClickAction';
 import { ClickActionEditor } from './ClickActionEditor';
 
@@ -235,6 +235,7 @@ export function RowClickSection({
                             popupWidth: opts.rowPopupWidth,
                             popupHeight: opts.rowPopupHeight,
                             popupAutoCloseSec: opts.rowPopupAutoCloseSec,
+                            popupAutoCloseCountdown: opts.rowPopupAutoCloseCountdown,
                             popupTransparency: opts.rowPopupTransparency,
                             popupBackdropDim: opts.rowPopupBackdropDim,
                             popupBackground: opts.rowPopupBackground,
@@ -251,6 +252,7 @@ export function RowClickSection({
                             rowPopupWidth: o.popupWidth as number | undefined,
                             rowPopupHeight: o.popupHeight as number | undefined,
                             rowPopupAutoCloseSec: o.popupAutoCloseSec as number | undefined,
+                            rowPopupAutoCloseCountdown: o.popupAutoCloseCountdown as PopupCountdownPosition | undefined,
                             rowPopupTransparency: o.popupTransparency as number | undefined,
                             rowPopupBackdropDim: o.popupBackdropDim as number | undefined,
                             rowPopupBackground: o.popupBackground as string | undefined,

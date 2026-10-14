@@ -1891,6 +1891,7 @@ function cellPopupOpts(p: CellPopupOptions | undefined): RowPopupOptions | undef
         rowPopupWidth: p.width,
         rowPopupHeight: p.height,
         rowPopupAutoCloseSec: p.autoCloseSec,
+        rowPopupAutoCloseCountdown: p.autoCloseCountdown,
         rowPopupTransparency: p.transparency,
         rowPopupBackdropDim: p.backdropDim,
         rowPopupBackground: p.background,

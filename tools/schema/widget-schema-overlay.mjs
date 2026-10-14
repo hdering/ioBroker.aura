@@ -156,6 +156,8 @@ export const KEY_DESCRIPTIONS = {
     rowPopupHideTitle: 'Titelzeile des Zeilen-Popups ausblenden.',
     rowPopupBackdropDim: 'Abdunklung des Hintergrunds hinter dem Zeilen-Popup, 0–100.',
     rowPopupAutoCloseSec: 'Zeilen-Popup nach so vielen Sekunden schließen. 0 = nie.',
+    rowPopupAutoCloseCountdown:
+        'Ecke des Zeilen-Popups, in der die Sekunden bis zum Auto-Schließen herunterlaufen: off, top-left, top-right, bottom-left, bottom-right. Leer = View/Global.',
 
     // ── Verlauf / Diagramme ──────────────────────────────────────────────────
     historyInstance: 'History-Adapterinstanz, z. B. "history.0" oder "influxdb.0".',

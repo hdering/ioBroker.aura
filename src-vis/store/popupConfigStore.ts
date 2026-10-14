@@ -1,7 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage, withSuppressedDirty } from './persistManager';
-import type { BackgroundImage, ClickAction, ConditionClause, WidgetConfig, WidgetLayout } from '../types';
+import type {
+    BackgroundImage,
+    ClickAction,
+    ConditionClause,
+    PopupCountdownPosition,
+    WidgetConfig,
+    WidgetLayout,
+} from '../types';
 
 /**
  * Popup appearance defaults. Both values are percentages and follow the same
@@ -51,12 +58,27 @@ export function colorOrUndefined(raw: string | undefined): string | undefined {
     return v === '' ? undefined : v;
 }
 
+export type { PopupCountdownPosition };
+/** Corners for the auto-close countdown; 'off' overrides an inherited corner. */
+export const POPUP_COUNTDOWN_POSITIONS: PopupCountdownPosition[] = [
+    'off',
+    'top-left',
+    'top-right',
+    'bottom-left',
+    'bottom-right',
+];
+export function isCountdownPosition(v: unknown): v is PopupCountdownPosition {
+    return typeof v === 'string' && (POPUP_COUNTDOWN_POSITIONS as string[]).includes(v);
+}
+
 export interface PopupView {
     id: string;
     name: string;
     widgets: WidgetConfig[];
     // Per-view auto-close: undefined = inherit global, 0 = explicit off, >0 = seconds
     autoCloseSec?: number;
+    // Per-view countdown corner for the auto-close: undefined = inherit global
+    autoCloseCountdown?: PopupCountdownPosition;
     // Per-view appearance: undefined = inherit the global setting (percent, 0-100)
     transparency?: number;
     backdropDim?: number;
@@ -248,6 +270,8 @@ interface PopupConfigState {
     removedBuiltinTypeDefaults: string[]; // builtin widget types whose default was explicitly removed
     // Global auto-close fallback: undefined = no auto-close, >0 = seconds
     globalAutoCloseSec?: number;
+    // Global countdown corner for the auto-close: undefined = no countdown
+    globalAutoCloseCountdown?: PopupCountdownPosition;
     // Global appearance fallback (percent): undefined = DEFAULT_POPUP_TRANSPARENCY / DEFAULT_BACKDROP_DIM
     globalPopupTransparency?: number;
     globalBackdropDim?: number;
@@ -271,6 +295,7 @@ interface PopupConfigState {
     removeView: (viewId: string) => void;
     updateViewName: (viewId: string, name: string) => void;
     setViewAutoCloseSec: (viewId: string, sec: number | undefined) => void;
+    setViewAutoCloseCountdown: (viewId: string, pos: PopupCountdownPosition | undefined) => void;
     setViewTransparency: (viewId: string, pct: number | undefined) => void;
     setViewBackdropDim: (viewId: string, pct: number | undefined) => void;
     setViewBackground: (viewId: string, color: string | undefined) => void;
@@ -282,6 +307,7 @@ interface PopupConfigState {
 
     // Global
     setGlobalAutoCloseSec: (sec: number | undefined) => void;
+    setGlobalAutoCloseCountdown: (pos: PopupCountdownPosition | undefined) => void;
     setGlobalPopupTransparency: (pct: number | undefined) => void;
     setGlobalBackdropDim: (pct: number | undefined) => void;
     setGlobalPopupBackground: (color: string | undefined) => void;
@@ -311,6 +337,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             deletedBuiltinIds: [],
             removedBuiltinTypeDefaults: [],
             globalAutoCloseSec: undefined,
+            globalAutoCloseCountdown: undefined,
             globalPopupTransparency: undefined,
             globalBackdropDim: undefined,
             globalPopupBackground: undefined,
@@ -379,6 +406,9 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             setViewAutoCloseSec: (viewId, sec) =>
                 set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, autoCloseSec: sec })) })),
 
+            setViewAutoCloseCountdown: (viewId, pos) =>
+                set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, autoCloseCountdown: pos })) })),
+
             setViewTransparency: (viewId, pct) =>
                 set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, transparency: pct })) })),
 
@@ -395,6 +425,8 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                 set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, padding: px })) })),
 
             setGlobalAutoCloseSec: (sec) => set({ globalAutoCloseSec: sec }),
+
+            setGlobalAutoCloseCountdown: (pos) => set({ globalAutoCloseCountdown: pos }),
 
             setGlobalPopupTransparency: (pct) => set({ globalPopupTransparency: pct }),
 
@@ -488,6 +520,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                         name: `${source.name} (Kopie)`,
                         widgets: source.widgets.map((w, i) => ({ ...w, id: `pw-${Date.now()}-${i}` })),
                         autoCloseSec: source.autoCloseSec,
+                        autoCloseCountdown: source.autoCloseCountdown,
                         transparency: source.transparency,
                         backdropDim: source.backdropDim,
                         background: source.background,

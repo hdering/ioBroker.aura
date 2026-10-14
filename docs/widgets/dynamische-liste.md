@@ -217,6 +217,7 @@ Dialog **Datenpunkte verwalten** → Tab **Klick auf Zeile**. Ein Klick auf eine
 | `rowPopupTitle` | Zeilenname | Titel des Popups |
 | `rowPopupWidth` / `rowPopupHeight` | auto | px |
 | `rowPopupAutoCloseSec` | View/Global | Sekunden, `0` = aus |
+| `rowPopupAutoCloseCountdown` | View/Global | Ecke des Countdowns: `top-left` · `top-right` · `bottom-left` · `bottom-right` · `off` |
 
 Standard ohne eigene Einstellung: **Aus** — Zeilen reagieren nicht auf Klicks. **Eigene Aktion** startet mit *Popup: Alle Datenpunkte des Geräts*, Umfang **Gleicher Strang (Elternobjekt)**, **Nur relevante Datenpunkte** an — entspricht `{ "kind": "popup-dps", "scope": "parent", "relevantOnly": true }`. **Automatisch** (Popup nach Rolle) muss aktiv gewählt werden.
 

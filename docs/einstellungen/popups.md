@@ -9,13 +9,14 @@ Eigene Popup-Views erstellen und als Standard für Widget-Typen zuweisen. Ein Po
 | Option | |
 | --- | --- |
 | Auto-Schließen nach (Sek.) | Automatisches Schließen; `0` / leer = aus |
+| Countdown anzeigen | Ecke, in der die Sekunden bis zum Schließen herunterlaufen: oben links, oben rechts, unten links, unten rechts; leer = aus |
 | Popup-Transparenz | `0 %` = deckend, höhere Werte lassen das Dashboard durchscheinen (max. `95 %`) |
 | Hintergrund abdunkeln | Abdunklung hinter dem Popup; `0 %` = keine, Standard `60 %` |
 | Hintergrundfarbe | Fläche des Popups; leer = Theme (`--popup-bg`, sonst `--app-surface`) |
 | Hintergrundbild | Bild hinter dem Inhalt mit Anpassung, Ausrichtung und Abdunkeln (wie beim [Widget](./editor#hintergrundbild)); leer = kein Bild |
 | Innenabstand | Abstand zwischen Popup-Rand und den Widgets darin; `0`–`40 px`, Standard `12 px` |
 
-Alle sechs Werte gelten als Standard für jedes Popup und lassen sich überschreiben:
+Alle sieben Werte gelten als Standard für jedes Popup und lassen sich überschreiben:
 
 | Ebene | Wo |
 | --- | --- |

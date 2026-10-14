@@ -135,6 +135,7 @@ import type {
     CustomGridDef,
     BackgroundImage,
     CellPopupOptions,
+    PopupCountdownPosition,
     WidgetType,
     ClickAction,
     WidgetLayout,
@@ -21445,6 +21446,7 @@ function WidgetFrameInner({
                             popupWidth: p.width,
                             popupHeight: p.height,
                             popupAutoCloseSec: p.autoCloseSec,
+                            popupAutoCloseCountdown: p.autoCloseCountdown,
                             popupTransparency: p.transparency,
                             popupBackdropDim: p.backdropDim,
                             popupBackground: p.background,
@@ -21468,6 +21470,9 @@ function WidgetFrameInner({
                                         width: o.popupWidth as number | undefined,
                                         height: o.popupHeight as number | undefined,
                                         autoCloseSec: o.popupAutoCloseSec as number | undefined,
+                                        autoCloseCountdown: o.popupAutoCloseCountdown as
+                                            | PopupCountdownPosition
+                                            | undefined,
                                         transparency: o.popupTransparency as number | undefined,
                                         backdropDim: o.popupBackdropDim as number | undefined,
                                         background: (o.popupBackground as string) || undefined,
