@@ -23,7 +23,12 @@ const DOCS = 'docs/widgets';
 
 // ── Options that apply to (nearly) every widget ──────────────────────────────
 const CROSSCUTTING = [
-    { key: 'clickAction', type: 'ClickAction', default: '{ kind: "none" }', note: 'Klick/Tap-Aktion (Popup, Link, DP schreiben …)' },
+    {
+        key: 'clickAction',
+        type: 'ClickAction',
+        default: '{ kind: "none" }',
+        note: 'Klick/Tap-Aktion (Popup, Link, DP schreiben …)',
+    },
     { key: 'conditions', type: 'WidgetCondition[]', default: '[]', note: 'Bedingte Farb-/Sichtbarkeits-Styles' },
     { key: 'badges', type: 'BadgeDef[]', default: '[]', note: 'Overlay-Indikatoren an der Kartenecke' },
     { key: 'batteryDp', type: 'datapoint', default: '—', note: 'Batterie-Badge' },
@@ -56,11 +61,28 @@ const OPTION_SEED = {
     verteilung: [
         { key: 'bars', type: 'EnergyBar[]', default: '[]', note: 'Gruppen — je Gruppe ein Balken bzw. Kreis' },
         { key: 'bars[].title', type: 'string', default: '—', note: 'Titel über der Gruppe' },
-        { key: 'bars[].legendSide', type: 'enum', enum: ['left', 'right', 'top', 'below'], default: 'below', note: 'Legende dieser Gruppe' },
+        {
+            key: 'bars[].legendSide',
+            type: 'enum',
+            enum: ['left', 'right', 'top', 'below'],
+            default: 'below',
+            note: 'Legende dieser Gruppe',
+        },
         { key: 'bars[].entries', type: 'EnergyEntry[]', default: '[]', note: 'Einträge der Gruppe' },
         { key: 'entries[].datapointId', type: 'datapoint', default: '—', note: 'Pflicht je Eintrag' },
-        { key: 'entries[].historyInstance', type: 'string', default: 'auto', note: 'history/influxdb/sql; leer = aus common.custom erkannt' },
-        { key: 'entries[].aggregate', type: 'enum', enum: ['last', 'delta', 'sum', 'average', 'max', 'min'], default: 'last', note: 'reduziert den Eintrag auf EINEN Wert im Zeitraum' },
+        {
+            key: 'entries[].historyInstance',
+            type: 'string',
+            default: 'auto',
+            note: 'history/influxdb/sql; leer = aus common.custom erkannt',
+        },
+        {
+            key: 'entries[].aggregate',
+            type: 'enum',
+            enum: ['last', 'delta', 'sum', 'average', 'max', 'min'],
+            default: 'last',
+            note: 'reduziert den Eintrag auf EINEN Wert im Zeitraum',
+        },
         { key: 'entries[].label', type: 'string', default: '—', note: 'Bezeichnung in der Legende' },
         { key: 'entries[].icon', type: 'lucide-icon', default: '—' },
         { key: 'entries[].color', type: 'color', default: 'Palette' },
@@ -71,10 +93,21 @@ const OPTION_SEED = {
         { key: 'pieSize', type: 'number(px)', default: '160', note: 'nur pie/donut' },
         { key: 'unit', type: 'string', default: 'kWh' },
         { key: 'decimals', type: 'number', default: 'global' },
-        { key: 'range', type: 'enum', enum: ['1h', '6h', '24h', '7d', '30d', 'custom'], default: '24h', note: 'gemeinsames Fenster aller Einträge' },
+        {
+            key: 'range',
+            type: 'enum',
+            enum: ['1h', '6h', '24h', '7d', '30d', 'custom'],
+            default: '24h',
+            note: 'gemeinsames Fenster aller Einträge',
+        },
         { key: 'rangeCustomValue', type: 'number', default: '24', note: 'nur range custom' },
         { key: 'rangeCustomUnit', type: 'enum', enum: ['h', 'd'], default: 'h', note: 'nur range custom' },
-        { key: 'visibleRanges', type: 'EChartTimeRange[]', default: 'alle Presets', note: 'Auswahl des Frontend-Umschalters' },
+        {
+            key: 'visibleRanges',
+            type: 'EChartTimeRange[]',
+            default: 'alle Presets',
+            note: 'Auswahl des Frontend-Umschalters',
+        },
         { key: 'lockRange', type: 'boolean', default: 'false', note: 'Umschalter im Frontend ausblenden' },
         { key: 'showTitle', type: 'boolean', default: 'true' },
         { key: 'showBarTitles', type: 'boolean', default: 'true', note: 'Titel je Gruppe' },
@@ -82,35 +115,89 @@ const OPTION_SEED = {
         { key: 'barTitleAlign', type: 'enum', enum: ['left', 'center', 'right'], default: 'center' },
         { key: 'showPercent', type: 'boolean', default: 'true', note: 'Prozent-Label im Segment' },
         { key: 'showSegmentIcon', type: 'boolean', default: 'false', note: 'Icon zusätzlich im Segment' },
-        { key: 'showOutsidePercent', type: 'boolean', default: 'true', note: 'kleine Segmente außen anschreiben (pie/donut)' },
+        {
+            key: 'showOutsidePercent',
+            type: 'boolean',
+            default: 'true',
+            note: 'kleine Segmente außen anschreiben (pie/donut)',
+        },
         { key: 'showLegend', type: 'boolean', default: 'true' },
-        { key: 'legendSide', type: 'enum', enum: ['left', 'right', 'top', 'below'], default: 'je Gruppe', note: 'gilt für alle Gruppen' },
+        {
+            key: 'legendSide',
+            type: 'enum',
+            enum: ['left', 'right', 'top', 'below'],
+            default: 'je Gruppe',
+            note: 'gilt für alle Gruppen',
+        },
         { key: 'legendAlign', type: 'enum', enum: ['left', 'center', 'right'], default: 'aus der Position' },
-        { key: 'legendFormat', type: 'enum', enum: ['value', 'icon-value', 'label', 'label-value', 'icon-label-value'], default: 'icon-value' },
+        {
+            key: 'legendFormat',
+            type: 'enum',
+            enum: ['value', 'icon-value', 'label', 'label-value', 'icon-label-value'],
+            default: 'icon-value',
+        },
         { key: 'icon', type: 'lucide-icon', default: 'PieChart' },
         { key: 'showIcon', type: 'boolean', default: 'true' },
         { key: 'iconSize', type: 'number(px)', default: '18' },
         { key: 'titleAlign', type: 'enum', enum: ['left', 'center', 'right'], default: 'left' },
     ],
     menue: [
-        { key: 'menuMode', type: 'enum', enum: ['section', 'tab'], default: 'section', note: 'Bereiche des Layouts bzw. Tabs des Bereichs' },
+        {
+            key: 'menuMode',
+            type: 'enum',
+            enum: ['section', 'tab'],
+            default: 'section',
+            note: 'Bereiche des Layouts bzw. Tabs des Bereichs',
+        },
         { key: 'hiddenItems', type: 'string[]', default: '[]', note: 'abgewählte Einträge (Slug oder ID)' },
         { key: 'variant', type: 'enum', enum: ['hbar', 'pills', 'vlist', 'grid'], default: 'hbar' },
-        { key: 'indicatorStyle', type: 'enum', enum: ['text', 'underline', 'filled', 'pills'], default: 'underline', note: 'Aktiv-Stil; variant pills erzwingt pills' },
-        { key: 'align', type: 'enum', enum: ['start', 'center', 'end'], default: 'start', note: 'wirkt bei hbar und pills' },
+        {
+            key: 'indicatorStyle',
+            type: 'enum',
+            enum: ['text', 'underline', 'filled', 'pills'],
+            default: 'underline',
+            note: 'Aktiv-Stil; variant pills erzwingt pills',
+        },
+        {
+            key: 'align',
+            type: 'enum',
+            enum: ['start', 'center', 'end'],
+            default: 'start',
+            note: 'wirkt bei hbar und pills',
+        },
         { key: 'gridCols', type: 'number', default: '3', note: 'nur variant grid (1–12)' },
         { key: 'gap', type: 'number(px)', default: '6' },
         { key: 'iconSize', type: 'number(px)', default: '18' },
-        { key: 'showIcons', type: 'boolean', default: 'true', note: 'Icons stammen aus Bereich/Tab, nicht aus dem Widget' },
+        {
+            key: 'showIcons',
+            type: 'boolean',
+            default: 'true',
+            note: 'Icons stammen aus Bereich/Tab, nicht aus dem Widget',
+        },
         { key: 'showLabels', type: 'boolean', default: 'true' },
     ],
     geraetekarte: [
-        { key: 'datapoint', type: 'datapoint', default: '—', note: 'Grundlage der Platzhalter {{dp}} {{parent}} {{name}} der Kinder' },
+        {
+            key: 'datapoint',
+            type: 'datapoint',
+            default: '—',
+            note: 'Grundlage der Platzhalter {{dp}} {{parent}} {{name}} der Kinder',
+        },
         { key: 'defId', type: 'string', default: 'neu', note: 'geteilter Aufbau: gleiche defId = gleiche Kinder' },
     ],
     spiegel: [
-        { key: 'targetWidgetId', type: 'string', default: '—', note: 'ID des Quell-Widgets; Inhalt, Titel und Werte kommen live von dort' },
-        { key: 'transparent', type: 'boolean', default: 'false', note: 'Rahmen des Spiegels; beim Auswählen von der Quelle übernommen' },
+        {
+            key: 'targetWidgetId',
+            type: 'string',
+            default: '—',
+            note: 'ID des Quell-Widgets; Inhalt, Titel und Werte kommen live von dort',
+        },
+        {
+            key: 'transparent',
+            type: 'boolean',
+            default: 'false',
+            note: 'Rahmen des Spiegels; beim Auswählen von der Quelle übernommen',
+        },
         { key: 'transparency', type: 'number', default: '—', note: 'wie transparent' },
         { key: 'styleOverride', type: 'Record<string,string>', default: '—', note: 'wie transparent' },
     ],
@@ -137,11 +224,46 @@ const CUSTOM_KEYS = {
     },
     drehregler: { components: ['dial', 'icon'], fields: ['value', 'unit', 'min', 'max'] },
     dimmer: {
-        components: ['icon', 'slider', 'toggle', 'control', 'state-dot', 'level-slider', 'level-slider-sm', 'battery-icon', 'reach-icon', 'status-badges'],
+        components: [
+            'icon',
+            'slider',
+            'toggle',
+            'control',
+            'state-dot',
+            'level-slider',
+            'level-slider-sm',
+            'battery-icon',
+            'reach-icon',
+            'status-badges',
+        ],
         fields: ['level', 'status', 'on', 'battery', 'reach'],
     },
     rollladen: {
-        components: ['icon', 'viz', 'btn-col', 'btn-row', 'btn-up', 'btn-stop', 'btn-down', 'btn-up-min', 'btn-stop-min', 'btn-down-min', 'slider', 'tilt-slider-v', 'tilt-slider-h', 'btn-tilt', 'btn-tilt-open', 'btn-tilt-close', 'tilt-aside', 'tilt-aside-flat', 'tilt-row', 'presets', 'battery-icon', 'reach-icon', 'status-badges'],
+        components: [
+            'icon',
+            'viz',
+            'btn-col',
+            'btn-row',
+            'btn-up',
+            'btn-stop',
+            'btn-down',
+            'btn-up-min',
+            'btn-stop-min',
+            'btn-down-min',
+            'slider',
+            'tilt-slider-v',
+            'tilt-slider-h',
+            'btn-tilt',
+            'btn-tilt-open',
+            'btn-tilt-close',
+            'tilt-aside',
+            'tilt-aside-flat',
+            'tilt-row',
+            'presets',
+            'battery-icon',
+            'reach-icon',
+            'status-badges',
+        ],
         fields: ['position', 'status', 'movingArrow', 'moving', 'tilt', 'battery', 'reach'],
     },
     schieberegler: {
@@ -149,7 +271,16 @@ const CUSTOM_KEYS = {
         fields: ['value', 'unit', 'min', 'max', 'battery', 'reach'],
     },
     auswahlfeld: {
-        components: ['icon', 'select', 'label', 'label-lg', 'accent-bar', 'battery-icon', 'reach-icon', 'status-badges'],
+        components: [
+            'icon',
+            'select',
+            'label',
+            'label-lg',
+            'accent-bar',
+            'battery-icon',
+            'reach-icon',
+            'status-badges',
+        ],
         fields: ['battery', 'reach'],
     },
     button: { components: ['icon'], fields: [] },
@@ -160,27 +291,118 @@ const CUSTOM_KEYS = {
         fields: ['time', 'date', 'custom', 'city', 'sunrise', 'sunset', 'week', 'kw', 'relative'],
     },
     zeitschaltuhr: {
-        components: ['icon', 'master', 'master-sm', 'status', 'status-line', 'events', 'event-list', 'events-compact', 'add'],
+        components: [
+            'icon',
+            'master',
+            'master-sm',
+            'status',
+            'status-line',
+            'events',
+            'event-list',
+            'events-compact',
+            'add',
+            'special-days',
+        ],
         fields: ['status', 'target', 'value', 'count', 'enabled', 'countShort'],
     },
     countdown: {
-        components: ['icon', 'digits', 'digits-fill', 'digits-inline', 'progress', 'controls', 'step', 'presets', 'primary-sm', 'stop-sm'],
+        components: [
+            'icon',
+            'digits',
+            'digits-fill',
+            'digits-inline',
+            'progress',
+            'controls',
+            'step',
+            'presets',
+            'primary-sm',
+            'stop-sm',
+        ],
         fields: ['remaining', 'state', 'duration', 'target'],
     },
     mediaplayer: {
-        components: ['cover', 'play-pause', 'stop', 'prev', 'next', 'shuffle', 'repeat', 'mute', 'volume-slider', 'chips', 'chips-row', 'player', 'player-compact', 'progress', 'status-badges', 'battery-icon', 'reach-icon'],
+        components: [
+            'cover',
+            'play-pause',
+            'stop',
+            'prev',
+            'next',
+            'shuffle',
+            'repeat',
+            'mute',
+            'volume-slider',
+            'chips',
+            'chips-row',
+            'player',
+            'player-compact',
+            'progress',
+            'status-badges',
+            'battery-icon',
+            'reach-icon',
+        ],
         fields: ['title', 'artist', 'album', 'source', 'volume', 'battery', 'reach'],
     },
     'rgb-licht': {
-        components: ['power', 'brightness', 'color', 'temperature', 'effects', 'presets', 'title', 'status', 'icon', 'tabs-all', 'tabs-brightness', 'tabs-color', 'tabs-temperature', 'palette'],
+        components: [
+            'power',
+            'brightness',
+            'color',
+            'temperature',
+            'effects',
+            'presets',
+            'title',
+            'status',
+            'icon',
+            'tabs-all',
+            'tabs-brightness',
+            'tabs-color',
+            'tabs-temperature',
+            'palette',
+        ],
         fields: [],
     },
     kalender: {
-        components: ['icon', 'cal-icon', 'cal-icon1 …', 'refresh', 'events-list', 'events-agenda', 'next-event', 'next-row', 'count'],
-        fields: ['summary', 'date', 'time', 'endtime', 'timespan', 'calname', 'location', 'running', 'count', 'week', 'kw', 'day', 'daycount', 'summary1 … (je Termin)'],
+        components: [
+            'icon',
+            'cal-icon',
+            'cal-icon1 …',
+            'refresh',
+            'events-list',
+            'events-agenda',
+            'next-event',
+            'next-row',
+            'count',
+        ],
+        fields: [
+            'summary',
+            'date',
+            'time',
+            'endtime',
+            'timespan',
+            'calname',
+            'location',
+            'running',
+            'count',
+            'week',
+            'kw',
+            'day',
+            'daycount',
+            'summary1 … (je Termin)',
+        ],
     },
     evcc: {
-        components: ['header', 'flow-row', 'flow-diagram', 'compact-row', 'battery-view', 'production-view', 'consumption-view', 'loadpoints', 'loadpoints-compact', 'tariff'],
+        components: [
+            'header',
+            'flow-row',
+            'flow-diagram',
+            'compact-row',
+            'battery-view',
+            'production-view',
+            'consumption-view',
+            'loadpoints',
+            'loadpoints-compact',
+            'tariff',
+        ],
         fields: ['pvPower', 'gridPower', 'homePower', 'batterySoc', 'batteryPower', 'gridImport', 'gridExport'],
     },
 };
@@ -232,9 +454,13 @@ console.log(`wrote catalog.json (${widgets.length} widgets)`);
 const L = [];
 L.push('# Widget-Referenz (Primer)');
 L.push('');
-L.push('Maschinenlesbarer Katalog aller Aura-Widgets — Single Source of Truth für Layouts, Optionen und Farben. Für optische Mockups **zuerst diese Seite und die [Design-Tokens](../einstellungen/design-tokens) lesen**, dann die Einzelseiten für Details/Screenshots. Rohdaten: [`catalog.json`](./catalog.json).');
+L.push(
+    'Maschinenlesbarer Katalog aller Aura-Widgets — Single Source of Truth für Layouts, Optionen und Farben. Für optische Mockups **zuerst diese Seite und die [Design-Tokens](../einstellungen/design-tokens) lesen**, dann die Einzelseiten für Details/Screenshots. Rohdaten: [`catalog.json`](./catalog.json).',
+);
 L.push('');
-L.push('Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gelisteten Layouts gerendert werden.');
+L.push(
+    'Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gelisteten Layouts gerendert werden.',
+);
 L.push('');
 
 for (const grp of GROUPS) {
@@ -244,7 +470,9 @@ for (const grp of GROUPS) {
     L.push('| Widget | `type` | Layouts | Default-Grid (w×h) |');
     L.push('| --- | --- | --- | --- |');
     for (const w of inGroup) {
-        L.push(`| [${w.label}](./${w.slug}) | \`${w.type}\` | ${w.layouts.map((l) => `\`${l}\``).join(' · ')} | ${w.defaultGrid.w}×${w.defaultGrid.h} |`);
+        L.push(
+            `| [${w.label}](./${w.slug}) | \`${w.type}\` | ${w.layouts.map((l) => `\`${l}\``).join(' · ')} | ${w.defaultGrid.w}×${w.defaultGrid.h} |`,
+        );
     }
     L.push('');
 }
@@ -265,7 +493,10 @@ if (detailed.length) {
         L.push('');
         if (w.customComponentKeys) {
             const { components, fields } = w.customComponentKeys;
-            L.push(`**Custom-Layout-Schlüssel** — Komponenten: ${components.map((c) => `\`${c}\``).join(', ')} · Felder: ${fields.map((f) => `\`${f}\``).join(', ')}`, '');
+            L.push(
+                `**Custom-Layout-Schlüssel** — Komponenten: ${components.map((c) => `\`${c}\``).join(', ')} · Felder: ${fields.map((f) => `\`${f}\``).join(', ')}`,
+                '',
+            );
         }
     }
 }

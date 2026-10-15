@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.82.9",
+    "auraVersion": "0.82.10",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -18498,6 +18498,11 @@
           "description": "Datenpunkt für Feiertagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" und {from,to} (inklusive).",
           "datapoint": true
         },
+        "holidaysEditable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Feiertagsliste (holidaysDp) im Frontend-Popup bearbeitbar (Standard true). false = nur Anzeige. Ein DP mit Boolean-Wert wird nie überschrieben."
+        },
         "holidaysValue": {
           "type": "string",
           "description": "Ausnahme-Wert für Feiertage: wird einmal in targetDp geschrieben, sobald holidaysDp den Tag als Feiertag markiert. Solange pausieren alle Schaltzeiten außer denen mit Filter \"only-holidays\"; endet die Ausnahme, schreibt der Adapter den Wert der zuletzt fälligen regulären Schaltzeit. Leer = aus."
@@ -18522,6 +18527,11 @@
           "default": true,
           "description": "Hauptschalter der Zeitschaltuhr anzeigen."
         },
+        "showSpecialDaysButton": {
+          "type": "boolean",
+          "default": true,
+          "description": "Kalender-Taste im Kopf anzeigen (Standard an, nur sichtbar wenn holidaysDp oder vacationDp gesetzt ist). Öffnet im Frontend ein Popup, in dem man Urlaubs- und Feiertage per Datumswähler in die Listen-DPs einträgt; im eigenen Raster Komponente \"special-days\"."
+        },
         "stateBaseId": {
           "type": "string",
           "description": "Objektpfad, unter dem der Adapter die Schaltzeiten ablegt."
@@ -18540,6 +18550,11 @@
           "type": "string",
           "description": "Datenpunkt für Urlaubstagen. Wert ist entweder ein Boolean (true = heute, false = nicht) oder ein JSON-Array aus \"YYYY-MM-DD\", Zeiträumen \"YYYY-MM-DD/YYYY-MM-DD\" und {from,to} (inklusive).",
           "datapoint": true
+        },
+        "vacationEditable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Urlaubsliste (vacationDp) im Frontend-Popup bearbeitbar (Standard true). false = nur Anzeige. Ein DP mit Boolean-Wert wird nie überschrieben."
         },
         "vacationValue": {
           "type": "string",

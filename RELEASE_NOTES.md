@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Web adapter extension - with socket.io, the web adapter's WebSocket listeners are no longer re-wired; Aura only adds its own for /aura/ (#784)
+- Timer - holiday and vacation days can be picked with a date picker in the frontend (calendar button in the widget header) and are written to the holiday / vacation datapoint; flag datapoints are only shown (#785)

@@ -13,7 +13,20 @@
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import * as SunCalc from 'suncalc';
-import { Timer, Sun, Sunset, Sunrise, Moon, CalendarRange, Clock, Plus, Pencil, Power, PowerOff } from 'lucide-react';
+import {
+    Timer,
+    Sun,
+    Sunset,
+    Sunrise,
+    Moon,
+    CalendarRange,
+    CalendarOff,
+    Clock,
+    Plus,
+    Pencil,
+    Power,
+    PowerOff,
+} from 'lucide-react';
 import type { WidgetProps, TimerEvent, TimerWeekday, TimerTrigger, TimerAstroEvent } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { classifyTimerValue, effectiveEventValue } from '../../utils/timerValue';
@@ -28,6 +41,7 @@ import {
 import { useSharedTemplateMode } from '../../contexts/RenderTransformContext';
 import { instanceBackendKey, templateInstanceKey } from '../../utils/templateInstanceKey';
 import { TimerEventModal } from './TimerEventModal';
+import { TimerSpecialDaysModal, type SpecialDaysSource } from './TimerSpecialDaysModal';
 import { CustomGridView } from './CustomGridView';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { NS } from '../../utils/namespace';
@@ -309,6 +323,16 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const showEvents = o.showEvents !== false;
     const showAdd = o.showAddButton !== false;
     const showAstroSymbol = o.showAstroSymbol !== false;
+    // Holiday / vacation lists edited from the frontend (#785) — one tab per configured DP.
+    const specialSources = useMemo<SpecialDaysSource[]>(
+        () =>
+            [
+                { kind: 'vacation' as const, dp: vacationDp?.trim() ?? '', editable: o.vacationEditable !== false },
+                { kind: 'holidays' as const, dp: holidaysDp?.trim() ?? '', editable: o.holidaysEditable !== false },
+            ].filter((s) => s.dp),
+        [vacationDp, holidaysDp, o.vacationEditable, o.holidaysEditable],
+    );
+    const showSpecialDays = o.showSpecialDaysButton !== false && specialSources.length > 0;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Timer);
@@ -430,6 +454,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // ── Modal state ─────────────────────────────────────────────────────────────
     // editing === null: closed; editing === 'new': adding new; otherwise the event being edited
     const [editing, setEditing] = useState<TimerEvent | 'new' | null>(null);
+    const [specialOpen, setSpecialOpen] = useState(false);
 
     const saveFromModal = (ev: TimerEvent) => {
         if (editing === 'new') {
@@ -623,15 +648,39 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         />
     ) : null;
 
-    const modal = editing && (
-        <TimerEventModal
-            initial={editing === 'new' ? newEvent() : editing}
-            allowValue={allowEventValue}
-            defaultValue={targetValue}
-            onSave={saveFromModal}
-            onCancel={() => setEditing(null)}
-            onDelete={editing === 'new' ? undefined : deleteFromModal}
-        />
+    const specialDaysButton = showSpecialDays ? (
+        <button
+            onClick={interactive ? () => setSpecialOpen(true) : undefined}
+            disabled={!interactive}
+            className="nodrag shrink-0 flex items-center hover:opacity-70"
+            style={{
+                color: 'var(--text-secondary)',
+                cursor: interactive ? 'pointer' : 'default',
+                opacity: interactive ? 1 : 0.6,
+            }}
+            aria-label="Ausnahmetage"
+            title={interactive ? 'Ausnahmetage (Urlaub / Feiertage)' : 'Im Bearbeitungsmodus deaktiviert'}
+        >
+            <CalendarOff size={isCompact ? 13 : 15} />
+        </button>
+    ) : null;
+
+    const modal = (
+        <>
+            {editing && (
+                <TimerEventModal
+                    initial={editing === 'new' ? newEvent() : editing}
+                    allowValue={allowEventValue}
+                    defaultValue={targetValue}
+                    onSave={saveFromModal}
+                    onCancel={() => setEditing(null)}
+                    onDelete={editing === 'new' ? undefined : deleteFromModal}
+                />
+            )}
+            {specialOpen && showSpecialDays && interactive && (
+                <TimerSpecialDaysModal sources={specialSources} onClose={() => setSpecialOpen(false)} />
+            )}
+        </>
     );
 
     // Status line of the default layout (long wording).
@@ -760,6 +809,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         ),
                         'master-sm': showMaster ? masterSwitchSm : null,
                         'events-compact': compactEvents,
+                        'special-days': specialDaysButton,
                     }}
                 />
                 {modal}
@@ -787,6 +837,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                         {events.length === 0 ? '—' : `${enabledCount}/${events.length}`}
                     </span>
+                    {specialDaysButton}
                     {showMaster && masterSwitchSm}
                 </div>
                 {showEvents && (
@@ -869,6 +920,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             {config.title}
                         </p>
                     )}
+                    {specialDaysButton}
                     {showMaster && masterSwitch}
                     <HeaderSlotsInline />
                 </TitleRow>

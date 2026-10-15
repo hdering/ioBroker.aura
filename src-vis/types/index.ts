@@ -206,6 +206,9 @@ export interface TimerWidgetOptions {
     vacationDp?: string; // optional DP — same format as holidaysDp, for vacation days
     holidaysValue?: string; // optional — written once when holidaysDp marks today; regular events pause meanwhile
     vacationValue?: string; // optional — written once when vacationDp marks today; regular events pause meanwhile
+    showSpecialDaysButton?: boolean; // calendar button opening the frontend holiday / vacation editor (#785); default true
+    holidaysEditable?: boolean; // holidaysDp list editable from that popup; default true, a boolean DP is never overwritten
+    vacationEditable?: boolean; // vacationDp list editable from that popup; default true, a boolean DP is never overwritten
     stateBaseId?: string; // the timers.<widgetId> base path used by the backend scheduler
     /** Popup view / device card only (#778): events and master switch per device, keyed by the resolved target DPs joined with "|". A device without an entry uses events/enabled of the template. */
     timerInstances?: Record<string, { events: TimerEvent[]; enabled: boolean }>;

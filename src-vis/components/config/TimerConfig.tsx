@@ -123,6 +123,42 @@ function ExceptionValueField({
     );
 }
 
+/** "Im Frontend bearbeitbar" switch under a special-day DP (#785). */
+function FrontendEditableToggle({
+    value,
+    disabled,
+    onChange,
+}: {
+    value: boolean;
+    disabled: boolean;
+    onChange: (v: boolean) => void;
+}) {
+    return (
+        <div className="flex items-center justify-between mt-1.5" style={{ opacity: disabled ? 0.5 : 1 }}>
+            <div className="min-w-0 pr-2">
+                <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                    Im Frontend bearbeitbar
+                </p>
+                <p className={hintCls} style={hintStyle}>
+                    Tage per Datumswähler hinzufügen/entfernen (Kalender-Taste am Widget). Ein DP mit true/false wird
+                    nie überschrieben.
+                </p>
+            </div>
+            <button
+                onClick={() => onChange(!value)}
+                disabled={disabled}
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: value ? 'var(--accent)' : 'var(--app-border)' }}
+            >
+                <span
+                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                    style={{ left: value ? '14px' : '2px' }}
+                />
+            </button>
+        </div>
+    );
+}
+
 export function TimerConfig({ config, onConfigChange }: Props) {
     const o = config.options ?? {};
     const targetDp = (o.targetDp as string | undefined) ?? '';
@@ -137,6 +173,9 @@ export function TimerConfig({ config, onConfigChange }: Props) {
     const showEvents = o.showEvents !== false;
     const showAdd = o.showAddButton !== false;
     const showAstroSymbol = o.showAstroSymbol !== false;
+    const showSpecialDays = o.showSpecialDaysButton !== false;
+    const holidaysEditable = o.holidaysEditable !== false;
+    const vacationEditable = o.vacationEditable !== false;
     const addIcon = (o.addIcon as string | undefined) ?? '';
     const addIconSize = (o.addIconSize as number | undefined) ?? 16;
 
@@ -202,6 +241,11 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             { key: 'showEvents', label: 'Ereignis-Liste', val: showEvents },
                             { key: 'showAddButton', label: '+ Ereignis-Button', val: showAdd },
                             { key: 'showAstroSymbol', label: 'Astro-Symbol (☀↑/☀↓)', val: showAstroSymbol },
+                            {
+                                key: 'showSpecialDaysButton',
+                                label: 'Ausnahmetage-Taste (Urlaub/Feiertage)',
+                                val: showSpecialDays,
+                            },
                         ] as const
                     ).map(({ key, label, val }) => (
                         <div key={key} className="flex items-center justify-between">
@@ -478,6 +522,11 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             placeholder="z.B. 18"
                             onChange={(v) => setOpts({ holidaysValue: v || undefined })}
                         />
+                        <FrontendEditableToggle
+                            value={holidaysEditable}
+                            disabled={!holidaysDp}
+                            onChange={(v) => setOpts({ holidaysEditable: v ? undefined : false })}
+                        />
                     </div>
 
                     <div>
@@ -513,12 +562,17 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             placeholder="z.B. 16"
                             onChange={(v) => setOpts({ vacationValue: v || undefined })}
                         />
+                        <FrontendEditableToggle
+                            value={vacationEditable}
+                            disabled={!vacationDp}
+                            onChange={(v) => setOpts({ vacationEditable: v ? undefined : false })}
+                        />
                     </div>
 
                     <p className={hintCls} style={hintStyle}>
-                        Tipp: Solche Listen können z. B. mit dem Adapter{' '}
-                        <code className="font-mono">iobroker.javascript</code> oder einer einfachen Blockly-Routine
-                        gepflegt werden.
+                        Tipp: Listen lassen sich im Frontend über die Kalender-Taste des Widgets pflegen — oder z. B.
+                        mit dem Adapter <code className="font-mono">iobroker.javascript</code> bzw. einer
+                        Blockly-Routine.
                     </p>
                 </div>
             </div>

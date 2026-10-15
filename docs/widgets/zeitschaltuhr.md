@@ -34,7 +34,7 @@ Eine Kopfzeile mit Icon, Titel, Master und Zähler; darunter die Ereignisse in e
 <!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-compact.png -->
 
 ### Custom
-Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, `status`, `events`, `add`. Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `status-line`, `event-list`, `master-sm`, `events-compact` und das Feld `countShort`.
+Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, `status`, `events`, `add`, `special-days`. Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `status-line`, `event-list`, `master-sm`, `events-compact` und das Feld `countShort`.
 
 <!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-custom.png -->
 
@@ -58,6 +58,7 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 | `showMasterSwitch` | `true` | Master-Schalter anzeigen |
 | `showEvents` | `true` | Ereignisliste anzeigen |
 | `showAddButton` | `true` | „+ Ereignis"-Button anzeigen |
+| `showSpecialDaysButton` | `true` | Kalender-Taste für [Ausnahmetage](#ausnahmetage-im-frontend) — nur mit `holidaysDp` / `vacationDp` |
 | `icon` | `Timer` | [Lucide-Icon](https://lucide.dev) |
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
@@ -134,6 +135,27 @@ true
 | `vacationDp` | — | DP für Urlaub (Boolean oder JSON-Array) |
 | `holidaysValue` | — | Wert, solange `holidaysDp` den Tag als Feiertag markiert |
 | `vacationValue` | — | Wert, solange `vacationDp` den Tag als Urlaub markiert |
+| `holidaysEditable` | `true` | Feiertagsliste im Frontend bearbeitbar |
+| `vacationEditable` | `true` | Urlaubsliste im Frontend bearbeitbar |
+
+### Ausnahmetage im Frontend
+
+Kalender-Taste im Widget-Kopf → Popup mit je einem Reiter für Urlaub und Feiertage.
+
+| Aktion | Ergebnis im DP |
+| --- | --- |
+| Tag wählen, „Tag hinzufügen“ | `"YYYY-MM-DD"` |
+| Tag + „Bis“, „Zeitraum hinzufügen“ | `"YYYY-MM-DD/YYYY-MM-DD"` |
+| Papierkorb | Eintrag entfernt |
+| „Vergangen → Alle entfernen“ | abgelaufene Einträge entfernt |
+
+| DP-Wert | Popup |
+| --- | --- |
+| leer · JSON-Array | bearbeitbar; vorhandene Einträge (auch `{from,to}`) bleiben unverändert |
+| Boolean (z. B. `feiertage`-Adapter) | nur Anzeige, wird nie überschrieben |
+| `…Editable` = `false` | nur Anzeige |
+
+Der DP muss existieren (Typ `string`). Die Liste gilt für jede Zeitschaltuhr mit demselben DP.
 
 ### Ausnahme-Wert
 

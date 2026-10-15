@@ -1211,6 +1211,18 @@ export const WIDGET_OPTION_NOTES = {
         showAddButton: { description: 'Taste zum Anlegen einer Schaltzeit anzeigen.' },
         showAstroSymbol: { description: 'Sonnensymbol bei astronomischen Zeiten anzeigen.' },
         showEvents: { description: 'Liste der Schaltzeiten anzeigen.' },
+        showSpecialDaysButton: {
+            description:
+                'Kalender-Taste im Kopf anzeigen (Standard an, nur sichtbar wenn holidaysDp oder vacationDp gesetzt ist). Öffnet im Frontend ein Popup, in dem man Urlaubs- und Feiertage per Datumswähler in die Listen-DPs einträgt; im eigenen Raster Komponente "special-days".',
+        },
+        holidaysEditable: {
+            description:
+                'Feiertagsliste (holidaysDp) im Frontend-Popup bearbeitbar (Standard true). false = nur Anzeige. Ein DP mit Boolean-Wert wird nie überschrieben.',
+        },
+        vacationEditable: {
+            description:
+                'Urlaubsliste (vacationDp) im Frontend-Popup bearbeitbar (Standard true). false = nur Anzeige. Ein DP mit Boolean-Wert wird nie überschrieben.',
+        },
     },
     countdown: {
         source: {
