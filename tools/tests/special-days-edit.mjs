@@ -26,7 +26,7 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { parseSpecialDaysValue, makeEntry, serializeEntries, hasEntry, todayKey } = await import(
+const { parseSpecialDaysValue, makeEntry, serializeEntries, hasEntry, todayKey, summarizeSpecialDays } = await import(
     pathToFileURL(bundle).href
 );
 rmSync(bundle, { force: true });
@@ -97,6 +97,35 @@ check(
     'todayKey padded',
     /^\d{4}-\d{2}-\d{2}$/.test(todayKey(new Date(2026, 0, 5))) && todayKey(new Date(2026, 0, 5)) === '2026-01-05',
 );
+
+// ── Button summary ──────────────────────────────────────────────────────────
+const T = '2026-10-15';
+const sum = (vac, hol) =>
+    summarizeSpecialDays(
+        [
+            { kind: 'vacation', value: vac },
+            { kind: 'holidays', value: hol },
+        ],
+        T,
+    );
+check('nothing due = null', sum('[]', '["2026-01-01"]') === null);
+const s1 = sum('["2026-10-14/2026-10-20"]', '["2026-10-15"]');
+check(
+    'vacation today wins',
+    s1?.kind === 'vacation' && s1.when === 'today' && s1.to === '2026-10-20',
+    JSON.stringify(s1),
+);
+const s2 = sum('["2026-11-01/2026-11-05"]', '["2026-10-15"]');
+check('holiday today before upcoming vacation', s2?.kind === 'holidays' && s2.when === 'today', JSON.stringify(s2));
+const s3 = sum('["2026-11-01/2026-11-05"]', '["2026-12-24"]');
+check(
+    'nearest upcoming',
+    s3?.kind === 'vacation' && s3.when === 'next' && s3.from === '2026-11-01',
+    JSON.stringify(s3),
+);
+const s4 = sum(false, true);
+check('flag true = today', s4?.kind === 'holidays' && s4.when === 'today', JSON.stringify(s4));
+check('flag false, no list = null', sum(false, 'false') === null);
 
 if (failed) {
     console.log(`\n${failed} check(s) failed`);

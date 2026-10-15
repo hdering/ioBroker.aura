@@ -1213,7 +1213,7 @@ export const WIDGET_OPTION_NOTES = {
         showEvents: { description: 'Liste der Schaltzeiten anzeigen.' },
         showSpecialDaysButton: {
             description:
-                'Kalender-Taste im Kopf anzeigen (Standard an, nur sichtbar wenn holidaysDp oder vacationDp gesetzt ist). Öffnet im Frontend ein Popup, in dem man Urlaubs- und Feiertage per Datumswähler in die Listen-DPs einträgt; im eigenen Raster Komponente "special-days".',
+                'Taste "Ausnahmetage" unten neben "+ Ereignis" (Standard an, nur sichtbar wenn holidaysDp oder vacationDp gesetzt ist). Beschriftet mit dem, was ansteht ("Urlaub heute", "Urlaub bis 18.10.", "Feiertag 24.12."), hervorgehoben solange heute ein Sondertag ist. Öffnet im Frontend ein Popup, in dem man Urlaubs- und Feiertage per Datumswähler in die Listen-DPs einträgt. Im eigenen Raster: Komponente "special-days" (bzw. "special-days-sm" klein), "actions" = + Ereignis und Ausnahmetage nebeneinander.',
         },
         holidaysEditable: {
             description:

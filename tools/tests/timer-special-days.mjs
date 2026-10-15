@@ -70,6 +70,17 @@ const btn = page
 // ── Frontend: open, add, remove ──────────────────────────────────────────────
 await show({});
 check('calendar button is shown', (await btn.count()) === 1);
+// The holidays DP holds the flag true: today is a holiday, and that beats the upcoming vacation.
+check('button names the active holiday', (await btn.innerText()).trim() === 'Feiertag heute', await btn.innerText());
+{
+    const add = await page.locator('button[title="Neues Ereignis"]').boundingBox();
+    const b = await btn.boundingBox();
+    check(
+        'button sits next to the add button',
+        !!add && !!b && Math.abs(add.y - b.y) < 2 && b.width > 80,
+        JSON.stringify({ add, b }),
+    );
+}
 await btn.click();
 await modal.waitFor({ timeout: 5000 });
 check(
@@ -147,6 +158,34 @@ await page.keyboard.press('Escape');
 await page.waitForTimeout(200);
 check('Escape closes the popup', (await modal.count()) === 0);
 
+// ── Today is a vacation day: highlighted ─────────────────────────────────────
+{
+    const now = new Date();
+    const key = (d) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const until = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3);
+    const val = JSON.stringify([`${key(now)}/${key(until)}`]);
+    await page.evaluate(
+        ({ w, vac, hol, val }) => {
+            const s = window.__auraShot;
+            s.mock({ [vac]: val, [hol]: false });
+            s.mockServerState({ [vac]: val, [hol]: false });
+            s.showWidgets([w], { editMode: false });
+            s.setEditMode(false);
+        },
+        { w: { ...timer(), id: 'w-timer-today' }, vac: VAC, hol: HOL, val },
+    );
+    await page.waitForTimeout(400);
+    const want = `Urlaub bis ${String(until.getDate()).padStart(2, '0')}.${String(until.getMonth() + 1).padStart(2, '0')}.`;
+    check('today: label', (await btn.innerText()).trim() === want, await btn.innerText());
+    const border = await btn.evaluate((el) => getComputedStyle(el).borderStyle);
+    check('today: highlighted (solid border)', border === 'solid', border);
+    await page.screenshot({
+        path: 'node_modules/.cache/timer-special-days-today.png',
+        clip: { x: 0, y: 60, width: 320, height: 280 },
+    });
+}
+
 // ── Read-only list ───────────────────────────────────────────────────────────
 await show({ vacationEditable: false });
 await btn.click();
@@ -174,6 +213,10 @@ for (const layout of ['compact']) {
     await page.evaluate(() => window.__auraShot.setEditMode(false));
     await page.waitForTimeout(300);
     check(`${layout}: button shown`, (await btn.count()) === 1);
+    await page.screenshot({
+        path: `node_modules/.cache/timer-special-days-${layout}.png`,
+        clip: { x: 0, y: 60, width: 320, height: 280 },
+    });
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));

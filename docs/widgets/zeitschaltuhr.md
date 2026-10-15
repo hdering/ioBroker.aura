@@ -34,7 +34,7 @@ Eine Kopfzeile mit Icon, Titel, Master und Zähler; darunter die Ereignisse in e
 <!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-compact.png -->
 
 ### Custom
-Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, `status`, `events`, `add`, `special-days`. Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `status-line`, `event-list`, `master-sm`, `events-compact` und das Feld `countShort`.
+Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, `status`, `events`, `add`, `special-days`, `special-days-sm`, `actions` (+ Ereignis und Ausnahmetage nebeneinander). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `status-line`, `event-list`, `master-sm`, `events-compact` und das Feld `countShort`.
 
 <!-- Screenshot folgt: ./assets/zeitschaltuhr/layout-custom.png -->
 
@@ -58,7 +58,7 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 | `showMasterSwitch` | `true` | Master-Schalter anzeigen |
 | `showEvents` | `true` | Ereignisliste anzeigen |
 | `showAddButton` | `true` | „+ Ereignis"-Button anzeigen |
-| `showSpecialDaysButton` | `true` | Kalender-Taste für [Ausnahmetage](#ausnahmetage-im-frontend) — nur mit `holidaysDp` / `vacationDp` |
+| `showSpecialDaysButton` | `true` | Taste [Ausnahmetage](#ausnahmetage-im-frontend) neben „+ Ereignis“ — nur mit `holidaysDp` / `vacationDp` |
 | `icon` | `Timer` | [Lucide-Icon](https://lucide.dev) |
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
@@ -140,7 +140,15 @@ true
 
 ### Ausnahmetage im Frontend
 
-Kalender-Taste im Widget-Kopf → Popup mit je einem Reiter für Urlaub und Feiertage.
+Taste unten neben „+ Ereignis“ → Popup mit je einem Reiter für Urlaub und Feiertage.
+
+| Beschriftung | Bedeutung |
+| --- | --- |
+| `Urlaub heute` · `Urlaub bis 18.10.` | heute ist Sondertag — Taste hervorgehoben |
+| `Urlaub ab 01.03.` · `Feiertag 24.12.` | nächster anstehender Eintrag |
+| `Ausnahmetage` | nichts geplant |
+
+Urlaub geht vor Feiertag.
 
 | Aktion | Ergebnis im DP |
 | --- | --- |

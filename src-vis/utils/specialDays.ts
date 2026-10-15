@@ -114,3 +114,41 @@ export function hasEntry(entries: SpecialDayEntry[], e: SpecialDayEntry): boolea
 export function serializeEntries(entries: SpecialDayEntry[], skipped: unknown[] = []): string {
     return JSON.stringify([...sortEntries(entries).map((e) => e.raw), ...skipped]);
 }
+
+export interface SpecialDaysSummary {
+    kind: 'vacation' | 'holidays';
+    /** 'today' = the day is a special day now; 'next' = the next upcoming entry. */
+    when: 'today' | 'next';
+    from?: string;
+    to?: string;
+}
+
+/**
+ * What the timer's special-days button tells at a glance (#785): a source marking
+ * today wins (vacation before holidays, as in the adapter's exception), otherwise
+ * the nearest upcoming entry of any list. Null when nothing is due.
+ */
+export function summarizeSpecialDays(
+    sources: { kind: 'vacation' | 'holidays'; value: unknown }[],
+    today = todayKey(),
+): SpecialDaysSummary | null {
+    const parsed = sources.map((s) => ({ kind: s.kind, p: parseSpecialDaysValue(s.value) }));
+    for (const kind of ['vacation', 'holidays'] as const) {
+        for (const { kind: k, p } of parsed) {
+            if (k !== kind) continue;
+            if (p.kind === 'flag' && p.today) return { kind, when: 'today' };
+            if (p.kind === 'list') {
+                const e = p.entries.find((x) => x.from <= today && x.to >= today);
+                if (e) return { kind, when: 'today', from: e.from, to: e.to };
+            }
+        }
+    }
+    let best: SpecialDaysSummary | null = null;
+    for (const { kind, p } of parsed) {
+        if (p.kind !== 'list') continue;
+        for (const e of p.entries) {
+            if (e.from > today && (!best || e.from < best.from!)) best = { kind, when: 'next', from: e.from, to: e.to };
+        }
+    }
+    return best;
+}

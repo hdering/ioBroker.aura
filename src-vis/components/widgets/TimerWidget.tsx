@@ -42,6 +42,8 @@ import { useSharedTemplateMode } from '../../contexts/RenderTransformContext';
 import { instanceBackendKey, templateInstanceKey } from '../../utils/templateInstanceKey';
 import { TimerEventModal } from './TimerEventModal';
 import { TimerSpecialDaysModal, type SpecialDaysSource } from './TimerSpecialDaysModal';
+import { summarizeSpecialDays, type SpecialDaysSummary } from '../../utils/specialDays';
+import { useDatapoint } from '../../hooks/useDatapoint';
 import { CustomGridView } from './CustomGridView';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { NS } from '../../utils/namespace';
@@ -277,6 +279,21 @@ function weekdaysText(wd: TimerWeekday[]): string {
         .join(' ');
 }
 
+function shortDay(key?: string): string {
+    if (!key) return '';
+    const [, m, d] = key.split('-');
+    return `${d}.${m}.`;
+}
+
+/** Label of the special-days button: what is due, or just the name of the popup. */
+function specialDaysLabel(sum: SpecialDaysSummary | null): string {
+    if (!sum) return 'Ausnahmetage';
+    const name = sum.kind === 'vacation' ? 'Urlaub' : 'Feiertag';
+    const range = !!sum.to && sum.to !== sum.from;
+    if (sum.when === 'today') return range ? `${name} bis ${shortDay(sum.to)}` : `${name} heute`;
+    return range ? `${name} ab ${shortDay(sum.from)}` : `${name} ${shortDay(sum.from)}`;
+}
+
 /** Events and master switch of one device in a shared popup / device card (#778). */
 type TimerInstanceState = { events: TimerEvent[]; enabled: boolean };
 
@@ -333,6 +350,17 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         [vacationDp, holidaysDp, o.vacationEditable, o.holidaysEditable],
     );
     const showSpecialDays = o.showSpecialDaysButton !== false && specialSources.length > 0;
+    // The button says what is due ("Urlaub heute", "Urlaub ab 01.03.") — a bare icon went unnoticed.
+    const { value: vacationVal } = useDatapoint(showSpecialDays ? (vacationDp?.trim() ?? '') : '');
+    const { value: holidaysVal } = useDatapoint(showSpecialDays ? (holidaysDp?.trim() ?? '') : '');
+    const specialSummary = showSpecialDays
+        ? summarizeSpecialDays(
+              specialSources.map((src) => ({
+                  kind: src.kind,
+                  value: src.kind === 'vacation' ? vacationVal : holidaysVal,
+              })),
+          )
+        : null;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Timer);
@@ -620,7 +648,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         <button
             onClick={interactive ? () => setEditing('new') : undefined}
             disabled={!interactive}
-            className="nodrag w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] rounded-lg hover:opacity-80 transition-opacity"
+            className="nodrag w-full min-w-0 flex items-center justify-center gap-1.5 py-1.5 text-[11px] rounded-lg hover:opacity-80 transition-opacity whitespace-nowrap"
             style={{
                 background: 'var(--app-bg)',
                 color: 'var(--text-secondary)',
@@ -634,7 +662,9 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 <AddIcon size={addIconSize} />
             ) : (
                 <>
-                    <Plus size={12} /> Ereignis hinzufügen
+                    <Plus size={12} className="shrink-0" />
+                    {/* Shares the row with the special-days button — the short label fits half a row. */}
+                    <span className="truncate">{showSpecialDays ? 'Ereignis' : 'Ereignis hinzufügen'}</span>
                 </>
             )}
         </button>
@@ -648,22 +678,42 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         />
     ) : null;
 
-    const specialDaysButton = showSpecialDays ? (
-        <button
-            onClick={interactive ? () => setSpecialOpen(true) : undefined}
-            disabled={!interactive}
-            className="nodrag shrink-0 flex items-center hover:opacity-70"
-            style={{
-                color: 'var(--text-secondary)',
-                cursor: interactive ? 'pointer' : 'default',
-                opacity: interactive ? 1 : 0.6,
-            }}
-            aria-label="Ausnahmetage"
-            title={interactive ? 'Ausnahmetage (Urlaub / Feiertage)' : 'Im Bearbeitungsmodus deaktiviert'}
-        >
-            <CalendarOff size={isCompact ? 13 : 15} />
-        </button>
-    ) : null;
+    /** Opens the holiday / vacation popup; highlighted while today is a special day. */
+    const specialButton = (small: boolean) => {
+        if (!showSpecialDays) return null;
+        const today = specialSummary?.when === 'today';
+        return (
+            <button
+                onClick={interactive ? () => setSpecialOpen(true) : undefined}
+                disabled={!interactive}
+                className={`nodrag w-full min-w-0 flex items-center justify-center gap-1 hover:opacity-80 transition-opacity ${small ? 'py-1 text-[10px] rounded-md' : 'py-1.5 text-[11px] rounded-lg'}`}
+                style={{
+                    background: today ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'var(--app-bg)',
+                    color: today ? 'var(--accent)' : 'var(--text-secondary)',
+                    border: today ? '1px solid var(--accent)' : '1px dashed var(--app-border)',
+                    cursor: interactive ? 'pointer' : 'default',
+                    opacity: interactive ? 1 : 0.6,
+                }}
+                aria-label="Ausnahmetage"
+                title={
+                    interactive ? 'Ausnahmetage (Urlaub / Feiertage) bearbeiten' : 'Im Bearbeitungsmodus deaktiviert'
+                }
+            >
+                <CalendarOff size={small ? 11 : 12} className="shrink-0" />
+                <span className="truncate">{specialDaysLabel(specialSummary)}</span>
+            </button>
+        );
+    };
+    const specialDaysButton = specialButton(false);
+
+    /** Bottom row: "+ Ereignis" and the special-days button side by side. */
+    const actionsRow =
+        showAdd || showSpecialDays ? (
+            <div className="flex gap-1.5 w-full">
+                {showAdd && <div className="flex-1 min-w-0">{addButton}</div>}
+                {showSpecialDays && <div className="flex-1 min-w-0">{specialDaysButton}</div>}
+            </div>
+        ) : null;
 
     const modal = (
         <>
@@ -721,6 +771,30 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         </button>
     );
 
+    // Bottom row of the compact layout: small "+ Ereignis" and special-days buttons.
+    const compactActions =
+        showAdd || showSpecialDays ? (
+            <div className="shrink-0 flex gap-1 w-full">
+                {showAdd && (
+                    <button
+                        onClick={interactive ? () => setEditing('new') : undefined}
+                        disabled={!interactive}
+                        className="nodrag flex-1 min-w-0 py-1 text-[10px] rounded-md hover:opacity-80 flex items-center justify-center gap-1"
+                        style={{
+                            background: 'transparent',
+                            color: 'var(--text-secondary)',
+                            border: '1px dashed var(--app-border)',
+                            cursor: interactive ? 'pointer' : 'default',
+                            opacity: interactive ? 1 : 0.6,
+                        }}
+                    >
+                        {useAddIcon ? <AddIcon size={addIconSize} /> : '+ Ereignis'}
+                    </button>
+                )}
+                {showSpecialDays && <div className="flex-1 min-w-0">{specialButton(true)}</div>}
+            </div>
+        ) : null;
+
     // Tight event list of the compact layout, add button below.
     const compactEvents = (
         <div className="flex-1 min-h-0 flex flex-col gap-0.5 w-full h-full">
@@ -759,22 +833,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     </button>
                 ))}
             </div>
-            {showAdd && (
-                <button
-                    onClick={interactive ? () => setEditing('new') : undefined}
-                    disabled={!interactive}
-                    className="nodrag shrink-0 py-1 text-[10px] rounded-md hover:opacity-80 flex items-center justify-center gap-1"
-                    style={{
-                        background: 'transparent',
-                        color: 'var(--text-secondary)',
-                        border: '1px dashed var(--app-border)',
-                        cursor: interactive ? 'pointer' : 'default',
-                        opacity: interactive ? 1 : 0.6,
-                    }}
-                >
-                    {useAddIcon ? <AddIcon size={addIconSize} /> : '+ Ereignis'}
-                </button>
-            )}
+            {compactActions}
         </div>
     );
 
@@ -804,12 +863,14 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         'event-list': (
                             <div className="w-full h-full overflow-hidden flex flex-col gap-1">
                                 {eventList}
-                                {showAdd && <div className="mt-auto pt-1">{addButton}</div>}
+                                {actionsRow && <div className="mt-auto pt-1">{actionsRow}</div>}
                             </div>
                         ),
                         'master-sm': showMaster ? masterSwitchSm : null,
                         'events-compact': compactEvents,
                         'special-days': specialDaysButton,
+                        'special-days-sm': specialButton(true),
+                        actions: actionsRow,
                     }}
                 />
                 {modal}
@@ -837,7 +898,6 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                         {events.length === 0 ? '—' : `${enabledCount}/${events.length}`}
                     </span>
-                    {specialDaysButton}
                     {showMaster && masterSwitchSm}
                 </div>
                 {showEvents && (
@@ -880,24 +940,10 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 </button>
                             ))}
                         </div>
-                        {showAdd && (
-                            <button
-                                onClick={interactive ? () => setEditing('new') : undefined}
-                                disabled={!interactive}
-                                className="nodrag shrink-0 py-1 text-[10px] rounded-md hover:opacity-80 flex items-center justify-center gap-1"
-                                style={{
-                                    background: 'transparent',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px dashed var(--app-border)',
-                                    cursor: interactive ? 'pointer' : 'default',
-                                    opacity: interactive ? 1 : 0.6,
-                                }}
-                            >
-                                {useAddIcon ? <AddIcon size={addIconSize} /> : '+ Ereignis'}
-                            </button>
-                        )}
+                        {compactActions}
                     </div>
                 )}
+                {!showEvents && showSpecialDays && <div className="mt-auto">{specialButton(true)}</div>}
                 {modal}
             </div>
         );
@@ -920,7 +966,6 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             {config.title}
                         </p>
                     )}
-                    {specialDaysButton}
                     {showMaster && masterSwitch}
                     <HeaderSlotsInline />
                 </TitleRow>
@@ -934,10 +979,10 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             {showEvents && (
                 <div className="flex-1 overflow-hidden flex flex-col gap-1">
                     {eventList}
-                    {showAdd && <div className="mt-auto pt-1">{addButton}</div>}
+                    {actionsRow && <div className="mt-auto pt-1">{actionsRow}</div>}
                 </div>
             )}
-            {!showEvents && showAdd && <div className="mt-auto">{addButton}</div>}
+            {!showEvents && actionsRow && <div className="mt-auto">{actionsRow}</div>}
 
             {modal}
         </div>

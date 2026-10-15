@@ -302,6 +302,8 @@ const CUSTOM_KEYS = {
             'events-compact',
             'add',
             'special-days',
+            'special-days-sm',
+            'actions',
         ],
         fields: ['status', 'target', 'value', 'count', 'enabled', 'countShort'],
     },
