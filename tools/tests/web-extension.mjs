@@ -100,6 +100,7 @@ web.on('upgrade', (req, socket) => {
 const logs = [];
 const fakeAdapter = {
     host: 'host-a',
+    config: { usePureWebSockets: true },
     log: {
         info: (m) => logs.push(m),
         warn: (m) => logs.push(m),
@@ -258,6 +259,60 @@ function upgrade(path) {
     const root = await upgrade('/?sid=1');
     check("a root upgrade still reaches the web adapter's socket", root.includes('418'), root.slice(0, 60));
     eq('… exactly once', ownUpgrades.filter((u) => u === '/?sid=1').length, 1);
+}
+
+// ── 3b. socket.io web instance: its listeners stay untouched (#784) ─────────
+{
+    const app3 = express();
+    const web3 = http.createServer(app3);
+    // engine.io only answers its own path and leaves every other upgrade alone.
+    const ioUpgrades = [];
+    const ioListener = (req, socket) => {
+        if (req.url.startsWith('/socket.io/')) {
+            ioUpgrades.push(req.url);
+            socket.end('HTTP/1.1 418 socket.io\r\n\r\n');
+        }
+    };
+    web3.on('upgrade', ioListener);
+    const ext3 = new WebExtension(
+        web3,
+        { secure: false },
+        { ...fakeAdapter, config: { usePureWebSockets: false } },
+        { common: { host: 'host-a' }, native: { port: auraPort } },
+        app3,
+    );
+    eq('socket.io: the web listener stays registered', web3.listeners('upgrade').includes(ioListener), true);
+    eq('socket.io: Aura only adds its own', web3.listenerCount('upgrade'), 2);
+    const port3 = await listen(web3);
+    const raw = (path) =>
+        new Promise((resolve) => {
+            const sock = net.connect(port3, '127.0.0.1', () =>
+                sock.write(
+                    `GET ${path} HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n` +
+                        'Sec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n',
+                ),
+            );
+            let buf = '';
+            sock.on('data', (d) => {
+                buf += d.toString();
+                if (buf.includes('\r\n\r\n')) {
+                    sock.destroy();
+                    resolve(buf);
+                }
+            });
+            sock.on('error', () => resolve(buf));
+            setTimeout(() => {
+                sock.destroy();
+                resolve(buf);
+            }, 3000);
+        });
+    check('socket.io: /aura/ upgrade tunnelled', (await raw('/aura/proxyws?url=x')).startsWith('HTTP/1.1 101'));
+    check('socket.io: its own upgrade reaches it', (await raw('/socket.io/?EIO=4')).includes('418'));
+    eq('socket.io: … exactly once', ioUpgrades.length, 1);
+    await ext3.unload();
+    eq('socket.io: unload leaves only the web listener', web3.listeners('upgrade').length, 1);
+    web3.closeAllConnections();
+    await new Promise((r) => web3.close(r));
 }
 
 // ── 4. Aura not running ──────────────────────────────────────────────────────
