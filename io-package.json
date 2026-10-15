@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.82.10",
+    "version": "0.83.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.83.0": {
+        "en": "Web adapter extension - with socket.io, the web adapter's WebSocket listeners are no longer re-wired; Aura only adds its own for /aura/ (#784)\n🌟 New feature: Timer - holiday and vacation days can be picked with a date picker in the frontend (special-days button next to the add-event button, labelled with the current or next special day) and are written to the holiday / vacation datapoint; flag datapoints are only shown (#785)",
+        "de": "Web-Adapter-Erweiterung – mit socket.io werden die WebSocket-Listener des Web-Adapters nicht mehr neu verkabelt; Aura fügt nur eine eigene für /aura/ hinzu (#784)\n🌟 Neue Funktion: Timer – Feiertage und Feiertage können mit einer Datumsauswahl im Frontend ausgewählt werden (Schaltfläche „Sondertage“ neben der Schaltfläche „Ereignis hinzufügen“, beschriftet mit dem aktuellen oder nächsten Sondertag) und werden in den Feiertags-/Urlaubsdatenpunkt geschrieben; Flag-Datenpunkte werden nur angezeigt (#785)",
+        "ru": "Расширение веб-адаптера — с помощью Socket.io прослушиватели WebSocket веб-адаптера больше не переподключаются; Аура добавляет свою только для /aura/ (#784)\n🌟 Новая функция: Таймер — праздничные и отпускные дни можно выбрать с помощью средства выбора даты во внешнем интерфейсе (кнопка особых дней рядом с кнопкой добавления события, помеченная текущим или следующим особым днем) и записать их в точку данных праздников/отпусков; отображаются только точки данных флага (#785)",
+        "pt": "Extensão do adaptador Web - com socket.io, os ouvintes WebSocket do adaptador Web não são mais reconectados; Aura apenas adiciona o seu próprio para /aura/ (#784)\n🌟 Novo recurso: Cronômetro - feriados e dias de férias podem ser escolhidos com um seletor de data no frontend (botão de dias especiais próximo ao botão adicionar evento, rotulado com o dia especial atual ou próximo) e são gravados no ponto de dados de feriados/férias; os pontos de dados da bandeira são mostrados apenas (#785)",
+        "nl": "Webadapterextensie - met socket.io worden de WebSocket-listeners van de webadapter niet langer opnieuw bedraad; Aura voegt alleen zijn eigen toe voor /aura/ (#784)\n🌟 Nieuwe functie: Timer - vakantie- en vakantiedagen kunnen worden gekozen met een datumkiezer in de frontend (knop speciale dagen naast de knop voor het toevoegen van een gebeurtenis, gelabeld met de huidige of volgende speciale dag) en worden naar het vakantie-/vakantiedatapunt geschreven; vlagdatapunten worden alleen getoond (#785)",
+        "fr": "Extension de l'adaptateur Web - avec socket.io, les écouteurs WebSocket de l'adaptateur Web ne sont plus recâblés ; Aura ajoute uniquement le sien pour /aura/ (#784)\n🌟 Nouvelle fonctionnalité : Minuterie - les jours fériés et les jours de vacances peuvent être sélectionnés avec un sélecteur de date dans le frontend (bouton jours spéciaux à côté du bouton d'ajout d'événement, étiqueté avec le jour spécial en cours ou suivant) et sont écrits dans le point de données des vacances ; les points de données du drapeau sont uniquement affichés (#785)",
+        "it": "Estensione dell'adattatore Web: con socket.io, i listener WebSocket dell'adattatore Web non vengono più ricablati; Aura aggiunge il proprio solo per /aura/ (#784)\n🌟 Nuova funzionalità: timer: i giorni festivi e festivi possono essere selezionati con un selettore di date nel frontend (pulsante giorni speciali accanto al pulsante aggiungi evento, etichettato con il giorno speciale corrente o successivo) e vengono scritti nel datapoint ferie/vacanze; vengono mostrati solo i punti dati flag (#785)",
+        "es": "Extensión del adaptador web: con socket.io, los oyentes WebSocket del adaptador web ya no se vuelven a cablear; Aura solo agrega la suya propia para /aura/ (#784)\n🌟 Nueva característica: Temporizador: los días festivos y de vacaciones se pueden elegir con un selector de fecha en la interfaz (botón de días especiales al lado del botón de agregar evento, etiquetado con el día especial actual o siguiente) y se escriben en el punto de datos de feriados/vacaciones; Los puntos de datos de la bandera solo se muestran (#785)",
+        "pl": "Rozszerzenie adaptera internetowego — w przypadku Socket.io odbiorniki WebSocket adaptera internetowego nie są już ponownie podłączane; Aura dodaje własną tylko dla /aura/ (#784)\n🌟 Nowa funkcja: Timer - dni wakacji i urlopu można wybierać za pomocą selektora dat w interfejsie użytkownika (przycisk dni specjalnych obok przycisku dodawania wydarzenia, oznaczony bieżącym lub następnym dniem specjalnym) i zapisywany w punkcie danych wakacji/wakacji; wyświetlane są tylko punkty danych flagi (#785)",
+        "uk": "Розширення веб-адаптера — із socket.io слухачі WebSocket веб-адаптера більше не підключаються повторно; Aura додає власний лише для /aura/ (#784)\n🌟 Нова функція: таймер. Святкові та відпусткові дні можна вибирати за допомогою засобу вибору дат у інтерфейсі (кнопка спеціальних днів поруч із кнопкою додавання події, позначена поточним або наступним особливим днем) і записується в точку даних свята/відпустки; показано лише точки даних прапора (#785)",
+        "zh-cn": "Web 适配器扩展 - 通过 socket.io，Web 适配器的 WebSocket 侦听器不再重新连线； Aura 只为 /aura/ 添加自己的 (#784)\n🌟 新功能：计时器 - 可以使用前端的日期选择器选择假期和假期（添加事件按钮旁边的特殊日期按钮，标有当前或下一个特殊日期）并写入假期/假期数据点；仅显示标志数据点 (#785)"
+      },
       "0.82.10": {
         "en": "🌟 New feature: Popups - optional countdown in a corner of the popup (top/bottom, left/right) showing the seconds until it closes automatically",
         "de": "🌟 Neue Funktion: Popups – optionaler Countdown in einer Ecke des Popups (oben/unten, links/rechts), der die Sekunden bis zum automatischen Schließen anzeigt",
@@ -185,19 +198,6 @@
         "pl": "Przegląd stanu - ściemniacze w funkcji „Światło” liczą się teraz jako światła („Włącz · 60%”), a akcja wiersza „Wyłącz” ustawia je na 0\nLista dynamiczna - lista z filtrami, ale bez wpisów, wyszukuje od razu, zamiast czekać na interwał synchronizacji; nowa opcja usuwania wpisów, których filtry już nie znajdują",
         "uk": "Огляд стану – диммери у функції «Light» тепер вважаються світлом («On · 60 %»), а дія рядка «Off» встановлює для них значення 0\nДинамічний список - список із фільтрами, але без записів шукає відразу, а не чекає інтервалу синхронізації; нова опція видалення записів, які фільтри більше не знаходять",
         "zh-cn": "状态概述 - “灯”功能中的调光器现在算作灯（“开·60 %”），“关”行操作将它们设置为 0\n动态列表 - 带有过滤器但没有条目的列表立即搜索，而不是等待同步间隔；新选项可删除过滤器不再找到的条目"
-      },
-      "0.82.3": {
-        "en": "HTML - the whole widget surface can now trigger the click action (e.g. open a popup), selectable via the new Interaction option like on the iFrame widget (#773)",
-        "de": "HTML – die gesamte Widget-Oberfläche kann jetzt die Klickaktion auslösen (z. B. ein Popup öffnen), auswählbar über die neue Interaktionsoption wie beim iFrame-Widget (#773)",
-        "ru": "HTML — вся поверхность виджета теперь может вызывать действие щелчка (например, открытие всплывающего окна), которое можно выбрать с помощью новой опции «Взаимодействие», как в виджете iFrame (#773).",
-        "pt": "HTML - toda a superfície do widget agora pode acionar a ação de clique (por exemplo, abrir um pop-up), selecionável por meio da nova opção Interação, como no widget iFrame (#773)",
-        "nl": "HTML - het hele widgetoppervlak kan nu de klikactie activeren (bijvoorbeeld een pop-up openen), selecteerbaar via de nieuwe interactie-optie zoals op de iFrame-widget (#773)",
-        "fr": "HTML - toute la surface du widget peut désormais déclencher l'action de clic (par exemple ouvrir une fenêtre contextuelle), sélectionnable via la nouvelle option Interaction comme sur le widget iFrame (#773)",
-        "it": "HTML: l'intera superficie del widget ora può attivare l'azione del clic (ad esempio aprire un popup), selezionabile tramite la nuova opzione Interazione come nel widget iFrame (#773)",
-        "es": "HTML: toda la superficie del widget ahora puede activar la acción de hacer clic (por ejemplo, abrir una ventana emergente), seleccionable a través de la nueva opción Interacción como en el widget iFrame (#773)",
-        "pl": "HTML - cała powierzchnia widżetu może teraz wywołać akcję kliknięcia (np. otworzyć wyskakujące okienko), którą można wybrać za pomocą nowej opcji interakcji, takiej jak w widżecie iFrame (#773)",
-        "uk": "HTML – уся поверхня віджета тепер може ініціювати дію клацання (наприклад, відкрити спливаюче вікно), яке можна вибрати за допомогою нової опції взаємодії, як у віджеті iFrame (#773)",
-        "zh-cn": "HTML - 整个小部件表面现在可以触发单击操作（例如打开弹出窗口），可以通过新的交互选项（如 iFrame 小部件上的交互选项）进行选择(#773)"
       }
     }
   },

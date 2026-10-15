@@ -122,6 +122,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.83.0 (2026-10-15)
+- Web adapter extension - with socket.io, the web adapter's WebSocket listeners are no longer re-wired; Aura only adds its own for /aura/ ([#784](https://github.com/hdering/ioBroker.aura/issues/784))
+- 🌟 **New feature:** Timer - holiday and vacation days can be picked with a date picker in the frontend (special-days button next to the add-event button, labelled with the current or next special day) and are written to the holiday / vacation datapoint; flag datapoints are only shown ([#785](https://github.com/hdering/ioBroker.aura/issues/785))
+
+
 ### 0.82.10 (2026-10-14)
 - 🌟 **New feature:** Popups - optional countdown in a corner of the popup (top/bottom, left/right) showing the seconds until it closes automatically
 
@@ -225,10 +230,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Popups - `popup.open` datapoints accept `width` and `height` (px) in the JSON payload to set the popup size ([#762](https://github.com/hdering/ioBroker.aura/issues/762))
 
 
-### 0.80.2 (2026-10-08)
-- Status overview - the two-line layout uses the standard text sizes, in line with the other widgets
-
-
 ## License
 
 MIT License
@@ -240,6 +241,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
