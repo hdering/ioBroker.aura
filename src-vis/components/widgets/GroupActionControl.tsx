@@ -2,7 +2,9 @@
  * GroupActionControl — the configurable group action shown in a list header or
  * group title bar. Its type (switch/dimmer/shutter/momentary) decides the
  * control rendered and how it writes to all collected targets at once:
- *   - switch    → tri-state toggle (GroupMasterSwitch), on/off all targets
+ *   - switch    → tri-state toggle (GroupMasterSwitch), on/off all targets;
+ *                 from the mixed state with groupMixedAction 'ask' a small
+ *                 popup asks "all on" or "all off" first
  *   - dimmer    → slider 0–100, writes the level to all dimmer/level DPs
  *   - shutter   → ▲ ■ ▼ buttons, up/stop/down to every shutter target
  *   - momentary → one push button, writes a pulse value to all target DPs
@@ -13,7 +15,9 @@
 import { useRef, useState, type CSSProperties } from 'react';
 import { ChevronUp, ChevronDown, Square } from 'lucide-react';
 import { GroupMasterSwitch } from './GroupMasterSwitch';
+import { ConfirmOverlay } from './ConfirmOverlay';
 import { useGroupControl } from '../../hooks/useGroupControl';
+import { useT } from '../../i18n';
 import type { GroupActionConfigOpts, GroupActionType, GroupTarget, ShutterTarget } from '../../utils/groupTargets';
 
 type SetState = (id: string, v: boolean | number | string) => void;
@@ -86,22 +90,52 @@ export function GroupActionControl({
     className = '',
 }: Props) {
     // Hooks must run unconditionally regardless of the active type.
-    const { aggregate, toggleAll, activeCount, total, turnsOn } = useGroupControl(switchTargets, cfg.groupMixedAction);
+    const t = useT();
+    const { aggregate, toggleAll, setAll, activeCount, total, turnsOn, asks } = useGroupControl(
+        switchTargets,
+        cfg.groupMixedAction,
+    );
     const [level, setLevel] = useState(0);
+    const [asking, setAsking] = useState(false);
+    const anchorRef = useRef<HTMLSpanElement>(null);
     const pulsePendingRef = useRef(false);
 
     if (type === 'switch') {
-        return (
+        const choose = (on: boolean) => {
+            setAsking(false);
+            setAll(on);
+        };
+        const sw = (
             <GroupMasterSwitch
                 aggregate={aggregate}
-                onToggle={toggleAll}
+                onToggle={asks ? () => setAsking(true) : toggleAll}
                 style={cfg.groupSwitchStyle}
-                title={`${activeCount}/${total} · Klick: alle ${turnsOn ? 'an' : 'aus'}`}
+                title={`${activeCount}/${total} · Klick: ${asks ? 'fragen' : `alle ${turnsOn ? 'an' : 'aus'}`}`}
                 editing={editing}
                 placeholderHint={placeholderHint}
                 placeholderLabel={placeholderLabel}
                 className={className}
             />
+        );
+        // Nothing to switch → no anchor wrapper, so an empty header keeps no gap.
+        if (aggregate === 'none') return sw;
+        return (
+            <span ref={anchorRef} className="shrink-0 inline-flex items-center">
+                {sw}
+                {asking && (
+                    <ConfirmOverlay
+                        popup
+                        anchorRef={anchorRef}
+                        text={t('widget.group.mixedPrompt')}
+                        choices={[
+                            { label: t('widget.group.allOn'), onClick: () => choose(true) },
+                            { label: t('widget.group.allOff'), onClick: () => choose(false) },
+                        ]}
+                        onConfirm={() => choose(turnsOn)}
+                        onCancel={() => setAsking(false)}
+                    />
+                )}
+            </span>
         );
     }
 

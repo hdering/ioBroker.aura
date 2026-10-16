@@ -95,6 +95,7 @@
     "test:click-action-icon": "node tools/tests/click-action-icon.mjs",
     "test:header-items-logic": "node tools/tests/header-items-logic.mjs",
     "test:group-mixed-action": "node tools/tests/group-mixed-action-logic.mjs",
+    "test:group-mixed-ask": "node tools/tests/group-mixed-ask.mjs",
     "test:header-items": "node tools/tests/header-items.mjs",
     "test:header-items-sweep": "node tools/tests/header-items-sweep.mjs",
     "test:widget-collapse": "node tools/tests/widget-collapse.mjs",

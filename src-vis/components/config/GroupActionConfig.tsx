@@ -146,6 +146,7 @@ export function GroupActionConfig({ opts, setOpts, candidates }: Props) {
                                         [
                                             ['on', 'Alle an'],
                                             ['off', 'Alle aus'],
+                                            ['ask', 'Fragen'],
                                         ] as const
                                     ).map(([v, lbl]) => {
                                         const active = (opts.groupMixedAction ?? 'on') === v;

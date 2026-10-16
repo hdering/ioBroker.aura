@@ -13,6 +13,8 @@ import { switchEntryActive, switchWriteValues, type SwitchEntryConfig } from './
 /** Config keys controlling how group actions write to different DP kinds.
  *  Stored on a list widget's options or a group widget's options. */
 export type GroupActionType = 'switch' | 'dimmer' | 'shutter' | 'momentary';
+/** Click from the mixed state: turn all on, all off, or ask the user. */
+export type GroupMixedAction = 'on' | 'off' | 'ask';
 
 export interface GroupActionConfigOpts {
     /** Show the group action control in the header / title bar. */
@@ -21,8 +23,8 @@ export interface GroupActionConfigOpts {
     groupActionType?: GroupActionType;
     /** Shape of the 'switch' action: 'slide' = tri-state toggle (default), 'checkbox' = tick box (a dash marks the mixed state). */
     groupSwitchStyle?: 'slide' | 'checkbox';
-    /** What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off. */
-    groupMixedAction?: 'on' | 'off';
+    /** What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off, 'ask' = show a small popup in the frontend asking "all on" or "all off". */
+    groupMixedAction?: GroupMixedAction;
     /** Value written to dimmer/level DPs on "all on" (off always writes 0). Default 100. */
     groupDimmerOnValue?: number;
     /** Include plain numeric DPs (value.*) in group actions. Default false. */
@@ -47,10 +49,16 @@ export interface GroupActionConfigOpts {
 }
 
 /** Whether a click on the group switch turns everything on. Off → on, on → off;
- *  from the mixed state it follows `mixedAction` (default 'on', HomeKit-style, #764). */
-export function nextTurnOn(aggregate: 'on' | 'off' | 'mixed' | 'none', mixedAction: 'on' | 'off' = 'on'): boolean {
-    if (aggregate === 'mixed') return mixedAction === 'on';
+ *  from the mixed state it follows `mixedAction` (default 'on', HomeKit-style, #764).
+ *  'ask' has no fixed direction — the caller asks first (see mixedAsks); here it counts as 'on'. */
+export function nextTurnOn(aggregate: 'on' | 'off' | 'mixed' | 'none', mixedAction: GroupMixedAction = 'on'): boolean {
+    if (aggregate === 'mixed') return mixedAction !== 'off';
     return aggregate !== 'on';
+}
+
+/** True when a click should open the "all on / all off" question instead of writing. */
+export function mixedAsks(aggregate: 'on' | 'off' | 'mixed' | 'none', mixedAction: GroupMixedAction = 'on'): boolean {
+    return aggregate === 'mixed' && mixedAction === 'ask';
 }
 
 /** A controllable item shown in the group-action target checklist. */

@@ -16,7 +16,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useIoBroker } from './useIoBroker';
-import { isActiveVal, nextTurnOn, type GroupTarget } from '../utils/groupTargets';
+import { isActiveVal, mixedAsks, nextTurnOn, type GroupMixedAction, type GroupTarget } from '../utils/groupTargets';
 
 export type GroupAggregate = 'on' | 'off' | 'mixed' | 'none';
 
@@ -28,7 +28,7 @@ export function aggregateState(targets: GroupTarget[]): GroupAggregate {
     return 'mixed';
 }
 
-export function useGroupControl(targets: GroupTarget[], mixedAction: 'on' | 'off' = 'on') {
+export function useGroupControl(targets: GroupTarget[], mixedAction: GroupMixedAction = 'on') {
     const { setState, getState } = useIoBroker();
     const parentAggregate = useMemo(() => aggregateState(targets), [targets]);
     const activeCount = useMemo(() => targets.reduce((n, t) => n + (t.active ? 1 : 0), 0), [targets]);
@@ -46,12 +46,14 @@ export function useGroupControl(targets: GroupTarget[], mixedAction: 'on' | 'off
     const aggregate = override ?? parentAggregate;
 
     const turnsOn = nextTurnOn(aggregate, mixedAction);
-    const toggleAll = () => {
+    const asks = mixedAsks(aggregate, mixedAction);
+    /** Writes all targets on (true) or off (false); without an argument the click direction. */
+    const setAll = (allOn: boolean = turnsOn) => {
         if (targets.length === 0) return;
-        setOverride(turnsOn ? 'on' : 'off');
+        setOverride(allOn ? 'on' : 'off');
         const ids = targets.map((t) => t.id);
         for (const t of targets) {
-            setState(t.id, turnsOn ? t.onWrite : t.offWrite);
+            setState(t.id, allOn ? t.onWrite : t.offWrite);
         }
         // Confirm via getState — a live stateChange push may never arrive.
         globalThis.setTimeout(() => {
@@ -62,5 +64,7 @@ export function useGroupControl(targets: GroupTarget[], mixedAction: 'on' | 'off
         }, 700);
     };
 
-    return { aggregate, toggleAll, activeCount, total: targets.length, turnsOn };
+    const toggleAll = () => setAll();
+
+    return { aggregate, toggleAll, setAll, activeCount, total: targets.length, turnsOn, asks };
 }

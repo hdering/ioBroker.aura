@@ -3,12 +3,19 @@ import { createPortal } from 'react-dom';
 import { useT } from '../../i18n';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 
+/** One choice button of the popup; replaces the single "Yes" when given. */
+export interface ConfirmChoice {
+    label: string;
+    onClick: () => void;
+}
+
 export function ConfirmOverlay({
     text,
     onConfirm,
     onCancel,
     popup,
     anchorRef,
+    choices,
 }: {
     text?: string;
     onConfirm: () => void;
@@ -17,6 +24,8 @@ export function ConfirmOverlay({
     popup?: boolean;
     /** Anchor element the popup positions itself next to (required for popup mode). */
     anchorRef?: RefObject<HTMLElement | null>;
+    /** Popup mode only: several choices (e.g. "All on" / "All off") instead of "Yes". */
+    choices?: ConfirmChoice[];
 }) {
     const t = useT();
     const portalTarget = usePortalTarget();
@@ -26,9 +35,8 @@ export function ConfirmOverlay({
         return (
             <PopupConfirm
                 prompt={prompt}
-                yesLabel={t('common.yes')}
+                choices={choices ?? [{ label: t('common.yes'), onClick: onConfirm }]}
                 cancelLabel={t('common.cancel')}
-                onConfirm={onConfirm}
                 onCancel={onCancel}
                 portalTarget={portalTarget}
                 anchorRef={anchorRef}
@@ -93,17 +101,15 @@ function readVars(el: HTMLElement): Vars {
 
 function PopupConfirm({
     prompt,
-    yesLabel,
+    choices,
     cancelLabel,
-    onConfirm,
     onCancel,
     portalTarget,
     anchorRef,
 }: {
     prompt: string;
-    yesLabel: string;
+    choices: ConfirmChoice[];
     cancelLabel: string;
-    onConfirm: () => void;
     onCancel: () => void;
     portalTarget: Element;
     anchorRef?: RefObject<HTMLElement | null>;
@@ -150,13 +156,16 @@ function PopupConfirm({
                     {prompt}
                 </p>
                 <div className="flex gap-1.5">
-                    <button
-                        onClick={onConfirm}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium transition-opacity hover:opacity-80"
-                        style={{ background: vars?.accent, color: '#fff', border: 'none' }}
-                    >
-                        {yesLabel}
-                    </button>
+                    {choices.map((c) => (
+                        <button
+                            key={c.label}
+                            onClick={c.onClick}
+                            className="px-2.5 py-1 rounded-md text-xs font-medium whitespace-nowrap transition-opacity hover:opacity-80"
+                            style={{ background: vars?.accent, color: '#fff', border: 'none' }}
+                        >
+                            {c.label}
+                        </button>
+                    ))}
                     <button
                         onClick={onCancel}
                         className="px-2.5 py-1 rounded-md text-xs font-medium transition-opacity hover:opacity-80"

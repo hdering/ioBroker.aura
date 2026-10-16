@@ -1,6 +1,7 @@
 // Group switch: what a click does from each aggregate state (issue #764).
 // Off turns all on, on turns all off; the mixed state (some on, some off)
-// follows groupMixedAction — 'on' (default, the old behaviour) or 'off'.
+// follows groupMixedAction — 'on' (default, the old behaviour), 'off' or
+// 'ask' (the frontend asks first; mixedAsks says when).
 //
 //   node tools/tests/group-mixed-action-logic.mjs
 //
@@ -16,7 +17,7 @@ mkdirSync(cache, { recursive: true });
 const bundle = join(cache, `aura-group-mixed-logic-${process.pid}.mjs`);
 await build({
     stdin: {
-        contents: "export { nextTurnOn } from './src-vis/utils/groupTargets.ts';",
+        contents: "export { nextTurnOn, mixedAsks } from './src-vis/utils/groupTargets.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -26,7 +27,7 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { nextTurnOn } = await import(pathToFileURL(bundle).href);
+const { nextTurnOn, mixedAsks } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 let failed = 0;
@@ -44,6 +45,11 @@ eq("mixed + 'on' → on", nextTurnOn('mixed', 'on'), true);
 eq("mixed + 'off' → off", nextTurnOn('mixed', 'off'), false);
 eq("off + 'off' → still on", nextTurnOn('off', 'off'), true);
 eq("on + 'off' → off", nextTurnOn('on', 'off'), false);
+eq("mixed + 'ask' → asks", mixedAsks('mixed', 'ask'), true);
+eq("off + 'ask' → no question, turns on", mixedAsks('off', 'ask') || !nextTurnOn('off', 'ask'), false);
+eq("on + 'ask' → no question, turns off", mixedAsks('on', 'ask') || nextTurnOn('on', 'ask'), false);
+eq("mixed + 'on' → no question", mixedAsks('mixed', 'on'), false);
+eq('mixed + default → no question', mixedAsks('mixed'), false);
 
 if (failed) {
     console.log(`\n${failed} failed`);

@@ -627,7 +627,7 @@ Master-Steuerung im Header für alle Einträge.
 | `groupSwitch`        | `false`  | Sammelschalter anzeigen                       |
 | `groupActionType`    | `switch` | `switch` · `dimmer` · `shutter` · `momentary` |
 | `groupSwitchStyle`   | `slide`  | `slide` · `checkbox` (nur `switch`)           |
-| `groupMixedAction`   | `on`     | Klick aus Mittelstellung: `on` alle an · `off` alle aus (nur `switch`) |
+| `groupMixedAction`   | `on`     | Klick aus Mittelstellung: `on` alle an · `off` alle aus · `ask` im Frontend fragen (nur `switch`) |
 | `groupDimmerOnValue` | `100`    | Schreibwert bei „alle an" (Dimmer)            |
 | `groupExcludeIds`    | —        | von der Gruppenaktion ausgenommene Einträge   |
 
