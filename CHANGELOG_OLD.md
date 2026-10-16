@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.81.0 (2026-10-10)
+- 🌟 **New feature:** History table - per-column options like the JSON table (hide, order, width, alignment, wrap, background and text colour, prefix/suffix, value as date/time), sort rules and sorting by clicking a column title ([#760](https://github.com/hdering/ioBroker.aura/issues/760))
+- Shutter - "Re-set after drive" now restores the slat angle only once, after a drive started from the widget; drives from a wall switch or logic no longer bring the old angle back ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+- 🌟 **New feature:** History table - optional time grid: one row per interval (1 min to 1 day, e.g. every 30 minutes), showing the value at that moment or the average, minimum, maximum or sum of the interval ([#760](https://github.com/hdering/ioBroker.aura/issues/760))
+- 🌟 **New feature:** Advanced chart - optional period value per series: consumption/yield, difference, minimum, maximum or average over the range shown, in the legend or in a row above the chart; follows the range buttons and day navigation ([#749](https://github.com/hdering/ioBroker.aura/issues/749))
+
 ## 0.80.4 (2026-10-09)
 - 🌟 **New feature:** Conditions - new effect "Disable widget": while the condition matches, the widget is greyed out and cannot be operated; its look is adjustable under Theme & CSS
 

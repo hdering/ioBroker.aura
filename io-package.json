@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.83.2",
+    "version": "0.83.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.83.3": {
+        "en": "Overview - timers inside groups or device cards are no longer reported as orphaned datapoints on the first visit (#788)\n🌟 New feature: Group action - a click from the mixed state can now ask \"all on or all off?\" in a small popup (new option \"Ask\")",
+        "de": "Übersicht – Timer innerhalb von Gruppen oder Gerätekarten werden beim ersten Besuch nicht mehr als verwaiste Datenpunkte gemeldet (#788)\n🌟 Neue Funktion: Gruppenaktion – ein Klick aus dem gemischten Zustand kann jetzt fragen „Alles an oder alles aus?“ in einem kleinen Popup (neue Option „Fragen“)",
+        "ru": "Обзор: таймеры внутри групп или карточек устройств больше не отображаются как потерянные точки данных при первом посещении (#788).\n🌟 Новая функция: Групповое действие — щелчок из смешанного состояния теперь может спрашивать «все включено или все выключено?» в небольшом всплывающем окне (новая опция «Спросить»)",
+        "pt": "Visão geral – os temporizadores dentro de grupos ou cartões de dispositivos não são mais relatados como pontos de dados órfãos na primeira visita (#788)\n🌟 Novo recurso: Ação de grupo - um clique no estado misto agora pode perguntar \"tudo ligado ou desligado?\" em um pequeno pop-up (nova opção \"Perguntar\")",
+        "nl": "Overzicht - timers binnen groepen of apparaatkaarten worden bij het eerste bezoek niet langer als zwevende datapunten gerapporteerd (#788)\n🌟 Nieuwe functie: groepsactie - een klik vanuit de gemengde status kan nu vragen \"alles aan of alles uit?\" in een kleine pop-up (nieuwe optie \"Vragen\")",
+        "fr": "Présentation : les minuteries au sein des groupes ou des cartes d'appareil ne sont plus signalées comme points de données orphelins lors de la première visite (#788)\n🌟 Nouvelle fonctionnalité : Action de groupe - un clic depuis l'état mixte peut désormais demander \"tout activé ou tout désactivé ?\" dans une petite popup (nouvelle option \"Demander\")",
+        "it": "Panoramica: i timer all'interno dei gruppi o delle schede dei dispositivi non vengono più segnalati come punti dati orfani alla prima visita (#788)\n🌟 Nuova funzionalità: Azione di gruppo: con un clic dallo stato misto ora puoi chiedere \"tutto acceso o tutto spento?\" in un piccolo popup (nuova opzione \"Chiedi\")",
+        "es": "Descripción general: los temporizadores dentro de grupos o tarjetas de dispositivos ya no se informan como puntos de datos huérfanos en la primera visita (#788)\n🌟 Nueva función: Acción grupal: un clic desde el estado mixto ahora puede preguntar \"¿todo encendido o todo apagado?\" en una pequeña ventana emergente (nueva opción \"Preguntar\")",
+        "pl": "Omówienie — liczniki czasu wewnątrz grup lub kart urządzeń nie są już zgłaszane jako osierocone punkty danych podczas pierwszej wizyty (#788)\n🌟 Nowa funkcja: Akcja grupowa - kliknięcie ze stanu mieszanego może teraz zapytać „wszystko włączone czy wszystko wyłączone?” w małym wyskakującym okienku (nowa opcja „Zapytaj”)",
+        "uk": "Огляд - таймери в групах або картках пристроїв більше не повідомляються як втратили точки даних під час першого відвідування (#788)\n🌟 Нова функція: групова дія - клацання в змішаному стані тепер може запитати \"все включено чи все вимкнено?\" у невеликому спливаючому вікні (нова опція «Запитати»)",
+        "zh-cn": "概述 - 组或设备卡内的计时器在第一次访问时不再报告为孤立数据点 (#788)\n🌟 新功能：群组操作 - 从混合状态单击现在可以询问“全部打开还是全部关闭？”在一个小弹出窗口中（新选项“询问”）"
+      },
       "0.83.2": {
         "en": "Popups - a web page (iFrame) popup now uses the configured width and height\nFrontend - tapping a widget on a touch tablet no longer selects the text on the whole page",
         "de": "Popups – Ein Webseiten-Popup (iFrame) verwendet jetzt die konfigurierte Breite und Höhe\nFrontend – Durch Tippen auf ein Widget auf einem Touch-Tablet wird nicht mehr der Text auf der gesamten Seite ausgewählt",
@@ -185,19 +198,6 @@
         "pl": "Przepływ energii (evcc) - selektor punktów danych obok pól produkcji, zużycia, sieci i baterii; z instancją evcc jako źródłem te pola są teraz wypełniane automatycznie",
         "uk": "Потік енергії (evcc) — засіб вибору точок даних поруч із полями виробництва, споживання, мережі й акумулятора; з екземпляром evcc як джерелом ці поля тепер заповнюються автоматично",
         "zh-cn": "能源流（evcc）——生产、消费、电网和电池领域旁边的数据点选择器；使用 evcc 实例作为源，这些字段现在会自动填充"
-      },
-      "0.82.6": {
-        "en": "Advanced chart - optional vertical line marking the current time, with a freely selectable colour\nThermostat - on the round-scale layout, dragging the dial by touch now follows the finger instead of stopping after one step, and setting the temperature no longer triggers the widget click action (#776)\nTimer - the datapoint picker now opens for the second switched datapoint too (#777)",
-        "de": "Erweitertes Diagramm – optionale vertikale Linie zur Markierung der aktuellen Uhrzeit, mit frei wählbarer Farbe\nThermostat – im Rundskalen-Layout folgt das Ziehen des Wählrads durch Berührung jetzt dem Finger, anstatt nach einem Schritt anzuhalten, und das Einstellen der Temperatur löst nicht mehr die Klickaktion des Widgets aus (#776)\nTimer – die Datenpunktauswahl öffnet sich nun auch für den zweiten geschalteten Datenpunkt (#777)",
-        "ru": "Advanced chart - optional vertical line marking the current time, with a freely selectable colour\nТермостат — в макете с круглой шкалой перетаскивание циферблата касанием теперь следует за пальцем, а не останавливается после одного шага, а установка температуры больше не вызывает действие щелчка виджета (# 776). (#776)\nТаймер — средство выбора точки данных теперь открывается и для второй переключенной точки данных (#777).",
-        "pt": "Gráfico avançado - linha vertical opcional marcando a hora atual, com uma cor livremente selecionável\nTermostato - no layout de escala redonda, arrastar o mostrador pelo toque agora segue o dedo em vez de parar após uma etapa, e definir a temperatura não aciona mais a ação de clique do widget (#776)\nTemporizador - o seletor de ponto de dados agora abre também para o segundo ponto de dados comutado (#777)",
-        "nl": "Geavanceerde kaart - optionele verticale lijn die de huidige tijd aangeeft, met een vrij te kiezen kleur\nThermostaat - in de lay-out met ronde schaal volgt het slepen van de draaiknop nu de vinger in plaats van na één stap te stoppen, en het instellen van de temperatuur activeert niet langer de klikactie van de widget (#776)\nTimer - de datapuntkiezer wordt nu ook geopend voor het tweede geschakelde datapunt (#777)",
-        "fr": "Graphique avancé - ligne verticale optionnelle marquant l'heure actuelle, avec une couleur librement sélectionnable\nThermostat - sur la disposition à échelle ronde, le fait de faire glisser le cadran au toucher suit désormais le doigt au lieu de s'arrêter après une étape, et le réglage de la température ne déclenche plus l'action de clic du widget (#776)\nMinuterie - le sélecteur de points de données s'ouvre désormais également pour le deuxième point de données commuté (#777)",
-        "it": "Grafico avanzato: linea verticale opzionale che indica l'ora corrente, con un colore liberamente selezionabile\nTermostato: nel layout a scala rotonda, il trascinamento del quadrante al tocco ora segue il dito invece di fermarsi dopo un passaggio e l'impostazione della temperatura non attiva più l'azione di clic del widget (#776)\nTimer: il selettore dei punti dati ora si apre anche per il secondo punto dati commutato (#777)",
-        "es": "Gráfico avanzado: línea vertical opcional que marca la hora actual, con un color de libre elección\nTermostato: en el diseño de escala redonda, arrastrar el dial con el tacto ahora sigue el dedo en lugar de detenerse después de un paso, y configurar la temperatura ya no activa la acción de hacer clic en el widget (#776)\nTemporizador: el selector de puntos de datos ahora también se abre para el segundo punto de datos cambiado (#777)",
-        "pl": "Wykres zaawansowany - opcjonalna pionowa linia oznaczająca aktualny czas, o dowolnie wybranym kolorze\nTermostat – w układzie z okrągłą skalą przeciąganie tarczy dotykiem podąża teraz za palcem zamiast zatrzymywać się po jednym kroku, a ustawienie temperatury nie powoduje już akcji kliknięcia widżetu (#776)\nTimer — selektor punktów danych otwiera się teraz także dla drugiego przełączanego punktu danych (#777)",
-        "uk": "Розширена діаграма - необов'язкова вертикальна лінія, що позначає поточний час кольором, який можна вибрати\nТермостат — на макеті з круглою шкалою перетягування циферблата дотиком тепер слідує за пальцем, а не зупиняється після одного кроку, а налаштування температури більше не запускає дію клацання віджета (#776)\nТаймер — засіб вибору точок даних тепер також відкривається для другої переміщеної точки даних (#777)",
-        "zh-cn": "高级图表 - 可选垂直线标记当前时间，并可自由选择颜色\n恒温器 - 在圆形刻度布局上，通过触摸拖动表盘现在会跟随手指，而不是一步后停止，并且设置温度不再触发小部件单击操作 (#776)\n计时器 - 数据点选择器现在也为第二个切换的数据点打开 (#777)"
       }
     }
   },
