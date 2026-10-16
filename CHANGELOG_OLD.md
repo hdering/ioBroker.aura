@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.80.4 (2026-10-09)
+- 🌟 **New feature:** Conditions - new effect "Disable widget": while the condition matches, the widget is greyed out and cannot be operated; its look is adjustable under Theme & CSS
+
 ## 0.80.3 (2026-10-08)
 - Popups - `popup.open` datapoints accept `width` and `height` (px) in the JSON payload to set the popup size ([#762](https://github.com/hdering/ioBroker.aura/issues/762))
 

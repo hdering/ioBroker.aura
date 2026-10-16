@@ -6,5 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Popups - a web page (iFrame) popup now uses the configured width and height
-- Frontend - tapping a widget on a touch tablet no longer selects the text on the whole page
