@@ -754,6 +754,8 @@ class Aura extends utils.Adapter {
         this.on('message', this.onMessage.bind(this));
         this.on('unload', this.onUnload.bind(this));
         this._httpServer = null;
+        // Serializes every change to messages.history, see _updateMessageHistory
+        this._messageHistoryQueue = Promise.resolve();
     }
 
     // State-based calendar fetch: frontend writes {id, url, ttl?} to calendar.request,
@@ -2597,6 +2599,22 @@ class Aura extends utils.Adapter {
     }
 
     /**
+     * Read-modify-write of the archive, one at a time. A script that closes an
+     * error and sends the all-clear in the same breath (`messages.dismiss` plus
+     * `messages.send`) starts two handlers that both read the old history; the
+     * later write then drops the other's change and the error stays open.
+     * `mutate(history)` returns the new list, or null to leave it untouched.
+     */
+    _updateMessageHistory(mutate) {
+        const run = this._messageHistoryQueue.then(async () => {
+            const next = await mutate(await this._readMessageHistory());
+            return next ? this._writeMessageHistory(next) : null;
+        });
+        this._messageHistoryQueue = run.catch(() => undefined);
+        return run;
+    }
+
+    /**
      * Tell every connected client to close an open toast. Rides on lastMessage —
      * a close marker carries `dismissed`, which a real message never does, so the
      * frontend can tell them apart without a second datapoint.
@@ -2617,10 +2635,9 @@ class Aura extends utils.Adapter {
         const msg = this._normalizeMessage(raw, origin);
         if (!msg) return null;
         if (msg.persist) {
-            const history = await this._readMessageHistory();
             // Same id replaces its predecessor instead of stacking, so a
             // repeating notice ("washer done") stays a single entry.
-            await this._writeMessageHistory([msg, ...history.filter((m) => m.id !== msg.id)]);
+            await this._updateMessageHistory((history) => [msg, ...history.filter((m) => m.id !== msg.id)]);
         }
         await this.setStateAsync('messages.lastMessage', { val: JSON.stringify(msg), ack: true });
         this.log.debug(`[messages] ${msg.severity}: ${msg.title || msg.text || msg.id}`);
@@ -2649,18 +2666,16 @@ class Aura extends utils.Adapter {
             return;
         }
         try {
-            const history = await this._readMessageHistory();
-            const hit = id === '*' ? history : history.filter((m) => m.id === id);
-            if (hit.length) {
+            await this._updateMessageHistory((history) => {
+                const hit = id === '*' ? history : history.filter((m) => m.id === id);
+                if (!hit.length) return null;
                 const now = Date.now();
-                await this._writeMessageHistory(
-                    history.map((m) =>
-                        id === '*' || m.id === id
-                            ? { ...m, dismissed: true, ...(mode === 'ack' ? { read: true, ackedAt: now } : {}) }
-                            : m,
-                    ),
+                return history.map((m) =>
+                    id === '*' || m.id === id
+                        ? { ...m, dismissed: true, ...(mode === 'ack' ? { read: true, ackedAt: now } : {}) }
+                        : m,
                 );
-            }
+            });
             await this._broadcastMessageClose(id, mode === 'ack');
         } catch (e) {
             this.log.error(`[messages] ${mode} failed: ${e.message}`);
@@ -2672,7 +2687,7 @@ class Aura extends utils.Adapter {
     /** `messages.clear` button: wipe the archive. */
     async _handleMessageClear() {
         try {
-            await this._writeMessageHistory([]);
+            await this._updateMessageHistory(() => []);
             await this._broadcastMessageClose('*', false);
             this.log.info('[messages] history cleared');
         } catch (e) {
@@ -3062,12 +3077,18 @@ class Aura extends utils.Adapter {
      */
     async _notifyUpdate(latest, installed) {
         const id = `${UPDATE_MESSAGE_ID_PREFIX}${latest}`;
-        const history = await this._readMessageHistory();
-        if (history.some((m) => m && m.id === id)) return false;
-        const kept = history.filter(
-            (m) => !(m && typeof m.id === 'string' && m.id.startsWith(UPDATE_MESSAGE_ID_PREFIX)),
-        );
-        if (kept.length !== history.length) await this._writeMessageHistory(kept);
+        let known = false;
+        await this._updateMessageHistory((history) => {
+            if (history.some((m) => m && m.id === id)) {
+                known = true;
+                return null;
+            }
+            const kept = history.filter(
+                (m) => !(m && typeof m.id === 'string' && m.id.startsWith(UPDATE_MESSAGE_ID_PREFIX)),
+            );
+            return kept.length !== history.length ? kept : null;
+        });
+        if (known) return false;
         const de = (await this._systemLanguage()) === 'de';
         await this._deliverMessage(
             JSON.stringify({
@@ -3693,7 +3714,7 @@ class Aura extends utils.Adapter {
         await this._loadMessageDefaults();
         // Re-publish the counter so a restart cannot leave a stale value behind
         // (retention may have expired entries while the adapter was down).
-        await this._writeMessageHistory(await this._readMessageHistory());
+        await this._updateMessageHistory((history) => history);
 
         // ── Timer widget scheduler ─────────────────────────────────────────────
         // Subscribe to per-widget config/enabled DPs and run a tick to evaluate

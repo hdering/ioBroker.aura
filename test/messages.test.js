@@ -472,6 +472,38 @@ async function write(a, relDp, value, ack = false) {
         console.log('✓ dismiss closes the toast but leaves the entry unread');
     }
 
+    // ── dismiss + all-clear in the same breath keep both changes ───────────
+    {
+        // notifyClear() in a script writes messages.dismiss and messages.send
+        // back to back. With a store that yields on every access both handlers
+        // read the old archive; unserialized, the send wrote its stale copy
+        // over the dismiss and the error stayed open.
+        const a = makeAdapter();
+        const get = a.getStateAsync;
+        const set = a.setStateAsync;
+        const tick = () => new Promise((r) => setTimeout(r, 1));
+        a.getStateAsync = async (...args) => {
+            await tick();
+            return get(...args);
+        };
+        a.setStateAsync = async (...args) => {
+            await tick();
+            return set(...args);
+        };
+        await send(a, 'messages.send', { id: 'klf', severity: 'error', text: 'down' }, { kind: 'global' });
+        await Promise.all([
+            a._handleMessageMark('klf', 'dismiss'),
+            send(a, 'messages.send', { id: 'entwarnung.klf', severity: 'success', text: 'up' }, { kind: 'global' }),
+        ]);
+        const h = a._history();
+        assert.strictEqual(h.find((m) => m.id === 'klf').dismissed, true, 'dismiss survives the parallel send');
+        assert.ok(
+            h.some((m) => m.id === 'entwarnung.klf'),
+            'all-clear archived too',
+        );
+        console.log('✓ a parallel dismiss and send both reach the archive');
+    }
+
     // ── "*" applies to every entry ─────────────────────────────────────────
     {
         const a = makeAdapter();
