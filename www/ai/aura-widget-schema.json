@@ -2565,6 +2565,14 @@
         "momentary"
       ]
     },
+    "GroupMixedAction": {
+      "type": "string",
+      "enum": [
+        "on",
+        "off",
+        "ask"
+      ]
+    },
     "RowClickSetting": {
       "type": [
         "string",
@@ -7095,11 +7103,8 @@
         },
         "groupMixedAction": {
           "type": "string",
-          "enum": [
-            "on",
-            "off"
-          ],
-          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off."
+          "ref": "GroupMixedAction",
+          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off, 'ask' = show a small popup in the frontend asking \"all on\" or \"all off\"."
         },
         "groupNumberOffValue": {
           "type": "number",
@@ -9929,11 +9934,8 @@
         },
         "groupMixedAction": {
           "type": "string",
-          "enum": [
-            "on",
-            "off"
-          ],
-          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off."
+          "ref": "GroupMixedAction",
+          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off, 'ask' = show a small popup in the frontend asking \"all on\" or \"all off\"."
         },
         "groupNumberOffValue": {
           "type": "number",
@@ -12335,11 +12337,8 @@
         },
         "groupMixedAction": {
           "type": "string",
-          "enum": [
-            "on",
-            "off"
-          ],
-          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off."
+          "ref": "GroupMixedAction",
+          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off, 'ask' = show a small popup in the frontend asking \"all on\" or \"all off\"."
         },
         "groupNumberOffValue": {
           "type": "number",
@@ -14526,11 +14525,8 @@
         },
         "groupMixedAction": {
           "type": "string",
-          "enum": [
-            "on",
-            "off"
-          ],
-          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off."
+          "ref": "GroupMixedAction",
+          "description": "What a click on the 'switch' action does from the mixed state (some on, some off): 'on' = turn all on (default), 'off' = turn all off, 'ask' = show a small popup in the frontend asking \"all on\" or \"all off\"."
         },
         "groupNumberOffValue": {
           "type": "number",
