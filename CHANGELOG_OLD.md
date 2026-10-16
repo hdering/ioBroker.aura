@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.80.3 (2026-10-08)
+- Popups - `popup.open` datapoints accept `width` and `height` (px) in the JSON payload to set the popup size ([#762](https://github.com/hdering/ioBroker.aura/issues/762))
+
 ## 0.80.2 (2026-10-08)
 - Status overview - the two-line layout uses the standard text sizes, in line with the other widgets
 
