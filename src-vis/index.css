@@ -325,6 +325,21 @@ iframe {
     z-index: 5;
 }
 
+/* ── No text selection in the frontend ───────────────────────────────────────
+   A wall tablet whose touch arrives as mouse events (Linux kiosk) turns the few
+   pixels a finger slides during a tap into a drag-select; when the tap opens a
+   popup over the page the selection runs to its end and marks everything.
+   Fields stay selectable so values can still be edited and copied.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-aura-app='frontend'] {
+    -webkit-user-select: none;
+    user-select: none;
+}
+[data-aura-app='frontend'] :is(input, textarea, [contenteditable='true']) {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 /* ── Frontend font scale ─────────────────────────────────────────────────────
    Scales all Tailwind text-* utilities within the frontend app container.
    The --font-scale CSS variable is set by ThemeProvider from configStore.

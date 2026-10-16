@@ -242,7 +242,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
             case 'popup-image':
                 return <ImagePopupBody action={action} />;
             case 'popup-iframe':
-                return <IframePopupBody action={action} />;
+                return <IframePopupBody action={action} width={customWidth} height={customHeight} />;
             case 'popup-json':
                 return <JsonPopupBody action={action} />;
             case 'popup-html':
