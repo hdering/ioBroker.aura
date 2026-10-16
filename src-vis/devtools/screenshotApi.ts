@@ -302,6 +302,9 @@ function installScreenshotApi(): void {
                     activeLayoutId: payload.activeLayoutId ?? payload.layouts[0]?.id,
                     editMode: payload.editMode ?? false,
                 });
+                // A seed stands in for the config load, which never runs offline —
+                // the orphan check waits for exactly this flag (#788).
+                if (!useGroupDefsStore.getState().hydrated) useGroupDefsStore.setState({ hydrated: true });
             });
         },
 
@@ -334,6 +337,12 @@ function installScreenshotApi(): void {
          *  by the widget's options.defId). */
         groupDefs(defs: Record<string, WidgetConfig[]>): void {
             withSuppressedDirty(() => useGroupDefsStore.setState({ defs, hydrated: true }));
+        },
+
+        /** Back to the state before the config load: no group children, not hydrated.
+         *  Lets a test deliver them late, the way a real admin boot does (#788). */
+        groupDefsPending(): void {
+            withSuppressedDirty(() => useGroupDefsStore.setState({ defs: {}, hydrated: false }));
         },
 
         /** The STORED children of one group def — what an edit inside a group or a

@@ -63,8 +63,18 @@ export function useTimerOrphans(): OrphansState {
             setPanel([]);
             return;
         }
+        // Group / device card children live only in RAM and arrive with the config
+        // load. Before that every timer inside a group looks orphaned — and
+        // "Aufräumen" would delete it (#788). The effect below re-runs on hydration.
+        if (!useGroupDefsStore.getState().hydrated) return;
         setLoading(true);
         try {
+            const [remoteTimer, remoteList, remotePanel] = await Promise.all([
+                fetchRemoteItems('listTimers'),
+                fetchRemoteItems('listLists'),
+                fetchRemoteItems('listPanels'),
+            ]);
+            // Collected after the fetch, so a config load that landed meanwhile counts.
             const knownTimer = new Set<string>();
             const knownList = new Set<string>();
             const knownPanel = new Set<string>();
@@ -74,11 +84,6 @@ export function useTimerOrphans(): OrphansState {
                 if (w.type === 'list' || w.type === 'autolist') knownList.add(w.id);
                 if (w.type === 'panels') knownPanel.add(w.id);
             });
-            const [remoteTimer, remoteList, remotePanel] = await Promise.all([
-                fetchRemoteItems('listTimers'),
-                fetchRemoteItems('listLists'),
-                fetchRemoteItems('listPanels'),
-            ]);
             // Per-device schedules of a shared popup / device card timer (#778) belong to their base.
             setTimer(remoteTimer.filter((it) => !knownTimer.has(instanceBase(it.id))));
             setList(remoteList.filter((it) => !knownList.has(it.id)));
@@ -89,6 +94,7 @@ export function useTimerOrphans(): OrphansState {
     }, []);
 
     const cleanup = useCallback(async () => {
+        if (!useGroupDefsStore.getState().hydrated) return { ok: 0, fail: 0 };
         let ok = 0;
         let fail = 0;
         const send = async (command: 'deleteTimer' | 'deleteList' | 'deletePanel', widgetId: string) => {
@@ -103,9 +109,10 @@ export function useTimerOrphans(): OrphansState {
         return { ok, fail };
     }, [timer, list, panel, refresh]);
 
+    const hydrated = useGroupDefsStore((s) => s.hydrated);
     useEffect(() => {
-        void refresh();
-    }, [refresh]);
+        if (hydrated) void refresh();
+    }, [refresh, hydrated]);
 
     // Refresh when dirty → clean transitions (user just saved).
     const wasDirtyRef = useRef(isDirty());
