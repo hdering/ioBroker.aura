@@ -56,6 +56,19 @@ check('id: uppercase prefix rejected', !isIconifyId('MDI:garage'));
 check('id: empty name rejected', !isIconifyId('mdi:'));
 check('legacy: ZapOff → lucide:zap-off', lucidePascalToIconify('ZapOff') === 'lucide:zap-off');
 check('legacy: full id passes through', lucidePascalToIconify('mdi:home') === 'mdi:home');
+// Digits start their own segment, letters after a digit stay with it (#787).
+for (const [pascal, id] of [
+    ['Trash2', 'lucide:trash-2'],
+    ['BarChart2', 'lucide:bar-chart-2'],
+    ['Layers2', 'lucide:layers-2'],
+    ['Table2', 'lucide:table-2'],
+    ['Clock10', 'lucide:clock-10'],
+    ['FileX2', 'lucide:file-x-2'],
+    ['Grid3x3', 'lucide:grid-3x3'],
+    ['Axis3d', 'lucide:axis-3d'],
+]) {
+    check(`legacy: ${pascal} → ${id}`, lucidePascalToIconify(pascal) === id);
+}
 
 // ── 2. the walk finds icons wherever they sit ──────────────────────────────────
 {

@@ -26,12 +26,17 @@ export function isLucidePascalName(value: unknown): value is string {
     return typeof value === 'string' && PASCAL_RE.test(value);
 }
 
+/**
+ * Segments of a Lucide component name: a capitalised word, a number with a
+ * lowercase tail (`3d`, `2x2`) or a bare number. Digits start their own
+ * segment — `Trash2` is `trash-2`, not `trash2` (#787).
+ */
+const LUCIDE_SEGMENT_RE = /[A-Z][a-z]*|[0-9]+[a-z][a-z0-9]*|[0-9]+/g;
+
 /** Convert PascalCase Lucide name to Iconify "lucide:kebab-case" ID.
- *  e.g. "ZapOff" → "lucide:zap-off", "Home" → "lucide:home" */
+ *  e.g. "ZapOff" → "lucide:zap-off", "Trash2" → "lucide:trash-2", "Grid3x3" → "lucide:grid-3x3" */
 export function lucidePascalToIconify(name: string): string {
     if (name.includes(':')) return name;
-    const kebab = name.replace(/([A-Z])/g, (ch, _, offset) =>
-        offset === 0 ? ch.toLowerCase() : `-${ch.toLowerCase()}`,
-    );
-    return `lucide:${kebab}`;
+    const segments = name.match(LUCIDE_SEGMENT_RE) ?? [name];
+    return `lucide:${segments.join('-').toLowerCase()}`;
 }
