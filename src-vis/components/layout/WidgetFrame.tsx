@@ -7805,6 +7805,487 @@ function WidgetFrameInner({
     const textLines = Math.max(1, Math.min(6, Math.round(Number(config.options?.textLines) || 1)));
     const wrapVar = (textLines > 1 ? { '--aura-wrap-lines': textLines } : {}) as React.CSSProperties;
 
+    // ── Status-Datenpunkte (gemeinsam für alle Sensor-/Aktor-Typen) ──
+    // A function, not inline: the universal widget shows it at the end of the dialog.
+    const renderStatusSection = () => {
+        if (
+            !(
+                [
+                    'switch',
+                    'dimmer',
+                    'thermostat',
+                    'climate',
+                    'shutter',
+                    'windowcontact',
+                    'binarysensor',
+                    'stateimage',
+                    'value',
+                    'slider',
+                    'knob',
+                    'light',
+                    'enum',
+                    'datepicker',
+                    'mediaplayer',
+                    'fill',
+                ].includes(config.type) || STATUS_ROW_FRAME_TYPES.has(config.type)
+            )
+        )
+            return null;
+        const o = config.options ?? {};
+        const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
+        const stInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
+        const stInputStyle = {
+            background: 'var(--app-bg)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--app-border)',
+        };
+        const showBadges = (o.showStatusBadges as boolean) !== false;
+        const alertOnly = (o.statusBadgesAlertOnly as boolean) === true;
+        // An open window only matters where it changes what the device does:
+        // heating / room climate and shutters (lock-out). Elsewhere the field
+        // stays only while a window DP is already set, so nothing goes invisible.
+        const showWindow = ['thermostat', 'climate', 'aircontrol', 'shutter'].includes(config.type) || !!o.windowDp;
+        // Alarm colour per badge; the default is shown as the picked colour (#767).
+        const badgeColorRow = (kind: keyof typeof STATUS_BADGE_COLORS, label: string) => {
+            const key = `${kind}Color`;
+            const own = (o[key] as string) || undefined;
+            return (
+                <div className="flex items-center justify-between gap-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {label}
+                    </label>
+                    <div className="flex items-center gap-1">
+                        {own && (
+                            <button
+                                onClick={() => setO({ [key]: undefined })}
+                                className="px-1.5 rounded-lg hover:opacity-80 shrink-0 text-xs"
+                                style={{ color: 'var(--text-secondary)' }}
+                                title="Standardfarbe"
+                            >
+                                ↺
+                            </button>
+                        )}
+                        <ColorPicker
+                            value={own ?? STATUS_BADGE_COLOR_HEX[kind]}
+                            onChange={(v) => setO({ [key]: v || undefined })}
+                            title={label}
+                            className="rounded shrink-0 cursor-pointer p-0"
+                            style={{
+                                width: 24,
+                                height: 24,
+                                border: '1px solid var(--app-border)',
+                            }}
+                        />
+                    </div>
+                </div>
+            );
+        };
+        const autoFillStatus = async () => {
+            if (!config.datapoint) return;
+            const parts = config.datapoint.split('.');
+            const parent = parts.slice(0, -1).join('.');
+            const parentUp = parts.slice(0, -2).join('.');
+            const entries = await ensureDatapointCache();
+            const sibs = entries.filter((e) => e.id.startsWith(`${parent}.`));
+            const sibsUp = entries.filter((e) => e.id.startsWith(`${parentUp}.`));
+            const find = (...names: string[]) =>
+                names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
+            const findUp = (...names: string[]) =>
+                names
+                    .map((n) => sibsUp.find((e) => e.id === `${parentUp}.0.${n}` || e.id === `${parentUp}.${n}`)?.id)
+                    .find(Boolean);
+            const patch: Record<string, unknown> = {};
+            {
+                const v =
+                    find('LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow') ??
+                    findUp('LOWBAT', 'LOW_BAT');
+                if (v) patch.batteryDp = v;
+            }
+            {
+                const v =
+                    find('UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline') ??
+                    findUp('UNREACH', 'UNREACHABLE');
+                if (v) patch.unreachDp = v;
+            }
+            if (showWindow) {
+                const v = find(...WINDOW_NAMES);
+                if (v) patch.windowDp = v;
+            }
+            if (Object.keys(patch).length) setO(patch);
+        };
+        return (
+            <div
+                style={{
+                    borderTop: '1px solid var(--app-border)',
+                    marginTop: 4,
+                    paddingTop: 8,
+                }}
+            >
+                <div className="flex items-center justify-between mb-2">
+                    <p
+                        className="text-[10px] font-semibold uppercase tracking-wider"
+                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                    >
+                        Status-Datenpunkte
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => void autoFillStatus()}
+                            className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
+                            style={{
+                                background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                color: 'var(--accent)',
+                                border: '1px solid var(--accent)44',
+                            }}
+                        >
+                            ✨ Auto-Erkennen
+                        </button>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                Anzeigen
+                            </span>
+                            <button
+                                onClick={() => setO({ showStatusBadges: !showBadges })}
+                                className="relative w-8 h-4 rounded-full transition-colors"
+                                style={{
+                                    background: showBadges ? 'var(--accent)' : 'var(--app-border)',
+                                }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: showBadges ? '17px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {/* Only meaningful while the badges are shown at all. */}
+                        <div
+                            className="flex items-center gap-1.5"
+                            style={{ opacity: showBadges ? 1 : 0.4 }}
+                            title={showBadges ? undefined : 'Erst „Anzeigen“ einschalten'}
+                        >
+                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                Nur bei Alarm
+                            </span>
+                            <button
+                                disabled={!showBadges}
+                                onClick={() => setO({ statusBadgesAlertOnly: !alertOnly })}
+                                className="relative w-8 h-4 rounded-full transition-colors"
+                                style={{
+                                    background: alertOnly ? 'var(--accent)' : 'var(--app-border)',
+                                }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: alertOnly ? '17px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    {/* Battery DP */}
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Batterie-DP (z.B. LOWBAT)
+                        </label>
+                        <div className="flex gap-1">
+                            <input
+                                type="text"
+                                value={(o.batteryDp as string) ?? ''}
+                                onChange={(e) => setO({ batteryDp: e.target.value || undefined })}
+                                placeholder="optional"
+                                className={`flex-1 ${stInputCls} min-w-0`}
+                                style={stInputStyle}
+                            />
+                            <button
+                                onClick={() => setPickerTarget('status_batteryDp')}
+                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                                title={t('wf.edit.fromIoBroker')}
+                            >
+                                <Database size={13} />
+                            </button>
+                            <JsonPathButton
+                                value={o.batteryDp as string}
+                                onChange={(ref) => setO({ batteryDp: ref || undefined })}
+                            />
+                        </div>
+                    </div>
+                    {/* Battery config (shown only when batteryDp is set) */}
+                    {(o.batteryDp as string) &&
+                        (() => {
+                            const battMode = (o.batteryMode as 'boolean' | 'percent') ?? 'boolean';
+                            return (
+                                <div className="space-y-1.5 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                                    <div className="flex gap-1">
+                                        {(['boolean', 'percent'] as const).map((mode) => (
+                                            <button
+                                                key={mode}
+                                                onClick={() => setO({ batteryMode: mode })}
+                                                className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                                                style={{
+                                                    background: battMode === mode ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: battMode === mode ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${battMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                            >
+                                                {mode === 'boolean' ? 'Boolean' : 'Prozent (%)'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {battMode === 'boolean' && (
+                                        <div>
+                                            <label
+                                                className="text-[11px] block mb-1"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Werte für &bdquo;schwache Batterie&ldquo; (kommagetrennt)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={(o.batteryLowValues as string) ?? batteryLowValues(o)}
+                                                // Writing the values retires the old invert switch.
+                                                onChange={(e) =>
+                                                    setO({
+                                                        batteryLowValues: e.target.value,
+                                                        batteryInvert: undefined,
+                                                    })
+                                                }
+                                                placeholder={batteryLowValues({})}
+                                                className={`w-full ${stInputCls} font-mono`}
+                                                style={stInputStyle}
+                                            />
+                                        </div>
+                                    )}
+                                    {battMode === 'percent' && (
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Schwellwert &bdquo;Niedrig&ldquo;
+                                                </label>
+                                                <span
+                                                    className="text-[11px] tabular-nums"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {(o.batteryLowThreshold as number) ?? 20}%
+                                                </span>
+                                            </div>
+                                            <input
+                                                type="range"
+                                                min={1}
+                                                max={50}
+                                                step={1}
+                                                value={(o.batteryLowThreshold as number) ?? 20}
+                                                onChange={(e) =>
+                                                    setO({
+                                                        batteryLowThreshold: Number(e.target.value),
+                                                    })
+                                                }
+                                                className="w-full h-1"
+                                                style={{ accentColor: 'var(--accent)' }}
+                                            />
+                                        </div>
+                                    )}
+                                    {badgeColorRow('battery', 'Farbe bei schwacher Batterie')}
+                                </div>
+                            );
+                        })()}
+                    {/* Reach DP */}
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Erreichbarkeits-DP (z.B. UNREACH)
+                        </label>
+                        <div className="flex gap-1">
+                            <input
+                                type="text"
+                                value={(o.unreachDp as string) ?? ''}
+                                onChange={(e) => setO({ unreachDp: e.target.value || undefined })}
+                                placeholder="optional"
+                                className={`flex-1 ${stInputCls} min-w-0`}
+                                style={stInputStyle}
+                            />
+                            <button
+                                onClick={() => setPickerTarget('status_unreachDp')}
+                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                                title={t('wf.edit.fromIoBroker')}
+                            >
+                                <Database size={13} />
+                            </button>
+                            <JsonPathButton
+                                value={o.unreachDp as string}
+                                onChange={(ref) => setO({ unreachDp: ref || undefined })}
+                            />
+                        </div>
+                    </div>
+                    {/* Reach config (shown only when unreachDp is set) */}
+                    {(o.unreachDp as string) &&
+                        (() => {
+                            const reachMode = (o.reachMode as 'unreachable' | 'available') ?? 'unreachable';
+                            return (
+                                <div className="space-y-1.5 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                                    <div className="flex gap-1">
+                                        {(['unreachable', 'available'] as const).map((mode) => (
+                                            <button
+                                                key={mode}
+                                                onClick={() => setO({ reachMode: mode })}
+                                                className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                                                style={{
+                                                    background: reachMode === mode ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: reachMode === mode ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${reachMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                            >
+                                                {mode === 'unreachable' ? 'Unreachable-DP' : 'Available-DP'}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <div>
+                                        <label
+                                            className="text-[11px] block mb-1"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Werte für &bdquo;
+                                            {reachMode === 'unreachable' ? 'nicht erreichbar' : 'erreichbar'}
+                                            &ldquo; (kommagetrennt)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={(o.reachTrueValues as string) ?? 'true,1'}
+                                            onChange={(e) => setO({ reachTrueValues: e.target.value })}
+                                            placeholder="true,1"
+                                            className={`w-full ${stInputCls} font-mono`}
+                                            style={stInputStyle}
+                                        />
+                                    </div>
+                                    {badgeColorRow('reach', 'Farbe bei nicht erreichbar')}
+                                </div>
+                            );
+                        })()}
+                    {/* Window DP (#767) */}
+                    {showWindow && (
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                Fenster-DP (z.B. WINDOW_OPEN_REPORTING)
+                            </label>
+                            <div className="flex gap-1">
+                                <input
+                                    type="text"
+                                    value={(o.windowDp as string) ?? ''}
+                                    onChange={(e) => setO({ windowDp: e.target.value || undefined })}
+                                    placeholder="optional"
+                                    className={`flex-1 ${stInputCls} min-w-0`}
+                                    style={stInputStyle}
+                                />
+                                <button
+                                    onClick={() => setPickerTarget('status_windowDp')}
+                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    title={t('wf.edit.fromIoBroker')}
+                                >
+                                    <Database size={13} />
+                                </button>
+                                <JsonPathButton
+                                    value={o.windowDp as string}
+                                    onChange={(ref) => setO({ windowDp: ref || undefined })}
+                                />
+                            </div>
+                        </div>
+                    )}
+                    {showWindow && (o.windowDp as string) && (
+                        <div className="space-y-1.5 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                            <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                                Werte für &bdquo;offen&ldquo; (kommagetrennt)
+                            </label>
+                            <input
+                                type="text"
+                                value={(o.windowOpenValues as string) ?? WINDOW_OPEN_DEFAULT}
+                                onChange={(e) => setO({ windowOpenValues: e.target.value })}
+                                placeholder={WINDOW_OPEN_DEFAULT}
+                                className={`w-full ${stInputCls} font-mono`}
+                                style={stInputStyle}
+                            />
+                            {badgeColorRow('window', 'Farbe bei offenem Fenster')}
+                        </div>
+                    )}
+                    {/* Corner of the row — the default spot sits on the controls
+                                    of small switch / dimmer tiles. */}
+                    <div className="flex items-center justify-between gap-2">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Position der Statuszeile
+                        </label>
+                        <select
+                            value={(o.statusPosition as string) ?? 'bottom-right'}
+                            onChange={(e) =>
+                                setO({
+                                    statusPosition: e.target.value === 'bottom-right' ? undefined : e.target.value,
+                                })
+                            }
+                            className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                            style={stInputStyle}
+                            data-aura-status-position
+                        >
+                            <option value="bottom-right">Unten rechts</option>
+                            <option value="bottom-left">Unten links</option>
+                            <option value="top-right">Oben rechts</option>
+                            <option value="top-left">Oben links</option>
+                        </select>
+                    </div>
+                    <label
+                        className="flex items-center justify-between gap-2 cursor-pointer"
+                        title="Schiebt die Zeile in den Innenabstand der Karte, damit sie keine Bedienelemente verdeckt"
+                    >
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Am Kartenrand
+                        </span>
+                        <input
+                            type="checkbox"
+                            checked={o.statusOnEdge === true}
+                            onChange={(e) => setO({ statusOnEdge: e.target.checked ? true : undefined })}
+                            data-aura-status-edge
+                        />
+                    </label>
+                    {/* Own symbols and the order of the whole row (#792). */}
+                    <button
+                        onClick={() => setStatusItemsOpen(true)}
+                        className="w-full text-xs px-2.5 py-2 rounded-lg hover:opacity-80"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        {Array.isArray(o.statusItems) && o.statusItems.length
+                            ? t('statusItems.buttonCount', {
+                                  n: String(o.statusItems.length),
+                              })
+                            : t('statusItems.button')}
+                    </button>
+                </div>
+                {statusItemsOpen && (
+                    <CenteredModal title={t('statusItems.title')} onClose={() => setStatusItemsOpen(false)} wide>
+                        <StatusItemsEditor options={o} onChange={(patch) => setO(patch)} />
+                    </CenteredModal>
+                )}
+            </div>
+        );
+    };
+
     return (
         <div
             ref={focusRef}
@@ -18887,575 +19368,7 @@ function WidgetFrameInner({
                             })()}
 
                         {/* ── Status-Datenpunkte (gemeinsam für alle Sensor-/Aktor-Typen) ── */}
-                        {([
-                            'switch',
-                            'dimmer',
-                            'thermostat',
-                            'climate',
-                            'shutter',
-                            'windowcontact',
-                            'binarysensor',
-                            'stateimage',
-                            'value',
-                            'slider',
-                            'knob',
-                            'light',
-                            'enum',
-                            'datepicker',
-                            'mediaplayer',
-                            'fill',
-                        ].includes(config.type) ||
-                            STATUS_ROW_FRAME_TYPES.has(config.type)) &&
-                            (() => {
-                                const o = config.options ?? {};
-                                const setO = (patch: Record<string, unknown>) =>
-                                    onConfigChange({ ...config, options: { ...o, ...patch } });
-                                const stInputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
-                                const stInputStyle = {
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                };
-                                const showBadges = (o.showStatusBadges as boolean) !== false;
-                                const alertOnly = (o.statusBadgesAlertOnly as boolean) === true;
-                                // An open window only matters where it changes what the device does:
-                                // heating / room climate and shutters (lock-out). Elsewhere the field
-                                // stays only while a window DP is already set, so nothing goes invisible.
-                                const showWindow =
-                                    ['thermostat', 'climate', 'aircontrol', 'shutter'].includes(config.type) ||
-                                    !!o.windowDp;
-                                // Alarm colour per badge; the default is shown as the picked colour (#767).
-                                const badgeColorRow = (kind: keyof typeof STATUS_BADGE_COLORS, label: string) => {
-                                    const key = `${kind}Color`;
-                                    const own = (o[key] as string) || undefined;
-                                    return (
-                                        <div className="flex items-center justify-between gap-2">
-                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                {label}
-                                            </label>
-                                            <div className="flex items-center gap-1">
-                                                {own && (
-                                                    <button
-                                                        onClick={() => setO({ [key]: undefined })}
-                                                        className="px-1.5 rounded-lg hover:opacity-80 shrink-0 text-xs"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                        title="Standardfarbe"
-                                                    >
-                                                        ↺
-                                                    </button>
-                                                )}
-                                                <ColorPicker
-                                                    value={own ?? STATUS_BADGE_COLOR_HEX[kind]}
-                                                    onChange={(v) => setO({ [key]: v || undefined })}
-                                                    title={label}
-                                                    className="rounded shrink-0 cursor-pointer p-0"
-                                                    style={{
-                                                        width: 24,
-                                                        height: 24,
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    );
-                                };
-                                const autoFillStatus = async () => {
-                                    if (!config.datapoint) return;
-                                    const parts = config.datapoint.split('.');
-                                    const parent = parts.slice(0, -1).join('.');
-                                    const parentUp = parts.slice(0, -2).join('.');
-                                    const entries = await ensureDatapointCache();
-                                    const sibs = entries.filter((e) => e.id.startsWith(`${parent}.`));
-                                    const sibsUp = entries.filter((e) => e.id.startsWith(`${parentUp}.`));
-                                    const find = (...names: string[]) =>
-                                        names.map((n) => sibs.find((e) => e.id === `${parent}.${n}`)?.id).find(Boolean);
-                                    const findUp = (...names: string[]) =>
-                                        names
-                                            .map(
-                                                (n) =>
-                                                    sibsUp.find(
-                                                        (e) =>
-                                                            e.id === `${parentUp}.0.${n}` ||
-                                                            e.id === `${parentUp}.${n}`,
-                                                    )?.id,
-                                            )
-                                            .find(Boolean);
-                                    const patch: Record<string, unknown> = {};
-                                    {
-                                        const v =
-                                            find(
-                                                'LOWBAT',
-                                                'LOW_BAT',
-                                                'lowBat',
-                                                'low_bat',
-                                                'battery_low',
-                                                'batteryLow',
-                                            ) ?? findUp('LOWBAT', 'LOW_BAT');
-                                        if (v) patch.batteryDp = v;
-                                    }
-                                    {
-                                        const v =
-                                            find('UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline') ??
-                                            findUp('UNREACH', 'UNREACHABLE');
-                                        if (v) patch.unreachDp = v;
-                                    }
-                                    if (showWindow) {
-                                        const v = find(...WINDOW_NAMES);
-                                        if (v) patch.windowDp = v;
-                                    }
-                                    if (Object.keys(patch).length) setO(patch);
-                                };
-                                return (
-                                    <div
-                                        style={{
-                                            borderTop: '1px solid var(--app-border)',
-                                            marginTop: 4,
-                                            paddingTop: 8,
-                                        }}
-                                    >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <p
-                                                className="text-[10px] font-semibold uppercase tracking-wider"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                            >
-                                                Status-Datenpunkte
-                                            </p>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => void autoFillStatus()}
-                                                    className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
-                                                    style={{
-                                                        background:
-                                                            'color-mix(in srgb, var(--accent) 12%, transparent)',
-                                                        color: 'var(--accent)',
-                                                        border: '1px solid var(--accent)44',
-                                                    }}
-                                                >
-                                                    ✨ Auto-Erkennen
-                                                </button>
-                                                <div className="flex items-center gap-1.5">
-                                                    <span
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Anzeigen
-                                                    </span>
-                                                    <button
-                                                        onClick={() => setO({ showStatusBadges: !showBadges })}
-                                                        className="relative w-8 h-4 rounded-full transition-colors"
-                                                        style={{
-                                                            background: showBadges
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                        }}
-                                                    >
-                                                        <span
-                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                            style={{ left: showBadges ? '17px' : '2px' }}
-                                                        />
-                                                    </button>
-                                                </div>
-                                                {/* Only meaningful while the badges are shown at all. */}
-                                                <div
-                                                    className="flex items-center gap-1.5"
-                                                    style={{ opacity: showBadges ? 1 : 0.4 }}
-                                                    title={showBadges ? undefined : 'Erst „Anzeigen“ einschalten'}
-                                                >
-                                                    <span
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Nur bei Alarm
-                                                    </span>
-                                                    <button
-                                                        disabled={!showBadges}
-                                                        onClick={() => setO({ statusBadgesAlertOnly: !alertOnly })}
-                                                        className="relative w-8 h-4 rounded-full transition-colors"
-                                                        style={{
-                                                            background: alertOnly
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                        }}
-                                                    >
-                                                        <span
-                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                            style={{ left: alertOnly ? '17px' : '2px' }}
-                                                        />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            {/* Battery DP */}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Batterie-DP (z.B. LOWBAT)
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={(o.batteryDp as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            setO({ batteryDp: e.target.value || undefined })
-                                                        }
-                                                        placeholder="optional"
-                                                        className={`flex-1 ${stInputCls} min-w-0`}
-                                                        style={stInputStyle}
-                                                    />
-                                                    <button
-                                                        onClick={() => setPickerTarget('status_batteryDp')}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                        title={t('wf.edit.fromIoBroker')}
-                                                    >
-                                                        <Database size={13} />
-                                                    </button>
-                                                    <JsonPathButton
-                                                        value={o.batteryDp as string}
-                                                        onChange={(ref) => setO({ batteryDp: ref || undefined })}
-                                                    />
-                                                </div>
-                                            </div>
-                                            {/* Battery config (shown only when batteryDp is set) */}
-                                            {(o.batteryDp as string) &&
-                                                (() => {
-                                                    const battMode =
-                                                        (o.batteryMode as 'boolean' | 'percent') ?? 'boolean';
-                                                    return (
-                                                        <div
-                                                            className="space-y-1.5 pl-2"
-                                                            style={{ borderLeft: '2px solid var(--app-border)' }}
-                                                        >
-                                                            <div className="flex gap-1">
-                                                                {(['boolean', 'percent'] as const).map((mode) => (
-                                                                    <button
-                                                                        key={mode}
-                                                                        onClick={() => setO({ batteryMode: mode })}
-                                                                        className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
-                                                                        style={{
-                                                                            background:
-                                                                                battMode === mode
-                                                                                    ? 'var(--accent)'
-                                                                                    : 'var(--app-bg)',
-                                                                            color:
-                                                                                battMode === mode
-                                                                                    ? '#fff'
-                                                                                    : 'var(--text-secondary)',
-                                                                            border: `1px solid ${battMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                        }}
-                                                                    >
-                                                                        {mode === 'boolean' ? 'Boolean' : 'Prozent (%)'}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            {battMode === 'boolean' && (
-                                                                <div>
-                                                                    <label
-                                                                        className="text-[11px] block mb-1"
-                                                                        style={{ color: 'var(--text-secondary)' }}
-                                                                    >
-                                                                        Werte für &bdquo;schwache Batterie&ldquo;
-                                                                        (kommagetrennt)
-                                                                    </label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={
-                                                                            (o.batteryLowValues as string) ??
-                                                                            batteryLowValues(o)
-                                                                        }
-                                                                        // Writing the values retires the old invert switch.
-                                                                        onChange={(e) =>
-                                                                            setO({
-                                                                                batteryLowValues: e.target.value,
-                                                                                batteryInvert: undefined,
-                                                                            })
-                                                                        }
-                                                                        placeholder={batteryLowValues({})}
-                                                                        className={`w-full ${stInputCls} font-mono`}
-                                                                        style={stInputStyle}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                            {battMode === 'percent' && (
-                                                                <div>
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <label
-                                                                            className="text-[11px]"
-                                                                            style={{ color: 'var(--text-secondary)' }}
-                                                                        >
-                                                                            Schwellwert &bdquo;Niedrig&ldquo;
-                                                                        </label>
-                                                                        <span
-                                                                            className="text-[11px] tabular-nums"
-                                                                            style={{ color: 'var(--text-primary)' }}
-                                                                        >
-                                                                            {(o.batteryLowThreshold as number) ?? 20}%
-                                                                        </span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min={1}
-                                                                        max={50}
-                                                                        step={1}
-                                                                        value={(o.batteryLowThreshold as number) ?? 20}
-                                                                        onChange={(e) =>
-                                                                            setO({
-                                                                                batteryLowThreshold: Number(
-                                                                                    e.target.value,
-                                                                                ),
-                                                                            })
-                                                                        }
-                                                                        className="w-full h-1"
-                                                                        style={{ accentColor: 'var(--accent)' }}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                            {badgeColorRow('battery', 'Farbe bei schwacher Batterie')}
-                                                        </div>
-                                                    );
-                                                })()}
-                                            {/* Reach DP */}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Erreichbarkeits-DP (z.B. UNREACH)
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={(o.unreachDp as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            setO({ unreachDp: e.target.value || undefined })
-                                                        }
-                                                        placeholder="optional"
-                                                        className={`flex-1 ${stInputCls} min-w-0`}
-                                                        style={stInputStyle}
-                                                    />
-                                                    <button
-                                                        onClick={() => setPickerTarget('status_unreachDp')}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                        title={t('wf.edit.fromIoBroker')}
-                                                    >
-                                                        <Database size={13} />
-                                                    </button>
-                                                    <JsonPathButton
-                                                        value={o.unreachDp as string}
-                                                        onChange={(ref) => setO({ unreachDp: ref || undefined })}
-                                                    />
-                                                </div>
-                                            </div>
-                                            {/* Reach config (shown only when unreachDp is set) */}
-                                            {(o.unreachDp as string) &&
-                                                (() => {
-                                                    const reachMode =
-                                                        (o.reachMode as 'unreachable' | 'available') ?? 'unreachable';
-                                                    return (
-                                                        <div
-                                                            className="space-y-1.5 pl-2"
-                                                            style={{ borderLeft: '2px solid var(--app-border)' }}
-                                                        >
-                                                            <div className="flex gap-1">
-                                                                {(['unreachable', 'available'] as const).map((mode) => (
-                                                                    <button
-                                                                        key={mode}
-                                                                        onClick={() => setO({ reachMode: mode })}
-                                                                        className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
-                                                                        style={{
-                                                                            background:
-                                                                                reachMode === mode
-                                                                                    ? 'var(--accent)'
-                                                                                    : 'var(--app-bg)',
-                                                                            color:
-                                                                                reachMode === mode
-                                                                                    ? '#fff'
-                                                                                    : 'var(--text-secondary)',
-                                                                            border: `1px solid ${reachMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                        }}
-                                                                    >
-                                                                        {mode === 'unreachable'
-                                                                            ? 'Unreachable-DP'
-                                                                            : 'Available-DP'}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            <div>
-                                                                <label
-                                                                    className="text-[11px] block mb-1"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Werte für &bdquo;
-                                                                    {reachMode === 'unreachable'
-                                                                        ? 'nicht erreichbar'
-                                                                        : 'erreichbar'}
-                                                                    &ldquo; (kommagetrennt)
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={(o.reachTrueValues as string) ?? 'true,1'}
-                                                                    onChange={(e) =>
-                                                                        setO({ reachTrueValues: e.target.value })
-                                                                    }
-                                                                    placeholder="true,1"
-                                                                    className={`w-full ${stInputCls} font-mono`}
-                                                                    style={stInputStyle}
-                                                                />
-                                                            </div>
-                                                            {badgeColorRow('reach', 'Farbe bei nicht erreichbar')}
-                                                        </div>
-                                                    );
-                                                })()}
-                                            {/* Window DP (#767) */}
-                                            {showWindow && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Fenster-DP (z.B. WINDOW_OPEN_REPORTING)
-                                                    </label>
-                                                    <div className="flex gap-1">
-                                                        <input
-                                                            type="text"
-                                                            value={(o.windowDp as string) ?? ''}
-                                                            onChange={(e) =>
-                                                                setO({ windowDp: e.target.value || undefined })
-                                                            }
-                                                            placeholder="optional"
-                                                            className={`flex-1 ${stInputCls} min-w-0`}
-                                                            style={stInputStyle}
-                                                        />
-                                                        <button
-                                                            onClick={() => setPickerTarget('status_windowDp')}
-                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                            style={{
-                                                                background: 'var(--app-bg)',
-                                                                color: 'var(--text-secondary)',
-                                                                border: '1px solid var(--app-border)',
-                                                            }}
-                                                            title={t('wf.edit.fromIoBroker')}
-                                                        >
-                                                            <Database size={13} />
-                                                        </button>
-                                                        <JsonPathButton
-                                                            value={o.windowDp as string}
-                                                            onChange={(ref) => setO({ windowDp: ref || undefined })}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {showWindow && (o.windowDp as string) && (
-                                                <div
-                                                    className="space-y-1.5 pl-2"
-                                                    style={{ borderLeft: '2px solid var(--app-border)' }}
-                                                >
-                                                    <label
-                                                        className="text-[11px] block mb-1"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Werte für &bdquo;offen&ldquo; (kommagetrennt)
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={(o.windowOpenValues as string) ?? WINDOW_OPEN_DEFAULT}
-                                                        onChange={(e) => setO({ windowOpenValues: e.target.value })}
-                                                        placeholder={WINDOW_OPEN_DEFAULT}
-                                                        className={`w-full ${stInputCls} font-mono`}
-                                                        style={stInputStyle}
-                                                    />
-                                                    {badgeColorRow('window', 'Farbe bei offenem Fenster')}
-                                                </div>
-                                            )}
-                                            {/* Corner of the row — the default spot sits on the controls
-                                                of small switch / dimmer tiles. */}
-                                            <div className="flex items-center justify-between gap-2">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Position der Statuszeile
-                                                </label>
-                                                <select
-                                                    value={(o.statusPosition as string) ?? 'bottom-right'}
-                                                    onChange={(e) =>
-                                                        setO({
-                                                            statusPosition:
-                                                                e.target.value === 'bottom-right'
-                                                                    ? undefined
-                                                                    : e.target.value,
-                                                        })
-                                                    }
-                                                    className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                                    style={stInputStyle}
-                                                    data-aura-status-position
-                                                >
-                                                    <option value="bottom-right">Unten rechts</option>
-                                                    <option value="bottom-left">Unten links</option>
-                                                    <option value="top-right">Oben rechts</option>
-                                                    <option value="top-left">Oben links</option>
-                                                </select>
-                                            </div>
-                                            <label
-                                                className="flex items-center justify-between gap-2 cursor-pointer"
-                                                title="Schiebt die Zeile in den Innenabstand der Karte, damit sie keine Bedienelemente verdeckt"
-                                            >
-                                                <span
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Am Kartenrand
-                                                </span>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={o.statusOnEdge === true}
-                                                    onChange={(e) =>
-                                                        setO({ statusOnEdge: e.target.checked ? true : undefined })
-                                                    }
-                                                    data-aura-status-edge
-                                                />
-                                            </label>
-                                            {/* Own symbols and the order of the whole row (#792). */}
-                                            <button
-                                                onClick={() => setStatusItemsOpen(true)}
-                                                className="w-full text-xs px-2.5 py-2 rounded-lg hover:opacity-80"
-                                                style={{
-                                                    background: 'var(--app-bg)',
-                                                    color: 'var(--text-primary)',
-                                                    border: '1px solid var(--app-border)',
-                                                }}
-                                            >
-                                                {Array.isArray(o.statusItems) && o.statusItems.length
-                                                    ? t('statusItems.buttonCount', {
-                                                          n: String(o.statusItems.length),
-                                                      })
-                                                    : t('statusItems.button')}
-                                            </button>
-                                        </div>
-                                        {statusItemsOpen && (
-                                            <CenteredModal
-                                                title={t('statusItems.title')}
-                                                onClose={() => setStatusItemsOpen(false)}
-                                                wide
-                                            >
-                                                <StatusItemsEditor options={o} onChange={(patch) => setO(patch)} />
-                                            </CenteredModal>
-                                        )}
-                                    </div>
-                                );
-                            })()}
+                        {config.type !== 'universal' && renderStatusSection()}
 
                         {/* ── Custom-Grid editor (all widgets except excluded) ── */}
                         {![
@@ -20795,6 +20708,8 @@ function WidgetFrameInner({
                                 />
                             </div>
                         )}
+                        {/* The universal widget is its grid first — its status section closes the dialog. */}
+                        {config.type === 'universal' && renderStatusSection()}
                     </div>
                 </CenteredModal>
             )}

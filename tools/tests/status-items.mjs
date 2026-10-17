@@ -431,6 +431,40 @@ for (const layout of ['battery', 'bar', 'segments', 'wave', 'default']) {
     check(`fill ${layout}: status row shows`, JSON.stringify(await titles()) === '["Gesperrt"]', await titles());
 }
 
+// Universal widget: its grid comes first, the status section closes the dialog.
+{
+    const uId = await show(() => ({}), { MOT: false }, { type: 'universal' });
+    await page.evaluate(() => window.__auraShot.setEditMode(true));
+    await page.waitForTimeout(600);
+    const card = page.locator('.react-grid-item').first();
+    await card.hover();
+    await card.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    await page.waitForTimeout(900);
+    const order = await page.evaluate(() => {
+        const dlg = document.querySelector('.aura-widget-edit-modal');
+        const all = [...(dlg?.querySelectorAll('*') ?? [])];
+        const statusIdx = all.findIndex((e) => e.textContent?.trim() === 'Status-Datenpunkte');
+        const gridIdx = all.findIndex(
+            (e) => !e.children.length && (e.textContent ?? '').trim().startsWith('Raster-Konfiguration'),
+        );
+        const btn = [...(dlg?.querySelectorAll('button') ?? [])].filter((b) =>
+            b.textContent?.includes('Eigene Symbole'),
+        );
+        const lastBtn = [...(dlg?.querySelectorAll('button, select, input') ?? [])].pop();
+        return { statusIdx, gridIdx, btn: btn.length, lastIsOwn: !!lastBtn?.textContent?.includes('Eigene Symbole') };
+    });
+    check(
+        'universal: status section after the grid, own symbols last',
+        order.statusIdx > order.gridIdx && order.gridIdx >= 0 && order.btn === 1 && order.lastIsOwn,
+        JSON.stringify(order),
+    );
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+    void uId;
+}
+
 // ── Editor dialog ────────────────────────────────────────────────────────────
 let opts;
 const edId = await show(() => ({ batteryDp: BAT }), { MOT: false, BAT: false });
