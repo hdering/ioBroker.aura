@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.81.1 (2026-10-10)
+- Shutter - without an activity datapoint, "Re-set after drive" waits until the actual position stops changing, and a preset counts as reached within ±2 points of the actual position ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+
 ## 0.81.0 (2026-10-10)
 - 🌟 **New feature:** History table - per-column options like the JSON table (hide, order, width, alignment, wrap, background and text colour, prefix/suffix, value as date/time), sort rules and sorting by clicking a column title ([#760](https://github.com/hdering/ioBroker.aura/issues/760))
 - Shutter - "Re-set after drive" now restores the slat angle only once, after a drive started from the widget; drives from a wall switch or logic no longer bring the old angle back ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
