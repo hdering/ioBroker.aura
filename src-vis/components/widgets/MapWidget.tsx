@@ -153,7 +153,7 @@ interface MapOptions {
     zoom?: number;
     followMarkers?: boolean;
     mapStyle?: MapStyle;
-    /** Custom tile URL — overrides mapStyle when set. */
+    /** Custom tile URL — overrides mapStyle when set. Legacy: still honoured, no longer configurable. */
     tileUrl?: string;
     tileAttribution?: string;
     showDistance?: boolean;

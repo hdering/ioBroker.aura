@@ -438,6 +438,32 @@ const markers = [
         (await modal.locator('input[placeholder="Positions-DP mit Verlauf"]').count()) === 1 &&
             (await modal.locator('input[placeholder="24"]').count()) === 1,
     );
+    check('no tile-server field for new maps', (await modal.locator('[data-aura-map-legacy-tiles]').count()) === 0);
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+}
+
+// ── 8. Legacy custom tile server: still used, only removable ───────────────
+{
+    const tileUrl = 'https://tiles.example.invalid/{z}/{x}/{y}.png';
+    await render({ markers, followMarkers: false, zoom: 8, tileUrl });
+    const id = `w-map-${n}`;
+    const srcs = await page.evaluate(() => [...document.querySelectorAll('img.leaflet-tile')].map((i) => i.src));
+    check(
+        'configured tile server is still used',
+        srcs.length > 0 && srcs.every((s) => s.startsWith('https://tiles.example.invalid/')),
+        srcs[0],
+    );
+    await page.evaluate(() => window.__auraShot.setEditMode(true));
+    await page.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').first().click();
+    const legacy = page.locator('[data-aura-map-legacy-tiles]');
+    await page.locator('summary:has-text("Eigener Kachel-Server")').click();
+    check('legacy tile server shown read-only', await legacy.locator('input').evaluate((el) => el.readOnly));
+    await legacy.locator('button').click();
+    const opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check('removing clears the tile server', opts?.tileUrl === undefined && opts?.tileAttribution === undefined);
+    check('section gone once removed', (await legacy.count()) === 0);
     await page.keyboard.press('Escape');
     await page.evaluate(() => window.__auraShot.setEditMode(false));
 }

@@ -1300,25 +1300,35 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                 )}
             </ConfigSection>
 
-            {/* ── Tiles (advanced) ── */}
-            <ConfigSection title="Kachel-Server">
-                <div>
-                    <label className={lblCls} style={lblSty}>
-                        Tile-Server-URL (optional)
-                    </label>
-                    <input
-                        type="text"
-                        value={(o.tileUrl as string) ?? ''}
-                        onChange={(e) => set({ tileUrl: e.target.value || undefined })}
-                        placeholder="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        className={`${iCls} font-mono`}
-                        style={iSty}
-                    />
-                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                        Leer = OpenStreetMap. Eigene Tiles benötigen ggf. eine Attribution.
-                    </p>
-                </div>
-            </ConfigSection>
+            {/* ── Custom tile server: no longer offered. Maps that already have one keep
+                 using it (the widget still reads tileUrl); here it can only be removed. ── */}
+            {!!o.tileUrl && (
+                <ConfigSection title="Eigener Kachel-Server">
+                    <div data-aura-map-legacy-tiles>
+                        <div className="flex gap-1">
+                            <input
+                                type="text"
+                                value={o.tileUrl as string}
+                                readOnly
+                                className={`${iCls} flex-1 min-w-0 font-mono`}
+                                style={{ ...iSty, opacity: 0.7 }}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => set({ tileUrl: undefined, tileAttribution: undefined })}
+                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                style={{ color: 'var(--danger, #ef4444)', border: '1px solid var(--app-border)' }}
+                                title="Eigenen Kachel-Server entfernen"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        </div>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                            Wird nicht mehr angeboten, bleibt aber in Betrieb. Nach dem Entfernen gilt der Kartentyp.
+                        </p>
+                    </div>
+                </ConfigSection>
+            )}
         </div>
     );
 }

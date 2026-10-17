@@ -1102,7 +1102,11 @@ export const WIDGET_OPTION_NOTES = {
         center: { description: 'Kartenmittelpunkt als [Breitengrad, Längengrad].' },
         zoom: { description: 'Zoomstufe der Karte.' },
         mapStyle: { description: 'Kartenstil.' },
-        tileAttribution: { description: 'Quellenangabe unter der Karte.' },
+        tileUrl: {
+            description:
+                'Veraltet – nicht setzen. Eigener Kachel-Server älterer Karten; bestehende Werte bleiben wirksam (überschreiben mapStyle), neu konfigurieren lässt er sich nicht mehr. Für den Kartenstil mapStyle verwenden.',
+        },
+        tileAttribution: { description: 'Veraltet – nicht setzen. Quellenangabe zu tileUrl.' },
         markers: { description: 'Die Markierungen auf der Karte.' },
         homeMarkerId: { description: 'Id der Markierung, die als Zuhause gilt.' },
         followMarkers: { description: 'Kartenausschnitt automatisch an die Markierungen anpassen.' },

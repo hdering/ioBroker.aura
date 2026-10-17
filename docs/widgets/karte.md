@@ -28,15 +28,13 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | Option | Standard | |
 | --- | --- | --- |
 | `mapStyle` | `standard` | `standard` · `satellite` · `terrain` |
-| `tileUrl` | — | eigener Kachel-Server (überschreibt `mapStyle`) |
-| `tileAttribution` | — | Copyright-Hinweis für `tileUrl` |
 | `center` | Deutschland | `[lat, lon]` Startmittelpunkt |
 | `zoom` | `6` | Start-Zoom; bei `followMarkers` = max. Zoom des Auto-Fit |
 | `followMarkers` | `false` | Ansicht automatisch an alle Marker anpassen |
 
 ### Kartentyp umschalten
 
-Chips über der Karte wechseln den Kartentyp im Frontend. Die Auswahl gilt nur für das jeweilige Gerät und fällt beim Neuladen auf den konfigurierten Kartentyp zurück. Eine eigene `tileUrl` wird angezeigt, bis im Frontend ein Kartentyp gewählt wird.
+Chips über der Karte wechseln den Kartentyp im Frontend. Die Auswahl gilt nur für das jeweilige Gerät und fällt beim Neuladen auf den konfigurierten Kartentyp zurück. Ein eigener Kachel-Server (`tileUrl`, nur noch bei älteren Karten) wird angezeigt, bis im Frontend ein Kartentyp gewählt wird.
 
 | Option | Standard | |
 | --- | --- | --- |

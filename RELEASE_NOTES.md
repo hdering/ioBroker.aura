@@ -11,3 +11,4 @@
 - Map - draw recorded tracks from a JSON datapoint or from the history of a position datapoint, optionally with a dot per point showing time, speed and accuracy (#410)
 - Map - day bar to browse recorded tracks day by day, chips to switch between lines, and a timeline of stays and trips with addresses under the map (#410)
 - Map - the settings are grouped into collapsible sections, and each marker, line and quick-access chip folds down to its name
+- Map - a custom tile server can no longer be set up; maps that already use one keep it and can remove it in the settings
