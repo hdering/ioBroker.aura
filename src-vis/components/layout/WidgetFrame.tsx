@@ -71,6 +71,7 @@ import { useEscapeLayer } from '../../utils/escapeStack';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
 import { VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
+import { FlatSection } from '../config/ConfigSection';
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { FillStatusSection } from '../config/FillStatusSection';
@@ -10783,13 +10784,21 @@ function WidgetFrameInner({
                                     ),
                                 });
                             }
+                            const sectioned = SECTIONED_EDIT_TYPES.has(config.type);
                             return (
-                                <VisibleFieldsSection
-                                    fields={fields}
-                                    values={o}
-                                    onChange={(patch) => onConfigChange({ ...config, options: { ...o, ...patch } })}
-                                    collapsible={SECTIONED_EDIT_TYPES.has(config.type)}
-                                />
+                                <>
+                                    <VisibleFieldsSection
+                                        fields={fields}
+                                        values={o}
+                                        onChange={(patch) => onConfigChange({ ...config, options: { ...o, ...patch } })}
+                                        collapsible={sectioned}
+                                    />
+                                    {/* Until the type has sections of its own, a plain "Einstellungen"
+                                        heading marks where the toggles end and the other settings begin. */}
+                                    {!sectioned && fields.length > 0 && (
+                                        <FlatSection title={t('cfg.section.settings')} sectionKey="settings" />
+                                    )}
+                                </>
                             );
                         })()}
                         {/* Abschnittstitel: Untertiteltext, der Strich (Akzentbalken bzw.

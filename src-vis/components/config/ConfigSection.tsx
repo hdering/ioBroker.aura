@@ -75,7 +75,10 @@ export function ConfigSection({
     );
 }
 
-/** The same section, not collapsible — for short widget blocks that stay flat. */
+/**
+ * The same section, not collapsible — for short widget blocks that stay flat. Without
+ * children it is just the divider and heading in front of the fields that follow.
+ */
 export function FlatSection({
     title,
     sectionKey,
@@ -83,7 +86,7 @@ export function FlatSection({
 }: {
     title: string;
     sectionKey?: string;
-    children: ReactNode;
+    children?: ReactNode;
 }) {
     return (
         <div
@@ -94,7 +97,7 @@ export function FlatSection({
             <p className={SECTION_TITLE_CLS} style={{ color: 'var(--text-secondary)' }}>
                 {title}
             </p>
-            <div className="space-y-2.5 mt-2.5">{children}</div>
+            {children && <div className="space-y-2.5 mt-2.5">{children}</div>}
         </div>
     );
 }

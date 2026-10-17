@@ -2564,6 +2564,7 @@ export const en: Record<TranslationKey, string> = {
 
     // ── Edit dialog sections (docs-internal/widget-config-template.md) ──────────
     'cfg.visibleFields': 'Visible fields',
+    'cfg.section.settings': 'Settings',
     'cfg.section.datapoints': 'Datapoints',
     'cfg.section.look': 'Look',
     'cfg.section.behavior': 'Behavior',

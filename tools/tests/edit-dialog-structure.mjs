@@ -7,6 +7,7 @@
 //   - a type with show/hide toggles has the "Sichtbare Felder" section, and it is the
 //     first section of the widget's own settings
 //   - every visibility row ([data-aura-vis-key]) sits inside that section
+//   - another section follows it right away ("Einstellungen" while the type is flat)
 //   - types in FOLDED have every section closed when the dialog opens
 //   - a type without toggles has no such section
 // plus: a switch writes its option, the light's status row keeps its alignment picker.
@@ -112,6 +113,7 @@ const inspect = () =>
             folded: sections.filter((s) => s.tagName === 'DETAILS').map((s) => s.open === false),
             keys: rows.map((r) => r.getAttribute('data-aura-vis-key')),
             outside: rows.filter((r) => !vis?.contains(r)).map((r) => r.getAttribute('data-aura-vis-key')),
+            nextIsSection: !!vis?.nextElementSibling?.hasAttribute('data-aura-config-section'),
         };
     });
 
@@ -121,6 +123,14 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
     check(`${type}: heading "Sichtbare Felder"`, r.title === 'Sichtbare Felder', String(r.title));
     check(`${type}: first section of the widget settings`, r.order[0] === 'visible', JSON.stringify(r.order));
     check(`${type}: all rows inside the section`, r.outside.length === 0, JSON.stringify(r.outside));
+    // Separation: another section follows right away, no loose field after the toggles.
+    check(
+        `${type}: next section follows the toggles`,
+        !!r.order[1] && r.nextIsSection,
+        JSON.stringify({ order: r.order, next: r.nextIsSection }),
+    );
+    if (!FOLDED.includes(type))
+        check(`${type}: "Einstellungen" heading`, r.order[1] === 'settings', JSON.stringify(r.order));
     const missing = keys.filter((k) => !r.keys.includes(k));
     check(`${type}: expected toggles present`, missing.length === 0, JSON.stringify(missing));
     if (FOLDED.includes(type))

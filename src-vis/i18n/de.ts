@@ -2584,6 +2584,7 @@ export const de = {
 
     // ── Edit dialog sections (docs-internal/widget-config-template.md) ──────────
     'cfg.visibleFields': 'Sichtbare Felder',
+    'cfg.section.settings': 'Einstellungen',
     'cfg.section.datapoints': 'Datenpunkte',
     'cfg.section.look': 'Optik',
     'cfg.section.behavior': 'Verhalten',
