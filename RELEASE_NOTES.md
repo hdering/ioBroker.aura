@@ -9,3 +9,4 @@
 - Tab bar - a menu item next to left- or right-aligned tabs now only takes its own width instead of half the bar (#791)
 - Map - show a route along the roads between two markers, with distance and travel time (#790)
 - Map - draw recorded tracks from a JSON datapoint or from the history of a position datapoint, optionally with a dot per point showing time, speed and accuracy (#410)
+- Map - day bar to browse recorded tracks day by day, chips to switch between lines, and a timeline of stays and trips with addresses under the map (#410)

@@ -1119,6 +1119,25 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Ecke des Infokastens mit Name, Länge und Fahrzeit je Linie (top-left|top-right|bottom-left|bottom-right), "off" blendet ihn aus. Standard bottom-left.',
         },
+        dayNav: {
+            description:
+                'Datumsleiste ‹ Datum › über der Karte. Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Tag statt der letzten historyHours; nur heute kommt der Live-Wert dazu.',
+        },
+        lineChips: {
+            description:
+                'Ein Chip je Linie über der Karte (Name aus label oder den Daten). Standard: immer nur eine Linie sichtbar, Tippen wechselt – z. B. eine Strecke je Person.',
+        },
+        lineChipsMulti: {
+            description: 'Mit lineChips: Chips schalten jede Linie einzeln ein/aus statt nur eine zu zeigen.',
+        },
+        timeline: {
+            description:
+                'Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav.',
+        },
+        stayRadius: {
+            description: 'Zeitleiste: Radius in Metern, in dem man als „am selben Ort“ gilt (Standard 100).',
+        },
+        stayMinutes: { description: 'Zeitleiste: Mindestdauer in Minuten für einen Aufenthalt (Standard 10).' },
     },
     alarm: {
         alarmPrefix: { description: 'Objektpfad der Alarmanlage, z. B. "alarm.0".' },

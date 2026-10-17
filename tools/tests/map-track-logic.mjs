@@ -13,7 +13,12 @@ const cache = join(process.cwd(), 'node_modules', '.cache');
 mkdirSync(cache, { recursive: true });
 const bundle = join(cache, `aura-map-track-${process.pid}.mjs`);
 await build({
-    entryPoints: ['src-vis/utils/mapTrack.ts'],
+    stdin: {
+        contents:
+            "export * from './src-vis/utils/mapTrack.ts'; export { formatPhotonAddress } from './src-vis/utils/geo.ts';",
+        resolveDir: process.cwd(),
+        loader: 'ts',
+    },
     bundle: true,
     platform: 'node',
     format: 'esm',
@@ -90,19 +95,116 @@ const check = (name, ok, detail = '') => {
     const rows = [
         { ts: 3000, val: '{"lat":1.2,"lon":2.2,"speed":40}' },
         { ts: 1000, val: { lat: 1, lon: 2 } },
-        { ts: 2000, val: { lat: 1, lon: 2 } }, // parked: same place
+        { ts: 1500, val: { lat: 1, lon: 2 } }, // parked: same place …
+        { ts: 2000, val: { lat: 1, lon: 2 } }, // … still parked
         { ts: 2500, val: null },
         { ts: 4000, val: '1.3,2.3' },
     ];
     const t = m.historyToTrack(rows);
-    check('history sorted, duplicates + nulls dropped', t.length === 3, String(t.length));
-    check('history ts from the entry', t[0].ts === 1000 && t[2].ts === 4000);
-    check('history keeps speed from the value', t[1].speed === 40);
+    check('history sorted, parked run kept as its two ends, nulls dropped', t.length === 4, String(t.length));
+    check('parked run ends at its last reading', t[0].ts === 1000 && t[1].ts === 2000, `${t[0].ts}/${t[1].ts}`);
+    check('history ts from the entry', t[3].ts === 4000);
+    check('history keeps speed from the value', t[2].speed === 40);
 
-    const live = { pos: [1.4, 2.4], ts: 5000 };
-    check('live point appended', m.appendLivePoint(t, live).length === 4);
-    check('same place not appended', m.appendLivePoint(t, { pos: [1.3, 2.3], ts: 6000 }).length === 3);
-    check('older point not appended', m.appendLivePoint(t, { pos: [9, 9], ts: 10 }).length === 3);
+    check('live point appended', m.appendLivePoint(t, { pos: [1.4, 2.4], ts: 5000 }).length === 5);
+    const sameA = m.appendLivePoint(t, { pos: [1.3, 2.3], ts: 6000 });
+    check('same place opens a run', sameA.length === 5);
+    const sameB = m.appendLivePoint(sameA, { pos: [1.3, 2.3], ts: 7000 });
+    check('same place again moves the run end', sameB.length === 5 && sameB[4].ts === 7000);
+    check('older point not appended', m.appendLivePoint(t, { pos: [9, 9], ts: 10 }).length === 4);
+}
+
+// ── day window ──────────────────────────────────────────────────────────────
+{
+    const now = new Date(2026, 8, 8, 15, 30).getTime();
+    const today = m.dayRange(0, now);
+    check('today starts at local midnight', today.start === new Date(2026, 8, 8).getTime());
+    check('today ends at the next midnight', today.end === new Date(2026, 8, 9).getTime());
+    const y = m.dayRange(-1, now);
+    check('yesterday', y.start === new Date(2026, 8, 7).getTime() && y.end === today.start);
+    const pts = [{ pos: [1, 1], ts: y.start + 1 }, { pos: [1, 2], ts: today.start + 5 }, { pos: [1, 3] }];
+    const f = m.filterDay(pts, today.start, today.end);
+    check('filterDay keeps the day and untimed points', f.length === 2 && f[0].pos[1] === 2);
+}
+
+// ── stays and trips ─────────────────────────────────────────────────────────
+{
+    const t0 = new Date(2026, 8, 8, 0, 0).getTime();
+    const min = 60_000;
+    const home = [50.7286, 6.6006];
+    const at = (pos, m_, jitter = 0) => ({ pos: [pos[0] + jitter, pos[1]], ts: t0 + m_ * min });
+    const track = [
+        // home 00:00–09:16, readings every ~30 min with GPS jitter (≈ 20 m)
+        ...Array.from({ length: 19 }, (_, i) => at(home, i * 30, i % 2 ? 0.0002 : 0)),
+        at(home, 556),
+        // trip 09:16–09:38 (≈ 7.3 km out and back)
+        at([50.74, 6.62], 563),
+        at([50.75, 6.64], 570),
+        at([50.74, 6.62], 577),
+        // home again 09:37–16:50
+        at(home, 577 + 1),
+        at(home, 700, 0.0003),
+        at(home, 1010),
+    ];
+    const segs = m.detectSegments(track, 100, 10);
+    const kinds = segs.map((s) => s.kind).join(',');
+    check('home – trip – home', kinds === 'stay,move,stay', kinds);
+    check('first stay 00:00–09:16', segs[0].start === t0 && segs[0].end === t0 + 556 * min);
+    check('trip duration 22 min', Math.round((segs[1].end - segs[1].start) / min) === 22);
+    check('trip length counted', segs[1].km > 6.5 && segs[1].km < 8, segs[1].km.toFixed(2));
+    check(
+        'stay centre near home',
+        m.nearestPlace(segs[0].center, [{ pos: home, label: 'Home' }], 50)?.label === 'Home',
+    );
+
+    // A single outlier inside a stay must not cut it in two.
+    const outlier = [at(home, 0), at(home, 20), at([50.735, 6.6006], 21), at(home, 22), at(home, 60)];
+    const so = m.detectSegments(outlier, 100, 10).filter((s) => s.kind === 'stay');
+    check('outlier does not split the stay', so.length === 1, String(so.length));
+
+    check('untimed points give no timeline', m.detectSegments([{ pos: [1, 1] }, { pos: [1, 2] }]).length === 0);
+    const short = m.detectSegments([at(home, 0), at(home, 5)], 100, 10);
+    check(
+        '5 min at one place is no stay',
+        short.every((s) => s.kind !== 'stay'),
+    );
+}
+
+// ── direction + address ─────────────────────────────────────────────────────
+{
+    check('bearing east = 90°', Math.round(m.bearingDeg([50, 10], [50, 10.1])) === 90);
+    check('bearing north = 0°', Math.round(m.bearingDeg([50, 10], [50.1, 10])) === 0);
+    check(
+        'end bearing skips a parked tail',
+        Math.round(
+            m.endBearing([
+                [50, 10],
+                [50.1, 10],
+                [50.1, 10],
+            ]),
+        ) === 0,
+    );
+    const a = m.formatPhotonAddress({
+        street: 'Am Schnocksgraben',
+        housenumber: '4',
+        city: 'Vettweiß',
+        country: 'Deutschland',
+    });
+    check('address line', a.address === 'Am Schnocksgraben 4, Vettweiß, Deutschland', a.address);
+    check('title falls back to street', a.title === 'Am Schnocksgraben 4');
+    const b = m.formatPhotonAddress({ name: 'Aral', street: 'Hauptstr.', city: 'Düren', country: 'Deutschland' });
+    check(
+        'a named place is the title',
+        b.title === 'Aral' && b.address === 'Hauptstr., Düren, Deutschland',
+        JSON.stringify(b),
+    );
+    const c = m.formatPhotonAddress({
+        name: 'Am Empker Pfad',
+        district: 'Froitzheim',
+        city: 'Vettweiß',
+        country: 'Deutschland',
+    });
+    check('no street: name leads the address', c.address === 'Am Empker Pfad, Vettweiß, Deutschland', c.address);
 }
 
 // ── lengths, bounds, formatting ─────────────────────────────────────────────

@@ -487,6 +487,91 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                             </select>
                         </div>
 
+                        <div className="mb-2 space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                                <label className="text-[11px]" style={lblSty}>
+                                    Tag wählen (‹ Datum › über der Karte)
+                                </label>
+                                <Toggle
+                                    value={o.dayNav === true}
+                                    onToggle={() => set({ dayNav: o.dayNav === true ? undefined : true })}
+                                />
+                            </div>
+                            <div className="flex items-center justify-between gap-2">
+                                <label className="text-[11px]" style={lblSty}>
+                                    Linien per Chips umschalten
+                                </label>
+                                <Toggle
+                                    value={o.lineChips === true}
+                                    onToggle={() => set({ lineChips: o.lineChips === true ? undefined : true })}
+                                />
+                            </div>
+                            {o.lineChips === true && (
+                                <div className="flex items-center justify-between gap-2 pl-3">
+                                    <label className="text-[11px]" style={lblSty}>
+                                        Mehrere Linien gleichzeitig (sonst immer nur eine)
+                                    </label>
+                                    <Toggle
+                                        value={o.lineChipsMulti === true}
+                                        onToggle={() =>
+                                            set({ lineChipsMulti: o.lineChipsMulti === true ? undefined : true })
+                                        }
+                                    />
+                                </div>
+                            )}
+                            <div className="flex items-center justify-between gap-2">
+                                <label className="text-[11px]" style={lblSty}>
+                                    Zeitleiste mit Aufenthalten und Fahrten
+                                </label>
+                                <Toggle
+                                    value={o.timeline === true}
+                                    onToggle={() => set({ timeline: o.timeline === true ? undefined : true })}
+                                />
+                            </div>
+                            {o.timeline === true && (
+                                <>
+                                    <div className="grid grid-cols-2 gap-1 pl-3">
+                                        <div>
+                                            <label className={lblCls} style={lblSty}>
+                                                Aufenthalt: Radius (m)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={10}
+                                                value={(o.stayRadius as number | undefined) ?? ''}
+                                                onChange={(e) => set({ stayRadius: numOrUndef(e.target.value) })}
+                                                placeholder="100"
+                                                className={iCls}
+                                                style={iSty}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={lblCls} style={lblSty}>
+                                                Aufenthalt: ab Minuten
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                value={(o.stayMinutes as number | undefined) ?? ''}
+                                                onChange={(e) => set({ stayMinutes: numOrUndef(e.target.value) })}
+                                                placeholder="10"
+                                                className={iCls}
+                                                style={iSty}
+                                            />
+                                        </div>
+                                    </div>
+                                    <p
+                                        className="text-[10px] pl-3"
+                                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                    >
+                                        Für die erste sichtbare Strecke (JSON oder Verlauf, mit Zeitstempeln). Adressen
+                                        kommen von OpenStreetMap (Photon); liegt ein Aufenthalt an einem Marker mit
+                                        festen Koordinaten oder Adresse, erscheint dessen Name mit ★.
+                                    </p>
+                                </>
+                            )}
+                        </div>
+
                         <div className="space-y-2">
                             {lines.map((l, idx) => (
                                 <div

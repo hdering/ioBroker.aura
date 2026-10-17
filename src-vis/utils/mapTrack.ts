@@ -186,20 +186,168 @@ export function historyToTrack(
         const p = pointFrom(raw, latPath, lonPath);
         if (!p) continue;
         if (p.ts === undefined) p.ts = e.ts;
-        const last = out[out.length - 1];
-        if (last && last.pos[0] === p.pos[0] && last.pos[1] === p.pos[1]) continue;
-        out.push(p);
+        pushCollapsed(out, p);
     }
     return out;
 }
 
-/** Appends a live position to a track if it is new (different place, not older). */
+const samePos = (a: TrackPoint | undefined, b: TrackPoint): boolean =>
+    !!a && a.pos[0] === b.pos[0] && a.pos[1] === b.pos[1];
+
+/** Pushes a point, keeping only the first and the last of a run at one place: a
+ *  parked car does not stack hundreds of dots, but the run still knows how long it
+ *  lasted (the stay detection needs both ends). */
+function pushCollapsed(out: TrackPoint[], p: TrackPoint): void {
+    const n = out.length;
+    if (samePos(out[n - 1], p) && samePos(out[n - 2], p)) out[n - 1] = p;
+    else out.push(p);
+}
+
+/** Appends a live position to a track unless it is older than the track's end. At
+ *  the track's last place it only moves the end of that run forward in time. */
 export function appendLivePoint(track: TrackPoint[], live: TrackPoint | null): TrackPoint[] {
     if (!live) return track;
     const last = track[track.length - 1];
-    if (last && last.pos[0] === live.pos[0] && last.pos[1] === live.pos[1]) return track;
-    if (last?.ts !== undefined && live.ts !== undefined && live.ts < last.ts) return track;
-    return [...track, live];
+    if (last?.ts !== undefined && live.ts !== undefined && live.ts <= last.ts) return track;
+    if (samePos(last, live) && live.ts === undefined) return track;
+    const out = [...track];
+    pushCollapsed(out, live);
+    return out;
+}
+
+// ── Day window ────────────────────────────────────────────────────────────────
+
+/** Local midnight-to-midnight window of the day `offset` days from `now` (0 = today). */
+export function dayRange(offset: number, now = Date.now()): { start: number; end: number } {
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + offset);
+    const start = d.getTime();
+    d.setDate(d.getDate() + 1);
+    return { start, end: d.getTime() };
+}
+
+/** Points of one day. Points without a time stamp cannot be placed and are kept. */
+export function filterDay(points: TrackPoint[], start: number, end: number): TrackPoint[] {
+    return points.filter((p) => p.ts === undefined || (p.ts >= start && p.ts < end));
+}
+
+// ── Stays and trips (timeline) ───────────────────────────────────────────────
+
+export interface StaySegment {
+    kind: 'stay';
+    start: number;
+    end: number;
+    /** Mean position of the stay. */
+    center: LatLon;
+}
+
+export interface MoveSegment {
+    kind: 'move';
+    start: number;
+    end: number;
+    km: number;
+    /** The points of the trip, from the last point of the stay before to the first of the stay after. */
+    points: LatLon[];
+}
+
+export type TrackSegment = StaySegment | MoveSegment;
+
+const distM = (a: LatLon, b: LatLon): number => haversineKm(a, b) * 1000;
+
+function meanPos(points: TrackPoint[], from: number, to: number): LatLon {
+    let la = 0;
+    let lo = 0;
+    for (let i = from; i <= to; i++) {
+        la += points[i].pos[0];
+        lo += points[i].pos[1];
+    }
+    const n = to - from + 1;
+    return [la / n, lo / n];
+}
+
+/**
+ * Splits a timed track into stays (at least `minStayMin` minutes within
+ * `radiusM` metres of their centre) and the trips between them. Points without a
+ * time stamp are ignored. Two stays at the same place with only a brief break
+ * between them (a GPS outlier) merge, so one stray reading does not cut a stay in two.
+ */
+export function detectSegments(track: TrackPoint[], radiusM = 100, minStayMin = 10): TrackSegment[] {
+    const pts = track.filter((p) => p.ts !== undefined).sort((a, b) => a.ts! - b.ts!);
+    if (pts.length === 0) return [];
+    const minMs = minStayMin * 60_000;
+
+    // 1. Grow a cluster from each point; long enough ones become stays.
+    const stays: { from: number; to: number; center: LatLon }[] = [];
+    let i = 0;
+    while (i < pts.length) {
+        let j = i;
+        let center = pts[i].pos;
+        while (j + 1 < pts.length && distM(center, pts[j + 1].pos) <= radiusM) {
+            j++;
+            center = meanPos(pts, i, j);
+        }
+        if (pts[j].ts! - pts[i].ts! >= minMs) {
+            const prev = stays[stays.length - 1];
+            // Same place after only a brief break (a GPS outlier) → one stay. A real
+            // round trip lasts longer and keeps both stays and the trip between.
+            if (prev && distM(prev.center, center) <= radiusM && pts[i].ts! - pts[prev.to].ts! < minMs / 2) {
+                prev.to = j;
+                prev.center = meanPos(pts, prev.from, j);
+            } else stays.push({ from: i, to: j, center });
+            i = j + 1;
+        } else i++;
+    }
+
+    // 2. Trips fill the gaps: before the first stay, between stays, after the last.
+    const out: TrackSegment[] = [];
+    const move = (from: number, to: number) => {
+        if (to <= from) return;
+        const points = pts.slice(from, to + 1).map((p) => p.pos);
+        out.push({ kind: 'move', start: pts[from].ts!, end: pts[to].ts!, km: trackLengthKm(points), points });
+    };
+    let cursor = 0;
+    for (const s of stays) {
+        move(cursor, s.from);
+        out.push({ kind: 'stay', start: pts[s.from].ts!, end: pts[s.to].ts!, center: s.center });
+        cursor = s.to;
+    }
+    move(cursor, pts.length - 1);
+    return out;
+}
+
+/** Compass bearing from a to b in degrees (0 = north, clockwise). */
+export function bearingDeg(a: LatLon, b: LatLon): number {
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const [la1, lo1] = [toRad(a[0]), toRad(a[1])];
+    const [la2, lo2] = [toRad(b[0]), toRad(b[1])];
+    const y = Math.sin(lo2 - lo1) * Math.cos(la2);
+    const x = Math.cos(la1) * Math.sin(la2) - Math.sin(la1) * Math.cos(la2) * Math.cos(lo2 - lo1);
+    return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+/** Bearing of the last move of a track — skips a trailing run at one place, so a
+ *  parked end still points the way the track arrived. */
+export function endBearing(points: LatLon[]): number {
+    const last = points[points.length - 1];
+    for (let i = points.length - 2; i >= 0; i--) {
+        if (points[i][0] !== last[0] || points[i][1] !== last[1]) return bearingDeg(points[i], last);
+    }
+    return 0;
+}
+
+/** Nearest place within `radiusM` of a position, or null. */
+export function nearestPlace<T extends { pos: LatLon }>(pos: LatLon, places: T[], radiusM: number): T | null {
+    let best: T | null = null;
+    let bestD = Infinity;
+    for (const p of places) {
+        const d = distM(pos, p.pos);
+        if (d <= radiusM && d < bestD) {
+            best = p;
+            bestD = d;
+        }
+    }
+    return best;
 }
 
 /** Total length of a polyline in kilometres. */

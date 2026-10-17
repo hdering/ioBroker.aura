@@ -2638,6 +2638,11 @@ export const de = {
     'map.style.standard': 'Karte',
     'map.style.satellite': 'Satellit',
     'map.style.terrain': 'Gelände',
+    'map.day.prev': 'Vorheriger Tag',
+    'map.day.next': 'Nächster Tag',
+    'map.day.today': 'Zu heute springen',
+    'map.timeline.moving': 'Unterwegs',
+    'map.timeline.empty': 'Keine Positionsdaten für diesen Zeitraum.',
 
     // ── Climate Widget ────────────────────────────────────────────────────────────
     'climate.actualTemp': 'Ist-Temperatur Datenpunkt',

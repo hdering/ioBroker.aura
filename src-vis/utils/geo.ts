@@ -105,6 +105,58 @@ export async function geocodeAddress(address: string): Promise<LatLon | null> {
     return req;
 }
 
+// ── Reverse geocoding (coordinates → address) ─────────────────────────────────
+
+export interface ReverseAddress {
+    /** Place name if the spot has one (a shop, a station), else street + number. */
+    title: string;
+    /** "Street 4, Town, Country" — the parts Photon knows. */
+    address: string;
+}
+
+type PhotonProps = Record<string, string | undefined>;
+
+/** Builds title + address line from Photon's feature properties. */
+export function formatPhotonAddress(p: PhotonProps): ReverseAddress | null {
+    const street = [p.street, p.housenumber].filter(Boolean).join(' ');
+    const town = p.city || p.town || p.village || p.locality || p.district || p.county;
+    const parts = [street || (p.name !== town ? p.name : undefined), town, p.country].filter(
+        (s, i, a): s is string => !!s && a.indexOf(s) === i,
+    );
+    if (!parts.length) return null;
+    return { title: p.name || street || town || parts[0], address: parts.join(', ') };
+}
+
+const reverseCache = new Map<string, ReverseAddress | null>();
+const reverseInflight = new Map<string, Promise<ReverseAddress | null>>();
+
+/** Address of a position via Photon's reverse endpoint, cached per ~11 m. Shares the
+ *  serial queue with geocodeAddress so both stay polite towards the service. */
+export function reverseGeocode(pos: LatLon, lang = 'de'): Promise<ReverseAddress | null> {
+    const key = `${lang}|${pos[0].toFixed(4)},${pos[1].toFixed(4)}`;
+    if (reverseCache.has(key)) return Promise.resolve(reverseCache.get(key) ?? null);
+    const existing = reverseInflight.get(key);
+    if (existing) return existing;
+    const req = schedule(async (): Promise<ReverseAddress | null> => {
+        try {
+            const target = `https://photon.komoot.io/reverse?lat=${pos[0]}&lon=${pos[1]}&limit=1&lang=${lang === 'de' ? 'de' : 'en'}`;
+            const res = await fetch(auraUrl(`/proxy?url=${encodeURIComponent(target)}`));
+            if (!res.ok) return null;
+            const data = (await res.json()) as { features?: Array<{ properties?: PhotonProps }> };
+            const props = data.features?.[0]?.properties;
+            const addr = props ? formatPhotonAddress(props) : null;
+            reverseCache.set(key, addr);
+            return addr;
+        } catch {
+            return null;
+        } finally {
+            reverseInflight.delete(key);
+        }
+    });
+    reverseInflight.set(key, req);
+    return req;
+}
+
 const LAT_KEYS = ['lat', 'latitude', 'Latitude', 'LAT'];
 const LON_KEYS = ['lon', 'lng', 'long', 'longitude', 'Longitude', 'LON', 'LNG'];
 

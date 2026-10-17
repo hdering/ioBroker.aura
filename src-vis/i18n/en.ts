@@ -2619,6 +2619,11 @@ export const en: Record<TranslationKey, string> = {
     'map.style.standard': 'Map',
     'map.style.satellite': 'Satellite',
     'map.style.terrain': 'Terrain',
+    'map.day.prev': 'Previous day',
+    'map.day.next': 'Next day',
+    'map.day.today': 'Jump to today',
+    'map.timeline.moving': 'On the way',
+    'map.timeline.empty': 'No position data for this period.',
 
     // ── Climate Widget ────────────────────────────────────────────────────────────
     'climate.actualTemp': 'Actual Temperature Datapoint',

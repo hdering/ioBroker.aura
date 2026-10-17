@@ -103,3 +103,18 @@ Pro Linie zusätzlich:
 | `lineInfo` | `bottom-left` | Ecke des Infokastens: `top-left` · `top-right` · `bottom-left` · `bottom-right` · `off` |
 
 Bewegt sich ein Marker, wird die Route höchstens alle 30 s neu berechnet.
+
+### Tageschronik: Tag, Chips, Zeitleiste
+
+![](./assets/karte/timeline.png)
+
+| Option | Standard | |
+| --- | --- | --- |
+| `dayNav` | `false` | Datumsleiste ‹ Datum ›; Strecken zeigen den gewählten Tag statt `historyHours`. Tippen aufs Datum springt zu heute |
+| `lineChips` | `false` | ein Chip je Linie über der Karte; immer nur eine Linie sichtbar |
+| `lineChipsMulti` | `false` | Chips schalten jede Linie einzeln ein/aus |
+| `timeline` | `false` | Aufenthalte und Fahrten der ersten sichtbaren Strecke unter der Karte; Tippen zoomt hin |
+| `stayRadius` | `100` | Meter, innerhalb derer ein Aufenthalt bleibt |
+| `stayMinutes` | `10` | Minuten am selben Ort, ab denen ein Aufenthalt zählt |
+
+Adressen der Aufenthalte kommen von OpenStreetMap (Photon). Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, steht dessen Name mit ★ davor. Strecken enden mit einem Richtungspfeil.

@@ -1,15 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Tooltip, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { getHistoryDirect, getObjectDirect, isHistoryStubbed, useIoBroker } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters } from '../../hooks/useChartHistory';
-import { useT, type TranslationKey } from '../../i18n';
+import { useT, type Language, type TranslationKey } from '../../i18n';
 import type { WidgetProps } from '../../types';
-import { extractLatLon, geocodeAddress, haversineKm, formatDistance, type LatLon } from '../../utils/geo';
+import {
+    extractLatLon,
+    geocodeAddress,
+    haversineKm,
+    formatDistance,
+    reverseGeocode,
+    type LatLon,
+    type ReverseAddress,
+} from '../../utils/geo';
 import {
     appendLivePoint,
+    dayRange,
+    detectSegments,
+    endBearing,
+    filterDay,
+    nearestPlace,
     fetchRoute,
     formatDuration,
     historyToTrack,
@@ -22,7 +36,9 @@ import {
     type ParsedTrack,
     type RouteResult,
     type TrackPoint,
+    type TrackSegment,
 } from '../../utils/mapTrack';
+import { useConfigStore } from '../../store/configStore';
 
 export type MapMarkerMode = 'json' | 'latlon' | 'static' | 'address';
 
@@ -154,6 +170,18 @@ interface MapOptions {
     lines?: MapLine[];
     /** Corner of the box listing each line's length (default bottom-left), or 'off'. */
     lineInfo?: MapLineInfoMode;
+    /** Day bar ‹ date › above the map: recorded tracks show the picked day instead of the last hours. */
+    dayNav?: boolean;
+    /** One chip per line above the map; tapping a chip shows that line. */
+    lineChips?: boolean;
+    /** Chips toggle lines independently instead of showing one line at a time. */
+    lineChipsMulti?: boolean;
+    /** Timeline of stays and trips under the map, for the first visible recorded track. */
+    timeline?: boolean;
+    /** Timeline: a stay keeps within this many metres (default 100). */
+    stayRadius?: number;
+    /** Timeline: minimum minutes at one place to count as a stay (default 10). */
+    stayMinutes?: number;
 }
 
 /** Free tile presets (no API key required). */
@@ -344,6 +372,15 @@ interface LineInfo {
     km: number | null;
     durationMin?: number;
     bounds: [LatLon, LatLon] | null;
+    /** Recorded points (json/history) — feeds the timeline. Compared by reference. */
+    track?: TrackPoint[];
+}
+
+/** The day picked in the day bar: its window, and whether it is today (live data). */
+interface DayWindow {
+    start: number;
+    end: number;
+    isToday: boolean;
 }
 
 const ROUTE_COLOR = '#2563eb';
@@ -385,8 +422,9 @@ function useRoute(from: LatLon | null, to: LatLon | null, profile: RouteProfile)
     return route;
 }
 
-/** History of a position DP as track points, plus the live value appended. */
-function useHistoryTrack(line: MapLine, enabled: boolean): TrackPoint[] {
+/** History of a position DP as track points, plus the live value appended. With a
+ *  picked day the window is that day; the live value only belongs to today. */
+function useHistoryTrack(line: MapLine, enabled: boolean, day: DayWindow | null): TrackPoint[] {
     const { connected: socketConnected } = useIoBroker();
     // A stubbed history (screenshot harness) counts as connected, like the history table.
     const connected = socketConnected || isHistoryStubbed();
@@ -397,7 +435,12 @@ function useHistoryTrack(line: MapLine, enabled: boolean): TrackPoint[] {
     const [tick, setTick] = useState(0);
     const instance = line.historyInstance || detected;
     const hours = Number.isFinite(line.historyHours) && (line.historyHours as number) > 0 ? line.historyHours! : 24;
-    const maxPoints = Number.isFinite(line.maxPoints) && (line.maxPoints as number) > 0 ? line.maxPoints! : 500;
+    // A whole day of a tracker easily exceeds the rolling-window default.
+    const maxPoints =
+        Number.isFinite(line.maxPoints) && (line.maxPoints as number) > 0 ? line.maxPoints! : day ? 2000 : 500;
+    const isLive = !day || day.isToday;
+    const dayStart = day?.start;
+    const dayEnd = day?.end;
 
     useEffect(() => {
         if (!dp || line.historyInstance) return;
@@ -413,10 +456,11 @@ function useHistoryTrack(line: MapLine, enabled: boolean): TrackPoint[] {
     }, [dp, line.historyInstance]);
 
     useEffect(() => {
-        if (!dp) return;
+        // A past day is complete — only a live window needs re-reading.
+        if (!dp || !isLive) return;
         const id = globalThis.setInterval(() => setTick((n) => n + 1), HISTORY_REFRESH_MS);
         return () => clearInterval(id);
-    }, [dp]);
+    }, [dp, isLive]);
 
     useEffect(() => {
         if (!dp || !instance || !connected) {
@@ -424,10 +468,12 @@ function useHistoryTrack(line: MapLine, enabled: boolean): TrackPoint[] {
             return;
         }
         let cancelled = false;
-        const end = Date.now();
+        const now = Date.now();
+        const end = dayEnd !== undefined ? Math.min(dayEnd, now) : now;
+        const start = dayStart ?? end - hours * 3_600_000;
         void getHistoryDirect(dp, {
             instance,
-            start: end - hours * 3_600_000,
+            start,
             end,
             count: maxPoints,
             aggregate: 'none',
@@ -438,19 +484,32 @@ function useHistoryTrack(line: MapLine, enabled: boolean): TrackPoint[] {
         return () => {
             cancelled = true;
         };
-    }, [dp, instance, connected, hours, maxPoints, line.latPath, line.lonPath, tick]);
+    }, [dp, instance, connected, hours, maxPoints, line.latPath, line.lonPath, tick, dayStart, dayEnd]);
 
     const liveVal = live.state?.val;
     const liveTs = live.state?.ts;
     return useMemo(() => {
-        if (liveVal == null) return rows;
+        if (liveVal == null || !isLive) return rows;
         const [p] = historyToTrack([{ ts: liveTs ?? Date.now(), val: liveVal }], line.latPath, line.lonPath);
         return appendLivePoint(rows, p ?? null);
-    }, [rows, liveVal, liveTs, line.latPath, line.lonPath]);
+    }, [rows, liveVal, liveTs, isLive, line.latPath, line.lonPath]);
 }
 
 function sameInfo(a: LineInfo | undefined, b: LineInfo): boolean {
-    return !!a && JSON.stringify(a) === JSON.stringify(b);
+    if (!a) return false;
+    const { track: ta, ...ra } = a;
+    const { track: tb, ...rb } = b;
+    return ta === tb && JSON.stringify(ra) === JSON.stringify(rb);
+}
+
+/** Arrow head at the end of a track, pointing the way it was travelled. */
+function arrowIcon(color: string, deg: number): L.DivIcon {
+    return L.divIcon({
+        className: 'aura-map-arrow',
+        html: `<svg width="22" height="22" viewBox="0 0 22 22" style="transform:rotate(${deg}deg);display:block"><path d="M11 2 L19 19 L11 14.5 L3 19 Z" fill="${color}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11],
+    });
 }
 
 /** Time, speed and accuracy of one recorded point. */
@@ -474,11 +533,16 @@ function LineLayer({
     line,
     markers,
     positions,
+    day,
+    visible,
     onInfo,
 }: {
     line: MapLine;
     markers: MapMarker[];
     positions: Record<string, LatLon>;
+    day: DayWindow | null;
+    /** Hidden by the line chips: still resolved (the chip needs its name), not drawn. */
+    visible: boolean;
     onInfo: (id: string, info: LineInfo | null) => void;
 }) {
     const source = line.source;
@@ -494,12 +558,17 @@ function LineLayer({
                 : EMPTY_TRACK,
         [source, jsonState.state?.val, line.pointsPath, line.latPath, line.lonPath],
     );
-    const history = useHistoryTrack(line, source === 'history');
+    const history = useHistoryTrack(line, source === 'history', day);
 
-    const track = useMemo<TrackPoint[]>(
-        () => (source === 'json' ? parsed.points : source === 'history' ? history : EMPTY_TRACK.points),
-        [source, parsed, history],
-    );
+    const dayStart = day?.start;
+    const dayEnd = day?.end;
+    const track = useMemo<TrackPoint[]>(() => {
+        if (source === 'history') return history;
+        if (source !== 'json') return EMPTY_TRACK.points;
+        return dayStart !== undefined && dayEnd !== undefined
+            ? filterDay(parsed.points, dayStart, dayEnd)
+            : parsed.points;
+    }, [source, parsed, history, dayStart, dayEnd]);
     const hasEnds = !!from && !!to;
     const coords = useMemo<LatLon[]>(
         () => (source === 'route' ? (route && hasEnds ? route.coords : []) : track.map((p) => p.pos)),
@@ -521,8 +590,9 @@ function LineLayer({
             km: coords.length > 1 ? (source === 'route' && route ? route.distanceKm : trackLengthKm(coords)) : null,
             durationMin: source === 'route' && route && coords.length > 1 ? route.durationMin : undefined,
             bounds: trackBounds(coords),
+            track: source === 'route' ? undefined : track,
         }),
-        [label, color, coords, source, route],
+        [label, color, coords, source, route, track],
     );
 
     useEffect(() => {
@@ -530,9 +600,12 @@ function LineLayer({
     }, [line.id, info, onInfo]);
     useEffect(() => () => onInfo(line.id, null), [line.id, onInfo]);
 
-    if (coords.length < 2 && !(line.showPoints && coords.length === 1)) return null;
+    if (!visible || (coords.length < 2 && !(line.showPoints && coords.length === 1))) return null;
     const weight = Number.isFinite(line.width) && (line.width as number) > 0 ? (line.width as number) : 4;
     const dots = line.showPoints && source !== 'route' ? track.slice(-MAX_DOTS) : [];
+    // A recorded track shows where it began and which way it went.
+    const isTrack = source !== 'route' && coords.length > 1;
+    const endDeg = isTrack ? endBearing(coords) : 0;
     return (
         <>
             {coords.length > 1 && (
@@ -552,11 +625,27 @@ function LineLayer({
                     )}
                 </Polyline>
             )}
+            {isTrack && (
+                <>
+                    <CircleMarker
+                        center={coords[0]}
+                        radius={6}
+                        interactive={false}
+                        pathOptions={{ color, weight: 3, fillColor: '#fff', fillOpacity: 1 }}
+                    />
+                    <Marker
+                        position={coords[coords.length - 1]}
+                        icon={arrowIcon(color, endDeg)}
+                        interactive={false}
+                        keyboard={false}
+                    />
+                </>
+            )}
             {dots.map((p, i) => (
                 <CircleMarker
                     key={`${i}:${p.pos[0]},${p.pos[1]}`}
                     center={p.pos}
-                    radius={i === dots.length - 1 ? 6 : 4}
+                    radius={4}
                     pathOptions={{ color: '#fff', weight: 1.5, fillColor: color, fillOpacity: 1 }}
                 >
                     <Popup>
@@ -581,6 +670,340 @@ function LineInfoRow({ info }: { info: LineInfo }) {
             <span style={{ color: 'var(--text-secondary)' }}>{parts.join(' · ')}</span>
         </div>
     );
+}
+
+// ── Day bar, line chips and timeline (#410) ──────────────────────────────────
+
+const localeOf = (lang: Language): string => (lang === 'de' ? 'de-DE' : 'en-GB');
+const clockTime = (ts: number, lang: Language): string =>
+    new Date(ts).toLocaleTimeString(localeOf(lang), { hour: '2-digit', minute: '2-digit' });
+
+const barStyle: React.CSSProperties = {
+    flexShrink: 0,
+    background: 'var(--widget-bg)',
+    borderBottom: '1px solid var(--app-border)',
+};
+
+/** ‹ Tue, 08.09.2026 › — steps through days; tapping the date returns to today. */
+function DayBar({ offset, onChange, lang }: { offset: number; onChange: (o: number) => void; lang: Language }) {
+    const t = useT();
+    const label = new Date(dayRange(offset).start).toLocaleDateString(localeOf(lang), {
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+    const btn = 'px-2 py-1 rounded-lg hover:opacity-80 disabled:opacity-30 disabled:cursor-default';
+    return (
+        <div className="flex items-center justify-between px-1 py-1" style={barStyle} data-aura-map-daybar>
+            <button
+                type="button"
+                className={btn}
+                style={{ color: 'var(--text-primary)' }}
+                onClick={() => onChange(offset - 1)}
+                title={t('map.day.prev')}
+                aria-label={t('map.day.prev')}
+                data-aura-map-day="prev"
+            >
+                <ChevronLeft size={18} />
+            </button>
+            <button
+                type="button"
+                className="text-sm font-semibold px-2 py-1 rounded-lg hover:opacity-80"
+                style={{ color: 'var(--text-primary)' }}
+                onClick={() => onChange(0)}
+                title={t('map.day.today')}
+                data-aura-map-day-label
+            >
+                {label}
+            </button>
+            <button
+                type="button"
+                className={btn}
+                style={{ color: 'var(--text-primary)' }}
+                onClick={() => onChange(offset + 1)}
+                disabled={offset >= 0}
+                title={t('map.day.next')}
+                aria-label={t('map.day.next')}
+                data-aura-map-day="next"
+            >
+                <ChevronRight size={18} />
+            </button>
+        </div>
+    );
+}
+
+/** One chip per line; the active ones are tinted in their line colour. */
+function LineChipBar({
+    chips,
+    isActive,
+    onToggle,
+}: {
+    chips: { id: string; label: string; color: string }[];
+    isActive: (id: string) => boolean;
+    onToggle: (id: string) => void;
+}) {
+    return (
+        <div className="flex flex-wrap gap-1.5 px-2 py-1.5" style={barStyle}>
+            {chips.map((c) => {
+                const on = isActive(c.id);
+                return (
+                    <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => onToggle(c.id)}
+                        aria-pressed={on}
+                        data-aura-map-line-chip={c.id}
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap hover:opacity-85"
+                        style={{
+                            color: 'var(--text-primary)',
+                            background: on
+                                ? `color-mix(in srgb, ${c.color} 18%, var(--widget-bg))`
+                                : 'var(--widget-bg)',
+                            border: `1.5px solid ${on ? c.color : 'var(--app-border)'}`,
+                            opacity: on ? 1 : 0.7,
+                        }}
+                    >
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: c.color }} />
+                        <span className="truncate max-w-[140px]">{c.label}</span>
+                    </button>
+                );
+            })}
+        </div>
+    );
+}
+
+/** Address of a position (reverse geocoded, cached), null while loading or unknown. */
+function useAddress(pos: LatLon, lang: Language): ReverseAddress | null {
+    const [addr, setAddr] = useState<ReverseAddress | null>(null);
+    const key = `${pos[0].toFixed(4)},${pos[1].toFixed(4)}`;
+    useEffect(() => {
+        let cancelled = false;
+        setAddr(null);
+        void reverseGeocode(pos, lang).then((a) => {
+            if (!cancelled) setAddr(a);
+        });
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key, lang]);
+    return addr;
+}
+
+/** A known place for the timeline: a fixed marker (static coordinates or address). */
+interface KnownPlace {
+    pos: LatLon;
+    label: string;
+}
+
+const RAIL = 'var(--app-border)';
+
+/** Time column + rail dot + content, one per timeline entry. */
+function TimelineRow({
+    time,
+    dot,
+    onClick,
+    kind,
+    children,
+}: {
+    time: string;
+    dot: React.ReactNode;
+    onClick: () => void;
+    kind: TrackSegment['kind'];
+    children: React.ReactNode;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="w-full text-left grid hover:opacity-85"
+            style={{ gridTemplateColumns: '44px 20px 1fr', columnGap: 6, padding: '6px 0' }}
+            data-aura-map-timeline-row={kind}
+        >
+            <span className="text-[11px] text-right pt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                {time}
+            </span>
+            <span className="flex justify-center pt-1" style={{ position: 'relative', zIndex: 1 }}>
+                {dot}
+            </span>
+            <span className="min-w-0">{children}</span>
+        </button>
+    );
+}
+
+function StayRow({
+    seg,
+    color,
+    places,
+    radiusM,
+    lang,
+    onFocus,
+}: {
+    seg: Extract<TrackSegment, { kind: 'stay' }>;
+    color: string;
+    places: KnownPlace[];
+    radiusM: number;
+    lang: Language;
+    onFocus: () => void;
+}) {
+    const addr = useAddress(seg.center, lang);
+    const known = nearestPlace(seg.center, places, Math.max(radiusM, 150));
+    const title = known?.label || addr?.title || `${seg.center[0].toFixed(4)}, ${seg.center[1].toFixed(4)}`;
+    return (
+        <TimelineRow
+            kind="stay"
+            time={clockTime(seg.start, lang)}
+            onClick={onFocus}
+            dot={
+                <span
+                    style={{
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        background: color,
+                        border: '2.5px solid var(--widget-bg)',
+                        boxShadow: `0 0 0 1px ${color}`,
+                    }}
+                />
+            }
+        >
+            <span className="flex items-start gap-2">
+                <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                        {title}
+                    </span>
+                    {addr && (
+                        <span className="block text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                            {addr.address}
+                        </span>
+                    )}
+                    <span className="block text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {clockTime(seg.start, lang)}–{clockTime(seg.end, lang)} ·{' '}
+                        {formatDuration((seg.end - seg.start) / 60_000)}
+                    </span>
+                </span>
+                {known && (
+                    <span style={{ color: '#f59e0b', fontSize: 16, lineHeight: 1 }} title={known.label}>
+                        ★
+                    </span>
+                )}
+            </span>
+        </TimelineRow>
+    );
+}
+
+/** Stays and trips of one recorded track, oldest first. Tapping an entry zooms to it. */
+function Timeline({
+    track,
+    color,
+    radiusM,
+    minStayMin,
+    places,
+    lang,
+    onFocusStay,
+    onFocusMove,
+}: {
+    track: TrackPoint[];
+    color: string;
+    radiusM: number;
+    minStayMin: number;
+    places: KnownPlace[];
+    lang: Language;
+    onFocusStay: (pos: LatLon) => void;
+    onFocusMove: (points: LatLon[]) => void;
+}) {
+    const t = useT();
+    const segments = useMemo(() => detectSegments(track, radiusM, minStayMin), [track, radiusM, minStayMin]);
+    return (
+        <div
+            className="aura-scroll"
+            style={{
+                flex: '0 1 auto',
+                maxHeight: '50%',
+                overflowY: 'auto',
+                background: 'var(--widget-bg)',
+                borderTop: '1px solid var(--app-border)',
+                padding: '4px 10px 6px 0',
+            }}
+            data-aura-map-timeline
+        >
+            {segments.length === 0 ? (
+                <p className="text-xs px-3 py-2" style={{ color: 'var(--text-secondary)' }}>
+                    {t('map.timeline.empty')}
+                </p>
+            ) : (
+                <div style={{ position: 'relative' }}>
+                    {/* The rail behind the dots, from the first entry to the last. */}
+                    <span
+                        style={{
+                            position: 'absolute',
+                            left: 44 + 6 + 9,
+                            top: 14,
+                            bottom: 14,
+                            width: 2,
+                            background: RAIL,
+                        }}
+                    />
+                    {segments.map((s, i) =>
+                        s.kind === 'stay' ? (
+                            <StayRow
+                                key={i}
+                                seg={s}
+                                color={color}
+                                places={places}
+                                radiusM={radiusM}
+                                lang={lang}
+                                onFocus={() => onFocusStay(s.center)}
+                            />
+                        ) : (
+                            <TimelineRow
+                                key={i}
+                                kind="move"
+                                time={clockTime(s.start, lang)}
+                                onClick={() => onFocusMove(s.points)}
+                                dot={
+                                    <span
+                                        style={{
+                                            width: 10,
+                                            height: 10,
+                                            borderRadius: '50%',
+                                            background: 'var(--widget-bg)',
+                                            border: '2.5px solid var(--text-secondary)',
+                                        }}
+                                    />
+                                }
+                            >
+                                <span className="block text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    {t('map.timeline.moving')}
+                                </span>
+                                <span className="block text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    {formatDuration((s.end - s.start) / 60_000)} · {formatDistance(s.km)}
+                                </span>
+                            </TimelineRow>
+                        ),
+                    )}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/** Fits the view to a set of bounds whenever the `nonce` changes (timeline taps). */
+function FitController({ target }: { target: { bounds: [LatLon, LatLon]; nonce: number } | null }) {
+    const map = useMap();
+    useEffect(() => {
+        if (!target) return;
+        const size = map.getSize();
+        if (!size.x || !size.y) return;
+        try {
+            map.flyToBounds(L.latLngBounds(target.bounds as L.LatLngTuple[]), { padding: [30, 30], maxZoom: 17 });
+        } catch {
+            // Transient layout/zoom race — the next tap will retry.
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [target?.nonce]);
+    return null;
 }
 
 /** Keeps the Leaflet canvas sized to the (resizable) widget body. */
@@ -860,6 +1283,11 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const chipsCorner = normalizeCorner(o.chipsCorner, 'top-right');
     const hasChips = quickViews.length > 0;
     const chipsBelow = hasChips && chipsPosition === 'below';
+    const column =
+        chipsBelow ||
+        o.dayNav === true ||
+        (o.lineChips === true && Array.isArray(o.lines) && o.lines.length > 0) ||
+        o.timeline === true;
 
     // Live positions resolved for each chip (from DP / address / static coords).
     const [chipPositions, setChipPositions] = useState<Record<string, LatLon>>({});
@@ -922,17 +1350,91 @@ export function MapWidget({ config, editMode }: WidgetProps) {
             return sameInfo(prev[id], info) ? prev : { ...prev, [id]: info };
         });
     }, []);
-    // Auto-fit covers the lines too: each contributes its bounding corners.
+    // ── Day bar: recorded tracks show one day instead of the last hours ──
+    const lang = useConfigStore((s) => (s.frontend.language ?? 'de') as Language);
+    const dayNav = o.dayNav === true;
+    const [dayOffset, setDayOffset] = useState(0);
+    const day = useMemo<DayWindow | null>(
+        () => (dayNav ? { ...dayRange(dayOffset), isToday: dayOffset === 0 } : null),
+        [dayNav, dayOffset],
+    );
+
+    // ── Line chips: one line at a time, or each toggled on its own ──
+    const lineChips = o.lineChips === true && lines.length > 0;
+    const chipsMulti = o.lineChipsMulti === true;
+    const [pickedLine, setPickedLine] = useState<string | null>(null);
+    const [hiddenLines, setHiddenLines] = useState<Set<string>>(() => new Set());
+    const isLineVisible = useCallback(
+        (id: string) => {
+            if (!lineChips) return true;
+            if (chipsMulti) return !hiddenLines.has(id);
+            const picked = lines.some((l) => l.id === pickedLine) ? pickedLine : lines[0]?.id;
+            return id === picked;
+        },
+        [lineChips, chipsMulti, hiddenLines, pickedLine, lines],
+    );
+    const toggleLineChip = useCallback(
+        (id: string) => {
+            if (!chipsMulti) {
+                setPickedLine(id);
+                return;
+            }
+            setHiddenLines((prev) => {
+                const next = new Set(prev);
+                if (next.has(id)) next.delete(id);
+                else next.add(id);
+                return next;
+            });
+        },
+        [chipsMulti],
+    );
+    const visibleLines = lines.filter((l) => isLineVisible(l.id));
+    const lineChipList = lines.map((l, i) => ({
+        id: l.id,
+        label: lineInfos[l.id]?.label || l.label || `${i + 1}`,
+        color: lineInfos[l.id]?.color || l.color || (l.source === 'route' ? ROUTE_COLOR : TRACK_COLOR),
+    }));
+
+    // Auto-fit covers the visible lines too: each contributes its bounding corners.
     const fitPositions = useMemo<Record<string, LatLon>>(() => {
         const out: Record<string, LatLon> = { ...positions };
         for (const [id, info] of Object.entries(lineInfos)) {
-            if (!info.bounds) continue;
+            if (!info.bounds || !isLineVisible(id)) continue;
             out[`line:${id}:sw`] = info.bounds[0];
             out[`line:${id}:ne`] = info.bounds[1];
         }
         return out;
-    }, [positions, lineInfos]);
-    const infoRows = lines.map((l) => lineInfos[l.id]).filter((i): i is LineInfo => !!i && (i.km != null || !!i.label));
+    }, [positions, lineInfos, isLineVisible]);
+    const infoRows = visibleLines
+        .map((l) => lineInfos[l.id])
+        .filter((i): i is LineInfo => !!i && (i.km != null || !!i.label));
+
+    // ── Timeline: stays and trips of the first visible recorded track ──
+    const timelineOn = o.timeline === true;
+    const timelineInfo = timelineOn
+        ? visibleLines.map((l) => lineInfos[l.id]).find((i) => i?.track !== undefined)
+        : undefined;
+    const stayRadius = Number.isFinite(o.stayRadius) && (o.stayRadius as number) > 0 ? (o.stayRadius as number) : 100;
+    const stayMinutes =
+        Number.isFinite(o.stayMinutes) && (o.stayMinutes as number) > 0 ? (o.stayMinutes as number) : 10;
+    // Fixed markers name the places they sit on; moving ones (a person's own
+    // position) would otherwise label every stay after themselves.
+    const knownPlaces = useMemo<KnownPlace[]>(
+        () =>
+            markers
+                .filter((m) => (m.mode === 'static' || m.mode === 'address') && positions[m.id])
+                .map((m) => ({ pos: positions[m.id], label: m.label || (m.emoji ?? '') })),
+        [markers, positions],
+    );
+    const [fitTarget, setFitTarget] = useState<{ bounds: [LatLon, LatLon]; nonce: number } | null>(null);
+    const focusStay = useCallback(
+        (pos: LatLon) => setFlyTarget((prev) => ({ pos, zoom: 16, nonce: (prev?.nonce ?? 0) + 1 })),
+        [],
+    );
+    const focusMove = useCallback((points: LatLon[]) => {
+        const bounds = trackBounds(points);
+        if (bounds) setFitTarget((prev) => ({ bounds, nonce: (prev?.nonce ?? 0) + 1 }));
+    }, []);
 
     const homePos = o.homeMarkerId ? (positions[o.homeMarkerId] ?? null) : null;
     // Coerce to finite values — a NaN center/zoom (e.g. from a half-edited config)
@@ -971,9 +1473,9 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 // through so the "edit widget" button and grid dragging keep working.
                 zIndex: 0,
                 pointerEvents: editMode ? 'none' : 'auto',
-                // When chips sit below the map, lay out map + chip bar as a column.
-                display: chipsBelow ? 'flex' : undefined,
-                flexDirection: chipsBelow ? 'column' : undefined,
+                // Bars above/below the map (day, line chips, chip bar, timeline) lay out as a column.
+                display: column ? 'flex' : undefined,
+                flexDirection: column ? 'column' : undefined,
             }}
         >
             {/* Non-visual resolvers keep each chip's live position up to date. */}
@@ -981,11 +1483,10 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 <QuickViewResolver key={v.id} view={v} onResolve={onResolveChip} />
             ))}
 
-            <div
-                style={
-                    chipsBelow ? { position: 'relative', flex: 1, minHeight: 0 } : { position: 'absolute', inset: 0 }
-                }
-            >
+            {dayNav && <DayBar offset={dayOffset} onChange={setDayOffset} lang={lang} />}
+            {lineChips && <LineChipBar chips={lineChipList} isActive={isLineVisible} onToggle={toggleLineChip} />}
+
+            <div style={column ? { position: 'relative', flex: 1, minHeight: 0 } : { position: 'absolute', inset: 0 }}>
                 <MapContainer
                     center={center}
                     zoom={initialZoom}
@@ -1004,8 +1505,17 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                     <ResizeHandler />
                     <FollowMarkers positions={fitPositions} enabled={followMarkers} maxZoom={followMaxZoom} />
                     <FlyToController target={flyTarget} />
+                    <FitController target={fitTarget} />
                     {lines.map((l) => (
-                        <LineLayer key={l.id} line={l} markers={markers} positions={positions} onInfo={onLineInfo} />
+                        <LineLayer
+                            key={l.id}
+                            line={l}
+                            markers={markers}
+                            positions={positions}
+                            day={day}
+                            visible={isLineVisible(l.id)}
+                            onInfo={onLineInfo}
+                        />
                     ))}
                     {markers.map((m) => (
                         <MarkerLayer
@@ -1093,6 +1603,19 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                         <QuickChip key={v.id} view={v} onJump={onJump} />
                     ))}
                 </div>
+            )}
+
+            {timelineOn && (
+                <Timeline
+                    track={timelineInfo?.track ?? EMPTY_TRACK.points}
+                    color={timelineInfo?.color ?? TRACK_COLOR}
+                    radiusM={stayRadius}
+                    minStayMin={stayMinutes}
+                    places={knownPlaces}
+                    lang={lang}
+                    onFocusStay={focusStay}
+                    onFocusMove={focusMove}
+                />
             )}
         </div>
     );

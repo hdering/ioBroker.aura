@@ -27,8 +27,28 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 await page.route(/tile\.openstreetmap\.org|arcgisonline|opentopomap/, (r) => r.fulfill({ status: 204, body: '' }));
 
 const routeRequests = [];
+const reverseRequests = [];
 await page.route(/\/proxy\?url=/, (r) => {
     const target = decodeURIComponent(new URL(r.request().url()).searchParams.get('url') ?? '');
+    if (target.includes('photon.komoot.io/reverse')) {
+        reverseRequests.push(target);
+        return r.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                features: [
+                    {
+                        properties: {
+                            street: 'Am Schnocksgraben',
+                            housenumber: '4',
+                            city: 'Vettweiß',
+                            country: 'Deutschland',
+                        },
+                    },
+                ],
+            }),
+        });
+    }
     if (!target.includes('routing.openstreetmap.de')) return r.continue();
     routeRequests.push(target);
     // A three-point "road" with a kink, 12.4 km / 14 min.
@@ -238,6 +258,144 @@ const markers = [
         row.y < map.y + map.height / 2 && row.x > map.x + map.width / 2,
         JSON.stringify({ row, map }),
     );
+}
+
+// ── 6b. Recorded tracks: start dot + direction arrow ───────────────────────
+{
+    await render(
+        { lines: [{ id: 't4', source: 'json', dp: 'test.0.t4' }] },
+        {
+            'test.0.t4': JSON.stringify([
+                [50, 10],
+                [50.1, 10.2],
+            ]),
+        },
+    );
+    await linePath('t4').waitFor({ timeout: 8000 });
+    check('track ends in a direction arrow', (await page.locator('.aura-map-arrow').count()) === 1);
+}
+
+// ── 6c. Line chips: one line at a time, or each on its own ─────────────────
+{
+    const two = {
+        'test.0.c1': JSON.stringify({
+            name: 'Ich',
+            points: [
+                [50, 10],
+                [50.1, 10.1],
+                [50.1, 10.3],
+            ],
+        }),
+        'test.0.c2': JSON.stringify({
+            name: 'Heike',
+            points: [
+                [50, 10.5],
+                [50.1, 10.6],
+                [50.2, 10.5],
+            ],
+        }),
+    };
+    const lines2 = [
+        { id: 'c1', source: 'json', dp: 'test.0.c1' },
+        { id: 'c2', source: 'json', dp: 'test.0.c2' },
+    ];
+    await render({ lines: lines2, lineChips: true }, two);
+    await linePath('c1').waitFor({ timeout: 8000 });
+    const chipText = await page.locator('[data-aura-map-line-chip]').allTextContents();
+    check('one chip per line, named from the data', chipText.join(',') === 'Ich,Heike', chipText.join(','));
+    check('single mode: only the first line drawn', (await linePath('c2').count()) === 0);
+    await page.locator('[data-aura-map-line-chip="c2"]').click();
+    await linePath('c2').waitFor({ timeout: 8000 });
+    check('tapping a chip switches the line', (await linePath('c1').count()) === 0);
+    check(
+        'active chip is pressed',
+        (await page.locator('[data-aura-map-line-chip="c2"]').getAttribute('aria-pressed')) === 'true',
+    );
+
+    await render({ lines: lines2, lineChips: true, lineChipsMulti: true }, two);
+    await linePath('c2').waitFor({ timeout: 8000 });
+    check('multi mode: all lines drawn', (await linePath('c1').count()) === 1);
+    await page.locator('[data-aura-map-line-chip="c1"]').click();
+    await page.waitForTimeout(300);
+    check(
+        'multi mode: a chip hides its line',
+        (await linePath('c1').count()) === 0 && (await linePath('c2').count()) === 1,
+    );
+}
+
+// ── 6d. Day bar + timeline from a position history ─────────────────────────
+{
+    const now = Date.now();
+    const d = new Date(now);
+    d.setHours(0, 0, 0, 0);
+    const today = d.getTime();
+    const span = now - today; // whatever time of day the test runs at
+    const at = (frac) => today + Math.floor(span * frac);
+    const home = { lat: 50.7286, lon: 6.6006 };
+    const away = (k) => ({ lat: 50.7286 + 0.01 * k, lon: 6.6006 + 0.01 * k });
+    const yesterday = today - 12 * 3_600_000;
+    const series = [
+        [yesterday, JSON.stringify(away(5))],
+        [yesterday + 60_000, JSON.stringify(away(6))],
+        [at(0.001), JSON.stringify(home)],
+        [at(0.3), JSON.stringify(home)],
+        [at(0.35), JSON.stringify(away(1))],
+        [at(0.4), JSON.stringify(away(2))],
+        [at(0.45), JSON.stringify(away(1))],
+        [at(0.5), JSON.stringify(home)],
+        [at(0.9), JSON.stringify(home)],
+    ];
+    await page.evaluate((s) => {
+        window.__auraShot.mockObject({ 'test.0.pos': { common: { custom: { 'history.0': { enabled: true } } } } });
+        window.__auraShot.mockHistory({ 'test.0.pos': s });
+    }, series);
+    reverseRequests.length = 0;
+    // A tiny stay threshold so the test works at any time of day (the "day" may be minutes old).
+    const stayMinutes = Math.max(0.01, (span * 0.2) / 60_000);
+    await render(
+        {
+            markers: [{ id: 'home', mode: 'static', label: 'Home', lat: home.lat, lon: home.lon }],
+            lines: [{ id: 'd1', source: 'history', dp: 'test.0.pos' }],
+            dayNav: true,
+            timeline: true,
+            stayMinutes,
+        },
+        { 'test.0.pos': JSON.stringify(home) },
+    );
+    await linePath('d1').waitFor({ timeout: 8000 });
+    check('day bar shown', (await page.locator('[data-aura-map-daybar]').count()) === 1);
+    check('next day disabled on today', await page.locator('[data-aura-map-day="next"]').isDisabled());
+    await page.locator('[data-aura-map-timeline-row]').first().waitFor({ timeout: 8000 });
+    const kinds = await page
+        .locator('[data-aura-map-timeline-row]')
+        .evaluateAll((els) => els.map((e) => e.dataset.auraMapTimelineRow).join(','));
+    check('timeline: stay, trip, stay', kinds === 'stay,move,stay', kinds);
+    const tl = await page.locator('[data-aura-map-timeline]').textContent();
+    check('stay at a marker is named after it, with ★', tl.includes('Home') && tl.includes('★'), tl);
+    await page
+        .waitForFunction(
+            () => document.querySelector('[data-aura-map-timeline]')?.textContent?.includes('Vettweiß'),
+            null,
+            { timeout: 8000 },
+        )
+        .catch(() => {});
+    const tl2 = await page.locator('[data-aura-map-timeline]').textContent();
+    check('stay shows its reverse-geocoded address', tl2.includes('Am Schnocksgraben 4, Vettweiß, Deutschland'), tl2);
+    check('trip row says on the way', tl2.includes('Unterwegs') || tl2.includes('On the way'));
+    check('reverse geocoding cached per place', reverseRequests.length === 1, String(reverseRequests.length));
+    await page.locator('[data-aura-map-timeline-row="move"]').click();
+    await page.waitForTimeout(800);
+
+    // Yesterday: the other track, and the timeline follows the day.
+    await page.locator('[data-aura-map-day="prev"]').click();
+    await page.waitForTimeout(800);
+    check('next day enabled on yesterday', !(await page.locator('[data-aura-map-day="next"]').isDisabled()));
+    const vy = await vertexCount('d1').catch(() => 0);
+    check('yesterday shows its own points only', vy === 2, String(vy));
+    await page.locator('[data-aura-map-day-label]').click();
+    await page.waitForTimeout(800);
+    check('tapping the date returns to today', await page.locator('[data-aura-map-day="next"]').isDisabled());
+    await page.evaluate(() => window.__auraShot.mockHistory(false));
 }
 
 // ── 7. Editor: "+ Linie" adds a route preset to the first two markers ───────
