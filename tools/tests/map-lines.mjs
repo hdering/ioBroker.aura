@@ -407,7 +407,22 @@ const markers = [
     await page.locator('button:text-is("Bearbeiten")').first().click();
     // The widget editor is a CenteredModal without a class of its own; the hooks below are unique.
     const modal = page;
+    // Sections fold: markers open, lines folded; marker cards start folded too.
+    const markerSection = modal.locator('details', { has: page.locator('summary:has-text("Marker (2)")') });
+    const lineSection = modal.locator('details', { has: page.locator('[data-aura-map-add-line]') });
+    check('marker section open by default', (await markerSection.getAttribute('open')) !== null);
+    check('line section folded by default', (await lineSection.getAttribute('open')) === null);
+    check(
+        'marker cards start folded',
+        (await markerSection.locator('[data-aura-map-item-toggle][aria-expanded="false"]').count()) === 2 &&
+            (await markerSection.locator('select').count()) === 0,
+    );
+    await markerSection.locator('[data-aura-map-item-toggle]').first().click();
+    check('a marker card unfolds', (await markerSection.locator('select').count()) === 1);
+    await markerSection.locator('[data-aura-map-item-toggle]').first().click();
+    check('and folds again', (await markerSection.locator('select').count()) === 0);
     await modal.locator('[data-aura-map-add-line]').click();
+    check('"+ Linie" opens the folded section', (await lineSection.getAttribute('open')) !== null);
     const opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
     const line = opts?.lines?.[0];
     check(

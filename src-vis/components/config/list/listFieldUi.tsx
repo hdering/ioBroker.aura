@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ColorPicker } from '../../common/ColorPicker';
 
@@ -23,26 +23,49 @@ export const ENTRY_INPUT_STYLE: React.CSSProperties = {
 export function ConfigSection({
     title,
     defaultOpen,
+    action,
     children,
 }: {
     title: string;
     defaultOpen?: boolean;
+    /** Control in the header (e.g. "+ Marker"). Using it opens the section instead of toggling it. */
+    action?: ReactNode;
     children: ReactNode;
 }) {
+    const ref = useRef<HTMLDetailsElement>(null);
     return (
-        <details className="group pt-2" open={defaultOpen} style={{ borderTop: '1px solid var(--app-border)' }}>
-            <summary className="flex items-center justify-between cursor-pointer list-none select-none">
+        <details
+            ref={ref}
+            className="group pt-2"
+            open={defaultOpen}
+            style={{ borderTop: '1px solid var(--app-border)' }}
+        >
+            <summary className="flex items-center justify-between gap-2 cursor-pointer list-none select-none">
                 <span
                     className="text-[11px] font-semibold uppercase tracking-wide"
                     style={{ color: 'var(--text-secondary)' }}
                 >
                     {title}
                 </span>
-                <ChevronDown
-                    size={13}
-                    className="transition-transform group-open:rotate-180"
-                    style={{ color: 'var(--text-secondary)' }}
-                />
+                <span className="flex items-center gap-2">
+                    {action && (
+                        // A click inside <summary> would toggle the section — keep it open instead,
+                        // so whatever the action adds is visible right away.
+                        <span
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (ref.current) ref.current.open = true;
+                            }}
+                        >
+                            {action}
+                        </span>
+                    )}
+                    <ChevronDown
+                        size={13}
+                        className="transition-transform group-open:rotate-180"
+                        style={{ color: 'var(--text-secondary)' }}
+                    />
+                </span>
             </summary>
             <div className="space-y-2.5 mt-2.5">{children}</div>
         </details>
