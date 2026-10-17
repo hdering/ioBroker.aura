@@ -23,12 +23,12 @@ const VISIBLE = {
     value: ['showValue', 'showUnit'],
     windowcontact: ['showLabel'],
     binarysensor: ['showLabel'],
-    stateimage: ['showLabel'],
+    stateimage: ['showLabel', 'showIcon'],
     calendar: ['showCalName', 'showCalIcon', 'showCalDot', 'showSummary', 'showDate', 'showLocation', 'showMore'],
-    datepicker: ['showCurrentValue'],
-    header: ['showSubtitle'],
+    datepicker: ['showCurrentValue', 'showTime'],
+    header: ['showSubtitle', 'showAccent'],
     light: ['showState', 'showPalette'],
-    knob: ['showValue', 'showMinMax'],
+    knob: ['showValue', 'showMinMax', 'showRing', 'showBackground'],
     mediaplayer: [
         'showCover',
         'showSubtitle',
@@ -47,7 +47,7 @@ const VISIBLE = {
 /** Types without any visibility toggle. */
 const NONE = ['button', 'image', 'html', 'mirror'];
 /** Types whose own settings are split into folded sections (SECTIONED_EDIT_TYPES). */
-const FOLDED = [];
+const FOLDED = ['knob', 'dimmer', 'stateimage', 'light'];
 
 const results = [];
 const check = (name, ok, detail = '') => {
@@ -93,6 +93,15 @@ async function openDialog(type, options = {}) {
     return widget.id;
 }
 
+/** Unfold a section of the open dialog. */
+async function openSection(key) {
+    const sum = page.locator(`.aura-widget-edit-modal details[data-aura-config-section="${key}"] > summary`);
+    if (await sum.count()) {
+        const open = await sum.evaluate((el) => el.parentElement.open);
+        if (!open) await sum.click();
+    }
+}
+
 async function closeDialog() {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(200);
@@ -109,7 +118,9 @@ const inspect = () =>
         const rows = [...dlg.querySelectorAll('[data-aura-vis-key]')];
         return {
             order: sections.map((s) => s.getAttribute('data-aura-config-section')),
-            title: vis?.querySelector('summary span, p')?.textContent?.trim() ?? null,
+            title: vis?.querySelector('summary span.uppercase, :scope > p')?.textContent?.trim() ?? null,
+            titleCls: vis?.querySelector('summary span.uppercase, :scope > p')?.className ?? null,
+            statusCls: dlg.querySelector('[data-aura-status-section] summary p')?.className ?? null,
             folded: sections.filter((s) => s.tagName === 'DETAILS').map((s) => s.open === false),
             keys: rows.map((r) => r.getAttribute('data-aura-vis-key')),
             outside: rows.filter((r) => !vis?.contains(r)).map((r) => r.getAttribute('data-aura-vis-key')),
@@ -131,6 +142,12 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
     );
     if (!FOLDED.includes(type))
         check(`${type}: "Einstellungen" heading`, r.order[1] === 'settings', JSON.stringify(r.order));
+    else check(`${type}: "Datenpunkte" follows`, r.order[1] === 'datapoints', JSON.stringify(r.order));
+    check(
+        `${type}: status heading looks like the others`,
+        !r.statusCls || r.statusCls === r.titleCls,
+        JSON.stringify(r),
+    );
     const missing = keys.filter((k) => !r.keys.includes(k));
     check(`${type}: expected toggles present`, missing.length === 0, JSON.stringify(missing));
     if (FOLDED.includes(type))
@@ -148,6 +165,7 @@ for (const type of NONE) {
 // A switch writes its option: dimmer "Schieberegler" off.
 {
     const id = await openDialog('dimmer');
+    await openSection('visible');
     await page.locator('.aura-widget-edit-modal [data-aura-vis-key="showSlider"] button[role="switch"]').click();
     await page.waitForTimeout(300);
     const o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
@@ -158,6 +176,7 @@ for (const type of NONE) {
 // Light: the alignment picker sits next to the status switch and goes with it.
 {
     const id = await openDialog('light');
+    await openSection('visible');
     const row = page.locator('.aura-widget-edit-modal [data-aura-vis-key="showState"]');
     check('light: alignment picker while shown', (await row.locator('button:not([role="switch"])').count()) === 3);
     await row.locator('button:not([role="switch"])').nth(2).click();

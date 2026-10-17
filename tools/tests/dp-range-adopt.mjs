@@ -75,6 +75,10 @@ async function open(widget, view) {
     await page.locator('button:text-is("Bearbeiten")').click();
     const dlg = page.locator('.aura-widget-edit-modal');
     await dlg.waitFor({ timeout: 10000 });
+    // The knob's settings sit in folded sections - unfold them all.
+    await dlg.evaluate((el) =>
+        el.querySelectorAll('details[data-aura-config-section]').forEach((d) => (d.open = true)),
+    );
     await page.waitForTimeout(400);
     return dlg;
 }

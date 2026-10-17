@@ -60,7 +60,7 @@ export function ToggleRow({
                 </div>
             </div>
             {children && (
-                <div className="mt-2 ml-1 pl-3 space-y-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                <div className="mt-1 mb-1.5 ml-1 pl-3 space-y-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
                     {children}
                 </div>
             )}
@@ -126,16 +126,18 @@ export function VisibleFieldsSection({
         );
     });
     const title = t('cfg.visibleFields');
+    // Compact on purpose: a list of switches reads as one block, not as separate settings.
+    const list = <div className="space-y-1">{rows}</div>;
     if (!collapsible)
         return (
             <FlatSection title={title} sectionKey="visible">
-                {rows}
+                {list}
             </FlatSection>
         );
     const onCount = shown.filter((f) => isFieldOn(f, values)).length;
     return (
         <ConfigSection title={title} sectionKey="visible" count={`${onCount}/${shown.length}`}>
-            {rows}
+            {list}
         </ConfigSection>
     );
 }
