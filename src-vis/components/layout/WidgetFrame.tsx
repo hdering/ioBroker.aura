@@ -7806,7 +7806,7 @@ function WidgetFrameInner({
     const wrapVar = (textLines > 1 ? { '--aura-wrap-lines': textLines } : {}) as React.CSSProperties;
 
     // ── Status-Datenpunkte (gemeinsam für alle Sensor-/Aktor-Typen) ──
-    // A function, not inline: the universal widget shows it at the end of the dialog.
+    // A function, not inline: rendered as the last section of the edit dialog.
     const renderStatusSection = () => {
         if (
             !(
@@ -7913,21 +7913,31 @@ function WidgetFrameInner({
             }
             if (Object.keys(patch).length) setO(patch);
         };
+        // Starts folded: most widgets never get a status datapoint, and the section is long.
         return (
-            <div
+            <details
+                className="group"
+                data-aura-status-section=""
                 style={{
                     borderTop: '1px solid var(--app-border)',
                     marginTop: 4,
                     paddingTop: 8,
                 }}
             >
-                <div className="flex items-center justify-between mb-2">
+                <summary className="flex items-center justify-between gap-2 cursor-pointer list-none select-none">
                     <p
                         className="text-[10px] font-semibold uppercase tracking-wider"
                         style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
                     >
                         Status-Datenpunkte
                     </p>
+                    <ChevronDown
+                        size={13}
+                        className="transition-transform group-open:rotate-180"
+                        style={{ color: 'var(--text-secondary)' }}
+                    />
+                </summary>
+                <div className="flex items-center justify-end mt-2 mb-2">
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => void autoFillStatus()}
@@ -8282,7 +8292,7 @@ function WidgetFrameInner({
                         <StatusItemsEditor options={o} onChange={(patch) => setO(patch)} />
                     </CenteredModal>
                 )}
-            </div>
+            </details>
         );
     };
 
@@ -19368,7 +19378,6 @@ function WidgetFrameInner({
                             })()}
 
                         {/* ── Status-Datenpunkte (gemeinsam für alle Sensor-/Aktor-Typen) ── */}
-                        {config.type !== 'universal' && renderStatusSection()}
 
                         {/* ── Custom-Grid editor (all widgets except excluded) ── */}
                         {![
@@ -20708,8 +20717,8 @@ function WidgetFrameInner({
                                 />
                             </div>
                         )}
-                        {/* The universal widget is its grid first — its status section closes the dialog. */}
-                        {config.type === 'universal' && renderStatusSection()}
+                        {/* Status datapoints close the dialog for every widget — the widget's own settings come first. */}
+                        {renderStatusSection()}
                     </div>
                 </CenteredModal>
             )}

@@ -475,6 +475,24 @@ await card.hover();
 await card.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
 await page.waitForTimeout(900);
+// The section starts folded; the fields inside are not reachable until it opens.
+const section = page.locator('.aura-widget-edit-modal [data-aura-status-section]');
+check('editor: status section starts folded', (await section.getAttribute('open')) === null);
+check(
+    'editor: status section is the last one of the dialog',
+    await page.evaluate(() => {
+        const dlg = document.querySelector('.aura-widget-edit-modal');
+        const last = [...(dlg?.querySelectorAll('button, select, input, summary') ?? [])].pop();
+        return !!last?.closest('[data-aura-status-section]');
+    }),
+);
+check(
+    'editor: folded section hides its fields',
+    !(await page.locator('.aura-widget-edit-modal [data-aura-status-position]').isVisible()),
+);
+await section.locator('> summary').click();
+await page.waitForTimeout(200);
+check('editor: a click on the heading opens it', (await section.getAttribute('open')) !== null);
 await page.locator('.aura-widget-edit-modal [data-aura-status-position]').selectOption('top-left');
 await page.waitForTimeout(300);
 opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), edId);
