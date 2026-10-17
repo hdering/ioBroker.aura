@@ -3,7 +3,7 @@ import { Dashboard } from './Dashboard';
 import { subscribeStateDirect } from '../../hooks/useIoBroker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { NS } from '../../utils/namespace';
-import { ProbeContext } from '../../utils/probeContext';
+import { ProbeContext, ProbeFillContext } from '../../utils/probeContext';
 
 /**
  * Renders a tab NOBODY has open, off-screen, so its heights can be measured.
@@ -41,6 +41,8 @@ interface ProbeRequest {
     ts: number;
     /** Grid width the adapter asks for — the target device from the guidelines. */
     width?: number;
+    /** Fill the runtime lists to their cap with long names (utils/probeContext.tsx). */
+    fill?: boolean;
 }
 
 function parseRequest(raw: unknown): ProbeRequest | null {
@@ -49,7 +51,12 @@ function parseRequest(raw: unknown): ProbeRequest | null {
         const parsed = JSON.parse(raw) as Partial<ProbeRequest>;
         if (!parsed || typeof parsed.tabId !== 'string' || !parsed.tabId) return null;
         const width = Number(parsed.width);
-        return { tabId: parsed.tabId, ts: Number(parsed.ts) || 0, ...(width > 200 ? { width } : {}) };
+        return {
+            tabId: parsed.tabId,
+            ts: Number(parsed.ts) || 0,
+            ...(width > 200 ? { width } : {}),
+            ...(parsed.fill === true ? { fill: true } : {}),
+        };
     } catch {
         return null;
     }
@@ -105,9 +112,10 @@ export function RenderProbe({
         return () => window.clearTimeout(timer);
     }, [request]);
 
-    // The tab somebody is looking at reports itself, and mounting it a second
-    // time would put two elements with the same data-aura-tab-id in the DOM.
-    if (!request || !target || request.tabId === activeTabId) {
+    // The tab somebody is looking at reports itself — except for a fill probe,
+    // whose worst case the screen does not show. Dashboard tells the two copies of
+    // the tab apart by the probe container.
+    if (!request || !target || (request.tabId === activeTabId && !request.fill)) {
         return null;
     }
 
@@ -131,14 +139,19 @@ export function RenderProbe({
             }}
         >
             <ProbeContext.Provider value={true}>
-                <Dashboard
-                    readonly
-                    editMode={false}
-                    viewTabs={[target.tab]}
-                    viewActiveTabId={target.tab.id}
-                    layoutId={target.layout.id}
-                    sectionId={target.section.id}
-                />
+                <ProbeFillContext.Provider value={!!request.fill}>
+                    {/* Keyed by the request: a fill probe right after a plain one of the
+                        same tab must mount fresh, or the widgets keep their current rows. */}
+                    <Dashboard
+                        key={`${request.tabId}|${request.ts}`}
+                        readonly
+                        editMode={false}
+                        viewTabs={[target.tab]}
+                        viewActiveTabId={target.tab.id}
+                        layoutId={target.layout.id}
+                        sectionId={target.section.id}
+                    />
+                </ProbeFillContext.Provider>
             </ProbeContext.Provider>
         </div>
     );

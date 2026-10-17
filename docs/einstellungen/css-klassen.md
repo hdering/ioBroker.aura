@@ -170,6 +170,8 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-status-action` · `.aura-status-action-lg` | Statusübersicht: Knopf am Zeilenende, große Form der zweizeiligen Zeile |
 | `.aura-status-action-ack` · `-snooze` · `-ignore` · `-unignore` | Statusübersicht: die einzelnen Merklisten-Knöpfe (Gewechselt/Quittieren, Später, Ignorieren, Aufnehmen) |
 | `.aura-status-history-row` · `.aura-status-history-reason` | Statusübersicht: Zeile im Layout „Zuletzt gewechselt“ (`history`), `data-reason` trägt `ack` · `auto`; Kennzeichen „per Knopf“/„automatisch“ |
+| `.aura-status-tile` · `.aura-status-tile-name` | Statusübersicht: Kachel im Layout „Karten“ (`card`) und der Gerätename darin |
+| `.aura-status-more` | Statusübersicht: Zeile „+N weitere“ unter einer mit maxRows gekappten Liste |
 
 ```css
 .aura-group-header {

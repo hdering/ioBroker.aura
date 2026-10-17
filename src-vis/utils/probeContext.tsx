@@ -21,6 +21,24 @@ export function useIsProbe(): boolean {
 }
 
 /**
+ * A probe that fills the runtime lists to their cap (aura_rendered fill=true).
+ *
+ * "Nothing cut off" from a status overview only says something about the entries
+ * that happened to be there: three open windows fit where ten would scroll.
+ * In a fill probe the widgets whose rows appear at runtime draw `maxRows` entries
+ * plus one (so the „+N weitere“ line shows where it would) with long names — the
+ * worst case the cap allows instead of the current state.
+ */
+export const ProbeFillContext = createContext(false);
+
+export function useProbeFill(): boolean {
+    return useContext(ProbeFillContext);
+}
+
+/** A device name long enough to wrap in a narrow tile — the fill probe's worst case. */
+export const PROBE_FILL_NAME = 'Fensterkontakt Wohnzimmer Terrassentür links oben';
+
+/**
  * Types a probe render replaces with an empty box.
  *
  * A camera starts a stream on mount and — with a wake-up datapoint — writes

@@ -594,6 +594,11 @@ const COUNTED = [
         type: 'statusoverview',
         item: 'Zeile',
         counts: [2, 4, 8],
+        // The „+N weitere“ line and the card grid's tiles, read off the DOM
+        // (statusFooter / statusCardTiles below) — neither is a straight line
+        // through the row count.
+        moreRow: true,
+        cardTiles: true,
         // One category, the cap for the row count, and no "+N weitere" line:
         // aura_measure adds that one itself (out.moreRow), so measuring it in
         // would charge it twice.
@@ -1495,6 +1500,164 @@ async function dividerDeltas(spec, { cols, layout, base, baseHigh }) {
 }
 
 const wanted = (type) => !only || only.has(type);
+/**
+ * What the status overview's card grid and footer are made of, read off the DOM.
+ *
+ * Neither fits the walk-down. The card layout puts tiles side by side, so the
+ * height depends on how many fit in a line (the width) and on how many lines
+ * each NAME takes — a tile with a two-line name is a text line taller than one
+ * with a one-line name, and the tallest tile sets its whole grid row. Reported
+ * from use: aura_measure answered "nicht rechenbar" for a card grid of ten
+ * entries in three grid rows where two fitted. With the parts below it computes
+ * that case.
+ *
+ * Read at a height where nothing is squeezed (TOP_ROWS), at both font scales.
+ */
+const READ_STATUS = ({ id }) => {
+    const root = document.querySelector(`.aura-widget-${id}`);
+    if (!root) {
+        return { error: 'not rendered' };
+    }
+    const rb = root.getBoundingClientRect();
+    const more = root.querySelector('.aura-status-more');
+    const out = { cardPx: rb.height, cardW: rb.width, morePx: more ? more.getBoundingClientRect().height : null };
+    const tile = root.querySelector('.aura-status-tile');
+    if (!tile) {
+        return out;
+    }
+    const grid = tile.parentElement;
+    const tb = tile.getBoundingClientRect();
+    const name = tile.querySelector('.aura-status-tile-name');
+    const nb = name.getBoundingClientRect();
+    const row = name.parentElement.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(name);
+    const rects = Array.from(range.getClientRects());
+    out.gapPx = parseFloat(getComputedStyle(grid).rowGap) || 0;
+    out.gridW = grid.clientWidth;
+    out.gridH = grid.clientHeight;
+    out.tilePx = tb.height;
+    out.tileW = tb.width;
+    out.lines = Math.round(nb.height / parseFloat(getComputedStyle(name).lineHeight));
+    // The width a name can use: the row it sits in, minus the icon in front.
+    out.nameAvailW = row.right - nb.left;
+    out.textW = rects.length === 1 ? rects[0].width : null;
+    out.chars = name.textContent.length;
+    return out;
+};
+
+async function readStatus(spec, { cols, layout, fontScale, options }) {
+    const base = spec.build(4).options;
+    const wid = `m${widSeq + 1}`;
+    const m = await render(spec.type, { rows: TOP_ROWS, cols, layout, fontScale, options: { ...base, ...options } });
+    if (m.error) {
+        return { error: m.error };
+    }
+    return page.evaluate(READ_STATUS, { id: wid });
+}
+
+/** The „+N weitere“ line under a capped status overview: 12 seeded contacts, 4 shown. */
+async function statusFooter(spec, cols) {
+    const lo = await readStatus(spec, { cols, options: { showMore: true } });
+    const hi = await readStatus(spec, { cols, fontScale: SCALE_HIGH, options: { showMore: true } });
+    if (lo.error || hi.error || !lo.morePx || !hi.morePx) {
+        console.warn(`  skip ${spec.type} moreRow: ${lo.error || hi.error || 'keine „+N weitere“-Zeile gezeichnet'}`);
+        return null;
+    }
+    return { px: r1(lo.morePx), fontScalePx: denoiseSlope((hi.morePx - lo.morePx) / SCALE_SPAN) };
+}
+
+/** Names of growing length: at the default width they take one, two, three … lines. */
+const TILE_NAMES = [
+    'Flur',
+    'Bad oben',
+    'Fenster Bad',
+    'Fenster Wohnzimmer',
+    'Fenster Wohnzimmer links',
+    'Fensterkontakt Wohnzimmer links',
+    'Fensterkontakt Wohnzimmer Terrasse links',
+    'Fensterkontakt Wohnzimmer Terrassentür links oben',
+];
+
+async function statusCardTiles(spec, cols) {
+    const at = async (fontScale) => {
+        const byLines = new Map();
+        let first = null;
+        for (const name of TILE_NAMES) {
+            const r = await readStatus(spec, { cols, layout: 'card', fontScale, options: { namePattern: name } });
+            if (r.error || !r.tilePx) {
+                return { error: r.error || 'keine Kachel gezeichnet' };
+            }
+            first = first || r;
+            if (!byLines.has(r.lines)) {
+                byLines.set(r.lines, r);
+            }
+        }
+        const lines = [...byLines.keys()].sort((a, b) => a - b);
+        if (lines.length < 2) {
+            return { error: `alle Namen in ${lines[0]} Zeile(n) — keine Steigung` };
+        }
+        const lo = byLines.get(lines[0]);
+        const hi = byLines.get(lines[lines.length - 1]);
+        const perLine = (hi.tilePx - lo.tilePx) / (hi.lines - lo.lines);
+        // Every line count in between has to sit on that line, or "base + per name
+        // line" is the wrong model for the tile.
+        for (const n of lines) {
+            const r = byLines.get(n);
+            const off = Math.abs(r.tilePx - (lo.tilePx + perLine * (n - lo.lines)));
+            if (off > 1) {
+                return { error: `Kachelhöhe nicht linear in den Namenszeilen (${n} Zeilen: ${r1(off)} px daneben)` };
+            }
+        }
+        // One long name on ONE line, in a tile wide enough for it: what a character costs.
+        const wide = await readStatus(spec, {
+            cols: 40,
+            layout: 'card',
+            fontScale,
+            options: { namePattern: 'Fenster Wohnzimmer links', cardMinWidth: 600 },
+        });
+        return {
+            tilePx: lo.tilePx - perLine * (lo.lines - 1),
+            nameLinePx: perLine,
+            gapPx: first.gapPx,
+            chromePx: first.cardPx - first.gridH,
+            insetW: first.cardW - first.gridW,
+            // From a name that wraps onto two lines: a short one shrinks its row to the
+            // text, and the longest has words wider than the tile that stick out of it.
+            nameInsetW: (byLines.get(2) || hi).tileW - (byLines.get(2) || hi).nameAvailW,
+            charPx: wide.textW && wide.chars ? wide.textW / wide.chars : null,
+            measured: lines.map((n) => ({ lines: n, px: r1(byLines.get(n).tilePx) })),
+        };
+    };
+    const lo = await at(REFERENCE.fontScale);
+    const hi = await at(SCALE_HIGH);
+    if (lo.error || hi.error) {
+        console.warn(`  skip ${spec.type} card tiles: ${lo.error || hi.error}`);
+        return null;
+    }
+    const slope = (k) => denoiseSlope((hi[k] - lo[k]) / SCALE_SPAN);
+    return {
+        tilePx: r1(lo.tilePx),
+        nameLinePx: r1(lo.nameLinePx),
+        gapPx: r1(lo.gapPx),
+        chromePx: r1(lo.chromePx),
+        insetPx: r1(lo.insetW),
+        nameInsetPx: r1(lo.nameInsetW),
+        ...(lo.charPx ? { charPx: Math.round(lo.charPx * 100) / 100 } : {}),
+        fontScalePx: {
+            tilePx: slope('tilePx'),
+            nameLinePx: slope('nameLinePx'),
+            chromePx: slope('chromePx'),
+            nameInsetPx: slope('nameInsetW'),
+            ...(lo.charPx && hi.charPx
+                ? { charPx: Math.round(((hi.charPx - lo.charPx) / SCALE_SPAN) * 100) / 100 }
+                : {}),
+        },
+        atWidthPx: cols * PROBE_GRID.gridSnapX,
+        measured: lo.measured,
+    };
+}
+
 const results = {};
 const counted = {};
 
@@ -1740,6 +1903,23 @@ for (const spec of COUNTED) {
     }
     if (spec.freeLayouts) {
         entry.freeLayouts = spec.freeLayouts;
+    }
+    if (spec.moreRow) {
+        const more = await statusFooter(spec, cols);
+        if (more) {
+            entry.moreRow = more;
+            console.log(`  moreRow        ${more.px} px (je Schriftskalierung +${more.fontScalePx} px)`);
+        }
+    }
+    if (spec.cardTiles && entry.variants && entry.variants.card) {
+        const tiles = await statusCardTiles(spec, cols);
+        if (tiles) {
+            entry.variants.card.tiles = tiles;
+            console.log(
+                `  card tiles     ${tiles.tilePx} px + ${tiles.nameLinePx} px/Namenszeile, Rahmen ${tiles.chromePx} px, ` +
+                    `Abstand ${tiles.gapPx} px, ${tiles.charPx} px/Zeichen`,
+            );
+        }
     }
     counted[spec.type] = entry;
 }

@@ -20,7 +20,10 @@
 //      tidiness: mounting a camera starts a stream and, with a wake-up
 //      datapoint, writes SLEEP again when the probe unmounts — a measurement
 //      would switch off a camera somebody else is watching;
-//   4. the probe disappears again, so nothing keeps subscriptions alive.
+//   4. the probe disappears again, so nothing keeps subscriptions alive;
+//   5. a FILL probe (aura_rendered fill=true) draws a capped status overview with
+//      maxRows + 1 entries and long names — the worst case — instead of the rows
+//      there are now, and does so for the tab on screen too.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -83,6 +86,17 @@ const LAYOUT = {
                             // the unmount would write to it.
                             options: { streamUrl: 'http://127.0.0.1:9/stream.mjpg', wakeUpDp: DP },
                         },
+                        {
+                            id: 'probe-status',
+                            type: 'statusoverview',
+                            title: 'Fenster',
+                            datapoint: '',
+                            layout: 'card',
+                            gridPos: { x: 0, y: 31, w: 14, h: 6 },
+                            // A name pattern that would shorten every name: the fill
+                            // probe must ignore it, its long name is the point.
+                            options: { maxRows: 6, namePattern: 'X' },
+                        },
                     ],
                 },
             ],
@@ -109,14 +123,14 @@ await page.evaluate(
 await page.waitForTimeout(600);
 
 /** The probe request the adapter would write, delivered the way a state arrives. */
-async function requestProbe(tabId) {
+async function requestProbe(tabId, extra) {
     await page.evaluate(
-        ({ id }) => {
+        ({ id, extra }) => {
             window.__auraShot.mock({
-                'aura.0.info.renderProbe': JSON.stringify({ tabId: id, ts: Date.now() }),
+                'aura.0.info.renderProbe': JSON.stringify({ tabId: id, ts: Date.now(), ...extra }),
             });
         },
-        { id: tabId },
+        { id: tabId, extra: extra || {} },
     );
     await page.waitForTimeout(1500);
 }
@@ -150,6 +164,7 @@ const probed = await page.evaluate(() => {
         offScreen: rect.right < 0 || rect.left > window.innerWidth,
         width: Math.round(rect.width),
         widgets,
+        statusFilled: box.querySelector('[data-aura-probe-filled]')?.getAttribute('data-aura-probe-filled') ?? null,
         // The visible tab must still be mounted exactly once.
         openTabs: document.querySelectorAll('[data-aura-tab-id="t-open"]').length,
         hiddenTabs: document.querySelectorAll('[data-aura-tab-id="t-hidden"]').length,
@@ -165,8 +180,8 @@ check('the requested tab is rendered in a container parked off-screen', () => {
 
 check('its widgets are laid out and have real heights', () => {
     const ids = (probed.widgets || []).map((w) => w.id).sort();
-    if (ids.join(',') !== 'probe-cam,probe-kurz,probe-lang') throw new Error(ids.join(','));
-    for (const w of probed.widgets) {
+    if (ids.join(',') !== 'probe-cam,probe-kurz,probe-lang,probe-status') throw new Error(ids.join(','));
+    for (const w of probed.widgets.filter((x) => x.id !== 'probe-status')) {
         if (!(w.px > 20)) throw new Error(`${w.id} measured ${w.px}px — an off-screen box must still lay out`);
     }
 });
@@ -199,6 +214,47 @@ check('a probe for the tab on screen is ignored', () => {
     if (selfProbe.containers !== 0) throw new Error(`${selfProbe.containers} containers`);
     if (selfProbe.openTabs !== 1) throw new Error(`${selfProbe.openTabs} copies of the visible tab`);
 });
+
+check('a plain probe draws the status overview as it is, not filled', () => {
+    if (probed.statusFilled !== null) throw new Error(`filled with ${probed.statusFilled}`);
+});
+
+// The worst case: maxRows + 1 entries with long names.
+await requestProbe('t-hidden', { fill: true });
+const filled = await page.evaluate(() => {
+    const box = document.querySelector('[data-aura-render-probe]');
+    const so = box && box.querySelector('[data-aura-widget="probe-status"]');
+    if (!so) return { error: 'no status overview in the probe' };
+    return {
+        mark: so.querySelector('[data-aura-probe-filled]')?.getAttribute('data-aura-probe-filled') ?? null,
+        tiles: so.querySelectorAll('.aura-status-tile').length,
+        names: Array.from(so.querySelectorAll('.aura-status-tile-name')).map((n) => n.textContent),
+        more: so.querySelector('.aura-status-more')?.textContent ?? null,
+    };
+});
+check('a fill probe draws maxRows tiles with long names and the „+N weitere“ line', () => {
+    if (filled.error) throw new Error(filled.error);
+    if (filled.mark !== '7') throw new Error(`marked ${filled.mark}, expected 7 (maxRows 6 + 1)`);
+    if (filled.tiles !== 6) throw new Error(`${filled.tiles} tiles`);
+    if (!filled.names.every((n) => n.length > 30)) throw new Error(`names ${filled.names.join(' | ')}`);
+    if (!filled.more || !/1/.test(filled.more)) throw new Error(`footer ${filled.more}`);
+});
+
+// A fill probe of the tab on screen is allowed (the screen does not show the worst
+// case) — and the visible copy must stay as it is.
+await requestProbe('t-open', { fill: true });
+const selfFill = await page.evaluate(() => ({
+    containers: document.querySelectorAll('[data-aura-render-probe]').length,
+    openTabs: document.querySelectorAll('[data-aura-tab-id="t-open"]').length,
+    inProbe: document.querySelectorAll('[data-aura-render-probe] [data-aura-tab-id="t-open"]').length,
+}));
+check('a fill probe of the tab on screen renders a second, off-screen copy', () => {
+    if (selfFill.containers !== 1) throw new Error(`${selfFill.containers} containers`);
+    if (selfFill.openTabs !== 2 || selfFill.inProbe !== 1) {
+        throw new Error(`${selfFill.openTabs} copies, ${selfFill.inProbe} in the probe`);
+    }
+});
+await page.waitForTimeout(6500);
 
 // A tab that does not exist any more (deleted between request and delivery).
 await requestProbe('t-gibtsnicht');

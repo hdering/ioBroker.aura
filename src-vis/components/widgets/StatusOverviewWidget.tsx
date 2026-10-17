@@ -83,6 +83,7 @@ import {
     type StatusOverviewOptions,
     type StatusRowAction,
 } from '../../utils/statusOverview';
+import { useProbeFill, PROBE_FILL_NAME } from '../../utils/probeContext';
 import { formatItemName, finishItemName, hasLiveToken } from '../../utils/nameFilter';
 import { useDpTokenResolver } from './DynamicTitle';
 import { useRowPopup } from '../../hooks/useRowPopup';
@@ -625,7 +626,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const sortBy = opts.sortBy ?? 'severity';
     const showAll = opts.valueFilter === 'all';
     const t = useT();
-    const allItems = useMemo<StatusItem[]>(() => {
+    const discoveredItems = useMemo<StatusItem[]>(() => {
         const out: StatusItem[] = [];
         const now = Date.now();
         for (const c of candidates) {
@@ -674,11 +675,36 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // count and the all-clear keep looking at ALL items: a chip that counts only
     // the visible slice would hide exactly the problem it exists to report.
     const maxRows = Number.isFinite(opts.maxRows) && (opts.maxRows as number) > 0 ? Math.floor(opts.maxRows!) : 0;
+    // A fill probe (aura_rendered fill=true) draws the worst case the cap allows
+    // instead of the current state: maxRows entries plus one, so the „+N weitere“
+    // line shows where it would, all with a long name. Without a cap there is no
+    // worst case to draw, and the widget keeps its real rows.
+    const fillCount = useProbeFill() && maxRows ? maxRows + 1 : 0;
+    const allItems = useMemo<StatusItem[]>(() => {
+        if (!fillCount) return discoveredItems;
+        const on: Record<CategoryKey, boolean | undefined> = {
+            alarm: opts.catAlarm,
+            window: opts.catWindow,
+            unreach: opts.catUnreach,
+            battery: opts.catBattery,
+            light: opts.catLight,
+        };
+        const cat = CATEGORY_ORDER.find((c) => on[c] !== false) ?? 'window';
+        return Array.from({ length: fillCount }, (_, i) => ({
+            id: `__probe.${i}`,
+            name: PROBE_FILL_NAME,
+            category: cat,
+            severity: 'warn',
+            label: 'Geöffnet',
+            color: SEVERITY_COLOR.warn,
+        }));
+    }, [fillCount, discoveredItems, opts]);
+    const probeMark = fillCount ? { 'data-aura-probe-filled': fillCount } : {};
     const items = useMemo(() => (maxRows ? allItems.slice(0, maxRows) : allItems), [allItems, maxRows]);
     const hiddenCount = allItems.length - items.length;
     const moreRow =
         hiddenCount > 0 && opts.showMore !== false ? (
-            <p className="shrink-0 pt-1" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+            <p className="aura-status-more shrink-0 pt-1" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
                 {t('calendar.more', { count: hiddenCount })}
             </p>
         ) : null;
@@ -688,12 +714,15 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // round-trips take a moment. Until they are in, "Alles in Ordnung" would be a lie —
     // the widget says it is still loading and shows the verdict only once the data is in.
     const loadedStates = candidates.reduce((n, c) => (states[c.dp.id] === undefined ? n : n + 1), 0);
-    const loading = isStatusLoading({ discovered, settled, loaded: loadedStates, expected: candidates.length });
+    const loading =
+        !fillCount && isStatusLoading({ discovered, settled, loaded: loadedStates, expected: candidates.length });
 
     // Label pipeline: name pattern (incl. the `{{parent}}` variables) → live `[[dp]]`
     // values. The resolver is a hook, so it has to run above the layout branches below —
     // it collects the raw labels of every item and subscribes to them in one go.
-    const rawLabel = (item: StatusItem) => formatItemName(item, opts.namePattern, opts.nameFilters);
+    // The fill probe's long name is the point of it — a name pattern must not shorten it.
+    const rawLabel = (item: StatusItem) =>
+        fillCount ? item.name : formatItemName(item, opts.namePattern, opts.nameFilters);
     const resolveDpTokens = useDpTokenResolver(items.map(rawLabel));
     const labelFor = (item: StatusItem) => {
         const raw = rawLabel(item);
@@ -1222,7 +1251,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // nothing at all — hand those layouts the all-clear (or loading) block instead.
     if ((showLoading || allClear) && (layout === 'card' || layout === 'minimal')) {
         return (
-            <div ref={measureRef} className={rootCls}>
+            <div ref={measureRef} className={rootCls} {...probeMark}>
                 {header}
                 {showLoading ? loadingBlock : allClearBlock}
             </div>
@@ -1232,7 +1261,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // ── card layout: grid of tiles (mirrors the static-list card layout) ─────────
     if (layout === 'card') {
         return (
-            <div ref={measureRef} className={rootCls}>
+            <div ref={measureRef} className={rootCls} {...probeMark}>
                 {header}
                 {rowPopup.node}
                 <div
@@ -1256,7 +1285,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                         return (
                             <div
                                 key={item.id}
-                                className="rounded-xl p-2 flex flex-col gap-1"
+                                className="aura-status-tile rounded-xl p-2 flex flex-col gap-1"
                                 style={{
                                     alignItems: alignFlex,
                                     textAlign: contentAlign,
@@ -1282,7 +1311,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
                                     <Icon size={11} className="shrink-0 mt-px" style={{ color }} />
                                     {/* Names wrap instead of truncating — a tile is the only place
                                         the device name appears, so it must stay fully readable. */}
-                                    <span className="min-w-0 break-words">{labelFor(item)}</span>
+                                    <span className="aura-status-tile-name min-w-0 break-words">{labelFor(item)}</span>
                                 </span>
                                 {batteryLabel && (
                                     <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
@@ -1301,7 +1330,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // ── minimal layout: inline pills (mirrors the static-list badges layout) ─────
     if (layout === 'minimal') {
         return (
-            <div ref={measureRef} className={rootCls}>
+            <div ref={measureRef} className={rootCls} {...probeMark}>
                 {header}
                 {rowPopup.node}
                 <div
@@ -1348,7 +1377,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     }
 
     return (
-        <div ref={measureRef} className={rootCls}>
+        <div ref={measureRef} className={rootCls} {...probeMark}>
             {header}
             {rowPopup.node}
 
@@ -1669,7 +1698,7 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
 
     const moreRow =
         hidden > 0 && opts.showMore !== false ? (
-            <p className="shrink-0 pt-1" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+            <p className="aura-status-more shrink-0 pt-1" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
                 {t('calendar.more', { count: hidden })}
             </p>
         ) : null;

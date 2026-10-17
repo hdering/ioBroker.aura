@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Map - all sections of the map settings now start folded when the settings open
 - Universal Widget / Custom layout - optional vertical and/or horizontal separator lines between the grid cells, with adjustable colour and thickness (#793)
+- AI assistant (MCP) - height check now computes the status overview card grid (columns, wrapped names, the +N more line) and warns when maxRows needs more rows than fit; the browser check reports the remaining space in px, treats a 1 px overflow as scrolling and can fill runtime lists to their worst case

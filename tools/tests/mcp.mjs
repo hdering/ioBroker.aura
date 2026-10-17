@@ -62,7 +62,14 @@ const {
 } = require('../../lib/mcp/review.js');
 const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
 const { collectDatapointRefs, historyFindings, historyReads, writeRefs } = require('../../lib/mcp/dpFit.js');
-const { heightClass, measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
+const {
+    heightClass,
+    measureWidget,
+    renderMeasure,
+    renderRendered,
+    rowsToPx,
+    pxToRows,
+} = require('../../lib/mcp/measure.js');
 const { designCanvas, renderCanvas } = require('../../lib/mcp/canvas.js');
 const { activeThemes, renderPalette, renderTheme, themeValues } = require('../../lib/mcp/theme.js');
 const THEME_TOKENS = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-theme-tokens.json'), 'utf8'));
@@ -7110,8 +7117,8 @@ const okStatus = await askWith(fresh);
 // One character off, and same length — the comparison must not shortcut on it.
 const nearMiss = await askWith(fresh.slice(0, -1) + (fresh.endsWith('a') ? 'b' : 'a'));
 const truncated = await askWith(fresh.slice(0, -1));
-check('a status overview that wraps by width gets no height, only the advice to look', () => {
-    for (const layout of ['card', 'minimal']) {
+check('a status overview in pills gets no height, only the advice to look', () => {
+    for (const layout of ['minimal']) {
         const m = measureWidget(
             { id: 'so', type: 'statusoverview', layout, gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: { maxRows: 8 } },
             { metrics: METRICS, grid: GRID, items: 8 },
@@ -7125,6 +7132,141 @@ check('a status overview that wraps by width gets no height, only the advice to 
         { metrics: METRICS, grid: GRID },
     );
     assert.equal(list.heightClass, 'content', 'the stacked layout keeps its number');
+});
+
+// ── Status overview, card layout ─────────────────────────────────────────────
+// Reported from use: "nicht rechenbar" for a card grid of ten entries in three
+// grid rows where two fitted, and the „+N weitere“ line was in no number at all.
+const TILES = METRICS.counted.statusoverview.variants.card.tiles;
+const MORE = METRICS.counted.statusoverview.moreRow;
+const soCard = (gridPos, options) => ({ id: 'so', type: 'statusoverview', layout: 'card', gridPos, options });
+check('the metrics carry the card tiles and the footer, measured', () => {
+    assert.ok(TILES && TILES.tilePx > 0 && TILES.nameLinePx > 0 && TILES.gapPx >= 0, JSON.stringify(TILES));
+    assert.ok(TILES.measured.length >= 2, 'at least two name-line counts were measured');
+    assert.ok(MORE && MORE.px > 10 && MORE.px < 30, JSON.stringify(MORE));
+});
+check('the card grid is computed: columns from the width, rows from maxRows, tallest tile per row', () => {
+    const m = measureWidget(soCard({ x: 0, y: 0, w: 14, h: 6 }, { maxRows: 10 }), { metrics: METRICS, grid: GRID });
+    const gridW = m.widthPx - TILES.insetPx;
+    const cols = Math.floor((gridW + TILES.gapPx) / (96 + TILES.gapPx));
+    assert.equal(m.columns, cols);
+    const rows = Math.ceil(10 / cols);
+    const tile2 = TILES.tilePx + TILES.nameLinePx;
+    const want = Math.round(TILES.chromePx + rows * tile2 + (rows - 1) * TILES.gapPx + MORE.px);
+    assert.equal(m.requiredPx, want, m.basis);
+    assert.deepEqual(
+        m.byNameLines.map((b) => b.lines),
+        [1, 2, 3],
+    );
+    assert.ok(m.byNameLines[0].px < m.byNameLines[1].px && m.byNameLines[1].px < m.byNameLines[2].px);
+    assert.match(m.basis, /Kartenreihe/);
+    assert.match(m.basis, /„\+N weitere“/);
+    // A wider minimum means fewer columns and more grid rows.
+    const wide = measureWidget(soCard({ x: 0, y: 0, w: 14, h: 6 }, { maxRows: 10, cardMinWidth: 200 }), {
+        metrics: METRICS,
+        grid: GRID,
+    });
+    assert.ok(wide.columns < m.columns);
+    assert.ok(wide.requiredPx > m.requiredPx);
+});
+check('maxRows that needs more grid rows than fit is a warning with the cap that fits', () => {
+    const tight = measureWidget(soCard({ x: 0, y: 0, w: 14, h: 6 }, { maxRows: 30 }), { metrics: METRICS, grid: GRID });
+    assert.match(tight.warn, /maxRows 30 ergibt \d+ Kartenreihen, in h=6 ist Platz für \d+/);
+    const out = renderMeasure([tight], { grid: GRID, metrics: METRICS });
+    assert.match(out, /WARNUNG: maxRows 30/);
+    assert.match(out, /aura_rendered fill=true/);
+    const roomy = measureWidget(soCard({ x: 0, y: 0, w: 14, h: 30 }, { maxRows: 4 }), { metrics: METRICS, grid: GRID });
+    assert.ok(!roomy.warn);
+});
+check('without maxRows the card grid says how many tiles fit', () => {
+    const m = measureWidget(soCard({ x: 0, y: 0, w: 14, h: 10 }, {}), { metrics: METRICS, grid: GRID });
+    assert.ok(!m.requiredPx);
+    assert.match(m.unknown, /passen \d+ Kartenreihen? × \d+ = \d+ Kacheln/);
+    assert.match(m.unknown, /maxRows: \d+ setzen/);
+});
+check('the footer is charged at its measured height, and only where it is drawn', () => {
+    const w = { id: 'so', type: 'statusoverview', gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: { maxRows: 4 } };
+    const m = measureWidget(w, { metrics: METRICS, grid: GRID });
+    assert.equal(m.moreRowPx, Math.round(MORE.px));
+    const off = measureWidget({ ...w, options: { maxRows: 4, showMore: false } }, { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx - off.requiredPx, Math.round(MORE.px));
+    // The JSON table caps its rows but draws no footer.
+    const jt = measureWidget(
+        { id: 'jt', type: 'jsontable', gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: { maxRows: 4 } },
+        { metrics: METRICS, grid: GRID },
+    );
+    assert.ok(!jt.moreRow);
+});
+
+// ── aura_rendered: reserve, snapshot, fill ───────────────────────────────────
+const renderedOf = (widgets, extra) =>
+    renderRendered(
+        [
+            {
+                report: {
+                    tabId: 't',
+                    tab: 'T',
+                    ts: 1000,
+                    viewport: { w: 1280, h: 800 },
+                    presentation: { fontScale: 1, widgetPadding: 16 },
+                    grid: { rowHeight: 20, gap: 10, snapX: 20 },
+                    widgets,
+                    hidden: [],
+                    ...(extra || {}),
+                },
+                estimates: {
+                    so: { px: 300, cls: 'runtime', runtime: true, maxRows: 10 },
+                    sw: { px: 40, cls: 'content', runtime: false, maxRows: 0 },
+                },
+                configured: [],
+            },
+        ],
+        { now: 2000 },
+    );
+check('aura_rendered names the reserve and calls a runtime list a snapshot', () => {
+    const out = renderedOf([
+        { id: 'so', type: 'statusoverview', rows: 6, px: 170, contentPx: 170, scrolls: false, reservePx: 3 },
+        { id: 'sw', type: 'switch', rows: 2, px: 50, contentPx: 50, scrolls: false },
+    ]);
+    assert.match(out, /so \(statusoverview, h=6\): .*nichts abgeschnitten, Reserve 3 px\).*MOMENTAUFNAHME/);
+    assert.ok(!/sw \(switch.*MOMENTAUFNAHME/.test(out));
+    assert.match(out, /fill=true \(so\)/);
+    // A runtime estimate is not held against the momentary rows.
+    assert.ok(!/aura_measure schätzt 300/.test(out));
+});
+check('a fill probe says so, and the filled widget is the worst case', () => {
+    const out = renderedOf(
+        [
+            {
+                id: 'so',
+                type: 'statusoverview',
+                rows: 6,
+                px: 170,
+                contentPx: 171,
+                scrolls: true,
+                reservePx: -1,
+                filled: 11,
+            },
+        ],
+        { probe: true, fill: true },
+    );
+    assert.match(out, /Gefüllt gemessen \(fill=true\)/);
+    assert.match(out, /SCROLLT, es fehlen 1 px/);
+    assert.match(out, /gefüllt mit 11 Einträgen/);
+    assert.ok(!/MOMENTAUFNAHME/.test(out));
+});
+check('the render report keeps reserve and fill through the adapter', () => {
+    const r = renderReportEntry({
+        tabId: 't',
+        fill: true,
+        probe: true,
+        widgets: [{ id: 'a', type: 'statusoverview', rows: 6, px: 170, contentPx: 170, reservePx: -1, filled: 11 }],
+    });
+    assert.equal(r.entry.fill, true);
+    assert.equal(r.entry.widgets[0].reservePx, -1);
+    assert.equal(r.entry.widgets[0].filled, 11);
+    const plain = renderReportEntry({ tabId: 't', widgets: [{ id: 'a', type: 'x', px: 1 }] });
+    assert.ok(!('fill' in plain.entry) && !('reservePx' in plain.entry.widgets[0]));
 });
 
 check('an autolist with filters and no entries gets a hint, one with entries does not', () => {

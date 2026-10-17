@@ -6,7 +6,7 @@ import { useConfigStore } from '../../store/configStore';
 import { docsUrl } from '../../utils/docsUrl';
 import { guidelinesTopInset, insetKeyFor, readMeasuredInset, storeMeasuredInset } from '../../utils/guidelinesInset';
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
-import { useIsProbe } from '../../utils/probeContext';
+import { useIsProbe, useProbeFill } from '../../utils/probeContext';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import {
@@ -288,6 +288,7 @@ export function Dashboard({
     // (utils/probeContext.tsx). Without the flag a measurement from a tab nobody
     // had open would read exactly like one from a screen in use.
     const isProbe = useIsProbe();
+    const isFillProbe = useProbeFill();
 
     // ── Rendered geometry → the MCP server (utils/renderReport.ts) ──────────
     // Only from the real frontend (viewTabs), never from the admin editor: its
@@ -301,7 +302,11 @@ export function Dashboard({
         if (!tab) return;
         let timer = 0;
         const send = () => {
-            const root = document.querySelector(`[data-aura-tab-id="${CSS.escape(activeTabId)}"]`);
+            // A fill probe may render the tab that is also on screen, so the two
+            // copies are told apart by whether they sit inside the probe container.
+            const root = Array.from(document.querySelectorAll(`[data-aura-tab-id="${CSS.escape(activeTabId)}"]`)).find(
+                (el) => !!el.closest('[data-aura-render-probe]') === isProbe,
+            );
             if (!root) return;
             const widgets = measureRenderedWidgets(root);
             if (!widgets.length) return;
@@ -314,6 +319,7 @@ export function Dashboard({
                 grid: { rowHeight: cellSize, gap: MARGIN, snapX },
                 widgets,
                 ...(isProbe ? { probe: true } : {}),
+                ...(isProbe && isFillProbe ? { fill: true } : {}),
                 // A condition with „Reflow“ takes the card out of the grid entirely
                 // (it stays mounted off-screen). Without this list the server sees a
                 // widget it knows from the configuration simply not reported and
@@ -352,6 +358,7 @@ export function Dashboard({
         snapX,
         reflowHiddenIds,
         isProbe,
+        isFillProbe,
     ]);
 
     // Raw condition verdict (works in edit mode too) — drives group auto-shrink.

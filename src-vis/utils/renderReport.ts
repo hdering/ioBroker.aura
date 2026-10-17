@@ -51,6 +51,14 @@ export interface RenderedWidget {
      * check cannot see a title shortened to "Küche Lic…" — nothing scrolls there.
      */
     clipX?: number;
+    /**
+     * Free room left in the card's scroll area, in px — negative where it is cut
+     * off. Absent where the card has no scroll area. "Nothing cut off" is a yes/no
+     * that hides whether one more entry would still fit.
+     */
+    reservePx?: number;
+    /** Entries a fill probe put in (maxRows + 1, long names) — absent otherwise. */
+    filled?: number;
 }
 
 export interface RenderReport {
@@ -63,6 +71,8 @@ export interface RenderReport {
      * passing it off as a measurement from a visible tab.
      */
     probe?: boolean;
+    /** The probe filled the runtime lists to their cap (aura_rendered fill=true). */
+    fill?: boolean;
     viewport: { w: number; h: number };
     /** Width of the grid the widgets were laid out in (in a probe: the requested one). */
     gridWidth?: number;
@@ -84,26 +94,58 @@ function shotMode(): boolean {
 }
 
 /**
- * The scrolled-away height inside one card.
+ * How much of a scroll container its content leaves free, in px (negative = cut off).
  *
- * Walks the card once and only resolves styles for elements that overflow at
- * all — `scrollHeight`/`clientHeight` are layout reads on an already-laid-out
- * tree, `getComputedStyle` is the expensive part and it runs on a handful of
- * nodes instead of all of them.
+ * Measured from the children's boxes, not from `scrollHeight`: that one is never
+ * smaller than the box, so a container with room to spare reads exactly like a
+ * full one.
  */
-function hiddenPxInside(card: HTMLElement): number {
+function reserveOf(el: HTMLElement): number {
+    const top = el.getBoundingClientRect().top + el.clientTop - el.scrollTop;
+    let bottom = top;
+    for (const child of Array.from(el.children)) {
+        const r = child.getBoundingClientRect();
+        if (r.height > 0 || r.width > 0) bottom = Math.max(bottom, r.bottom);
+    }
+    const padBottom = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+    return el.clientHeight - (bottom - top + padBottom);
+}
+
+/**
+ * The scrolled-away height inside one card, and the room its scroll areas leave.
+ *
+ * No tolerance: a single pixel over already draws a scrollbar (reported from use
+ * — 168 px of content in a 167 px area). It used to take two to count, and a
+ * one-pixel overflow was answered with "nichts abgeschnitten".
+ *
+ * `reserve` is the smallest free room of any scroll area in the card — null where
+ * the card has none (its content is not a list that could grow into it).
+ */
+function scrollInside(card: HTMLElement): { hidden: number; reserve: number | null } {
     let hidden = 0;
+    let reserve: number | null = null;
     for (const el of Array.from(card.querySelectorAll<HTMLElement>('*'))) {
-        const over = el.scrollHeight - el.clientHeight;
-        if (over <= 1 || el.clientHeight <= 0) {
+        if (el.clientHeight <= 0 || el.childElementCount === 0) {
             continue;
         }
         const overflowY = getComputedStyle(el).overflowY;
-        if (overflowY === 'auto' || overflowY === 'scroll') {
+        if (overflowY !== 'auto' && overflowY !== 'scroll') {
+            continue;
+        }
+        const over = el.scrollHeight - el.clientHeight;
+        if (over > 0) {
             hidden = Math.max(hidden, over);
         }
+        // A sideways strip (chips, tabs) gets `overflow-y: auto` by CSS promotion and
+        // is exactly as tall as its content — its "0 px free" says nothing about the card.
+        const overflowX = getComputedStyle(el).overflowX;
+        if (over <= 0 && (overflowX === 'auto' || overflowX === 'scroll')) {
+            continue;
+        }
+        const free = over > 0 ? -over : Math.round(reserveOf(el));
+        reserve = reserve === null ? free : Math.min(reserve, free);
     }
-    return hidden;
+    return { hidden, reserve };
 }
 
 /**
@@ -142,15 +184,20 @@ export function measureRenderedWidgets(root: ParentNode): RenderedWidget[] {
             continue;
         }
         const px = Math.round(el.getBoundingClientRect().height);
-        const hidden = px > 0 ? hiddenPxInside(el) : 0;
+        const { hidden, reserve } = px > 0 ? scrollInside(el) : { hidden: 0, reserve: null };
         const clipX = px > 0 ? clippedTextInside(el) : 0;
+        // A fill probe marks the widgets it actually filled (utils/probeContext.tsx).
+        const filledEl = el.querySelector<HTMLElement>('[data-aura-probe-filled]');
+        const filled = filledEl ? Number(filledEl.dataset.auraProbeFilled) || 0 : 0;
         out.push({
             id,
             type: el.dataset.auraWidgetType ?? '',
             rows: Number(el.dataset.auraWidgetRows ?? '') || 0,
             px,
             contentPx: px + hidden,
-            scrolls: hidden > 1,
+            scrolls: hidden > 0,
+            ...(reserve !== null ? { reservePx: reserve } : {}),
+            ...(filled ? { filled } : {}),
             // Both branches of Dashboard give a fixed grid box its height inline
             // (react-grid-layout on desktop, the explicit style on mobile) and
             // leave it off for the content-sized ones. No inline height = the box
@@ -170,7 +217,10 @@ export function reportSignature(report: RenderReport): string {
         report.viewport.h,
         report.hidden.join(','),
         report.gridWidth ?? 0,
-        ...report.widgets.map((w) => `${w.id}:${w.px}:${w.contentPx}:${w.scrolls ? 1 : 0}:${w.clipX ?? 0}`),
+        report.fill ? 'fill' : '',
+        ...report.widgets.map(
+            (w) => `${w.id}:${w.px}:${w.contentPx}:${w.scrolls ? 1 : 0}:${w.clipX ?? 0}:${w.reservePx ?? ''}`,
+        ),
     ].join('|');
 }
 

@@ -148,7 +148,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs` (`groupDefs: summary/none`, `images: full`)                                | read         |
 | `aura_types`                          | Benannte Typen einzeln holen (`WidgetCondition`, `CustomCell` …) statt sie je Widget-Typ mitzuschleppen        | read         |
 | `aura_measure`                        | Zeilen in Pixel, gegen die gemessene Höhe des Typs — Layout, Optionen und Zeilendarstellung, plus Tab-URL      | read         |
-| `aura_rendered`                       | Was der Browser wirklich gezeichnet hat: Renderhöhe, Inhaltshöhe, scrollt ja/nein — mit `probe: true` auch für einen Tab, den niemand offen hat | read         |
+| `aura_rendered`                       | Was der Browser wirklich gezeichnet hat: Renderhöhe, Inhaltshöhe, Reserve, scrollt ja/nein — mit `probe: true` auch für einen Tab, den niemand offen hat, mit `fill: true` im ungünstigsten Fall | read         |
 | `aura_validate`                       | Prüfung gegen Schema, Live-Datenpunkte, die Objekte dahinter und die Darstellung der Zeilen                    | read         |
 | `aura_review`                         | Vorhandenes prüfen: Stil (`mode:"style"`) und Gesundheit (tote/leere/eingefrorene DPs, unwirksame Optionen)    | read         |
 | `aura_add_widget`                     | Ein Widget an Tab, Popup oder Gruppe anfügen                                                                   | write        |
@@ -1102,9 +1102,10 @@ den Nutzer bitten müssen.
    der auf dem 1280-px-Tablet sieben Karten abschnitt). Gerendert wird der normale `Dashboard`, also messen Probe
    und Wirklichkeit dasselbe; der Bericht kommt aus Dashboards eigenem Effekt und
    trägt `probe: true`.
-3. Der Tab, den dieser Browser gerade **zeigt**, wird nie geprobt: er meldet sich
-   selbst, und ein zweites Mount hätte zwei Elemente mit derselben
-   `data-aura-tab-id` im DOM.
+3. Der Tab, den dieser Browser gerade **zeigt**, wird nicht geprobt: er meldet sich
+   selbst. Ausnahme `fill` (unten) — den ungünstigsten Fall zeigt der Bildschirm
+   nicht. Dann liegen zwei Elemente mit derselben `data-aura-tab-id` im DOM;
+   Dashboard misst jeweils das, das (nicht) im Probe-Container liegt.
 4. `aura_rendered` pollt `info.rendered` (bis 12 s, `AURA_PROBE_WAIT_MS`) und
    antwortet mit der frischen Messung — oder sagt, dass kein Browser geantwortet
    hat (dann muss das Dashboard irgendwo offen sein, auf welchem Tab ist egal).
@@ -1122,11 +1123,43 @@ clientWidth` bei `overflow: hidden/clip` oder `text-overflow: ellipsis`). Die
 Höhenprüfung sieht einen auf „Küche Lic…“ gekürzten Titel nicht — dort scrollt
 nichts. `aura_rendered` nennt beides.
 
-Umbrechende Layouts (`WRAPPING_LAYOUTS` in `measure.js`, derzeit
-`statusoverview` `card`/`minimal`) bekommen von `aura_measure` keine Höhe,
-sondern den Hinweis auf `aura_rendered probe=true`: wie viele Kacheln in eine
-Zeile passen, hängt an der Breite, die gemessene Zeilenrechnung (195 px je
-„Zeile“ bei minimal) lag um Faktor 10 daneben.
+**Füll-Probe (`fill: true`, setzt `probe`).** „Nichts abgeschnitten“ gilt bei
+Widgets mit Laufzeit-Zeilen nur für die Einträge, die gerade da sind. Mit `fill`
+zeichnet die Probe den ungünstigsten Fall: `ProbeFillContext`
+(`utils/probeContext.tsx`) → die Statusübersicht ersetzt ihre Einträge durch
+`maxRows + 1` (damit „+N weitere“ erscheint) mit langem Namen
+(`PROBE_FILL_NAME`, ein Namensmuster wird dabei ignoriert) und markiert ihre
+Wurzel mit `data-aura-probe-filled`. Der Bericht trägt `fill: true` und je
+gefülltem Widget `filled: N`. Ohne `maxRows` gibt es keinen ungünstigsten Fall —
+das Widget behält seine echten Zeilen. Derzeit füllt nur die Statusübersicht.
+
+**Reserve und Toleranz.** Je Widget meldet der Browser `reservePx`: der kleinste
+freie Platz eines Scrollbereichs der Karte (aus den Kindern gemessen, nicht aus
+`scrollHeight`, das nie kleiner als der Kasten ist), negativ wo abgeschnitten;
+waagerechte Streifen (`overflow-x: auto`) zählen nicht. `scrolls` gilt ab
+**1 px** Überlauf — vorher erst ab 2 px, und 168 px Inhalt in 167 px Fläche
+(sichtbarer Scrollbalken) hieß „nichts abgeschnitten“. Bei Laufzeit-Typen
+(`RUNTIME_HEIGHT_TYPES`) ohne Füllung sagt die Zeile **MOMENTAUFNAHME**, und
+`estimateVerdict` hält die Schätzung dort nicht gegen die Messung.
+
+**Statusübersicht `card`.** `aura_measure` rechnet das Kartenraster
+(`statusCardGrid` in `measure.js`): Spalten aus Rasterbreite und
+`cardMinWidth` (`repeat(auto-fill, minmax(min(cardMinWidth, 100%), 1fr))`),
+Kartenreihen = ⌈maxRows / Spalten⌉, jede Reihe so hoch wie ihre höchste Kachel.
+Die Kachelhöhe hängt an den Namenszeilen; geplant wird mit zwei, die Zahlen für
+eine und drei stehen daneben, dazu ≈ Zeichen je Namenszeile. Passen die Reihen
+nicht in die Höhe, kommt eine WARNUNG mit dem passenden `maxRows`; ohne
+`maxRows` sagt die Antwort, wie viele Kacheln in `h` passen. Die Teile misst
+`measure-widget-metrics.mjs` am DOM (`statusCardTiles`, Klassen
+`aura-status-tile` / `aura-status-tile-name`) →
+`counted.statusoverview.variants.card.tiles`. `minimal` bleibt ohne Höhe
+(`WRAPPING_LAYOUTS`): die Pillen brechen nach Textbreite um.
+
+**„+N weitere“.** Gemessen als `counted.<typ>.moreRow` (`statusFooter`,
+Klasse `aura-status-more`; 20 px), nur bei Typen, die die Zeile zeichnen
+(`MORE_ROW_TYPES`: autolist, statusoverview — die JSON-Tabelle kappt, zeichnet
+aber keine). Wo keine Messung vorliegt (autolist), zählt sie weiter als ganze
+Zeile (Obergrenze).
 
 Eine `autolist` mit Filtern und leeren `entries` füllt das Frontend beim ersten
 Rendern sofort (nicht erst nach `syncIntervalMin`); `aura_validate` sagt das als
