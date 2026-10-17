@@ -2359,7 +2359,6 @@ export const en: Record<TranslationKey, string> = {
     'aircontrol.rescan': 'Rescan devices',
     'aircontrol.section.control': 'Control datapoints',
     'aircontrol.section.info': 'Info datapoints',
-    'aircontrol.section.display': 'Display',
     'aircontrol.showVanes': 'Show vanes',
     'aircontrol.showEco': 'Show eco',
     'aircontrol.showBoost': 'Show powerful',
@@ -2570,7 +2569,6 @@ export const en: Record<TranslationKey, string> = {
     'cfg.section.behavior': 'Behavior',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
-    'sl.fields.title': 'Visible fields',
     'sl.fields.value': 'Value',
     'sl.fields.unit': 'Unit',
     'sl.fields.minMax': 'Min/max labels',
@@ -2723,8 +2721,6 @@ export const en: Record<TranslationKey, string> = {
     'alarm.wrongPin': 'Wrong PIN',
     'alarm.send': 'Send',
     'alarm.cfg.prefix': 'Alarm instance (prefix)',
-    'alarm.cfg.sections': 'Visible sections',
-    'alarm.cfg.behavior': 'Behavior',
     'alarm.cfg.showHeader': 'Status header',
     'alarm.cfg.showModes': 'Mode buttons',
     'alarm.cfg.showModeOff': '"Off" button',
@@ -2828,7 +2824,6 @@ export const en: Record<TranslationKey, string> = {
     'countdown.cfg.publishRemaining': 'Publish remaining time every second',
     'countdown.cfg.publishRemainingHint':
         'Writes remainingMs once per second for scripts and other visualisations. Produces many values in history adapters.',
-    'countdown.cfg.display': 'Display',
     'countdown.cfg.format': 'Format',
     'countdown.cfg.format.auto': 'Automatic (mm:ss below one hour)',
     'countdown.cfg.format.hms': 'hh:mm:ss',

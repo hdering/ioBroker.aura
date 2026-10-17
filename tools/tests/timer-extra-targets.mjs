@@ -42,6 +42,8 @@ const opts = () => page.evaluate(() => window.__auraShot.widgetOptions('w-timer'
 
 await page.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
+// The target action sits in a folded section.
+await page.locator('.aura-widget-edit-modal details[data-aura-config-section="target"] > summary').click();
 const add = page.locator('button:has-text("Weiterer Datenpunkt")');
 await add.waitFor({ timeout: 10000 });
 

@@ -2379,7 +2379,6 @@ export const de = {
     'aircontrol.rescan': 'Geräte neu suchen',
     'aircontrol.section.control': 'Steuer-Datenpunkte',
     'aircontrol.section.info': 'Info-Datenpunkte',
-    'aircontrol.section.display': 'Darstellung',
     'aircontrol.showVanes': 'Lamellen anzeigen',
     'aircontrol.showEco': 'Eco anzeigen',
     'aircontrol.showBoost': 'Powerful anzeigen',
@@ -2590,7 +2589,6 @@ export const de = {
     'cfg.section.behavior': 'Verhalten',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
-    'sl.fields.title': 'Sichtbare Felder',
     'sl.fields.value': 'Wert',
     'sl.fields.unit': 'Einheit',
     'sl.fields.minMax': 'Min/Max-Beschriftung',
@@ -2743,8 +2741,6 @@ export const de = {
     'alarm.wrongPin': 'Falsche PIN',
     'alarm.send': 'Senden',
     'alarm.cfg.prefix': 'Alarm-Instanz (Prefix)',
-    'alarm.cfg.sections': 'Sichtbare Sektionen',
-    'alarm.cfg.behavior': 'Verhalten',
     'alarm.cfg.showHeader': 'Status-Kopfzeile',
     'alarm.cfg.showModes': 'Modus-Buttons',
     'alarm.cfg.showModeOff': 'Button „Aus“',
@@ -2848,7 +2844,6 @@ export const de = {
     'countdown.cfg.publishRemaining': 'Restzeit sekündlich veröffentlichen',
     'countdown.cfg.publishRemainingHint':
         'Schreibt remainingMs jede Sekunde für Skripte und andere Vis. Erzeugt viele Werte in History-Adaptern.',
-    'countdown.cfg.display': 'Anzeige',
     'countdown.cfg.format': 'Format',
     'countdown.cfg.format.auto': 'Automatisch (mm:ss unter einer Stunde)',
     'countdown.cfg.format.hms': 'hh:mm:ss',

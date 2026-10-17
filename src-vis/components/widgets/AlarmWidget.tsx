@@ -20,6 +20,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT, type TranslationKey } from '../../i18n';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { ConfigSection } from '../config/ConfigSection';
+import { ToggleRow, VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
 
 // ── alarm state mapping (mirrors info.state_list of ioBroker.alarm) ──────────
 
@@ -901,116 +903,121 @@ export function AlarmConfig({
         );
     };
 
+    const modeRow = (k: string, label: string) => (
+        <ToggleRow
+            visKey={k}
+            label={label}
+            on={(o[k] as boolean | undefined) !== false}
+            onChange={(next) => set({ [k]: next })}
+        />
+    );
+    const fields: VisibleField[] = [
+        { key: 'showHeader', label: t('alarm.cfg.showHeader') as string },
+        {
+            key: 'showModes',
+            label: t('alarm.cfg.showModes') as string,
+            children: (
+                <>
+                    {modeRow('showModeOff', t('alarm.cfg.showModeOff') as string)}
+                    {modeRow('showModeSharp', t('alarm.cfg.showModeSharp') as string)}
+                    {modeRow('showModeInside', t('alarm.cfg.showModeInside') as string)}
+                    {modeRow('showModeNight', t('alarm.cfg.showModeNight') as string)}
+                </>
+            ),
+        },
+        { key: 'showDelay', label: t('alarm.cfg.showDelay') as string },
+        { key: 'showCountdown', label: t('alarm.cfg.showCountdown') as string },
+        { key: 'showCircuits', label: t('alarm.cfg.showCircuits') as string },
+        { key: 'showZones', label: t('alarm.cfg.showZones') as string },
+        {
+            key: 'showLog',
+            label: t('alarm.cfg.showLog') as string,
+            children: (
+                <div>
+                    <label
+                        className="text-[11px] mb-1 flex items-center justify-between"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        <span>{t('alarm.cfg.logLines') as string}</span>
+                        <span style={{ color: 'var(--text-primary)' }}>{logLines}</span>
+                    </label>
+                    <input
+                        type="range"
+                        min={0}
+                        max={20}
+                        step={1}
+                        value={logLines}
+                        onChange={(e) => set({ logLines: Number(e.target.value) })}
+                        className="w-full"
+                    />
+                </div>
+            ),
+        },
+        {
+            key: 'showPanic',
+            label: t('alarm.cfg.showPanic') as string,
+            def: false,
+            hint: t('alarm.cfg.showPanic.hint') as string,
+        },
+        { key: 'showPresence', label: t('alarm.cfg.showPresence') as string, def: false },
+    ];
+
     return (
         <>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('alarm.cfg.prefix') as string}
-                </label>
-                <input
-                    type="text"
-                    value={prefix}
-                    onChange={(e) => set({ alarmPrefix: e.target.value || 'alarm.0' })}
-                    placeholder="alarm.0"
-                    className={`${inputCls} font-mono`}
-                    style={inputSty}
-                />
-            </div>
+            <VisibleFieldsSection fields={fields} values={o} onChange={set} collapsible />
 
-            <div className="pt-1 mt-1 border-t" style={{ borderColor: 'var(--app-border)' }}>
-                <div
-                    className="text-[10px] font-semibold uppercase tracking-wider mb-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    {t('alarm.cfg.sections') as string}
-                </div>
-                <div className="space-y-2">
-                    <Toggle label={t('alarm.cfg.showHeader') as string} k="showHeader" def={true} />
-                    <Toggle label={t('alarm.cfg.showModes') as string} k="showModes" def={true} />
-                    {(o.showModes as boolean | undefined) !== false && (
-                        <div className="ml-3 pl-3 space-y-2 border-l" style={{ borderColor: 'var(--app-border)' }}>
-                            <Toggle label={t('alarm.cfg.showModeOff') as string} k="showModeOff" def={true} />
-                            <Toggle label={t('alarm.cfg.showModeSharp') as string} k="showModeSharp" def={true} />
-                            <Toggle label={t('alarm.cfg.showModeInside') as string} k="showModeInside" def={true} />
-                            <Toggle label={t('alarm.cfg.showModeNight') as string} k="showModeNight" def={true} />
-                        </div>
-                    )}
-                    <Toggle label={t('alarm.cfg.showDelay') as string} k="showDelay" def={true} />
-                    <Toggle label={t('alarm.cfg.showCountdown') as string} k="showCountdown" def={true} />
-                    <Toggle label={t('alarm.cfg.showCircuits') as string} k="showCircuits" def={true} />
-                    <Toggle label={t('alarm.cfg.showZones') as string} k="showZones" def={true} />
-                    <Toggle label={t('alarm.cfg.showLog') as string} k="showLog" def={true} />
-                    <Toggle
-                        label={t('alarm.cfg.showPanic') as string}
-                        k="showPanic"
-                        def={false}
-                        hint={t('alarm.cfg.showPanic.hint') as string}
-                    />
-                    <Toggle label={t('alarm.cfg.showPresence') as string} k="showPresence" def={false} />
-                </div>
-            </div>
-
-            <div className="pt-1 mt-1 border-t" style={{ borderColor: 'var(--app-border)' }}>
-                <div
-                    className="text-[10px] font-semibold uppercase tracking-wider mb-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    {t('alarm.cfg.behavior') as string}
-                </div>
-                <div className="space-y-2">
-                    <Toggle
-                        label={t('alarm.cfg.requirePin') as string}
-                        k="requirePinForDisarm"
-                        def={false}
-                        hint={t('alarm.cfg.requirePin.hint') as string}
-                    />
-                    <Toggle label={t('alarm.cfg.panicConfirm') as string} k="panicConfirm" def={true} />
-                    <Toggle
-                        label={t('alarm.cfg.compactMode') as string}
-                        k="compactMode"
-                        def={false}
-                        hint={t('alarm.cfg.compactMode.hint') as string}
+            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('alarm.cfg.prefix') as string}
+                    </label>
+                    <input
+                        type="text"
+                        value={prefix}
+                        onChange={(e) => set({ alarmPrefix: e.target.value || 'alarm.0' })}
+                        placeholder="alarm.0"
+                        className={`${inputCls} font-mono`}
+                        style={inputSty}
                     />
                 </div>
-            </div>
+            </ConfigSection>
 
-            <div>
-                <label
-                    className="text-[11px] mb-1 flex items-center justify-between"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    <span>{t('alarm.cfg.logLines') as string}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>{logLines}</span>
-                </label>
-                <input
-                    type="range"
-                    min={0}
-                    max={20}
-                    step={1}
-                    value={logLines}
-                    onChange={(e) => set({ logLines: Number(e.target.value) })}
-                    className="w-full"
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                <Toggle
+                    label={t('alarm.cfg.compactMode') as string}
+                    k="compactMode"
+                    def={false}
+                    hint={t('alarm.cfg.compactMode.hint') as string}
                 />
-            </div>
+                <div>
+                    <label
+                        className="text-[11px] mb-1 flex items-center justify-between"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        <span>{t('alarm.cfg.sizeScale') as string}</span>
+                        <span style={{ color: 'var(--text-primary)' }}>{sizeScale.toFixed(2)}×</span>
+                    </label>
+                    <input
+                        type="range"
+                        min={0.5}
+                        max={2.5}
+                        step={0.05}
+                        value={sizeScale}
+                        onChange={(e) => set({ sizeScale: Number(e.target.value) })}
+                        className="w-full"
+                    />
+                </div>
+            </ConfigSection>
 
-            <div>
-                <label
-                    className="text-[11px] mb-1 flex items-center justify-between"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    <span>{t('alarm.cfg.sizeScale') as string}</span>
-                    <span style={{ color: 'var(--text-primary)' }}>{sizeScale.toFixed(2)}×</span>
-                </label>
-                <input
-                    type="range"
-                    min={0.5}
-                    max={2.5}
-                    step={0.05}
-                    value={sizeScale}
-                    onChange={(e) => set({ sizeScale: Number(e.target.value) })}
-                    className="w-full"
+            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                <Toggle
+                    label={t('alarm.cfg.requirePin') as string}
+                    k="requirePinForDisarm"
+                    def={false}
+                    hint={t('alarm.cfg.requirePin.hint') as string}
                 />
-            </div>
+                <Toggle label={t('alarm.cfg.panicConfirm') as string} k="panicConfirm" def={true} />
+            </ConfigSection>
         </>
     );
 }

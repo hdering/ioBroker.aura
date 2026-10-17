@@ -257,6 +257,12 @@ const writeCount = () => page.evaluate(() => window.__auraShot.writes().length);
     await page.locator('.aura-edit-chrome button').first().click();
     await page.locator('button:text-is("Bearbeiten")').click();
     await page.waitForTimeout(500);
+    // The settings sit in folded sections - unfold them all.
+    await page.evaluate(() =>
+        document
+            .querySelectorAll('.aura-widget-edit-modal details[data-aura-config-section]')
+            .forEach((d) => (d.open = true)),
+    );
 
     check('the layout picker offers "Rundskala"', (await page.locator('button:text-is("Rundskala")').count()) === 1);
 

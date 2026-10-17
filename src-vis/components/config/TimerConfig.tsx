@@ -12,6 +12,8 @@ import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { AuraIcon } from '../common/AuraIcon';
+import { ConfigSection } from './ConfigSection';
+import { VisibleFieldsSection } from './VisibleFieldsSection';
 
 function toIconifyId(name: string): string {
     if (!name) return '';
@@ -169,11 +171,6 @@ export function TimerConfig({ config, onConfigChange }: Props) {
     const vacationDp = (o.vacationDp as string | undefined) ?? '';
     const holidaysValue = (o.holidaysValue as string | undefined) ?? '';
     const vacationValue = (o.vacationValue as string | undefined) ?? '';
-    const showMaster = o.showMasterSwitch !== false;
-    const showEvents = o.showEvents !== false;
-    const showAdd = o.showAddButton !== false;
-    const showAstroSymbol = o.showAstroSymbol !== false;
-    const showSpecialDays = o.showSpecialDaysButton !== false;
     const holidaysEditable = o.holidaysEditable !== false;
     const vacationEditable = o.vacationEditable !== false;
     const addIcon = (o.addIcon as string | undefined) ?? '';
@@ -226,117 +223,87 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                 />
             )}
 
-            <div className="space-y-3">
-                {/* ── Anzeige-Elemente ────────────────────────────────────────── */}
-                <div
-                    className="rounded-xl p-2 space-y-1.5"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                >
-                    <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        Anzeige-Elemente
-                    </p>
-                    {(
-                        [
-                            { key: 'showMasterSwitch', label: 'Master-Schalter', val: showMaster },
-                            { key: 'showEvents', label: 'Ereignis-Liste', val: showEvents },
-                            { key: 'showAddButton', label: '+ Ereignis-Button', val: showAdd },
-                            { key: 'showAstroSymbol', label: 'Astro-Symbol (☀↑/☀↓)', val: showAstroSymbol },
-                            {
-                                key: 'showSpecialDaysButton',
-                                label: 'Ausnahmetage-Taste (Urlaub/Feiertage)',
-                                val: showSpecialDays,
-                            },
-                        ] as const
-                    ).map(({ key, label, val }) => (
-                        <div key={key} className="flex items-center justify-between">
-                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                {label}
-                            </span>
-                            <button
-                                onClick={() => setOpts({ [key]: !val })}
-                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: val ? '14px' : '2px' }}
-                                />
-                            </button>
-                        </div>
-                    ))}
-
-                    {showAdd && (
-                        <div
-                            className="pt-1.5 mt-1.5 space-y-1.5"
-                            style={{ borderTop: '1px dashed var(--app-border)' }}
-                        >
-                            <div>
-                                <label className={labelCls} style={labelStyle}>
-                                    Icon statt Text (Hinzufügen-Button)
-                                </label>
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        onClick={() => setIconPickerOpen(true)}
-                                        className="flex-1 flex items-center gap-1.5 text-[10px] rounded px-2 py-1 text-left hover:opacity-80"
-                                        style={inputStyle}
-                                    >
-                                        {addIcon ? (
-                                            <>
-                                                <AuraIcon icon={toIconifyId(addIcon)} width={12} height={12} />
-                                                <span className="truncate font-mono">{addIcon}</span>
-                                            </>
-                                        ) : (
-                                            <span style={{ color: 'var(--text-secondary)' }}>
-                                                {'Kein Icon — Text „+ Ereignis hinzufügen“'}
-                                            </span>
-                                        )}
-                                    </button>
+            <div className="space-y-2.5">
+                <VisibleFieldsSection
+                    collapsible
+                    values={o}
+                    onChange={setOpts}
+                    fields={[
+                        { key: 'showMasterSwitch', label: 'Master-Schalter' },
+                        { key: 'showEvents', label: 'Ereignis-Liste' },
+                        {
+                            key: 'showAddButton',
+                            label: '+ Ereignis-Button',
+                            children: (
+                                <>
+                                    <div>
+                                        <label className={labelCls} style={labelStyle}>
+                                            Icon statt Text (Hinzufügen-Button)
+                                        </label>
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                onClick={() => setIconPickerOpen(true)}
+                                                className="flex-1 flex items-center gap-1.5 text-[10px] rounded px-2 py-1 text-left hover:opacity-80"
+                                                style={inputStyle}
+                                            >
+                                                {addIcon ? (
+                                                    <>
+                                                        <AuraIcon icon={toIconifyId(addIcon)} width={12} height={12} />
+                                                        <span className="truncate font-mono">{addIcon}</span>
+                                                    </>
+                                                ) : (
+                                                    <span style={{ color: 'var(--text-secondary)' }}>
+                                                        {'Kein Icon — Text „+ Ereignis hinzufügen“'}
+                                                    </span>
+                                                )}
+                                            </button>
+                                            {addIcon && (
+                                                <button
+                                                    onClick={() => setOpts({ addIcon: undefined })}
+                                                    className="shrink-0 hover:opacity-70 p-1"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                    title="Icon entfernen"
+                                                >
+                                                    <X size={11} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
                                     {addIcon && (
-                                        <button
-                                            onClick={() => setOpts({ addIcon: undefined })}
-                                            className="shrink-0 hover:opacity-70 p-1"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                            title="Icon entfernen"
-                                        >
-                                            <X size={11} />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <label
+                                                className="text-[11px] shrink-0"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Größe
+                                            </label>
+                                            <input
+                                                type="range"
+                                                min={10}
+                                                max={32}
+                                                step={1}
+                                                value={addIconSize}
+                                                onChange={(e) => setOpts({ addIconSize: Number(e.target.value) })}
+                                                className="flex-1"
+                                            />
+                                            <span
+                                                className="text-[10px] font-mono w-7 text-right"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {addIconSize}px
+                                            </span>
+                                        </div>
                                     )}
-                                </div>
-                            </div>
-                            {addIcon && (
-                                <div className="flex items-center gap-2">
-                                    <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                        Größe
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min={10}
-                                        max={32}
-                                        step={1}
-                                        value={addIconSize}
-                                        onChange={(e) => setOpts({ addIconSize: Number(e.target.value) })}
-                                        className="flex-1"
-                                    />
-                                    <span
-                                        className="text-[10px] font-mono w-7 text-right"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        {addIconSize}px
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+                                </>
+                            ),
+                        },
+                        { key: 'showAstroSymbol', label: 'Astro-Symbol (☀↑/☀↓)' },
+                        { key: 'showSpecialDaysButton', label: 'Ausnahmetage-Taste (Urlaub/Feiertage)' },
+                    ]}
+                />
 
                 {/* ── Ziel-Aktion (admin-only) ─────────────────────────────────── */}
-                <div
-                    className="rounded-xl p-2 space-y-2"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                >
-                    <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        Ziel-Aktion
-                    </p>
+                <ConfigSection title="Ziel-Aktion" sectionKey="target">
                     <p className={hintCls} style={hintStyle}>
                         Was das Widget tut, wenn ein Ereignis auslöst. Nur hier (Admin) konfigurierbar — der Anwender
                         legt nur Zeiten fest.
@@ -461,16 +428,10 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             />
                         </button>
                     </div>
-                </div>
+                </ConfigSection>
 
                 {/* ── Sondertage (optional) ────────────────────────────────────── */}
-                <div
-                    className="rounded-xl p-2 space-y-2"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                >
-                    <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        Sondertage (optional)
-                    </p>
+                <ConfigSection title="Sondertage" sectionKey="specialdays">
                     <div className={hintCls} style={hintStyle}>
                         <p>
                             Quell-DPs für die Filter {'„Feiertage“'} / {'„Urlaub“'} / {'„ohne Sondertage“'}. Der DP-Wert
@@ -574,7 +535,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                         mit dem Adapter <code className="font-mono">iobroker.javascript</code> bzw. einer
                         Blockly-Routine.
                     </p>
-                </div>
+                </ConfigSection>
             </div>
         </>
     );

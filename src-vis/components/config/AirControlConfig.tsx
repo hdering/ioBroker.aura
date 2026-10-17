@@ -4,6 +4,8 @@ import type { WidgetConfig } from '../../types';
 import { useT } from '../../i18n';
 import { getObjectViewDirect, getObjectDirect } from '../../hooks/useIoBroker';
 import { DatapointPicker } from './DatapointPicker';
+import { ConfigSection } from './ConfigSection';
+import { VisibleFieldsSection } from './VisibleFieldsSection';
 import {
     CLIMATE_FIELDS,
     CLIMATE_PROFILES,
@@ -23,7 +25,6 @@ const inputStyle: React.CSSProperties = {
 };
 const labelCls = 'text-[11px] mb-1 block';
 const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' };
-const sectionTitleCls = 'text-[11px] font-semibold uppercase tracking-wide mt-3 mb-1';
 
 const GITHUB_ISSUE_URL = 'https://github.com/hdering/ioBroker.aura/issues/new';
 
@@ -174,166 +175,166 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
     };
     const numOrUndef = (raw: string): number | undefined => (raw.trim() === '' ? undefined : Number(raw));
 
-    const toggle = (key: string, label: string) => {
-        const checked = o[key] !== false;
-        return (
-            <label className="flex items-center gap-2 text-xs cursor-pointer" style={{ color: 'var(--text-primary)' }}>
-                <input type="checkbox" checked={checked} onChange={(e) => setO({ [key]: e.target.checked })} />
-                {label}
-            </label>
-        );
-    };
-
     return (
-        <div className="space-y-1.5">
-            {/* Manufacturer ── */}
-            <label className={labelCls} style={labelStyle}>
-                {t('aircontrol.manufacturer')}
-            </label>
-            <select
-                className={inputCls}
-                style={inputStyle}
-                value={deviceType}
-                onChange={(e) => onSelectProfile(e.target.value)}
-            >
-                {CLIMATE_PROFILES.map((p) => (
-                    <option key={p.id} value={p.id}>
-                        {p.label}
-                    </option>
-                ))}
-                <option value={CUSTOM_PROFILE_ID}>{t('aircontrol.custom')}</option>
-            </select>
+        <div className="space-y-2.5">
+            <VisibleFieldsSection
+                collapsible
+                values={o}
+                onChange={setO}
+                fields={[
+                    { key: 'showVanes', label: t('aircontrol.showVanes') },
+                    { key: 'showEco', label: t('aircontrol.showEco') },
+                    { key: 'showBoost', label: t('aircontrol.showBoost') },
+                    { key: 'showConsumption', label: t('aircontrol.showConsumption') },
+                    { key: 'showHumidity', label: t('aircontrol.showHumidity') },
+                    { key: 'showOutside', label: t('aircontrol.showOutside') },
+                ]}
+            />
 
-            {/* Device discovery ── */}
-            {profile && (
-                <>
-                    <label className={labelCls} style={{ ...labelStyle, marginTop: 8 }}>
-                        {t('aircontrol.device')}
+            <ConfigSection title={t('aircontrol.device')} sectionKey="device">
+                <div className="space-y-1.5">
+                    {/* Manufacturer ── */}
+                    <label className={labelCls} style={labelStyle}>
+                        {t('aircontrol.manufacturer')}
                     </label>
-                    <div className="flex gap-1">
-                        <select
+                    <select
+                        className={inputCls}
+                        style={inputStyle}
+                        value={deviceType}
+                        onChange={(e) => onSelectProfile(e.target.value)}
+                    >
+                        {CLIMATE_PROFILES.map((p) => (
+                            <option key={p.id} value={p.id}>
+                                {p.label}
+                            </option>
+                        ))}
+                        <option value={CUSTOM_PROFILE_ID}>{t('aircontrol.custom')}</option>
+                    </select>
+
+                    {/* Device discovery ── */}
+                    {profile && (
+                        <>
+                            <label className={labelCls} style={{ ...labelStyle, marginTop: 8 }}>
+                                {t('aircontrol.device')}
+                            </label>
+                            <div className="flex gap-1">
+                                <select
+                                    className={inputCls}
+                                    style={inputStyle}
+                                    value={(o.deviceRoot as string) ?? ''}
+                                    onChange={(e) => applyDevice(e.target.value)}
+                                >
+                                    <option value="">
+                                        {loading
+                                            ? t('aircontrol.detecting')
+                                            : devices.length === 0 && discovered
+                                              ? t('aircontrol.noDevices')
+                                              : t('aircontrol.chooseDevice')}
+                                    </option>
+                                    {devices.map((d) => (
+                                        <option key={d.root} value={d.root}>
+                                            {d.name} · {d.root.split('.').pop()}
+                                        </option>
+                                    ))}
+                                </select>
+                                <button
+                                    onClick={discover}
+                                    disabled={loading}
+                                    className="text-xs px-2 py-1.5 rounded-lg shrink-0 disabled:opacity-40"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    title={t('aircontrol.rescan')}
+                                >
+                                    <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {/* More manufacturers hint ── */}
+                    <div
+                        className="rounded-lg p-2.5 text-[11px] leading-relaxed"
+                        style={{
+                            background: 'var(--app-bg)',
+                            border: '1px dashed var(--app-border)',
+                            color: 'var(--text-secondary)',
+                        }}
+                    >
+                        {t('aircontrol.moreHint')}
+                        <a
+                            href={GITHUB_ISSUE_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 mt-1.5 font-medium"
+                            style={{ color: 'var(--accent)' }}
+                        >
+                            <ExternalLink size={12} /> {t('aircontrol.suggestAdapter')}
+                        </a>
+                    </div>
+                </div>
+            </ConfigSection>
+
+            <ConfigSection title={t('aircontrol.section.control')} sectionKey="control">
+                <div className="space-y-1.5">
+                    {/* Datapoints — control ── */}
+                    {controlFields.map(fieldRow)}
+                </div>
+            </ConfigSection>
+
+            <ConfigSection title={t('aircontrol.section.info')} sectionKey="info">
+                <div className="space-y-1.5">
+                    {/* Datapoints — info ── */}
+                    {infoFields.map(fieldRow)}
+                </div>
+            </ConfigSection>
+
+            <ConfigSection title={'Temperaturbereich'} sectionKey="temprange">
+                <div className="grid grid-cols-3 gap-1.5">
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            {t('aircontrol.tempMin')}
+                        </label>
+                        <input
+                            type="number"
+                            value={tempInput('tempMin', profile?.tempRange.min ?? 16)}
+                            placeholder={t('aircontrol.fromDatapoint')}
+                            onChange={(e) => setO({ tempMin: numOrUndef(e.target.value) })}
                             className={inputCls}
                             style={inputStyle}
-                            value={(o.deviceRoot as string) ?? ''}
-                            onChange={(e) => applyDevice(e.target.value)}
-                        >
-                            <option value="">
-                                {loading
-                                    ? t('aircontrol.detecting')
-                                    : devices.length === 0 && discovered
-                                      ? t('aircontrol.noDevices')
-                                      : t('aircontrol.chooseDevice')}
-                            </option>
-                            {devices.map((d) => (
-                                <option key={d.root} value={d.root}>
-                                    {d.name} · {d.root.split('.').pop()}
-                                </option>
-                            ))}
-                        </select>
-                        <button
-                            onClick={discover}
-                            disabled={loading}
-                            className="text-xs px-2 py-1.5 rounded-lg shrink-0 disabled:opacity-40"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                            title={t('aircontrol.rescan')}
-                        >
-                            <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
-                        </button>
+                        />
                     </div>
-                </>
-            )}
-
-            {/* Datapoints — control ── */}
-            <p className={sectionTitleCls} style={labelStyle}>
-                {t('aircontrol.section.control')}
-            </p>
-            {controlFields.map(fieldRow)}
-
-            {/* Datapoints — info ── */}
-            <p className={sectionTitleCls} style={labelStyle}>
-                {t('aircontrol.section.info')}
-            </p>
-            {infoFields.map(fieldRow)}
-
-            {/* Display options ── */}
-            <p className={sectionTitleCls} style={labelStyle}>
-                {t('aircontrol.section.display')}
-            </p>
-            <div className="grid grid-cols-2 gap-1.5">
-                {toggle('showVanes', t('aircontrol.showVanes'))}
-                {toggle('showEco', t('aircontrol.showEco'))}
-                {toggle('showBoost', t('aircontrol.showBoost'))}
-                {toggle('showConsumption', t('aircontrol.showConsumption'))}
-                {toggle('showHumidity', t('aircontrol.showHumidity'))}
-                {toggle('showOutside', t('aircontrol.showOutside'))}
-            </div>
-            <div className="grid grid-cols-3 gap-1.5 mt-1">
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        {t('aircontrol.tempMin')}
-                    </label>
-                    <input
-                        type="number"
-                        value={tempInput('tempMin', profile?.tempRange.min ?? 16)}
-                        placeholder={t('aircontrol.fromDatapoint')}
-                        onChange={(e) => setO({ tempMin: numOrUndef(e.target.value) })}
-                        className={inputCls}
-                        style={inputStyle}
-                    />
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            {t('aircontrol.tempMax')}
+                        </label>
+                        <input
+                            type="number"
+                            value={tempInput('tempMax', profile?.tempRange.max ?? 31)}
+                            placeholder={t('aircontrol.fromDatapoint')}
+                            onChange={(e) => setO({ tempMax: numOrUndef(e.target.value) })}
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                    </div>
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            {t('aircontrol.tempStep')}
+                        </label>
+                        <input
+                            type="number"
+                            step="0.5"
+                            value={tempInput('tempStep', profile?.tempRange.step ?? 1)}
+                            placeholder={t('aircontrol.fromDatapoint')}
+                            onChange={(e) => setO({ tempStep: numOrUndef(e.target.value) })}
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        {t('aircontrol.tempMax')}
-                    </label>
-                    <input
-                        type="number"
-                        value={tempInput('tempMax', profile?.tempRange.max ?? 31)}
-                        placeholder={t('aircontrol.fromDatapoint')}
-                        onChange={(e) => setO({ tempMax: numOrUndef(e.target.value) })}
-                        className={inputCls}
-                        style={inputStyle}
-                    />
-                </div>
-                <div>
-                    <label className={labelCls} style={labelStyle}>
-                        {t('aircontrol.tempStep')}
-                    </label>
-                    <input
-                        type="number"
-                        step="0.5"
-                        value={tempInput('tempStep', profile?.tempRange.step ?? 1)}
-                        placeholder={t('aircontrol.fromDatapoint')}
-                        onChange={(e) => setO({ tempStep: numOrUndef(e.target.value) })}
-                        className={inputCls}
-                        style={inputStyle}
-                    />
-                </div>
-            </div>
-
-            {/* More manufacturers hint ── */}
-            <div
-                className="mt-3 rounded-lg p-2.5 text-[11px] leading-relaxed"
-                style={{
-                    background: 'var(--app-bg)',
-                    border: '1px dashed var(--app-border)',
-                    color: 'var(--text-secondary)',
-                }}
-            >
-                {t('aircontrol.moreHint')}
-                <a
-                    href={GITHUB_ISSUE_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 mt-1.5 font-medium"
-                    style={{ color: 'var(--accent)' }}
-                >
-                    <ExternalLink size={12} /> {t('aircontrol.suggestAdapter')}
-                </a>
-            </div>
+            </ConfigSection>
 
             {/* Shared DatapointPicker ── */}
             {pickerTarget && (

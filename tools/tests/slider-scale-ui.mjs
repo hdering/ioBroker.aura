@@ -275,16 +275,20 @@ const editOpts = () => page.evaluate(() => window.__auraShot.widgetOptions('sc-e
 await page.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
 
-const box = (label) => page.locator(`label:has(span:text-is("${label}")) input[type="checkbox"]`);
-const scaleToggle = box('Skala (Schritte)');
+const visSummary = page.locator('.aura-widget-edit-modal details[data-aura-config-section="visible"] > summary');
+await visSummary.waitFor({ timeout: 10000 });
+await visSummary.click();
+const box = (key) => page.locator(`[data-aura-vis-key="${key}"] button[role="switch"]`).first();
+const isOn = async (key) => (await box(key).getAttribute('aria-checked')) === 'true';
+const scaleToggle = box('showScale');
 await scaleToggle.waitFor({ timeout: 10000 });
-check('editor: the scale box starts unticked', !(await scaleToggle.isChecked()));
-check('editor: the min/max box starts unticked too', !(await box('Min/Max-Beschriftung').isChecked()));
-check('editor: the value box starts ticked', await box('Wert').isChecked());
+check('editor: the scale switch starts off', !(await isOn('showScale')));
+check('editor: the min/max switch starts off too', !(await isOn('showMinMax')));
+check('editor: the value switch starts on', await isOn('showValue'));
 
-await scaleToggle.check();
+await scaleToggle.click();
 await page.waitForTimeout(200);
-eq('editor: ticking it sets showScale', (await editOpts()).showScale, true);
+eq('editor: switching it on sets showScale', (await editOpts()).showScale, true);
 
 const everyField = page.locator('span:text-is("Skala: jeden n-ten Schritt") + input');
 await everyField.waitFor({ timeout: 5000 });

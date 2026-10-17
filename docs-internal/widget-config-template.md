@@ -30,8 +30,8 @@ Name · Widget-Typ · Layout
 | `ToggleRow` | dto. | die eine Schalter-Zeile; `visKey` → `data-aura-vis-key` |
 | `VIS_FIELDS_PER_TYPE` | `WidgetFrame.tsx` | Schalter ohne eigene Logik; der generische Block rendert sie |
 | `SECTIONED_EDIT_TYPES` | `WidgetFrame.tsx` | Typen mit eingeklappten Abschnitten – ihre „Sichtbare Felder“ und Farbschwellen klappen mit ein; ohne Eintrag folgt auf die Schalter die Überschrift „Einstellungen“ |
-| `renderMainDpField()` | `WidgetFrame.tsx` | Haupt-Datenpunkt; flache Typen bekommen ihn an der alten Stelle, gegliederte rufen ihn in ihrem Abschnitt „Datenpunkte“ auf |
-| `SECTION_TITLE_CLS` | `config/ConfigSection.tsx` | eine Überschrift für alle Abschnitte, auch „Status-Datenpunkte“ |
+| `renderMainDpField()` | `WidgetFrame.tsx` | Haupt-Datenpunkt; flache Typen bekommen ihn an der alten Stelle, gegliederte rufen ihn in ihrem Abschnitt „Datenpunkte“ auf – eigene Config-Komponenten (Slider, JSON-Tabelle) bekommen ihn als Prop `mainDpField` |
+| `SECTION_TITLE_CLS` | `config/ConfigSection.tsx` | eine Überschrift für alle Abschnitte, auch „Darstellung“, „Erweitert“, „Status-Datenpunkte“ |
 
 ## Regeln
 

@@ -8,6 +8,8 @@ import { Database } from 'lucide-react';
 import type { WidgetConfig, CountdownDpKind, CountdownFormat } from '../../types';
 import { useT } from '../../i18n';
 import { DatapointPicker } from './DatapointPicker';
+import { ConfigSection } from './ConfigSection';
+import { VisibleFieldsSection } from './VisibleFieldsSection';
 import { formatPreset, parseDurationText, splitDuration } from '../../utils/countdownFormat';
 
 interface Props {
@@ -25,8 +27,6 @@ const labelCls = 'text-[11px] mb-1 block';
 const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' };
 const hintCls = 'text-[10px] mt-0.5';
 const hintStyle: React.CSSProperties = { color: 'var(--text-secondary)', opacity: 0.7 };
-const boxCls = 'rounded-xl p-2 space-y-2';
-const boxStyle: React.CSSProperties = { background: 'var(--app-bg)', border: '1px solid var(--app-border)' };
 
 function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
     return (
@@ -70,10 +70,6 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
     const format = (o.format as CountdownFormat | undefined) ?? 'auto';
     const showDays = o.showDays === true;
     const digitSize = Number(o.digitSize) || 0;
-    const showProgress = o.showProgress !== false;
-    const showControls = o.showControls !== false;
-    const showStep = o.showStep !== false;
-    const showPresets = o.showPresets !== false;
     const endedText = (o.endedText as string | undefined) ?? '';
     const stateBaseId = o.stateBaseId as string | undefined;
 
@@ -157,12 +153,22 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                 />
             )}
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
+                {/* A datapoint source only shows the time - the rest needs Aura's own countdown. */}
+                <VisibleFieldsSection
+                    collapsible
+                    values={o}
+                    onChange={setOpts}
+                    fields={[
+                        { key: 'showProgress', label: t('countdown.cfg.showProgress'), hidden: isDp },
+                        { key: 'showControls', label: t('countdown.cfg.showControls'), hidden: isDp },
+                        { key: 'showStep', label: t('countdown.cfg.showStep'), hidden: isDp },
+                        { key: 'showPresets', label: t('countdown.cfg.showPresets'), hidden: isDp },
+                    ]}
+                />
+
                 {/* ── Quelle ─────────────────────────────────────────────────── */}
-                <div className={boxCls} style={boxStyle}>
-                    <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {t('countdown.cfg.source')}
-                    </p>
+                <ConfigSection title={t('countdown.cfg.source')} sectionKey="source">
                     <div className="flex gap-1">
                         {(
                             [
@@ -219,15 +225,12 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                             </div>
                         </>
                     )}
-                </div>
+                </ConfigSection>
 
                 {!isDp && (
                     <>
                         {/* ── Dauer ──────────────────────────────────────────────── */}
-                        <div className={boxCls} style={boxStyle}>
-                            <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                {t('countdown.cfg.duration')}
-                            </p>
+                        <ConfigSection title={t('countdown.cfg.duration')} sectionKey="duration">
                             <div className="flex items-start gap-1.5">
                                 {durationField(t('countdown.hours'), dur.h, 999, (v) => setDuration(v, dur.m, dur.s))}
                                 {durationField(t('countdown.minutes'), dur.m, 59, (v) => setDuration(dur.h, v, dur.s))}
@@ -268,13 +271,10 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     {t('countdown.cfg.presetsHint')}
                                 </p>
                             </div>
-                        </div>
+                        </ConfigSection>
 
                         {/* ── Ziel-Aktion ────────────────────────────────────────── */}
-                        <div className={boxCls} style={boxStyle}>
-                            <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                {t('countdown.cfg.target')}
-                            </p>
+                        <ConfigSection title={t('countdown.cfg.target')} sectionKey="target">
                             <p className={hintCls} style={hintStyle}>
                                 {t('countdown.cfg.targetHint')}
                             </p>
@@ -350,15 +350,12 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     onToggle={() => setOpts({ publishRemaining: !publishRemaining })}
                                 />
                             </div>
-                        </div>
+                        </ConfigSection>
                     </>
                 )}
 
                 {/* ── Anzeige ────────────────────────────────────────────────── */}
-                <div className={boxCls} style={boxStyle}>
-                    <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        {t('countdown.cfg.display')}
-                    </p>
+                <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             {t('countdown.cfg.format')}
@@ -392,34 +389,12 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                             {digitSize > 0 ? `${digitSize}px` : t('countdown.cfg.digitAuto')}
                         </span>
                     </div>
-                    {(
-                        [
-                            { key: 'showDays', label: t('countdown.cfg.showDays'), val: showDays },
-                            ...(isDp
-                                ? []
-                                : [
-                                      {
-                                          key: 'showProgress',
-                                          label: t('countdown.cfg.showProgress'),
-                                          val: showProgress,
-                                      },
-                                      {
-                                          key: 'showControls',
-                                          label: t('countdown.cfg.showControls'),
-                                          val: showControls,
-                                      },
-                                      { key: 'showStep', label: t('countdown.cfg.showStep'), val: showStep },
-                                      { key: 'showPresets', label: t('countdown.cfg.showPresets'), val: showPresets },
-                                  ]),
-                        ] as { key: string; label: string; val: boolean }[]
-                    ).map(({ key, label, val }) => (
-                        <div key={key} className="flex items-center justify-between">
-                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                {label}
-                            </span>
-                            <Toggle on={val} onToggle={() => setOpts({ [key]: !val })} />
-                        </div>
-                    ))}
+                    <div className="flex items-center justify-between">
+                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                            {t('countdown.cfg.showDays')}
+                        </span>
+                        <Toggle on={showDays} onToggle={() => setOpts({ showDays: !showDays })} />
+                    </div>
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             {t('countdown.cfg.endedText')}
@@ -436,13 +411,10 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                             {t('countdown.cfg.endedTextHint')}
                         </p>
                     </div>
-                </div>
+                </ConfigSection>
 
                 {!isDp && stateBaseId && (
-                    <div className={boxCls} style={boxStyle}>
-                        <p className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                            {t('countdown.cfg.states')}
-                        </p>
+                    <ConfigSection title={t('countdown.cfg.states')} sectionKey="states">
                         <code
                             className="block text-[10px] font-mono break-all"
                             style={{ color: 'var(--text-secondary)' }}
@@ -478,7 +450,7 @@ on({ id: '${stateBaseId}.state', change: 'ne' }, (obj) => {
                         <p className={hintCls} style={hintStyle}>
                             {t('countdown.cfg.ex.blockly')}
                         </p>
-                    </div>
+                    </ConfigSection>
                 )}
             </div>
         </>

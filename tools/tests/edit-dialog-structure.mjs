@@ -43,11 +43,48 @@ const VISIBLE = {
         'showMute',
         'showChips',
     ],
+    slider: ['showValue', 'showUnit', 'showMinMax', 'showScale'],
+    thermostat: ['showSetpoint', 'showActualTemp', 'showControls', 'showPresets'],
+    shutter: ['showValue', 'showControls', 'showSlider'],
+    jsontable: ['showSearch', 'showHeader'],
+    alarm: [
+        'showHeader',
+        'showModes',
+        'showModeOff',
+        'showModeSharp',
+        'showModeInside',
+        'showModeNight',
+        'showDelay',
+        'showCountdown',
+        'showCircuits',
+        'showZones',
+        'showLog',
+        'showPanic',
+        'showPresence',
+    ],
+    timer: ['showMasterSwitch', 'showEvents', 'showAddButton', 'showAstroSymbol', 'showSpecialDaysButton'],
+    countdown: ['showProgress', 'showControls', 'showStep', 'showPresets'],
+    trashSchedule: ['showNames', 'showDays', 'showDate'],
+    aircontrol: ['showVanes', 'showEco', 'showBoost', 'showConsumption', 'showHumidity', 'showOutside'],
 };
 /** Types without any visibility toggle. */
 const NONE = ['button', 'image', 'html', 'mirror'];
 /** Types whose own settings are split into folded sections (SECTIONED_EDIT_TYPES). */
-const FOLDED = ['knob', 'dimmer', 'stateimage', 'light'];
+const FOLDED = [
+    'knob',
+    'dimmer',
+    'stateimage',
+    'light',
+    'slider',
+    'thermostat',
+    'shutter',
+    'jsontable',
+    'alarm',
+    'timer',
+    'countdown',
+    'trashSchedule',
+    'aircontrol',
+];
 
 const results = [];
 const check = (name, ok, detail = '') => {
@@ -125,6 +162,14 @@ const inspect = () =>
             keys: rows.map((r) => r.getAttribute('data-aura-vis-key')),
             outside: rows.filter((r) => !vis?.contains(r)).map((r) => r.getAttribute('data-aura-vis-key')),
             nextIsSection: !!vis?.nextElementSibling?.hasAttribute('data-aura-config-section'),
+            // Inputs in the widget block above the toggles (siblings before the section).
+            inputsAbove: (() => {
+                const out = [];
+                for (let el = vis?.previousElementSibling; el; el = el.previousElementSibling)
+                    if (el.matches('input, select, textarea') || el.querySelector('input, select, textarea'))
+                        out.push(el.tagName);
+                return out;
+            })(),
         };
     });
 
@@ -134,6 +179,7 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
     check(`${type}: heading "Sichtbare Felder"`, r.title === 'Sichtbare Felder', String(r.title));
     check(`${type}: first section of the widget settings`, r.order[0] === 'visible', JSON.stringify(r.order));
     check(`${type}: all rows inside the section`, r.outside.length === 0, JSON.stringify(r.outside));
+    check(`${type}: nothing to set above the toggles`, r.inputsAbove.length === 0, JSON.stringify(r.inputsAbove));
     // Separation: another section follows right away, no loose field after the toggles.
     check(
         `${type}: next section follows the toggles`,
@@ -142,7 +188,12 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
     );
     if (!FOLDED.includes(type))
         check(`${type}: "Einstellungen" heading`, r.order[1] === 'settings', JSON.stringify(r.order));
-    else check(`${type}: "Datenpunkte" follows`, r.order[1] === 'datapoints', JSON.stringify(r.order));
+    else
+        check(
+            `${type}: an own section follows, no catch-all`,
+            !!r.order[1] && r.order[1] !== 'settings',
+            JSON.stringify(r.order),
+        );
     check(
         `${type}: status heading looks like the others`,
         !r.statusCls || r.statusCls === r.titleCls,

@@ -123,6 +123,12 @@ await page.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
 const panel = page.locator('.aura-widget-edit-modal');
 await panel.waitFor({ timeout: 10000 });
+// The settings sit in folded sections - unfold them all.
+await page.evaluate(() =>
+    document
+        .querySelectorAll('.aura-widget-edit-modal details[data-aura-config-section]')
+        .forEach((d) => (d.open = true)),
+);
 await panel.locator('button:has-text("Sortierung")').click();
 await page.locator('button:has-text("Kriterium hinzufügen")').click();
 await page.waitForTimeout(150);

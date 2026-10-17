@@ -70,7 +70,7 @@ import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry'
 import { useEscapeLayer } from '../../utils/escapeStack';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
-import { VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
+import { ToggleRow as VisToggleRow, VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
 import { ConfigSection, FlatSection, SECTION_TITLE_CLS } from '../config/ConfigSection';
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
@@ -299,9 +299,11 @@ const NO_BADGES: BadgeDef[] = [];
 // `def` is the widget's own default for an option it reads as off-by-default —
 // without it the toggle shows ON for a field nothing is drawing yet.
 const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string; def?: boolean }[]>> = {
-    // shutter: Position %/Steuerknöpfe/Schieberegler live in the shutter settings
-    // block (Sichtbare Felder), right below the size sliders they belong to —
-    // kept out of this generic list.
+    shutter: [
+        { key: 'showValue', label: 'Position %' },
+        { key: 'showControls', label: 'Steuerknöpfe' },
+        { key: 'showSlider', label: 'Schieberegler' },
+    ],
     switch: [{ key: 'showLabel', label: 'Status (AN/AUS)' }],
     dimmer: [
         { key: 'showValue', label: 'Prozentwert' },
@@ -311,8 +313,12 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     // slider: Wert/Einheit/Min-Max/Skala live in the Schieberegler block
     // (Sichtbare Felder), next to the scale's own settings - kept out of the
     // generic Darstellung block.
-    // thermostat: visibility toggles live in the thermostat settings block
-    // (Soll/Ist/Tasten/Schnellwahl) — kept out of this generic list.
+    thermostat: [
+        { key: 'showSetpoint', label: 'Solltemperatur' },
+        { key: 'showActualTemp', label: 'Isttemperatur' },
+        { key: 'showControls', label: 'Tasten ±' },
+        { key: 'showPresets', label: 'Schnellwahl' },
+    ],
     value: [
         { key: 'showValue', label: 'Wert' },
         { key: 'showUnit', label: 'Einheit' },
@@ -360,7 +366,21 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
 // "Sichtbare Felder" folds too (with an n/m count). Short blocks stay flat and
 // show it as a plain heading. Grows as the types get their sections
 // (C:projects	oolsplanswidget-dialog-sichtbare-felder-und-abschnitte.md).
-const SECTIONED_EDIT_TYPES = new Set<WidgetType>(['knob', 'dimmer', 'stateimage', 'light']);
+const SECTIONED_EDIT_TYPES = new Set<WidgetType>([
+    'knob',
+    'dimmer',
+    'stateimage',
+    'light',
+    'slider',
+    'thermostat',
+    'shutter',
+    'jsontable',
+    'alarm',
+    'timer',
+    'countdown',
+    'trashSchedule',
+    'aircontrol',
+]);
 
 // ── Custom grid: row height control, leading column of the cell picker (#737) ──
 function RowSizeControl({ row, size, onChange }: { row: number; size: string; onChange: (size: string) => void }) {
@@ -3740,10 +3760,13 @@ function SliderEditPanel({
     config,
     onConfigChange,
     onOpenActionPicker,
+    mainDpField,
 }: {
     config: WidgetConfig;
     onConfigChange: (c: WidgetConfig) => void;
     onOpenActionPicker: (idx: number) => void;
+    /** The shared main datapoint field (WidgetFrame renderMainDpField). */
+    mainDpField: React.ReactNode;
 }) {
     const o = config.options ?? {};
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -3762,6 +3785,57 @@ function SliderEditPanel({
         width: '72px',
     };
     const isVertical = (o.orientation as string) === 'vertical';
+
+    // Sichtbare Felder: a field that matches the widget's own default is stored as unset.
+    const visibleDefaults: Record<string, boolean> = {
+        showValue: true,
+        showUnit: true,
+        showMinMax: false,
+        showScale: false,
+    };
+    const setVisible = (patch: Record<string, unknown>) =>
+        setO(
+            Object.fromEntries(
+                Object.entries(patch).map(([key, v]) => [key, v === visibleDefaults[key] ? undefined : v]),
+            ),
+        );
+    const visibleFields: VisibleField[] = [
+        { key: 'showValue', label: t('sl.fields.value' as never) },
+        { key: 'showUnit', label: t('sl.fields.unit' as never) },
+        { key: 'showMinMax', label: t('sl.fields.minMax' as never), def: false },
+        {
+            key: 'showScale',
+            label: t('sl.fields.scale' as never),
+            def: false,
+            // The scale brings its own settings - they belong next to its switch.
+            children: (
+                <>
+                    <div className="flex items-center gap-1">
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('sl.style.scaleLabelEvery' as never)}
+                        </span>
+                        <input
+                            type="number"
+                            min={1}
+                            value={(o.scaleLabelEvery as number) ?? ''}
+                            onChange={(e) =>
+                                setO({ scaleLabelEvery: e.target.value === '' ? undefined : Number(e.target.value) })
+                            }
+                            placeholder="auto"
+                            className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                            style={numInputStyle}
+                        />
+                    </div>
+                    <VisToggleRow
+                        visKey="scaleTicks"
+                        label={t('sl.style.scaleTicks' as never)}
+                        on={o.scaleTicks !== false}
+                        onChange={(next) => setO({ scaleTicks: next ? undefined : false })}
+                    />
+                </>
+            ),
+        },
+    ];
 
     const actions = (o.actions as SlAction[] | undefined) ?? [];
     const [actionIconPickerIdx, setActionIconPickerIdx] = useState<number | null>(null);
@@ -3788,17 +3862,11 @@ function SliderEditPanel({
     return (
         <>
             {/* Wertebereich */}
-            <details className="group" open>
-                <summary className="flex items-center justify-between cursor-pointer list-none select-none mb-1">
-                    <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        Wertebereich
-                    </span>
-                    <ChevronDown
-                        size={12}
-                        className="transition-transform group-open:rotate-180"
-                        style={{ color: 'var(--text-secondary)' }}
-                    />
-                </summary>
+            <VisibleFieldsSection fields={visibleFields} values={o} onChange={setVisible} collapsible />
+            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                {mainDpField}
+            </ConfigSection>
+            <ConfigSection title="Wertebereich" sectionKey="range">
                 <div className="space-y-2">
                     <div className="flex gap-2 items-center flex-wrap">
                         {(['min', 'max', 'step'] as const).map((k) => (
@@ -3831,104 +3899,10 @@ function SliderEditPanel({
                         />
                     </div>
                 </div>
-            </details>
-
-            {/* Sichtbare Felder - die Anzeigen des Reglers selbst. Bewusst hier statt
-                im generischen Darstellung-Block: die Skala bringt eigene Einstellungen
-                mit, und die gehören neben ihren Schalter. */}
-            <details className="group" open>
-                <summary className="flex items-center justify-between cursor-pointer list-none select-none mb-1">
-                    <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        {t('sl.fields.title' as never)}
-                    </span>
-                    <ChevronDown
-                        size={12}
-                        className="transition-transform group-open:rotate-180"
-                        style={{ color: 'var(--text-secondary)' }}
-                    />
-                </summary>
-                <div className="space-y-2">
-                    {(
-                        [
-                            ['showValue', 'sl.fields.value', true],
-                            ['showUnit', 'sl.fields.unit', true],
-                            ['showMinMax', 'sl.fields.minMax', false],
-                            ['showScale', 'sl.fields.scale', false],
-                        ] as const
-                    ).map(([key, label, def]) => {
-                        // `def` is what the widget itself assumes - without it a field
-                        // that draws nothing yet would still show a ticked box.
-                        const on = o[key] === undefined ? def : o[key] !== false;
-                        return (
-                            <label key={key} className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={on}
-                                    onChange={(e) =>
-                                        setO({
-                                            [key]: def
-                                                ? e.target.checked
-                                                    ? undefined
-                                                    : false
-                                                : e.target.checked || undefined,
-                                        })
-                                    }
-                                    className="rounded"
-                                />
-                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                    {t(label as never)}
-                                </span>
-                            </label>
-                        );
-                    })}
-                    {!!o.showScale && (
-                        <>
-                            <div className="flex items-center gap-1">
-                                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('sl.style.scaleLabelEvery' as never)}
-                                </span>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    value={(o.scaleLabelEvery as number) ?? ''}
-                                    onChange={(e) =>
-                                        setO({
-                                            scaleLabelEvery: e.target.value === '' ? undefined : Number(e.target.value),
-                                        })
-                                    }
-                                    placeholder="auto"
-                                    className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                    style={numInputStyle}
-                                />
-                            </div>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="checkbox"
-                                    checked={o.scaleTicks !== false}
-                                    onChange={(e) => setO({ scaleTicks: e.target.checked ? undefined : false })}
-                                    className="rounded"
-                                />
-                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('sl.style.scaleTicks' as never)}
-                                </span>
-                            </label>
-                        </>
-                    )}
-                </div>
-            </details>
+            </ConfigSection>
 
             {/* Slider-Optik */}
-            <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer list-none select-none mb-1">
-                    <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        Slider-Optik
-                    </span>
-                    <ChevronDown
-                        size={12}
-                        className="transition-transform group-open:rotate-180"
-                        style={{ color: 'var(--text-secondary)' }}
-                    />
-                </summary>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                 <div className="space-y-2">
                     {/* Orientation */}
                     <div>
@@ -4026,6 +4000,10 @@ function SliderEditPanel({
                             />
                         </div>
                     </div>
+                </div>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                <div className="space-y-2">
                     {/* Commit on release */}
                     <label className="flex items-center gap-2 cursor-pointer">
                         <input
@@ -4051,20 +4029,10 @@ function SliderEditPanel({
                         </span>
                     </label>
                 </div>
-            </details>
+            </ConfigSection>
 
             {/* Aktions-Buttons */}
-            <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer list-none select-none mb-1">
-                    <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        {t('sl.actions.title' as never)}
-                    </span>
-                    <ChevronDown
-                        size={12}
-                        className="transition-transform group-open:rotate-180"
-                        style={{ color: 'var(--text-secondary)' }}
-                    />
-                </summary>
+            <ConfigSection title={t('sl.actions.title' as never)} sectionKey="actions">
                 <div className="space-y-1.5">
                     {actions.map((action, idx) => (
                         <div
@@ -4197,7 +4165,7 @@ function SliderEditPanel({
                         </button>
                     )}
                 </div>
-            </details>
+            </ConfigSection>
 
             {/* Action icon picker */}
             {actionIconPickerIdx !== null && (
@@ -9913,10 +9881,7 @@ function WidgetFrameInner({
                                 }}
                             >
                                 <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-                                    <span
-                                        className="text-[11px] font-semibold"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
+                                    <span className={SECTION_TITLE_CLS} style={{ color: 'var(--text-secondary)' }}>
                                         Darstellung
                                     </span>
                                     <div className="flex items-center gap-2">
@@ -10645,7 +10610,7 @@ function WidgetFrameInner({
                             }}
                         >
                             <summary className="flex items-center justify-between cursor-pointer list-none select-none">
-                                <span className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                                <span className={SECTION_TITLE_CLS} style={{ color: 'var(--text-secondary)' }}>
                                     Erweitert
                                 </span>
                                 <div className="flex items-center gap-2">
@@ -10956,6 +10921,14 @@ function WidgetFrameInner({
                                 );
                             }
                             if (config.type === 'stateimage') fields.push({ key: 'showIcon', label: 'Icon' });
+                            if (config.type === 'shutter')
+                                // Only with a tilt datapoint is there a tilt value to show.
+                                fields.push({
+                                    key: 'showTiltValue',
+                                    label: 'Neigungswert',
+                                    hint: 'Prozentwert der Neigung neben dem Regler bzw. im Widget.',
+                                    hidden: !(o.tiltDp as string | undefined),
+                                });
                             if (config.type === 'datepicker')
                                 // The own input pattern decides the fields itself; "Nur Uhrzeit" always has one.
                                 fields.push({
@@ -13047,6 +13020,7 @@ function WidgetFrameInner({
                         {config.type === 'jsontable' && (
                             <JsonTableConfig
                                 datapoint={config.datapoint ?? ''}
+                                mainDpField={renderMainDpField()}
                                 options={config.options ?? {}}
                                 onChange={(patch) =>
                                     onConfigChange({ ...config, options: { ...(config.options ?? {}), ...patch } })
@@ -17277,188 +17251,31 @@ function WidgetFrameInner({
                                     (config.layout === 'compact' || config.layout === 'minimal' ? 'popup' : 'inline');
                                 return (
                                     <>
-                                        {/* Steuer-Modus */}
-                                        <div>
-                                            <label className="text-[11px] block mb-1" style={hint}>
-                                                Steuer-Modus
-                                            </label>
-                                            <div className="flex gap-1 mb-1">
-                                                {(
-                                                    [
-                                                        { label: 'Position (Standard)', val: 'position' },
-                                                        { label: 'Taster (AUF/ZU/STOP)', val: 'taster' },
-                                                    ] as const
-                                                ).map(({ label, val }) => (
-                                                    <button
-                                                        key={val}
-                                                        onClick={() => setO({ controlMode: val })}
-                                                        className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                                                        style={{
-                                                            background:
-                                                                controlMode === val ? 'var(--accent)' : 'var(--app-bg)',
-                                                            color:
-                                                                controlMode === val ? '#fff' : 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                    >
-                                                        {label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <p className="text-[10px]" style={hint}>
-                                                {controlMode === 'position'
-                                                    ? 'Schreibt 0–100 % direkt auf den Positions-DP (z.B. Homematic, Z-Wave).'
-                                                    : 'Schreibt true auf separate Boolean-Taster-DPs (z.B. Dooya, 433 MHz, Zigbee-Skript).'}
-                                            </p>
-                                        </div>
-
-                                        {/* AUF-Taster DP – nur im Taster-Modus */}
-                                        {controlMode === 'taster' && (
-                                            <div>
-                                                <label className="text-[11px] mb-1 block" style={hint}>
-                                                    AUF-Taster DP
-                                                </label>
-                                                {dpRow('openDp', 'shutter_openDp', 'z.B. 0_userdata.0…auf')}
-                                                <p className="text-[10px] mt-1" style={hint}>
-                                                    Boolean-DP – ein kurzer true-Impuls öffnet die Jalousie.
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* ZU-Taster DP – nur im Taster-Modus */}
-                                        {controlMode === 'taster' && (
-                                            <div>
-                                                <label className="text-[11px] mb-1 block" style={hint}>
-                                                    ZU-Taster DP
-                                                </label>
-                                                {dpRow('closeDp', 'shutter_closeDp', 'z.B. 0_userdata.0…zu')}
-                                                <p className="text-[10px] mt-1" style={hint}>
-                                                    Boolean-DP – ein kurzer true-Impuls schließt die Jalousie.
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Ist-Position DP */}
-                                        <div>
-                                            <label className="text-[11px] mb-1 block" style={hint}>
-                                                Ist-Position DP (optional)
-                                            </label>
-                                            {dpRow(
-                                                'actualPositionDp',
-                                                'shutter_actualPositionDp',
-                                                'z.B. …3.LEVEL (nur Anzeige)',
-                                            )}
-                                            <p className="text-[10px] mt-1" style={hint}>
-                                                Separater Anzeige-DP für die tatsächliche Position (z.B. HmIP-BROLL:
-                                                Kanal 3 = Status, Kanal 4 = steuerbar). Anzeige, Slider und Stopp nutzen
-                                                dann diesen Wert – geschrieben wird weiter auf den Hauptdatenpunkt. Leer
-                                                = Hauptdatenpunkt.
-                                            </p>
-                                        </div>
-
-                                        {/* Stop-DP */}
-                                        <div>
-                                            <label className="text-[11px] mb-1 block" style={hint}>
-                                                Stop-DP{controlMode === 'position' ? ' – empfohlen' : ''}
-                                            </label>
-                                            {dpRow('stopDp', 'shutter_stopDp', 'z.B. …STOP oder …stop')}
-                                            <p className="text-[10px] mt-1" style={hint}>
-                                                {controlMode === 'taster'
-                                                    ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. …Schlafzimmer.stop).'
-                                                    : (o.stopDp as string)
-                                                      ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. Homematic STOP).'
-                                                      : 'Ohne Stop-DP wird die Position vor dem letzten Fahrbefehl als Ziel zurückgesendet.'}
-                                            </p>
-                                        </div>
-
-                                        {/* Fahrt-Status DP */}
-                                        <div>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <label className="text-[11px]" style={hint}>
-                                                    Fahrt-Status DP
-                                                </label>
-                                                <button
-                                                    onClick={() => void autoFill()}
-                                                    className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
-                                                    style={{
-                                                        background:
-                                                            'color-mix(in srgb, var(--accent) 12%, transparent)',
-                                                        color: 'var(--accent)',
-                                                        border: '1px solid var(--accent)44',
-                                                    }}
-                                                >
-                                                    ✨ Auto-Erkennen
-                                                </button>
-                                            </div>
-                                            {dpRow('activityDp', 'shutter_activityDp')}
-                                            <p className="text-[10px] mt-1" style={hint}>
-                                                {controlMode === 'position'
-                                                    ? 'Zeigt an ob der Rollladen fährt. HM: WORKING (Boolean), HmIP: ACTIVITY_STATE, Zigbee: moving.'
-                                                    : 'Aktueller Fahrzustand des Skripts (z.B. …aktueller_befehl). Leer lassen wenn nicht vorhanden.'}
-                                            </p>
-                                        </div>
-
-                                        {/* Bewegungs-Werte – nur Taster-Modus mit befülltem activityDp */}
-                                        {controlMode === 'taster' && !!(o.activityDp as string) && (
-                                            <div>
-                                                <label className="text-[11px] mb-1 block" style={hint}>
-                                                    Bewegungs-Werte (kommagetrennt)
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={(o.activityMovingValues as string) ?? ''}
-                                                    onChange={(e) =>
-                                                        setO({ activityMovingValues: e.target.value || undefined })
-                                                    }
-                                                    placeholder="z.B. AUF,ZU"
-                                                    className={sInputCls}
-                                                    style={sInputStyle}
-                                                />
-                                                <p className="text-[10px] mt-1" style={hint}>
-                                                    Werte des Fahrt-Status-DP die &quot;fährt gerade&quot; bedeuten.
-                                                    Leer = Boolean-Prüfung (true / 1).
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Richtungs-DP – nur Position-Modus */}
-                                        {controlMode === 'position' && (
-                                            <div>
-                                                <label className="text-[11px] mb-1 block" style={hint}>
-                                                    Richtungs-DP (optional)
-                                                </label>
-                                                {dpRow('directionDp', 'shutter_directionDp')}
-                                                <p className="text-[10px] mt-1" style={hint}>
-                                                    Wert 1 = fährt auf, Wert 2 = fährt zu – zeigt Pfeil im Widget (z.B.
-                                                    Homematic DIRECTION).
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        {/* Aktor-Konvention – nur Position-Modus */}
-                                        {controlMode === 'position' && (
+                                        <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                                            {renderMainDpField()}
+                                            {/* Steuer-Modus */}
                                             <div>
                                                 <label className="text-[11px] block mb-1" style={hint}>
-                                                    Aktor-Konvention
+                                                    Steuer-Modus
                                                 </label>
                                                 <div className="flex gap-1 mb-1">
                                                     {(
                                                         [
-                                                            { label: 'HM / Standard (0=zu)', val: false },
-                                                            { label: 'HmIP (0=auf)', val: true },
+                                                            { label: 'Position (Standard)', val: 'position' },
+                                                            { label: 'Taster (AUF/ZU/STOP)', val: 'taster' },
                                                         ] as const
                                                     ).map(({ label, val }) => (
                                                         <button
-                                                            key={String(val)}
-                                                            onClick={() => setO({ invertPosition: val })}
+                                                            key={val}
+                                                            onClick={() => setO({ controlMode: val })}
                                                             className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
                                                             style={{
                                                                 background:
-                                                                    (o.invertPosition ?? false) === val
+                                                                    controlMode === val
                                                                         ? 'var(--accent)'
                                                                         : 'var(--app-bg)',
                                                                 color:
-                                                                    (o.invertPosition ?? false) === val
+                                                                    controlMode === val
                                                                         ? '#fff'
                                                                         : 'var(--text-secondary)',
                                                                 border: '1px solid var(--app-border)',
@@ -17469,447 +17286,571 @@ function WidgetFrameInner({
                                                     ))}
                                                 </div>
                                                 <p className="text-[10px]" style={hint}>
-                                                    HM Classic / Z-Wave: 0 = geschlossen, 100 = offen. HmIP / manche
-                                                    Zigbee-Adapter: umgekehrt.
+                                                    {controlMode === 'position'
+                                                        ? 'Schreibt 0–100 % direkt auf den Positions-DP (z.B. Homematic, Z-Wave).'
+                                                        : 'Schreibt true auf separate Boolean-Taster-DPs (z.B. Dooya, 433 MHz, Zigbee-Skript).'}
                                                 </p>
                                             </div>
-                                        )}
 
-                                        {/* % geschlossen anzeigen */}
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                                <label className="text-[11px] block" style={hint}>
-                                                    % geschlossen anzeigen
-                                                </label>
-                                                <p className="text-[10px]" style={hint}>
-                                                    Ein: 0 % = ganz offen. Aus: 100 % = ganz offen.
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() =>
-                                                    setO({ showClosedPercent: !(o.showClosedPercent ?? false) })
-                                                }
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
-                                                style={{
-                                                    background:
-                                                        (o.showClosedPercent ?? false)
-                                                            ? 'var(--accent)'
-                                                            : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: (o.showClosedPercent ?? false) ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        {/* Erst bei Loslassen senden */}
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                                <label className="text-[11px] block" style={hint}>
-                                                    Erst bei Loslassen senden
-                                                </label>
-                                                <p className="text-[10px]" style={hint}>
-                                                    Slider-Wert wird erst beim Loslassen übertragen.
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => setO({ sendOnRelease: !(o.sendOnRelease !== false) })}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
-                                                style={{
-                                                    background:
-                                                        o.sendOnRelease !== false
-                                                            ? 'var(--accent)'
-                                                            : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        {/* Position live mitzeichnen */}
-                                        {toggleRow(
-                                            'Position live mitzeichnen',
-                                            'Grafik und Prozentwert folgen dem Positionsregler schon beim Ziehen. Aus: erst beim Loslassen.',
-                                            !!o.positionLivePreview,
-                                            () => setO({ positionLivePreview: !o.positionLivePreview }),
-                                        )}
-
-                                        {/* ── Lamellen / Neigung ──────────────────────────────────── */}
-                                        <div className="pt-2 mt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                                            <label
-                                                className="text-[11px] font-medium block mb-1"
-                                                style={{ color: 'var(--text-primary)' }}
-                                            >
-                                                Lamellen / Neigung
-                                            </label>
-                                            {dpRow('tiltDp', 'shutter_tiltDp', 'z.B. …4.LEVEL_2 oder …tilt')}
-                                            <p className="text-[10px] mt-1" style={hint}>
-                                                Für Jalousien und Raffstores: Datenpunkt für den Lamellenwinkel. 0 % =
-                                                geschlossen, 100 % = offen/waagerecht. Leer = kein Neigungs-Regler.
-                                            </p>
-                                        </div>
-
-                                        {tiltOn && (
-                                            <>
-                                                {/* Ist-Neigung DP */}
+                                            {/* AUF-Taster DP – nur im Taster-Modus */}
+                                            {controlMode === 'taster' && (
                                                 <div>
                                                     <label className="text-[11px] mb-1 block" style={hint}>
-                                                        Ist-Neigung DP (optional)
+                                                        AUF-Taster DP
                                                     </label>
-                                                    {dpRow(
-                                                        'actualTiltDp',
-                                                        'shutter_actualTiltDp',
-                                                        'z.B. …3.LEVEL_2 (nur Anzeige)',
-                                                    )}
+                                                    {dpRow('openDp', 'shutter_openDp', 'z.B. 0_userdata.0…auf')}
                                                     <p className="text-[10px] mt-1" style={hint}>
-                                                        Separater Anzeige-DP für die tatsächliche Neigung. Geschrieben
-                                                        wird weiter auf den Neigungs-DP.
+                                                        Boolean-DP – ein kurzer true-Impuls öffnet die Jalousie.
                                                     </p>
                                                 </div>
+                                            )}
 
-                                                {/* Wertebereich */}
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[11px] block" style={hint}>
-                                                        Wertebereich des Datenpunkts
-                                                    </label>
-                                                    {numRow('Wert für „geschlossen“', 'tiltMin', 0, 0.1)}
-                                                    {numRow('Wert für „offen“', 'tiltMax', 100, 0.1)}
-                                                    <p className="text-[10px]" style={hint}>
-                                                        Standard 0…100. Andere Geräte melden 0…1, -90…90 oder 0…180.
-                                                    </p>
-                                                </div>
-
-                                                {toggleRow(
-                                                    'Neigung invertieren',
-                                                    'Wenn beim Gerät der kleinere Wert „offen“ bedeutet.',
-                                                    !!o.invertTilt,
-                                                    () => setO({ invertTilt: !o.invertTilt }),
-                                                )}
-
-                                                {segRow(
-                                                    'Bedienung',
-                                                    tiltPlacement === 'inline'
-                                                        ? 'Regler bzw. Tasten direkt im Widget.'
-                                                        : tiltPlacement === 'popup'
-                                                          ? 'Kleine Lamellen-Taste öffnet ein Popover mit Regler und Schnellwerten.'
-                                                          : 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).',
-                                                    tiltPlacement,
-                                                    [
-                                                        { label: 'Im Widget', val: 'inline' },
-                                                        { label: 'Popover', val: 'popup' },
-                                                        { label: 'Aus', val: 'off' },
-                                                    ],
-                                                    (val) => setO({ tiltPlacement: val }),
-                                                )}
-
-                                                {tiltPlacement === 'inline' &&
-                                                    config.layout !== 'compact' &&
-                                                    config.layout !== 'minimal' &&
-                                                    segRow(
-                                                        'Regler-Form',
-                                                        'Senkrecht neben der Lamellen-Grafik, waagerecht unter dem Positionsregler oder als Schrittasten.',
-                                                        (o.tiltControl as string) ?? 'slider-v',
-                                                        [
-                                                            { label: 'Senkrecht', val: 'slider-v' },
-                                                            { label: 'Waagerecht', val: 'slider-h' },
-                                                            { label: 'Tasten', val: 'buttons' },
-                                                        ],
-                                                        (val) => setO({ tiltControl: val }),
-                                                    )}
-
-                                                {((o.tiltControl as string) === 'buttons' ||
-                                                    config.layout === 'compact' ||
-                                                    config.layout === 'minimal') &&
-                                                    numRow('Schrittweite (%)', 'tiltStep', 10)}
-
-                                                {((o.tiltControl as string) ?? 'slider-v') === 'slider-v' &&
-                                                    tiltPlacement === 'inline' &&
-                                                    config.layout !== 'compact' &&
-                                                    config.layout !== 'minimal' && (
-                                                        <>
-                                                            {segRow(
-                                                                'Regler-Seite',
-                                                                'Auf welcher Seite der Lamellen-Grafik der senkrechte Regler sitzt.',
-                                                                (o.tiltSliderSide as string) === 'left'
-                                                                    ? 'left'
-                                                                    : 'right',
-                                                                [
-                                                                    { label: 'Links', val: 'left' },
-                                                                    { label: 'Rechts', val: 'right' },
-                                                                ],
-                                                                (val) => setO({ tiltSliderSide: val }),
-                                                            )}
-                                                            {numRow('Regler-Breite (px)', 'tiltSliderWidth', 14)}
-                                                        </>
-                                                    )}
-
-                                                {toggleRow(
-                                                    'Lamellen live mitzeichnen',
-                                                    'Lamellen-Grafik und Prozentwert folgen dem Neigungsregler schon beim Ziehen. Aus: erst beim Loslassen.',
-                                                    o.tiltLivePreview !== false,
-                                                    () => setO({ tiltLivePreview: !(o.tiltLivePreview !== false) }),
-                                                )}
-
-                                                {toggleRow(
-                                                    'Neigungswert anzeigen',
-                                                    'Prozentwert der Neigung neben dem Regler bzw. im Widget.',
-                                                    o.showTiltValue !== false,
-                                                    () => setO({ showTiltValue: !(o.showTiltValue !== false) }),
-                                                )}
-
-                                                {toggleRow(
-                                                    'Nach Fahrt neu setzen',
-                                                    'Manche Aktoren stellen die Lamellen bei einer Fahrt in die Endlage. Dann wird der Winkel nach Fahrtende erneut geschrieben.',
-                                                    !!o.reapplyTiltAfterMove,
-                                                    () => setO({ reapplyTiltAfterMove: !o.reapplyTiltAfterMove }),
-                                                )}
-
+                                            {/* ZU-Taster DP – nur im Taster-Modus */}
+                                            {controlMode === 'taster' && (
                                                 <div>
                                                     <label className="text-[11px] mb-1 block" style={hint}>
-                                                        Beschriftung
+                                                        ZU-Taster DP
+                                                    </label>
+                                                    {dpRow('closeDp', 'shutter_closeDp', 'z.B. 0_userdata.0…zu')}
+                                                    <p className="text-[10px] mt-1" style={hint}>
+                                                        Boolean-DP – ein kurzer true-Impuls schließt die Jalousie.
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Ist-Position DP */}
+                                            <div>
+                                                <label className="text-[11px] mb-1 block" style={hint}>
+                                                    Ist-Position DP (optional)
+                                                </label>
+                                                {dpRow(
+                                                    'actualPositionDp',
+                                                    'shutter_actualPositionDp',
+                                                    'z.B. …3.LEVEL (nur Anzeige)',
+                                                )}
+                                                <p className="text-[10px] mt-1" style={hint}>
+                                                    Separater Anzeige-DP für die tatsächliche Position (z.B. HmIP-BROLL:
+                                                    Kanal 3 = Status, Kanal 4 = steuerbar). Anzeige, Slider und Stopp
+                                                    nutzen dann diesen Wert – geschrieben wird weiter auf den
+                                                    Hauptdatenpunkt. Leer = Hauptdatenpunkt.
+                                                </p>
+                                            </div>
+
+                                            {/* Stop-DP */}
+                                            <div>
+                                                <label className="text-[11px] mb-1 block" style={hint}>
+                                                    Stop-DP{controlMode === 'position' ? ' – empfohlen' : ''}
+                                                </label>
+                                                {dpRow('stopDp', 'shutter_stopDp', 'z.B. …STOP oder …stop')}
+                                                <p className="text-[10px] mt-1" style={hint}>
+                                                    {controlMode === 'taster'
+                                                        ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. …Schlafzimmer.stop).'
+                                                        : (o.stopDp as string)
+                                                          ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. Homematic STOP).'
+                                                          : 'Ohne Stop-DP wird die Position vor dem letzten Fahrbefehl als Ziel zurückgesendet.'}
+                                                </p>
+                                            </div>
+
+                                            {/* Fahrt-Status DP */}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <label className="text-[11px]" style={hint}>
+                                                        Fahrt-Status DP
+                                                    </label>
+                                                    <button
+                                                        onClick={() => void autoFill()}
+                                                        className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
+                                                        style={{
+                                                            background:
+                                                                'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                                            color: 'var(--accent)',
+                                                            border: '1px solid var(--accent)44',
+                                                        }}
+                                                    >
+                                                        ✨ Auto-Erkennen
+                                                    </button>
+                                                </div>
+                                                {dpRow('activityDp', 'shutter_activityDp')}
+                                                <p className="text-[10px] mt-1" style={hint}>
+                                                    {controlMode === 'position'
+                                                        ? 'Zeigt an ob der Rollladen fährt. HM: WORKING (Boolean), HmIP: ACTIVITY_STATE, Zigbee: moving.'
+                                                        : 'Aktueller Fahrzustand des Skripts (z.B. …aktueller_befehl). Leer lassen wenn nicht vorhanden.'}
+                                                </p>
+                                            </div>
+
+                                            {/* Bewegungs-Werte – nur Taster-Modus mit befülltem activityDp */}
+                                            {controlMode === 'taster' && !!(o.activityDp as string) && (
+                                                <div>
+                                                    <label className="text-[11px] mb-1 block" style={hint}>
+                                                        Bewegungs-Werte (kommagetrennt)
                                                     </label>
                                                     <input
                                                         type="text"
-                                                        value={(o.tiltLabel as string) ?? ''}
+                                                        value={(o.activityMovingValues as string) ?? ''}
                                                         onChange={(e) =>
-                                                            setO({ tiltLabel: e.target.value || undefined })
+                                                            setO({ activityMovingValues: e.target.value || undefined })
                                                         }
-                                                        placeholder="Lamellen"
+                                                        placeholder="z.B. AUF,ZU"
                                                         className={sInputCls}
                                                         style={sInputStyle}
                                                     />
-                                                </div>
-                                            </>
-                                        )}
-
-                                        {/* ── Schnellwahl (#745) ──────────────────────────────────── */}
-                                        {(() => {
-                                            const list = Array.isArray(o.positionPresets)
-                                                ? (o.positionPresets as ShutterPreset[])
-                                                : [];
-                                            const setList = (next: ShutterPreset[]) =>
-                                                setO({ positionPresets: next.length ? next : undefined });
-                                            const patch = (i: number, p: Partial<ShutterPreset>) =>
-                                                setList(list.map((x, j) => (j === i ? { ...x, ...p } : x)));
-                                            const numIn = (
-                                                value: number | undefined,
-                                                onNum: (v: number | undefined) => void,
-                                                ph: string,
-                                                title: string,
-                                            ) => (
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    max={100}
-                                                    step={1}
-                                                    value={value ?? ''}
-                                                    placeholder={ph}
-                                                    title={title}
-                                                    onChange={(e) =>
-                                                        onNum(
-                                                            e.target.value === '' ? undefined : Number(e.target.value),
-                                                        )
-                                                    }
-                                                    className="w-14 shrink-0 text-xs rounded-lg px-1.5 py-1.5 focus:outline-none tabular-nums"
-                                                    style={sInputStyle}
-                                                />
-                                            );
-                                            return (
-                                                <div
-                                                    className="pt-2 mt-1 space-y-1.5"
-                                                    style={{ borderTop: '1px solid var(--app-border)' }}
-                                                >
-                                                    <label
-                                                        className="text-[11px] font-medium block"
-                                                        style={{ color: 'var(--text-primary)' }}
-                                                    >
-                                                        Schnellwahl
-                                                    </label>
-                                                    {list.map((p, i) => (
-                                                        <div key={i} className="flex items-center gap-1">
-                                                            <input
-                                                                type="text"
-                                                                value={p.label ?? ''}
-                                                                placeholder="Name"
-                                                                onChange={(e) =>
-                                                                    patch(i, { label: e.target.value || undefined })
-                                                                }
-                                                                className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                                                style={sInputStyle}
-                                                            />
-                                                            {numIn(
-                                                                p.pos,
-                                                                (v) => patch(i, { pos: v }),
-                                                                tiltOn ? 'Pos.' : '%',
-                                                                tiltOn
-                                                                    ? 'Position in % (leer = unverändert, nur Lamellen)'
-                                                                    : 'Position in %',
-                                                            )}
-                                                            {tiltOn &&
-                                                                numIn(
-                                                                    p.tilt,
-                                                                    (v) => patch(i, { tilt: v }),
-                                                                    'Lam.',
-                                                                    'Lamellen in % (leer = unverändert)',
-                                                                )}
-                                                            <button
-                                                                onClick={() => setList(list.filter((_, j) => j !== i))}
-                                                                className="p-1 rounded hover:opacity-70 shrink-0"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                                title="Entfernen"
-                                                            >
-                                                                <Trash2 size={13} />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    <button
-                                                        onClick={() => setList([...list, { pos: 50 }])}
-                                                        className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] hover:opacity-80"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px dashed var(--app-border)',
-                                                        }}
-                                                    >
-                                                        <Plus size={12} /> Schnellwahl hinzufügen
-                                                    </button>
-                                                    <p className="text-[10px]" style={hint}>
-                                                        Tasten mit festen Positionen. Der Prozentwert gilt wie die
-                                                        Anzeige
-                                                        {(o.showClosedPercent ?? false)
-                                                            ? ' (% geschlossen)'
-                                                            : ' (% offen)'}
-                                                        {tiltOn
-                                                            ? '; Position leer = nur Lamellen, Lamellen leer = Winkel bleibt. Steht der Behang schon auf der Position, wird nur der Winkel geschrieben. Stellt der Aktor die Lamellen beim Fahren zurück, „Nach Fahrt neu setzen“ einschalten.'
-                                                            : '.'}{' '}
-                                                        Sichtbar im Standard-Layout und als Baustein im eigenen Layout.
+                                                    <p className="text-[10px] mt-1" style={hint}>
+                                                        Werte des Fahrt-Status-DP die &quot;fährt gerade&quot; bedeuten.
+                                                        Leer = Boolean-Prüfung (true / 1).
                                                     </p>
                                                 </div>
-                                            );
-                                        })()}
+                                            )}
 
-                                        {/* Größen */}
-                                        {(() => {
-                                            const valueSize = (o.valueSize as number) || 20;
-                                            const buttonSize = (o.buttonSize as number) || 14;
-                                            const sliderHeight = (o.sliderHeight as number) || 6;
-                                            return (
+                                            {/* Richtungs-DP – nur Position-Modus */}
+                                            {controlMode === 'position' && (
+                                                <div>
+                                                    <label className="text-[11px] mb-1 block" style={hint}>
+                                                        Richtungs-DP (optional)
+                                                    </label>
+                                                    {dpRow('directionDp', 'shutter_directionDp')}
+                                                    <p className="text-[10px] mt-1" style={hint}>
+                                                        Wert 1 = fährt auf, Wert 2 = fährt zu – zeigt Pfeil im Widget
+                                                        (z.B. Homematic DIRECTION).
+                                                    </p>
+                                                </div>
+                                            )}
+
+                                            {/* Aktor-Konvention – nur Position-Modus */}
+                                            {controlMode === 'position' && (
+                                                <div>
+                                                    <label className="text-[11px] block mb-1" style={hint}>
+                                                        Aktor-Konvention
+                                                    </label>
+                                                    <div className="flex gap-1 mb-1">
+                                                        {(
+                                                            [
+                                                                { label: 'HM / Standard (0=zu)', val: false },
+                                                                { label: 'HmIP (0=auf)', val: true },
+                                                            ] as const
+                                                        ).map(({ label, val }) => (
+                                                            <button
+                                                                key={String(val)}
+                                                                onClick={() => setO({ invertPosition: val })}
+                                                                className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                                                style={{
+                                                                    background:
+                                                                        (o.invertPosition ?? false) === val
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                    color:
+                                                                        (o.invertPosition ?? false) === val
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                            >
+                                                                {label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-[10px]" style={hint}>
+                                                        HM Classic / Z-Wave: 0 = geschlossen, 100 = offen. HmIP / manche
+                                                        Zigbee-Adapter: umgekehrt.
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </ConfigSection>
+                                        <ConfigSection title="Lamellen / Neigung" sectionKey="tilt">
+                                            {/* ── Lamellen / Neigung ──────────────────────────────────── */}
+                                            <div>
+                                                {dpRow('tiltDp', 'shutter_tiltDp', 'z.B. …4.LEVEL_2 oder …tilt')}
+                                                <p className="text-[10px] mt-1" style={hint}>
+                                                    Für Jalousien und Raffstores: Datenpunkt für den Lamellenwinkel. 0 %
+                                                    = geschlossen, 100 % = offen/waagerecht. Leer = kein
+                                                    Neigungs-Regler.
+                                                </p>
+                                            </div>
+
+                                            {tiltOn && (
                                                 <>
+                                                    {/* Ist-Neigung DP */}
                                                     <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <label className="text-[11px]" style={hint}>
-                                                                Wertgröße (Position %)
-                                                            </label>
-                                                            <span
-                                                                className="text-[11px] tabular-nums"
-                                                                style={{ color: 'var(--text-primary)' }}
-                                                            >
-                                                                {valueSize} px
-                                                            </span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            min={10}
-                                                            max={72}
-                                                            step={1}
-                                                            value={valueSize}
-                                                            onChange={(e) =>
-                                                                setO({ valueSize: Number(e.target.value) })
-                                                            }
-                                                            className="w-full h-1"
-                                                            style={{ accentColor: 'var(--accent)' }}
-                                                        />
+                                                        <label className="text-[11px] mb-1 block" style={hint}>
+                                                            Ist-Neigung DP (optional)
+                                                        </label>
+                                                        {dpRow(
+                                                            'actualTiltDp',
+                                                            'shutter_actualTiltDp',
+                                                            'z.B. …3.LEVEL_2 (nur Anzeige)',
+                                                        )}
+                                                        <p className="text-[10px] mt-1" style={hint}>
+                                                            Separater Anzeige-DP für die tatsächliche Neigung.
+                                                            Geschrieben wird weiter auf den Neigungs-DP.
+                                                        </p>
                                                     </div>
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <label className="text-[11px]" style={hint}>
-                                                                Knopfgröße
-                                                            </label>
-                                                            <span
-                                                                className="text-[11px] tabular-nums"
-                                                                style={{ color: 'var(--text-primary)' }}
-                                                            >
-                                                                {buttonSize} px
-                                                            </span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            min={10}
-                                                            max={48}
-                                                            step={1}
-                                                            value={buttonSize}
-                                                            onChange={(e) =>
-                                                                setO({ buttonSize: Number(e.target.value) })
-                                                            }
-                                                            className="w-full h-1"
-                                                            style={{ accentColor: 'var(--accent)' }}
-                                                        />
+
+                                                    {/* Wertebereich */}
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[11px] block" style={hint}>
+                                                            Wertebereich des Datenpunkts
+                                                        </label>
+                                                        {numRow('Wert für „geschlossen“', 'tiltMin', 0, 0.1)}
+                                                        {numRow('Wert für „offen“', 'tiltMax', 100, 0.1)}
+                                                        <p className="text-[10px]" style={hint}>
+                                                            Standard 0…100. Andere Geräte melden 0…1, -90…90 oder 0…180.
+                                                        </p>
                                                     </div>
+
+                                                    {toggleRow(
+                                                        'Neigung invertieren',
+                                                        'Wenn beim Gerät der kleinere Wert „offen“ bedeutet.',
+                                                        !!o.invertTilt,
+                                                        () => setO({ invertTilt: !o.invertTilt }),
+                                                    )}
+
+                                                    {segRow(
+                                                        'Bedienung',
+                                                        tiltPlacement === 'inline'
+                                                            ? 'Regler bzw. Tasten direkt im Widget.'
+                                                            : tiltPlacement === 'popup'
+                                                              ? 'Kleine Lamellen-Taste öffnet ein Popover mit Regler und Schnellwerten.'
+                                                              : 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).',
+                                                        tiltPlacement,
+                                                        [
+                                                            { label: 'Im Widget', val: 'inline' },
+                                                            { label: 'Popover', val: 'popup' },
+                                                            { label: 'Aus', val: 'off' },
+                                                        ],
+                                                        (val) => setO({ tiltPlacement: val }),
+                                                    )}
+
+                                                    {tiltPlacement === 'inline' &&
+                                                        config.layout !== 'compact' &&
+                                                        config.layout !== 'minimal' &&
+                                                        segRow(
+                                                            'Regler-Form',
+                                                            'Senkrecht neben der Lamellen-Grafik, waagerecht unter dem Positionsregler oder als Schrittasten.',
+                                                            (o.tiltControl as string) ?? 'slider-v',
+                                                            [
+                                                                { label: 'Senkrecht', val: 'slider-v' },
+                                                                { label: 'Waagerecht', val: 'slider-h' },
+                                                                { label: 'Tasten', val: 'buttons' },
+                                                            ],
+                                                            (val) => setO({ tiltControl: val }),
+                                                        )}
+
+                                                    {((o.tiltControl as string) === 'buttons' ||
+                                                        config.layout === 'compact' ||
+                                                        config.layout === 'minimal') &&
+                                                        numRow('Schrittweite (%)', 'tiltStep', 10)}
+
+                                                    {((o.tiltControl as string) ?? 'slider-v') === 'slider-v' &&
+                                                        tiltPlacement === 'inline' &&
+                                                        config.layout !== 'compact' &&
+                                                        config.layout !== 'minimal' && (
+                                                            <>
+                                                                {segRow(
+                                                                    'Regler-Seite',
+                                                                    'Auf welcher Seite der Lamellen-Grafik der senkrechte Regler sitzt.',
+                                                                    (o.tiltSliderSide as string) === 'left'
+                                                                        ? 'left'
+                                                                        : 'right',
+                                                                    [
+                                                                        { label: 'Links', val: 'left' },
+                                                                        { label: 'Rechts', val: 'right' },
+                                                                    ],
+                                                                    (val) => setO({ tiltSliderSide: val }),
+                                                                )}
+                                                                {numRow('Regler-Breite (px)', 'tiltSliderWidth', 14)}
+                                                            </>
+                                                        )}
+
+                                                    {toggleRow(
+                                                        'Lamellen live mitzeichnen',
+                                                        'Lamellen-Grafik und Prozentwert folgen dem Neigungsregler schon beim Ziehen. Aus: erst beim Loslassen.',
+                                                        o.tiltLivePreview !== false,
+                                                        () => setO({ tiltLivePreview: !(o.tiltLivePreview !== false) }),
+                                                    )}
+
+                                                    {toggleRow(
+                                                        'Nach Fahrt neu setzen',
+                                                        'Manche Aktoren stellen die Lamellen bei einer Fahrt in die Endlage. Dann wird der Winkel nach Fahrtende erneut geschrieben.',
+                                                        !!o.reapplyTiltAfterMove,
+                                                        () => setO({ reapplyTiltAfterMove: !o.reapplyTiltAfterMove }),
+                                                    )}
+
                                                     <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <label className="text-[11px]" style={hint}>
-                                                                Schieberegler-Höhe
-                                                            </label>
-                                                            <span
-                                                                className="text-[11px] tabular-nums"
-                                                                style={{ color: 'var(--text-primary)' }}
-                                                            >
-                                                                {sliderHeight} px
-                                                            </span>
-                                                        </div>
+                                                        <label className="text-[11px] mb-1 block" style={hint}>
+                                                            Beschriftung
+                                                        </label>
                                                         <input
-                                                            type="range"
-                                                            min={3}
-                                                            max={32}
-                                                            step={1}
-                                                            value={sliderHeight}
+                                                            type="text"
+                                                            value={(o.tiltLabel as string) ?? ''}
                                                             onChange={(e) =>
-                                                                setO({ sliderHeight: Number(e.target.value) })
+                                                                setO({ tiltLabel: e.target.value || undefined })
                                                             }
-                                                            className="w-full h-1"
-                                                            style={{ accentColor: 'var(--accent)' }}
+                                                            placeholder="Lamellen"
+                                                            className={sInputCls}
+                                                            style={sInputStyle}
                                                         />
                                                     </div>
                                                 </>
-                                            );
-                                        })()}
-
-                                        {/* Sichtbare Felder */}
-                                        <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                        {[
-                                            { key: 'showValue', label: 'Position %' },
-                                            { key: 'showControls', label: 'Steuerknöpfe' },
-                                            { key: 'showSlider', label: 'Schieberegler' },
-                                        ].map(({ key, label }) => {
-                                            const val = o[key] !== false;
-                                            return (
-                                                <div key={key} className="flex items-center justify-between">
-                                                    <span
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-primary)' }}
-                                                    >
-                                                        {label}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => setO({ [key]: !val })}
-                                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                        style={{
-                                                            background: val ? 'var(--accent)' : 'var(--app-border)',
-                                                        }}
-                                                    >
-                                                        <span
-                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                            style={{ left: val ? '14px' : '2px' }}
-                                                        />
-                                                    </button>
+                                            )}
+                                        </ConfigSection>
+                                        <ConfigSection title="Schnellwahl" sectionKey="presets">
+                                            {/* ── Schnellwahl (#745) ──────────────────────────────────── */}
+                                            {(() => {
+                                                const list = Array.isArray(o.positionPresets)
+                                                    ? (o.positionPresets as ShutterPreset[])
+                                                    : [];
+                                                const setList = (next: ShutterPreset[]) =>
+                                                    setO({ positionPresets: next.length ? next : undefined });
+                                                const patch = (i: number, p: Partial<ShutterPreset>) =>
+                                                    setList(list.map((x, j) => (j === i ? { ...x, ...p } : x)));
+                                                const numIn = (
+                                                    value: number | undefined,
+                                                    onNum: (v: number | undefined) => void,
+                                                    ph: string,
+                                                    title: string,
+                                                ) => (
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        max={100}
+                                                        step={1}
+                                                        value={value ?? ''}
+                                                        placeholder={ph}
+                                                        title={title}
+                                                        onChange={(e) =>
+                                                            onNum(
+                                                                e.target.value === ''
+                                                                    ? undefined
+                                                                    : Number(e.target.value),
+                                                            )
+                                                        }
+                                                        className="w-14 shrink-0 text-xs rounded-lg px-1.5 py-1.5 focus:outline-none tabular-nums"
+                                                        style={sInputStyle}
+                                                    />
+                                                );
+                                                return (
+                                                    <div className="space-y-1.5">
+                                                        {list.map((p, i) => (
+                                                            <div key={i} className="flex items-center gap-1">
+                                                                <input
+                                                                    type="text"
+                                                                    value={p.label ?? ''}
+                                                                    placeholder="Name"
+                                                                    onChange={(e) =>
+                                                                        patch(i, { label: e.target.value || undefined })
+                                                                    }
+                                                                    className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                                                    style={sInputStyle}
+                                                                />
+                                                                {numIn(
+                                                                    p.pos,
+                                                                    (v) => patch(i, { pos: v }),
+                                                                    tiltOn ? 'Pos.' : '%',
+                                                                    tiltOn
+                                                                        ? 'Position in % (leer = unverändert, nur Lamellen)'
+                                                                        : 'Position in %',
+                                                                )}
+                                                                {tiltOn &&
+                                                                    numIn(
+                                                                        p.tilt,
+                                                                        (v) => patch(i, { tilt: v }),
+                                                                        'Lam.',
+                                                                        'Lamellen in % (leer = unverändert)',
+                                                                    )}
+                                                                <button
+                                                                    onClick={() =>
+                                                                        setList(list.filter((_, j) => j !== i))
+                                                                    }
+                                                                    className="p-1 rounded hover:opacity-70 shrink-0"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                    title="Entfernen"
+                                                                >
+                                                                    <Trash2 size={13} />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            onClick={() => setList([...list, { pos: 50 }])}
+                                                            className="w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[11px] hover:opacity-80"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px dashed var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <Plus size={12} /> Schnellwahl hinzufügen
+                                                        </button>
+                                                        <p className="text-[10px]" style={hint}>
+                                                            Tasten mit festen Positionen. Der Prozentwert gilt wie die
+                                                            Anzeige
+                                                            {(o.showClosedPercent ?? false)
+                                                                ? ' (% geschlossen)'
+                                                                : ' (% offen)'}
+                                                            {tiltOn
+                                                                ? '; Position leer = nur Lamellen, Lamellen leer = Winkel bleibt. Steht der Behang schon auf der Position, wird nur der Winkel geschrieben. Stellt der Aktor die Lamellen beim Fahren zurück, „Nach Fahrt neu setzen“ einschalten.'
+                                                                : '.'}{' '}
+                                                            Sichtbar im Standard-Layout und als Baustein im eigenen
+                                                            Layout.
+                                                        </p>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </ConfigSection>
+                                        <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                            {/* % geschlossen anzeigen */}
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div>
+                                                    <label className="text-[11px] block" style={hint}>
+                                                        % geschlossen anzeigen
+                                                    </label>
+                                                    <p className="text-[10px]" style={hint}>
+                                                        Ein: 0 % = ganz offen. Aus: 100 % = ganz offen.
+                                                    </p>
                                                 </div>
-                                            );
-                                        })}
+                                                <button
+                                                    onClick={() =>
+                                                        setO({ showClosedPercent: !(o.showClosedPercent ?? false) })
+                                                    }
+                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
+                                                    style={{
+                                                        background:
+                                                            (o.showClosedPercent ?? false)
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{
+                                                            left: (o.showClosedPercent ?? false) ? '18px' : '2px',
+                                                        }}
+                                                    />
+                                                </button>
+                                            </div>
+
+                                            {/* Größen */}
+                                            {(() => {
+                                                const valueSize = (o.valueSize as number) || 20;
+                                                const buttonSize = (o.buttonSize as number) || 14;
+                                                const sliderHeight = (o.sliderHeight as number) || 6;
+                                                return (
+                                                    <>
+                                                        <div>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label className="text-[11px]" style={hint}>
+                                                                    Wertgröße (Position %)
+                                                                </label>
+                                                                <span
+                                                                    className="text-[11px] tabular-nums"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {valueSize} px
+                                                                </span>
+                                                            </div>
+                                                            <input
+                                                                type="range"
+                                                                min={10}
+                                                                max={72}
+                                                                step={1}
+                                                                value={valueSize}
+                                                                onChange={(e) =>
+                                                                    setO({ valueSize: Number(e.target.value) })
+                                                                }
+                                                                className="w-full h-1"
+                                                                style={{ accentColor: 'var(--accent)' }}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label className="text-[11px]" style={hint}>
+                                                                    Knopfgröße
+                                                                </label>
+                                                                <span
+                                                                    className="text-[11px] tabular-nums"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {buttonSize} px
+                                                                </span>
+                                                            </div>
+                                                            <input
+                                                                type="range"
+                                                                min={10}
+                                                                max={48}
+                                                                step={1}
+                                                                value={buttonSize}
+                                                                onChange={(e) =>
+                                                                    setO({ buttonSize: Number(e.target.value) })
+                                                                }
+                                                                className="w-full h-1"
+                                                                style={{ accentColor: 'var(--accent)' }}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label className="text-[11px]" style={hint}>
+                                                                    Schieberegler-Höhe
+                                                                </label>
+                                                                <span
+                                                                    className="text-[11px] tabular-nums"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {sliderHeight} px
+                                                                </span>
+                                                            </div>
+                                                            <input
+                                                                type="range"
+                                                                min={3}
+                                                                max={32}
+                                                                step={1}
+                                                                value={sliderHeight}
+                                                                onChange={(e) =>
+                                                                    setO({ sliderHeight: Number(e.target.value) })
+                                                                }
+                                                                className="w-full h-1"
+                                                                style={{ accentColor: 'var(--accent)' }}
+                                                            />
+                                                        </div>
+                                                    </>
+                                                );
+                                            })()}
+                                        </ConfigSection>
+                                        <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                            {/* Erst bei Loslassen senden */}
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div>
+                                                    <label className="text-[11px] block" style={hint}>
+                                                        Erst bei Loslassen senden
+                                                    </label>
+                                                    <p className="text-[10px]" style={hint}>
+                                                        Slider-Wert wird erst beim Loslassen übertragen.
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() =>
+                                                        setO({ sendOnRelease: !(o.sendOnRelease !== false) })
+                                                    }
+                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
+                                                    style={{
+                                                        background:
+                                                            o.sendOnRelease !== false
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: o.sendOnRelease !== false ? '18px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+
+                                            {/* Position live mitzeichnen */}
+                                            {toggleRow(
+                                                'Position live mitzeichnen',
+                                                'Grafik und Prozentwert folgen dem Positionsregler schon beim Ziehen. Aus: erst beim Loslassen.',
+                                                !!o.positionLivePreview,
+                                                () => setO({ positionLivePreview: !o.positionLivePreview }),
+                                            )}
+                                        </ConfigSection>
                                     </>
                                 );
                             })()}
@@ -17947,6 +17888,7 @@ function WidgetFrameInner({
                             <SliderEditPanel
                                 config={config}
                                 onConfigChange={onConfigChange}
+                                mainDpField={renderMainDpField()}
                                 onOpenActionPicker={(idx) => {
                                     setSlActionIdx(idx);
                                     setPickerTarget('sl_action');
@@ -18854,166 +18796,138 @@ function WidgetFrameInner({
                                 };
                                 return (
                                     <>
-                                        <div>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Ist-Temperatur Datenpunkt
-                                                </label>
-                                                <button
-                                                    onClick={() => void autoFillThermostat()}
-                                                    className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
-                                                    style={{
-                                                        background:
-                                                            'color-mix(in srgb, var(--accent) 12%, transparent)',
-                                                        color: 'var(--accent)',
-                                                        border: '1px solid var(--accent)44',
-                                                    }}
-                                                >
-                                                    ✨ Auto-Erkennen
-                                                </button>
-                                            </div>
-                                            <div className="flex gap-1">
-                                                <input
-                                                    type="text"
-                                                    value={(o.actualDatapoint as string) ?? ''}
-                                                    onChange={(e) =>
-                                                        setO({ actualDatapoint: e.target.value || undefined })
-                                                    }
-                                                    placeholder="optional"
-                                                    className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
-                                                    style={tInputStyle}
-                                                />
-                                                <button
-                                                    onClick={() => setPickerTarget('actualDatapoint')}
-                                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        color: 'var(--text-secondary)',
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                    title="Aus ioBroker wählen"
-                                                >
-                                                    <Database size={13} />
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Min °C
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    max={30}
-                                                    step={1}
-                                                    value={(o.minTemp as number) ?? 10}
-                                                    onChange={(e) => setO({ minTemp: Number(e.target.value) })}
-                                                    className={tInputCls}
-                                                    style={tInputStyle}
-                                                />
-                                            </div>
-                                            <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Max °C
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    min={10}
-                                                    max={40}
-                                                    step={1}
-                                                    value={(o.maxTemp as number) ?? 30}
-                                                    onChange={(e) => setO({ maxTemp: Number(e.target.value) })}
-                                                    className={tInputCls}
-                                                    style={tInputStyle}
-                                                />
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Schrittweite
-                                            </label>
-                                            <select
-                                                value={(o.step as number) ?? 0.5}
-                                                onChange={(e) => setO({ step: Number(e.target.value) })}
-                                                className={tInputCls}
-                                                style={tInputStyle}
-                                            >
-                                                <option value={0.5}>0,5 °C</option>
-                                                <option value={1}>1 °C</option>
-                                                <option value={0.1}>0,1 °C</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Schnellwahl (mit ; getrennt)
-                                            </label>
-                                            <NumberListInput
-                                                value={(o.presets as number[]) ?? [18, 20, 22, 24]}
-                                                onChange={(presets) => setO({ presets })}
-                                                placeholder="18; 20; 21,5; 24"
-                                                className={tInputCls}
-                                                style={tInputStyle}
-                                            />
-                                        </div>
-                                        <ValueFormatRow
-                                            decimals={o.decimals as number | undefined}
-                                            numberFormat={o.numberFormat as NumberFormat | undefined}
-                                            onChange={setO}
-                                        />
-
-                                        {/* Sichtbare Felder */}
-                                        <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                        {[
-                                            { key: 'showSetpoint', label: 'Solltemperatur' },
-                                            { key: 'showActualTemp', label: 'Isttemperatur' },
-                                            { key: 'showControls', label: 'Tasten ±' },
-                                            { key: 'showPresets', label: 'Schnellwahl' },
-                                        ].map(({ key, label }) => {
-                                            const val = o[key] !== false;
-                                            return (
-                                                <div key={key} className="flex items-center justify-between">
-                                                    <span
+                                        <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                                            {renderMainDpField()}
+                                            <div>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <label
                                                         className="text-[11px]"
-                                                        style={{ color: 'var(--text-primary)' }}
+                                                        style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        {label}
-                                                    </span>
+                                                        Ist-Temperatur Datenpunkt
+                                                    </label>
                                                     <button
-                                                        onClick={() => setO({ [key]: !val })}
-                                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                        onClick={() => void autoFillThermostat()}
+                                                        className="text-[10px] px-2.5 py-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40"
                                                         style={{
-                                                            background: val ? 'var(--accent)' : 'var(--app-border)',
+                                                            background:
+                                                                'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                                            color: 'var(--accent)',
+                                                            border: '1px solid var(--accent)44',
                                                         }}
                                                     >
-                                                        <span
-                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                            style={{ left: val ? '14px' : '2px' }}
-                                                        />
+                                                        ✨ Auto-Erkennen
                                                     </button>
                                                 </div>
-                                            );
-                                        })}
-
+                                                <div className="flex gap-1">
+                                                    <input
+                                                        type="text"
+                                                        value={(o.actualDatapoint as string) ?? ''}
+                                                        onChange={(e) =>
+                                                            setO({ actualDatapoint: e.target.value || undefined })
+                                                        }
+                                                        placeholder="optional"
+                                                        className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
+                                                        style={tInputStyle}
+                                                    />
+                                                    <button
+                                                        onClick={() => setPickerTarget('actualDatapoint')}
+                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-secondary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                        title="Aus ioBroker wählen"
+                                                    >
+                                                        <Database size={13} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </ConfigSection>
+                                        <ConfigSection title="Bereich & Format" sectionKey="range">
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Min °C
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        max={30}
+                                                        step={1}
+                                                        value={(o.minTemp as number) ?? 10}
+                                                        onChange={(e) => setO({ minTemp: Number(e.target.value) })}
+                                                        className={tInputCls}
+                                                        style={tInputStyle}
+                                                    />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Max °C
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={10}
+                                                        max={40}
+                                                        step={1}
+                                                        value={(o.maxTemp as number) ?? 30}
+                                                        onChange={(e) => setO({ maxTemp: Number(e.target.value) })}
+                                                        className={tInputCls}
+                                                        style={tInputStyle}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Schrittweite
+                                                </label>
+                                                <select
+                                                    value={(o.step as number) ?? 0.5}
+                                                    onChange={(e) => setO({ step: Number(e.target.value) })}
+                                                    className={tInputCls}
+                                                    style={tInputStyle}
+                                                >
+                                                    <option value={0.5}>0,5 °C</option>
+                                                    <option value={1}>1 °C</option>
+                                                    <option value={0.1}>0,1 °C</option>
+                                                </select>
+                                            </div>
+                                            <ValueFormatRow
+                                                decimals={o.decimals as number | undefined}
+                                                numberFormat={o.numberFormat as NumberFormat | undefined}
+                                                onChange={setO}
+                                            />
+                                        </ConfigSection>
+                                        <ConfigSection title="Schnellwahl" sectionKey="presets">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Schnellwahl (mit ; getrennt)
+                                                </label>
+                                                <NumberListInput
+                                                    value={(o.presets as number[]) ?? [18, 20, 22, 24]}
+                                                    onChange={(presets) => setO({ presets })}
+                                                    placeholder="18; 20; 21,5; 24"
+                                                    className={tInputCls}
+                                                    style={tInputStyle}
+                                                />
+                                            </div>
+                                        </ConfigSection>
                                         {/* ── Rundskala ── only meaningful for the dial layout */}
                                         {config.layout === 'dial' && (
-                                            <>
-                                                <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                            <ConfigSection title="Rundskala" sectionKey="dial">
                                                 <div className="flex items-center justify-between gap-2">
                                                     <label
                                                         className="text-[11px]"
@@ -19074,7 +18988,7 @@ function WidgetFrameInner({
                                                         })
                                                     }
                                                 />
-                                            </>
+                                            </ConfigSection>
                                         )}
                                     </>
                                 );

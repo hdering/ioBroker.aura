@@ -5,6 +5,9 @@ import { DatapointPicker } from '../config/DatapointPicker';
 import type { WidgetProps, WidgetConfig } from '../../types';
 import { TRASH_ICON_OPTIONS, ICON_MAP } from './TrashWidget';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { useT } from '../../i18n';
+import { ConfigSection } from '../config/ConfigSection';
+import { VisibleFieldsSection } from '../config/VisibleFieldsSection';
 
 // ── Data model from trashschedule JSON DP ─────────────────────────────────
 
@@ -528,6 +531,7 @@ export function TrashScheduleConfig({
     config: WidgetConfig;
     onConfigChange: (c: WidgetConfig) => void;
 }) {
+    const t = useT();
     const [showPicker, setShowPicker] = useState(false);
     const { value } = useDatapoint(config.datapoint);
 
@@ -572,222 +576,75 @@ export function TrashScheduleConfig({
                 />
             )}
 
-            <div className="space-y-4">
-                {/* ── Datenpunkt ── */}
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        Zeitplan-Datenpunkt (JSON-Array)
-                    </label>
-                    <div className="flex gap-1.5">
-                        <input
-                            type="text"
-                            value={config.datapoint}
-                            onChange={(e) => onConfigChange({ ...config, datapoint: e.target.value })}
-                            placeholder="z.B. trashschedule.0.json"
-                            className={`flex-1 ${iCls} font-mono min-w-0`}
-                            style={iSty}
-                        />
-                        <button
-                            onClick={() => setShowPicker(true)}
-                            className="px-2 rounded-lg shrink-0 hover:opacity-80 text-[11px]"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                            title="Aus ioBroker wählen"
-                        >
-                            <Database size={13} />
-                        </button>
-                    </div>
-                </div>
-
-                {/* ── Sichtbarkeit & Icon-Mapping ── */}
-                {liveEntries.length > 0 && (
-                    <div>
-                        <label className="text-[11px] mb-2 block" style={{ color: 'var(--text-secondary)' }}>
-                            Tonnen (aus aktuellem DP-Wert)
-                        </label>
-                        <div className="space-y-2">
-                            {liveEntries.map((entry) => {
-                                const curIcon = iconMap[entry.name] ?? 'Trash2';
-                                const color = entry._color ?? '#6b7280';
-                                const hidden = hiddenNames.includes(entry.name);
-                                return (
-                                    <div
-                                        key={entry.name}
-                                        className="rounded-xl p-3 space-y-2"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            border: '1px solid var(--app-border)',
-                                            opacity: hidden ? 0.5 : 1,
-                                        }}
+            <div className="space-y-2.5">
+                <VisibleFieldsSection
+                    collapsible
+                    values={o}
+                    onChange={setO}
+                    fields={[
+                        { key: 'showDot', label: 'Punkt', hidden: layout !== 'compact' },
+                        { key: 'showNames', label: 'Namen' },
+                        { key: 'showDays', label: 'Tage' },
+                        {
+                            key: 'showDate',
+                            label: 'Datum',
+                            children: (
+                                <div>
+                                    <label
+                                        className="text-[11px] mb-1 block"
+                                        style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        {/* Header: Icon-Kreis + Name + Sichtbarkeit-Toggle */}
-                                        <div className="flex items-center gap-2">
-                                            {(() => {
-                                                const PreviewIcon = ICON_MAP[curIcon] ?? Truck;
-                                                return (
-                                                    <div
-                                                        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
-                                                        style={{
-                                                            background: `${color}22`,
-                                                            border: `2px solid ${color}88`,
-                                                        }}
-                                                    >
-                                                        <PreviewIcon size={16} color={color} strokeWidth={1.5} />
-                                                    </div>
-                                                );
-                                            })()}
-                                            <span
-                                                className="text-xs font-medium flex-1 truncate"
-                                                style={{ color: 'var(--text-primary)' }}
-                                            >
-                                                {entry.name}
-                                            </span>
-                                            <span
-                                                className="text-[10px] mr-1"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                {formatDays(entry.daysLeft)}
-                                            </span>
-                                            <button
-                                                onClick={() => toggleHidden(entry.name)}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{ background: hidden ? 'var(--app-border)' : 'var(--accent)' }}
-                                                title={hidden ? 'Einblenden' : 'Ausblenden'}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: hidden ? '2px' : '18px' }}
-                                                />
-                                            </button>
-                                        </div>
+                                        Datumsformat
+                                    </label>
+                                    <select
+                                        value={dateFormat}
+                                        onChange={(e) => setO({ dateFormat: e.target.value })}
+                                        className={iCls}
+                                        style={{ ...iSty, cursor: 'pointer' }}
+                                    >
+                                        <option value="dd.MM.">dd.MM. (z.B. 17.05.)</option>
+                                        <option value="dd.MM.yyyy">dd.MM.yyyy (z.B. 17.05.2025)</option>
+                                        <option value="EE dd.MM.">EE dd.MM. (z.B. Sa 17.05.)</option>
+                                    </select>
+                                </div>
+                            ),
+                        },
+                    ]}
+                />
 
-                                        {/* Icon-Picker */}
-                                        {!hidden && (
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1.5 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Icon
-                                                </label>
-                                                <div className="grid grid-cols-7 gap-1">
-                                                    {TRASH_ICON_OPTIONS.map((opt) => {
-                                                        const Ic = ICON_MAP[opt.name] ?? Truck;
-                                                        const selected = curIcon === opt.name;
-                                                        return (
-                                                            <button
-                                                                key={opt.name}
-                                                                title={opt.label}
-                                                                onClick={() => setIcon(entry.name, opt.name)}
-                                                                className="aspect-square flex items-center justify-center rounded-lg transition-colors"
-                                                                style={{
-                                                                    background: selected
-                                                                        ? `${color}30`
-                                                                        : 'var(--widget-bg)',
-                                                                    border: selected
-                                                                        ? `2px solid ${color}`
-                                                                        : '1px solid var(--app-border)',
-                                                                }}
-                                                            >
-                                                                <Ic
-                                                                    size={15}
-                                                                    color={selected ? color : 'var(--text-secondary)'}
-                                                                    strokeWidth={1.5}
-                                                                />
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {config.datapoint && liveEntries.length === 0 && (
-                    <p className="text-[11px] text-center py-2" style={{ color: 'var(--text-secondary)' }}>
-                        Warte auf DP-Wert…
-                    </p>
-                )}
-
-                {/* ── Anzeige-Optionen ── */}
-                <div className="space-y-2.5">
-                    <label className="text-[11px] mb-1 block font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        Anzeige-Optionen
-                    </label>
-
-                    {layout === 'compact' && (
-                        <div className="flex items-center justify-between">
-                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                Punkt anzeigen
-                            </label>
+                {/* ── Datenpunkt ── */}
+                <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Zeitplan-Datenpunkt (JSON-Array)
+                        </label>
+                        <div className="flex gap-1.5">
+                            <input
+                                type="text"
+                                value={config.datapoint}
+                                onChange={(e) => onConfigChange({ ...config, datapoint: e.target.value })}
+                                placeholder="z.B. trashschedule.0.json"
+                                className={`flex-1 ${iCls} font-mono min-w-0`}
+                                style={iSty}
+                            />
                             <button
-                                onClick={() => setO({ showDot: !showDot })}
-                                className="relative w-9 h-5 rounded-full transition-colors"
-                                style={{ background: showDot ? 'var(--accent)' : 'var(--app-border)' }}
+                                onClick={() => setShowPicker(true)}
+                                className="px-2 rounded-lg shrink-0 hover:opacity-80 text-[11px]"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                                title="Aus ioBroker wählen"
                             >
-                                <span
-                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: showDot ? '18px' : '2px' }}
-                                />
+                                <Database size={13} />
                             </button>
                         </div>
-                    )}
-
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Namen anzeigen
-                        </label>
-                        <button
-                            onClick={() => setO({ showNames: !showNames })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: showNames ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: showNames ? '18px' : '2px' }}
-                            />
-                        </button>
                     </div>
+                </ConfigSection>
 
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Tage anzeigen
-                        </label>
-                        <button
-                            onClick={() => setO({ showDays: !showDays })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: showDays ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: showDays ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Datum anzeigen
-                        </label>
-                        <button
-                            onClick={() => setO({ showDate: !showDate })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: showDate ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: showDate ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-
+                {/* ── Sichtbarkeit & Icon-Mapping ── */}
+                <ConfigSection title="Tonnen" sectionKey="bins">
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             Max. Anzahl Einträge (0 = alle)
@@ -803,31 +660,126 @@ export function TrashScheduleConfig({
                         />
                     </div>
 
-                    {showDate && (
+                    {liveEntries.length > 0 && (
                         <div>
-                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                Datumsformat
+                            <label className="text-[11px] mb-2 block" style={{ color: 'var(--text-secondary)' }}>
+                                Tonnen (aus aktuellem DP-Wert)
                             </label>
-                            <select
-                                value={dateFormat}
-                                onChange={(e) => setO({ dateFormat: e.target.value })}
-                                className={iCls}
-                                style={{ ...iSty, cursor: 'pointer' }}
-                            >
-                                <option value="dd.MM.">dd.MM. (z.B. 17.05.)</option>
-                                <option value="dd.MM.yyyy">dd.MM.yyyy (z.B. 17.05.2025)</option>
-                                <option value="EE dd.MM.">EE dd.MM. (z.B. Sa 17.05.)</option>
-                            </select>
+                            <div className="space-y-2">
+                                {liveEntries.map((entry) => {
+                                    const curIcon = iconMap[entry.name] ?? 'Trash2';
+                                    const color = entry._color ?? '#6b7280';
+                                    const hidden = hiddenNames.includes(entry.name);
+                                    return (
+                                        <div
+                                            key={entry.name}
+                                            className="rounded-xl p-3 space-y-2"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                border: '1px solid var(--app-border)',
+                                                opacity: hidden ? 0.5 : 1,
+                                            }}
+                                        >
+                                            {/* Header: Icon-Kreis + Name + Sichtbarkeit-Toggle */}
+                                            <div className="flex items-center gap-2">
+                                                {(() => {
+                                                    const PreviewIcon = ICON_MAP[curIcon] ?? Truck;
+                                                    return (
+                                                        <div
+                                                            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+                                                            style={{
+                                                                background: `${color}22`,
+                                                                border: `2px solid ${color}88`,
+                                                            }}
+                                                        >
+                                                            <PreviewIcon size={16} color={color} strokeWidth={1.5} />
+                                                        </div>
+                                                    );
+                                                })()}
+                                                <span
+                                                    className="text-xs font-medium flex-1 truncate"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {entry.name}
+                                                </span>
+                                                <span
+                                                    className="text-[10px] mr-1"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {formatDays(entry.daysLeft)}
+                                                </span>
+                                                <button
+                                                    onClick={() => toggleHidden(entry.name)}
+                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                    style={{
+                                                        background: hidden ? 'var(--app-border)' : 'var(--accent)',
+                                                    }}
+                                                    title={hidden ? 'Einblenden' : 'Ausblenden'}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: hidden ? '2px' : '18px' }}
+                                                    />
+                                                </button>
+                                            </div>
+
+                                            {/* Icon-Picker */}
+                                            {!hidden && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1.5 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Icon
+                                                    </label>
+                                                    <div className="grid grid-cols-7 gap-1">
+                                                        {TRASH_ICON_OPTIONS.map((opt) => {
+                                                            const Ic = ICON_MAP[opt.name] ?? Truck;
+                                                            const selected = curIcon === opt.name;
+                                                            return (
+                                                                <button
+                                                                    key={opt.name}
+                                                                    title={opt.label}
+                                                                    onClick={() => setIcon(entry.name, opt.name)}
+                                                                    className="aspect-square flex items-center justify-center rounded-lg transition-colors"
+                                                                    style={{
+                                                                        background: selected
+                                                                            ? `${color}30`
+                                                                            : 'var(--widget-bg)',
+                                                                        border: selected
+                                                                            ? `2px solid ${color}`
+                                                                            : '1px solid var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    <Ic
+                                                                        size={15}
+                                                                        color={
+                                                                            selected ? color : 'var(--text-secondary)'
+                                                                        }
+                                                                        strokeWidth={1.5}
+                                                                    />
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     )}
-                </div>
+
+                    {config.datapoint && liveEntries.length === 0 && (
+                        <p className="text-[11px] text-center py-2" style={{ color: 'var(--text-secondary)' }}>
+                            Warte auf DP-Wert…
+                        </p>
+                    )}
+                </ConfigSection>
 
                 {/* ── Icon-Größen ── */}
-                <div className="space-y-2.5">
-                    <label className="text-[11px] mb-1 block font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        Icon-Größen
-                    </label>
-
+                <ConfigSection title="Icon-Größen" sectionKey="iconsizes">
                     <div>
                         <div className="flex items-center justify-between mb-1">
                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
@@ -890,17 +842,11 @@ export function TrashScheduleConfig({
                             />
                         </div>
                     )}
-                </div>
+                </ConfigSection>
 
                 {/* ── Textgrößen ── */}
                 {(showNames || showDays || showDate) && (
-                    <div className="space-y-2.5">
-                        <label
-                            className="text-[11px] mb-1 block font-medium"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            Textgrößen
-                        </label>
+                    <ConfigSection title="Textgrößen" sectionKey="textsizes">
                         {showNames && (
                             <div>
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -949,7 +895,7 @@ export function TrashScheduleConfig({
                                 />
                             </div>
                         )}
-                    </div>
+                    </ConfigSection>
                 )}
             </div>
         </>

@@ -146,6 +146,12 @@ const bodyText = (sel) =>
     await page.locator('button:text-is("Bearbeiten")').click();
     const dlg = page.locator('.aura-widget-edit-modal');
     await dlg.waitFor({ timeout: 10000 });
+    // The settings sit in folded sections - unfold them all.
+    await page.evaluate(() =>
+        document
+            .querySelectorAll('.aura-widget-edit-modal details[data-aura-config-section]')
+            .forEach((d) => (d.open = true)),
+    );
 
     // Two switches next to Bild/HTML/Icons, each revealing its own fields (follow-up to #697).
     const cards = dlg.locator('div:has(> div > label > span:text-is("Datum/Zeit"))');
