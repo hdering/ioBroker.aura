@@ -8,7 +8,11 @@ import type {
     MapQuickView,
     MapChipsPosition,
     MapChipsCorner,
+    MapLine,
+    MapLineSource,
+    MapLineInfoMode,
 } from '../widgets/MapWidget';
+import type { RouteProfile } from '../../utils/mapTrack';
 
 const MAP_STYLES: { value: MapStyle; label: string }[] = [
     { value: 'standard', label: 'Karte' },
@@ -23,7 +27,21 @@ interface Props {
     onPickMarkerDp: (idx: number, field: 'jsonDp' | 'latDp' | 'lonDp') => void;
     /** Opens the shared datapoint picker for a quick-access chip's lat/lon/json field. */
     onPickQuickViewDp: (idx: number, field: 'jsonDp' | 'latDp' | 'lonDp') => void;
+    /** Opens the shared datapoint picker for a line's datapoint. */
+    onPickLineDp: (idx: number) => void;
 }
+
+const LINE_SOURCES: { value: MapLineSource; label: string }[] = [
+    { value: 'route', label: 'Route zwischen zwei Markern' },
+    { value: 'json', label: 'Strecke aus JSON-DP (Punkteliste)' },
+    { value: 'history', label: 'Strecke aus Verlauf eines Positions-DPs' },
+];
+
+const ROUTE_PROFILES: { value: RouteProfile; label: string }[] = [
+    { value: 'car', label: 'Auto' },
+    { value: 'bike', label: 'Fahrrad' },
+    { value: 'foot', label: 'Zu Fuß' },
+];
 
 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const iSty: React.CSSProperties = {
@@ -105,7 +123,7 @@ function DpField({
     );
 }
 
-export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickViewDp }: Props) {
+export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickViewDp, onPickLineDp }: Props) {
     const o = config.options ?? {};
     const markers: MapMarker[] = Array.isArray(o.markers) ? (o.markers as MapMarker[]) : [];
 
@@ -136,6 +154,24 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
     const addQuickView = () =>
         setQuickViews([...quickViews, { id: genId(), mode: 'static', label: '', emoji: '📍', color: '#2563eb' }]);
     const removeQuickView = (idx: number) => setQuickViews(quickViews.filter((_, i) => i !== idx));
+
+    const lines: MapLine[] = Array.isArray(o.lines) ? (o.lines as MapLine[]) : [];
+    const setLines = (next: MapLine[]) => set({ lines: next.length ? next : undefined });
+    const patchLine = (idx: number, patch: Partial<MapLine>) =>
+        setLines(lines.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
+    const addLine = () =>
+        setLines([
+            ...lines,
+            {
+                id: genId(),
+                source: 'route',
+                fromMarkerId: markers[0]?.id,
+                toMarkerId: markers[1]?.id,
+            },
+        ]);
+    const removeLine = (idx: number) => setLines(lines.filter((_, i) => i !== idx));
+    const lineInfo: MapLineInfoMode = (o.lineInfo as MapLineInfoMode | undefined) ?? 'bottom-left';
+    const numOrUndef = (v: string) => (v === '' ? undefined : Number(v));
 
     // Runtime map-type switcher. An empty `styleChoices` means "offer all types",
     // which is why the option is stored as undefined once nothing is picked.
@@ -399,6 +435,307 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                         </div>
                     ))}
                 </div>
+            </div>
+
+            {/* ── Lines: routes + recorded tracks ── */}
+            <div>
+                <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-[11px] font-medium" style={lblSty}>
+                        Linien ({lines.length})
+                    </label>
+                    <button
+                        type="button"
+                        onClick={addLine}
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] hover:opacity-80"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                        data-aura-map-add-line
+                    >
+                        <Plus size={12} /> Linie
+                    </button>
+                </div>
+
+                {lines.length === 0 ? (
+                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        Route zwischen zwei Markern (z.B. Zuhause → Tankstelle) oder eine aufgezeichnete Strecke aus
+                        einem Datenpunkt.
+                    </p>
+                ) : (
+                    <>
+                        <div className="mb-2">
+                            <label className={lblCls} style={lblSty}>
+                                Infokasten mit Länge
+                            </label>
+                            <select
+                                value={lineInfo}
+                                onChange={(e) =>
+                                    set({
+                                        lineInfo:
+                                            e.target.value === 'bottom-left'
+                                                ? undefined
+                                                : (e.target.value as MapLineInfoMode),
+                                    })
+                                }
+                                className={iCls}
+                                style={iSty}
+                            >
+                                {CORNER_LABELS.map((c) => (
+                                    <option key={c.value} value={c.value}>
+                                        {c.label}
+                                    </option>
+                                ))}
+                                <option value="off">Ausblenden</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            {lines.map((l, idx) => (
+                                <div
+                                    key={l.id}
+                                    className="rounded-lg p-2 space-y-2"
+                                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                                >
+                                    <div className="flex gap-1 items-center">
+                                        <input
+                                            type="text"
+                                            value={l.label ?? ''}
+                                            onChange={(e) => patchLine(idx, { label: e.target.value || undefined })}
+                                            placeholder="Bezeichnung (optional)"
+                                            className={`${iCls} flex-1 min-w-0`}
+                                            style={iSty}
+                                        />
+                                        <ColorPicker
+                                            value={l.color ?? (l.source === 'route' ? '#2563eb' : '#e11d48')}
+                                            onChange={(v) => patchLine(idx, { color: v })}
+                                            className="w-8 h-8 rounded-lg cursor-pointer shrink-0"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                            title="Linienfarbe"
+                                        />
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={12}
+                                            value={l.width ?? ''}
+                                            onChange={(e) => patchLine(idx, { width: numOrUndef(e.target.value) })}
+                                            placeholder="4"
+                                            className="w-12 text-xs rounded-lg px-1.5 py-2 focus:outline-none shrink-0"
+                                            style={iSty}
+                                            title="Linienstärke (px)"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => removeLine(idx)}
+                                            className="p-1.5 rounded-lg hover:opacity-80 shrink-0"
+                                            style={{ color: 'var(--danger, #ef4444)' }}
+                                            title="Linie entfernen"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+
+                                    <select
+                                        value={l.source}
+                                        onChange={(e) => patchLine(idx, { source: e.target.value as MapLineSource })}
+                                        className={iCls}
+                                        style={iSty}
+                                    >
+                                        {LINE_SOURCES.map((opt) => (
+                                            <option key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {l.source === 'route' && (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-1">
+                                                {(['fromMarkerId', 'toMarkerId'] as const).map((field) => (
+                                                    <div key={field}>
+                                                        <label className={lblCls} style={lblSty}>
+                                                            {field === 'fromMarkerId' ? 'Start' : 'Ziel'}
+                                                        </label>
+                                                        <select
+                                                            value={l[field] ?? ''}
+                                                            onChange={(e) =>
+                                                                patchLine(idx, { [field]: e.target.value || undefined })
+                                                            }
+                                                            className={iCls}
+                                                            style={iSty}
+                                                        >
+                                                            <option value="">– Marker –</option>
+                                                            {markers.map((m) => (
+                                                                <option key={m.id} value={m.id}>
+                                                                    {m.label || m.id}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div>
+                                                <label className={lblCls} style={lblSty}>
+                                                    Fortbewegung
+                                                </label>
+                                                <select
+                                                    value={l.profile ?? 'car'}
+                                                    onChange={(e) =>
+                                                        patchLine(idx, {
+                                                            profile:
+                                                                e.target.value === 'car'
+                                                                    ? undefined
+                                                                    : (e.target.value as RouteProfile),
+                                                        })
+                                                    }
+                                                    className={iCls}
+                                                    style={iSty}
+                                                >
+                                                    {ROUTE_PROFILES.map((p) => (
+                                                        <option key={p.value} value={p.value}>
+                                                            {p.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <p
+                                                className="text-[10px]"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                            >
+                                                Berechnet über OpenStreetMap (OSRM, FOSSGIS) entlang der Straßen. Bewegt
+                                                sich ein Marker, wird die Route höchstens alle 30 s neu berechnet.
+                                            </p>
+                                        </>
+                                    )}
+
+                                    {(l.source === 'json' || l.source === 'history') && (
+                                        <>
+                                            <DpField
+                                                value={l.dp ?? ''}
+                                                placeholder={
+                                                    l.source === 'json'
+                                                        ? 'DP mit Punkteliste (JSON)'
+                                                        : 'Positions-DP mit Verlauf'
+                                                }
+                                                onChange={(v) => patchLine(idx, { dp: v || undefined })}
+                                                onPick={() => onPickLineDp(idx)}
+                                            />
+                                            <p
+                                                className="text-[10px]"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                            >
+                                                {l.source === 'json'
+                                                    ? 'Liste von Punkten ({ "lat", "lon", "timestamp", "speed", "accuracy" }), auch unter "points" in einem Objekt mit "name"/"lineColor", oder GeoJSON.'
+                                                    : 'DP mit Position als JSON-Objekt oder "lat,lon" und aktivem History-/InfluxDB-/SQL-Adapter.'}
+                                            </p>
+                                            {l.source === 'json' && (
+                                                <input
+                                                    type="text"
+                                                    value={l.pointsPath ?? ''}
+                                                    onChange={(e) =>
+                                                        patchLine(idx, { pointsPath: e.target.value || undefined })
+                                                    }
+                                                    placeholder="Pfad zur Liste (leer = automatisch)"
+                                                    className={`${iCls} font-mono`}
+                                                    style={iSty}
+                                                />
+                                            )}
+                                            <div className="grid grid-cols-2 gap-1">
+                                                <input
+                                                    type="text"
+                                                    value={l.latPath ?? ''}
+                                                    onChange={(e) =>
+                                                        patchLine(idx, { latPath: e.target.value || undefined })
+                                                    }
+                                                    placeholder="Lat-Schlüssel (auto)"
+                                                    className={`${iCls} font-mono`}
+                                                    style={iSty}
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={l.lonPath ?? ''}
+                                                    onChange={(e) =>
+                                                        patchLine(idx, { lonPath: e.target.value || undefined })
+                                                    }
+                                                    placeholder="Lon-Schlüssel (auto)"
+                                                    className={`${iCls} font-mono`}
+                                                    style={iSty}
+                                                />
+                                            </div>
+                                            {l.source === 'history' && (
+                                                <>
+                                                    <div className="grid grid-cols-2 gap-1">
+                                                        <div>
+                                                            <label className={lblCls} style={lblSty}>
+                                                                Zeitraum (Stunden)
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                min={1}
+                                                                value={l.historyHours ?? ''}
+                                                                onChange={(e) =>
+                                                                    patchLine(idx, {
+                                                                        historyHours: numOrUndef(e.target.value),
+                                                                    })
+                                                                }
+                                                                placeholder="24"
+                                                                className={iCls}
+                                                                style={iSty}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className={lblCls} style={lblSty}>
+                                                                Max. Punkte
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                min={2}
+                                                                value={l.maxPoints ?? ''}
+                                                                onChange={(e) =>
+                                                                    patchLine(idx, {
+                                                                        maxPoints: numOrUndef(e.target.value),
+                                                                    })
+                                                                }
+                                                                placeholder="500"
+                                                                className={iCls}
+                                                                style={iSty}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={l.historyInstance ?? ''}
+                                                        onChange={(e) =>
+                                                            patchLine(idx, {
+                                                                historyInstance: e.target.value.trim() || undefined,
+                                                            })
+                                                        }
+                                                        placeholder="History-Instanz (leer = automatisch, z.B. history.0)"
+                                                        className={`${iCls} font-mono`}
+                                                        style={iSty}
+                                                    />
+                                                </>
+                                            )}
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label className="text-[11px]" style={lblSty}>
+                                                    Einzelne Punkte anzeigen (Klick: Zeit, Tempo, Genauigkeit)
+                                                </label>
+                                                <Toggle
+                                                    value={l.showPoints === true}
+                                                    onToggle={() =>
+                                                        patchLine(idx, {
+                                                            showPoints: l.showPoints === true ? undefined : true,
+                                                        })
+                                                    }
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
 
             {/* ── Quick-access chips ── */}

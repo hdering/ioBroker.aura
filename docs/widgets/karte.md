@@ -73,3 +73,33 @@ Pro Chip zusätzlich:
 | `quickViews` | `[]` | Liste der `MapQuickView` |
 | `chipsPosition` | `overlay` | `overlay` (über der Karte) · `below` (darunter) |
 | `chipsCorner` | `top-right` | Ecke bei `overlay`: `top-left` · `top-right` · `bottom-left` · `bottom-right` |
+
+### Linien: Routen & Strecken
+
+Linien (`lines`) zeichnen eine berechnete Route zwischen zwei Markern oder eine aufgezeichnete Strecke. Ein Infokasten zeigt Name, Länge und bei Routen die Fahrzeit. Mit `followMarkers` passt sich die Ansicht auch an die Linien an.
+
+![](./assets/karte/lines.png)
+
+| `source` | Felder | Quelle |
+| --- | --- | --- |
+| `route` | `fromMarkerId`, `toMarkerId`, `profile` | Route entlang der Straßen (OSRM, OpenStreetMap); `profile`: `car` · `bike` · `foot` |
+| `json` | `dp`, `pointsPath`, `latPath`, `lonPath` | DP mit Punkteliste, z.B. `{ "name", "lineColor", "points": [{ "lat", "lon", "timestamp", "speed", "accuracy" }] }`, auch GeoJSON |
+| `history` | `dp`, `historyInstance`, `historyHours`, `maxPoints`, `latPath`, `lonPath` | Verlauf eines Positions-DPs (JSON oder `"lat,lon"`) aus History/InfluxDB/SQL |
+
+Pro Linie zusätzlich:
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `label` | Name aus dem DP bzw. `Start → Ziel` | Name im Infokasten |
+| `color` | `lineColor` aus dem DP, sonst blau (Route) / rot (Strecke) | Linienfarbe |
+| `width` | `4` | Linienstärke in px |
+| `showPoints` | `false` | Punkt je Messung (`json`/`history`); Klick zeigt Zeit, Tempo, Genauigkeit |
+| `historyHours` | `24` | Zeitraum für `history` |
+| `maxPoints` | `500` | neueste Punkte für `history` |
+
+| Option | Standard | |
+| --- | --- | --- |
+| `lines` | `[]` | Liste der `MapLine` |
+| `lineInfo` | `bottom-left` | Ecke des Infokastens: `top-left` · `top-right` · `bottom-left` · `bottom-right` · `off` |
+
+Bewegt sich ein Marker, wird die Route höchstens alle 30 s neu berechnet.

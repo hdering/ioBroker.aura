@@ -1,11 +1,28 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { getHistoryDirect, getObjectDirect, isHistoryStubbed, useIoBroker } from '../../hooks/useIoBroker';
+import { detectHistoryAdapters } from '../../hooks/useChartHistory';
 import { useT, type TranslationKey } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { extractLatLon, geocodeAddress, haversineKm, formatDistance, type LatLon } from '../../utils/geo';
+import {
+    appendLivePoint,
+    fetchRoute,
+    formatDuration,
+    historyToTrack,
+    parseTrack,
+    routeKey,
+    trackBounds,
+    trackLengthKm,
+    normalizeProfile,
+    type RouteProfile,
+    type ParsedTrack,
+    type RouteResult,
+    type TrackPoint,
+} from '../../utils/mapTrack';
 
 export type MapMarkerMode = 'json' | 'latlon' | 'static' | 'address';
 
@@ -30,6 +47,47 @@ export interface MapMarker {
 }
 
 export type MapStyle = 'standard' | 'satellite' | 'terrain';
+
+/** Where a line's points come from: a route computed between two markers (#790),
+ *  a points list in a datapoint, or the history of a position datapoint (#410). */
+export type MapLineSource = 'route' | 'json' | 'history';
+
+/** A line drawn on the map — a computed route or a recorded track. */
+export interface MapLine {
+    id: string;
+    /** Name in the info box and tooltip (default: the track's name, or "start → end" for routes). */
+    label?: string;
+    source: MapLineSource;
+    /** Line colour (default: lineColor of the track value, else blue for routes and red for tracks). */
+    color?: string;
+    /** Stroke width in px (default 4). */
+    width?: number;
+    /** Route: start marker (id from `markers`). */
+    fromMarkerId?: string;
+    /** Route: end marker (id from `markers`). */
+    toMarkerId?: string;
+    /** Route: car, bike or foot (default car). */
+    profile?: RouteProfile;
+    /** json: DP holding the points list; history: the position DP whose history is drawn. */
+    dp?: string;
+    /** json: path to the points array inside the DP value (auto-detected when empty). */
+    pointsPath?: string;
+    /** json/history: key of the latitude inside each point (auto-detected when empty). */
+    latPath?: string;
+    /** json/history: key of the longitude inside each point (auto-detected when empty). */
+    lonPath?: string;
+    /** history: adapter instance (first logging adapter of the DP when empty). */
+    historyInstance?: string;
+    /** history: time window in hours (default 24). */
+    historyHours?: number;
+    /** history: newest N points at most (default 500). */
+    maxPoints?: number;
+    /** Draw a dot per recorded point; tapping it shows time, speed and accuracy. */
+    showPoints?: boolean;
+}
+
+/** Corner of the line info box (name, length, travel time), or 'off'. */
+export type MapLineInfoMode = 'off' | MapChipsCorner;
 
 /** A quick-access chip that recenters the map on a configured position.
  *  The target position resolves the same way a marker does (JSON DP, two DPs,
@@ -93,6 +151,9 @@ interface MapOptions {
     styleChipsCorner?: MapChipsCorner;
     /** Which types the switcher offers; unset or empty offers all presets. */
     styleChoices?: MapStyle[];
+    lines?: MapLine[];
+    /** Corner of the box listing each line's length (default bottom-left), or 'off'. */
+    lineInfo?: MapLineInfoMode;
 }
 
 /** Free tile presets (no API key required). */
@@ -271,6 +332,254 @@ function MarkerLayer({
                 </Tooltip>
             )}
         </Marker>
+    );
+}
+
+// ── Lines: computed routes (#790) and recorded tracks (#410) ─────────────────
+
+/** What a line reports upward: the info-box row and the corners for auto-fit. */
+interface LineInfo {
+    label: string;
+    color: string;
+    km: number | null;
+    durationMin?: number;
+    bounds: [LatLon, LatLon] | null;
+}
+
+const ROUTE_COLOR = '#2563eb';
+const TRACK_COLOR = '#e11d48';
+/** A moving start/end marker re-requests its route at most this often. */
+const ROUTE_REFRESH_MS = 30_000;
+/** Recorded history is re-read this often so the time window keeps sliding. */
+const HISTORY_REFRESH_MS = 5 * 60_000;
+/** More dots than this are thinned out — the line itself always keeps every point. */
+const MAX_DOTS = 1000;
+const EMPTY_TRACK: ParsedTrack = { points: [] };
+
+/** Route between two resolved positions, throttled for moving markers. */
+function useRoute(from: LatLon | null, to: LatLon | null, profile: RouteProfile): RouteResult | null {
+    const [route, setRoute] = useState<RouteResult | null>(null);
+    const [lastFetch, setLastFetch] = useState(0);
+    const key = from && to ? routeKey(from, to, profile) : '';
+    useEffect(() => {
+        if (!from || !to) {
+            setRoute(null);
+            return;
+        }
+        let cancelled = false;
+        // Short debounce for edits, the refresh gap for markers that keep moving.
+        const wait = Math.max(600, lastFetch + ROUTE_REFRESH_MS - Date.now());
+        const handle = setTimeout(() => {
+            setLastFetch(Date.now());
+            void fetchRoute(from, to, profile).then((r) => {
+                if (!cancelled) setRoute(r);
+            });
+        }, wait);
+        return () => {
+            cancelled = true;
+            clearTimeout(handle);
+        };
+        // `from`/`to` are read fresh at fire time; the rounded key decides when to re-route.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key]);
+    return route;
+}
+
+/** History of a position DP as track points, plus the live value appended. */
+function useHistoryTrack(line: MapLine, enabled: boolean): TrackPoint[] {
+    const { connected: socketConnected } = useIoBroker();
+    // A stubbed history (screenshot harness) counts as connected, like the history table.
+    const connected = socketConnected || isHistoryStubbed();
+    const dp = enabled ? (line.dp ?? '').trim() : '';
+    const live = useDatapoint(dp);
+    const [detected, setDetected] = useState<string | undefined>();
+    const [rows, setRows] = useState<TrackPoint[]>([]);
+    const [tick, setTick] = useState(0);
+    const instance = line.historyInstance || detected;
+    const hours = Number.isFinite(line.historyHours) && (line.historyHours as number) > 0 ? line.historyHours! : 24;
+    const maxPoints = Number.isFinite(line.maxPoints) && (line.maxPoints as number) > 0 ? line.maxPoints! : 500;
+
+    useEffect(() => {
+        if (!dp || line.historyInstance) return;
+        let cancelled = false;
+        void getObjectDirect(dp).then((obj) => {
+            if (cancelled) return;
+            const custom = obj?.common?.custom as Record<string, { enabled?: boolean }> | undefined;
+            setDetected(custom ? detectHistoryAdapters(custom)[0]?.instance : undefined);
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [dp, line.historyInstance]);
+
+    useEffect(() => {
+        if (!dp) return;
+        const id = globalThis.setInterval(() => setTick((n) => n + 1), HISTORY_REFRESH_MS);
+        return () => clearInterval(id);
+    }, [dp]);
+
+    useEffect(() => {
+        if (!dp || !instance || !connected) {
+            setRows([]);
+            return;
+        }
+        let cancelled = false;
+        const end = Date.now();
+        void getHistoryDirect(dp, {
+            instance,
+            start: end - hours * 3_600_000,
+            end,
+            count: maxPoints,
+            aggregate: 'none',
+            returnNewestEntries: true,
+        }).then((entries) => {
+            if (!cancelled) setRows(historyToTrack(entries, line.latPath, line.lonPath));
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [dp, instance, connected, hours, maxPoints, line.latPath, line.lonPath, tick]);
+
+    const liveVal = live.state?.val;
+    const liveTs = live.state?.ts;
+    return useMemo(() => {
+        if (liveVal == null) return rows;
+        const [p] = historyToTrack([{ ts: liveTs ?? Date.now(), val: liveVal }], line.latPath, line.lonPath);
+        return appendLivePoint(rows, p ?? null);
+    }, [rows, liveVal, liveTs, line.latPath, line.lonPath]);
+}
+
+function sameInfo(a: LineInfo | undefined, b: LineInfo): boolean {
+    return !!a && JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** Time, speed and accuracy of one recorded point. */
+function PointPopup({ p }: { p: TrackPoint }) {
+    return (
+        <div style={{ fontSize: 12, lineHeight: 1.4 }}>
+            {p.ts !== undefined && <div style={{ fontWeight: 600 }}>{new Date(p.ts).toLocaleString()}</div>}
+            {p.speed !== undefined && <div>{Math.round(p.speed)} km/h</div>}
+            {p.accuracy !== undefined && <div>± {Math.round(p.accuracy)} m</div>}
+            <div style={{ opacity: 0.6 }}>
+                {p.pos[0].toFixed(5)}, {p.pos[1].toFixed(5)}
+            </div>
+        </div>
+    );
+}
+
+/** Resolves one line (route or track), draws it and reports its info upward.
+ *  Every hook runs for every source (with '' / disabled inputs) so switching the
+ *  source in the editor keeps the hook order stable. */
+function LineLayer({
+    line,
+    markers,
+    positions,
+    onInfo,
+}: {
+    line: MapLine;
+    markers: MapMarker[];
+    positions: Record<string, LatLon>;
+    onInfo: (id: string, info: LineInfo | null) => void;
+}) {
+    const source = line.source;
+    const from = source === 'route' && line.fromMarkerId ? (positions[line.fromMarkerId] ?? null) : null;
+    const to = source === 'route' && line.toMarkerId ? (positions[line.toMarkerId] ?? null) : null;
+    const route = useRoute(from, to, normalizeProfile(line.profile));
+
+    const jsonState = useDatapoint(source === 'json' ? (line.dp ?? '').trim() : '');
+    const parsed = useMemo<ParsedTrack>(
+        () =>
+            source === 'json'
+                ? parseTrack(jsonState.state?.val, line.pointsPath, line.latPath, line.lonPath)
+                : EMPTY_TRACK,
+        [source, jsonState.state?.val, line.pointsPath, line.latPath, line.lonPath],
+    );
+    const history = useHistoryTrack(line, source === 'history');
+
+    const track = useMemo<TrackPoint[]>(
+        () => (source === 'json' ? parsed.points : source === 'history' ? history : EMPTY_TRACK.points),
+        [source, parsed, history],
+    );
+    const hasEnds = !!from && !!to;
+    const coords = useMemo<LatLon[]>(
+        () => (source === 'route' ? (route && hasEnds ? route.coords : []) : track.map((p) => p.pos)),
+        [source, route, hasEnds, track],
+    );
+
+    const color = line.color || parsed.color || (source === 'route' ? ROUTE_COLOR : TRACK_COLOR);
+    const markerLabel = (id?: string) => markers.find((m) => m.id === id)?.label || '';
+    const label =
+        line.label ||
+        parsed.name ||
+        (source === 'route' && (line.fromMarkerId || line.toMarkerId)
+            ? `${markerLabel(line.fromMarkerId)} → ${markerLabel(line.toMarkerId)}`
+            : '');
+    const info = useMemo<LineInfo>(
+        () => ({
+            label,
+            color,
+            km: coords.length > 1 ? (source === 'route' && route ? route.distanceKm : trackLengthKm(coords)) : null,
+            durationMin: source === 'route' && route && coords.length > 1 ? route.durationMin : undefined,
+            bounds: trackBounds(coords),
+        }),
+        [label, color, coords, source, route],
+    );
+
+    useEffect(() => {
+        onInfo(line.id, info);
+    }, [line.id, info, onInfo]);
+    useEffect(() => () => onInfo(line.id, null), [line.id, onInfo]);
+
+    if (coords.length < 2 && !(line.showPoints && coords.length === 1)) return null;
+    const weight = Number.isFinite(line.width) && (line.width as number) > 0 ? (line.width as number) : 4;
+    const dots = line.showPoints && source !== 'route' ? track.slice(-MAX_DOTS) : [];
+    return (
+        <>
+            {coords.length > 1 && (
+                <Polyline
+                    positions={coords}
+                    pathOptions={{ color, weight, opacity: 0.85, lineJoin: 'round', lineCap: 'round' }}
+                    // Marker for tests: which line this path belongs to.
+                    eventHandlers={{
+                        add: (e) => (e.target as L.Polyline).getElement()?.setAttribute('data-aura-map-line', line.id),
+                    }}
+                >
+                    {label && (
+                        <Tooltip sticky>
+                            <div style={{ fontWeight: 600 }}>{label}</div>
+                            {info.km != null && <div>{formatDistance(info.km)}</div>}
+                        </Tooltip>
+                    )}
+                </Polyline>
+            )}
+            {dots.map((p, i) => (
+                <CircleMarker
+                    key={`${i}:${p.pos[0]},${p.pos[1]}`}
+                    center={p.pos}
+                    radius={i === dots.length - 1 ? 6 : 4}
+                    pathOptions={{ color: '#fff', weight: 1.5, fillColor: color, fillOpacity: 1 }}
+                >
+                    <Popup>
+                        <PointPopup p={p} />
+                    </Popup>
+                </CircleMarker>
+            ))}
+        </>
+    );
+}
+
+/** One row of the line info box: colour swatch, name, length and travel time. */
+function LineInfoRow({ info }: { info: LineInfo }) {
+    const parts = [
+        info.km != null ? formatDistance(info.km) : '…',
+        info.durationMin !== undefined ? formatDuration(info.durationMin) : '',
+    ].filter(Boolean);
+    return (
+        <div className="flex items-center gap-1.5 text-[11px] whitespace-nowrap" data-aura-map-line-info>
+            <span style={{ width: 12, height: 3, borderRadius: 2, background: info.color, flexShrink: 0 }} />
+            {info.label && <span className="truncate max-w-[140px] font-medium">{info.label}</span>}
+            <span style={{ color: 'var(--text-secondary)' }}>{parts.join(' · ')}</span>
+        </div>
     );
 }
 
@@ -598,6 +907,33 @@ export function MapWidget({ config, editMode }: WidgetProps) {
         });
     }, []);
 
+    // ── Lines (routes + tracks) ──
+    const lines = useMemo<MapLine[]>(() => (Array.isArray(o.lines) ? o.lines : []), [o.lines]);
+    const lineInfoCorner: MapLineInfoMode = o.lineInfo === 'off' ? 'off' : normalizeCorner(o.lineInfo, 'bottom-left');
+    const [lineInfos, setLineInfos] = useState<Record<string, LineInfo>>({});
+    const onLineInfo = useCallback((id: string, info: LineInfo | null) => {
+        setLineInfos((prev) => {
+            if (!info) {
+                if (!(id in prev)) return prev;
+                const next = { ...prev };
+                delete next[id];
+                return next;
+            }
+            return sameInfo(prev[id], info) ? prev : { ...prev, [id]: info };
+        });
+    }, []);
+    // Auto-fit covers the lines too: each contributes its bounding corners.
+    const fitPositions = useMemo<Record<string, LatLon>>(() => {
+        const out: Record<string, LatLon> = { ...positions };
+        for (const [id, info] of Object.entries(lineInfos)) {
+            if (!info.bounds) continue;
+            out[`line:${id}:sw`] = info.bounds[0];
+            out[`line:${id}:ne`] = info.bounds[1];
+        }
+        return out;
+    }, [positions, lineInfos]);
+    const infoRows = lines.map((l) => lineInfos[l.id]).filter((i): i is LineInfo => !!i && (i.km != null || !!i.label));
+
     const homePos = o.homeMarkerId ? (positions[o.homeMarkerId] ?? null) : null;
     // Coerce to finite values — a NaN center/zoom (e.g. from a half-edited config)
     // would put Leaflet into a broken NaN state.
@@ -666,8 +1002,11 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                         which can throw "infinite number of tiles" and crash the tree. */}
                     <TileLayer url={tileUrl} attribution={attribution} />
                     <ResizeHandler />
-                    <FollowMarkers positions={positions} enabled={followMarkers} maxZoom={followMaxZoom} />
+                    <FollowMarkers positions={fitPositions} enabled={followMarkers} maxZoom={followMaxZoom} />
                     <FlyToController target={flyTarget} />
+                    {lines.map((l) => (
+                        <LineLayer key={l.id} line={l} markers={markers} positions={positions} onInfo={onLineInfo} />
+                    ))}
                     {markers.map((m) => (
                         <MarkerLayer
                             key={m.id}
@@ -707,6 +1046,24 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                                     </div>
                                 ))}
                             </ChipRow>
+                        ) : null,
+                        infoRows.length > 0 && lineInfoCorner === corner ? (
+                            <div
+                                key="lines"
+                                className="flex flex-col gap-0.5 px-2 py-1 rounded-lg"
+                                style={{
+                                    pointerEvents: 'auto',
+                                    background: 'var(--widget-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,.25)',
+                                    maxWidth: '100%',
+                                }}
+                            >
+                                {infoRows.map((info, i) => (
+                                    <LineInfoRow key={i} info={info} />
+                                ))}
+                            </div>
                         ) : null,
                     ].filter(Boolean);
                     if (!rows.length) return null;

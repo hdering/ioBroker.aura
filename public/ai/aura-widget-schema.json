@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.83.2",
+    "auraVersion": "0.83.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -5891,6 +5891,105 @@
     "MapChipsCorner": {
       "type": "string",
       "enum": [
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right"
+      ]
+    },
+    "MapLine": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "label": {
+          "type": "string",
+          "description": "Name in the info box and tooltip (default: the track's name, or \"start → end\" for routes)."
+        },
+        "source": {
+          "type": "string",
+          "ref": "MapLineSource",
+          "required": true
+        },
+        "color": {
+          "type": "string",
+          "description": "Line colour (default: lineColor of the track value, else blue for routes and red for tracks).",
+          "color": true
+        },
+        "width": {
+          "type": "number",
+          "description": "Stroke width in px (default 4)."
+        },
+        "fromMarkerId": {
+          "type": "string",
+          "description": "Route: start marker (id from `markers`)."
+        },
+        "toMarkerId": {
+          "type": "string",
+          "description": "Route: end marker (id from `markers`)."
+        },
+        "profile": {
+          "type": "string",
+          "ref": "RouteProfile",
+          "description": "Route: car, bike or foot (default car)."
+        },
+        "dp": {
+          "type": "string",
+          "description": "json: DP holding the points list; history: the position DP whose history is drawn.",
+          "datapoint": true
+        },
+        "pointsPath": {
+          "type": "string",
+          "description": "json: path to the points array inside the DP value (auto-detected when empty)."
+        },
+        "latPath": {
+          "type": "string",
+          "description": "json/history: key of the latitude inside each point (auto-detected when empty)."
+        },
+        "lonPath": {
+          "type": "string",
+          "description": "json/history: key of the longitude inside each point (auto-detected when empty)."
+        },
+        "historyInstance": {
+          "type": "string",
+          "description": "history: adapter instance (first logging adapter of the DP when empty)."
+        },
+        "historyHours": {
+          "type": "number",
+          "description": "history: time window in hours (default 24)."
+        },
+        "maxPoints": {
+          "type": "number",
+          "description": "history: newest N points at most (default 500)."
+        },
+        "showPoints": {
+          "type": "boolean",
+          "description": "Draw a dot per recorded point; tapping it shows time, speed and accuracy."
+        }
+      }
+    },
+    "MapLineSource": {
+      "type": "string",
+      "enum": [
+        "route",
+        "json",
+        "history"
+      ]
+    },
+    "RouteProfile": {
+      "type": "string",
+      "enum": [
+        "car",
+        "bike",
+        "foot"
+      ]
+    },
+    "MapLineInfoMode": {
+      "type": "string",
+      "enum": [
+        "off",
         "top-left",
         "top-right",
         "bottom-left",
@@ -15012,6 +15111,19 @@
         "homeMarkerId": {
           "type": "string",
           "description": "Id der Markierung, die als Zuhause gilt."
+        },
+        "lineInfo": {
+          "type": "string",
+          "ref": "MapLineInfoMode",
+          "description": "Ecke des Infokastens mit Name, Länge und Fahrzeit je Linie (top-left|top-right|bottom-left|bottom-right), \"off\" blendet ihn aus. Standard bottom-left."
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "MapLine"
+          },
+          "description": "Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source \"route\" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source \"json\" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; \"name\"/\"lineColor\" im Wert werden übernommen). source \"history\" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit."
         },
         "mapStyle": {
           "type": "string",

@@ -6951,6 +6951,7 @@ function WidgetFrameInner({
         | 'weather_adapterPath'
         | 'map_marker'
         | 'map_quickview'
+        | 'map_line'
         | null
     >(null);
     const [imageFilePicker, setImageFilePicker] = useState(false);
@@ -6972,6 +6973,7 @@ function WidgetFrameInner({
         idx: 0,
         field: 'latDp',
     });
+    const [mapLinePickerIdx, setMapLinePickerIdx] = useState(0);
     const [mapQuickViewPicker, setMapQuickViewPicker] = useState<{ idx: number; field: 'jsonDp' | 'latDp' | 'lonDp' }>({
         idx: 0,
         field: 'latDp',
@@ -12676,6 +12678,10 @@ function WidgetFrameInner({
                                 onPickQuickViewDp={(idx, field) => {
                                     setMapQuickViewPicker({ idx, field });
                                     setPickerTarget('map_quickview');
+                                }}
+                                onPickLineDp={(idx) => {
+                                    setMapLinePickerIdx(idx);
+                                    setPickerTarget('map_line');
                                 }}
                             />
                         )}
@@ -20620,6 +20626,8 @@ function WidgetFrameInner({
                                         mapQuickViewPicker.field
                                     ] as string) ?? ''
                                 );
+                            case 'map_line':
+                                return at<{ dp?: string }>('lines', mapLinePickerIdx)?.dp ?? '';
                             case 'weather_adapterPath':
                                 return (opts.adapterLocationPath as string) ?? '';
                             case 'mp_dp':
@@ -20877,6 +20885,12 @@ function WidgetFrameInner({
                                     [mapQuickViewPicker.field]: id,
                                 };
                                 onConfigChange({ ...config, options: { ...config.options, quickViews: qv } });
+                            }
+                        } else if (pickerTarget === 'map_line') {
+                            const ln = [...((config.options?.lines as Array<Record<string, unknown>>) ?? [])];
+                            if (ln[mapLinePickerIdx]) {
+                                ln[mapLinePickerIdx] = { ...ln[mapLinePickerIdx], dp: id };
+                                onConfigChange({ ...config, options: { ...config.options, lines: ln } });
                             }
                         } else if (pickerTarget === 'sl_action') {
                             const acts = [...((config.options?.actions as Array<Record<string, unknown>>) ?? [])];

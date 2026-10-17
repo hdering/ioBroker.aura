@@ -7,3 +7,5 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Tab bar - a menu item next to left- or right-aligned tabs now only takes its own width instead of half the bar (#791)
+- Map - show a route along the roads between two markers, with distance and travel time (#790)
+- Map - draw recorded tracks from a JSON datapoint or from the history of a position datapoint, optionally with a dot per point showing time, speed and accuracy (#410)

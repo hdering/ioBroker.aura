@@ -1111,6 +1111,14 @@ export const WIDGET_OPTION_NOTES = {
         chipsPosition: { description: 'Wo die Chips über der Karte liegen.' },
         chipsCorner: { description: 'In welcher Ecke die Chips liegen.' },
         styleChipsCorner: { description: 'In welcher Ecke die Stil-Umschalter liegen.' },
+        lines: {
+            description:
+                'Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source "route" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source "json" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; "name"/"lineColor" im Wert werden übernommen). source "history" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit.',
+        },
+        lineInfo: {
+            description:
+                'Ecke des Infokastens mit Name, Länge und Fahrzeit je Linie (top-left|top-right|bottom-left|bottom-right), "off" blendet ihn aus. Standard bottom-left.',
+        },
     },
     alarm: {
         alarmPrefix: { description: 'Objektpfad der Alarmanlage, z. B. "alarm.0".' },
