@@ -141,7 +141,13 @@ import type {
     WidgetLayout,
     ShutterPreset,
 } from '../../types';
-import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
+import {
+    DEFAULT_CUSTOM_GRID,
+    DEFAULT_UNIVERSAL_GRID,
+    normalizeGrid,
+    GRID_LINE_MAX,
+    gridLineWidth,
+} from '../widgets/CustomGridView';
 import {
     deleteGridCol,
     deleteGridRow,
@@ -19633,6 +19639,30 @@ function WidgetFrameInner({
                                                                     Reset
                                                                 </button>
                                                             )}
+                                                            <input
+                                                                type="number"
+                                                                min={1}
+                                                                max={GRID_LINE_MAX}
+                                                                step={1}
+                                                                value={gridLineWidth(grid.lineWidth)}
+                                                                onChange={(e) => {
+                                                                    const w = gridLineWidth(Number(e.target.value));
+                                                                    writeGrid({
+                                                                        ...grid,
+                                                                        lineWidth: w > 1 ? w : undefined,
+                                                                    });
+                                                                }}
+                                                                title={t('wf.edit.custom.lineWidth')}
+                                                                aria-label={t('wf.edit.custom.lineWidth')}
+                                                                className={inputCls}
+                                                                style={{ ...inputSty, width: 56 }}
+                                                            />
+                                                            <span
+                                                                className="text-[11px]"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                px
+                                                            </span>
                                                         </div>
                                                     )}
                                                 </div>

@@ -1368,6 +1368,10 @@
           "type": "string",
           "description": "colour of the vLines/hLines, any CSS colour; unset = theme border colour (--widget-border)",
           "color": true
+        },
+        "lineWidth": {
+          "type": "number",
+          "description": "thickness of the vLines/hLines in px, 1..10, default 1; above 2 px the gap between the cells widens to the line width"
         }
       }
     },

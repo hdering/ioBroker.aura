@@ -1335,6 +1335,7 @@ export const de = {
     'wf.edit.custom.vLines': 'Senkrechte Linien',
     'wf.edit.custom.hLines': 'Waagerechte Linien',
     'wf.edit.custom.lineColor': 'Linienfarbe (leer = Rahmenfarbe des Themes)',
+    'wf.edit.custom.lineWidth': 'Linienstärke in px',
     'wf.edit.layout.unknown':
         'Gespeichert ist „{layout}“ — diesen Stil gibt es hier nicht, angezeigt wird der Standard.',
 

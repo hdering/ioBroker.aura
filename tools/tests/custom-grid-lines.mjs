@@ -114,6 +114,35 @@ check('three horizontal segments between the rows', hs.length === 3, JSON.string
 const span = hs.length ? Math.max(...hs.map((x) => x.x + x.w)) - Math.min(...hs.map((x) => x.x)) : 0;
 check('horizontal line runs the full width', Math.abs(span - (top.x + top.w - top.x)) < 1.5, `${span} vs ${top.w}`);
 
+// Thickness: 4 px lines widen the gaps to 4 px and never overlap a cell.
+await box.locator('input[aria-label="Linienstärke in px"]').fill('4');
+await page.waitForTimeout(300);
+g = await grid();
+check('lineWidth stored', g?.lineWidth === 4, JSON.stringify(g?.lineWidth));
+{
+    const gaps = await page.evaluate(() => {
+        const cs = getComputedStyle(document.querySelector('.aura-widget-gl1 .aura-custom-grid'));
+        return [cs.columnGap, cs.rowGap];
+    });
+    check('gaps widen to the line width', gaps[0] === '4px' && gaps[1] === '4px', gaps.join(' / '));
+    const s4 = await segs();
+    const cb4 = await cellBoxes();
+    const a4 = cb4.find((c) => c.text === 'a');
+    const b4 = cb4.find((c) => c.text === 'b');
+    const vs = s4.filter((x) => x.w === 4 && x.h > 4).sort((p, q) => p.x - q.x);
+    const hs4 = s4.filter((x) => x.h === 4 && x.w > 4);
+    check('segments are 4 px thick', vs.length === 2 && hs4.length === 3, JSON.stringify(s4));
+    check(
+        'thick vertical line fills the gap without covering a or b',
+        vs[0] && vs[0].x >= a4.x + a4.w - 0.5 && vs[0].x + vs[0].w <= b4.x + 0.5,
+        JSON.stringify({ v: vs[0], aRight: a4.x + a4.w, bLeft: b4.x }),
+    );
+}
+await box.locator('input[aria-label="Linienstärke in px"]').fill('1');
+await page.waitForTimeout(300);
+g = await grid();
+check('width 1 drops lineWidth again', g?.lineWidth === undefined, JSON.stringify(g?.lineWidth));
+
 await box.locator('label:has-text("Senkrechte Linien") input').uncheck();
 await box.locator('label:has-text("Waagerechte Linien") input').uncheck();
 await page.waitForTimeout(300);

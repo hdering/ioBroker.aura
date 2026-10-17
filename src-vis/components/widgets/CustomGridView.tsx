@@ -71,12 +71,19 @@ function slotOwners(cols: number, rows: number, cells: CustomCell[]): number[] {
 }
 
 const GRID_GAP = 2; // the grid's own gap
-const GRID_LINE = 1;
+export const GRID_LINE_MAX = 10;
+
+/** Line thickness in px, clamped to 1..GRID_LINE_MAX (default 1). */
+export function gridLineWidth(raw: unknown): number {
+    const n = typeof raw === 'number' && Number.isFinite(raw) ? Math.round(raw) : 1;
+    return Math.max(1, Math.min(GRID_LINE_MAX, n));
+}
 
 /**
  * Separator lines between the cells (#793). One overlay item per slot draws the line on its
  * right and bottom edge, centred in the gap. A boundary inside a spanning cell is skipped,
- * and a line only bridges the gap crossing when it continues on the other side.
+ * and a line only bridges the gap crossing when it continues on the other side. A line
+ * thicker than the gap widens that gap (colGap/rowGap) so it never covers cell content.
  */
 function GridLines({
     cols,
@@ -85,6 +92,9 @@ function GridLines({
     v,
     h,
     color,
+    width,
+    colGap,
+    rowGap,
 }: {
     cols: number;
     rows: number;
@@ -92,12 +102,16 @@ function GridLines({
     v: boolean;
     h: boolean;
     color?: string;
+    width: number;
+    colGap: number;
+    rowGap: number;
 }) {
     const owner = slotOwners(cols, rows, cells);
     const at = (r: number, c: number) => owner[r * cols + c];
     const vEdge = (r: number, c: number) => c < cols - 1 && at(r, c) !== at(r, c + 1);
     const hEdge = (r: number, c: number) => r < rows - 1 && at(r, c) !== at(r + 1, c);
-    const off = -(GRID_GAP + GRID_LINE) / 2;
+    const vOff = -(colGap + width) / 2;
+    const hOff = -(rowGap + width) / 2;
     const bg = color || 'var(--widget-border, var(--app-border))';
     const items: React.ReactNode[] = [];
     for (let r = 0; r < rows; r++) {
@@ -125,9 +139,9 @@ function GridLines({
                             style={{
                                 position: 'absolute',
                                 top: 0,
-                                bottom: r < rows - 1 && vEdge(r + 1, c) ? -GRID_GAP : 0,
-                                right: off,
-                                width: GRID_LINE,
+                                bottom: r < rows - 1 && vEdge(r + 1, c) ? -rowGap : 0,
+                                right: vOff,
+                                width,
                                 background: bg,
                             }}
                         />
@@ -137,9 +151,9 @@ function GridLines({
                             style={{
                                 position: 'absolute',
                                 left: 0,
-                                right: c < cols - 1 && hEdge(r, c + 1) ? -GRID_GAP : 0,
-                                bottom: off,
-                                height: GRID_LINE,
+                                right: c < cols - 1 && hEdge(r, c + 1) ? -colGap : 0,
+                                bottom: hOff,
+                                height: width,
                                 background: bg,
                             }}
                         />
@@ -178,6 +192,7 @@ export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDe
         if (def.vLines === true) out.vLines = true;
         if (def.hLines === true) out.hLines = true;
         if (typeof def.lineColor === 'string' && def.lineColor) out.lineColor = def.lineColor;
+        if (typeof def.lineWidth === 'number' && def.lineWidth > 1) out.lineWidth = gridLineWidth(def.lineWidth);
         return out;
     }
     if (Array.isArray(raw)) {
@@ -2050,6 +2065,9 @@ export function CustomGridView({
 }: CustomGridViewProps) {
     const grid = normalizeGrid(config.options?.customGrid, fallback);
     const { cols, rows, cells, colSizes, rowSizes, bg, borderColor, vLines, hLines, lineColor } = grid;
+    const lineWidth = gridLineWidth(grid.lineWidth);
+    const colGap = vLines ? Math.max(GRID_GAP, lineWidth) : GRID_GAP;
+    const rowGap = hLines ? Math.max(GRID_GAP, lineWidth) : GRID_GAP;
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     // Per-cell click actions reuse the list rows' popup machinery (issue #729).
     const editMode = useDashboardStore((s) => s.editMode);
@@ -2083,7 +2101,8 @@ export function CustomGridView({
                 alignContent,
                 width: '100%',
                 height: '100%',
-                gap: '2px',
+                columnGap: colGap,
+                rowGap,
                 // Face and outline of a grid built from a card layout (#768).
                 ...(bg ? { background: bg } : null),
                 ...(borderColor ? { border: `2px solid ${borderColor}` } : null),
@@ -2120,7 +2139,17 @@ export function CustomGridView({
                 );
             })}
             {(vLines || hLines) && (
-                <GridLines cols={cols} rows={rows} cells={cells} v={!!vLines} h={!!hLines} color={lineColor} />
+                <GridLines
+                    cols={cols}
+                    rows={rows}
+                    cells={cells}
+                    v={!!vLines}
+                    h={!!hLines}
+                    color={lineColor}
+                    width={lineWidth}
+                    colGap={colGap}
+                    rowGap={rowGap}
+                />
             )}
             {cellPopup.node}
         </div>

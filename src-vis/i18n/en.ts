@@ -1324,6 +1324,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.custom.vLines': 'Vertical lines',
     'wf.edit.custom.hLines': 'Horizontal lines',
     'wf.edit.custom.lineColor': 'Line colour (empty = theme border colour)',
+    'wf.edit.custom.lineWidth': 'Line thickness in px',
     'wf.edit.layout.unknown': 'Stored style “{layout}” does not exist here — the default is shown.',
 
     // Clock config
