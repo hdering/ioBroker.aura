@@ -31,4 +31,6 @@ Eigene Symbole in der Statuszeile eines Geräte-Widgets, neben Batterie, Erreich
 | Custom-Layout | Zelle **Aktion / Icon** → „Status-Badges (alle)“ oder „Eigenes Symbol: …“ einzeln |
 | Vorlage | „Vorlage: Bewegungsmelder gesperrt“ legt Icons, Tooltips und Umschalten an |
 
-Widgets: Schalter, Dimmer, Füllstandsanzeige, RGB-Licht, Thermostat, Raumklima, Rollladen, Fensterkontakt, Binärsensor, Zustandsbild, Wert, Schieberegler, Drehknopf, Auswahl, Datumswähler, Mediaplayer.
+Widgets: Schalter, Dimmer, Füllstandsanzeige, RGB-Licht, Thermostat, Raumklima, Rollladen, Fensterkontakt, Binärsensor, Zustandsbild, Wert, Schieberegler, Drehknopf, Auswahl, Datumswähler, Mediaplayer, Klimasteuerung, Alarmanlage, Button, Kamera, Gauge, Energiefluss (evcc), Kalender, Müllabfuhr, Müllabfuhr-Zeitplan, Karte, HTML, Universal-Widget.
+
+Bei den letzten zwölf sitzt die Statuszeile immer auf der Karte, auch im Custom-Layout.

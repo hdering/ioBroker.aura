@@ -333,6 +333,78 @@ check(
     JSON.stringify({ inner, edge }),
 );
 
+// ── Types whose row the frame mounts on the card ─────────────────────────────
+for (const type of [
+    'aircontrol',
+    'alarm',
+    'button',
+    'camera',
+    'gauge',
+    'evcc',
+    'calendar',
+    'trash',
+    'trashSchedule',
+    'map',
+    'html',
+    'universal',
+]) {
+    run++;
+    const base = `demo.frame${run}`;
+    const vals = { [`${base}.main`]: 1, [`${base}.LOCK`]: true, [`${base}.LOWBAT`]: true };
+    const w = {
+        id: `w-frame-${run}`,
+        type,
+        title: 'Frame',
+        datapoint: `${base}.main`,
+        gridPos: { x: 0, y: 0, w: 6, h: 6 },
+        options: {
+            batteryDp: `${base}.LOWBAT`,
+            statusItems: [{ id: 'si-fr', dp: `${base}.LOCK`, label: 'Gesperrt', icon: 'mdi:lock', action: 'toggle' }],
+        },
+    };
+    await page.evaluate(
+        ([w, v]) => {
+            window.__auraShot.mock(v);
+            window.__auraShot.mockServerState(v);
+            window.__auraShot.showWidgets([w]);
+        },
+        [w, vals],
+    );
+    await page.waitForTimeout(700);
+    const t = await titles();
+    check(
+        `${type}: status row on the card`,
+        JSON.stringify(t) === '["Gesperrt","Batterie schwach"]' &&
+            (await page.locator('[data-aura-status-row]').count()) === 1,
+        JSON.stringify(t),
+    );
+    if (type === 'gauge') {
+        // Same spot as a widget-mounted row: one padding in, or on the edge.
+        const inner = await edgeGap();
+        await resetWrites();
+        await page.locator('[data-aura-status-item="si-fr"]').first().click();
+        await page.waitForTimeout(200);
+        const wr = await writes();
+        check('gauge: card row toggles', wr.length === 1 && wr[0].id === `${base}.LOCK`, JSON.stringify(wr));
+        await page.evaluate(
+            ([w, v]) => {
+                window.__auraShot.mock(v);
+                window.__auraShot.showWidgets([
+                    { ...w, id: `${w.id}-edge`, options: { ...w.options, statusOnEdge: true } },
+                ]);
+            },
+            [w, vals],
+        );
+        await page.waitForTimeout(600);
+        const edge = await edgeGap();
+        check(
+            'gauge: card anchor matches the content anchor',
+            inner && edge && Math.abs(inner.bottom - 16) <= 1 && Math.abs(inner.right - 16) <= 1 && edge.bottom <= 4,
+            JSON.stringify({ inner, edge }),
+        );
+    }
+}
+
 // ── Fill widget carries the row now ──────────────────────────────────────────
 for (const layout of ['battery', 'bar', 'segments', 'wave', 'default']) {
     run++;

@@ -67,7 +67,9 @@ export const KEY_DESCRIPTIONS = {
         '(ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe.',
     statusPosition:
         'Ecke der Statuszeile (Status-Badges und statusItems) in den Standard-Layouts: bottom-right (Standard), ' +
-        'bottom-left, top-right, top-left. Im Layout custom steht die Zeile dort, wo die Zelle status-badges liegt.',
+        'bottom-left, top-right, top-left. Im Layout custom steht die Zeile dort, wo die Zelle status-badges liegt; ' +
+        'bei aircontrol, alarm, button, camera, gauge, evcc, calendar, trash, trashSchedule, map, html und universal ' +
+        'sitzt sie immer auf der Karte, auch im Layout custom.',
     statusOnEdge:
         'Statuszeile in den Innenabstand der Karte schieben (an den Kartenrand), damit sie bei kleinen Kacheln ' +
         'keine Bedienelemente verdeckt (Schalter, Dimmer-Regler). Standard false = im Inhalt.',
@@ -1504,6 +1506,48 @@ export const OPTION_INHERITS = {
     devicecard: 'group',
 };
 
+/**
+ * Types whose status row the WidgetFrame mounts on the card (#792) — the reader
+ * never sees the keys there. Keep in sync with STATUS_ROW_FRAME_TYPES in
+ * src-vis/components/widgets/StatusBadges.tsx. Descriptions come from KEY_DESCRIPTIONS.
+ */
+export const STATUS_ROW_FRAME_TYPES = [
+    'aircontrol',
+    'alarm',
+    'button',
+    'camera',
+    'gauge',
+    'evcc',
+    'calendar',
+    'trash',
+    'trashSchedule',
+    'map',
+    'html',
+    'universal',
+];
+const STATUS_ROW_OPTIONS = {
+    batteryDp: { type: 'string', default: '' },
+    batteryMode: { type: 'string', enum: ['boolean', 'percent'], default: 'boolean' },
+    batteryLowValues: { type: 'string' },
+    batteryLowThreshold: { type: 'number', default: 20 },
+    batteryColor: { type: 'string' },
+    unreachDp: { type: 'string', default: '' },
+    reachMode: { type: 'string', enum: ['unreachable', 'available'], default: 'unreachable' },
+    reachTrueValues: { type: 'string', default: 'true,1' },
+    reachColor: { type: 'string' },
+    lockDp: { type: 'string', default: '' },
+    lockLockedValues: { type: 'string', default: 'true,1' },
+    windowDp: { type: 'string', default: '' },
+    windowOpenValues: { type: 'string' },
+    windowColor: { type: 'string' },
+    showStatusBadges: { type: 'boolean', default: true },
+    statusBadgesAlertOnly: { type: 'boolean', default: false },
+    statusItems: {},
+    statusOrder: {},
+    statusPosition: {},
+    statusOnEdge: { type: 'boolean', default: false },
+};
+
 export const EXTRA_OPTIONS = {
     list: { ...AUTO_HEIGHT_OPTION },
     autolist: { ...AUTO_HEIGHT_OPTION },
@@ -1610,6 +1654,9 @@ export const EXTRA_OPTIONS = {
     dimmer: { valueFactor: { type: 'number', default: 1 }, valueOffset: { type: 'number', default: 0 } },
     input: { valueFactor: { type: 'number', default: 1 }, valueOffset: { type: 'number', default: 0 } },
 };
+for (const type of STATUS_ROW_FRAME_TYPES) {
+    EXTRA_OPTIONS[type] = { ...STATUS_ROW_OPTIONS, ...(EXTRA_OPTIONS[type] ?? {}) };
+}
 
 /**
  * Options every widget accepts, whatever its type.
@@ -1853,6 +1900,10 @@ export const KEY_TYPES = {
     // ever used the Alexa detection unwritable through the MCP, because the
     // validator refuses the whole widget over one option's type.
     muteViaVolume: 'boolean | string',
+    // Shared shapes of the status row, also for the types that get it through EXTRA_OPTIONS.
+    statusItems: 'StatusItem[]',
+    statusOrder: 'string[]',
+    statusPosition: 'StatusPosition',
 };
 
 /** Identifiers the readers picked up that are not option keys. */

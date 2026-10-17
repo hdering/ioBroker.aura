@@ -448,7 +448,33 @@ export function StatusSymbolRow({ symbols }: { symbols: StatusSymbol[] }) {
 
 interface Props {
     config: WidgetConfig;
+    /**
+     * What the row is positioned against: 'content' (default) — the widget body,
+     * which is where widgets mount it themselves; 'card' — the padded widget card,
+     * for the types whose row the WidgetFrame mounts (STATUS_ROW_FRAME_TYPES).
+     */
+    anchor?: 'content' | 'card';
 }
+
+/**
+ * Widget types whose status row the WidgetFrame mounts on the card instead of the
+ * widget drawing it — types with many layout branches or a free-form body.
+ * Keep in sync with STATUS_ROW_FRAME_TYPES in tools/schema/widget-schema-overlay.mjs.
+ */
+export const STATUS_ROW_FRAME_TYPES: ReadonlySet<string> = new Set([
+    'aircontrol',
+    'alarm',
+    'button',
+    'camera',
+    'gauge',
+    'evcc',
+    'calendar',
+    'trash',
+    'trashSchedule',
+    'map',
+    'html',
+    'universal',
+]);
 
 const STATUS_POSITIONS: StatusPosition[] = ['bottom-right', 'bottom-left', 'top-right', 'top-left'];
 
@@ -458,18 +484,32 @@ const STATUS_POSITIONS: StatusPosition[] = ['bottom-right', 'bottom-left', 'top-
  * the row stops covering the controls of a compact tile (a switch's toggle sits
  * exactly where the row used to be).
  */
-export function statusRowPlacement(position: unknown, onEdge: boolean): React.CSSProperties {
+export function statusRowPlacement(
+    position: unknown,
+    onEdge: boolean,
+    anchor: 'content' | 'card' = 'content',
+): React.CSSProperties {
     const pos = STATUS_POSITIONS.includes(position as StatusPosition) ? (position as StatusPosition) : 'bottom-right';
     const [v, h] = pos.split('-') as ['top' | 'bottom', 'left' | 'right'];
+    // Against the card the padding is already outside the box: the content corner
+    // lies one padding in, the edge spot right at the border.
+    if (anchor === 'card')
+        return onEdge
+            ? { [v]: 2, [h]: 4 }
+            : { [v]: 'var(--aura-widget-pad, 16px)', [h]: 'var(--aura-widget-pad, 16px)' };
     return onEdge
         ? { [v]: 'calc(2px - var(--aura-widget-pad, 16px))', [h]: 'calc(4px - var(--aura-widget-pad, 16px))' }
         : { [v]: 0, [h]: 0 };
 }
 
-export function StatusBadges({ config }: Props) {
+export function StatusBadges({ config, anchor = 'content' }: Props) {
     const opts = config.options ?? {};
     const { symbols } = useStatusSymbols(config);
-    const placement = statusRowPlacement(opts.statusPosition as StatusPosition | undefined, opts.statusOnEdge === true);
+    const placement = statusRowPlacement(
+        opts.statusPosition as StatusPosition | undefined,
+        opts.statusOnEdge === true,
+        anchor,
+    );
     if (opts.showStatusBadges === false || !symbols.length) return null;
     // Only the row is click-through; a switchable own symbol takes its clicks back.
     return (

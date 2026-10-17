@@ -186,7 +186,13 @@ import {
     WINDOW_NAMES,
 } from '../../utils/dpTemplates';
 import type { STATUS_BADGE_COLORS } from '../widgets/StatusBadges';
-import { WINDOW_OPEN_DEFAULT, batteryLowValues, STATUS_BADGE_COLOR_HEX } from '../widgets/StatusBadges';
+import {
+    WINDOW_OPEN_DEFAULT,
+    batteryLowValues,
+    STATUS_BADGE_COLOR_HEX,
+    STATUS_ROW_FRAME_TYPES,
+    StatusBadges,
+} from '../widgets/StatusBadges';
 import { StatusItemsEditor } from '../config/StatusItemsEditor';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
@@ -8247,6 +8253,10 @@ function WidgetFrameInner({
                                         </div>
                                     );
                                 })()}
+                                {/* Types without a status row of their own get it on the card (#792). */}
+                                {STATUS_ROW_FRAME_TYPES.has(config.type) && (
+                                    <StatusBadges config={renderConfig} anchor="card" />
+                                )}
                             </HeaderSlotsContext.Provider>
                         </WidgetWriteLockContext.Provider>
                     </Suspense>
@@ -18877,7 +18887,7 @@ function WidgetFrameInner({
                             })()}
 
                         {/* ── Status-Datenpunkte (gemeinsam für alle Sensor-/Aktor-Typen) ── */}
-                        {[
+                        {([
                             'switch',
                             'dimmer',
                             'thermostat',
@@ -18894,7 +18904,8 @@ function WidgetFrameInner({
                             'datepicker',
                             'mediaplayer',
                             'fill',
-                        ].includes(config.type) &&
+                        ].includes(config.type) ||
+                            STATUS_ROW_FRAME_TYPES.has(config.type)) &&
                             (() => {
                                 const o = config.options ?? {};
                                 const setO = (patch: Record<string, unknown>) =>
@@ -18911,7 +18922,8 @@ function WidgetFrameInner({
                                 // heating / room climate and shutters (lock-out). Elsewhere the field
                                 // stays only while a window DP is already set, so nothing goes invisible.
                                 const showWindow =
-                                    ['thermostat', 'climate', 'shutter'].includes(config.type) || !!o.windowDp;
+                                    ['thermostat', 'climate', 'aircontrol', 'shutter'].includes(config.type) ||
+                                    !!o.windowDp;
                                 // Alarm colour per badge; the default is shown as the picked colour (#767).
                                 const badgeColorRow = (kind: keyof typeof STATUS_BADGE_COLORS, label: string) => {
                                     const key = `${kind}Color`;
