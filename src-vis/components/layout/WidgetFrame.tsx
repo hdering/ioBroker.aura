@@ -70,6 +70,7 @@ import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry'
 import { useEscapeLayer } from '../../utils/escapeStack';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
+import { VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { FillStatusSection } from '../config/FillStatusSection';
@@ -289,11 +290,11 @@ import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
 const NO_CONDITIONS: WidgetCondition[] = [];
 const NO_BADGES: BadgeDef[] = [];
 
-// ── Edit-Dialog Template (siehe widget-config-template.md) ──────────────────
-// Single source of truth for "which widget gets which visible-field toggle at
-// the top of its widget-specific block". Adding a new widget type only needs an
-// entry here (or nothing — empty = the Darstellung block's showTitle/showIcon
-// are all it has).
+// ── Edit-Dialog Template (docs-internal/widget-config-template.md) ──────────
+// Visible-field toggles of the types whose toggles need no extra logic — rendered
+// as the "Sichtbare Felder" section (VisibleFieldsSection) at the top of the
+// widget-specific block. Types with conditional or nested toggles render the same
+// section from their own block instead.
 // `def` is the widget's own default for an option it reads as off-by-default —
 // without it the toggle shows ON for a field nothing is drawing yet.
 const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string; def?: boolean }[]>> = {
@@ -353,6 +354,12 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showChips', label: 'Schnellzugriff-Chips' },
     ],
 };
+
+// Widget types whose own settings are split into folded sections — their
+// "Sichtbare Felder" folds too (with an n/m count). Short blocks stay flat and
+// show it as a plain heading. Grows as the types get their sections
+// (C:projects	oolsplanswidget-dialog-sichtbare-felder-und-abschnitte.md).
+const SECTIONED_EDIT_TYPES = new Set<WidgetType>([]);
 
 // ── Custom grid: row height control, leading column of the cell picker (#737) ──
 function RowSizeControl({ row, size, onChange }: { row: number; size: string; onChange: (size: string) => void }) {
@@ -10733,99 +10740,56 @@ function WidgetFrameInner({
                                 {WIDGET_BY_TYPE[config.type]?.label ?? config.type}
                             </p>
                         )}
-                        {/* Sichtbare Felder des Typs (VIS_FIELDS_PER_TYPE) und der Licht-Status
-                            mit seiner Ausrichtung: sie gehören zum Widget, nicht zur allgemeinen
-                            Darstellung — deshalb hier, vor den übrigen typspezifischen Einstellungen. */}
+                        {/* Sichtbare Felder — always the first section of the widget's own settings
+                            (docs-internal/widget-config-template.md). The light's status row carries
+                            its alignment as an extra control next to the switch. */}
                         {(() => {
                             const o = config.options ?? {};
-                            const setO = (patch: Record<string, unknown>) =>
-                                onConfigChange({ ...config, options: { ...o, ...patch } });
-                            const fields = VIS_FIELDS_PER_TYPE[config.type] ?? [];
-                            if (fields.length === 0 && config.type !== 'light') return null;
-                            return (
-                                <div className="space-y-2">
-                                    {config.type === 'light' &&
-                                        (() => {
-                                            const stateOn = o.showState !== false;
-                                            return (
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-primary)' }}
+                            const fields: VisibleField[] = [...(VIS_FIELDS_PER_TYPE[config.type] ?? [])];
+                            if (config.type === 'light') {
+                                const lbls: Record<string, string> = {
+                                    left: t('wf.edit.posLeft'),
+                                    center: t('wf.edit.posCenter'),
+                                    right: t('wf.edit.posRight'),
+                                };
+                                fields.unshift({
+                                    key: 'showState',
+                                    label: 'Status (An / Aus)',
+                                    extra: (
+                                        <div className="flex gap-1">
+                                            {(['left', 'center', 'right'] as const).map((p) => {
+                                                const active = ((o.statusAlign as string) ?? 'left') === p;
+                                                return (
+                                                    <button
+                                                        key={p}
+                                                        onClick={() =>
+                                                            onConfigChange({
+                                                                ...config,
+                                                                options: { ...o, statusAlign: p },
+                                                            })
+                                                        }
+                                                        className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                        style={{
+                                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        }}
                                                     >
-                                                        Status (An / Aus)
-                                                    </span>
-                                                    <div className="flex items-center gap-2">
-                                                        {stateOn && (
-                                                            <div className="flex gap-1">
-                                                                {(['left', 'center', 'right'] as const).map((p) => {
-                                                                    const lbls: Record<string, string> = {
-                                                                        left: t('wf.edit.posLeft'),
-                                                                        center: t('wf.edit.posCenter'),
-                                                                        right: t('wf.edit.posRight'),
-                                                                    };
-                                                                    const active =
-                                                                        ((o.statusAlign as string) ?? 'left') === p;
-                                                                    return (
-                                                                        <button
-                                                                            key={p}
-                                                                            onClick={() => setO({ statusAlign: p })}
-                                                                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                                                            style={{
-                                                                                background: active
-                                                                                    ? 'var(--accent)'
-                                                                                    : 'var(--app-bg)',
-                                                                                color: active
-                                                                                    ? '#fff'
-                                                                                    : 'var(--text-secondary)',
-                                                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                            }}
-                                                                        >
-                                                                            {lbls[p]}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )}
-                                                        <button
-                                                            onClick={() => setO({ showState: !stateOn })}
-                                                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                            style={{
-                                                                background: stateOn
-                                                                    ? 'var(--accent)'
-                                                                    : 'var(--app-border)',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                                style={{ left: stateOn ? '14px' : '2px' }}
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
-                                    {fields.map(({ key, label, def }) => {
-                                        const val = o[key] === undefined ? (def ?? true) : o[key] !== false;
-                                        return (
-                                            <div key={key} className="flex items-center justify-between">
-                                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                                    {label}
-                                                </span>
-                                                <button
-                                                    onClick={() => setO({ [key]: !val })}
-                                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                    style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: val ? '14px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                                        {lbls[p]}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    ),
+                                });
+                            }
+                            return (
+                                <VisibleFieldsSection
+                                    fields={fields}
+                                    values={o}
+                                    onChange={(patch) => onConfigChange({ ...config, options: { ...o, ...patch } })}
+                                    collapsible={SECTIONED_EDIT_TYPES.has(config.type)}
+                                />
                             );
                         })()}
                         {/* Abschnittstitel: Untertiteltext, der Strich (Akzentbalken bzw.

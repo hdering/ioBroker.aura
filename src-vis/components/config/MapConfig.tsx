@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronRight, Database, Plus, Trash2, MapPin } from 'lucide-react';
-import { ConfigSection } from './list/listFieldUi';
+import { ConfigSection } from './ConfigSection';
 import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetConfig } from '../../types';
 import type {

@@ -2582,6 +2582,12 @@ export const de = {
     'mp.controlDps': 'Steuerungs-DPs',
     'mp.volumeRange': 'Lautstärke-Bereich',
 
+    // ── Edit dialog sections (docs-internal/widget-config-template.md) ──────────
+    'cfg.visibleFields': 'Sichtbare Felder',
+    'cfg.section.datapoints': 'Datenpunkte',
+    'cfg.section.look': 'Optik',
+    'cfg.section.behavior': 'Verhalten',
+
     // ── Slider Widget ─────────────────────────────────────────────────────────────
     'sl.fields.title': 'Sichtbare Felder',
     'sl.fields.value': 'Wert',

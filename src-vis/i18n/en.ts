@@ -2562,6 +2562,12 @@ export const en: Record<TranslationKey, string> = {
     'mp.controlDps': 'Control DPs',
     'mp.volumeRange': 'Volume Range',
 
+    // ── Edit dialog sections (docs-internal/widget-config-template.md) ──────────
+    'cfg.visibleFields': 'Visible fields',
+    'cfg.section.datapoints': 'Datapoints',
+    'cfg.section.look': 'Look',
+    'cfg.section.behavior': 'Behavior',
+
     // ── Slider Widget ─────────────────────────────────────────────────────────────
     'sl.fields.title': 'Visible fields',
     'sl.fields.value': 'Value',
