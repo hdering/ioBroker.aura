@@ -15103,6 +15103,11 @@
           "ref": "MapChipsPosition",
           "description": "Wo die Chips über der Karte liegen."
         },
+        "dayNav": {
+          "type": "boolean",
+          "description": "Datumsleiste ‹ Datum › über der Karte. Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Tag statt der letzten historyHours; nur heute kommt der Live-Wert dazu.",
+          "default": false
+        },
         "followMarkers": {
           "type": "boolean",
           "default": true,
@@ -15111,6 +15116,16 @@
         "homeMarkerId": {
           "type": "string",
           "description": "Id der Markierung, die als Zuhause gilt."
+        },
+        "lineChips": {
+          "type": "boolean",
+          "description": "Ein Chip je Linie über der Karte (Name aus label oder den Daten). Standard: immer nur eine Linie sichtbar, Tippen wechselt – z. B. eine Strecke je Person.",
+          "default": false
+        },
+        "lineChipsMulti": {
+          "type": "boolean",
+          "description": "Mit lineChips: Chips schalten jede Linie einzeln ein/aus statt nur eine zu zeigen.",
+          "default": false
         },
         "lineInfo": {
           "type": "string",
@@ -15156,6 +15171,14 @@
           "description": "Show the map-type switcher (chips) over the map, so the type can be changed in the running frontend instead of only in the editor.",
           "default": false
         },
+        "stayMinutes": {
+          "type": "number",
+          "description": "Zeitleiste: Mindestdauer in Minuten für einen Aufenthalt (Standard 10)."
+        },
+        "stayRadius": {
+          "type": "number",
+          "description": "Zeitleiste: Radius in Metern, in dem man als „am selben Ort“ gilt (Standard 100)."
+        },
         "styleChipsCorner": {
           "type": "string",
           "ref": "MapChipsCorner",
@@ -15177,6 +15200,11 @@
         "tileUrl": {
           "type": "string",
           "description": "Custom tile URL — overrides mapStyle when set.",
+          "default": false
+        },
+        "timeline": {
+          "type": "boolean",
+          "description": "Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav.",
           "default": false
         },
         "zoom": {
