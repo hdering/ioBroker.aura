@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-10",
+    "measured": "2026-10-17",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1010,7 +1010,42 @@
               "n": 8,
               "px": 488
             }
-          ]
+          ],
+          "tiles": {
+            "tilePx": 48.5,
+            "nameLinePx": 12.5,
+            "gapPx": 6,
+            "chromePx": 60,
+            "insetPx": 34,
+            "nameInsetPx": 28,
+            "charPx": 4.85,
+            "fontScalePx": {
+              "tilePx": 26.5,
+              "nameLinePx": 12.5,
+              "chromePx": 16.7,
+              "nameInsetPx": 16.7,
+              "charPx": 4.85
+            },
+            "atWidthPx": 120,
+            "measured": [
+              {
+                "lines": 1,
+                "px": 48.5
+              },
+              {
+                "lines": 2,
+                "px": 61
+              },
+              {
+                "lines": 3,
+                "px": 73.5
+              },
+              {
+                "lines": 4,
+                "px": 86
+              }
+            ]
+          }
         },
         "minimal": {
           "label": "Layout \"minimal\"",
@@ -1074,7 +1109,7 @@
         },
         {
           "key": "rowButtons",
-          "label": "Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm)",
+          "label": "Knöpfe am Zeilenende (rowActions, latchBattery/latchUnreach/latchAlarm, latchIgnore)",
           "when": {
             "any": [
               {
@@ -1091,6 +1126,10 @@
               },
               {
                 "path": "latchAlarm",
+                "equals": true
+              },
+              {
+                "path": "latchIgnore",
                 "equals": true
               }
             ]
@@ -1153,7 +1192,11 @@
       ],
       "freeLayouts": [
         "count"
-      ]
+      ],
+      "moreRow": {
+        "px": 20.5,
+        "fontScalePx": 0
+      }
     },
     "historytable": {
       "item": "Tabellenzeile",
