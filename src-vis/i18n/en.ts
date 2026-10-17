@@ -1321,6 +1321,9 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.custom.reset': 'Reset grid',
     'wf.edit.custom.faceRemove': 'Remove card background',
     'wf.edit.custom.faceHint': 'Background and frame come from the card layout',
+    'wf.edit.custom.vLines': 'Vertical lines',
+    'wf.edit.custom.hLines': 'Horizontal lines',
+    'wf.edit.custom.lineColor': 'Line colour (empty = theme border colour)',
     'wf.edit.layout.unknown': 'Stored style “{layout}” does not exist here — the default is shown.',
 
     // Clock config

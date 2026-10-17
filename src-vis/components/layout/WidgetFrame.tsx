@@ -19560,6 +19560,84 @@ function WidgetFrameInner({
                                                 </div>
                                             </div>
 
+                                            {/* Separator lines between the cells (#793) */}
+                                            {(cols > 1 || rows > 1) && (
+                                                <div
+                                                    className="flex items-center gap-3 flex-wrap"
+                                                    data-aura-grid-lines=""
+                                                >
+                                                    {cols > 1 && (
+                                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={grid.vLines === true}
+                                                                onChange={(e) =>
+                                                                    writeGrid({
+                                                                        ...grid,
+                                                                        vLines: e.target.checked || undefined,
+                                                                    })
+                                                                }
+                                                                className="rounded"
+                                                            />
+                                                            <span
+                                                                className="text-[11px]"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {t('wf.edit.custom.vLines')}
+                                                            </span>
+                                                        </label>
+                                                    )}
+                                                    {rows > 1 && (
+                                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={grid.hLines === true}
+                                                                onChange={(e) =>
+                                                                    writeGrid({
+                                                                        ...grid,
+                                                                        hLines: e.target.checked || undefined,
+                                                                    })
+                                                                }
+                                                                className="rounded"
+                                                            />
+                                                            <span
+                                                                className="text-[11px]"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {t('wf.edit.custom.hLines')}
+                                                            </span>
+                                                        </label>
+                                                    )}
+                                                    {(grid.vLines || grid.hLines) && (
+                                                        <div className="flex items-center gap-1.5">
+                                                            <ColorPicker
+                                                                value={grid.lineColor ?? ''}
+                                                                unset={!grid.lineColor}
+                                                                binding={false}
+                                                                onChange={(v) => writeGrid({ ...grid, lineColor: v })}
+                                                                className="w-6 h-6 rounded cursor-pointer border-0 p-0"
+                                                                style={{ background: 'none' }}
+                                                                title={t('wf.edit.custom.lineColor')}
+                                                            />
+                                                            {grid.lineColor && (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        writeGrid({ ...grid, lineColor: undefined })
+                                                                    }
+                                                                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                                                                    style={{
+                                                                        background: 'var(--app-border)',
+                                                                        color: 'var(--text-secondary)',
+                                                                    }}
+                                                                >
+                                                                    Reset
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
                                             {/* Per-column width: fr ratio (e.g. 2 / 1 makes the first column twice as
                                             wide) or 'auto' = as wide as the cell content. A ratio column scales with
                                             the widget, so a grid designed on the desktop grid spreads out when the same

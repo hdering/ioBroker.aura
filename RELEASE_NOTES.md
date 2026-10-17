@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Map - all sections of the map settings now start folded when the settings open
+- Universal Widget / Custom layout - optional vertical and/or horizontal separator lines between the grid cells, with an optional line colour (#793)

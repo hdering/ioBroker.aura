@@ -48,6 +48,109 @@ export const DEFAULT_CUSTOM_GRID: CustomGrid = [
     { type: 'empty' },
 ];
 
+/** Which cell owns each grid slot — a spanning cell owns every slot it covers (row-major). */
+function slotOwners(cols: number, rows: number, cells: CustomCell[]): number[] {
+    const owner = Array.from({ length: cols * rows }, (_, i) => i);
+    const taken = new Array<boolean>(cols * rows).fill(false);
+    cells.forEach((cell, i) => {
+        if (taken[i]) return;
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const colSpan = Math.max(1, Math.min(cell.colSpan ?? 1, cols - col));
+        const rowSpan = Math.max(1, Math.min(cell.rowSpan ?? 1, rows - row));
+        for (let r = row; r < row + rowSpan; r++)
+            for (let c = col; c < col + colSpan; c++) {
+                const k = r * cols + c;
+                if (!taken[k]) {
+                    owner[k] = i;
+                    taken[k] = true;
+                }
+            }
+    });
+    return owner;
+}
+
+const GRID_GAP = 2; // the grid's own gap
+const GRID_LINE = 1;
+
+/**
+ * Separator lines between the cells (#793). One overlay item per slot draws the line on its
+ * right and bottom edge, centred in the gap. A boundary inside a spanning cell is skipped,
+ * and a line only bridges the gap crossing when it continues on the other side.
+ */
+function GridLines({
+    cols,
+    rows,
+    cells,
+    v,
+    h,
+    color,
+}: {
+    cols: number;
+    rows: number;
+    cells: CustomCell[];
+    v: boolean;
+    h: boolean;
+    color?: string;
+}) {
+    const owner = slotOwners(cols, rows, cells);
+    const at = (r: number, c: number) => owner[r * cols + c];
+    const vEdge = (r: number, c: number) => c < cols - 1 && at(r, c) !== at(r, c + 1);
+    const hEdge = (r: number, c: number) => r < rows - 1 && at(r, c) !== at(r + 1, c);
+    const off = -(GRID_GAP + GRID_LINE) / 2;
+    const bg = color || 'var(--widget-border, var(--app-border))';
+    const items: React.ReactNode[] = [];
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const showV = v && vEdge(r, c);
+            const showH = h && hEdge(r, c);
+            if (!showV && !showH) continue;
+            items.push(
+                <div
+                    key={`gl${r}-${c}`}
+                    aria-hidden
+                    className="aura-custom-grid-line"
+                    style={{
+                        gridRow: r + 1,
+                        gridColumn: c + 1,
+                        position: 'relative',
+                        pointerEvents: 'none',
+                        zIndex: 2,
+                        minWidth: 0,
+                        minHeight: 0,
+                    }}
+                >
+                    {showV && (
+                        <span
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                bottom: r < rows - 1 && vEdge(r + 1, c) ? -GRID_GAP : 0,
+                                right: off,
+                                width: GRID_LINE,
+                                background: bg,
+                            }}
+                        />
+                    )}
+                    {showH && (
+                        <span
+                            style={{
+                                position: 'absolute',
+                                left: 0,
+                                right: c < cols - 1 && hEdge(r, c + 1) ? -GRID_GAP : 0,
+                                bottom: off,
+                                height: GRID_LINE,
+                                background: bg,
+                            }}
+                        />
+                    )}
+                </div>,
+            );
+        }
+    }
+    return <>{items}</>;
+}
+
 /** Default for the Universal Widget — empty 3×3. */
 export const DEFAULT_UNIVERSAL_GRID: CustomGridDef = {
     cols: 3,
@@ -72,6 +175,9 @@ export function normalizeGrid(raw: unknown, fallback?: CustomGrid | CustomGridDe
         const out: CustomGridDef = { cols, rows, cells, colSizes, rowSizes };
         if (typeof def.bg === 'string' && def.bg) out.bg = def.bg;
         if (typeof def.borderColor === 'string' && def.borderColor) out.borderColor = def.borderColor;
+        if (def.vLines === true) out.vLines = true;
+        if (def.hLines === true) out.hLines = true;
+        if (typeof def.lineColor === 'string' && def.lineColor) out.lineColor = def.lineColor;
         return out;
     }
     if (Array.isArray(raw)) {
@@ -1943,7 +2049,7 @@ export function CustomGridView({
     cssVars,
 }: CustomGridViewProps) {
     const grid = normalizeGrid(config.options?.customGrid, fallback);
-    const { cols, rows, cells, colSizes, rowSizes, bg, borderColor } = grid;
+    const { cols, rows, cells, colSizes, rowSizes, bg, borderColor, vLines, hLines, lineColor } = grid;
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     // Per-cell click actions reuse the list rows' popup machinery (issue #729).
     const editMode = useDashboardStore((s) => s.editMode);
@@ -2013,6 +2119,9 @@ export function CustomGridView({
                     </div>
                 );
             })}
+            {(vLines || hLines) && (
+                <GridLines cols={cols} rows={rows} cells={cells} v={!!vLines} h={!!hLines} color={lineColor} />
+            )}
             {cellPopup.node}
         </div>
     );

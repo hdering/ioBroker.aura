@@ -1332,6 +1332,9 @@ export const de = {
     'wf.edit.custom.reset': 'Raster zurücksetzen',
     'wf.edit.custom.faceRemove': 'Karten-Hintergrund entfernen',
     'wf.edit.custom.faceHint': 'Hintergrund und Rahmen stammen aus dem Karten-Layout',
+    'wf.edit.custom.vLines': 'Senkrechte Linien',
+    'wf.edit.custom.hLines': 'Waagerechte Linien',
+    'wf.edit.custom.lineColor': 'Linienfarbe (leer = Rahmenfarbe des Themes)',
     'wf.edit.layout.unknown':
         'Gespeichert ist „{layout}“ — diesen Stil gibt es hier nicht, angezeigt wird der Standard.',
 

@@ -474,6 +474,9 @@ export interface CustomGridDef {
     bg?: string;
     /** Colour of a 2px frame around the whole grid, rounded like the widget — the card layouts' outline (#768); unset = no frame. */
     borderColor?: string;
+    vLines?: boolean; // thin vertical line between neighbouring columns, drawn in the gap and not through a cell spanning both (#793)
+    hLines?: boolean; // thin horizontal line between neighbouring rows, drawn in the gap and not through a cell spanning both (#793)
+    lineColor?: string; // colour of the vLines/hLines, any CSS colour; unset = theme border colour (--widget-border)
 }
 
 export interface ioBrokerState {
