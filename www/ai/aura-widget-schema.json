@@ -15195,11 +15195,11 @@
         "tileAttribution": {
           "type": "string",
           "default": "",
-          "description": "Quellenangabe unter der Karte."
+          "description": "Veraltet – nicht setzen. Quellenangabe zu tileUrl."
         },
         "tileUrl": {
           "type": "string",
-          "description": "Custom tile URL — overrides mapStyle when set.",
+          "description": "Veraltet – nicht setzen. Eigener Kachel-Server älterer Karten; bestehende Werte bleiben wirksam (überschreiben mapStyle), neu konfigurieren lässt er sich nicht mehr. Für den Kartenstil mapStyle verwenden.",
           "default": false
         },
         "timeline": {
