@@ -72,7 +72,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
     const showLabel = opts.showLabel !== false;
     const iconSize = (opts.iconSize as number) || 20;
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     if (layout === 'custom')
         return (
@@ -109,6 +109,7 @@ export function BinarySensorWidget({ config }: WidgetProps) {
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                 }}
             />
         );

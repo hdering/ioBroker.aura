@@ -1054,6 +1054,28 @@ export interface WidgetHeaderItem {
     clauses?: ConditionClause[];
 }
 
+// ── Own status symbols ──────────────────────────────────────────────────────
+// Extra entries of a device widget's status row (next to battery / reach /
+// window / lock, issue #792): a two-state symbol driven by one datapoint,
+// optionally switched by a click on it.
+
+export interface StatusItem {
+    id: string; // unique within the widget; also the key in statusOrder
+    dp: string; // datapoint whose value decides active/inactive (may carry a JSON path)
+    activeValues?: string; // comma-separated values meaning "active"; empty = 'true,1'
+    icon?: string; // Iconify id while active, e.g. 'mdi:motion-sensor-off'; empty = a plain dot
+    iconInactive?: string; // Iconify id while inactive; empty = icon
+    color?: string; // colour while active (CSS, var(--token)); empty = var(--accent)
+    colorInactive?: string; // colour while inactive; empty = the green OK colour of the status row
+    label?: string; // tooltip while active
+    labelInactive?: string; // tooltip while inactive
+    show?: 'always' | 'active' | 'inactive'; // when the symbol shows; empty = always (statusBadgesAlertOnly reads it as 'active')
+    action?: 'none' | 'toggle'; // 'toggle': a click writes offValue while active, else onValue; empty = none
+    writeDp?: string; // datapoint the click writes; empty = dp (without its JSON path)
+    onValue?: string; // value written to become active ("true"/"false"/numbers are typed); empty = true, or 1 on a numeric datapoint
+    offValue?: string; // value written to become inactive; empty = false, or 0 on a numeric datapoint
+}
+
 // ── Badges ──────────────────────────────────────────────────────────────────
 // Small overlay indicators that sit on the edge/corner of a widget, group or
 // tab. A badge is a self-contained element (not a condition effect): it can be

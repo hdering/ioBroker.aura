@@ -80,6 +80,7 @@ indexLines.push(
     '## Konzepte',
     '',
     '- [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten',
+    '- [Status-Symbole](./status-symbole) — eigene, schaltbare Symbole in der Statuszeile',
     '',
 );
 // Hand-written tail of the overview — kept here so regenerating the index does not drop it.
@@ -115,6 +116,12 @@ sidebar.push({
         { text: 'Diagramm (Verteilung)', link: '/widgets/beispiele-verteilung' },
     ],
 });
-sidebar.push({ text: 'Konzepte', items: [{ text: 'Custom-Layout', link: '/widgets/custom-layout' }] });
+sidebar.push({
+    text: 'Konzepte',
+    items: [
+        { text: 'Custom-Layout', link: '/widgets/custom-layout' },
+        { text: 'Status-Symbole', link: '/widgets/status-symbole' },
+    ],
+});
 writeFileSync('docs/.vitepress/widgetsSidebar.json', JSON.stringify(sidebar, null, 2) + '\n');
 console.log('wrote widgetsSidebar.json');

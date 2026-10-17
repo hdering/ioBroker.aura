@@ -76,7 +76,7 @@ export function ValueWidget({ config }: WidgetProps) {
     const accentColor = thresholdColor ?? 'var(--accent)';
     const valueColor = thresholdColor ?? 'var(--text-primary)';
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     // Template tokens: {dp} = own value, {color} = current threshold color (so it
     // can be applied to any element, e.g. an icon), {unit} = configured unit. Any
@@ -152,6 +152,7 @@ export function ValueWidget({ config }: WidgetProps) {
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                 }}
             />
         );

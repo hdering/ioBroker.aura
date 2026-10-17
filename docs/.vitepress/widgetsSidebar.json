@@ -276,6 +276,10 @@
       {
         "text": "Custom-Layout",
         "link": "/widgets/custom-layout"
+      },
+      {
+        "text": "Status-Symbole",
+        "link": "/widgets/status-symbole"
       }
     ]
   }

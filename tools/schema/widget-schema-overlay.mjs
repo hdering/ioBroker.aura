@@ -60,7 +60,14 @@ export const KEY_DESCRIPTIONS = {
     batteryColor: 'Farbe des Batterie-Badges bei schwacher Batterie. Leer = var(--badge-warn) (orange).',
     reachColor: 'Farbe des Erreichbarkeits-Badges bei „nicht erreichbar“. Leer = var(--badge-crit) (rot).',
     windowColor: 'Farbe des Fenster-Badges bei offenem Fenster. Leer = var(--badge-warn) (orange).',
-    showStatusBadges: 'Batterie-/Erreichbarkeits-/Sperr-/Fenster-Badges anzeigen.',
+    showStatusBadges: 'Batterie-/Erreichbarkeits-/Sperr-/Fenster-Badges und eigene statusItems anzeigen.',
+    statusItems:
+        'Eigene Status-Symbole in derselben Zeile wie batteryDp/windowDp (unten rechts): je ein Datenpunkt, ' +
+        'Icon und Farbe für aktiv/inaktiv, optional action "toggle" = Klick aufs Symbol schreibt den Gegenwert ' +
+        '(ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe.',
+    statusOrder:
+        'Reihenfolge der Status-Symbole von links nach rechts: ids aus statusItems und die festen Schlüssel ' +
+        'battery, reach, window, lock. Nicht genannte folgen dahinter (eigene vor festen). Leer = eigene zuerst.',
     statusBadgesAlertOnly:
         'Jeder Status-Badge erscheint nur, solange er selbst Alarm meldet (Batterie schwach, nicht erreichbar, ' +
         'Fenster offen); der Sperr-Badge entfällt. Wirkt nur mit showStatusBadges.',

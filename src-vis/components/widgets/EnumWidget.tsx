@@ -146,7 +146,7 @@ export function EnumWidget({ config }: WidgetProps) {
             selectCore
         );
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
     if (layout === 'custom') {
@@ -161,6 +161,7 @@ export function EnumWidget({ config }: WidgetProps) {
                         'battery-icon': batteryIcon,
                         'reach-icon': reachIcon,
                         'status-badges': statusBadges,
+                        ...statusItemCells,
                         icon: showIcon ? (
                             <WidgetIcon
                                 className="aura-widget-icon"

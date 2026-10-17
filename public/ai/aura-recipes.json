@@ -918,6 +918,55 @@
       ]
     },
     {
+      "id": "status-symbol-schaltbar",
+      "title": "Eigenes Status-Symbol an einem Gerät (z. B. Bewegungsmelder gesperrt)",
+      "when": "An einer Lampe, einem Schalter oder Thermostat soll ein Nebenzustand als kleines Symbol erscheinen (Bewegungsmelder gesperrt, Automatik aus, Urlaubsmodus) und per Klick umschaltbar sein.",
+      "instead": "einem zweiten Widget daneben oder einem Wechsel ins Layout custom",
+      "notes": [
+        "statusItems hängt eigene Symbole an die Statuszeile unten rechts (dieselbe wie batteryDp/windowDp).",
+        "activeValues entscheidet aktiv/inaktiv; icon/iconInactive und color/colorInactive je Zustand.",
+        "action \"toggle\" schreibt offValue (wenn aktiv) bzw. onValue in writeDp (leer = dp); leer = true/false, bei Zahlen 1/0.",
+        "Ein Klick aufs Symbol schaltet NICHT die Kachel mit; confirmAction des Widgets fragt auch hier nach.",
+        "statusOrder legt die Reihenfolge fest: ids der statusItems und battery, reach, window, lock.",
+        "show \"active\" zeigt das Symbol nur im aktiven Zustand (statusBadgesAlertOnly wirkt genauso)."
+      ],
+      "widgets": [
+        {
+          "id": "w-flurlicht",
+          "type": "light",
+          "title": "Flurlicht",
+          "datapoint": "%dp.licht%",
+          "layout": "light-all",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 3
+          },
+          "options": {
+            "statusItems": [
+              {
+                "id": "si-bwm-sperre",
+                "dp": "%dp.bewegungsmelderSperre%",
+                "activeValues": "true,1",
+                "icon": "mdi:motion-sensor-off",
+                "iconInactive": "mdi:motion-sensor",
+                "color": "var(--accent-red)",
+                "label": "Bewegungsmelder gesperrt",
+                "labelInactive": "Bewegungsmelder aktiv",
+                "action": "toggle"
+              }
+            ],
+            "statusOrder": [
+              "si-bwm-sperre",
+              "battery",
+              "reach"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "fuellstand",
       "title": "Füllstand mit Warnbereich",
       "when": "Zisterne, Öltank, Pelletlager, Akku — ein Wert zwischen leer und voll.",

@@ -404,7 +404,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     // see a brand-new object reference on every render when options is undefined.
     const o = useMemo(() => config.options ?? {}, [config.options]);
     const { setState } = useIoBroker();
-    const { batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     // ── Resolved options ────────────────────────────────────────────────────────
     const colorMode = (o.colorMode as LightColorMode) ?? 'none';
@@ -929,6 +929,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                 }}
             />
         );

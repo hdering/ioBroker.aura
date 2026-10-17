@@ -74,7 +74,7 @@ export function SwitchWidget({ config }: WidgetProps) {
     const showIcon = o.showIcon !== false;
 
     const iconSize = (o.iconSize as number) || 20;
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     // Icon-/Bild-Modus statt Schiebeschalter
     const controlMode = (o.controlMode as string) ?? 'toggle';
@@ -206,6 +206,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                         'battery-icon': batteryIcon,
                         'reach-icon': reachIcon,
                         'status-badges': statusBadges,
+                        ...statusItemCells,
                         toggle:
                             isIconMode || isImageMode ? (
                                 iconControlButton()

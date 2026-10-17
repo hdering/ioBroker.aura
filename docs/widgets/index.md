@@ -77,6 +77,7 @@
 
 - [Bindings & Berechnungen](./bindings) — Datenpunkt-Platzhalter im HTML, mit Rechnen, Runden, Farben und Datum
 - [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten
+- [Status-Symbole](./status-symbole) — eigene, schaltbare Symbole in der Statuszeile
 
 ## Datenpunkt-Wert im Widget-Namen
 

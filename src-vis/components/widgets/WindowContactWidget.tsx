@@ -88,7 +88,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
     // Extra DPs for custom layout – hooks must always run unconditionally
     const lockDpId = (o.lockDp as string) ?? '';
     const { value: lockRaw } = useDatapoint(lockDpId);
-    const { battery, reach, batteryIcon, reachIcon } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     // Lock string + icon
     const lockLockedValues = (o.lockLockedValues as string) ?? 'true,1';
@@ -114,16 +114,6 @@ export function WindowContactWidget({ config }: WidgetProps) {
                 ) : (
                     <LockOpen size={10} style={{ color: lockColor }} />
                 )}
-            </span>
-        ) : null;
-
-    // Combined row: lock + battery + reach (only configured icons)
-    const statusBadges =
-        lockIcon || batteryIcon || reachIcon ? (
-            <span className="flex items-center gap-0.5">
-                {lockIcon}
-                {batteryIcon}
-                {reachIcon}
             </span>
         ) : null;
 
@@ -156,6 +146,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                     'reach-icon': reachIcon,
                     'lock-icon': lockIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                 }}
             />
         );

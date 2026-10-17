@@ -100,7 +100,7 @@ export function KnobWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
     const { setState } = useIoBroker();
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     const min = (o.minValue as number) ?? 0;
     const max = (o.maxValue as number) ?? 100;
@@ -910,6 +910,7 @@ export function KnobWidget({ config }: WidgetProps) {
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                     // The same icon as the title row of the fixed layouts (#768).
                     icon: (
                         <WidgetIcon

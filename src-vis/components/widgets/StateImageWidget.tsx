@@ -88,7 +88,7 @@ export function StateImageWidget({ config }: WidgetProps) {
     // A condition rule may replace the state text ("Anzeige überschreiben").
     const stateLabel = valueHidden(config) ? '' : (valueTextOverride(config) ?? cfg.label);
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     if (layout === 'custom')
         return (
@@ -106,6 +106,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                 }}
             />
         );

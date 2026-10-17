@@ -362,7 +362,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     );
     const subtitle = [artistStr, albumStr].filter(Boolean).join(' · ');
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     const showIcon = o.showIcon !== false;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Music);
@@ -560,6 +560,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     'volume-slider': <VolumeSlider pct={volPct} step={volStep} onChange={writeVol} />,
                     chips: showChips ? <ChipRow chips={chips} onTrigger={handleChip} /> : null,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     player: <div className="w-full h-full flex flex-col">{playerMain}</div>,

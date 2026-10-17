@@ -237,7 +237,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         </div>
     );
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     if (layout === 'custom')
         return (
@@ -274,6 +274,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                     slider: barStyle ? (
                         barTrack
                     ) : (

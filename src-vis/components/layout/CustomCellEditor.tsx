@@ -17,7 +17,8 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { JsonPathButton } from '../config/JsonPathButton';
-import type { CustomCell, WidgetType } from '../../types';
+import type { CustomCell, StatusItem, WidgetType } from '../../types';
+import { STATUS_ITEM_CELL_PREFIX } from '../widgets/StatusBadges';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CLICKABLE_CELL_TYPES, CONTENT_BG_TYPES } from '../widgets/CustomGridView';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
@@ -627,6 +628,8 @@ export interface CustomCellEditorProps {
     onOpenConditions: () => void;
     /** Opens the cell's click-action popup (display cells only, issue #729). */
     onOpenClickAction?: () => void;
+    /** The widget's own status symbols — each one is a pickable component (#792). */
+    statusItems?: StatusItem[];
 }
 
 // Value-bearing / icon cell types that support per-cell conditional formatting.
@@ -667,6 +670,7 @@ export function CustomCellEditor({
     onOpenImagePicker,
     onOpenConditions,
     onOpenClickAction,
+    statusItems,
 }: CustomCellEditorProps) {
     // Only for the small previews in this panel: a colour may be a light/dark
     // pair (#689), and a preview has to show the half that applies right now.
@@ -991,7 +995,17 @@ export function CustomCellEditor({
             {/* Component key selector */}
             {cell.type === 'component' &&
                 (() => {
-                    const options = COMPONENT_OPTIONS[widgetType] ?? [];
+                    const fixedOptions = COMPONENT_OPTIONS[widgetType] ?? [];
+                    // Own status symbols ride along wherever the status row can be picked.
+                    const options = fixedOptions.some((o) => o.key === 'status-badges')
+                        ? [
+                              ...fixedOptions,
+                              ...(statusItems ?? []).map((it) => ({
+                                  key: STATUS_ITEM_CELL_PREFIX + it.id,
+                                  label: `Eigenes Symbol: ${it.label || it.dp || it.id}`,
+                              })),
+                          ]
+                        : fixedOptions;
                     const perEvent = widgetType === 'calendar';
                     const { base, index } = perEvent
                         ? splitEventKey(cell.componentKey ?? '')

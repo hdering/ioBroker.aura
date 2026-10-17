@@ -115,6 +115,16 @@
       "default": "left",
       "description": "Ausrichtung des Titels: left, center oder right."
     },
+    "confirmAction": {
+      "type": "boolean",
+      "default": false,
+      "description": "Vor dem Schalten eine Rückfrage anzeigen."
+    },
+    "confirmText": {
+      "type": "string",
+      "default": "",
+      "description": "Text der Rückfrage. Leer = Standardtext."
+    },
     "showTitle": {
       "type": "boolean",
       "default": true,
@@ -137,11 +147,6 @@
     "contentPosition": {
       "type": "string",
       "description": "Position des Inhalts in der Karte als Zweibuchstaben-Code aus Zeile (t/c/b) und Spalte (l/c/r), z. B. \"cc\" = zentriert."
-    },
-    "showStatusBadges": {
-      "type": "boolean",
-      "default": true,
-      "description": "Batterie-/Erreichbarkeits-/Sperr-/Fenster-Badges anzeigen."
     },
     "statusBadgesAlertOnly": {
       "type": "boolean",
@@ -171,6 +176,14 @@
       "default": "",
       "datapoint": true,
       "description": "Datenpunkt „Fenster offen“ (Badge in der Ecke), z. B. WINDOW_OPEN_REPORTING oder WINDOW_STATE des Thermostat-Kanals. Gedacht für thermostat, climate und shutter (Aussperrschutz). Zählt bei statusBadgesAlertOnly als Meldung."
+    },
+    "statusItems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "ref": "StatusItem"
+      },
+      "description": "Eigene Status-Symbole in derselben Zeile wie batteryDp/windowDp (unten rechts): je ein Datenpunkt, Icon und Farbe für aktiv/inaktiv, optional action \"toggle\" = Klick aufs Symbol schreibt den Gegenwert (ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe."
     },
     "batteryMode": {
       "type": "string",
@@ -213,6 +226,18 @@
     },
     "windowColor": {
       "description": "Farbe des Fenster-Badges bei offenem Fenster. Leer = var(--badge-warn) (orange)."
+    },
+    "statusOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Reihenfolge der Status-Symbole von links nach rechts: ids aus statusItems und die festen Schlüssel battery, reach, window, lock. Nicht genannte folgen dahinter (eigene vor festen). Leer = eigene zuerst."
+    },
+    "showStatusBadges": {
+      "type": "boolean",
+      "default": true,
+      "description": "Batterie-/Erreichbarkeits-/Sperr-/Fenster-Badges und eigene statusItems anzeigen."
     },
     "customGrid": {
       "type": "object",
@@ -436,6 +461,81 @@
         "contains",
         "changed"
       ]
+    },
+    "StatusItem": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "unique within the widget; also the key in statusOrder"
+        },
+        "dp": {
+          "type": "string",
+          "required": true,
+          "description": "datapoint whose value decides active/inactive (may carry a JSON path)",
+          "datapoint": true
+        },
+        "activeValues": {
+          "type": "string",
+          "description": "comma-separated values meaning \"active\"; empty = 'true,1'"
+        },
+        "icon": {
+          "type": "string",
+          "description": "Iconify id while active, e.g. 'mdi:motion-sensor-off'; empty = a plain dot"
+        },
+        "iconInactive": {
+          "type": "string",
+          "description": "Iconify id while inactive; empty = icon"
+        },
+        "color": {
+          "type": "string",
+          "description": "colour while active (CSS, var(--token)); empty = var(--accent)",
+          "color": true
+        },
+        "colorInactive": {
+          "type": "string",
+          "description": "colour while inactive; empty = the green OK colour of the status row"
+        },
+        "label": {
+          "type": "string",
+          "description": "tooltip while active"
+        },
+        "labelInactive": {
+          "type": "string",
+          "description": "tooltip while inactive"
+        },
+        "show": {
+          "type": "string",
+          "enum": [
+            "always",
+            "active",
+            "inactive"
+          ],
+          "description": "when the symbol shows; empty = always (statusBadgesAlertOnly reads it as 'active')"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "none",
+            "toggle"
+          ],
+          "description": "'toggle': a click writes offValue while active, else onValue; empty = none"
+        },
+        "writeDp": {
+          "type": "string",
+          "description": "datapoint the click writes; empty = dp (without its JSON path)",
+          "datapoint": true
+        },
+        "onValue": {
+          "type": "string",
+          "description": "value written to become active (\"true\"/\"false\"/numbers are typed); empty = true, or 1 on a numeric datapoint"
+        },
+        "offValue": {
+          "type": "string",
+          "description": "value written to become inactive; empty = false, or 0 on a numeric datapoint"
+        }
+      }
     },
     "WidgetCondition": {
       "type": "object",
@@ -7787,6 +7887,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "customGrid",
         "defaultCollapsed",
@@ -7811,6 +7913,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -8928,6 +9032,7 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmText",
         "defaultCollapsed",
         "fullscreenPosition",
         "fullscreenScreen",
@@ -8998,11 +9103,6 @@
           },
           "description": "Die einzelnen Chips."
         },
-        "confirmText": {
-          "type": "string",
-          "default": "",
-          "description": "Text der Rückfrage. Leer = Standardtext."
-        },
         "gap": {
           "type": "number",
           "default": 6,
@@ -9061,6 +9161,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "decimals",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -9085,6 +9187,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -9884,6 +9988,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -9907,6 +10013,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -10376,6 +10484,8 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -10400,6 +10510,8 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -11352,6 +11464,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "customGrid",
         "defaultCollapsed",
@@ -11377,6 +11491,8 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -11391,16 +11507,6 @@
         "windowOpenValues"
       ],
       "options": {
-        "confirmAction": {
-          "type": "boolean",
-          "default": false,
-          "description": "Vor dem Schalten eine Rückfrage anzeigen."
-        },
-        "confirmText": {
-          "type": "string",
-          "default": "",
-          "description": "Text der Rückfrage. Leer = Standardtext."
-        },
         "entriesColorKey": {
           "type": "string",
           "description": "Feldname im JSON, der die Farbe liefert."
@@ -13087,6 +13193,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "customGrid",
         "defaultCollapsed",
@@ -13124,16 +13232,6 @@
         },
         "buttonLabel": {
           "type": "string"
-        },
-        "confirmAction": {
-          "type": "boolean",
-          "default": false,
-          "description": "Vor dem Schalten eine Rückfrage anzeigen."
-        },
-        "confirmText": {
-          "type": "string",
-          "default": "",
-          "description": "Text der Rückfrage. Leer = Standardtext."
         },
         "contentType": {
           "type": "string",
@@ -13511,6 +13609,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -13541,16 +13641,6 @@
           "type": "boolean",
           "default": false,
           "description": "Feld nach dem Absenden leeren."
-        },
-        "confirmAction": {
-          "type": "boolean",
-          "default": false,
-          "description": "Vor dem Schalten eine Rückfrage anzeigen."
-        },
-        "confirmText": {
-          "type": "string",
-          "default": "",
-          "description": "Text der Rückfrage. Leer = Standardtext."
         },
         "fieldAlign": {
           "type": "string",
@@ -13913,6 +14003,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "decimals",
         "defaultCollapsed",
@@ -13938,6 +14030,8 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleColor",
@@ -14331,6 +14425,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -14354,6 +14450,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -15308,6 +15406,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -15330,6 +15430,8 @@
         "showLastChange",
         "showStatusBadges",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleColor",
@@ -16351,6 +16453,8 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -16375,6 +16479,8 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -16627,6 +16733,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "defaultCollapsed",
         "fullscreenPosition",
@@ -16651,6 +16759,8 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -16958,6 +17068,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "customGrid",
         "defaultCollapsed",
@@ -16980,6 +17092,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -17880,6 +17994,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "customGrid",
         "defaultCollapsed",
@@ -17904,6 +18020,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -17918,16 +18036,6 @@
         "windowOpenValues"
       ],
       "options": {
-        "confirmAction": {
-          "type": "boolean",
-          "default": false,
-          "description": "Vor dem Schalten eine Rückfrage anzeigen."
-        },
-        "confirmText": {
-          "type": "string",
-          "default": "",
-          "description": "Text der Rückfrage. Leer = Standardtext."
-        },
         "controlIconSize": {
           "type": "number",
           "default": 28
@@ -18327,6 +18435,8 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "customGrid",
         "decimals",
         "defaultCollapsed",
@@ -18352,6 +18462,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -19223,6 +19335,8 @@
         "collapsePosition",
         "colorThresholds",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "customGrid",
         "decimals",
@@ -19250,6 +19364,8 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -19727,6 +19843,8 @@
         "collapseInEditor",
         "collapsePosition",
         "conditions",
+        "confirmAction",
+        "confirmText",
         "contentPosition",
         "customGrid",
         "defaultCollapsed",
@@ -19750,6 +19868,8 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusItems",
+        "statusOrder",
         "styleOverride",
         "textLines",
         "titleAlign",

@@ -579,6 +579,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         reachIcon,
         windowIcon,
         statusBadges,
+        statusItemCells,
     } = useStatusFields(config);
 
     // Buttons of the minimal layout: a bit roomier, the stop button wide and flat.
@@ -792,6 +793,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                         'reach-icon': reachIcon,
                         'window-icon': windowIcon,
                         'status-badges': statusBadges,
+                        ...statusItemCells,
                     }}
                 />
                 {tiltPopover}

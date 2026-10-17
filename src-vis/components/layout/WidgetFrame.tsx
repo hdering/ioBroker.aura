@@ -130,6 +130,7 @@ import type {
     WidgetConfig,
     WidgetCondition,
     BadgeDef,
+    StatusItem,
     ClimateMetric,
     CustomCell,
     CustomGridDef,
@@ -186,6 +187,7 @@ import {
 } from '../../utils/dpTemplates';
 import type { STATUS_BADGE_COLORS } from '../widgets/StatusBadges';
 import { WINDOW_OPEN_DEFAULT, batteryLowValues, STATUS_BADGE_COLOR_HEX } from '../widgets/StatusBadges';
+import { StatusItemsEditor } from '../config/StatusItemsEditor';
 import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
@@ -7031,6 +7033,7 @@ function WidgetFrameInner({
     const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
     const [actionIconPickerOpen, setActionIconPickerOpen] = useState(false);
     const [headerEditorOpen, setHeaderEditorOpen] = useState(false);
+    const [statusItemsOpen, setStatusItemsOpen] = useState(false);
     const [draftTransparency, setDraftTransparency] = useState<number | null>(null);
 
     // ── Custom-cell copy/cut/paste helpers (used by context menu + keyboard shortcuts) ──
@@ -19363,7 +19366,32 @@ function WidgetFrameInner({
                                                     {badgeColorRow('window', 'Farbe bei offenem Fenster')}
                                                 </div>
                                             )}
+                                            {/* Own symbols and the order of the whole row (#792). */}
+                                            <button
+                                                onClick={() => setStatusItemsOpen(true)}
+                                                className="w-full text-xs px-2.5 py-2 rounded-lg hover:opacity-80"
+                                                style={{
+                                                    background: 'var(--app-bg)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--app-border)',
+                                                }}
+                                            >
+                                                {Array.isArray(o.statusItems) && o.statusItems.length
+                                                    ? t('statusItems.buttonCount', {
+                                                          n: String(o.statusItems.length),
+                                                      })
+                                                    : t('statusItems.button')}
+                                            </button>
                                         </div>
+                                        {statusItemsOpen && (
+                                            <CenteredModal
+                                                title={t('statusItems.title')}
+                                                onClose={() => setStatusItemsOpen(false)}
+                                                wide
+                                            >
+                                                <StatusItemsEditor options={o} onChange={(patch) => setO(patch)} />
+                                            </CenteredModal>
+                                        )}
                                     </div>
                                 );
                             })()}
@@ -19972,6 +20000,11 @@ function WidgetFrameInner({
                                                         onOpenImagePicker={() => setCustomCellImagePickerOpen(true)}
                                                         onOpenConditions={() => setCustomCellCondOpen(true)}
                                                         onOpenClickAction={() => setCustomCellClickOpen(true)}
+                                                        statusItems={
+                                                            Array.isArray(o.statusItems)
+                                                                ? (o.statusItems as StatusItem[])
+                                                                : undefined
+                                                        }
                                                     />
                                                 ) : (
                                                     <p

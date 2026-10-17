@@ -99,7 +99,7 @@ export function SliderWidget({ config }: WidgetProps) {
         setState(a.dp, a.value !== undefined ? a.value : true);
     };
 
-    const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
+    const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
     // ── Bar-style pointer handling ──────────────────────────────────────────────
     const getBarValue = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -310,6 +310,7 @@ export function SliderWidget({ config }: WidgetProps) {
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                 }}
             />
         );

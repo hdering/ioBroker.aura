@@ -85,4 +85,4 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Status-Datenpunkte
 
-Optionale Batterie- und Erreichbarkeits-DPs werden als kleine Badges eingeblendet (Abschnitt **Status-Datenpunkte** im Dialog).
+Optionale Batterie- und Erreichbarkeits-DPs werden als kleine Badges eingeblendet (Abschnitt **Status-Datenpunkte** im Dialog). Eigene Symbole und Reihenfolge: [Status-Symbole](./status-symbole).

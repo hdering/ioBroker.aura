@@ -231,6 +231,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
         reachIcon,
         windowIcon,
         statusBadges,
+        statusItemCells,
     } = useStatusFields(config);
 
     // ── DIAL (Rundskala) as a reusable element ───────────────────────────────
@@ -539,6 +540,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     'reach-icon': reachIcon,
                     'window-icon': windowIcon,
                     'status-badges': statusBadges,
+                    ...statusItemCells,
                     dial: <div className="w-full h-full min-h-0 flex items-center justify-center">{renderDial()}</div>,
                     presets: presets.length > 0 ? <PresetButtons /> : null,
                     'status-icon': <StatusIcon />,

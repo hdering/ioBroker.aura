@@ -1,34 +1,11 @@
-import { Battery, BatteryLow, Wifi, WifiOff } from 'lucide-react';
-import { useDatapoint } from './useDatapoint';
 import type { WidgetConfig } from '../types';
 import type React from 'react';
 import {
-    batteryLowValues,
-    matchesValues,
-    statusBadgeColor,
-    STATUS_BADGE_OK_COLOR,
-    WindowGlyph,
-    WINDOW_OPEN_DEFAULT,
+    STATUS_FIXED_KEYS,
+    STATUS_ITEM_CELL_PREFIX,
+    StatusSymbolRow,
+    useStatusSymbols,
 } from '../components/widgets/StatusBadges';
-
-const BADGE_SIZE = 18;
-
-function Badge({ color, children }: { color: string; children: React.ReactNode }) {
-    return (
-        <span
-            className="flex items-center justify-center rounded-full"
-            style={{
-                width: BADGE_SIZE,
-                height: BADGE_SIZE,
-                flexShrink: 0,
-                background: `color-mix(in srgb, ${color} 20%, var(--app-surface))`,
-                border: `1px solid color-mix(in srgb, ${color} 50%, transparent)`,
-            }}
-        >
-            {children}
-        </span>
-    );
-}
 
 interface StatusFields {
     battery: string;
@@ -37,102 +14,45 @@ interface StatusFields {
     reachIcon: React.ReactNode;
     window: string;
     windowIcon: React.ReactNode;
-    /** All configured status badge icons in a single flex row. */
+    /** All configured status symbols — built-in and own ones — in a single flex row, in their set order. */
     statusBadges: React.ReactNode;
+    /** Each own symbol on its own, keyed 'status-item:<id>' — spread into extraComponents (#792). */
+    statusItemCells: Record<string, React.ReactNode>;
 }
 
 /**
- * Computes text strings and badge icon nodes for battery / reach.
+ * Computes text strings and badge icon nodes for battery / reach / window.
  * Text (battery, reach) → use as extraFields in CustomGridView.
  * Icons (batteryIcon, reachIcon) → use as extraComponents in CustomGridView.
- * Both read from the same config.options as StatusBadges. With statusBadgesAlertOnly
+ * Same evaluation as StatusBadges (useStatusSymbols). With statusBadgesAlertOnly
  * an icon only shows while its own value is an alarm.
  */
 export function useStatusFields(config: WidgetConfig): StatusFields {
-    const opts = config.options ?? {};
-    const alertOnly = opts.statusBadgesAlertOnly === true;
+    const { symbols, readings: r } = useStatusSymbols(config);
+    const nodeOf = (key: string) => symbols.find((s) => s.key === key)?.node ?? null;
 
-    const battDpId = (opts.batteryDp as string) ?? '';
-    const reachDpId = (opts.unreachDp as string) ?? '';
-    const { value: battRaw } = useDatapoint(battDpId);
-    const { value: reachRaw } = useDatapoint(reachDpId);
-    const windowDpId = (opts.windowDp as string) ?? '';
-    const { value: windowRaw } = useDatapoint(windowDpId);
-
-    // ── battery ─────────────────────────────────────────────────────────────────
-    const battMode = (opts.batteryMode as 'percent' | 'boolean') ?? 'boolean';
-    const battThreshold = (opts.batteryLowThreshold as number) ?? 20;
     let battery = '';
-    let isBattLow = false;
-    if (battDpId) {
-        if (battMode === 'percent') {
-            const num = typeof battRaw === 'number' ? battRaw : parseFloat(String(battRaw ?? ''));
-            battery = isNaN(num) ? '–' : `${Math.round(num)}%`;
-            isBattLow = !isNaN(num) && num <= battThreshold;
-        } else {
-            isBattLow = matchesValues(battRaw, batteryLowValues(opts));
-            battery = isBattLow ? 'Niedrig' : 'OK';
-        }
+    if (r.battDpId) {
+        if (r.battMode === 'percent') battery = r.battPercent === null ? '–' : `${Math.round(r.battPercent)}%`;
+        else battery = r.isBattLow ? 'Niedrig' : 'OK';
+    }
+    const reach = r.reachDpId ? (r.isUnreach ? 'Nicht erreichbar' : 'Erreichbar') : '';
+    const windowText = r.windowDpId ? (r.isWindowOpen ? 'Fenster offen' : 'Fenster zu') : '';
+
+    const statusItemCells: Record<string, React.ReactNode> = {};
+    for (const s of symbols) {
+        if (!(STATUS_FIXED_KEYS as readonly string[]).includes(s.key))
+            statusItemCells[STATUS_ITEM_CELL_PREFIX + s.key] = s.node;
     }
 
-    const green = STATUS_BADGE_OK_COLOR;
-
-    const battColor = isBattLow ? statusBadgeColor(opts.batteryColor, 'battery') : green;
-    const batteryIcon: React.ReactNode =
-        battDpId && (!alertOnly || isBattLow) ? (
-            <Badge color={battColor}>
-                {isBattLow ? (
-                    <BatteryLow size={10} style={{ color: battColor }} />
-                ) : (
-                    <Battery size={10} style={{ color: battColor }} />
-                )}
-            </Badge>
-        ) : null;
-
-    // ── reach ───────────────────────────────────────────────────────────────────
-    const reachMode = (opts.reachMode as 'unreachable' | 'available') ?? 'unreachable';
-    const reachTrueValues = (opts.reachTrueValues as string) || 'true,1';
-    let reach = '';
-    let isUnreach = false;
-    if (reachDpId) {
-        const rawBool = matchesValues(reachRaw, reachTrueValues);
-        isUnreach = reachMode === 'unreachable' ? rawBool : !rawBool;
-        reach = isUnreach ? 'Nicht erreichbar' : 'Erreichbar';
-    }
-
-    const reachColor = isUnreach ? statusBadgeColor(opts.reachColor, 'reach') : green;
-    const reachIcon: React.ReactNode =
-        reachDpId && (!alertOnly || isUnreach) ? (
-            <Badge color={reachColor}>
-                {isUnreach ? (
-                    <WifiOff size={10} style={{ color: reachColor }} />
-                ) : (
-                    <Wifi size={10} style={{ color: reachColor }} />
-                )}
-            </Badge>
-        ) : null;
-
-    // ── window ──────────────────────────────────────────────────────────────────
-    const isWindowOpen = windowDpId
-        ? matchesValues(windowRaw, (opts.windowOpenValues as string) || WINDOW_OPEN_DEFAULT)
-        : false;
-    const windowText = windowDpId ? (isWindowOpen ? 'Fenster offen' : 'Fenster zu') : '';
-    const windowColor = isWindowOpen ? statusBadgeColor(opts.windowColor, 'window') : green;
-    const windowIcon: React.ReactNode =
-        windowDpId && (!alertOnly || isWindowOpen) ? (
-            <Badge color={windowColor}>
-                <WindowGlyph open={isWindowOpen} size={10} color={windowColor} />
-            </Badge>
-        ) : null;
-
-    const statusBadges: React.ReactNode =
-        batteryIcon || reachIcon || windowIcon ? (
-            <span className="flex items-center gap-0.5">
-                {batteryIcon}
-                {reachIcon}
-                {windowIcon}
-            </span>
-        ) : null;
-
-    return { battery, reach, window: windowText, batteryIcon, reachIcon, windowIcon, statusBadges };
+    return {
+        battery,
+        reach,
+        window: windowText,
+        batteryIcon: nodeOf('battery'),
+        reachIcon: nodeOf('reach'),
+        windowIcon: nodeOf('window'),
+        statusBadges: symbols.length ? <StatusSymbolRow symbols={symbols} /> : null,
+        statusItemCells,
+    };
 }
