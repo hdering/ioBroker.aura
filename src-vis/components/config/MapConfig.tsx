@@ -304,7 +304,6 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
             {/* ── Markers ── */}
             <ConfigSection
                 title={`Marker (${markers.length})`}
-                defaultOpen
                 action={
                     <button
                         type="button"
