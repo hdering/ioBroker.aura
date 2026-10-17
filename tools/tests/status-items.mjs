@@ -289,7 +289,78 @@ await page.waitForTimeout(600);
     await page.evaluate(() => window.__auraShot.setEditMode(false));
 }
 
+// ── Position of the row ──────────────────────────────────────────────────────
+/** Position classes and box of the status row relative to its widget card. */
+const rowPlace = () =>
+    page.evaluate(() => {
+        const row = document.querySelector('[data-aura-status-row]');
+        const card = row?.closest('.react-grid-item');
+        if (!row || !card) return null;
+        const r = row.getBoundingClientRect();
+        const c = card.getBoundingClientRect();
+        return { cls: row.className, left: r.left - c.left < c.width / 2, top: r.top - c.top < c.height / 2 };
+    });
+await show(() => ({ statusItems: [item()] }), { MOT: true });
+let place = await rowPlace();
+check('default position: bottom right', place && !place.left && !place.top, JSON.stringify(place));
+for (const [pos, left, top] of [
+    ['bottom-left', true, false],
+    ['top-right', false, true],
+    ['top-left', true, true],
+]) {
+    await show(() => ({ statusItems: [item()], statusPosition: pos }), { MOT: true });
+    place = await rowPlace();
+    check(`statusPosition ${pos}`, place && place.left === left && place.top === top, JSON.stringify(place));
+}
+
+/** Distance of the row to the card's bottom/right edge, in px. */
+const edgeGap = () =>
+    page.evaluate(() => {
+        const row = document.querySelector('[data-aura-status-row]');
+        const card = row?.closest('.react-grid-item');
+        if (!row || !card) return null;
+        const r = row.getBoundingClientRect();
+        const c = card.getBoundingClientRect();
+        return { bottom: Math.round(c.bottom - r.bottom), right: Math.round(c.right - r.right) };
+    });
+await show(() => ({ statusItems: [item()] }), { MOT: true });
+const inner = await edgeGap();
+await show(() => ({ statusItems: [item()], statusOnEdge: true }), { MOT: true });
+const edge = await edgeGap();
+check(
+    'statusOnEdge pushes the row into the card padding',
+    inner && edge && edge.bottom < inner.bottom && edge.right < inner.right && edge.bottom >= 0 && edge.right >= 0,
+    JSON.stringify({ inner, edge }),
+);
+
+// ── Fill widget carries the row now ──────────────────────────────────────────
+for (const layout of ['battery', 'bar', 'segments', 'wave', 'default']) {
+    run++;
+    const base = `demo.fill${run}`;
+    const vals = { [`${base}.soc`]: 60, [`${base}.LOCK`]: true };
+    const w = {
+        id: `w-fill-${run}`,
+        type: 'fill',
+        title: 'Akku',
+        datapoint: `${base}.soc`,
+        layout,
+        gridPos: { x: 0, y: 0, w: 4, h: 6 },
+        options: { statusItems: [{ id: 'si-f', dp: `${base}.LOCK`, label: 'Gesperrt', icon: 'mdi:lock' }] },
+    };
+    await page.evaluate(
+        ([w, v]) => {
+            window.__auraShot.mock(v);
+            window.__auraShot.mockServerState(v);
+            window.__auraShot.showWidgets([w]);
+        },
+        [w, vals],
+    );
+    await page.waitForTimeout(500);
+    check(`fill ${layout}: status row shows`, JSON.stringify(await titles()) === '["Gesperrt"]', await titles());
+}
+
 // ── Editor dialog ────────────────────────────────────────────────────────────
+let opts;
 const edId = await show(() => ({ batteryDp: BAT }), { MOT: false, BAT: false });
 await page.evaluate(() => window.__auraShot.setEditMode(true));
 await page.waitForTimeout(600);
@@ -298,11 +369,23 @@ await card.hover();
 await card.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
 await page.waitForTimeout(900);
+await page.locator('.aura-widget-edit-modal [data-aura-status-position]').selectOption('top-left');
+await page.waitForTimeout(300);
+opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), edId);
+check(
+    'editor: position select stores statusPosition',
+    opts?.statusPosition === 'top-left',
+    String(opts?.statusPosition),
+);
+await page.locator('.aura-widget-edit-modal [data-aura-status-edge]').check();
+await page.waitForTimeout(300);
+opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), edId);
+check('editor: edge checkbox stores statusOnEdge', opts?.statusOnEdge === true, String(opts?.statusOnEdge));
 await page.locator('.aura-widget-edit-modal button:has-text("Eigene Symbole & Reihenfolge")').click();
 await page.waitForTimeout(400);
 await page.locator('button:has-text("Vorlage: Bewegungsmelder gesperrt")').click();
 await page.waitForTimeout(400);
-let opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), edId);
+opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), edId);
 const added = opts?.statusItems?.[0];
 check(
     'editor: template adds a toggling motion-lock symbol',

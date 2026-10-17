@@ -18893,6 +18893,7 @@ function WidgetFrameInner({
                             'enum',
                             'datepicker',
                             'mediaplayer',
+                            'fill',
                         ].includes(config.type) &&
                             (() => {
                                 const o = config.options ?? {};
@@ -19366,6 +19367,54 @@ function WidgetFrameInner({
                                                     {badgeColorRow('window', 'Farbe bei offenem Fenster')}
                                                 </div>
                                             )}
+                                            {/* Corner of the row — the default spot sits on the controls
+                                                of small switch / dimmer tiles. */}
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Position der Statuszeile
+                                                </label>
+                                                <select
+                                                    value={(o.statusPosition as string) ?? 'bottom-right'}
+                                                    onChange={(e) =>
+                                                        setO({
+                                                            statusPosition:
+                                                                e.target.value === 'bottom-right'
+                                                                    ? undefined
+                                                                    : e.target.value,
+                                                        })
+                                                    }
+                                                    className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                                                    style={stInputStyle}
+                                                    data-aura-status-position
+                                                >
+                                                    <option value="bottom-right">Unten rechts</option>
+                                                    <option value="bottom-left">Unten links</option>
+                                                    <option value="top-right">Oben rechts</option>
+                                                    <option value="top-left">Oben links</option>
+                                                </select>
+                                            </div>
+                                            <label
+                                                className="flex items-center justify-between gap-2 cursor-pointer"
+                                                title="Schiebt die Zeile in den Innenabstand der Karte, damit sie keine Bedienelemente verdeckt"
+                                            >
+                                                <span
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Am Kartenrand
+                                                </span>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={o.statusOnEdge === true}
+                                                    onChange={(e) =>
+                                                        setO({ statusOnEdge: e.target.checked ? true : undefined })
+                                                    }
+                                                    data-aura-status-edge
+                                                />
+                                            </label>
                                             {/* Own symbols and the order of the whole row (#792). */}
                                             <button
                                                 onClick={() => setStatusItemsOpen(true)}

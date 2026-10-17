@@ -1059,6 +1059,9 @@ export interface WidgetHeaderItem {
 // window / lock, issue #792): a two-state symbol driven by one datapoint,
 // optionally switched by a click on it.
 
+/** Corner of the widget the status row sits in (standard layouts; the custom grid places it as a cell). */
+export type StatusPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+
 export interface StatusItem {
     id: string; // unique within the widget; also the key in statusOrder
     dp: string; // datapoint whose value decides active/inactive (may carry a JSON path)

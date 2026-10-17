@@ -65,6 +65,12 @@ export const KEY_DESCRIPTIONS = {
         'Eigene Status-Symbole in derselben Zeile wie batteryDp/windowDp (unten rechts): je ein Datenpunkt, ' +
         'Icon und Farbe für aktiv/inaktiv, optional action "toggle" = Klick aufs Symbol schreibt den Gegenwert ' +
         '(ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe.',
+    statusPosition:
+        'Ecke der Statuszeile (Status-Badges und statusItems) in den Standard-Layouts: bottom-right (Standard), ' +
+        'bottom-left, top-right, top-left. Im Layout custom steht die Zeile dort, wo die Zelle status-badges liegt.',
+    statusOnEdge:
+        'Statuszeile in den Innenabstand der Karte schieben (an den Kartenrand), damit sie bei kleinen Kacheln ' +
+        'keine Bedienelemente verdeckt (Schalter, Dimmer-Regler). Standard false = im Inhalt.',
     statusOrder:
         'Reihenfolge der Status-Symbole von links nach rechts: ids aus statusItems und die festen Schlüssel ' +
         'battery, reach, window, lock. Nicht genannte folgen dahinter (eigene vor festen). Leer = eigene zuerst.',

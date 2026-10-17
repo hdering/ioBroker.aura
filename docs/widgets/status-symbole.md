@@ -23,10 +23,12 @@ Eigene Symbole in der Statuszeile eines Geräte-Widgets, neben Batterie, Erreich
 | Verhalten | |
 |---|---|
 | Reihenfolge | Pfeile ‹ › im Dialog, gilt auch für die festen Symbole |
+| Position der Statuszeile | Unten rechts (Standard) · Unten links · Oben rechts · Oben links |
+| Am Kartenrand | schiebt die Zeile in den Innenabstand — verdeckt keine Schalter / Regler |
 | Klick aufs Symbol | schaltet nur das Symbol, nicht die Kachel |
 | Bestätigung | „Bestätigung“ des Widgets fragt auch hier nach |
 | Editor | Klick schreibt nichts |
 | Custom-Layout | Zelle **Aktion / Icon** → „Status-Badges (alle)“ oder „Eigenes Symbol: …“ einzeln |
 | Vorlage | „Vorlage: Bewegungsmelder gesperrt“ legt Icons, Tooltips und Umschalten an |
 
-Widgets: Schalter, Dimmer, RGB-Licht, Thermostat, Raumklima, Rollladen, Fensterkontakt, Binärsensor, Zustandsbild, Wert, Schieberegler, Drehknopf, Auswahl, Datumswähler, Mediaplayer.
+Widgets: Schalter, Dimmer, Füllstandsanzeige, RGB-Licht, Thermostat, Raumklima, Rollladen, Fensterkontakt, Binärsensor, Zustandsbild, Wert, Schieberegler, Drehknopf, Auswahl, Datumswähler, Mediaplayer.

@@ -8,7 +8,7 @@ import { splitDpRef } from '../../utils/dpRef';
 import { typedActionValue } from '../../utils/statusOverview';
 import { AuraIcon } from '../common/AuraIcon';
 import { ConfirmOverlay } from './ConfirmOverlay';
-import type { StatusItem, WidgetConfig } from '../../types';
+import type { StatusItem, StatusPosition, WidgetConfig } from '../../types';
 
 /** Values of `windowDp` that mean "open" unless `windowOpenValues` says otherwise —
  *  covers booleans (WINDOW_OPEN_REPORTING), HmIP WINDOW_STATE (1 = open on a TRV,
@@ -450,12 +450,34 @@ interface Props {
     config: WidgetConfig;
 }
 
+const STATUS_POSITIONS: StatusPosition[] = ['bottom-right', 'bottom-left', 'top-right', 'top-left'];
+
+/**
+ * Placement of the status row: a corner of the widget body, or — with
+ * `statusOnEdge` — the same corner pushed out into the card's inner padding, so
+ * the row stops covering the controls of a compact tile (a switch's toggle sits
+ * exactly where the row used to be).
+ */
+export function statusRowPlacement(position: unknown, onEdge: boolean): React.CSSProperties {
+    const pos = STATUS_POSITIONS.includes(position as StatusPosition) ? (position as StatusPosition) : 'bottom-right';
+    const [v, h] = pos.split('-') as ['top' | 'bottom', 'left' | 'right'];
+    return onEdge
+        ? { [v]: 'calc(2px - var(--aura-widget-pad, 16px))', [h]: 'calc(4px - var(--aura-widget-pad, 16px))' }
+        : { [v]: 0, [h]: 0 };
+}
+
 export function StatusBadges({ config }: Props) {
+    const opts = config.options ?? {};
     const { symbols } = useStatusSymbols(config);
-    if (config.options?.showStatusBadges === false || !symbols.length) return null;
+    const placement = statusRowPlacement(opts.statusPosition as StatusPosition | undefined, opts.statusOnEdge === true);
+    if (opts.showStatusBadges === false || !symbols.length) return null;
     // Only the row is click-through; a switchable own symbol takes its clicks back.
     return (
-        <div className="absolute bottom-0 right-0 flex items-center gap-0.5 pointer-events-none" style={{ zIndex: 2 }}>
+        <div
+            className="absolute flex items-center gap-0.5 pointer-events-none"
+            style={{ zIndex: 2, ...placement }}
+            data-aura-status-row
+        >
             {symbols.map((s) => (
                 <Fragment key={s.key}>{s.node}</Fragment>
             ))}

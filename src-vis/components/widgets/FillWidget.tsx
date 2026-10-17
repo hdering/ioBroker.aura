@@ -12,6 +12,7 @@ import { resolveFillStatus, type FillCondition, type FillChargeEffect } from '..
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { StatusBadges } from './StatusBadges';
 import {
     bandSegments,
     layoutHasLimits,
@@ -1648,7 +1649,7 @@ export function FillWidget({ config }: WidgetProps) {
 
     if (layout === 'battery') {
         return (
-            <div className="flex flex-col h-full">
+            <div className="relative flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
                         <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -1714,6 +1715,7 @@ export function FillWidget({ config }: WidgetProps) {
                         {statusLayerFor(trackRef)}
                     </div>
                 </div>
+                <StatusBadges config={config} />
             </div>
         );
     }
@@ -1721,7 +1723,7 @@ export function FillWidget({ config }: WidgetProps) {
     if (layout === 'bar') {
         const barPlacement: BarValuePlacement = opts.valuePlacement === 'inside' ? 'inside' : 'outside';
         return (
-            <div className="flex flex-col h-full">
+            <div className="relative flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
                         <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -1789,13 +1791,14 @@ export function FillWidget({ config }: WidgetProps) {
                     {limitsLayerFor(barRef)}
                     {statusLayerFor(barRef)}
                 </div>
+                <StatusBadges config={config} />
             </div>
         );
     }
 
     if (layout === 'segments') {
         return (
-            <div className="flex flex-col h-full">
+            <div className="relative flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
                         <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -1855,13 +1858,14 @@ export function FillWidget({ config }: WidgetProps) {
                         {statusLayerFor(null)}
                     </div>
                 </div>
+                <StatusBadges config={config} />
             </div>
         );
     }
 
     if (layout === 'wave') {
         return (
-            <div className="flex flex-col h-full">
+            <div className="relative flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
                         <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -1911,13 +1915,14 @@ export function FillWidget({ config }: WidgetProps) {
                         {statusLayerFor(null)}
                     </div>
                 </div>
+                <StatusBadges config={config} />
             </div>
         );
     }
 
     if (!config.datapoint) {
         return (
-            <div className="flex flex-col h-full">
+            <div className="relative flex flex-col h-full">
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
                         <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -1951,12 +1956,13 @@ export function FillWidget({ config }: WidgetProps) {
                     <Droplets size={32} strokeWidth={1} />
                     <span className="text-xs opacity-60">Kein Datenpunkt konfiguriert</span>
                 </div>
+                <StatusBadges config={config} />
             </div>
         );
     }
 
     return (
-        <div className="aura-widget-row flex flex-col h-full">
+        <div className="aura-widget-row relative flex flex-col h-full">
             <HeaderGroup>
                 {(showTitle || showIcon) && (
                     <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -2006,6 +2012,7 @@ export function FillWidget({ config }: WidgetProps) {
                     </div>
                 )}
             </div>
+            <StatusBadges config={config} />
         </div>
     );
 }
