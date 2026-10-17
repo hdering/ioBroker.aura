@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.83.3",
+    "auraVersion": "0.84.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1354,6 +1354,19 @@
         "borderColor": {
           "type": "string",
           "description": "Colour of a 2px frame around the whole grid, rounded like the widget — the card layouts' outline (#768); unset = no frame.",
+          "color": true
+        },
+        "vLines": {
+          "type": "boolean",
+          "description": "thin vertical line between neighbouring columns, drawn in the gap and not through a cell spanning both (#793)"
+        },
+        "hLines": {
+          "type": "boolean",
+          "description": "thin horizontal line between neighbouring rows, drawn in the gap and not through a cell spanning both (#793)"
+        },
+        "lineColor": {
+          "type": "string",
+          "description": "colour of the vLines/hLines, any CSS colour; unset = theme border colour (--widget-border)",
           "color": true
         }
       }
