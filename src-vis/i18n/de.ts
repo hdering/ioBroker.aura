@@ -1373,9 +1373,9 @@ export const de = {
     'wf.history.liveData': '– Live-Daten (kein Verlauf) –',
     'wf.history.timeRange': 'Zeitraum',
     'wf.history.lockRange': 'Zeitraum sperren (Wechsler im Frontend ausblenden)',
-    'wf.history.showYAxis': 'Y-Achse anzeigen',
+    'wf.history.showYAxis': 'Y-Achse',
     'wf.history.yAxisCompact': 'Kompakt (7000 → 7K)',
-    'wf.history.showXAxis': 'X-Achse anzeigen',
+    'wf.history.showXAxis': 'X-Achse',
     'wf.history.gridLines': 'Horizontale Linien',
 
     // Calendar config
@@ -1820,7 +1820,7 @@ export const de = {
     'echart.liveData': '– Live-Daten –',
     'echart.timeRange': 'Zeitraum',
     'echart.globalSettings': 'Globale Einstellungen',
-    'echart.showLegend': 'Legende anzeigen',
+    'echart.showLegend': 'Legende',
     'echart.yAxisLeft': 'Y-Achse links',
     'echart.unitLeft': 'Einheit (z.B. °C)',
     'echart.min': 'Min',
@@ -1966,9 +1966,9 @@ export const de = {
     'echart.templateInstancePlaceholder': 'leer = Instanz des auslösenden Widgets',
     'echart.templateInstanceHint':
         'Platzhalter-Datenpunkt – leer lassen, um die Verlaufs-Instanz vom auslösenden Widget zu übernehmen.',
-    'echart.showYAxis': 'Y-Achse anzeigen',
-    'echart.showYAxisRight': 'Rechte Y-Achse anzeigen',
-    'echart.showXAxis': 'X-Achse anzeigen',
+    'echart.showYAxis': 'Y-Achse',
+    'echart.showYAxisRight': 'Rechte Y-Achse',
+    'echart.showXAxis': 'X-Achse',
     'echart.gridLines': 'Horizontale Linien',
     'echart.nowLine': 'Aktuelle Zeit als Linie',
     'echart.nowLineColor': 'Farbe der Zeitlinie',
@@ -1982,7 +1982,7 @@ export const de = {
     'echart.areaOpacity': 'Flächen-Deckkraft: {value} %',
     'echart.areaOpacityAuto': 'Flächen-Deckkraft: Auto ({value} %)',
     'echart.animation': 'Animation',
-    'echart.showCurrentValue': 'Aktuellen Wert anzeigen',
+    'echart.showCurrentValue': 'Aktueller Wert',
     'echart.currentValueSource': 'Aktueller Wert ist',
     'echart.currentValueFirst': 'Erster Wert',
     'echart.currentValueLast': 'Letzter Wert',
@@ -2142,7 +2142,7 @@ export const de = {
     'historytable.cfg.valueLabels': 'Werttexte (optional)',
     'historytable.cfg.valueLabelsHint': 'Leer = Texte aus common.states des Datenpunkts.',
     'historytable.cfg.fontSize': 'Schriftgröße (px)',
-    'historytable.cfg.showHeader': 'Spaltentitel anzeigen',
+    'historytable.cfg.showHeader': 'Spaltentitel',
     'historytable.cfg.striped': 'Zeilen abwechselnd einfärben',
     'historytable.cfg.columns': 'Spalten',
     'historytable.cfg.columnsHint':
@@ -2547,8 +2547,8 @@ export const de = {
     'evcc.loadpoints': 'Ladepunkte',
     'evcc.gridPowerDp': 'Netzleistung',
     'evcc.gridPowerDpHint': '(positiv = Bezug, negativ = Einspeisung)',
-    'evcc.showBattery': 'Batterie anzeigen',
-    'evcc.showLoadpoints': 'Ladepunkte anzeigen',
+    'evcc.showBattery': 'Batterie',
+    'evcc.showLoadpoints': 'Ladepunkte',
 
     // ── Mediaplayer Widget ────────────────────────────────────────────────────────
     'mp.dp.title': 'Titel DP',

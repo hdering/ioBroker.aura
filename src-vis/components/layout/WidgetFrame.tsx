@@ -446,6 +446,12 @@ const SECTIONED_EDIT_TYPES = new Set<WidgetType>([
     'countdown',
     'trashSchedule',
     'aircontrol',
+    'chart',
+    'climate',
+    'echart',
+    'energiebilanz',
+    'evcc',
+    'historytable',
     'switch',
     'windowcontact',
     'gauge',
@@ -1326,6 +1332,57 @@ const STYLE_FIELDS: { key: string; labelKey: string; type: 'color' | 'text' }[] 
 // ── ChartHistoryConfig ────────────────────────────────────────────────────────
 const CHART_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
 
+/** The history chart's visible fields — the climate widget merges them into its own list. */
+function chartVisibleFields(
+    o: Record<string, unknown>,
+    set: (patch: Record<string, unknown>) => void,
+    t: ReturnType<typeof useT>,
+    hideXAxis: boolean,
+    inlineColors: boolean,
+): VisibleField[] {
+    return [
+        {
+            key: 'showAverage',
+            label: 'Durchschnittslinie',
+            def: false,
+            // With inline colours the average colour sits next to its switch.
+            extra: inlineColors ? (
+                <div className="flex items-center gap-1.5 shrink-0">
+                    <ColorPicker
+                        value={(o.avgColor as string | undefined) ?? (o.lineColor as string | undefined) ?? '#3b82f6'}
+                        onChange={(v) => set({ avgColor: v })}
+                        className="w-6 h-6 rounded cursor-pointer border-0 p-0"
+                        style={{ background: 'none' }}
+                    />
+                    <button
+                        onClick={() => set({ avgColor: undefined })}
+                        className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
+                        style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
+                    >
+                        Reset
+                    </button>
+                </div>
+            ) : undefined,
+        },
+        { key: 'showAverageAsValue', label: 'Ø als Zahlenwert', def: false },
+        {
+            key: 'showYAxis',
+            label: t('wf.history.showYAxis'),
+            def: false,
+            children: (
+                <VisToggleRow
+                    visKey="yAxisCompact"
+                    label={t('wf.history.yAxisCompact')}
+                    on={(o.yAxisCompact as boolean | undefined) ?? true}
+                    onChange={(v) => set({ yAxisCompact: v })}
+                />
+            ),
+        },
+        { key: 'showXAxis', label: t('wf.history.showXAxis'), hidden: hideXAxis },
+        { key: 'showGridLines', label: t('wf.history.gridLines'), def: false },
+    ];
+}
+
 function ChartHistoryConfig({
     config,
     onConfigChange,
@@ -1333,6 +1390,9 @@ function ChartHistoryConfig({
     seriesSlot,
     hideXAxis = false,
     inlineColors = false,
+    mainDpField,
+    afterRange,
+    ownVisible = true,
 }: {
     config: WidgetConfig;
     onConfigChange: (c: WidgetConfig) => void;
@@ -1344,6 +1404,12 @@ function ChartHistoryConfig({
     hideXAxis?: boolean;
     /** Linienfarbe liegt beim Aufrufer, die Ø-Farbe neben ihrem Schalter statt im Block „Farben“. */
     inlineColors?: boolean;
+    /** The shared main datapoint field, first in the history section. */
+    mainDpField?: React.ReactNode;
+    /** A section after "Zeitraum" (the chart's number format). */
+    afterRange?: React.ReactNode;
+    /** Render the chart's own "Sichtbare Felder" — off where the caller merges them (climate). */
+    ownVisible?: boolean;
 }) {
     const t = useT();
     const [adapters, setAdapters] = useState<DetectedAdapter[]>([]);
@@ -1381,261 +1447,169 @@ function ChartHistoryConfig({
 
     return (
         <>
-            <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-            <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                {title ?? t('wf.history.title')}
-            </p>
+            {ownVisible && (
+                <VisibleFieldsSection
+                    fields={chartVisibleFields(o, set, t, hideXAxis, inlineColors)}
+                    values={o}
+                    onChange={set}
+                />
+            )}
+            <ConfigSection title={title ?? t('wf.history.title')} sectionKey="history">
+                {mainDpField}
 
-            {/* Adapter-Auswahl: Freitext wenn Datenpunkt ein Template-Platzhalter ist */}
-            {isTemplate && (
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.history.instance')}
-                    </label>
-                    <input
-                        type="text"
-                        placeholder="leer = Instanz des auslösenden Widgets"
-                        value={selectedInstance ?? ''}
-                        onChange={(e) => set({ historyInstance: e.target.value || undefined })}
-                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    />
-                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        Platzhalter-Datenpunkt – leer lassen, um die Verlaufs-Instanz vom auslösenden Widget zu
-                        übernehmen.
+                {/* Adapter-Auswahl: Freitext wenn Datenpunkt ein Template-Platzhalter ist */}
+                {isTemplate && (
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('wf.history.instance')}
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="leer = Instanz des auslösenden Widgets"
+                            value={selectedInstance ?? ''}
+                            onChange={(e) => set({ historyInstance: e.target.value || undefined })}
+                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        />
+                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            Platzhalter-Datenpunkt – leer lassen, um die Verlaufs-Instanz vom auslösenden Widget zu
+                            übernehmen.
+                        </p>
+                    </div>
+                )}
+
+                {/* Adapter-Auswahl: Auto-Detect wenn konkreter Datenpunkt */}
+                {!isTemplate && checking && (
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.history.checking')}
                     </p>
-                </div>
-            )}
+                )}
+                {!isTemplate && !checking && adapters.length === 0 && (
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.history.noAdapter')}
+                    </p>
+                )}
+                {!isTemplate && !checking && adapters.length > 0 && (
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('wf.history.instance')}
+                        </label>
+                        <select
+                            value={selectedInstance ?? ''}
+                            onChange={(e) => set({ historyInstance: e.target.value || undefined })}
+                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <option value="">{t('wf.history.liveData')}</option>
+                            {adapters.map((a) => (
+                                <option key={a.instance} value={a.instance}>
+                                    {a.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
-            {/* Adapter-Auswahl: Auto-Detect wenn konkreter Datenpunkt */}
-            {!isTemplate && checking && (
-                <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.history.checking')}
-                </p>
-            )}
-            {!isTemplate && !checking && adapters.length === 0 && (
-                <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.history.noAdapter')}
-                </p>
-            )}
-            {!isTemplate && !checking && adapters.length > 0 && (
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.history.instance')}
-                    </label>
-                    <select
-                        value={selectedInstance ?? ''}
-                        onChange={(e) => set({ historyInstance: e.target.value || undefined })}
-                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        <option value="">{t('wf.history.liveData')}</option>
-                        {adapters.map((a) => (
-                            <option key={a.instance} value={a.instance}>
-                                {a.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            )}
-
-            {selectedInstance && seriesSlot}
+                {selectedInstance && seriesSlot}
+            </ConfigSection>
 
             {/* Zeitraum */}
             {selectedInstance && (
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.history.timeRange')}
-                    </label>
-                    <div className="flex gap-1 flex-wrap">
-                        {CHART_RANGES.map((r) => (
-                            <button
-                                key={r}
-                                onClick={() => set({ historyRange: r })}
-                                className="flex-1 text-[11px] py-1 rounded-md transition-opacity hover:opacity-80"
-                                style={{
-                                    background: selectedRange === r ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: selectedRange === r ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${selectedRange === r ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    minWidth: 36,
-                                }}
-                            >
-                                {RANGE_LABELS[r]}
-                            </button>
-                        ))}
-                    </div>
-                    {/* Benutzerdefinierter Zeitraum */}
-                    {selectedRange === 'custom' && (
-                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                            <input
-                                type="number"
-                                min={1}
-                                max={999}
-                                value={customVal}
-                                onChange={(e) =>
-                                    set({ historyRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })
-                                }
-                                className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                            {RANGE_UNITS.map((u) => (
+                <ConfigSection title="Zeitraum" sectionKey="range">
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('wf.history.timeRange')}
+                        </label>
+                        <div className="flex gap-1 flex-wrap">
+                            {CHART_RANGES.map((r) => (
                                 <button
-                                    key={u}
-                                    onClick={() => set({ historyRangeCustomUnit: u })}
-                                    className="text-[11px] px-2 py-1 rounded-md transition-opacity hover:opacity-80"
+                                    key={r}
+                                    onClick={() => set({ historyRange: r })}
+                                    className="flex-1 text-[11px] py-1 rounded-md transition-opacity hover:opacity-80"
                                     style={{
-                                        background: customUnit === u ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: customUnit === u ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${customUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        background: selectedRange === r ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: selectedRange === r ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${selectedRange === r ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        minWidth: 36,
                                     }}
                                 >
-                                    {t(`rangeChips.unit.${u}`)}
+                                    {RANGE_LABELS[r]}
                                 </button>
                             ))}
                         </div>
-                    )}
-                    {/* Eigene Zeitraum-Chips (#709) — nur das Diagramm, das Klima-Widget behält seine */}
-                    {config.type === 'chart' && !lockRange && (
-                        <RangeChipsEditor
-                            value={o.rangeChips}
-                            defaults={[
-                                ...CHART_RANGES.filter((r) => r !== 'custom'),
-                                ...(selectedRange === 'custom' ? [rangeKey('custom', customVal, customUnit)] : []),
-                            ]}
-                            onChange={(next) => set({ rangeChips: next })}
-                        />
-                    )}
-                    {/* Zeitraum im Frontend sperren */}
-                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            checked={lockRange}
-                            onChange={(e) => set({ lockRange: e.target.checked })}
-                            className="rounded"
-                        />
-                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.history.lockRange')}
-                        </span>
-                    </label>
-                    {/* Durchschnittslinie */}
-                    <div className="flex items-center justify-between gap-2 mt-2">
-                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={(o.showAverage as boolean | undefined) ?? false}
-                                onChange={(e) => set({ showAverage: e.target.checked })}
-                                className="rounded"
-                            />
-                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                Durchschnittslinie anzeigen
-                            </span>
-                        </label>
-                        {inlineColors && (o.showAverage === true || o.showAverageAsValue === true) && (
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                <ColorPicker
-                                    value={
-                                        (o.avgColor as string | undefined) ??
-                                        (o.lineColor as string | undefined) ??
-                                        '#3b82f6'
+                        {/* Benutzerdefinierter Zeitraum */}
+                        {selectedRange === 'custom' && (
+                            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    max={999}
+                                    value={customVal}
+                                    onChange={(e) =>
+                                        set({ historyRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })
                                     }
-                                    onChange={(v) => set({ avgColor: v })}
-                                    className="w-6 h-6 rounded cursor-pointer border-0 p-0"
-                                    style={{ background: 'none' }}
+                                    className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
                                 />
-                                <button
-                                    onClick={() => set({ avgColor: undefined })}
-                                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
-                                    style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
-                                >
-                                    Reset
-                                </button>
+                                {RANGE_UNITS.map((u) => (
+                                    <button
+                                        key={u}
+                                        onClick={() => set({ historyRangeCustomUnit: u })}
+                                        className="text-[11px] px-2 py-1 rounded-md transition-opacity hover:opacity-80"
+                                        style={{
+                                            background: customUnit === u ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: customUnit === u ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${customUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {t(`rangeChips.unit.${u}`)}
+                                    </button>
+                                ))}
                             </div>
                         )}
-                    </div>
-                    <label className="flex items-center gap-2 mt-1 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            checked={(o.showAverageAsValue as boolean | undefined) ?? false}
-                            onChange={(e) => set({ showAverageAsValue: e.target.checked })}
-                            className="rounded"
-                        />
-                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Ø als Zahlenwert anzeigen
-                        </span>
-                    </label>
-                    {/* Y-Achse anzeigen */}
-                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            checked={(o.showYAxis as boolean | undefined) ?? false}
-                            onChange={(e) => set({ showYAxis: e.target.checked })}
-                            className="rounded"
-                        />
-                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.history.showYAxis')}
-                        </span>
-                    </label>
-                    {(o.showYAxis as boolean | undefined) && (
-                        <label className="flex items-center gap-2 mt-1 ml-5 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={(o.yAxisCompact as boolean | undefined) ?? true}
-                                onChange={(e) => set({ yAxisCompact: e.target.checked })}
-                                className="rounded"
+                        {/* Eigene Zeitraum-Chips (#709) — nur das Diagramm, das Klima-Widget behält seine */}
+                        {config.type === 'chart' && !lockRange && (
+                            <RangeChipsEditor
+                                value={o.rangeChips}
+                                defaults={[
+                                    ...CHART_RANGES.filter((r) => r !== 'custom'),
+                                    ...(selectedRange === 'custom' ? [rangeKey('custom', customVal, customUnit)] : []),
+                                ]}
+                                onChange={(next) => set({ rangeChips: next })}
                             />
-                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('wf.history.yAxisCompact')}
-                            </span>
-                        </label>
-                    )}
-                    {/* X-Achse anzeigen */}
-                    {!hideXAxis && (
+                        )}
+                        {/* Zeitraum im Frontend sperren */}
                         <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                             <input
                                 type="checkbox"
-                                checked={(o.showXAxis as boolean | undefined) ?? true}
-                                onChange={(e) => set({ showXAxis: e.target.checked })}
+                                checked={lockRange}
+                                onChange={(e) => set({ lockRange: e.target.checked })}
                                 className="rounded"
                             />
                             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('wf.history.showXAxis')}
+                                {t('wf.history.lockRange')}
                             </span>
                         </label>
-                    )}
-                    {/* Horizontale Hilfslinien */}
-                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            checked={(o.showGridLines as boolean | undefined) ?? false}
-                            onChange={(e) => set({ showGridLines: e.target.checked })}
-                            className="rounded"
-                        />
-                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.history.gridLines')}
-                        </span>
-                    </label>
-                </div>
+                    </div>
+                </ConfigSection>
             )}
+            {afterRange}
 
             {/* ── Farben ── */}
             {!inlineColors && (
-                <>
-                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                    <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                        Farben
-                    </p>
+                <ConfigSection title="Farben" sectionKey="colors">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center justify-between">
                             <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
@@ -1682,7 +1656,7 @@ function ChartHistoryConfig({
                             </div>
                         </div>
                     </div>
-                </>
+                </ConfigSection>
             )}
         </>
     );
@@ -1693,11 +1667,15 @@ function ClimateConfig({
     config,
     onConfigChange,
     onPickerOpen,
+    mainDpField,
 }: {
     config: WidgetConfig;
     onConfigChange: (c: WidgetConfig) => void;
     onPickerOpen: (target: 'climate_humidityDp' | 'climate_targetDp' | 'climate_pressureDp') => void;
+    /** The shared main datapoint field (the actual temperature). */
+    mainDpField: React.ReactNode;
 }) {
+    const t = useT();
     const [humidityIconPickerOpen, setHumidityIconPickerOpen] = useState(false);
     const [pressureIconPickerOpen, setPressureIconPickerOpen] = useState(false);
     const [metricsOpen, setMetricsOpen] = useState(false);
@@ -1817,7 +1795,6 @@ function ClimateConfig({
     // weiteren Werte, zuletzt der Verlauf in einem Stück (Quelle → Reihen → Zeitraum → Achsen).
     const labelCls = 'text-[11px] mb-1 block';
     const labelStyle = { color: 'var(--text-secondary)' };
-    const divider = () => <div className="h-px my-2" style={{ background: 'var(--app-border)' }} />;
     const toggle = (on: boolean, onClick: () => void, title?: string) => (
         <button
             onClick={onClick}
@@ -1832,22 +1809,6 @@ function ClimateConfig({
         </button>
     );
     /** Überschrift eines Werts, rechts der Schalter „in der Kachel anzeigen“. */
-    const valueHeader = (label: string, key: string, def: boolean) => {
-        const on = def ? o[key] !== false : o[key] === true;
-        return (
-            <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                    {label}
-                </p>
-                <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                        anzeigen
-                    </span>
-                    {toggle(on, () => set({ [key]: !on }))}
-                </label>
-            </div>
-        );
-    };
     const dpField = (
         value: string,
         onChange: (v: string | undefined) => void,
@@ -1976,258 +1937,247 @@ function ClimateConfig({
                     Weitere Werte mit {'„im Diagramm“'} erscheinen zusätzlich.
                 </p>
             )}
-            {chartOn && (
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={o.showChartLegend !== false}
-                        onChange={(e) => set({ showChartLegend: e.target.checked ? undefined : false })}
-                        className="rounded"
-                    />
-                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Legende (ab zwei Reihen)
-                    </span>
-                </label>
-            )}
         </div>
     );
 
+    // Sichtbare Felder: the values, the extras and the chart's own fields in one list.
+    const visibleFields: VisibleField[] = [
+        { key: 'showActualTemp', label: 'Temperatur' },
+        { key: 'showTargetTemp', label: 'Soll-Temperatur' },
+        { key: 'showHumidity', label: 'Luftfeuchtigkeit' },
+        { key: 'showPressure', label: 'Luftdruck' },
+        { key: 'showMetricLabels', label: 'Beschriftungen der weiteren Werte' },
+        { key: 'showComfort', label: 'Komfortzone-Hinweis', hint: '18–24 °C, 40–60 %', def: false },
+        { key: 'showChartLegend', label: 'Diagramm-Legende', hint: 'ab zwei Reihen', hidden: !chartOn },
+        ...chartVisibleFields(o, set, t, true, true),
+    ];
+
     return (
         <>
-            <button
-                onClick={() => void autoFill()}
-                className="w-full text-[11px] px-2.5 py-1.5 mb-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40 text-left"
-                style={{
-                    background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-                    color: 'var(--accent)',
-                    border: '1px solid color-mix(in srgb, var(--accent) 27%, transparent)',
-                }}
-                title="Sucht neben dem Temperatur-Datenpunkt nach Soll, Feuchte, Luftdruck, CO₂ …"
-            >
-                ✨ Auto-Erkennen — Soll, Feuchte, Luftdruck und weitere Werte beim Sensor suchen
-            </button>
+            <VisibleFieldsSection fields={visibleFields} values={o} onChange={set} />
+            <ConfigSection title="Temperatur" sectionKey="temperature">
+                <button
+                    onClick={() => void autoFill()}
+                    className="w-full text-[11px] px-2.5 py-1.5 mb-1 rounded-lg transition-colors hover:opacity-80 disabled:opacity-40 text-left"
+                    style={{
+                        background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                        color: 'var(--accent)',
+                        border: '1px solid color-mix(in srgb, var(--accent) 27%, transparent)',
+                    }}
+                    title="Sucht neben dem Temperatur-Datenpunkt nach Soll, Feuchte, Luftdruck, CO₂ …"
+                >
+                    ✨ Auto-Erkennen — Soll, Feuchte, Luftdruck und weitere Werte beim Sensor suchen
+                </button>
 
-            {/* ── Temperatur ── */}
-            {divider()}
-            {valueHeader('Temperatur', 'showActualTemp', true)}
-            <div className="mb-1.5">
-                <ValueFormatRow
-                    unit={(o.unit as string | undefined) ?? '°C'}
-                    unitPlaceholder="°C"
-                    onUnitChange={(v) => set({ unit: v || undefined })}
-                    decimals={o.decimals as number | undefined}
-                    numberFormat={o.numberFormat as NumberFormat | undefined}
-                    onChange={set}
-                    inputStyle={inputStyle}
-                />
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Nachkommastellen gelten auch für Feuchte und weitere Werte ohne eigene Angabe.
-                </p>
-            </div>
-            {colorRow(
-                'Farbe (Icon und Verlauf)',
-                (o.lineColor as string | undefined) ?? '#06b6d4',
-                (v) => set({ lineColor: v }),
-                () => set({ lineColor: undefined }),
+                {mainDpField}
+                <div className="mb-1.5">
+                    <ValueFormatRow
+                        unit={(o.unit as string | undefined) ?? '°C'}
+                        unitPlaceholder="°C"
+                        onUnitChange={(v) => set({ unit: v || undefined })}
+                        decimals={o.decimals as number | undefined}
+                        numberFormat={o.numberFormat as NumberFormat | undefined}
+                        onChange={set}
+                        inputStyle={inputStyle}
+                    />
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Nachkommastellen gelten auch für Feuchte und weitere Werte ohne eigene Angabe.
+                    </p>
+                </div>
+                {colorRow(
+                    'Farbe (Icon und Verlauf)',
+                    (o.lineColor as string | undefined) ?? '#06b6d4',
+                    (v) => set({ lineColor: v }),
+                    () => set({ lineColor: undefined }),
+                )}
+            </ConfigSection>
+            {showTarget && (
+                <ConfigSection title="Soll-Temperatur" sectionKey="target">
+                    {dpField(
+                        (o.targetDatapoint as string) ?? '',
+                        (v) => set({ targetDatapoint: v }),
+                        'climate_targetDp',
+                    )}
+                </ConfigSection>
             )}
-
-            {/* ── Soll-Temperatur ── */}
-            {divider()}
-            {valueHeader('Soll-Temperatur', 'showTargetTemp', true)}
-            {showTarget &&
-                dpField((o.targetDatapoint as string) ?? '', (v) => set({ targetDatapoint: v }), 'climate_targetDp')}
 
             {/* ── Luftfeuchtigkeit ── */}
             {/* Ausgeblendet bleibt der Datenpunkt stehen, solange ihn etwas anderes braucht. */}
-            {divider()}
-            {valueHeader('Luftfeuchtigkeit', 'showHumidity', true)}
-            {(showHum || humidityUsers.length > 0) &&
-                dpField(
-                    (o.humidityDatapoint as string) ?? '',
-                    (v) => set({ humidityDatapoint: v }),
-                    'climate_humidityDp',
-                )}
-            {!showHum && humidityUsers.length > 0 && (
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Zeile ausgeblendet — der Datenpunkt wird noch gebraucht für {humidityUsers.join(', ')}.
-                </p>
-            )}
-            {showHum && (
-                <div className="flex gap-2 mt-1.5">
-                    <div className="flex-1 min-w-0">
-                        <label className={labelCls} style={labelStyle}>
-                            Icon
-                        </label>
-                        {iconButton(humidityIconName, HumidityIconPreview, 'Droplets', () =>
-                            setHumidityIconPickerOpen(true),
+            {(showHum || humidityUsers.length > 0) && (
+                <ConfigSection title="Luftfeuchtigkeit" sectionKey="humidity">
+                    {(showHum || humidityUsers.length > 0) &&
+                        dpField(
+                            (o.humidityDatapoint as string) ?? '',
+                            (v) => set({ humidityDatapoint: v }),
+                            'climate_humidityDp',
                         )}
-                    </div>
-                    <div className="w-20 shrink-0">
-                        <label className={labelCls} style={labelStyle}>
-                            Einheit
-                        </label>
-                        <input
-                            type="text"
-                            value={(o.humidityUnit as string) ?? '%'}
-                            onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
-                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                            style={inputStyle}
+                    {!showHum && humidityUsers.length > 0 && (
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                            Zeile ausgeblendet — der Datenpunkt wird noch gebraucht für {humidityUsers.join(', ')}.
+                        </p>
+                    )}
+                    {showHum && (
+                        <div className="flex gap-2 mt-1.5">
+                            <div className="flex-1 min-w-0">
+                                <label className={labelCls} style={labelStyle}>
+                                    Icon
+                                </label>
+                                {iconButton(humidityIconName, HumidityIconPreview, 'Droplets', () =>
+                                    setHumidityIconPickerOpen(true),
+                                )}
+                            </div>
+                            <div className="w-20 shrink-0">
+                                <label className={labelCls} style={labelStyle}>
+                                    Einheit
+                                </label>
+                                <input
+                                    type="text"
+                                    value={(o.humidityUnit as string) ?? '%'}
+                                    onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
+                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
+                        </div>
+                    )}
+                    {humidityIconPickerOpen && (
+                        <IconPickerModal
+                            current={humidityIconName ?? ''}
+                            onSelect={(name) => {
+                                set({ humidityIcon: name || undefined });
+                                setHumidityIconPickerOpen(false);
+                            }}
+                            onClose={() => setHumidityIconPickerOpen(false)}
                         />
-                    </div>
-                </div>
-            )}
-            {humidityIconPickerOpen && (
-                <IconPickerModal
-                    current={humidityIconName ?? ''}
-                    onSelect={(name) => {
-                        set({ humidityIcon: name || undefined });
-                        setHumidityIconPickerOpen(false);
-                    }}
-                    onClose={() => setHumidityIconPickerOpen(false)}
-                />
+                    )}
+                </ConfigSection>
             )}
 
             {/* ── Luftdruck ── */}
-            {divider()}
-            {valueHeader('Luftdruck', 'showPressure', true)}
             {showPress && (
-                <>
-                    {dpField(
-                        (o.pressureDatapoint as string) ?? '',
-                        (v) => set({ pressureDatapoint: v }),
-                        'climate_pressureDp',
-                    )}
-                    <div className="flex gap-2 mt-1.5">
-                        <div className="flex-1 min-w-0">
-                            <label className={labelCls} style={labelStyle}>
-                                Icon
-                            </label>
-                            {iconButton(pressureIconName, PressureIconPreview, 'Gauge', () =>
-                                setPressureIconPickerOpen(true),
+                <ConfigSection title="Luftdruck" sectionKey="pressure">
+                    {showPress && (
+                        <>
+                            {dpField(
+                                (o.pressureDatapoint as string) ?? '',
+                                (v) => set({ pressureDatapoint: v }),
+                                'climate_pressureDp',
                             )}
-                        </div>
-                        <div className="w-20 shrink-0">
-                            <label className={labelCls} style={labelStyle}>
-                                Einheit
-                            </label>
-                            <input
-                                type="text"
-                                value={(o.pressureUnit as string) ?? 'hPa'}
-                                onChange={(e) => set({ pressureUnit: e.target.value || 'hPa' })}
-                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                style={inputStyle}
-                            />
-                        </div>
-                        <div className="w-20 shrink-0">
-                            <label className={labelCls} style={labelStyle} title="Nachkommastellen">
-                                Stellen
-                            </label>
-                            <input
-                                type="number"
-                                min={0}
-                                max={4}
-                                value={(o.pressureDecimals as number | undefined) ?? 0}
-                                onChange={(e) => {
-                                    const n = parseInt(e.target.value, 10);
-                                    set({ pressureDecimals: Number.isFinite(n) ? Math.max(0, Math.min(4, n)) : 0 });
-                                }}
-                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                style={inputStyle}
-                            />
-                        </div>
-                    </div>
-                </>
-            )}
-            {pressureIconPickerOpen && (
-                <IconPickerModal
-                    current={pressureIconName ?? ''}
-                    onSelect={(name) => {
-                        set({ pressureIcon: name || undefined });
-                        setPressureIconPickerOpen(false);
-                    }}
-                    onClose={() => setPressureIconPickerOpen(false)}
-                />
+                            <div className="flex gap-2 mt-1.5">
+                                <div className="flex-1 min-w-0">
+                                    <label className={labelCls} style={labelStyle}>
+                                        Icon
+                                    </label>
+                                    {iconButton(pressureIconName, PressureIconPreview, 'Gauge', () =>
+                                        setPressureIconPickerOpen(true),
+                                    )}
+                                </div>
+                                <div className="w-20 shrink-0">
+                                    <label className={labelCls} style={labelStyle}>
+                                        Einheit
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={(o.pressureUnit as string) ?? 'hPa'}
+                                        onChange={(e) => set({ pressureUnit: e.target.value || 'hPa' })}
+                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                        style={inputStyle}
+                                    />
+                                </div>
+                                <div className="w-20 shrink-0">
+                                    <label className={labelCls} style={labelStyle} title="Nachkommastellen">
+                                        Stellen
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={4}
+                                        value={(o.pressureDecimals as number | undefined) ?? 0}
+                                        onChange={(e) => {
+                                            const n = parseInt(e.target.value, 10);
+                                            set({
+                                                pressureDecimals: Number.isFinite(n) ? Math.max(0, Math.min(4, n)) : 0,
+                                            });
+                                        }}
+                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                        style={inputStyle}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+                    {pressureIconPickerOpen && (
+                        <IconPickerModal
+                            current={pressureIconName ?? ''}
+                            onSelect={(name) => {
+                                set({ pressureIcon: name || undefined });
+                                setPressureIconPickerOpen(false);
+                            }}
+                            onClose={() => setPressureIconPickerOpen(false)}
+                        />
+                    )}
+                </ConfigSection>
             )}
 
             {/* ── Weitere Werte — CO₂, VOC, Taupunkt … (#698) ── */}
-            {divider()}
-            <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                Weitere Werte
-            </p>
-            <button
-                onClick={() => setMetricsOpen(true)}
-                className="w-full text-xs px-2.5 py-2 rounded-lg text-left flex items-center justify-between hover:opacity-80"
-                style={inputStyle}
-            >
-                <span style={{ color: 'var(--text-primary)' }}>
-                    {climateMetrics.length
-                        ? `${climateMetrics.length} ${climateMetrics.length === 1 ? 'Wert' : 'Werte'} bearbeiten…`
-                        : 'CO₂, VOC, Taupunkt … hinzufügen'}
-                </span>
-                <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                    ›
-                </span>
-            </button>
-            {climateMetrics.length > 0 && (
-                <p className="text-[10px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
-                    {climateMetrics.map((m) => m.label || m.id).join(' · ')}
-                </p>
-            )}
-            <div className="flex gap-2 mt-2 mb-1.5">
-                <div className="flex-1">
-                    <label className={labelCls} style={labelStyle}>
-                        Spalten im Raster
-                    </label>
-                    <select
-                        value={(o.metricColumns as number | undefined) ?? 0}
-                        onChange={(e) => set({ metricColumns: parseInt(e.target.value, 10) || undefined })}
-                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                        style={inputStyle}
-                    >
-                        <option value={0}>Automatisch (umbrechend)</option>
-                        <option value={1}>1</option>
-                        <option value={2}>2</option>
-                        <option value={3}>3</option>
-                        <option value={4}>4</option>
-                    </select>
-                </div>
-                <div className="flex-1 flex items-end pb-1.5">
-                    <label className="flex items-center gap-2 text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                        <input
-                            type="checkbox"
-                            checked={o.showMetricLabels !== false}
-                            onChange={(e) => set({ showMetricLabels: e.target.checked ? undefined : false })}
-                        />
-                        Beschriftungen
-                    </label>
-                </div>
-            </div>
-            <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                    Komfortzone-Hinweis
-                    <span className="text-[10px] ml-1" style={{ color: 'var(--text-secondary)' }}>
-                        (18–24 °C, 40–60 %)
-                    </span>
-                </span>
-                {toggle(o.showComfort === true, () => set({ showComfort: o.showComfort === true ? undefined : true }))}
-            </div>
-            {metricsOpen && (
-                <ConfigModal
-                    title="Weitere Werte"
-                    maxWidth={520}
-                    padded
-                    storageKey="aura.climateMetrics"
-                    onClose={() => setMetricsOpen(false)}
+            <ConfigSection title="Weitere Werte" sectionKey="metrics">
+                <button
+                    onClick={() => setMetricsOpen(true)}
+                    className="w-full text-xs px-2.5 py-2 rounded-lg text-left flex items-center justify-between hover:opacity-80"
+                    style={inputStyle}
                 >
-                    <ClimateMetricsEditor
-                        metrics={climateMetrics}
-                        onChange={(next) => set({ metrics: next.length ? next : undefined })}
-                    />
-                </ConfigModal>
-            )}
+                    <span style={{ color: 'var(--text-primary)' }}>
+                        {climateMetrics.length
+                            ? `${climateMetrics.length} ${climateMetrics.length === 1 ? 'Wert' : 'Werte'} bearbeiten…`
+                            : 'CO₂, VOC, Taupunkt … hinzufügen'}
+                    </span>
+                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                        ›
+                    </span>
+                </button>
+                {climateMetrics.length > 0 && (
+                    <p className="text-[10px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
+                        {climateMetrics.map((m) => m.label || m.id).join(' · ')}
+                    </p>
+                )}
+                <div className="flex gap-2 mt-2 mb-1.5">
+                    <div className="flex-1">
+                        <label className={labelCls} style={labelStyle}>
+                            Spalten im Raster
+                        </label>
+                        <select
+                            value={(o.metricColumns as number | undefined) ?? 0}
+                            onChange={(e) => set({ metricColumns: parseInt(e.target.value, 10) || undefined })}
+                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                            style={inputStyle}
+                        >
+                            <option value={0}>Automatisch (umbrechend)</option>
+                            <option value={1}>1</option>
+                            <option value={2}>2</option>
+                            <option value={3}>3</option>
+                            <option value={4}>4</option>
+                        </select>
+                    </div>
+                </div>
+                {metricsOpen && (
+                    <ConfigModal
+                        title="Weitere Werte"
+                        maxWidth={520}
+                        padded
+                        storageKey="aura.climateMetrics"
+                        onClose={() => setMetricsOpen(false)}
+                    >
+                        <ClimateMetricsEditor
+                            metrics={climateMetrics}
+                            onChange={(next) => set({ metrics: next.length ? next : undefined })}
+                        />
+                    </ConfigModal>
+                )}
+            </ConfigSection>
 
-            {/* ── Verlauf: Quelle → Reihen → Zeitraum → Achsen ── */}
+            {/* ── Verlauf: Quelle → Reihen → Zeitraum ── */}
             <ChartHistoryConfig
+                ownVisible={false}
                 config={config}
                 onConfigChange={onConfigChange}
                 title="Verlauf"
@@ -11432,7 +11382,7 @@ function WidgetFrameInner({
                                         </>
                                     );
                                 })()}
-                            {(config.type === 'value' || config.type === 'chart') && (
+                            {config.type === 'value' && (
                                 <ValueFormatRow
                                     unit={config.options?.unit as string | undefined}
                                     unitPlaceholder="z.B. °C, %, W"
@@ -11984,13 +11934,44 @@ function WidgetFrameInner({
                                 })()}
 
                             {config.type === 'chart' && (
-                                <ChartHistoryConfig config={config} onConfigChange={onConfigChange} />
+                                <ChartHistoryConfig
+                                    config={config}
+                                    onConfigChange={onConfigChange}
+                                    mainDpField={renderMainDpField()}
+                                    afterRange={
+                                        <ConfigSection title="Format" sectionKey="format">
+                                            <ValueFormatRow
+                                                unit={config.options?.unit as string | undefined}
+                                                unitPlaceholder="z.B. °C, %, W"
+                                                onUnitChange={(v) =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: { ...config.options, unit: v },
+                                                    })
+                                                }
+                                                decimals={config.options?.decimals as number | undefined}
+                                                numberFormat={config.options?.numberFormat as NumberFormat | undefined}
+                                                onChange={(patch) =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: { ...config.options, ...patch },
+                                                    })
+                                                }
+                                            />
+                                        </ConfigSection>
+                                    }
+                                />
                             )}
                             {config.type === 'historytable' && (
-                                <HistoryTableConfig config={config} onConfigChange={onConfigChange} />
+                                <HistoryTableConfig
+                                    config={config}
+                                    onConfigChange={onConfigChange}
+                                    mainDpField={renderMainDpField()}
+                                />
                             )}
                             {config.type === 'climate' && (
                                 <ClimateConfig
+                                    mainDpField={renderMainDpField()}
                                     config={config}
                                     onConfigChange={onConfigChange}
                                     onPickerOpen={(t) => setPickerTarget(t)}

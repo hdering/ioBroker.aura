@@ -34,6 +34,8 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+// The edit dialog folds every section; this test fills in settings, so open them all.
+await page.evaluate(() => window.__auraShot.unfoldSections());
 await page.evaluate(() => window.__auraShot.enableHistory(true));
 
 let seq = 0;
@@ -156,7 +158,7 @@ async function show(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('p:text-is("Verlauf")', { timeout: 10000 });
+    await page.waitForSelector('[data-aura-config-section="history"]', { timeout: 10000 });
     const toggle = (label) => page.locator(`div.flex:has(> span:text-is("${label}")) > button`).last();
     const opts = () =>
         page.evaluate((id) => {
@@ -193,7 +195,7 @@ async function show(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('p:text-is("Verlauf")', { timeout: 10000 });
+    await page.waitForSelector('[data-aura-config-section="history"]', { timeout: 10000 });
     const bg = (label) =>
         page
             .locator(`div.flex:has(> span:text-is("${label}")) > button`)
@@ -202,8 +204,14 @@ async function show(options) {
     eq('Alt-Widget: Temperatur-Schalter aus', await bg('Temperatur'), 'var(--app-border)');
     eq('Alt-Widget: Feuchte-Schalter aus', await bg('Luftfeuchtigkeit'), 'var(--app-border)');
 
-    // 10. Die Überschrift jedes Werts trägt seinen „anzeigen“-Schalter (showX)
-    const header = (label) => page.locator(`div.flex:has(> p:text-is("${label}")) button`).first();
+    // 10. Jeder Wert hat seinen Schalter in „Sichtbare Felder“ (showX)
+    const KEYS = {
+        Temperatur: 'showActualTemp',
+        'Soll-Temperatur': 'showTargetTemp',
+        Luftfeuchtigkeit: 'showHumidity',
+        Luftdruck: 'showPressure',
+    };
+    const header = (label) => page.locator(`[data-aura-vis-key="${KEYS[label]}"] button[role="switch"]`).first();
     const shown = () =>
         page.evaluate((id) => {
             const o = window.__auraShot.widgetOptions(id) ?? {};
@@ -230,7 +238,7 @@ async function openEditor(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('p:text-is("Verlauf")', { timeout: 10000 });
+    await page.waitForSelector('[data-aura-config-section="history"]', { timeout: 10000 });
     return page.evaluate(() => ({
         dpInputs: document.querySelectorAll('input[placeholder="Datenpunkt (optional)"]').length,
         stellen: [...document.querySelectorAll('label')].filter((l) => l.textContent === 'Stellen').length,

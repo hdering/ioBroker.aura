@@ -21,6 +21,9 @@ import type { EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { AuraIcon } from '../common/AuraIcon';
+import { useT } from '../../i18n';
+import { ConfigSection } from './ConfigSection';
+import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 
 // Presets offered for the configured (default) time range.
 const DEFAULT_RANGES: EChartTimeRange[] = ['1h', '24h', '7d', '30d', 'custom'];
@@ -593,6 +596,7 @@ function BarSection({
 // ── Main config panel ─────────────────────────────────────────────────────────
 
 export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
+    const t = useT();
     const o = (config.options ?? {}) as unknown as EnergyBalanceOptions;
     const bars = o.bars ?? [];
     const [adapterStates, setAdapterStates] = useState<Record<string, AdapterState>>({});
@@ -686,377 +690,305 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
         setO({ visibleRanges: next });
     };
 
-    return (
-        <div className="aura-scroll flex flex-col gap-2 overflow-y-auto" style={{ maxHeight: '80vh' }}>
-            {/* ── Bars ── */}
-            {bars.map((b, idx) => (
-                <BarSection
-                    key={b.id}
-                    bar={b}
-                    index={idx}
-                    total={bars.length}
-                    adapterStates={adapterStates}
-                    onUpdate={(patch) => updateBar(b.id, patch)}
-                    onRemove={() => removeBar(b.id)}
-                    onMove={(dir) => moveBar(idx, dir)}
-                    onRefreshAdapters={(entryId, dp) => detect(entryId, dp, true)}
-                />
-            ))}
-            <button
-                onClick={addBar}
-                className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80"
-                style={{ background: 'var(--accent)', color: '#fff' }}
-            >
-                <Plus size={13} /> Gruppe hinzufügen
-            </button>
-
-            <div style={{ height: 1, background: 'var(--app-border)' }} />
-
-            {/* ── Global settings ── */}
-            <div>
-                <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                    Darstellung
-                </label>
-                <select
-                    value={o.chartStyle ?? 'bars'}
-                    onChange={(e) => setO({ chartStyle: e.target.value as EnergyBalanceOptions['chartStyle'] })}
-                    className={inputCls}
-                    style={inputStyle}
-                >
-                    <option value="bars">Balken</option>
-                    <option value="pie">Tortendiagramm</option>
-                    <option value="donut">Donut</option>
-                </select>
-            </div>
-
-            {(o.chartStyle ?? 'bars') === 'bars' && (
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Balken-Breite: {o.barWidth ?? 46} px
-                    </label>
-                    <input
-                        type="range"
-                        min={16}
-                        max={160}
-                        step={2}
-                        value={o.barWidth ?? 46}
-                        onChange={(e) => setO({ barWidth: Number(e.target.value) })}
-                        className="w-full"
-                        style={{ accentColor: 'var(--accent)' }}
+    // Sichtbare Felder: bar titles and the legend bring their own settings. Icon and outside
+    // values work independently of the percent labels, so they stay top-level switches.
+    const visibleFields: VisibleField[] = [
+        {
+            key: 'showBarTitles',
+            label: 'Balkentitel',
+            children: (
+                <>
+                    <ToggleRow
+                        visKey="showTotals"
+                        label="Summen"
+                        on={o.showTotals !== false}
+                        onChange={(v) => setO({ showTotals: v })}
                     />
-                </div>
-            )}
+                    <div>
+                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Titel/Summe-Ausrichtung
+                        </label>
+                        <select
+                            value={o.barTitleAlign ?? 'center'}
+                            onChange={(e) =>
+                                setO({
+                                    barTitleAlign: e.target.value as EnergyBalanceOptions['barTitleAlign'],
+                                })
+                            }
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="left">Links</option>
+                            <option value="center">Mitte</option>
+                            <option value="right">Rechts</option>
+                        </select>
+                    </div>
+                </>
+            ),
+        },
+        { key: 'showPercent', label: 'Prozent-Labels' },
+        { key: 'showSegmentIcon', label: 'Icon im Segment', def: false },
+        { key: 'showOutsidePercent', label: 'Kleine Werte außerhalb (Torte/Donut)' },
+        {
+            key: 'showLegend',
+            label: 'Legende',
+            children: (
+                <>
+                    <div>
+                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Legenden-Position
+                        </label>
+                        <select
+                            value={o.legendSide ?? bars[0]?.legendSide ?? 'below'}
+                            onChange={(e) => setO({ legendSide: e.target.value as EnergyBar['legendSide'] })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="left">Links</option>
+                            <option value="right">Rechts</option>
+                            <option value="top">Oben</option>
+                            <option value="below">Unten</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Text-Ausrichtung
+                        </label>
+                        <select
+                            value={
+                                o.legendAlign ??
+                                (() => {
+                                    const s = o.legendSide ?? bars[0]?.legendSide ?? 'below';
+                                    return s === 'below' || s === 'top' ? 'center' : s === 'right' ? 'right' : 'left';
+                                })()
+                            }
+                            onChange={(e) =>
+                                setO({ legendAlign: e.target.value as EnergyBalanceOptions['legendAlign'] })
+                            }
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="left">Linksbündig</option>
+                            <option value="center">Mittig</option>
+                            <option value="right">Rechtsbündig</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Legenden-Inhalt
+                        </label>
+                        <select
+                            value={o.legendFormat ?? 'icon-value'}
+                            onChange={(e) => setO({ legendFormat: e.target.value as LegendFormat })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            {LEGEND_FORMATS.map((f) => (
+                                <option key={f.id} value={f.id}>
+                                    {f.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </>
+            ),
+        },
+    ];
 
-            {(o.chartStyle ?? 'bars') === 'bars' && (
+    return (
+        <>
+            <VisibleFieldsSection
+                fields={visibleFields}
+                values={o as unknown as Record<string, unknown>}
+                onChange={(patch) => setO(patch as Partial<EnergyBalanceOptions>)}
+            />
+            <ConfigSection title="Balken" sectionKey="bars">
+                {/* ── Bars ── */}
+                {bars.map((b, idx) => (
+                    <BarSection
+                        key={b.id}
+                        bar={b}
+                        index={idx}
+                        total={bars.length}
+                        adapterStates={adapterStates}
+                        onUpdate={(patch) => updateBar(b.id, patch)}
+                        onRemove={() => removeBar(b.id)}
+                        onMove={(dir) => moveBar(idx, dir)}
+                        onRefreshAdapters={(entryId, dp) => detect(entryId, dp, true)}
+                    />
+                ))}
+                <button
+                    onClick={addBar}
+                    className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80"
+                    style={{ background: 'var(--accent)', color: '#fff' }}
+                >
+                    <Plus size={13} /> Gruppe hinzufügen
+                </button>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                 <div>
                     <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Stapelrichtung
+                        Diagrammtyp
                     </label>
                     <select
-                        value={o.barDirection ?? 'down'}
-                        onChange={(e) => setO({ barDirection: e.target.value as EnergyBalanceOptions['barDirection'] })}
+                        value={o.chartStyle ?? 'bars'}
+                        onChange={(e) => setO({ chartStyle: e.target.value as EnergyBalanceOptions['chartStyle'] })}
                         className={inputCls}
                         style={inputStyle}
                     >
-                        <option value="down">Erster Eintrag oben (Rest unten)</option>
-                        <option value="up">Erster Eintrag unten (Rest oben)</option>
+                        <option value="bars">Balken</option>
+                        <option value="pie">Tortendiagramm</option>
+                        <option value="donut">Donut</option>
                     </select>
                 </div>
-            )}
 
-            {(o.chartStyle === 'pie' || o.chartStyle === 'donut') && (
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Diagramm-Größe: {o.pieSize ?? 160} px
-                    </label>
-                    <input
-                        type="range"
-                        min={80}
-                        max={400}
-                        step={10}
-                        value={o.pieSize ?? 160}
-                        onChange={(e) => setO({ pieSize: Number(e.target.value) })}
-                        className="w-full"
-                        style={{ accentColor: 'var(--accent)' }}
-                    />
-                </div>
-            )}
-
-            <ValueFormatRow
-                unit={o.unit}
-                unitPlaceholder="kWh"
-                onUnitChange={(v) => setO({ unit: v })}
-                decimals={o.decimals}
-                numberFormat={o.numberFormat}
-                onChange={setO}
-                inputClassName={inputCls}
-                inputStyle={inputStyle}
-            />
-
-            {/* range */}
-            <div>
-                <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                    Zeitraum
-                </label>
-                <select
-                    value={range}
-                    onChange={(e) => setO({ range: e.target.value as EChartTimeRange })}
-                    className={inputCls}
-                    style={inputStyle}
-                >
-                    {DEFAULT_RANGES.map((r) => (
-                        <option key={r} value={r}>
-                            {RANGE_LABELS[r]}
-                        </option>
-                    ))}
-                </select>
-                {range === 'custom' && (
-                    <div className="flex items-center gap-1.5 mt-1.5">
+                {(o.chartStyle ?? 'bars') === 'bars' && (
+                    <div>
+                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Balken-Breite: {o.barWidth ?? 46} px
+                        </label>
                         <input
-                            type="number"
-                            min={1}
-                            value={o.rangeCustomValue ?? 24}
-                            onChange={(e) => setO({ rangeCustomValue: Number(e.target.value) })}
+                            type="range"
+                            min={16}
+                            max={160}
+                            step={2}
+                            value={o.barWidth ?? 46}
+                            onChange={(e) => setO({ barWidth: Number(e.target.value) })}
+                            className="w-full"
+                            style={{ accentColor: 'var(--accent)' }}
+                        />
+                    </div>
+                )}
+
+                {(o.chartStyle ?? 'bars') === 'bars' && (
+                    <div>
+                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Stapelrichtung
+                        </label>
+                        <select
+                            value={o.barDirection ?? 'down'}
+                            onChange={(e) =>
+                                setO({ barDirection: e.target.value as EnergyBalanceOptions['barDirection'] })
+                            }
                             className={inputCls}
                             style={inputStyle}
-                        />
-                        <select
-                            value={o.rangeCustomUnit ?? 'h'}
-                            onChange={(e) => setO({ rangeCustomUnit: e.target.value as 'h' | 'd' })}
-                            className="text-[11px] rounded px-2 py-1 focus:outline-none"
-                            style={inputStyle}
                         >
-                            <option value="h">Stunden</option>
-                            <option value="d">Tage</option>
+                            <option value="down">Erster Eintrag oben (Rest unten)</option>
+                            <option value="up">Erster Eintrag unten (Rest oben)</option>
                         </select>
                     </div>
                 )}
 
-                {/* Which ranges the frontend selector offers (hidden while locked) */}
-                {!lockRange && (
-                    <div className="mt-2">
+                {(o.chartStyle === 'pie' || o.chartStyle === 'donut') && (
+                    <div>
                         <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Sichtbare Zeitbereiche im Frontend
+                            Diagramm-Größe: {o.pieSize ?? 160} px
                         </label>
-                        <div className="flex gap-1 flex-wrap">
-                            {FRONTEND_RANGES.map((r) => {
-                                const active = visibleRanges.includes(r);
-                                return (
-                                    <button
-                                        key={r}
-                                        onClick={() => toggleVisibleRange(r)}
-                                        className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                            minWidth: 36,
-                                        }}
-                                    >
-                                        {RANGE_LABELS[r]}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <input
+                            type="range"
+                            min={80}
+                            max={400}
+                            step={10}
+                            value={o.pieSize ?? 160}
+                            onChange={(e) => setO({ pieSize: Number(e.target.value) })}
+                            className="w-full"
+                            style={{ accentColor: 'var(--accent)' }}
+                        />
                     </div>
                 )}
 
-                <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                    <input
-                        type="checkbox"
-                        checked={lockRange}
-                        onChange={(e) => setO({ lockRange: e.target.checked })}
-                        className="rounded"
-                    />
-                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Zeitraum im Frontend sperren
-                    </span>
-                </label>
-            </div>
-
-            {/* toggles */}
-            {(
-                [
-                    ['showBarTitles', 'Titel anzeigen'],
-                    ['showPercent', 'Prozent-Labels anzeigen'],
-                    ['showLegend', 'Legende anzeigen'],
-                ] as [keyof EnergyBalanceOptions, string][]
-            ).map(([key, label]) => {
-                const val = (o[key] as boolean | undefined) !== false;
-                return (
-                    <div key={key}>
-                        <div className="flex items-center justify-between">
-                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {label}
-                            </label>
-                            <button
-                                onClick={() => setO({ [key]: !val } as Partial<EnergyBalanceOptions>)}
-                                className="relative w-9 h-5 rounded-full transition-colors"
-                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
+                <ValueFormatRow
+                    unit={o.unit}
+                    unitPlaceholder="kWh"
+                    onUnitChange={(v) => setO({ unit: v })}
+                    decimals={o.decimals}
+                    numberFormat={o.numberFormat}
+                    onChange={setO}
+                    inputClassName={inputCls}
+                    inputStyle={inputStyle}
+                />
+            </ConfigSection>
+            <ConfigSection title="Zeitraum" sectionKey="range">
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Zeitraum
+                    </label>
+                    <select
+                        value={range}
+                        onChange={(e) => setO({ range: e.target.value as EChartTimeRange })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        {DEFAULT_RANGES.map((r) => (
+                            <option key={r} value={r}>
+                                {RANGE_LABELS[r]}
+                            </option>
+                        ))}
+                    </select>
+                    {range === 'custom' && (
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                            <input
+                                type="number"
+                                min={1}
+                                value={o.rangeCustomValue ?? 24}
+                                onChange={(e) => setO({ rangeCustomValue: Number(e.target.value) })}
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                            <select
+                                value={o.rangeCustomUnit ?? 'h'}
+                                onChange={(e) => setO({ rangeCustomUnit: e.target.value as 'h' | 'd' })}
+                                className="text-[11px] rounded px-2 py-1 focus:outline-none"
+                                style={inputStyle}
                             >
-                                <span
-                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                    style={{ left: val ? '18px' : '2px' }}
-                                />
-                            </button>
+                                <option value="h">Stunden</option>
+                                <option value="d">Tage</option>
+                            </select>
                         </div>
-                        {/* Icon-in-segment — sits under the percent-labels toggle, but is
-                            independent of it (default off), so either/both/neither can show. */}
-                        {key === 'showPercent' &&
-                            (
-                                [
-                                    ['showSegmentIcon', 'Icon im Segment anzeigen', false],
-                                    ['showOutsidePercent', 'Kleine Werte außerhalb anzeigen (Torte/Donut)', true],
-                                ] as [keyof EnergyBalanceOptions, string, boolean][]
-                            ).map(([optKey, optLabel, defOn]) => {
-                                const on = defOn ? o[optKey] !== false : o[optKey] === true;
-                                return (
-                                    <div key={optKey} className="mt-1 flex items-center justify-between">
-                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                            {optLabel}
-                                        </label>
+                    )}
+
+                    {/* Which ranges the frontend selector offers (hidden while locked) */}
+                    {!lockRange && (
+                        <div className="mt-2">
+                            <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Sichtbare Zeitbereiche im Frontend
+                            </label>
+                            <div className="flex gap-1 flex-wrap">
+                                {FRONTEND_RANGES.map((r) => {
+                                    const active = visibleRanges.includes(r);
+                                    return (
                                         <button
-                                            onClick={() => setO({ [optKey]: !on } as Partial<EnergyBalanceOptions>)}
-                                            className="relative w-9 h-5 rounded-full transition-colors"
-                                            style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+                                            key={r}
+                                            onClick={() => toggleVisibleRange(r)}
+                                            className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                minWidth: 36,
+                                            }}
                                         >
-                                            <span
-                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                                style={{ left: on ? '18px' : '2px' }}
-                                            />
+                                            {RANGE_LABELS[r]}
                                         </button>
-                                    </div>
-                                );
-                            })}
-                        {/* sub-options that only take effect with bar titles shown */}
-                        {key === 'showBarTitles' && val && (
-                            <div
-                                className="mt-1.5 ml-1 pl-2 space-y-1.5"
-                                style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
-                            >
-                                <div className="flex items-center justify-between">
-                                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                        Summen anzeigen
-                                    </label>
-                                    <button
-                                        onClick={() => setO({ showTotals: o.showTotals === false })}
-                                        className="relative w-9 h-5 rounded-full transition-colors"
-                                        style={{
-                                            background: o.showTotals !== false ? 'var(--accent)' : 'var(--app-border)',
-                                        }}
-                                    >
-                                        <span
-                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                            style={{ left: o.showTotals !== false ? '18px' : '2px' }}
-                                        />
-                                    </button>
-                                </div>
-                                <div>
-                                    <label
-                                        className="text-[11px] block mb-0.5"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        Titel/Summe-Ausrichtung
-                                    </label>
-                                    <select
-                                        value={o.barTitleAlign ?? 'center'}
-                                        onChange={(e) =>
-                                            setO({
-                                                barTitleAlign: e.target.value as EnergyBalanceOptions['barTitleAlign'],
-                                            })
-                                        }
-                                        className={inputCls}
-                                        style={inputStyle}
-                                    >
-                                        <option value="left">Links</option>
-                                        <option value="center">Mitte</option>
-                                        <option value="right">Rechts</option>
-                                    </select>
-                                </div>
+                                    );
+                                })}
                             </div>
-                        )}
-                        {/* legend sub-options — indented, only effective with legend shown */}
-                        {key === 'showLegend' && val && (
-                            <div
-                                className="mt-1.5 ml-1 pl-2 space-y-1.5"
-                                style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
-                            >
-                                <div>
-                                    <label
-                                        className="text-[11px] block mb-0.5"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        Legenden-Position
-                                    </label>
-                                    <select
-                                        value={o.legendSide ?? bars[0]?.legendSide ?? 'below'}
-                                        onChange={(e) =>
-                                            setO({ legendSide: e.target.value as EnergyBar['legendSide'] })
-                                        }
-                                        className={inputCls}
-                                        style={inputStyle}
-                                    >
-                                        <option value="left">Links</option>
-                                        <option value="right">Rechts</option>
-                                        <option value="top">Oben</option>
-                                        <option value="below">Unten</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label
-                                        className="text-[11px] block mb-0.5"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        Text-Ausrichtung
-                                    </label>
-                                    <select
-                                        value={
-                                            o.legendAlign ??
-                                            (() => {
-                                                const s = o.legendSide ?? bars[0]?.legendSide ?? 'below';
-                                                return s === 'below' || s === 'top'
-                                                    ? 'center'
-                                                    : s === 'right'
-                                                      ? 'right'
-                                                      : 'left';
-                                            })()
-                                        }
-                                        onChange={(e) =>
-                                            setO({ legendAlign: e.target.value as EnergyBalanceOptions['legendAlign'] })
-                                        }
-                                        className={inputCls}
-                                        style={inputStyle}
-                                    >
-                                        <option value="left">Linksbündig</option>
-                                        <option value="center">Mittig</option>
-                                        <option value="right">Rechtsbündig</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label
-                                        className="text-[11px] block mb-0.5"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        Legenden-Inhalt
-                                    </label>
-                                    <select
-                                        value={o.legendFormat ?? 'icon-value'}
-                                        onChange={(e) => setO({ legendFormat: e.target.value as LegendFormat })}
-                                        className={inputCls}
-                                        style={inputStyle}
-                                    >
-                                        {LEGEND_FORMATS.map((f) => (
-                                            <option key={f.id} value={f.id}>
-                                                {f.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                );
-            })}
-        </div>
+                        </div>
+                    )}
+
+                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={lockRange}
+                            onChange={(e) => setO({ lockRange: e.target.checked })}
+                            className="rounded"
+                        />
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Zeitraum im Frontend sperren
+                        </span>
+                    </label>
+                </div>
+            </ConfigSection>
+        </>
     );
 }

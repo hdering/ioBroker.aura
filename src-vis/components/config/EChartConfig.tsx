@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronDown, Database, Trash2 } from 'lucide-react';
+import { Database, Trash2 } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
 import type { NumberFormat } from '../../utils/formatValue';
@@ -20,6 +20,8 @@ import { ColorPicker } from '../common/ColorPicker';
 import { RangeChipsEditor } from './RangeChipsEditor';
 import { parseRangeChips, RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { DatapointManagerField } from './list/DatapointManagerField';
+import { ConfigSection } from './ConfigSection';
+import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import type { ManagedEntry } from './list/EntryListItem';
 import { ChartModePanel, type EChartMode } from './chart/ChartModePanel';
 import { ChartFormatPanel } from './chart/ChartFormatPanel';
@@ -136,21 +138,15 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const isComparison = echartMode === 'comparison';
     const isJson = echartMode === 'json';
     const jsonTimeAxis = (o.echartJsonTimeAxis as boolean | undefined) ?? false;
-    const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? !isComparison;
-    const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     const echartShowYAxisRight = (o.echartShowYAxisRight as boolean | undefined) ?? true;
     // The right-axis switch only means something once a series actually sits on that axis.
     const usesRightAxis = series.some((s) => (s.yAxisIndex ?? 0) === 1);
-    const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
-    const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartAnimation = (o.echartAnimation as boolean | undefined) ?? true;
     // Now line — a time axis marks the clock, a JSON category axis the label matching a text.
     const nowLineOffered = !isComparison;
     const nowLineByLabel = isJson && !jsonTimeAxis;
-    const echartNowLine = (o.echartNowLine as boolean | undefined) ?? false;
     const echartNowLineMatch = (o.echartNowLineMatch as string | undefined) ?? '';
     const echartNowLineColor = (o.echartNowLineColor as string | undefined) || '#ef4444';
-    const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
     const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
     // Comparison charts have always labelled their bars — keep that as their default (issue #543).
@@ -220,7 +216,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     /** Option key of the axis bound whose datapoint is being picked, e.g. `echartLeftMaxDp`. */
     const [pickerForBound, setPickerForBound] = useState<string | null>(null);
     const [adapterStates, setAdapterStates] = useState<Record<string, SeriesAdapterState>>({});
-    const [jsonOpen, setJsonOpen] = useState(false);
     const [jsonProbes, setJsonProbes] = useState<Record<string, JsonProbe>>({});
     // The category names the chart will show, in its order — to say which one the text hits.
     const nowLineCategories = nowLineByLabel
@@ -456,366 +451,245 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
             });
     };
 
+    // Sichtbare Felder: the right axis, the now-line and the current value bring their own settings.
+    const visibleFields: VisibleField[] = [
+        { key: 'echartShowLegend', label: t('echart.showLegend'), def: !isComparison },
+        {
+            key: 'echartShowYAxis',
+            label: t('echart.showYAxis'),
+            children: usesRightAxis ? (
+                <ToggleRow
+                    visKey="echartShowYAxisRight"
+                    label={t('echart.showYAxisRight')}
+                    on={echartShowYAxisRight}
+                    onChange={(v) => setO({ echartShowYAxisRight: v })}
+                />
+            ) : undefined,
+        },
+        { key: 'echartShowXAxis', label: t('echart.showXAxis') },
+        { key: 'echartShowGridLines', label: t('echart.gridLines') },
+        {
+            key: 'echartNowLine',
+            label: t('echart.nowLine'),
+            def: false,
+            hidden: !nowLineOffered,
+            children: (
+                <>
+                    {nowLineByLabel && (
+                        <div className="mb-2">
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.nowLineMatch')}
+                            </label>
+                            <div className="flex gap-1.5">
+                                <input
+                                    type="text"
+                                    value={echartNowLineMatch}
+                                    onChange={(e) => setO({ echartNowLineMatch: e.target.value })}
+                                    className={`${inputCls} flex-1 min-w-0`}
+                                    style={inputStyle}
+                                />
+                                {nowLineCategories.length > 0 && (
+                                    <select
+                                        value=""
+                                        onChange={(e) => e.target.value && setO({ echartNowLineMatch: e.target.value })}
+                                        className={`${inputCls} shrink-0`}
+                                        style={{ ...inputStyle, width: 'auto', maxWidth: 170 }}
+                                    >
+                                        <option value="">{t('echart.nowLineMatchPick')}</option>
+                                        {nowLineCategories.map((c) => (
+                                            <option key={c} value={c}>
+                                                {c}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
+                            <p
+                                className="aura-nowline-status text-[10px] mt-1 leading-tight"
+                                style={{
+                                    color:
+                                        nowLineNeedle && !nowLineHit && nowLineCategories.length > 0
+                                            ? 'var(--danger, #ef4444)'
+                                            : 'var(--text-secondary)',
+                                }}
+                            >
+                                {!nowLineNeedle
+                                    ? t('echart.nowLineMatchEmpty')
+                                    : nowLineHit
+                                      ? t('echart.nowLineMatchHit', { label: nowLineHit })
+                                      : nowLineCategories.length > 0
+                                        ? t('echart.nowLineMatchMiss', { text: echartNowLineMatch.trim() })
+                                        : null}
+                            </p>
+                            <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.nowLineMatchHint')}
+                            </p>
+                        </div>
+                    )}
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.nowLineColor')}
+                    </label>
+                    <div className="flex gap-1.5 items-center">
+                        <ColorPicker
+                            value={echartNowLineColor}
+                            onChange={(v) => setO({ echartNowLineColor: v })}
+                            className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent shrink-0"
+                        />
+                        <input
+                            type="text"
+                            value={echartNowLineColor}
+                            onChange={(e) => setO({ echartNowLineColor: e.target.value })}
+                            className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
+                            style={inputStyle}
+                            placeholder="#ef4444"
+                        />
+                    </div>
+                </>
+            ),
+        },
+        {
+            key: 'echartShowCurrent',
+            label: t('echart.showCurrentValue'),
+            children: (
+                <>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.currentValueSource')}
+                    </label>
+                    <div className="flex gap-1">
+                        {(['last', 'first'] as const).map((v) => (
+                            <button
+                                key={v}
+                                onClick={() => setO({ echartCurrentFrom: v })}
+                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                style={{
+                                    background: echartCurrentFrom === v ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: echartCurrentFrom === v ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${echartCurrentFrom === v ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {v === 'last' ? t('echart.currentValueLast') : t('echart.currentValueFirst')}
+                            </button>
+                        ))}
+                    </div>
+                    <label className="text-[11px] mt-2 mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.currentValueAlign')}
+                    </label>
+                    <div className="flex gap-1">
+                        {(['left', 'right'] as const).map((v) => (
+                            <button
+                                key={v}
+                                onClick={() => setO({ echartCurrentAlign: v })}
+                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                style={{
+                                    background: echartCurrentAlign === v ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: echartCurrentAlign === v ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${echartCurrentAlign === v ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {v === 'left' ? t('echart.alignLeft') : t('echart.alignRight')}
+                            </button>
+                        ))}
+                    </div>
+                </>
+            ),
+        },
+    ];
+
     return (
-        <div className="aura-scroll flex flex-col gap-0 overflow-y-auto" style={{ maxHeight: '80vh' }}>
-            {/* ── Mode + series ───────────────────────────────────────────────────
+        <>
+            <VisibleFieldsSection fields={visibleFields} values={o} onChange={setO} />
+            <ConfigSection title="Datenreihen" sectionKey="series">
+                {/* ── Mode + series ───────────────────────────────────────────────────
                 Both live in the "Datenpunkte verwalten" dialog: the series editor alone had
                 grown past a thousand lines and pushed the global settings out of reach. */}
-            <div className="mb-3">
-                <DatapointManagerField
-                    title={t('echart.manageSeries')}
-                    label={t('echart.manageSeries')}
-                    storageKey="aura-echart-dp-modal"
-                    hint={t('echart.manageSeriesHint')}
-                    count={series.length}
-                    entries={managedEntries}
-                    resolvedNames={{}}
-                    entriesTabLabel={t('echart.seriesTab')}
-                    selectHint={t('echart.pickSeries')}
-                    emptyState={t('echart.noSeriesYet')}
-                    addLabel={t('echart.addSeries')}
-                    /* Tab order follows the decisions: the mode decides what a series even is,
+                <div className="mb-3">
+                    <DatapointManagerField
+                        title={t('echart.manageSeries')}
+                        label={t('echart.manageSeries')}
+                        storageKey="aura-echart-dp-modal"
+                        hint={t('echart.manageSeriesHint')}
+                        count={series.length}
+                        entries={managedEntries}
+                        resolvedNames={{}}
+                        entriesTabLabel={t('echart.seriesTab')}
+                        selectHint={t('echart.pickSeries')}
+                        emptyState={t('echart.noSeriesYet')}
+                        addLabel={t('echart.addSeries')}
+                        /* Tab order follows the decisions: the mode decides what a series even is,
                        the number format is the default every series inherits — both belong in
                        FRONT of the series, and each in its own tab so nothing pushes the series
                        list down the dialog (issue #600). */
-                    entriesTabIndex={2}
-                    tabs={[
-                        {
-                            key: 'mode',
-                            label: t('echart.modeTab'),
-                            node: <ChartModePanel mode={echartMode as EChartMode} onChange={setMode} />,
-                        },
-                        {
-                            key: 'format',
-                            label: t('echart.formatTab'),
-                            node: (
-                                <ChartFormatPanel
-                                    decimals={o.decimals as number | undefined}
-                                    numberFormat={o.numberFormat as NumberFormat | undefined}
-                                    onChange={setO}
-                                />
-                            ),
-                        },
-                        {
-                            key: 'values',
-                            label: t('echart.valuesTab'),
-                            node: (
-                                <ChartValuesPanel
-                                    showValues={echartShowValues}
-                                    showStackPercent={echartShowStackPercent}
-                                    anyStack={anyStack}
-                                    anyPeriod={anyPeriod}
-                                    periodPlacement={
-                                        (o.echartPeriodPlacement as 'legend' | 'row' | undefined) ?? 'legend'
-                                    }
-                                    onChange={setO}
-                                />
-                            ),
-                        },
-                    ]}
-                    onAdd={addSeries}
-                    onRemove={removeSeries}
-                    onRemoveAll={() => setO({ echartSeries: [] })}
-                    onReorder={reorderSeries}
-                    renderDetail={(id) => {
-                        const s = series.find((x) => x.id === id);
-                        if (!s) return null;
-                        return (
-                            <ChartSeriesDetail
-                                s={s}
-                                isComparison={isComparison}
-                                isJson={isJson}
-                                allSeriesJson={series.length > 0 && series.every((x) => isJson || x.source === 'json')}
-                                echartShowValues={echartShowValues}
-                                chartDecimals={chartDecimals}
-                                chartNumberFormat={chartNumberFormat}
-                                jsonTimeAxis={jsonTimeAxis}
-                                jsonAxisBounds={jsonAxisBounds}
-                                probe={jsonProbes[s.id]}
-                                adState={adapterStates[s.id]}
-                                update={(patch) => updateSeries(s.id, patch)}
-                                onTransform={(patch) => setSeriesTransform(s.id, patch)}
-                                onDatapointChange={(dpId) => changeSeriesDatapoint(s.id, dpId)}
-                                onDetect={() => refreshAdapters(s.id, s.datapointId)}
-                                onWidgetOption={setO}
-                                onAddComparison={() => addComparisonSeries(s.id)}
-                            />
-                        );
-                    }}
-                />
-            </div>
-
-            {/* ── Global settings ──────────────────────────────────────────────── */}
-            <div className="mt-3">
-                <div className="h-px mb-2" style={{ background: 'var(--app-border)' }} />
-                <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
-                    {t('echart.globalSettings')}
-                </p>
-
-                {/* Show legend */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.showLegend')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartShowLegend: !echartShowLegend })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartShowLegend ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartShowLegend ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                {/* Show Y-axis scale */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.showYAxis')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartShowYAxis: !echartShowYAxis })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartShowYAxis ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartShowYAxis ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                {/* Show right Y-axis scale (only relevant when a series uses it) */}
-                {usesRightAxis && echartShowYAxis && (
-                    <div className="flex items-center justify-between mb-2">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.showYAxisRight')}
-                        </label>
-                        <button
-                            onClick={() => setO({ echartShowYAxisRight: !echartShowYAxisRight })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: echartShowYAxisRight ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: echartShowYAxisRight ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                )}
-
-                {/* Show X-axis scale */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.showXAxis')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartShowXAxis: !echartShowXAxis })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartShowXAxis ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartShowXAxis ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                {/* Horizontal grid lines */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.gridLines')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartShowGridLines: !echartShowGridLines })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartShowGridLines ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartShowGridLines ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                {/* Vertical line at the current time */}
-                {nowLineOffered && (
-                    <div className="flex items-center justify-between mb-2">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.nowLine')}
-                        </label>
-                        <button
-                            onClick={() => setO({ echartNowLine: !echartNowLine })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: echartNowLine ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: echartNowLine ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                )}
-                {nowLineOffered && echartNowLine && (
-                    <div className="mb-2 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        {nowLineByLabel && (
-                            <div className="mb-2">
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('echart.nowLineMatch')}
-                                </label>
-                                <div className="flex gap-1.5">
-                                    <input
-                                        type="text"
-                                        value={echartNowLineMatch}
-                                        onChange={(e) => setO({ echartNowLineMatch: e.target.value })}
-                                        className={`${inputCls} flex-1 min-w-0`}
-                                        style={inputStyle}
+                        entriesTabIndex={2}
+                        tabs={[
+                            {
+                                key: 'mode',
+                                label: t('echart.modeTab'),
+                                node: <ChartModePanel mode={echartMode as EChartMode} onChange={setMode} />,
+                            },
+                            {
+                                key: 'format',
+                                label: t('echart.formatTab'),
+                                node: (
+                                    <ChartFormatPanel
+                                        decimals={o.decimals as number | undefined}
+                                        numberFormat={o.numberFormat as NumberFormat | undefined}
+                                        onChange={setO}
                                     />
-                                    {nowLineCategories.length > 0 && (
-                                        <select
-                                            value=""
-                                            onChange={(e) =>
-                                                e.target.value && setO({ echartNowLineMatch: e.target.value })
-                                            }
-                                            className={`${inputCls} shrink-0`}
-                                            style={{ ...inputStyle, width: 'auto', maxWidth: 170 }}
-                                        >
-                                            <option value="">{t('echart.nowLineMatchPick')}</option>
-                                            {nowLineCategories.map((c) => (
-                                                <option key={c} value={c}>
-                                                    {c}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
-                                <p
-                                    className="aura-nowline-status text-[10px] mt-1 leading-tight"
-                                    style={{
-                                        color:
-                                            nowLineNeedle && !nowLineHit && nowLineCategories.length > 0
-                                                ? 'var(--danger, #ef4444)'
-                                                : 'var(--text-secondary)',
-                                    }}
-                                >
-                                    {!nowLineNeedle
-                                        ? t('echart.nowLineMatchEmpty')
-                                        : nowLineHit
-                                          ? t('echart.nowLineMatchHit', { label: nowLineHit })
-                                          : nowLineCategories.length > 0
-                                            ? t('echart.nowLineMatchMiss', { text: echartNowLineMatch.trim() })
-                                            : null}
-                                </p>
-                                <p
-                                    className="text-[10px] mt-1 leading-tight"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    {t('echart.nowLineMatchHint')}
-                                </p>
-                            </div>
-                        )}
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.nowLineColor')}
-                        </label>
-                        <div className="flex gap-1.5 items-center">
-                            <ColorPicker
-                                value={echartNowLineColor}
-                                onChange={(v) => setO({ echartNowLineColor: v })}
-                                className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent shrink-0"
-                            />
-                            <input
-                                type="text"
-                                value={echartNowLineColor}
-                                onChange={(e) => setO({ echartNowLineColor: e.target.value })}
-                                className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
-                                style={inputStyle}
-                                placeholder="#ef4444"
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {/* Animation */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.animation')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartAnimation: !echartAnimation })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartAnimation ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartAnimation ? '18px' : '2px' }}
-                        />
-                    </button>
+                                ),
+                            },
+                            {
+                                key: 'values',
+                                label: t('echart.valuesTab'),
+                                node: (
+                                    <ChartValuesPanel
+                                        showValues={echartShowValues}
+                                        showStackPercent={echartShowStackPercent}
+                                        anyStack={anyStack}
+                                        anyPeriod={anyPeriod}
+                                        periodPlacement={
+                                            (o.echartPeriodPlacement as 'legend' | 'row' | undefined) ?? 'legend'
+                                        }
+                                        onChange={setO}
+                                    />
+                                ),
+                            },
+                        ]}
+                        onAdd={addSeries}
+                        onRemove={removeSeries}
+                        onRemoveAll={() => setO({ echartSeries: [] })}
+                        onReorder={reorderSeries}
+                        renderDetail={(id) => {
+                            const s = series.find((x) => x.id === id);
+                            if (!s) return null;
+                            return (
+                                <ChartSeriesDetail
+                                    s={s}
+                                    isComparison={isComparison}
+                                    isJson={isJson}
+                                    allSeriesJson={
+                                        series.length > 0 && series.every((x) => isJson || x.source === 'json')
+                                    }
+                                    echartShowValues={echartShowValues}
+                                    chartDecimals={chartDecimals}
+                                    chartNumberFormat={chartNumberFormat}
+                                    jsonTimeAxis={jsonTimeAxis}
+                                    jsonAxisBounds={jsonAxisBounds}
+                                    probe={jsonProbes[s.id]}
+                                    adState={adapterStates[s.id]}
+                                    update={(patch) => updateSeries(s.id, patch)}
+                                    onTransform={(patch) => setSeriesTransform(s.id, patch)}
+                                    onDatapointChange={(dpId) => changeSeriesDatapoint(s.id, dpId)}
+                                    onDetect={() => refreshAdapters(s.id, s.datapointId)}
+                                    onWidgetOption={setO}
+                                    onAddComparison={() => addComparisonSeries(s.id)}
+                                />
+                            );
+                        }}
+                    />
                 </div>
-
-                {/* Show current value */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.showCurrentValue')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartShowCurrent: !echartShowCurrent })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartShowCurrent ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartShowCurrent ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                {/* Which point counts as "current", and where the block sits */}
-                {echartShowCurrent && (
-                    <div className="mb-2 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.currentValueSource')}
-                        </label>
-                        <div className="flex gap-1">
-                            {(['last', 'first'] as const).map((v) => (
-                                <button
-                                    key={v}
-                                    onClick={() => setO({ echartCurrentFrom: v })}
-                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                    style={{
-                                        background: echartCurrentFrom === v ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: echartCurrentFrom === v ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${echartCurrentFrom === v ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    }}
-                                >
-                                    {v === 'last' ? t('echart.currentValueLast') : t('echart.currentValueFirst')}
-                                </button>
-                            ))}
-                        </div>
-                        <label className="text-[11px] mt-2 mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.currentValueAlign')}
-                        </label>
-                        <div className="flex gap-1">
-                            {(['left', 'right'] as const).map((v) => (
-                                <button
-                                    key={v}
-                                    onClick={() => setO({ echartCurrentAlign: v })}
-                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                    style={{
-                                        background: echartCurrentAlign === v ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: echartCurrentAlign === v ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${echartCurrentAlign === v ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    }}
-                                >
-                                    {v === 'left' ? t('echart.alignLeft') : t('echart.alignRight')}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Time range — one window shared by all series, frontend-switchable unless locked */}
-                {anyHistory && (
+            </ConfigSection>
+            {anyHistory && (
+                <ConfigSection title="Zeitraum" sectionKey="range">
                     <div className="mb-2">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             {t('echart.timeRange')}
@@ -941,8 +815,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             </label>
                         )}
                     </div>
-                )}
-
+                </ConfigSection>
+            )}
+            <ConfigSection title="Achsen" sectionKey="axes">
                 {/* Left Y-Axis */}
                 <div className="mb-2">
                     <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
@@ -1016,46 +891,42 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </div>
                 </div>
-            </div>
-
-            {/* ── JSON Override ─────────────────────────────────────────────────── */}
-            <div className="mt-1">
-                <div className="h-px mb-2" style={{ background: 'var(--app-border)' }} />
-                <button
-                    onClick={() => setJsonOpen((v) => !v)}
-                    className="flex items-center gap-1.5 w-full text-[11px] font-semibold mb-1 hover:opacity-80 text-left"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    <ChevronDown
-                        size={12}
-                        style={{ transform: jsonOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
-                    />
-                    {t('echart.jsonOverride')}
-                    {echartJsonExtra && (
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                {/* Animation */}
+                <div className="flex items-center justify-between mb-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.animation')}
+                    </label>
+                    <button
+                        onClick={() => setO({ echartAnimation: !echartAnimation })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: echartAnimation ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
                         <span
-                            className="ml-auto text-[10px] px-1.5 py-0.5 rounded"
-                            style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
-                        >
-                            {t('echart.active')}
-                        </span>
-                    )}
-                </button>
-                {jsonOpen && (
-                    <>
-                        <p className="text-[10px] mb-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.jsonOverrideHint')}
-                        </p>
-                        <textarea
-                            value={echartJsonExtra}
-                            onChange={(e) => setO({ echartJsonExtra: e.target.value || undefined })}
-                            placeholder={'{\n  "series": [...]\n}'}
-                            rows={6}
-                            className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none resize-y"
-                            style={inputStyle}
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: echartAnimation ? '18px' : '2px' }}
                         />
-                    </>
-                )}
-            </div>
+                    </button>
+                </div>
+            </ConfigSection>
+            <ConfigSection
+                title={t('echart.jsonOverride')}
+                sectionKey="json"
+                count={echartJsonExtra ? t('echart.active') : undefined}
+            >
+                <p className="text-[10px] mb-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                    {t('echart.jsonOverrideHint')}
+                </p>
+                <textarea
+                    value={echartJsonExtra}
+                    onChange={(e) => setO({ echartJsonExtra: e.target.value || undefined })}
+                    placeholder={'{\n  "series": [...]\n}'}
+                    rows={6}
+                    className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none resize-y"
+                    style={inputStyle}
+                />
+            </ConfigSection>
 
             {/* Datapoint Picker Modal */}
             {/* Datapoint picker for an axis bound */}
@@ -1069,6 +940,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     onClose={() => setPickerForBound(null)}
                 />
             )}
-        </div>
+        </>
     );
 }

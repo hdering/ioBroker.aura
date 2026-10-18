@@ -1361,9 +1361,9 @@ export const en: Record<TranslationKey, string> = {
     'wf.history.liveData': '– Live Data (no history) –',
     'wf.history.timeRange': 'Time Range',
     'wf.history.lockRange': 'Lock time range (hide selector in frontend)',
-    'wf.history.showYAxis': 'Show Y-axis',
+    'wf.history.showYAxis': 'Y-axis',
     'wf.history.yAxisCompact': 'Compact (7000 → 7K)',
-    'wf.history.showXAxis': 'Show X-axis',
+    'wf.history.showXAxis': 'X-axis',
     'wf.history.gridLines': 'Horizontal grid lines',
 
     // Calendar config
@@ -1804,7 +1804,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.liveData': '– Live Data –',
     'echart.timeRange': 'Time Range',
     'echart.globalSettings': 'Global Settings',
-    'echart.showLegend': 'Show Legend',
+    'echart.showLegend': 'Legend',
     'echart.yAxisLeft': 'Y Axis Left',
     'echart.unitLeft': 'Unit (e.g. °C)',
     'echart.min': 'Min',
@@ -1947,9 +1947,9 @@ export const en: Record<TranslationKey, string> = {
     'echart.templateInstancePlaceholder': 'empty = instance of the triggering widget',
     'echart.templateInstanceHint':
         'Template datapoint – leave empty to inherit the history instance from the triggering widget.',
-    'echart.showYAxis': 'Show Y axis',
-    'echart.showYAxisRight': 'Show right Y axis',
-    'echart.showXAxis': 'Show X axis',
+    'echart.showYAxis': 'Y axis',
+    'echart.showYAxisRight': 'Right Y axis',
+    'echart.showXAxis': 'X axis',
     'echart.gridLines': 'Horizontal grid lines',
     'echart.nowLine': 'Current time as a line',
     'echart.nowLineColor': 'Time line colour',
@@ -1963,7 +1963,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.areaOpacity': 'Area opacity: {value}%',
     'echart.areaOpacityAuto': 'Area opacity: auto ({value}%)',
     'echart.animation': 'Animation',
-    'echart.showCurrentValue': 'Show current value',
+    'echart.showCurrentValue': 'Current value',
     'echart.currentValueSource': 'Current value is',
     'echart.currentValueFirst': 'First value',
     'echart.currentValueLast': 'Last value',
@@ -2123,7 +2123,7 @@ export const en: Record<TranslationKey, string> = {
     'historytable.cfg.valueLabels': 'Value texts (optional)',
     'historytable.cfg.valueLabelsHint': 'Empty = texts from common.states of the datapoint.',
     'historytable.cfg.fontSize': 'Font size (px)',
-    'historytable.cfg.showHeader': 'Show column titles',
+    'historytable.cfg.showHeader': 'Column titles',
     'historytable.cfg.striped': 'Striped rows',
     'historytable.cfg.columns': 'Columns',
     'historytable.cfg.columnsHint':
@@ -2527,8 +2527,8 @@ export const en: Record<TranslationKey, string> = {
     'evcc.loadpoints': 'Loadpoints',
     'evcc.gridPowerDp': 'Grid power',
     'evcc.gridPowerDpHint': '(positive = import, negative = export)',
-    'evcc.showBattery': 'Show Battery',
-    'evcc.showLoadpoints': 'Show Loadpoints',
+    'evcc.showBattery': 'Battery',
+    'evcc.showLoadpoints': 'Loadpoints',
 
     // ── Mediaplayer Widget ────────────────────────────────────────────────────────
     'mp.dp.title': 'Title DP',

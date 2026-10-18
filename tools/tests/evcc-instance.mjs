@@ -37,6 +37,8 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+// The edit dialog folds every section; this test fills in settings, so open them all.
+await page.evaluate(() => window.__auraShot.unfoldSections());
 
 const dlg = page.locator('.aura-widget-edit-modal');
 const select = dlg.locator('select.aura-evcc-instance');
@@ -85,9 +87,16 @@ check(
     options.some((o) => o.includes('evcc.0')) && options.some((o) => o.includes('evcc.1')),
     options.join(' | '),
 );
-check('a disabled one says so', options.some((o) => o.includes('evcc.1') && o.includes('deaktiviert')), options.join(' | '));
+check(
+    'a disabled one says so',
+    options.some((o) => o.includes('evcc.1') && o.includes('deaktiviert')),
+    options.join(' | '),
+);
 check('an unrelated adapter is NOT offered', !options.some((o) => o.startsWith('sma.')), options.join(' | '));
-check('and there is a way out to a hand-typed prefix', options.some((o) => o.includes('von Hand')));
+check(
+    'and there is a way out to a hand-typed prefix',
+    options.some((o) => o.includes('von Hand')),
+);
 eq('the configured instance is the selected one', await select.inputValue(), 'evcc.0');
 eq('with an instance picked the text field is out of the way', await field.count(), 0);
 

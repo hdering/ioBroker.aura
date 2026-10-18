@@ -31,6 +31,8 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+// The edit dialog folds every section; this test fills in settings, so open them all.
+await page.evaluate(() => window.__auraShot.unfoldSections());
 
 const inst = (id) => ({ id: `system.adapter.${id}`, value: { type: 'instance', common: { enabled: true } } });
 const st = (id, common) => ({ id, value: { type: 'state', common: { type: 'number', read: true, ...common } } });

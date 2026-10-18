@@ -1,3 +1,5 @@
+import { ConfigSection } from '../config/ConfigSection';
+import { VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
 import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame, Database } from 'lucide-react';
 import { useThemeEpoch } from '../../store/themeEpoch';
@@ -1879,7 +1881,6 @@ export function EvccConfig({
     }, [autoFillFor]);
     const lpCount = (o.loadpointCount as number) ?? 1;
     const showBattery = (o.showBattery as boolean) ?? true;
-    const showLoadpoints = (o.showLoadpoints as boolean) ?? true;
     const visibleLps = (o.visibleLoadpoints as number[]) ?? [];
 
     const autoScale = o.autoScale !== false;
@@ -1928,12 +1929,46 @@ export function EvccConfig({
         </div>
     );
 
+    // Sichtbare Felder: the loadpoint picker sits under its switch (more than one loadpoint only).
+    const visibleFields: VisibleField[] = [
+        { key: 'showBattery', label: t('evcc.showBattery') },
+        {
+            key: 'showLoadpoints',
+            label: t('evcc.showLoadpoints'),
+            children:
+                lpCount > 1 ? (
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('evcc.loadpointsShown')}
+                        </label>
+                        <div className="flex flex-wrap gap-1">
+                            {all.map((idx) => {
+                                const active = effectiveVisible.includes(idx);
+                                return (
+                                    <button
+                                        key={idx}
+                                        onClick={() => toggleLp(idx)}
+                                        className="text-xs px-2 py-1 rounded-lg transition-all"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        LP {idx + 1}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : undefined,
+        },
+    ];
+
     return (
         <>
-            <div>
-                <div className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                    {t('evcc.sourceSection')}
-                </div>
+            <VisibleFieldsSection fields={visibleFields} values={o} onChange={set} />
+            <ConfigSection title={t('evcc.sourceSection')} sectionKey="source">
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {t('evcc.sourceLabel')}
                 </label>
@@ -2015,34 +2050,13 @@ export function EvccConfig({
                         ✨ {t('evcc.scanAgain')}
                     </button>
                 )}
-            </div>
-
-            {/* Above the datapoint list on purpose: it gates the two battery rows in it. */}
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.showBattery')}
-                </label>
-                <button
-                    onClick={() => set({ showBattery: !showBattery })}
-                    className="relative w-9 h-5 rounded-full transition-colors"
-                    style={{ background: showBattery ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showBattery ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-
-            {/* ── Free datapoints ──────────────────────────────────────────────
+            </ConfigSection>
+            <ConfigSection title={t('evcc.dpSection')} sectionKey="datapoints">
+                {/* ── Free datapoints ──────────────────────────────────────────────
                 Every value the flow diagram draws can come from a datapoint of the
                 user's choosing instead of the instance above. Filled in completely,
                 the widget runs without evcc — that is what makes it a PV widget
                 rather than an evcc widget (#629). */}
-            <div className="pt-2 mt-1 border-t" style={{ borderColor: 'var(--app-border)' }}>
-                <div className="text-[11px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
-                    {t('evcc.dpSection')}
-                </div>
                 <p className="text-[10px] mb-2" style={{ color: 'var(--text-secondary)' }}>
                     {t('evcc.dpSectionHint')}
                 </p>
@@ -2102,15 +2116,11 @@ export function EvccConfig({
                         </>
                     )}
                 </div>
-            </div>
-
-            {/* Loadpoints are the one part that is genuinely evcc-only: they are read
+            </ConfigSection>
+            <ConfigSection title={t('evcc.loadpointSection')} sectionKey="loadpoints">
+                {/* Loadpoints are the one part that is genuinely evcc-only: they are read
                 from `<prefix>.loadpoint.N.status.*` and written back to `control.*`,
                 paths no other adapter has. The heading says so. */}
-            <div className="pt-2 mt-1 border-t" style={{ borderColor: 'var(--app-border)' }}>
-                <div className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                    {t('evcc.loadpointSection')}
-                </div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {t('evcc.loadpointsTotal')}
                 </label>
@@ -2130,57 +2140,8 @@ export function EvccConfig({
                         </button>
                     ))}
                 </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.showLoadpoints')}
-                </label>
-                <button
-                    onClick={() => set({ showLoadpoints: !showLoadpoints })}
-                    className="relative w-9 h-5 rounded-full transition-colors"
-                    style={{ background: showLoadpoints ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showLoadpoints ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-
-            {showLoadpoints && lpCount > 1 && (
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('evcc.loadpointsShown')}
-                    </label>
-                    <div className="flex flex-wrap gap-1">
-                        {all.map((idx) => {
-                            const active = effectiveVisible.includes(idx);
-                            return (
-                                <button
-                                    key={idx}
-                                    onClick={() => toggleLp(idx)}
-                                    className="text-xs px-2 py-1 rounded-lg transition-all"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    }}
-                                >
-                                    LP {idx + 1}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {/* ── Responsive / Größe ───────────────────────────────────────────── */}
-            <div className="pt-2 mt-1 border-t" style={{ borderColor: 'var(--app-border)' }}>
-                <div className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-                    Größe & Skalierung
-                </div>
-
+            </ConfigSection>
+            <ConfigSection title="Größe & Skalierung" sectionKey="size">
                 <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                         Auto-Skalierung <span style={{ opacity: 0.6 }}>(schrumpft bei schmalem Widget)</span>
@@ -2209,7 +2170,7 @@ export function EvccConfig({
                     />
                     <ScaleSlider label="Tarif-Zeile" k="tariffScale" val={tariffScale} />
                 </div>
-            </div>
+            </ConfigSection>
         </>
     );
 }
