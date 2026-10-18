@@ -178,7 +178,6 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
     return (
         <div className="space-y-2.5">
             <VisibleFieldsSection
-                collapsible
                 values={o}
                 onChange={setO}
                 fields={[

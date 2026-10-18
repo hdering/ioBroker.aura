@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useT } from '../../i18n';
-import { ConfigSection, FlatSection } from './ConfigSection';
+import { ConfigSection } from './ConfigSection';
 
 /**
  * One show/hide switch of the widget edit dialog. Every visibility option of every
@@ -91,20 +91,18 @@ export function isFieldOn(f: Pick<VisibleField, 'key' | 'def' | 'invert'>, value
 }
 
 /**
- * "Sichtbare Felder" — the first section of every widget's own settings. Folded in widgets
- * whose settings are split into sections, a plain heading in the short ones
+ * "Sichtbare Felder" — the first section of every widget's own settings, folded like
+ * every section, with an n/m count of the fields shown
  * (docs-internal/widget-config-template.md).
  */
 export function VisibleFieldsSection({
     fields,
     values,
     onChange,
-    collapsible,
 }: {
     fields: VisibleField[];
     values: Record<string, unknown>;
     onChange: (patch: Record<string, unknown>) => void;
-    collapsible?: boolean;
 }) {
     const t = useT();
     const shown = fields.filter((f) => !f.hidden);
@@ -128,12 +126,6 @@ export function VisibleFieldsSection({
     const title = t('cfg.visibleFields');
     // Compact on purpose: a list of switches reads as one block, not as separate settings.
     const list = <div className="space-y-1">{rows}</div>;
-    if (!collapsible)
-        return (
-            <FlatSection title={title} sectionKey="visible">
-                {list}
-            </FlatSection>
-        );
     const onCount = shown.filter((f) => isFieldOn(f, values)).length;
     return (
         <ConfigSection title={title} sectionKey="visible" count={`${onCount}/${shown.length}`}>

@@ -156,7 +156,6 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
             <div className="space-y-2.5">
                 {/* A datapoint source only shows the time - the rest needs Aura's own countdown. */}
                 <VisibleFieldsSection
-                    collapsible
                     values={o}
                     onChange={setOpts}
                     fields={[

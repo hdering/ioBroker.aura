@@ -964,7 +964,7 @@ export function AlarmConfig({
 
     return (
         <>
-            <VisibleFieldsSection fields={fields} values={o} onChange={set} collapsible />
+            <VisibleFieldsSection fields={fields} values={o} onChange={set} />
 
             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                 <div>

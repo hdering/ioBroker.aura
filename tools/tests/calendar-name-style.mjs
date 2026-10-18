@@ -229,6 +229,12 @@ await page.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
 const dlg = page.locator('.aura-widget-edit-modal');
 await dlg.waitFor({ timeout: 10000 });
+// The visible fields start folded - unfold every section.
+await page.evaluate(() =>
+    document
+        .querySelectorAll('.aura-widget-edit-modal details[data-aura-config-section]')
+        .forEach((d) => (d.open = true)),
+);
 
 // Alignment lives in the calendar block, the title alignment in "Darstellung" —
 // scope by the row label so the two pill rows never mix up.
@@ -243,11 +249,10 @@ await sizeRow.locator('input[type="range"]').fill('18');
 await page.waitForTimeout(300);
 check('the editor writes calIconSize', (await opts()).calIconSize === 18, String((await opts()).calIconSize));
 
-// The visibility toggles sit in the collapsed "Darstellung" block.
-await dlg.locator('summary:has(span:text-is("Darstellung"))').first().click();
-const dotRow = dlg.locator('div:has(> span:text-is("Farbpunkt / Farbbalken"))').last();
-await dotRow.waitFor({ timeout: 10000 });
-await dotRow.locator('button').first().click();
+// The visibility toggles sit in "Sichtbare Felder" (unfolded above).
+const dotSwitch = dlg.locator('[data-aura-vis-key="showCalDot"] button[role="switch"]');
+await dotSwitch.waitFor({ timeout: 10000 });
+await dotSwitch.click();
 await page.waitForTimeout(300);
 check('the editor writes showCalDot', (await opts()).showCalDot === false, String((await opts()).showCalDot));
 

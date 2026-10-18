@@ -1,13 +1,20 @@
-import { useRef, type ReactNode } from 'react';
+import { Children, useRef, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-/** Heading style shared by every section of the widget edit dialog (folded or flat). */
+// Screenshot harness only (__auraShot.unfoldSections): tests that fill in settings
+// open every section instead of clicking each one. Never set in the app.
+let unfoldForTests = false;
+export function __devSetUnfoldSections(on: boolean): void {
+    unfoldForTests = on;
+}
+
+/** Heading style shared by every section of the widget edit dialog. */
 export const SECTION_TITLE_CLS = 'text-[11px] font-semibold uppercase tracking-wide';
 
 /**
  * Collapsible section of the widget edit dialog — the repo's usual `<details>`/`<summary>`
  * pattern (see docs-internal/widget-config-template.md). Starts folded unless `defaultOpen`,
- * so a long panel opens as a short, scannable outline.
+ * so every dialog opens as a short outline.
  */
 export function ConfigSection({
     title,
@@ -15,6 +22,7 @@ export function ConfigSection({
     action,
     sectionKey,
     count,
+    className,
     children,
 }: {
     title: string;
@@ -25,14 +33,16 @@ export function ConfigSection({
     sectionKey?: string;
     /** Small summary next to the title, e.g. "5/7" visible fields. */
     count?: string;
+    /** Extra class on the section, a hook for tests and custom CSS. */
+    className?: string;
     children: ReactNode;
 }) {
     const ref = useRef<HTMLDetailsElement>(null);
     return (
         <details
             ref={ref}
-            className="group pt-2"
-            open={defaultOpen}
+            className={className ? `group pt-2 ${className}` : 'group pt-2'}
+            open={defaultOpen || unfoldForTests}
             data-aura-config-section={sectionKey}
             style={{ borderTop: '1px solid var(--app-border)' }}
         >
@@ -76,28 +86,25 @@ export function ConfigSection({
 }
 
 /**
- * The same section, not collapsible — for short widget blocks that stay flat. Without
- * children it is just the divider and heading in front of the fields that follow.
+ * "Einstellungen" for a widget type without sections of its own: everything below
+ * the visible fields in one section, folded like every other. A sectioned type renders
+ * its own sections; the children pass through untouched.
  */
-export function FlatSection({
+export function SettingsSection({
     title,
-    sectionKey,
+    sectioned,
     children,
 }: {
     title: string;
-    sectionKey?: string;
-    children?: ReactNode;
+    sectioned: boolean;
+    children: ReactNode;
 }) {
+    if (sectioned) return <>{children}</>;
+    // Nothing type-specific (e.g. the group widget): no empty section.
+    if (Children.toArray(children).length === 0) return null;
     return (
-        <div
-            className="pt-2"
-            data-aura-config-section={sectionKey}
-            style={{ borderTop: '1px solid var(--app-border)' }}
-        >
-            <p className={SECTION_TITLE_CLS} style={{ color: 'var(--text-secondary)' }}>
-                {title}
-            </p>
-            {children && <div className="space-y-2.5 mt-2.5">{children}</div>}
-        </div>
+        <ConfigSection title={title} sectionKey="settings">
+            {children}
+        </ConfigSection>
     );
 }

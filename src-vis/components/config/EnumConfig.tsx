@@ -13,7 +13,7 @@
  * the shared EnumJsonSourceSection (the Universal Widget's Auswahl cell
  * offers the very same editor).
  */
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Plus, Trash2, HelpCircle } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { type EnumEntry } from '../widgets/enumEntry';
@@ -23,12 +23,14 @@ import type { EnumJsonKeys } from '../../utils/enumEntriesJson';
 import { ColorPicker } from '../common/ColorPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { EnumJsonSourceSection } from './EnumJsonSourceSection';
-import { FlatSection } from './ConfigSection';
+import { ConfigSection } from './ConfigSection';
 import { useT } from '../../i18n';
 
 interface Props {
     config: WidgetConfig;
     onConfigChange: (config: WidgetConfig) => void;
+    /** The shared main datapoint field (WidgetFrame renderMainDpField). */
+    mainDpField: ReactNode;
 }
 
 /** Small on/off switch matching the config-panel style. */
@@ -63,7 +65,7 @@ const KEY_OPTION: Record<keyof EnumJsonKeys, string> = {
     image: 'entriesImageKey',
 };
 
-export function EnumConfig({ config, onConfigChange }: Props) {
+export function EnumConfig({ config, onConfigChange, mainDpField }: Props) {
     const t = useT();
     const o = config.options ?? {};
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -141,301 +143,304 @@ export function EnumConfig({ config, onConfigChange }: Props) {
 
     return (
         <>
-            {/* Quelle der Einträge: von Hand gepflegt oder aus einem JSON-DP (#577) */}
-            <div className="flex items-center justify-between gap-2">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    Einträge
-                </label>
-                <div
-                    className="flex rounded-lg overflow-hidden shrink-0"
-                    style={{ border: '1px solid var(--app-border)' }}
-                >
-                    {(
-                        [
-                            { key: 'manual', label: 'Manuell' },
-                            { key: 'json', label: 'JSON-Datenpunkt' },
-                        ] as const
-                    ).map(({ key, label }) => {
-                        const active = (fromJson ? 'json' : 'manual') === key;
-                        return (
+            <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                {mainDpField}
+                {/* Quelle der Einträge: von Hand gepflegt oder aus einem JSON-DP (#577) */}
+                <div className="flex items-center justify-between gap-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Einträge
+                    </label>
+                    <div
+                        className="flex rounded-lg overflow-hidden shrink-0"
+                        style={{ border: '1px solid var(--app-border)' }}
+                    >
+                        {(
+                            [
+                                { key: 'manual', label: 'Manuell' },
+                                { key: 'json', label: 'JSON-Datenpunkt' },
+                            ] as const
+                        ).map(({ key, label }) => {
+                            const active = (fromJson ? 'json' : 'manual') === key;
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setO({ entriesSource: key })}
+                                    className="text-[10px] px-2 py-1 transition-colors"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                        border: 'none',
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {fromJson && (
+                    <EnumJsonSourceSection
+                        dp={(o.entriesDp as string) ?? ''}
+                        keys={{
+                            value: o.entriesValueKey as string | undefined,
+                            label: o.entriesLabelKey as string | undefined,
+                            color: o.entriesColorKey as string | undefined,
+                            icon: o.entriesIconKey as string | undefined,
+                            image: o.entriesImageKey as string | undefined,
+                        }}
+                        onDpChange={(dp) => setO({ entriesDp: dp })}
+                        onKeyChange={(field, v) => setO({ [KEY_OPTION[field]]: v })}
+                    />
+                )}
+
+                {!fromJson && (
+                    <>
+                        <div className="flex items-center gap-2">
                             <button
-                                key={key}
-                                onClick={() => setO({ entriesSource: key })}
-                                className="text-[10px] px-2 py-1 transition-colors"
+                                onClick={importFromStates}
+                                disabled={importing || !config.datapoint}
+                                className="text-[11px] px-2 py-1 rounded-lg hover:opacity-80 disabled:opacity-40"
                                 style={{
-                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                    border: 'none',
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
                                 }}
                             >
-                                {label}
+                                {importing ? 'Lese …' : 'Aus common.states importieren'}
                             </button>
-                        );
-                    })}
-                </div>
-            </div>
+                            {importStatus && (
+                                <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {importStatus}
+                                </span>
+                            )}
+                        </div>
 
-            {fromJson && (
-                <EnumJsonSourceSection
-                    dp={(o.entriesDp as string) ?? ''}
-                    keys={{
-                        value: o.entriesValueKey as string | undefined,
-                        label: o.entriesLabelKey as string | undefined,
-                        color: o.entriesColorKey as string | undefined,
-                        icon: o.entriesIconKey as string | undefined,
-                        image: o.entriesImageKey as string | undefined,
-                    }}
-                    onDpChange={(dp) => setO({ entriesDp: dp })}
-                    onKeyChange={(field, v) => setO({ [KEY_OPTION[field]]: v })}
-                />
-            )}
-
-            {!fromJson && (
-                <>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={importFromStates}
-                            disabled={importing || !config.datapoint}
-                            className="text-[11px] px-2 py-1 rounded-lg hover:opacity-80 disabled:opacity-40"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            {importing ? 'Lese …' : 'Aus common.states importieren'}
-                        </button>
-                        {importStatus && (
-                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                {importStatus}
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="space-y-1">
-                        {entries.length === 0 && (
-                            <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                                Noch keine Einträge. Lege Wert→Eintrag-Paare an oder importiere sie aus dem Datenpunkt.
-                            </p>
-                        )}
-                        {entries.map((entry, idx) => {
-                            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, HelpCircle) : null;
-                            return (
-                                <div key={idx} className="flex items-center gap-1">
-                                    {/* Wert / ID */}
-                                    <input
-                                        type="text"
-                                        value={entry.value}
-                                        onChange={(e) => update(idx, { value: e.target.value })}
-                                        placeholder="Wert"
-                                        title="DP-Wert"
-                                        className={`${fieldCls} font-mono`}
-                                        style={{ ...iSty, width: valueColWidth, flexShrink: 0 }}
-                                    />
-                                    {/* Icon */}
-                                    <button
-                                        onClick={() => setIconPickerIdx(idx)}
-                                        title={entry.icon ? `Icon: ${entry.icon}` : 'Icon wählen…'}
-                                        className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
-                                        style={{
-                                            ...iSty,
-                                            color: entry.icon ? 'var(--text-primary)' : 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        {EntryIcon ? (
-                                            <EntryIcon size={15} style={{ color: entry.color }} />
-                                        ) : (
-                                            <HelpCircle size={15} style={{ opacity: 0.4 }} />
+                        <div className="space-y-1">
+                            {entries.length === 0 && (
+                                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                    Noch keine Einträge. Lege Wert→Eintrag-Paare an oder importiere sie aus dem
+                                    Datenpunkt.
+                                </p>
+                            )}
+                            {entries.map((entry, idx) => {
+                                const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, HelpCircle) : null;
+                                return (
+                                    <div key={idx} className="flex items-center gap-1">
+                                        {/* Wert / ID */}
+                                        <input
+                                            type="text"
+                                            value={entry.value}
+                                            onChange={(e) => update(idx, { value: e.target.value })}
+                                            placeholder="Wert"
+                                            title="DP-Wert"
+                                            className={`${fieldCls} font-mono`}
+                                            style={{ ...iSty, width: valueColWidth, flexShrink: 0 }}
+                                        />
+                                        {/* Icon */}
+                                        <button
+                                            onClick={() => setIconPickerIdx(idx)}
+                                            title={entry.icon ? `Icon: ${entry.icon}` : 'Icon wählen…'}
+                                            className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0"
+                                            style={{
+                                                ...iSty,
+                                                color: entry.icon ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                            }}
+                                        >
+                                            {EntryIcon ? (
+                                                <EntryIcon size={15} style={{ color: entry.color }} />
+                                            ) : (
+                                                <HelpCircle size={15} style={{ opacity: 0.4 }} />
+                                            )}
+                                        </button>
+                                        {entry.icon && (
+                                            <button
+                                                onClick={() => update(idx, { icon: undefined })}
+                                                title="Icon entfernen"
+                                                className={miniBtn}
+                                                style={{ ...iSty, paddingTop: 4, paddingBottom: 4 }}
+                                            >
+                                                ×
+                                            </button>
                                         )}
-                                    </button>
-                                    {entry.icon && (
-                                        <button
-                                            onClick={() => update(idx, { icon: undefined })}
-                                            title="Icon entfernen"
-                                            className={miniBtn}
-                                            style={{ ...iSty, paddingTop: 4, paddingBottom: 4 }}
-                                        >
-                                            ×
-                                        </button>
-                                    )}
-                                    {/* Label */}
-                                    <input
-                                        type="text"
-                                        value={entry.label}
-                                        onChange={(e) => update(idx, { label: e.target.value })}
-                                        placeholder="Label"
-                                        className={`${fieldCls} flex-1 min-w-0`}
-                                        style={iSty}
-                                    />
-                                    {/* Farbe */}
-                                    <ColorPicker
-                                        value={entry.color ?? '#666666'}
-                                        onChange={(v) => update(idx, { color: v })}
-                                        title="Farbe (Text/Icon, optional)"
-                                        className="shrink-0 rounded cursor-pointer"
-                                        style={{
-                                            width: '28px',
-                                            height: '30px',
-                                            border: '1px solid var(--app-border)',
-                                            background: 'transparent',
-                                        }}
-                                    />
-                                    {entry.color && (
-                                        <button
-                                            onClick={() => update(idx, { color: undefined })}
-                                            title="Farbe zurücksetzen"
-                                            className={miniBtn}
-                                            style={{ ...iSty, paddingTop: 4, paddingBottom: 4 }}
-                                        >
-                                            ×
-                                        </button>
-                                    )}
-                                    {/* Hoch / Runter */}
-                                    <div className="flex flex-col shrink-0">
-                                        <button
-                                            onClick={() => move(idx, -1)}
-                                            disabled={idx === 0}
-                                            className="text-[9px] px-1 rounded hover:opacity-80 disabled:opacity-30 leading-none"
+                                        {/* Label */}
+                                        <input
+                                            type="text"
+                                            value={entry.label}
+                                            onChange={(e) => update(idx, { label: e.target.value })}
+                                            placeholder="Label"
+                                            className={`${fieldCls} flex-1 min-w-0`}
                                             style={iSty}
-                                            title="Nach oben"
-                                        >
-                                            ▲
-                                        </button>
+                                        />
+                                        {/* Farbe */}
+                                        <ColorPicker
+                                            value={entry.color ?? '#666666'}
+                                            onChange={(v) => update(idx, { color: v })}
+                                            title="Farbe (Text/Icon, optional)"
+                                            className="shrink-0 rounded cursor-pointer"
+                                            style={{
+                                                width: '28px',
+                                                height: '30px',
+                                                border: '1px solid var(--app-border)',
+                                                background: 'transparent',
+                                            }}
+                                        />
+                                        {entry.color && (
+                                            <button
+                                                onClick={() => update(idx, { color: undefined })}
+                                                title="Farbe zurücksetzen"
+                                                className={miniBtn}
+                                                style={{ ...iSty, paddingTop: 4, paddingBottom: 4 }}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                        {/* Hoch / Runter */}
+                                        <div className="flex flex-col shrink-0">
+                                            <button
+                                                onClick={() => move(idx, -1)}
+                                                disabled={idx === 0}
+                                                className="text-[9px] px-1 rounded hover:opacity-80 disabled:opacity-30 leading-none"
+                                                style={iSty}
+                                                title="Nach oben"
+                                            >
+                                                ▲
+                                            </button>
+                                            <button
+                                                onClick={() => move(idx, 1)}
+                                                disabled={idx === entries.length - 1}
+                                                className="text-[9px] px-1 rounded hover:opacity-80 disabled:opacity-30 leading-none mt-0.5"
+                                                style={iSty}
+                                                title="Nach unten"
+                                            >
+                                                ▼
+                                            </button>
+                                        </div>
+                                        {/* Entfernen */}
                                         <button
-                                            onClick={() => move(idx, 1)}
-                                            disabled={idx === entries.length - 1}
-                                            className="text-[9px] px-1 rounded hover:opacity-80 disabled:opacity-30 leading-none mt-0.5"
-                                            style={iSty}
-                                            title="Nach unten"
+                                            onClick={() => remove(idx)}
+                                            className="hover:opacity-70 shrink-0"
+                                            title="Eintrag löschen"
+                                            style={{ color: 'var(--accent-red, #ef4444)' }}
                                         >
-                                            ▼
+                                            <Trash2 size={13} />
                                         </button>
                                     </div>
-                                    {/* Entfernen */}
-                                    <button
-                                        onClick={() => remove(idx)}
-                                        className="hover:opacity-70 shrink-0"
-                                        title="Eintrag löschen"
-                                        style={{ color: 'var(--accent-red, #ef4444)' }}
-                                    >
-                                        <Trash2 size={13} />
-                                    </button>
-                                </div>
-                            );
-                        })}
-                        <button
-                            onClick={add}
-                            className="w-full text-[11px] py-1.5 rounded-lg hover:opacity-80 flex items-center justify-center gap-1"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px dashed var(--app-border)',
-                            }}
-                        >
-                            <Plus size={12} /> Eintrag hinzufügen
-                        </button>
-                    </div>
-                </>
-            )}
+                                );
+                            })}
+                            <button
+                                onClick={add}
+                                className="w-full text-[11px] py-1.5 rounded-lg hover:opacity-80 flex items-center justify-center gap-1"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px dashed var(--app-border)',
+                                }}
+                            >
+                                <Plus size={12} /> Eintrag hinzufügen
+                            </button>
+                        </div>
+                    </>
+                )}
 
-            {/* ── Anzeige (die Schalter stehen in „Sichtbare Felder“) ── */}
-            <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between gap-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Anzeige aktueller Eintrag
-                    </label>
-                    <div
-                        className="flex rounded-lg overflow-hidden shrink-0"
-                        style={{ border: '1px solid var(--app-border)' }}
-                    >
-                        {(
-                            [
-                                { key: 'text', label: 'Text' },
-                                { key: 'icon-text', label: 'Icon + Text' },
-                                { key: 'icon', label: 'Icon' },
-                            ] as const
-                        ).map(({ key, label }) => {
-                            const active = ((o.entryDisplay as string) ?? 'text') === key;
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => setO({ entryDisplay: key })}
-                                    className="text-[10px] px-2 py-1 transition-colors"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        border: 'none',
-                                    }}
-                                >
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            </div>
-
-            {/* Größe und Breite des Dropdowns (#679) */}
-            <div className="space-y-1.5 pt-1">
-                <div className="flex items-center justify-between gap-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Größe Auswahlfeld
-                    </label>
-                    <div
-                        className="flex rounded-lg overflow-hidden shrink-0"
-                        style={{ border: '1px solid var(--app-border)' }}
-                    >
-                        {(
-                            [
-                                { key: 'sm', label: 'Klein' },
-                                { key: 'md', label: 'Mittel' },
-                                { key: 'lg', label: 'Groß' },
-                            ] as const
-                        ).map(({ key, label }) => {
-                            const active = ((o.selectSize as string) ?? 'sm') === key;
-                            return (
-                                <button
-                                    key={key}
-                                    onClick={() => setO({ selectSize: key })}
-                                    className="text-[10px] px-2 py-1 transition-colors"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        border: 'none',
-                                    }}
-                                >
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                    <div>
+                {/* ── Anzeige (die Schalter stehen in „Sichtbare Felder“) ── */}
+                <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between gap-2">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Breite Auswahlfeld (px)
+                            Anzeige aktueller Eintrag
                         </label>
-                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                            Leer = so breit wie der Eintrag
-                        </p>
+                        <div
+                            className="flex rounded-lg overflow-hidden shrink-0"
+                            style={{ border: '1px solid var(--app-border)' }}
+                        >
+                            {(
+                                [
+                                    { key: 'text', label: 'Text' },
+                                    { key: 'icon-text', label: 'Icon + Text' },
+                                    { key: 'icon', label: 'Icon' },
+                                ] as const
+                            ).map(({ key, label }) => {
+                                const active = ((o.entryDisplay as string) ?? 'text') === key;
+                                return (
+                                    <button
+                                        key={key}
+                                        onClick={() => setO({ entryDisplay: key })}
+                                        className="text-[10px] px-2 py-1 transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: 'none',
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
-                    <input
-                        type="number"
-                        min={40}
-                        max={600}
-                        placeholder="auto"
-                        value={(o.selectWidth as number | undefined) ?? ''}
-                        onChange={(e) => {
-                            const n = parseInt(e.target.value, 10);
-                            setO({ selectWidth: Number.isFinite(n) && n > 0 ? n : undefined });
-                        }}
-                        className={`${fieldCls} shrink-0`}
-                        style={{ ...iSty, width: '80px' }}
-                    />
                 </div>
-            </div>
 
-            <FlatSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                {/* Größe und Breite des Dropdowns (#679) */}
+                <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between gap-2">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Größe Auswahlfeld
+                        </label>
+                        <div
+                            className="flex rounded-lg overflow-hidden shrink-0"
+                            style={{ border: '1px solid var(--app-border)' }}
+                        >
+                            {(
+                                [
+                                    { key: 'sm', label: 'Klein' },
+                                    { key: 'md', label: 'Mittel' },
+                                    { key: 'lg', label: 'Groß' },
+                                ] as const
+                            ).map(({ key, label }) => {
+                                const active = ((o.selectSize as string) ?? 'sm') === key;
+                                return (
+                                    <button
+                                        key={key}
+                                        onClick={() => setO({ selectSize: key })}
+                                        className="text-[10px] px-2 py-1 transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: 'none',
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                        <div>
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Breite Auswahlfeld (px)
+                            </label>
+                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                Leer = so breit wie der Eintrag
+                            </p>
+                        </div>
+                        <input
+                            type="number"
+                            min={40}
+                            max={600}
+                            placeholder="auto"
+                            value={(o.selectWidth as number | undefined) ?? ''}
+                            onChange={(e) => {
+                                const n = parseInt(e.target.value, 10);
+                                setO({ selectWidth: Number.isFinite(n) && n > 0 ? n : undefined });
+                            }}
+                            className={`${fieldCls} shrink-0`}
+                            style={{ ...iSty, width: '80px' }}
+                        />
+                    </div>
+                </div>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
                 {/* Sicherheitsabfrage vor dem Schalten (#674) */}
                 <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between gap-2">
@@ -465,7 +470,7 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                         </div>
                     )}
                 </div>
-            </FlatSection>
+            </ConfigSection>
 
             {iconPickerIdx !== null && entries[iconPickerIdx] && (
                 <IconPickerModal

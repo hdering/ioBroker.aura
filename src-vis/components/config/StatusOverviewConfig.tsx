@@ -1,5 +1,5 @@
+import { ConfigSection } from './ConfigSection';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import {
     categoryOf,
@@ -81,7 +81,6 @@ const inputStyle: React.CSSProperties = {
 };
 const labelCls = 'text-[11px] mb-1 block';
 const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' };
-const sectionTitleCls = 'text-[11px] font-semibold uppercase tracking-wide';
 
 function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
     return (
@@ -299,13 +298,9 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-2.5">
             {/* ── Categories (each with its own settings, shown when enabled) ── */}
-            <div className="space-y-2.5">
-                <span className={sectionTitleCls} style={labelStyle}>
-                    Kategorien
-                </span>
-
+            <ConfigSection title="Kategorien" sectionKey="categories">
                 <CatSection
                     checked={o.catWindow !== false}
                     onChange={(v) => set({ catWindow: v })}
@@ -436,20 +431,10 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         label="Bei diesen Mustern bedeutet FALSE = offline"
                     />
                 </CatSection>
-            </div>
+            </ConfigSection>
 
             {/* ── Scope (collapsed by default) ── */}
-            <details className="group pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                <summary className="flex items-center justify-between cursor-pointer list-none">
-                    <span className={sectionTitleCls} style={labelStyle}>
-                        Einschränkung (optional)
-                    </span>
-                    <ChevronDown
-                        size={13}
-                        className="transition-transform group-open:rotate-180"
-                        style={{ color: 'var(--text-secondary)' }}
-                    />
-                </summary>
+            <ConfigSection title="Einschränkung (optional)" sectionKey="scope">
                 <div className="space-y-2 mt-2">
                     <div>
                         <label className={labelCls} style={labelStyle}>
@@ -504,20 +489,10 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         />
                     </div>
                 </div>
-            </details>
+            </ConfigSection>
 
             {/* ── Display (collapsed by default) ── */}
-            <details className="group pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
-                <summary className="flex items-center justify-between cursor-pointer list-none">
-                    <span className={sectionTitleCls} style={labelStyle}>
-                        Anzeige
-                    </span>
-                    <ChevronDown
-                        size={13}
-                        className="transition-transform group-open:rotate-180"
-                        style={{ color: 'var(--text-secondary)' }}
-                    />
-                </summary>
+            <ConfigSection title="Anzeige" sectionKey="display">
                 <div className="space-y-2 mt-2">
                     <div>
                         <label className={labelCls} style={labelStyle}>
@@ -754,30 +729,17 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         </div>
                     )}
                 </div>
-            </details>
+            </ConfigSection>
 
             {/* ── Merkliste (collapsed by default) — its own section: it spans several
                 categories. The summary says what is on, so it reads closed too. ── */}
             {(o.catBattery !== false || o.catUnreach !== false || o.catAlarm !== false) && (
-                <details
-                    className="aura-status-merkliste group pt-1"
-                    style={{ borderTop: '1px solid var(--app-border)' }}
+                <ConfigSection
+                    title="Merkliste"
+                    sectionKey="latch"
+                    count={latchSummary}
+                    className="aura-status-merkliste"
                 >
-                    <summary className="flex items-center justify-between gap-2 cursor-pointer list-none">
-                        <span className={sectionTitleCls} style={labelStyle}>
-                            Merkliste
-                        </span>
-                        <span className="flex items-center gap-1.5 min-w-0">
-                            <span className="text-[11px] truncate" style={labelStyle}>
-                                {latchSummary}
-                            </span>
-                            <ChevronDown
-                                size={13}
-                                className="shrink-0 transition-transform group-open:rotate-180"
-                                style={{ color: 'var(--text-secondary)' }}
-                            />
-                        </span>
-                    </summary>
                     <div className="space-y-2 mt-2">
                         <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                             Ein Hinweis bleibt stehen, bis er erledigt ist – auch wenn das Gerät zwischendurch wieder
@@ -937,31 +899,16 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             </div>
                         </div>
                     </div>
-                </details>
+                </ConfigSection>
             )}
 
             {/* ── Row buttons (collapsed by default, next to the row click) ── */}
-            <details
-                className="aura-status-row-actions group pt-1"
-                style={{ borderTop: '1px solid var(--app-border)' }}
+            <ConfigSection
+                title="Zeilen-Aktionen"
+                sectionKey="rowactions"
+                count={rowActionCount ? `${rowActionCount} ${rowActionCount === 1 ? 'Knopf' : 'Knöpfe'}` : 'keine'}
+                className="aura-status-row-actions"
             >
-                <summary className="flex items-center justify-between gap-2 cursor-pointer list-none">
-                    <span className={sectionTitleCls} style={labelStyle}>
-                        Zeilen-Aktionen
-                    </span>
-                    <span className="flex items-center gap-1.5 min-w-0">
-                        <span className="text-[11px] truncate" style={labelStyle}>
-                            {rowActionCount
-                                ? `${rowActionCount} ${rowActionCount === 1 ? 'Knopf' : 'Knöpfe'}`
-                                : 'keine'}
-                        </span>
-                        <ChevronDown
-                            size={13}
-                            className="shrink-0 transition-transform group-open:rotate-180"
-                            style={{ color: 'var(--text-secondary)' }}
-                        />
-                    </span>
-                </summary>
                 <div className="space-y-2 mt-2">
                     <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                         Eigene Knöpfe am Zeilenende (Layouts Standard und Kompakt), die einen Wert in einen Datenpunkt
@@ -988,15 +935,14 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         Knöpfe bearbeiten →
                     </button>
                 </div>
-            </details>
+                {/* Row click action: next to the row buttons */}
+                <RowClickSection config={config} opts={o} onChange={set} />
+            </ConfigSection>
             {showActions && (
                 <ConfigModal title="Zeilen-Aktionen" maxWidth={560} padded onClose={() => setShowActions(false)}>
                     <StatusRowActionsEditor actions={o.rowActions ?? []} onChange={(v) => set({ rowActions: v })} />
                 </ConfigModal>
             )}
-
-            {/* ── Row click action ── */}
-            <RowClickSection config={config} opts={o} onChange={set} />
         </div>
     );
 }

@@ -8,7 +8,8 @@
 //     first section of the widget's own settings
 //   - every visibility row ([data-aura-vis-key]) sits inside that section
 //   - another section follows it right away ("Einstellungen" while the type is flat)
-//   - types in FOLDED have every section closed when the dialog opens
+//   - every section starts folded, no exceptions; a type without own sections
+//     has one "Einstellungen" section
 //   - a type without toggles has no such section
 // plus: a switch writes its option, the light's status row keeps its alignment picker.
 /* global window, document */
@@ -75,10 +76,13 @@ const VISIBLE = {
     trashSchedule: ['showNames', 'showDays', 'showDate'],
     aircontrol: ['showVanes', 'showEco', 'showBoost', 'showConsumption', 'showHumidity', 'showOutside'],
 };
+/** Types that already bring sections of their own (visible fields follow later). */
+const OWN_SECTIONS = ['statusoverview', 'map', 'list', 'autolist', 'mediaplayer', 'chips', 'carousel'];
+// (menu too, but the harness draws no edit chrome for it)
 /** Types without any visibility toggle. */
 const NONE = ['button', 'image', 'html', 'mirror'];
-/** Types whose own settings are split into folded sections (SECTIONED_EDIT_TYPES). */
-const FOLDED = [
+/** Types with sections of their own (SECTIONED_EDIT_TYPES); the rest get "Einstellungen". */
+const SECTIONED = [
     'knob',
     'dimmer',
     'stateimage',
@@ -87,6 +91,13 @@ const FOLDED = [
     'thermostat',
     'shutter',
     'jsontable',
+    'adapterstatus',
+    'scriptstatus',
+    'messages',
+    'panels',
+    'httpRequest',
+    'enum',
+    'mediaplayer',
     'alarm',
     'timer',
     'countdown',
@@ -111,19 +122,21 @@ await page.evaluate(() => window.__auraShot.captureWrites(true));
 
 let run = 0;
 /** Mount one widget of `type` and open its edit dialog. */
-async function openDialog(type, options = {}) {
+async function openDialog(type, options = {}, datapoint) {
     run++;
     const widget = {
         id: `w-eds-${run}`,
         type,
         title: `T ${type}`,
-        datapoint: `demo.eds${run}.STATE`,
+        datapoint: datapoint ?? `demo.eds${run}.STATE`,
         gridPos: { x: 0, y: 0, w: 4, h: 4 },
         options,
     };
     await page.evaluate((w) => {
-        window.__auraShot.mock({ [w.datapoint]: 0 });
-        window.__auraShot.mockServerState({ [w.datapoint]: 0 });
+        if (w.datapoint) {
+            window.__auraShot.mock({ [w.datapoint]: 0 });
+            window.__auraShot.mockServerState({ [w.datapoint]: 0 });
+        }
         window.__auraShot.showWidgets([w]);
     }, widget);
     await page.waitForTimeout(400);
@@ -136,6 +149,16 @@ async function openDialog(type, options = {}) {
     await page.locator('.aura-widget-edit-modal').waitFor({ timeout: 5000 });
     await page.waitForTimeout(300);
     return widget.id;
+}
+
+/** Same gap between all neighbouring sections, nothing loose between them. */
+function checkLayout(type, r) {
+    check(
+        `${type}: equal gaps between the sections`,
+        r.gaps.length === 0 || Math.max(...r.gaps) - Math.min(...r.gaps) <= 1,
+        JSON.stringify(r.gaps),
+    );
+    check(`${type}: nothing loose between the sections`, r.loose.length === 0, JSON.stringify(r.loose));
 }
 
 /** Unfold a section of the open dialog. */
@@ -166,7 +189,34 @@ const inspect = () =>
             title: vis?.querySelector('summary span.uppercase, :scope > p')?.textContent?.trim() ?? null,
             titleCls: vis?.querySelector('summary span.uppercase, :scope > p')?.className ?? null,
             statusCls: dlg.querySelector('[data-aura-status-section] summary p')?.className ?? null,
-            folded: sections.filter((s) => s.tagName === 'DETAILS').map((s) => s.open === false),
+            open: sections
+                .filter((s) => s.tagName === 'DETAILS' && s.open)
+                .map((s) => s.getAttribute('data-aura-config-section')),
+            visibleFolds: vis?.tagName === 'DETAILS',
+            // Gaps between neighbouring sections (status included) and anything loose between them.
+            ...(() => {
+                const all = [...dlg.querySelectorAll('[data-aura-config-section], [data-aura-status-section]')].filter(
+                    (el) => !el.parentElement?.closest('[data-aura-config-section]'),
+                );
+                const gaps = [];
+                for (const el of all) {
+                    const next = el.nextElementSibling;
+                    if (next && all.includes(next))
+                        gaps.push(Math.round(next.getBoundingClientRect().top - el.getBoundingClientRect().bottom));
+                }
+                const loose = [];
+                if (all[0]) {
+                    const kids = [...all[0].parentElement.children];
+                    for (const k of kids.slice(kids.indexOf(all[0])))
+                        if (!all.includes(k) && k.getBoundingClientRect().height > 0)
+                            loose.push((k.textContent ?? '').trim().slice(0, 40));
+                }
+                return { gaps, loose };
+            })(),
+            // A section inside another one: a type with own sections ended up in "Einstellungen".
+            nested: sections
+                .filter((s) => s.parentElement?.closest('[data-aura-config-section]'))
+                .map((s) => s.getAttribute('data-aura-config-section')),
             keys: rows.map((r) => r.getAttribute('data-aura-vis-key')),
             outside: rows.filter((r) => !vis?.contains(r)).map((r) => r.getAttribute('data-aura-vis-key')),
             nextIsSection: !!vis?.nextElementSibling?.hasAttribute('data-aura-config-section'),
@@ -187,6 +237,8 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
     check(`${type}: heading "Sichtbare Felder"`, r.title === 'Sichtbare Felder', String(r.title));
     check(`${type}: first section of the widget settings`, r.order[0] === 'visible', JSON.stringify(r.order));
     check(`${type}: all rows inside the section`, r.outside.length === 0, JSON.stringify(r.outside));
+    check(`${type}: no section inside another`, r.nested.length === 0, JSON.stringify(r.nested));
+    checkLayout(type, r);
     check(`${type}: nothing to set above the toggles`, r.inputsAbove.length === 0, JSON.stringify(r.inputsAbove));
     // Separation: another section follows right away, no loose field after the toggles.
     check(
@@ -194,14 +246,18 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
         !!r.order[1] && r.nextIsSection,
         JSON.stringify({ order: r.order, next: r.nextIsSection }),
     );
-    if (!FOLDED.includes(type))
-        check(`${type}: "Einstellungen" heading`, r.order[1] === 'settings', JSON.stringify(r.order));
-    else
+    check(`${type}: the visible fields fold`, r.visibleFolds);
+    if (!SECTIONED.includes(type)) {
+        check(`${type}: "Einstellungen" section`, r.order[1] === 'settings', JSON.stringify(r.order));
+        check(`${type}: every section starts folded`, r.open.length === 0, JSON.stringify(r.open));
+    } else {
         check(
-            `${type}: an own section follows, no catch-all`,
-            !!r.order[1] && r.order[1] !== 'settings',
+            `${type}: at least two own sections, not one catch-all`,
+            r.order.filter((k) => k !== 'visible').length >= 2,
             JSON.stringify(r.order),
         );
+        check(`${type}: every section starts folded`, r.open.length === 0, JSON.stringify(r.open));
+    }
     check(
         `${type}: status heading looks like the others`,
         !r.statusCls || r.statusCls === r.titleCls,
@@ -209,15 +265,31 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
     );
     const missing = keys.filter((k) => !r.keys.includes(k));
     check(`${type}: expected toggles present`, missing.length === 0, JSON.stringify(missing));
-    if (FOLDED.includes(type))
-        check(`${type}: every section starts folded`, r.folded.every(Boolean), JSON.stringify(r.folded));
+    await closeDialog();
+}
+
+for (const type of OWN_SECTIONS) {
+    await openDialog(type);
+    const r = await inspect();
+    checkLayout(type, r);
+    check(
+        `${type}: own sections, all folded, not wrapped in "Einstellungen"`,
+        !r.order.includes('settings') && r.nested.length === 0 && r.open.length === 0,
+        JSON.stringify(r),
+    );
     await closeDialog();
 }
 
 for (const type of NONE) {
     await openDialog(type);
     const r = await inspect();
+    checkLayout(type, r);
     check(`${type}: no visible-fields section`, r.title === null && r.keys.length === 0, JSON.stringify(r));
+    check(
+        `${type}: its settings in one folded section`,
+        r.order.includes('settings') && r.open.length === 0,
+        JSON.stringify(r),
+    );
     await closeDialog();
 }
 
@@ -232,9 +304,31 @@ for (const type of NONE) {
     await closeDialog();
 }
 
+// No exceptions: a widget without its datapoint opens folded too.
+{
+    await openDialog('knob', {}, '');
+    const r = await inspect();
+    check('knob without datapoint: every section folded', r.open.length === 0, JSON.stringify(r.open));
+    await closeDialog();
+}
+
+// Universal widget: "Einstellungen" names the grid editor, no second heading.
+{
+    await openDialog('universal');
+    const dup = await page.evaluate(
+        () =>
+            [...document.querySelectorAll('.aura-widget-edit-modal p')].filter(
+                (e) => e.textContent?.trim() === 'Widget-Einstellungen',
+            ).length,
+    );
+    check('universal: no "Widget-Einstellungen" heading', dup === 0, String(dup));
+    await closeDialog();
+}
+
 // An inverted option: switching "Untertitel" off stores compact=true.
 {
     const id = await openDialog('adapterstatus');
+    await openSection('visible');
     const sw = page.locator('.aura-widget-edit-modal [data-aura-vis-key="compact"] button[role="switch"]');
     check('adapterstatus: subtitle shown by default', (await sw.getAttribute('aria-checked')) === 'true');
     await sw.click();

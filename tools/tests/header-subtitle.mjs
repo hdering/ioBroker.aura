@@ -33,6 +33,8 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+// The edit dialog folds every section; this test fills in settings, so open them all.
+await page.evaluate(() => window.__auraShot.unfoldSections());
 
 async function show({ layout, subtitle, titleAlign = 'left', showSubtitle = true, rows = 4, extra = {} }) {
     await page.evaluate(
@@ -344,6 +346,12 @@ await page.locator('.aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
 const dlg = page.locator('.aura-widget-edit-modal');
 await dlg.locator('input[placeholder="z.B. Erdgeschoss"]').waitFor({ timeout: 10000 });
+// The visible fields start folded - unfold every section.
+await page.evaluate(() =>
+    document
+        .querySelectorAll('.aura-widget-edit-modal details[data-aura-config-section]')
+        .forEach((d) => (d.open = true)),
+);
 
 // Der Bereich traegt den Widget-Namen und enthaelt die Felder — nicht der Kopf des Dialogs.
 const box = dlg.locator('div:has(> p:text-is("Abschnittstitel"))').last();

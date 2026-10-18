@@ -287,7 +287,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
 
     return (
         <>
-            <VisibleFieldsSection fields={visibleFields} values={o} onChange={set} collapsible />
+            <VisibleFieldsSection fields={visibleFields} values={o} onChange={set} />
             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                 {mainDpField}
             </ConfigSection>

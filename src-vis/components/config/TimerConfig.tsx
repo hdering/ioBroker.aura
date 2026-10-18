@@ -225,7 +225,6 @@ export function TimerConfig({ config, onConfigChange }: Props) {
 
             <div className="space-y-2.5">
                 <VisibleFieldsSection
-                    collapsible
                     values={o}
                     onChange={setOpts}
                     fields={[

@@ -12,6 +12,7 @@
 //
 // Stripped from production: only imported from main.tsx under import.meta.env.DEV.
 
+import { __devSetUnfoldSections } from '../components/config/ConfigSection';
 import { getInstanceByDom } from 'echarts';
 import { iconLoaded } from '@iconify/react';
 import { measureRenderedWidgets } from '../utils/renderReport';
@@ -493,6 +494,12 @@ function installScreenshotApi(): void {
         captureWrites(on = true): void {
             __devSetBlockWrites(on);
             __devSetWriteLog(on);
+        },
+
+        /** Every section of the widget edit dialog starts open (tests that fill in
+         *  settings). The structure test leaves it off - folding is what it checks. */
+        unfoldSections(on = true): void {
+            __devSetUnfoldSections(on);
         },
 
         /** The most recent datapoint write, or null while the log is not armed. */
