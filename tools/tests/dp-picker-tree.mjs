@@ -97,6 +97,8 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+// The edit dialog folds every section; this test fills in settings, so open them all.
+await page.evaluate(() => window.__auraShot.unfoldSections());
 
 const knob = (datapoint) => ({
     id: 'w-knob',
@@ -253,6 +255,8 @@ check('switching it off brings the others back', (await listIds()).includes('hm-
 // offer the branch itself, not just its leaves.
 await page.reload({ waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+// The edit dialog folds every section; this test fills in settings, so open them all.
+await page.evaluate(() => window.__auraShot.unfoldSections());
 await page.evaluate(
     ([v]) => {
         window.__auraShot.mockObjectView(v);

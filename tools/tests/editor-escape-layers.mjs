@@ -17,10 +17,27 @@ const check = (name, ok, detail = '') => {
 const stateRow = (id, common) => ({ id, value: { _id: id, type: 'state', common } });
 const VIEW = {
     state: [
-        stateRow('hm-rpc.0.ABC0001.1.STATE', { name: 'Schalter', type: 'boolean', role: 'switch', read: true, write: true }),
-        stateRow('hm-rpc.0.ABC0001.1.LEVEL', { name: 'Helligkeit', type: 'number', role: 'level.dimmer', read: true, write: true }),
+        stateRow('hm-rpc.0.ABC0001.1.STATE', {
+            name: 'Schalter',
+            type: 'boolean',
+            role: 'switch',
+            read: true,
+            write: true,
+        }),
+        stateRow('hm-rpc.0.ABC0001.1.LEVEL', {
+            name: 'Helligkeit',
+            type: 'number',
+            role: 'level.dimmer',
+            read: true,
+            write: true,
+        }),
     ],
-    instance: [{ id: 'system.adapter.hm-rpc.0', value: { _id: 'system.adapter.hm-rpc.0', type: 'instance', common: { enabled: true } } }],
+    instance: [
+        {
+            id: 'system.adapter.hm-rpc.0',
+            value: { _id: 'system.adapter.hm-rpc.0', type: 'instance', common: { enabled: true } },
+        },
+    ],
 };
 
 const WIDGET = {
@@ -40,6 +57,8 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+// The edit dialog folds every section; this test fills in settings, so open them all.
+await page.evaluate(() => window.__auraShot.unfoldSections());
 
 const dlg = page.locator('.aura-widget-edit-modal');
 const picker = page.locator('.aura-dp-picker');
@@ -81,7 +100,10 @@ await openConfig();
 await openPicker();
 check('the picker is open', await picker.isVisible());
 
-await picker.getByPlaceholder(/suchen/i).first().click(); // realistic: focus is in the search field
+await picker
+    .getByPlaceholder(/suchen/i)
+    .first()
+    .click(); // realistic: focus is in the search field
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
 check('Escape closes the picker', (await picker.count()) === 0);

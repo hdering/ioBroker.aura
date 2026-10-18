@@ -340,9 +340,50 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
         { key: 'showDate', label: 'Datum / Uhrzeit' },
         { key: 'showLocation', label: 'Ort' },
         { key: 'showMore', label: '+ weitere Termine' },
+        {
+            key: 'showWeek',
+            label: 'Kalenderwoche',
+            def: false,
+            hint: 'In Default und Agenda am ersten Termin der Woche, in Card und Compact am angezeigten Termin.',
+        },
+        {
+            key: 'showEndTime',
+            label: 'Endzeit',
+            def: false,
+            hint: 'Bis-Zeit bei Terminen mit Uhrzeit (Morgen, 09:00 - 10:30); ganz- und mehrtägige bleiben unverändert.',
+        },
+        {
+            key: 'calNameAlways',
+            label: 'Kalendername auch bei nur einem Kalender',
+            def: false,
+            hint: 'Default blendet ihn sonst aus; Agenda, Card und Compact zeigen ihn immer.',
+        },
     ],
     datepicker: [{ key: 'showCurrentValue', label: 'Gesetzter Wert' }],
     httpRequest: [{ key: 'showStatus', label: 'Letzter Status' }],
+    camera: [{ key: 'showTimestamp', label: 'Zeitstempel' }],
+    iframe: [
+        {
+            key: 'fullscreenButton',
+            label: 'Vollbild-Button',
+            def: false,
+            hint: 'Erscheint beim Darüberfahren mit der Maus',
+        },
+    ],
+    gauge: [
+        { key: 'showValue', label: 'Wert im Bogen' },
+        {
+            key: 'showValueBadge',
+            label: 'Wert als Badge',
+            def: false,
+            hint: 'Unter dem Bogen, in der Farbe der aktiven Zone',
+        },
+        { key: 'showMinMax', label: 'Min/Max' },
+    ],
+    fill: [
+        { key: 'showTicks', label: 'Skala' },
+        { key: 'showValue', label: 'Wert' },
+    ],
     adapterstatus: [
         { key: 'showFilter', label: 'Filter-Buttons', hint: 'Nutzer können den Filter umschalten' },
         { key: 'showSearch', label: 'Suchfeld', hint: 'Erscheint ab > 5 Instanzen' },
@@ -405,6 +446,16 @@ const SECTIONED_EDIT_TYPES = new Set<WidgetType>([
     'countdown',
     'trashSchedule',
     'aircontrol',
+    'switch',
+    'windowcontact',
+    'gauge',
+    'fill',
+    'camera',
+    'iframe',
+    'input',
+    'clock',
+    'calendar',
+    'weather',
     // Sections of their own already; visible fields follow in phase 6 of the plan.
     'statusoverview',
     'map',
@@ -682,637 +733,571 @@ function CalendarEditPanel({
 
     return (
         <>
-            {/* calendar list */}
-            <div className="space-y-1.5">
-                {sources.map((src) => (
+            <ConfigSection title="Kalender" sectionKey="sources">
+                {/* calendar list */}
+                <div className="space-y-1.5">
+                    {sources.map((src) => (
+                        <div
+                            key={src.id}
+                            className="rounded-lg p-2 space-y-1.5"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                        >
+                            <div className="flex items-center gap-1.5">
+                                <ColorPicker
+                                    value={src.color}
+                                    onChange={(v) => updateSource(src.id, { color: v })}
+                                    className="w-5 h-5 rounded cursor-pointer border-0 p-0 shrink-0"
+                                    title={t('wf.cal.changeColor')}
+                                />
+                                {(() => {
+                                    // Optional per-calendar icon; the placeholder keeps the
+                                    // row width steady while no icon is chosen.
+                                    const SrcIcon = src.icon
+                                        ? getWidgetIcon(src.icon, (() => null) as unknown as LucideIcon)
+                                        : null;
+                                    return (
+                                        <button
+                                            onClick={() => setCalIconPickerId(src.id)}
+                                            className="w-5 h-5 rounded flex items-center justify-center hover:opacity-70 shrink-0"
+                                            style={{
+                                                background: 'var(--app-surface)',
+                                                border: '1px solid var(--app-border)',
+                                                color: src.color,
+                                            }}
+                                            title={t('wf.cal.srcIcon')}
+                                        >
+                                            {SrcIcon ? <SrcIcon size={12} /> : <Shapes size={11} opacity={0.5} />}
+                                        </button>
+                                    );
+                                })()}
+                                <input
+                                    type="text"
+                                    value={src.name}
+                                    onChange={(e) => updateSource(src.id, { name: e.target.value })}
+                                    className="flex-1 text-xs rounded px-2 py-1 focus:outline-none min-w-0"
+                                    style={inputStyle}
+                                    placeholder={t('wf.cal.calName')}
+                                />
+                                <button
+                                    onClick={() => updateSource(src.id, { showName: !src.showName })}
+                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                    style={{ background: src.showName ? src.color : 'var(--app-border)' }}
+                                    title={t('wf.cal.showName')}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: src.showName ? '14px' : '2px' }}
+                                    />
+                                </button>
+                                <button
+                                    onClick={() => removeSource(src.id)}
+                                    className="hover:opacity-70 shrink-0"
+                                    style={{ color: 'var(--accent-red)' }}
+                                >
+                                    <Trash2 size={12} />
+                                </button>
+                            </div>
+                            <p className="text-[9px] font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
+                                {src.type === 'adapter'
+                                    ? `${src.datapoint}${src.calFilter ? ` · ${src.calFilter}` : ''}`
+                                    : src.url}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* add form */}
+                {adding ? (
                     <div
-                        key={src.id}
                         className="rounded-lg p-2 space-y-1.5"
                         style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                     >
-                        <div className="flex items-center gap-1.5">
-                            <ColorPicker
-                                value={src.color}
-                                onChange={(v) => updateSource(src.id, { color: v })}
-                                className="w-5 h-5 rounded cursor-pointer border-0 p-0 shrink-0"
-                                title={t('wf.cal.changeColor')}
-                            />
-                            {(() => {
-                                // Optional per-calendar icon; the placeholder keeps the
-                                // row width steady while no icon is chosen.
-                                const SrcIcon = src.icon
-                                    ? getWidgetIcon(src.icon, (() => null) as unknown as LucideIcon)
-                                    : null;
-                                return (
-                                    <button
-                                        onClick={() => setCalIconPickerId(src.id)}
-                                        className="w-5 h-5 rounded flex items-center justify-center hover:opacity-70 shrink-0"
-                                        style={{
-                                            background: 'var(--app-surface)',
-                                            border: '1px solid var(--app-border)',
-                                            color: src.color,
-                                        }}
-                                        title={t('wf.cal.srcIcon')}
-                                    >
-                                        {SrcIcon ? <SrcIcon size={12} /> : <Shapes size={11} opacity={0.5} />}
-                                    </button>
-                                );
-                            })()}
-                            <input
-                                type="text"
-                                value={src.name}
-                                onChange={(e) => updateSource(src.id, { name: e.target.value })}
-                                className="flex-1 text-xs rounded px-2 py-1 focus:outline-none min-w-0"
-                                style={inputStyle}
-                                placeholder={t('wf.cal.calName')}
-                            />
-                            <button
-                                onClick={() => updateSource(src.id, { showName: !src.showName })}
-                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                style={{ background: src.showName ? src.color : 'var(--app-border)' }}
-                                title={t('wf.cal.showName')}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: src.showName ? '14px' : '2px' }}
-                                />
-                            </button>
-                            <button
-                                onClick={() => removeSource(src.id)}
-                                className="hover:opacity-70 shrink-0"
-                                style={{ color: 'var(--accent-red)' }}
-                            >
-                                <Trash2 size={12} />
-                            </button>
-                        </div>
-                        <p className="text-[9px] font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {src.type === 'adapter'
-                                ? `${src.datapoint}${src.calFilter ? ` · ${src.calFilter}` : ''}`
-                                : src.url}
-                        </p>
-                    </div>
-                ))}
-            </div>
-
-            {/* add form */}
-            {adding ? (
-                <div
-                    className="rounded-lg p-2 space-y-1.5"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                >
-                    {/* source kind: own fetch of an iCal URL, or read a ical adapter table */}
-                    <div className="flex gap-1">
-                        {(['adapter', 'url'] as CalendarSourceType[]).map((k) => (
-                            <button
-                                key={k}
-                                onClick={() => setNewType(k)}
-                                className="flex-1 py-1 text-[10px] rounded-md hover:opacity-80"
-                                style={{
-                                    background: newType === k ? 'var(--accent)' : 'var(--app-surface)',
-                                    color: newType === k ? '#fff' : 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                {t(k === 'adapter' ? 'wf.cal.srcAdapter' : 'wf.cal.srcUrl')}
-                            </button>
-                        ))}
-                    </div>
-                    {newType === 'adapter' ? (
-                        <>
-                            {icalDps.length === 0 ? (
-                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t(icalDpsLoading ? 'wf.cal.icalLoading' : 'wf.cal.noIcalInstance')}
-                                </p>
-                            ) : (
-                                <select
-                                    value={newDp}
-                                    onChange={(e) => {
-                                        setNewDp(e.target.value);
-                                        setNewFilter('');
+                        {/* source kind: own fetch of an iCal URL, or read a ical adapter table */}
+                        <div className="flex gap-1">
+                            {(['adapter', 'url'] as CalendarSourceType[]).map((k) => (
+                                <button
+                                    key={k}
+                                    onClick={() => setNewType(k)}
+                                    className="flex-1 py-1 text-[10px] rounded-md hover:opacity-80"
+                                    style={{
+                                        background: newType === k ? 'var(--accent)' : 'var(--app-surface)',
+                                        color: newType === k ? '#fff' : 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
                                     }}
+                                >
+                                    {t(k === 'adapter' ? 'wf.cal.srcAdapter' : 'wf.cal.srcUrl')}
+                                </button>
+                            ))}
+                        </div>
+                        {newType === 'adapter' ? (
+                            <>
+                                {icalDps.length === 0 ? (
+                                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t(icalDpsLoading ? 'wf.cal.icalLoading' : 'wf.cal.noIcalInstance')}
+                                    </p>
+                                ) : (
+                                    <select
+                                        value={newDp}
+                                        onChange={(e) => {
+                                            setNewDp(e.target.value);
+                                            setNewFilter('');
+                                        }}
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    >
+                                        {icalDps.map((dp) => (
+                                            <option key={dp} value={dp}>
+                                                {dp}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+                                {/* one ical instance can serve several calendars */}
+                                <select
+                                    value={newFilter}
+                                    onChange={(e) => setNewFilter(e.target.value)}
                                     className={inputCls}
                                     style={inputStyle}
+                                    disabled={!newDp}
                                 >
-                                    {icalDps.map((dp) => (
-                                        <option key={dp} value={dp}>
-                                            {dp}
+                                    <option value="">{t('wf.cal.allCalendars')}</option>
+                                    {calNames.map((n) => (
+                                        <option key={n} value={n}>
+                                            {n}
                                         </option>
                                     ))}
                                 </select>
-                            )}
-                            {/* one ical instance can serve several calendars */}
-                            <select
-                                value={newFilter}
-                                onChange={(e) => setNewFilter(e.target.value)}
+                            </>
+                        ) : (
+                            <input
+                                type="url"
+                                value={newUrl}
+                                onChange={(e) => setNewUrl(e.target.value)}
+                                placeholder={t('wf.cal.calUrl')}
+                                autoFocus
+                                className={`${inputCls} font-mono`}
+                                style={inputStyle}
+                            />
+                        )}
+                        <div className="flex gap-1.5">
+                            <ColorPicker
+                                value={newColor}
+                                onChange={(v) => setNewColor(v)}
+                                className="w-8 h-8 rounded cursor-pointer border-0 p-0 shrink-0"
+                            />
+                            <input
+                                type="text"
+                                value={newName}
+                                onChange={(e) => setNewName(e.target.value)}
+                                placeholder={t(newType === 'adapter' ? 'wf.cal.calNameAuto' : 'wf.cal.calName')}
                                 className={inputCls}
                                 style={inputStyle}
-                                disabled={!newDp}
+                            />
+                        </div>
+                        <div className="flex gap-1.5">
+                            <button
+                                onClick={confirmAdd}
+                                disabled={!addTargetSet}
+                                className="flex-1 py-1.5 text-xs rounded-lg text-white hover:opacity-80 disabled:opacity-30"
+                                style={{ background: 'var(--accent)' }}
                             >
-                                <option value="">{t('wf.cal.allCalendars')}</option>
-                                {calNames.map((n) => (
-                                    <option key={n} value={n}>
-                                        {n}
-                                    </option>
-                                ))}
-                            </select>
-                        </>
-                    ) : (
+                                {t('wf.cal.add')}
+                            </button>
+                            <button
+                                onClick={resetAddForm}
+                                className="px-3 py-1.5 text-xs rounded-lg hover:opacity-80"
+                                style={{
+                                    background: 'var(--app-surface)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setAdding(true)}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 text-xs rounded-lg hover:opacity-80"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px dashed var(--app-border)',
+                        }}
+                    >
+                        <Plus size={12} /> {t('wf.cal.addCalendar')}
+                    </button>
+                )}
+            </ConfigSection>
+            <ConfigSection title="Termine" sectionKey="events">
+                {/* ── calendar settings ── */}
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.cal.refreshInterval')}
+                    </label>
+                    <select
+                        value={(o.refreshInterval as number) ?? 30}
+                        onChange={(e) => setOpts({ refreshInterval: Number(e.target.value) })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        {REFRESH_OPTIONS.map((r) => (
+                            <option key={r.value} value={r.value}>
+                                {r.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.cal.daysAhead')}
+                    </label>
+                    <input
+                        type="number"
+                        min={1}
+                        max={365}
+                        value={(o.daysAhead as number) ?? 14}
+                        onChange={(e) => setOpts({ daysAhead: Number(e.target.value) })}
+                        className={inputCls}
+                        style={inputStyle}
+                    />
+                </div>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.cal.maxEntries')}
+                    </label>
+                    <input
+                        type="number"
+                        min={1}
+                        max={100}
+                        value={(o.maxEvents as number) ?? 5}
+                        onChange={(e) => setOpts({ maxEvents: Number(e.target.value) })}
+                        className={inputCls}
+                        style={inputStyle}
+                    />
+                </div>
+                {/* ── Mehrtägige Termine ── */}
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Mehrtägige Termine
+                    </label>
+                    <div className="flex gap-1">
+                        {(
+                            [
+                                ['off', 'Aus'],
+                                ['span', 'Spanne'],
+                                ['badge', 'Badge'],
+                                ['both', 'Beides'],
+                            ] as const
+                        ).map(([val, lbl]) => {
+                            const active = ((o.multiDayDisplay as string) ?? 'both') === val;
+                            return (
+                                <button
+                                    key={val}
+                                    onClick={() => setOpts({ multiDayDisplay: val })}
+                                    className="flex-1 text-[11px] py-1 rounded transition-colors"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-primary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    {lbl}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Spanne = Start – Ende, Badge = {'„läuft“'} / {'„noch N T“'} bei laufenden Terminen.
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                            Jeden Tag einzeln
+                        </span>
+                        <button
+                            onClick={() => setOpts({ multiDaySplit: !o.multiDaySplit })}
+                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                            style={{ background: o.multiDaySplit ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                style={{ left: o.multiDaySplit ? '14px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Ein mehrtägiger Termin wird zu einem Eintrag je Tag. Das Badge zeigt dann {'„Tag 2/5“'} statt
+                        der Restlaufzeit; die Einträge zählen einzeln gegen {'„Max. Einträge“'}.
+                    </p>
+                </div>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                {/* agenda layout only: width of the calendar-name column */}
+                {config.layout === 'agenda' && (
+                    <div>
+                        <div className="flex items-center justify-between mb-1">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                {t('wf.cal.nameWidth')}
+                            </label>
+                            <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                                {((o.calNameWidth as number) || 0) === 0
+                                    ? t('wf.cal.nameWidthAuto')
+                                    : `${o.calNameWidth as number} %`}
+                            </span>
+                        </div>
                         <input
-                            type="url"
-                            value={newUrl}
-                            onChange={(e) => setNewUrl(e.target.value)}
-                            placeholder={t('wf.cal.calUrl')}
-                            autoFocus
-                            className={`${inputCls} font-mono`}
-                            style={inputStyle}
-                        />
-                    )}
-                    <div className="flex gap-1.5">
-                        <ColorPicker
-                            value={newColor}
-                            onChange={(v) => setNewColor(v)}
-                            className="w-8 h-8 rounded cursor-pointer border-0 p-0 shrink-0"
-                        />
-                        <input
-                            type="text"
-                            value={newName}
-                            onChange={(e) => setNewName(e.target.value)}
-                            placeholder={t(newType === 'adapter' ? 'wf.cal.calNameAuto' : 'wf.cal.calName')}
-                            className={inputCls}
-                            style={inputStyle}
+                            type="range"
+                            min={0}
+                            max={60}
+                            step={1}
+                            value={(o.calNameWidth as number) || 0}
+                            onChange={(e) => setOpts({ calNameWidth: Number(e.target.value) })}
+                            className="w-full h-1"
+                            style={{ accentColor: 'var(--accent)' }}
                         />
                     </div>
-                    <div className="flex gap-1.5">
-                        <button
-                            onClick={confirmAdd}
-                            disabled={!addTargetSet}
-                            className="flex-1 py-1.5 text-xs rounded-lg text-white hover:opacity-80 disabled:opacity-30"
-                            style={{ background: 'var(--accent)' }}
-                        >
-                            {t('wf.cal.add')}
-                        </button>
-                        <button
-                            onClick={resetAddForm}
-                            className="px-3 py-1.5 text-xs rounded-lg hover:opacity-80"
-                            style={{
-                                background: 'var(--app-surface)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            ✕
-                        </button>
+                )}
+                {/* -- Ausrichtung des Kalendernamens (#618) -- */}
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.cal.nameAlign')}
+                    </span>
+                    <div className="flex gap-1">
+                        {(['left', 'center', 'right'] as const).map((p) => {
+                            const lbls: Record<string, string> = {
+                                left: t('wf.edit.posLeft'),
+                                center: t('wf.edit.posCenter'),
+                                right: t('wf.edit.posRight'),
+                            };
+                            const active = ((o.calNameAlign as string) ?? 'left') === p;
+                            return (
+                                <button
+                                    key={p}
+                                    onClick={() => setOpts({ calNameAlign: p })}
+                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    {lbls[p]}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
-            ) : (
-                <button
-                    onClick={() => setAdding(true)}
-                    className="w-full flex items-center justify-center gap-1.5 py-2 text-xs rounded-lg hover:opacity-80"
-                    style={{
-                        background: 'var(--app-bg)',
-                        color: 'var(--text-secondary)',
-                        border: '1px dashed var(--app-border)',
-                    }}
-                >
-                    <Plus size={12} /> {t('wf.cal.addCalendar')}
-                </button>
-            )}
 
-            {/* separator */}
-            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
-            {/* ── calendar settings ── */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.cal.refreshInterval')}
-                </label>
-                <select
-                    value={(o.refreshInterval as number) ?? 30}
-                    onChange={(e) => setOpts({ refreshInterval: Number(e.target.value) })}
-                    className={inputCls}
-                    style={inputStyle}
-                >
-                    {REFRESH_OPTIONS.map((r) => (
-                        <option key={r.value} value={r.value}>
-                            {r.label}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.cal.daysAhead')}
-                </label>
-                <input
-                    type="number"
-                    min={1}
-                    max={365}
-                    value={(o.daysAhead as number) ?? 14}
-                    onChange={(e) => setOpts({ daysAhead: Number(e.target.value) })}
-                    className={inputCls}
-                    style={inputStyle}
-                />
-            </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.cal.maxEntries')}
-                </label>
-                <input
-                    type="number"
-                    min={1}
-                    max={100}
-                    value={(o.maxEvents as number) ?? 5}
-                    onChange={(e) => setOpts({ maxEvents: Number(e.target.value) })}
-                    className={inputCls}
-                    style={inputStyle}
-                />
-            </div>
-            {/* ── Kalenderwoche ── */}
-            <div>
-                <div className="flex items-center justify-between">
-                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                        Kalenderwoche anzeigen
-                    </span>
-                    <button
-                        onClick={() => setOpts({ showWeek: !o.showWeek })}
-                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                        style={{ background: o.showWeek ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                            style={{ left: o.showWeek ? '14px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    In Default und Agenda steht die KW jeweils am ersten Termin der Woche, in Card und Compact am
-                    angezeigten Termin.
-                </p>
-            </div>
-
-            {/* -- Endzeit -- */}
-            <div>
-                <div className="flex items-center justify-between">
-                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                        Endzeit anzeigen
-                    </span>
-                    <button
-                        onClick={() => setOpts({ showEndTime: !o.showEndTime })}
-                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                        style={{ background: o.showEndTime ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                            style={{ left: o.showEndTime ? '14px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Hängt bei Terminen mit Uhrzeit die bis-Zeit an das Datum an (Morgen, 09:00 - 10:30). Ganztägige und
-                    mehrtägige Termine bleiben unverändert.
-                </p>
-            </div>
-
-            {/* -- Kalendername bei nur einer Quelle -- */}
-            <div>
-                <div className="flex items-center justify-between">
-                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                        Kalendername immer anzeigen
-                    </span>
-                    <button
-                        onClick={() => setOpts({ calNameAlways: !o.calNameAlways })}
-                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                        style={{ background: o.calNameAlways ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                            style={{ left: o.calNameAlways ? '14px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Default blendet den Namen aus, solange es nur einen Kalender gibt. Agenda, Card und Compact zeigen
-                    ihn ohnehin immer.
-                </p>
-            </div>
-
-            {/* agenda layout only: width of the calendar-name column */}
-            {config.layout === 'agenda' && (
+                {/* -- Größe des Kalender-Icons (#618) -- */}
                 <div>
                     <div className="flex items-center justify-between mb-1">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.cal.nameWidth')}
+                            {t('wf.cal.iconSize')}
                         </label>
                         <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                            {((o.calNameWidth as number) || 0) === 0
-                                ? t('wf.cal.nameWidthAuto')
-                                : `${o.calNameWidth as number} %`}
+                            {((o.calIconSize as number) || 0) === 0
+                                ? t('wf.cal.iconSizeAuto')
+                                : `${o.calIconSize as number} px`}
                         </span>
                     </div>
                     <input
                         type="range"
                         min={0}
-                        max={60}
+                        max={48}
                         step={1}
-                        value={(o.calNameWidth as number) || 0}
-                        onChange={(e) => setOpts({ calNameWidth: Number(e.target.value) })}
+                        value={(o.calIconSize as number) || 0}
+                        onChange={(e) => setOpts({ calIconSize: Number(e.target.value) })}
                         className="w-full h-1"
                         style={{ accentColor: 'var(--accent)' }}
                     />
                 </div>
-            )}
-            {/* -- Ausrichtung des Kalendernamens (#618) -- */}
-            <div className="flex items-center justify-between gap-2">
-                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.cal.nameAlign')}
-                </span>
-                <div className="flex gap-1">
-                    {(['left', 'center', 'right'] as const).map((p) => {
-                        const lbls: Record<string, string> = {
-                            left: t('wf.edit.posLeft'),
-                            center: t('wf.edit.posCenter'),
-                            right: t('wf.edit.posRight'),
-                        };
-                        const active = ((o.calNameAlign as string) ?? 'left') === p;
-                        return (
-                            <button
-                                key={p}
-                                onClick={() => setOpts({ calNameAlign: p })}
-                                className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                style={{
-                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                {lbls[p]}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
 
-            {/* -- Größe des Kalender-Icons (#618) -- */}
-            <div>
-                <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.cal.iconSize')}
-                    </label>
-                    <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                        {((o.calIconSize as number) || 0) === 0
-                            ? t('wf.cal.iconSizeAuto')
-                            : `${o.calIconSize as number} px`}
-                    </span>
+                <div>
+                    <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Schriftgröße
+                        </label>
+                        <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                            {Math.round(((o.calFontScale as number) ?? 1) * 100)} %
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min={0.5}
+                        max={6}
+                        step={0.05}
+                        value={(o.calFontScale as number) ?? 1}
+                        onChange={(e) => setOpts({ calFontScale: Number(e.target.value) })}
+                        className="w-full h-1"
+                        style={{ accentColor: 'var(--accent)' }}
+                    />
                 </div>
-                <input
-                    type="range"
-                    min={0}
-                    max={48}
-                    step={1}
-                    value={(o.calIconSize as number) || 0}
-                    onChange={(e) => setOpts({ calIconSize: Number(e.target.value) })}
-                    className="w-full h-1"
-                    style={{ accentColor: 'var(--accent)' }}
-                />
-            </div>
-
-            <div>
-                <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Schriftgröße
-                    </label>
-                    <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                        {Math.round(((o.calFontScale as number) ?? 1) * 100)} %
-                    </span>
-                </div>
-                <input
-                    type="range"
-                    min={0.5}
-                    max={6}
-                    step={0.05}
-                    value={(o.calFontScale as number) ?? 1}
-                    onChange={(e) => setOpts({ calFontScale: Number(e.target.value) })}
-                    className="w-full h-1"
-                    style={{ accentColor: 'var(--accent)' }}
-                />
-            </div>
-
-            {/* ── Mehrtägige Termine ── */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    Mehrtägige Termine
-                </label>
-                <div className="flex gap-1">
-                    {(
-                        [
-                            ['off', 'Aus'],
-                            ['span', 'Spanne'],
-                            ['badge', 'Badge'],
-                            ['both', 'Beides'],
-                        ] as const
-                    ).map(([val, lbl]) => {
-                        const active = ((o.multiDayDisplay as string) ?? 'both') === val;
-                        return (
-                            <button
-                                key={val}
-                                onClick={() => setOpts({ multiDayDisplay: val })}
-                                className="flex-1 text-[11px] py-1 rounded transition-colors"
-                                style={{
-                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: active ? '#fff' : 'var(--text-primary)',
-                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                {lbl}
-                            </button>
-                        );
-                    })}
-                </div>
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Spanne = Start – Ende, Badge = {'„läuft“'} / {'„noch N T“'} bei laufenden Terminen.
-                </p>
-                <div className="flex items-center justify-between mt-2">
-                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                        Jeden Tag einzeln
-                    </span>
-                    <button
-                        onClick={() => setOpts({ multiDaySplit: !o.multiDaySplit })}
-                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                        style={{ background: o.multiDaySplit ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                            style={{ left: o.multiDaySplit ? '14px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Ein mehrtägiger Termin wird zu einem Eintrag je Tag. Das Badge zeigt dann {'„Tag 2/5“'} statt der
-                    Restlaufzeit; die Einträge zählen einzeln gegen {'„Max. Einträge“'}.
-                </p>
-            </div>
-
-            {/* separator */}
-            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
-            {/* ── Wichtige Termine ── */}
-            <div>
-                <div className="flex items-center justify-between mb-2">
-                    <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                        Wichtige Termine
-                    </p>
-                    <button
-                        onClick={() => setOpts({ highlightEnabled: !(o.highlightEnabled !== false) })}
-                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                        style={{ background: o.highlightEnabled !== false ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                            style={{ left: o.highlightEnabled !== false ? '14px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                {o.highlightEnabled !== false && (
-                    <div className="space-y-2">
-                        {/* PRIORITY toggle */}
-                        <div className="flex items-center justify-between">
-                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                iCal PRIORITY 1–4 (Outlook, Thunderbird)
-                            </span>
-                            <button
-                                onClick={() => setOpts({ highlightPriority: !(o.highlightPriority !== false) })}
-                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                style={{
-                                    background: o.highlightPriority !== false ? 'var(--accent)' : 'var(--app-border)',
-                                }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: o.highlightPriority !== false ? '14px' : '2px' }}
-                                />
-                            </button>
-                        </div>
-                        {/* Keywords */}
-                        <div>
-                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                Stichwörter im Titel / Kategorie (kommagetrennt)
-                            </label>
-                            <input
-                                type="text"
-                                value={(o.highlightKeywords as string) ?? ''}
-                                onChange={(e) => setOpts({ highlightKeywords: e.target.value || undefined })}
-                                placeholder="z.B. ⭐, wichtig, urgent"
-                                className={inputCls}
-                                style={inputStyle}
+            </ConfigSection>
+            <ConfigSection title="Wichtige Termine" sectionKey="important">
+                {/* ── Wichtige Termine ── */}
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                            Hervorheben
+                        </p>
+                        <button
+                            onClick={() => setOpts({ highlightEnabled: !(o.highlightEnabled !== false) })}
+                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                            style={{ background: o.highlightEnabled !== false ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                style={{ left: o.highlightEnabled !== false ? '14px' : '2px' }}
                             />
-                        </div>
-                        {/* Color */}
-                        <div className="flex items-center gap-2">
-                            <label className="text-[11px] flex-1" style={{ color: 'var(--text-secondary)' }}>
-                                Hervorhebungsfarbe
-                            </label>
-                            <ColorPicker
-                                value={(o.highlightColor as string) || '#f59e0b'}
-                                onChange={(v) => setOpts({ highlightColor: v })}
-                                className="w-8 h-6 rounded cursor-pointer p-0.5"
-                                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                            />
-                        </div>
-                        {/* importantOnly toggle */}
-                        <div className="flex items-center justify-between">
-                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                Nur wichtige Termine anzeigen
-                            </span>
-                            <button
-                                onClick={() => setOpts({ importantOnly: !o.importantOnly })}
-                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                style={{ background: o.importantOnly ? 'var(--accent)' : 'var(--app-border)' }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: o.importantOnly ? '14px' : '2px' }}
+                        </button>
+                    </div>
+                    {o.highlightEnabled !== false && (
+                        <div className="space-y-2">
+                            {/* PRIORITY toggle */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                    iCal PRIORITY 1–4 (Outlook, Thunderbird)
+                                </span>
+                                <button
+                                    onClick={() => setOpts({ highlightPriority: !(o.highlightPriority !== false) })}
+                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                    style={{
+                                        background:
+                                            o.highlightPriority !== false ? 'var(--accent)' : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: o.highlightPriority !== false ? '14px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            {/* Keywords */}
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    Stichwörter im Titel / Kategorie (kommagetrennt)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={(o.highlightKeywords as string) ?? ''}
+                                    onChange={(e) => setOpts({ highlightKeywords: e.target.value || undefined })}
+                                    placeholder="z.B. ⭐, wichtig, urgent"
+                                    className={inputCls}
+                                    style={inputStyle}
                                 />
-                            </button>
-                        </div>
-                        {/* hideImportantIcon toggle */}
-                        <div className="flex items-center justify-between">
-                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                Icon ausblenden
-                            </span>
-                            <button
-                                onClick={() => setOpts({ hideImportantIcon: !o.hideImportantIcon })}
-                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                style={{ background: o.hideImportantIcon ? 'var(--accent)' : 'var(--app-border)' }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: o.hideImportantIcon ? '14px' : '2px' }}
+                            </div>
+                            {/* Color */}
+                            <div className="flex items-center gap-2">
+                                <label className="text-[11px] flex-1" style={{ color: 'var(--text-secondary)' }}>
+                                    Hervorhebungsfarbe
+                                </label>
+                                <ColorPicker
+                                    value={(o.highlightColor as string) || '#f59e0b'}
+                                    onChange={(v) => setOpts({ highlightColor: v })}
+                                    className="w-8 h-6 rounded cursor-pointer p-0.5"
+                                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                                 />
-                            </button>
-                        </div>
-                        {/* importantIcon picker */}
-                        {!o.hideImportantIcon &&
-                            (() => {
-                                const currentIconName = o.importantIcon as string | undefined;
-                                const CurrentIcon = currentIconName
-                                    ? getWidgetIcon(currentIconName, (() => null) as unknown as LucideIcon)
-                                    : null;
-                                return (
-                                    <div>
-                                        <label
-                                            className="text-[11px] mb-1.5 block"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            Icon für wichtige Termine
-                                        </label>
-                                        <button
-                                            onClick={() => setImportantIconPickerOpen(true)}
-                                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                border: '1px solid var(--app-border)',
-                                                color: 'var(--text-primary)',
-                                            }}
-                                        >
-                                            {CurrentIcon ? (
-                                                <CurrentIcon size={14} style={{ flexShrink: 0 }} />
-                                            ) : (
-                                                <span
-                                                    style={{
-                                                        width: 14,
-                                                        height: 14,
-                                                        display: 'inline-block',
-                                                        flexShrink: 0,
-                                                    }}
-                                                />
-                                            )}
-                                            <span
-                                                className="flex-1 truncate"
+                            </div>
+                            {/* importantOnly toggle */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                    Nur wichtige Termine anzeigen
+                                </span>
+                                <button
+                                    onClick={() => setOpts({ importantOnly: !o.importantOnly })}
+                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                    style={{ background: o.importantOnly ? 'var(--accent)' : 'var(--app-border)' }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: o.importantOnly ? '14px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            {/* hideImportantIcon toggle */}
+                            <div className="flex items-center justify-between">
+                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                    Icon ausblenden
+                                </span>
+                                <button
+                                    onClick={() => setOpts({ hideImportantIcon: !o.hideImportantIcon })}
+                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                    style={{ background: o.hideImportantIcon ? 'var(--accent)' : 'var(--app-border)' }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: o.hideImportantIcon ? '14px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            {/* importantIcon picker */}
+                            {!o.hideImportantIcon &&
+                                (() => {
+                                    const currentIconName = o.importantIcon as string | undefined;
+                                    const CurrentIcon = currentIconName
+                                        ? getWidgetIcon(currentIconName, (() => null) as unknown as LucideIcon)
+                                        : null;
+                                    return (
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1.5 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Icon für wichtige Termine
+                                            </label>
+                                            <button
+                                                onClick={() => setImportantIconPickerOpen(true)}
+                                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
                                                 style={{
-                                                    color: currentIconName
-                                                        ? 'var(--text-primary)'
-                                                        : 'var(--text-secondary)',
+                                                    background: 'var(--app-bg)',
+                                                    border: '1px solid var(--app-border)',
+                                                    color: 'var(--text-primary)',
                                                 }}
                                             >
-                                                {currentIconName ?? 'Standard (Stern)'}
-                                            </span>
-                                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                                ›
-                                            </span>
-                                        </button>
-                                        {importantIconPickerOpen && (
-                                            <IconPickerModal
-                                                current={currentIconName ?? ''}
-                                                onSelect={(name) => setOpts({ importantIcon: name || undefined })}
-                                                onClose={() => setImportantIconPickerOpen(false)}
-                                            />
-                                        )}
-                                    </div>
-                                );
-                            })()}
-                    </div>
-                )}
-            </div>
+                                                {CurrentIcon ? (
+                                                    <CurrentIcon size={14} style={{ flexShrink: 0 }} />
+                                                ) : (
+                                                    <span
+                                                        style={{
+                                                            width: 14,
+                                                            height: 14,
+                                                            display: 'inline-block',
+                                                            flexShrink: 0,
+                                                        }}
+                                                    />
+                                                )}
+                                                <span
+                                                    className="flex-1 truncate"
+                                                    style={{
+                                                        color: currentIconName
+                                                            ? 'var(--text-primary)'
+                                                            : 'var(--text-secondary)',
+                                                    }}
+                                                >
+                                                    {currentIconName ?? 'Standard (Stern)'}
+                                                </span>
+                                                <span
+                                                    className="text-[10px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    ›
+                                                </span>
+                                            </button>
+                                            {importantIconPickerOpen && (
+                                                <IconPickerModal
+                                                    current={currentIconName ?? ''}
+                                                    onSelect={(name) => setOpts({ importantIcon: name || undefined })}
+                                                    onClose={() => setImportantIconPickerOpen(false)}
+                                                />
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+                        </div>
+                    )}
+                </div>
+            </ConfigSection>
 
             {calIconPickerId !== null && (
                 <IconPickerModal
@@ -2627,15 +2612,10 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
         }
     };
 
-    const showWeather = (o.showWeather as boolean) ?? true;
     const showForecast = (o.showForecast as boolean) ?? true;
     const showToday = (o.showToday as boolean) ?? true;
-    const showWarnings = (o.showWarnings as boolean) ?? false;
     const showRainProb = (o.showRainProb as boolean) ?? true;
     const showRainAmount = (o.showRainAmount as boolean) ?? false;
-    const showCloudCover = (o.showCloudCover as boolean) ?? false;
-    const showCondition = (o.showCondition as boolean) ?? true;
-    const showHumidityLabel = (o.showHumidityLabel as boolean) ?? true;
     const feelsLikeStyle = (o.feelsLikeStyle as 'text' | 'icon' | 'hidden') ?? 'text';
     const tempFontSize = (o.tempFontSize as number) ?? 0;
     const fontScale = (o.fontScale as number) ?? 1;
@@ -2649,115 +2629,15 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
     const adapterPath = (o.adapterLocationPath as string) ?? '';
     const segBtnBase = 'flex-1 text-[11px] py-1.5 rounded-md transition-colors';
 
-    return (
-        <>
-            {/* ── Data source ── */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.dataSource')}
-                </label>
-                <div
-                    className="flex gap-1 p-0.5 rounded-lg"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                >
-                    <button
-                        onClick={() => set({ dataSource: 'online' })}
-                        className={segBtnBase}
-                        style={{
-                            background: dataSource === 'online' ? 'var(--accent)' : 'transparent',
-                            color: dataSource === 'online' ? '#fff' : 'var(--text-secondary)',
-                        }}
-                    >
-                        {t('wf.weather.dsOnline')}
-                    </button>
-                    <button
-                        onClick={() => set({ dataSource: 'adapter' })}
-                        className={segBtnBase}
-                        style={{
-                            background: dataSource === 'adapter' ? 'var(--accent)' : 'transparent',
-                            color: dataSource === 'adapter' ? '#fff' : 'var(--text-secondary)',
-                        }}
-                    >
-                        {t('wf.weather.dsAdapter')}
-                    </button>
-                </div>
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                    {dataSource === 'adapter' ? t('wf.weather.dsAdapterHint') : t('wf.weather.dsOnlineHint')}
-                </p>
-            </div>
-
-            {/* ── Adapter location path (only when adapter mode) ── */}
-            {dataSource === 'adapter' && (
-                <div>
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.weather.adapterPath')}
-                    </label>
-                    <div className="flex gap-1.5">
-                        <input
-                            type="text"
-                            value={adapterPath}
-                            onChange={(e) => set({ adapterLocationPath: e.target.value || undefined })}
-                            placeholder="open-meteo-weather.0.Standort"
-                            className={`${iCls} flex-1 font-mono`}
-                            style={iSty}
-                        />
-                        <button
-                            onClick={onOpenAdapterPicker}
-                            className="text-xs px-2.5 rounded-lg shrink-0"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            …
-                        </button>
-                    </div>
-                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                        {t('wf.weather.adapterPathHint')}
-                    </p>
-                </div>
-            )}
-
-            <hr style={{ borderColor: 'var(--app-border)' }} />
-
-            {/* ── Display toggles ── */}
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.showWeather')}
-                </label>
-                <button
-                    onClick={() => set({ showWeather: !showWeather })}
-                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                    style={{ background: showWeather ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showWeather ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-            <div className="flex items-center justify-between">
-                <div>
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.weather.showWarnings')}
-                    </label>
-                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                        {t('wf.weather.warningsHint')}
-                    </p>
-                </div>
-                <button
-                    onClick={() => set({ showWarnings: !showWarnings })}
-                    className="relative w-9 h-5 rounded-full transition-colors shrink-0 ml-2"
-                    style={{ background: showWarnings ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showWarnings ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-            {showWarnings && (
+    // Sichtbare Felder first; the warnings scale and the forecast's own fields sit under their switch.
+    const visibleFields: VisibleField[] = [
+        { key: 'showWeather', label: t('wf.weather.showWeather') },
+        {
+            key: 'showWarnings',
+            label: t('wf.weather.showWarnings'),
+            hint: t('wf.weather.warningsHint'),
+            def: false,
+            children: (
                 <div>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('wf.weather.warningsScale')}
@@ -2776,499 +2656,507 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
                         {t('wf.weather.warningsScaleHint')}
                     </p>
                 </div>
-            )}
-
-            {/* ── Local temperature sensor ── */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.localTemp')}
-                </label>
-                <div className="flex gap-1.5">
-                    <input
-                        type="text"
-                        value={(o.localTempDatapoint as string) ?? ''}
-                        onChange={(e) => set({ localTempDatapoint: e.target.value || undefined })}
-                        placeholder={t('wf.weather.localTempPh')}
-                        className={`${iCls} flex-1 font-mono`}
-                        style={iSty}
-                    />
-                    <button
-                        onClick={onOpenPicker}
-                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                        title={t('wf.edit.fromIoBroker')}
-                    >
-                        <Database size={13} />
-                    </button>
-                </div>
-                {(o.localTempDatapoint as string) && (
-                    <button
-                        onClick={() => set({ localTempDatapoint: undefined })}
-                        className="text-[10px] mt-0.5 hover:opacity-70"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        ✕ entfernen
-                    </button>
-                )}
-            </div>
-
-            <hr style={{ borderColor: 'var(--app-border)' }} />
-
-            {/* ── Display & Typography ── */}
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.showCondition')}
-                </label>
-                <button
-                    onClick={() => set({ showCondition: !showCondition })}
-                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                    style={{ background: showCondition ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showCondition ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.showHumidityLabel')}
-                </label>
-                <button
-                    onClick={() => set({ showHumidityLabel: !showHumidityLabel })}
-                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                    style={{ background: showHumidityLabel ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showHumidityLabel ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.showCloudCover')}
-                </label>
-                <button
-                    onClick={() => set({ showCloudCover: !showCloudCover })}
-                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                    style={{ background: showCloudCover ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showCloudCover ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.feelsLikeStyle')}
-                </label>
-                <select
-                    value={feelsLikeStyle}
-                    onChange={(e) => set({ feelsLikeStyle: e.target.value })}
-                    className={iCls}
-                    style={iSty}
-                >
-                    <option value="text">{t('wf.weather.feelsLikeStyleText')}</option>
-                    <option value="icon">{t('wf.weather.feelsLikeStyleIcon')}</option>
-                    <option value="hidden">{t('wf.weather.feelsLikeStyleHidden')}</option>
-                </select>
-            </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.tempFontSize')}
-                </label>
-                <input
-                    type="number"
-                    min={0}
-                    max={12}
-                    step={0.1}
-                    value={tempFontSize}
-                    onChange={(e) => set({ tempFontSize: Number(e.target.value) || undefined })}
-                    placeholder="0 = auto"
-                    className={iCls}
-                    style={iSty}
-                />
-                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                    {t('wf.weather.tempFontSizeHint')}
-                </p>
-            </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.fontScale')}
-                </label>
-                <input
-                    type="number"
-                    min={0.3}
-                    max={8}
-                    step={0.05}
-                    value={fontScale}
-                    onChange={(e) => set({ fontScale: Number(e.target.value) || undefined })}
-                    className={iCls}
-                    style={iSty}
-                />
-                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                    {t('wf.weather.fontScaleHint')}
-                </p>
-            </div>
-
-            <hr style={{ borderColor: 'var(--app-border)' }} />
-
-            {/* ── Location ── */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.locationSearch')}
-                </label>
-                <div className="flex gap-1.5">
-                    <input
-                        type="text"
-                        value={addressInput}
-                        onChange={(e) => setAddressInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                geocodeAddress();
-                            }
-                        }}
-                        placeholder={t('wf.weather.cityPlaceholder')}
-                        className={`${iCls} flex-1`}
-                        style={iSty}
-                    />
-                    <button
-                        onClick={geocodeAddress}
-                        disabled={geocoding || !addressInput.trim()}
-                        className="text-xs px-2.5 rounded-lg shrink-0"
-                        style={{
-                            background: 'var(--accent)',
-                            color: '#fff',
-                            opacity: geocoding || !addressInput.trim() ? 0.5 : 1,
-                        }}
-                    >
-                        {geocoding ? t('wf.weather.searching') : t('wf.weather.search')}
-                    </button>
-                </div>
-                {geoError && (
-                    <p className="text-[10px] mt-1" style={{ color: '#ef4444' }}>
-                        {geoError}
-                    </p>
-                )}
-            </div>
-            <div className="flex gap-2">
-                <div className="flex-1">
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.weather.latitude')}
-                    </label>
-                    <input
-                        type="number"
-                        step={0.0001}
-                        value={(o.latitude as number) ?? 48.1}
-                        onChange={(e) => set({ latitude: Number(e.target.value) })}
-                        className={iCls}
-                        style={iSty}
-                    />
-                </div>
-                <div className="flex-1">
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        {t('wf.weather.longitude')}
-                    </label>
-                    <input
-                        type="number"
-                        step={0.0001}
-                        value={(o.longitude as number) ?? 11.6}
-                        onChange={(e) => set({ longitude: Number(e.target.value) })}
-                        className={iCls}
-                        style={iSty}
-                    />
-                </div>
-            </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.locationName')}
-                </label>
-                <input
-                    type="text"
-                    value={(o.locationName as string) ?? ''}
-                    onChange={(e) => set({ locationName: e.target.value || undefined })}
-                    placeholder={t('wf.weather.locationPh')}
-                    className={iCls}
-                    style={iSty}
-                />
-            </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.refreshMin')}
-                </label>
-                <input
-                    type="number"
-                    min={5}
-                    max={1440}
-                    value={(o.refreshMinutes as number) ?? 30}
-                    onChange={(e) => set({ refreshMinutes: Number(e.target.value) })}
-                    className={iCls}
-                    style={iSty}
-                />
-            </div>
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('wf.weather.showForecast')}
-                </label>
-                <button
-                    onClick={() => set({ showForecast: !showForecast })}
-                    className="relative w-9 h-5 rounded-full transition-colors"
-                    style={{ background: showForecast ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showForecast ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-            {showForecast && (
+            ),
+        },
+        { key: 'showCondition', label: t('wf.weather.showCondition') },
+        { key: 'showHumidityLabel', label: t('wf.weather.showHumidityLabel') },
+        { key: 'showCloudCover', label: t('wf.weather.showCloudCover'), def: false },
+        {
+            key: 'showForecast',
+            label: t('wf.weather.showForecast'),
+            children: (
                 <>
+                    <VisToggleRow
+                        visKey="showToday"
+                        label={t('wf.weather.showToday')}
+                        on={showToday}
+                        onChange={(v) => set({ showToday: v })}
+                    />
+                    <VisToggleRow
+                        visKey="showRainProb"
+                        label={t('wf.weather.showRainProb')}
+                        on={showRainProb}
+                        onChange={(v) => set({ showRainProb: v })}
+                    />
+                    <VisToggleRow
+                        visKey="showRainAmount"
+                        label={t('wf.weather.showRainAmount')}
+                        on={showRainAmount}
+                        onChange={(v) => set({ showRainAmount: v })}
+                    />
+                </>
+            ),
+        },
+    ];
+
+    return (
+        <>
+            <VisibleFieldsSection fields={visibleFields} values={o} onChange={set} />
+            <ConfigSection title="Datenquelle" sectionKey="source">
+                {/* ── Data source ── */}
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.dataSource')}
+                    </label>
+                    <div
+                        className="flex gap-1 p-0.5 rounded-lg"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    >
+                        <button
+                            onClick={() => set({ dataSource: 'online' })}
+                            className={segBtnBase}
+                            style={{
+                                background: dataSource === 'online' ? 'var(--accent)' : 'transparent',
+                                color: dataSource === 'online' ? '#fff' : 'var(--text-secondary)',
+                            }}
+                        >
+                            {t('wf.weather.dsOnline')}
+                        </button>
+                        <button
+                            onClick={() => set({ dataSource: 'adapter' })}
+                            className={segBtnBase}
+                            style={{
+                                background: dataSource === 'adapter' ? 'var(--accent)' : 'transparent',
+                                color: dataSource === 'adapter' ? '#fff' : 'var(--text-secondary)',
+                            }}
+                        >
+                            {t('wf.weather.dsAdapter')}
+                        </button>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        {dataSource === 'adapter' ? t('wf.weather.dsAdapterHint') : t('wf.weather.dsOnlineHint')}
+                    </p>
+                </div>
+
+                {/* ── Adapter location path (only when adapter mode) ── */}
+                {dataSource === 'adapter' && (
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.forecastDays')}
+                            {t('wf.weather.adapterPath')}
                         </label>
-                        <input
-                            type="number"
-                            min={1}
-                            max={7}
-                            value={(o.forecastDays as number) ?? 5}
-                            onChange={(e) => set({ forecastDays: Number(e.target.value) })}
-                            className={iCls}
-                            style={iSty}
-                        />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.showToday')}
-                        </label>
-                        <button
-                            onClick={() => set({ showToday: !showToday })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: showToday ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: showToday ? '18px' : '2px' }}
+                        <div className="flex gap-1.5">
+                            <input
+                                type="text"
+                                value={adapterPath}
+                                onChange={(e) => set({ adapterLocationPath: e.target.value || undefined })}
+                                placeholder="open-meteo-weather.0.Standort"
+                                className={`${iCls} flex-1 font-mono`}
+                                style={iSty}
                             />
-                        </button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.showRainProb')}
-                        </label>
-                        <button
-                            onClick={() => set({ showRainProb: !showRainProb })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: showRainProb ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: showRainProb ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.showRainAmount')}
-                        </label>
-                        <button
-                            onClick={() => set({ showRainAmount: !showRainAmount })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: showRainAmount ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: showRainAmount ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.forecastRowGap')}
-                        </label>
-                        <input
-                            type="number"
-                            min={0}
-                            max={8}
-                            step={0.05}
-                            value={forecastRowGap}
-                            onChange={(e) => set({ forecastRowGap: Number(e.target.value) || undefined })}
-                            placeholder="0 = auto"
-                            className={iCls}
-                            style={iSty}
-                        />
+                            <button
+                                onClick={onOpenAdapterPicker}
+                                className="text-xs px-2.5 rounded-lg shrink-0"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                …
+                            </button>
+                        </div>
                         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                            {t('wf.weather.forecastRowGapHint')}
+                            {t('wf.weather.adapterPathHint')}
                         </p>
                     </div>
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.forecastWrap')}
-                        </label>
+                )}
+                {/* ── Local temperature sensor ── */}
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.localTemp')}
+                    </label>
+                    <div className="flex gap-1.5">
+                        <input
+                            type="text"
+                            value={(o.localTempDatapoint as string) ?? ''}
+                            onChange={(e) => set({ localTempDatapoint: e.target.value || undefined })}
+                            placeholder={t('wf.weather.localTempPh')}
+                            className={`${iCls} flex-1 font-mono`}
+                            style={iSty}
+                        />
                         <button
-                            onClick={() => set({ forecastWrap: !forecastWrap })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: forecastWrap ? 'var(--accent)' : 'var(--app-border)' }}
+                            onClick={onOpenPicker}
+                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            title={t('wf.edit.fromIoBroker')}
                         >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                style={{ left: forecastWrap ? '18px' : '2px' }}
-                            />
+                            <Database size={13} />
                         </button>
                     </div>
-
-                    {/* ── Temperatur-Farbschwellen für Forecast-Balken ── */}
-                    <div style={{ borderTop: '1px solid var(--app-border)', marginTop: 4, paddingTop: 8 }}>
-                        <div className="flex items-center justify-between mb-1.5">
-                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('wf.weather.tempThresholds')}
-                            </label>
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() =>
-                                        setTempThresholds([
-                                            [15, '#fde047'],
-                                            [25, '#eab308'],
-                                            [35, '#ef4444'],
-                                        ])
-                                    }
-                                    className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-secondary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                >
-                                    {t('wf.weather.tempThresholdsPreset')}
-                                </button>
-                                <button
-                                    onClick={() => setTempThresholds([...tempThresholds, [25, '#eab308']])}
-                                    className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
-                                    style={{
-                                        background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-                                        color: 'var(--accent)',
-                                    }}
-                                >
-                                    + {t('wf.weather.tempThresholdsAdd')}
-                                </button>
-                            </div>
+                    {(o.localTempDatapoint as string) && (
+                        <button
+                            onClick={() => set({ localTempDatapoint: undefined })}
+                            className="text-[10px] mt-0.5 hover:opacity-70"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            ✕ entfernen
+                        </button>
+                    )}
+                </div>
+            </ConfigSection>
+            <ConfigSection title="Standort" sectionKey="location">
+                {/* ── Location ── */}
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.locationSearch')}
+                    </label>
+                    <div className="flex gap-1.5">
+                        <input
+                            type="text"
+                            value={addressInput}
+                            onChange={(e) => setAddressInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    geocodeAddress();
+                                }
+                            }}
+                            placeholder={t('wf.weather.cityPlaceholder')}
+                            className={`${iCls} flex-1`}
+                            style={iSty}
+                        />
+                        <button
+                            onClick={geocodeAddress}
+                            disabled={geocoding || !addressInput.trim()}
+                            className="text-xs px-2.5 rounded-lg shrink-0"
+                            style={{
+                                background: 'var(--accent)',
+                                color: '#fff',
+                                opacity: geocoding || !addressInput.trim() ? 0.5 : 1,
+                            }}
+                        >
+                            {geocoding ? t('wf.weather.searching') : t('wf.weather.search')}
+                        </button>
+                    </div>
+                    {geoError && (
+                        <p className="text-[10px] mt-1" style={{ color: '#ef4444' }}>
+                            {geoError}
+                        </p>
+                    )}
+                </div>
+                <div className="flex gap-2">
+                    <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('wf.weather.latitude')}
+                        </label>
+                        <input
+                            type="number"
+                            step={0.0001}
+                            value={(o.latitude as number) ?? 48.1}
+                            onChange={(e) => set({ latitude: Number(e.target.value) })}
+                            className={iCls}
+                            style={iSty}
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('wf.weather.longitude')}
+                        </label>
+                        <input
+                            type="number"
+                            step={0.0001}
+                            value={(o.longitude as number) ?? 11.6}
+                            onChange={(e) => set({ longitude: Number(e.target.value) })}
+                            className={iCls}
+                            style={iSty}
+                        />
+                    </div>
+                </div>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.locationName')}
+                    </label>
+                    <input
+                        type="text"
+                        value={(o.locationName as string) ?? ''}
+                        onChange={(e) => set({ locationName: e.target.value || undefined })}
+                        placeholder={t('wf.weather.locationPh')}
+                        className={iCls}
+                        style={iSty}
+                    />
+                </div>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.refreshMin')}
+                    </label>
+                    <input
+                        type="number"
+                        min={5}
+                        max={1440}
+                        value={(o.refreshMinutes as number) ?? 30}
+                        onChange={(e) => set({ refreshMinutes: Number(e.target.value) })}
+                        className={iCls}
+                        style={iSty}
+                    />
+                </div>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.feelsLikeStyle')}
+                    </label>
+                    <select
+                        value={feelsLikeStyle}
+                        onChange={(e) => set({ feelsLikeStyle: e.target.value })}
+                        className={iCls}
+                        style={iSty}
+                    >
+                        <option value="text">{t('wf.weather.feelsLikeStyleText')}</option>
+                        <option value="icon">{t('wf.weather.feelsLikeStyleIcon')}</option>
+                        <option value="hidden">{t('wf.weather.feelsLikeStyleHidden')}</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.tempFontSize')}
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        max={12}
+                        step={0.1}
+                        value={tempFontSize}
+                        onChange={(e) => set({ tempFontSize: Number(e.target.value) || undefined })}
+                        placeholder="0 = auto"
+                        className={iCls}
+                        style={iSty}
+                    />
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        {t('wf.weather.tempFontSizeHint')}
+                    </p>
+                </div>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.weather.fontScale')}
+                    </label>
+                    <input
+                        type="number"
+                        min={0.3}
+                        max={8}
+                        step={0.05}
+                        value={fontScale}
+                        onChange={(e) => set({ fontScale: Number(e.target.value) || undefined })}
+                        className={iCls}
+                        style={iSty}
+                    />
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        {t('wf.weather.fontScaleHint')}
+                    </p>
+                </div>
+                {/* ── Custom-layout temp-bar sizing (only relevant in custom layout) ── */}
+                {layout === 'custom' && (
+                    <>
+                        <div
+                            className="text-[10px] font-semibold uppercase tracking-wide"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                        >
+                            {t('wf.weather.customSection')}
                         </div>
-                        {tempThresholds.length > 0 && (
-                            <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                                {t('wf.weather.tempThresholdsHint')}
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {t('wf.weather.barFontSize')}
+                            </label>
+                            <input
+                                type="number"
+                                min={0.4}
+                                max={3}
+                                step={0.05}
+                                value={(o.customForecastBarFontSize as number) ?? 0.75}
+                                onChange={(e) =>
+                                    set({ customForecastBarFontSize: Number(e.target.value) || undefined })
+                                }
+                                className={iCls}
+                                style={iSty}
+                            />
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                {t('wf.weather.barFontSizeHint')}
                             </p>
-                        )}
-                        <div className="space-y-1">
-                            {tempThresholds.map(([thresh, color], i) => (
-                                <div key={i} className="flex items-center gap-1.5">
+                        </div>
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {t('wf.weather.barHeight')}
+                            </label>
+                            <input
+                                type="number"
+                                min={0.1}
+                                max={4}
+                                step={0.05}
+                                value={(o.customForecastBarHeight as number) ?? 0.9}
+                                onChange={(e) => set({ customForecastBarHeight: Number(e.target.value) || undefined })}
+                                className={iCls}
+                                style={iSty}
+                            />
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                {t('wf.weather.barHeightHint')}
+                            </p>
+                        </div>
+                    </>
+                )}
+            </ConfigSection>
+            {showForecast && (
+                <>
+                    <ConfigSection title="Vorhersage" sectionKey="forecast">
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {t('wf.weather.forecastDays')}
+                            </label>
+                            <input
+                                type="number"
+                                min={1}
+                                max={7}
+                                value={(o.forecastDays as number) ?? 5}
+                                onChange={(e) => set({ forecastDays: Number(e.target.value) })}
+                                className={iCls}
+                                style={iSty}
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {t('wf.weather.forecastRowGap')}
+                            </label>
+                            <input
+                                type="number"
+                                min={0}
+                                max={8}
+                                step={0.05}
+                                value={forecastRowGap}
+                                onChange={(e) => set({ forecastRowGap: Number(e.target.value) || undefined })}
+                                placeholder="0 = auto"
+                                className={iCls}
+                                style={iSty}
+                            />
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                {t('wf.weather.forecastRowGapHint')}
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                {t('wf.weather.forecastWrap')}
+                            </label>
+                            <button
+                                onClick={() => set({ forecastWrap: !forecastWrap })}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: forecastWrap ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: forecastWrap ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {/* ── Temperatur-Farbschwellen für Forecast-Balken ── */}
+                        <div style={{ borderTop: '1px solid var(--app-border)', marginTop: 4, paddingTop: 8 }}>
+                            <div className="flex items-center justify-between mb-1.5">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('wf.weather.tempThresholds')}
+                                </label>
+                                <div className="flex gap-1">
                                     <button
-                                        onClick={() => setTempThresholds(tempThresholds.filter((_, j) => j !== i))}
-                                        className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0"
+                                        onClick={() =>
+                                            setTempThresholds([
+                                                [15, '#fde047'],
+                                                [25, '#eab308'],
+                                                [35, '#ef4444'],
+                                            ])
+                                        }
+                                        className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
                                         style={{
-                                            color: 'var(--text-secondary)',
                                             background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
                                             border: '1px solid var(--app-border)',
                                         }}
                                     >
-                                        ×
+                                        {t('wf.weather.tempThresholdsPreset')}
                                     </button>
-                                    <ColorPicker
-                                        value={color}
-                                        fallback={'#fde047'}
-                                        onChange={(v) => {
-                                            const n = [...tempThresholds];
-                                            n[i] = [thresh, v];
-                                            setTempThresholds(n);
-                                        }}
-                                        className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                        style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                                    />
-                                    <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('wf.weather.tempThresholdsFrom')}
-                                    </span>
-                                    <input
-                                        type="number"
-                                        value={thresh}
-                                        onChange={(e) => {
-                                            const n = [...tempThresholds];
-                                            n[i] = [Number(e.target.value), color];
-                                            setTempThresholds(n);
-                                        }}
-                                        className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                    <button
+                                        onClick={() => setTempThresholds([...tempThresholds, [25, '#eab308']])}
+                                        className="text-[10px] px-2 py-0.5 rounded hover:opacity-80"
                                         style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
+                                            background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                            color: 'var(--accent)',
                                         }}
-                                    />
-                                    <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                        °C
-                                    </span>
+                                    >
+                                        + {t('wf.weather.tempThresholdsAdd')}
+                                    </button>
                                 </div>
-                            ))}
+                            </div>
+                            {tempThresholds.length > 0 && (
+                                <p
+                                    className="text-[10px] mb-1.5"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.65 }}
+                                >
+                                    {t('wf.weather.tempThresholdsHint')}
+                                </p>
+                            )}
+                            <div className="space-y-1">
+                                {tempThresholds.map(([thresh, color], i) => (
+                                    <div key={i} className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={() => setTempThresholds(tempThresholds.filter((_, j) => j !== i))}
+                                            className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0"
+                                            style={{
+                                                color: 'var(--text-secondary)',
+                                                background: 'var(--app-bg)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            ×
+                                        </button>
+                                        <ColorPicker
+                                            value={color}
+                                            fallback={'#fde047'}
+                                            onChange={(v) => {
+                                                const n = [...tempThresholds];
+                                                n[i] = [thresh, v];
+                                                setTempThresholds(n);
+                                            }}
+                                            className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                            style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                                        />
+                                        <span
+                                            className="text-[10px] shrink-0"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {t('wf.weather.tempThresholdsFrom')}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            value={thresh}
+                                            onChange={(e) => {
+                                                const n = [...tempThresholds];
+                                                n[i] = [Number(e.target.value), color];
+                                                setTempThresholds(n);
+                                            }}
+                                            className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        />
+                                        <span
+                                            className="text-[10px] shrink-0"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            °C
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                            {tempThresholds.length === 0 && (
+                                <p
+                                    className="text-[10px] italic"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.45 }}
+                                >
+                                    {t('wf.weather.tempThresholdsEmpty')}
+                                </p>
+                            )}
                         </div>
-                        {tempThresholds.length === 0 && (
-                            <p className="text-[10px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
-                                {t('wf.weather.tempThresholdsEmpty')}
-                            </p>
-                        )}
-                    </div>
-                </>
-            )}
-
-            {/* ── Custom-layout temp-bar sizing (only relevant in custom layout) ── */}
-            {layout === 'custom' && (
-                <>
-                    <hr style={{ borderColor: 'var(--app-border)' }} />
-                    <div
-                        className="text-[10px] font-semibold uppercase tracking-wide"
-                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                    >
-                        {t('wf.weather.customSection')}
-                    </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.barFontSize')}
-                        </label>
-                        <input
-                            type="number"
-                            min={0.4}
-                            max={3}
-                            step={0.05}
-                            value={(o.customForecastBarFontSize as number) ?? 0.75}
-                            onChange={(e) => set({ customForecastBarFontSize: Number(e.target.value) || undefined })}
-                            className={iCls}
-                            style={iSty}
-                        />
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                            {t('wf.weather.barFontSizeHint')}
-                        </p>
-                    </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('wf.weather.barHeight')}
-                        </label>
-                        <input
-                            type="number"
-                            min={0.1}
-                            max={4}
-                            step={0.05}
-                            value={(o.customForecastBarHeight as number) ?? 0.9}
-                            onChange={(e) => set({ customForecastBarHeight: Number(e.target.value) || undefined })}
-                            className={iCls}
-                            style={iSty}
-                        />
-                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                            {t('wf.weather.barHeightHint')}
-                        </p>
-                    </div>
+                    </ConfigSection>
                 </>
             )}
         </>
@@ -10890,6 +10778,28 @@ function WidgetFrameInner({
                                 );
                             }
                             if (config.type === 'stateimage') fields.push({ key: 'showIcon', label: 'Icon' });
+                            if (config.type === 'clock') {
+                                // Seconds only where a time is shown at all.
+                                fields.push({
+                                    key: 'showSeconds',
+                                    label: t('wf.clock.seconds'),
+                                    def: false,
+                                    hidden: ((o.display as string) ?? 'time') === 'date',
+                                });
+                                for (const key of ['showWeek', 'showCity', 'showSunrise', 'showSunset'] as const)
+                                    fields.push({
+                                        key,
+                                        label: t(`wf.clock.${key}` as Parameters<typeof t>[0]),
+                                        def: false,
+                                    });
+                            }
+                            if (config.type === 'input')
+                                // Only the "Nach Bestätigung" mode has a send button.
+                                fields.push({
+                                    key: 'showSubmit',
+                                    label: 'Senden-Button',
+                                    hidden: ((o.submitMode as string) ?? 'submit') !== 'submit',
+                                });
                             if (config.type === 'panels')
                                 fields.push(
                                     { key: 'showDots', label: t('panels.opt.showDots') },
@@ -11093,272 +11003,229 @@ function WidgetFrameInner({
                                     };
                                     return (
                                         <>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('wf.clock.sourceDp')}
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={config.datapoint ?? ''}
-                                                        onChange={(e) =>
-                                                            onConfigChange({ ...config, datapoint: e.target.value })
-                                                        }
-                                                        placeholder="z.B. evcc.0.status.full"
-                                                        className={`${inputCls} font-mono flex-1 min-w-0`}
-                                                        style={inputStyle}
-                                                    />
-                                                    <button
-                                                        onClick={() => setPickerTarget('datapoint')}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                        style={inputStyle}
-                                                        title={t('wf.edit.fromIoBroker')}
-                                                    >
-                                                        <Database size={13} />
-                                                    </button>
-                                                    <JsonPathButton
-                                                        value={config.datapoint ?? ''}
-                                                        onChange={(ref) =>
-                                                            onConfigChange({ ...config, datapoint: ref })
-                                                        }
-                                                    />
-                                                </div>
-                                                <p
-                                                    className="text-[10px] mt-1 leading-tight"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('wf.clock.sourceDpHint')}
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('wf.clock.display')}
-                                                </label>
-                                                <select
-                                                    value={display}
-                                                    onChange={(e) => set({ display: e.target.value })}
-                                                    className={inputCls}
-                                                    style={inputStyle}
-                                                >
-                                                    <option value="time">{t('wf.clock.timeOnly')}</option>
-                                                    <option value="datetime">{t('wf.clock.datetime')}</option>
-                                                    <option value="date">{t('wf.clock.dateOnly')}</option>
-                                                </select>
-                                            </div>
-                                            {display !== 'date' && (
-                                                <div className="flex items-center justify-between">
-                                                    <label
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {t('wf.clock.showSeconds')}
-                                                    </label>
-                                                    <button
-                                                        onClick={() => set({ showSeconds: !o.showSeconds })}
-                                                        className="relative w-9 h-5 rounded-full transition-colors"
-                                                        style={{
-                                                            background: o.showSeconds
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                        }}
-                                                    >
-                                                        <span
-                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                            style={{ left: o.showSeconds ? '18px' : '2px' }}
-                                                        />
-                                                    </button>
-                                                </div>
-                                            )}
-                                            {display !== 'time' && (
+                                            <ConfigSection title="Quelle" sectionKey="source">
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        {t('wf.clock.dateFormat')}
+                                                        {t('wf.clock.sourceDp')}
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        <input
+                                                            type="text"
+                                                            value={config.datapoint ?? ''}
+                                                            onChange={(e) =>
+                                                                onConfigChange({ ...config, datapoint: e.target.value })
+                                                            }
+                                                            placeholder="z.B. evcc.0.status.full"
+                                                            className={`${inputCls} font-mono flex-1 min-w-0`}
+                                                            style={inputStyle}
+                                                        />
+                                                        <button
+                                                            onClick={() => setPickerTarget('datapoint')}
+                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            style={inputStyle}
+                                                            title={t('wf.edit.fromIoBroker')}
+                                                        >
+                                                            <Database size={13} />
+                                                        </button>
+                                                        <JsonPathButton
+                                                            value={config.datapoint ?? ''}
+                                                            onChange={(ref) =>
+                                                                onConfigChange({ ...config, datapoint: ref })
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <p
+                                                        className="text-[10px] mt-1 leading-tight"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.clock.sourceDpHint')}
+                                                    </p>
+                                                </div>
+                                            </ConfigSection>
+                                            <ConfigSection title="Format" sectionKey="format">
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.clock.display')}
                                                     </label>
                                                     <select
-                                                        value={(o.dateLength as string) ?? 'short'}
-                                                        onChange={(e) => set({ dateLength: e.target.value })}
+                                                        value={display}
+                                                        onChange={(e) => set({ display: e.target.value })}
                                                         className={inputCls}
                                                         style={inputStyle}
                                                     >
-                                                        <option value="short">{t('wf.clock.short')}</option>
-                                                        <option value="long">{t('wf.clock.long')}</option>
+                                                        <option value="time">{t('wf.clock.timeOnly')}</option>
+                                                        <option value="datetime">{t('wf.clock.datetime')}</option>
+                                                        <option value="date">{t('wf.clock.dateOnly')}</option>
                                                     </select>
                                                 </div>
-                                            )}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('wf.clock.customFormat')}
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={(o.customFormat as string) ?? ''}
-                                                    onChange={(e) => set({ customFormat: e.target.value || undefined })}
-                                                    placeholder="z.B. dd.MM.yyyy HH:mm"
-                                                    className={`${inputCls} font-mono`}
-                                                    style={inputStyle}
-                                                />
-                                                <p
-                                                    className="text-[10px] mt-1 leading-tight"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Tokens: HH mm ss dd MM yyyy EE EEEE MMMM ww SR SS CT REL
-                                                </p>
-                                            </div>
-                                            {(o.customFormat as string)?.trim() ? (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {t('wf.clock.customFontSize')}
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={200}
-                                                        value={(o.customFontSize as number) ?? ''}
-                                                        onChange={(e) =>
-                                                            set({
-                                                                customFontSize:
-                                                                    e.target.value === ''
-                                                                        ? undefined
-                                                                        : Math.max(0, Number(e.target.value) || 0),
-                                                            })
-                                                        }
-                                                        placeholder={t('wf.clock.fontSizeAuto')}
-                                                        className={inputCls}
-                                                        style={inputStyle}
-                                                    />
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    {display !== 'date' && (
-                                                        <div>
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                {t('wf.clock.timeFontSize')}
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                max={200}
-                                                                value={(o.timeFontSize as number) ?? ''}
-                                                                onChange={(e) =>
-                                                                    set({
-                                                                        timeFontSize:
-                                                                            e.target.value === ''
-                                                                                ? undefined
-                                                                                : Math.max(
-                                                                                      0,
-                                                                                      Number(e.target.value) || 0,
-                                                                                  ),
-                                                                    })
-                                                                }
-                                                                placeholder={t('wf.clock.fontSizeAuto')}
-                                                                className={inputCls}
-                                                                style={inputStyle}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    {display !== 'time' && (
-                                                        <div>
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                {t('wf.clock.dateFontSize')}
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                min={0}
-                                                                max={200}
-                                                                value={(o.dateFontSize as number) ?? ''}
-                                                                onChange={(e) =>
-                                                                    set({
-                                                                        dateFontSize:
-                                                                            e.target.value === ''
-                                                                                ? undefined
-                                                                                : Math.max(
-                                                                                      0,
-                                                                                      Number(e.target.value) || 0,
-                                                                                  ),
-                                                                    })
-                                                                }
-                                                                placeholder={t('wf.clock.fontSizeAuto')}
-                                                                className={inputCls}
-                                                                style={inputStyle}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
-                                            {/* Extras: KW / City / Sunrise / Sunset toggles */}
-                                            {(['showWeek', 'showCity', 'showSunrise', 'showSunset'] as const).map(
-                                                (key) => (
-                                                    <div key={key} className="flex items-center justify-between">
+                                                {display !== 'time' && (
+                                                    <div>
                                                         <label
-                                                            className="text-[11px]"
+                                                            className="text-[11px] mb-1 block"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            {t(`wf.clock.${key}` as Parameters<typeof t>[0])}
+                                                            {t('wf.clock.dateFormat')}
                                                         </label>
-                                                        <button
-                                                            onClick={() => set({ [key]: !o[key] })}
-                                                            className="relative w-9 h-5 rounded-full transition-colors"
-                                                            style={{
-                                                                background: o[key]
-                                                                    ? 'var(--accent)'
-                                                                    : 'var(--app-border)',
-                                                            }}
+                                                        <select
+                                                            value={(o.dateLength as string) ?? 'short'}
+                                                            onChange={(e) => set({ dateLength: e.target.value })}
+                                                            className={inputCls}
+                                                            style={inputStyle}
                                                         >
-                                                            <span
-                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                                style={{ left: o[key] ? '18px' : '2px' }}
-                                                            />
-                                                        </button>
+                                                            <option value="short">{t('wf.clock.short')}</option>
+                                                            <option value="long">{t('wf.clock.long')}</option>
+                                                        </select>
                                                     </div>
-                                                ),
-                                            )}
-                                            {(o.showWeek || o.showCity || o.showSunrise || o.showSunset) && (
+                                                )}
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        {t('wf.clock.extrasFontSize')}
+                                                        {t('wf.clock.customFormat')}
                                                     </label>
                                                     <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={200}
-                                                        value={(o.extrasFontSize as number) ?? ''}
+                                                        type="text"
+                                                        value={(o.customFormat as string) ?? ''}
                                                         onChange={(e) =>
-                                                            set({
-                                                                extrasFontSize:
-                                                                    e.target.value === ''
-                                                                        ? undefined
-                                                                        : Math.max(0, Number(e.target.value) || 0),
-                                                            })
+                                                            set({ customFormat: e.target.value || undefined })
                                                         }
-                                                        placeholder={t('wf.clock.fontSizeAuto')}
-                                                        className={inputCls}
+                                                        placeholder="z.B. dd.MM.yyyy HH:mm"
+                                                        className={`${inputCls} font-mono`}
                                                         style={inputStyle}
                                                     />
+                                                    <p
+                                                        className="text-[10px] mt-1 leading-tight"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Tokens: HH mm ss dd MM yyyy EE EEEE MMMM ww SR SS CT REL
+                                                    </p>
                                                 </div>
+                                                {(o.customFormat as string)?.trim() ? (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('wf.clock.customFontSize')}
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            max={200}
+                                                            value={(o.customFontSize as number) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({
+                                                                    customFontSize:
+                                                                        e.target.value === ''
+                                                                            ? undefined
+                                                                            : Math.max(0, Number(e.target.value) || 0),
+                                                                })
+                                                            }
+                                                            placeholder={t('wf.clock.fontSizeAuto')}
+                                                            className={inputCls}
+                                                            style={inputStyle}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {display !== 'date' && (
+                                                            <div>
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {t('wf.clock.timeFontSize')}
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    max={200}
+                                                                    value={(o.timeFontSize as number) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        set({
+                                                                            timeFontSize:
+                                                                                e.target.value === ''
+                                                                                    ? undefined
+                                                                                    : Math.max(
+                                                                                          0,
+                                                                                          Number(e.target.value) || 0,
+                                                                                      ),
+                                                                        })
+                                                                    }
+                                                                    placeholder={t('wf.clock.fontSizeAuto')}
+                                                                    className={inputCls}
+                                                                    style={inputStyle}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                        {display !== 'time' && (
+                                                            <div>
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {t('wf.clock.dateFontSize')}
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    max={200}
+                                                                    value={(o.dateFontSize as number) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        set({
+                                                                            dateFontSize:
+                                                                                e.target.value === ''
+                                                                                    ? undefined
+                                                                                    : Math.max(
+                                                                                          0,
+                                                                                          Number(e.target.value) || 0,
+                                                                                      ),
+                                                                        })
+                                                                    }
+                                                                    placeholder={t('wf.clock.fontSizeAuto')}
+                                                                    className={inputCls}
+                                                                    style={inputStyle}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </ConfigSection>
+                                            {(o.showWeek || o.showCity || o.showSunrise || o.showSunset) && (
+                                                <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('wf.clock.extrasFontSize')}
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            max={200}
+                                                            value={(o.extrasFontSize as number) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({
+                                                                    extrasFontSize:
+                                                                        e.target.value === ''
+                                                                            ? undefined
+                                                                            : Math.max(0, Number(e.target.value) || 0),
+                                                                })
+                                                            }
+                                                            placeholder={t('wf.clock.fontSizeAuto')}
+                                                            className={inputCls}
+                                                            style={inputStyle}
+                                                        />
+                                                    </div>
+                                                </ConfigSection>
                                             )}
                                         </>
                                     );
@@ -11372,62 +11239,65 @@ function WidgetFrameInner({
                                 !SECTIONED_EDIT_TYPES.has(config.type) &&
                                 renderMainDpField()}
                             {config.type === 'switch' && (
-                                <div>
-                                    <label
-                                        className="text-[11px] mb-1 block"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        An/Aus-Werte (optional)
-                                    </label>
-                                    <div className="flex gap-1">
-                                        <input
-                                            type="text"
-                                            value={(config.options?.onValue as string) ?? ''}
-                                            onChange={(e) =>
-                                                onConfigChange({
-                                                    ...config,
-                                                    options: {
-                                                        ...config.options,
-                                                        onValue: e.target.value || undefined,
-                                                    },
-                                                })
-                                            }
-                                            placeholder="AN: true"
-                                            className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-primary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                        />
-                                        <input
-                                            type="text"
-                                            value={(config.options?.offValue as string) ?? ''}
-                                            onChange={(e) =>
-                                                onConfigChange({
-                                                    ...config,
-                                                    options: {
-                                                        ...config.options,
-                                                        offValue: e.target.value || undefined,
-                                                    },
-                                                })
-                                            }
-                                            placeholder="AUS: false"
-                                            className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-primary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                        />
+                                <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                                    {renderMainDpField()}
+                                    <div>
+                                        <label
+                                            className="text-[11px] mb-1 block"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            An/Aus-Werte (optional)
+                                        </label>
+                                        <div className="flex gap-1">
+                                            <input
+                                                type="text"
+                                                value={(config.options?.onValue as string) ?? ''}
+                                                onChange={(e) =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: {
+                                                            ...config.options,
+                                                            onValue: e.target.value || undefined,
+                                                        },
+                                                    })
+                                                }
+                                                placeholder="AN: true"
+                                                className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                style={{
+                                                    background: 'var(--app-bg)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--app-border)',
+                                                }}
+                                            />
+                                            <input
+                                                type="text"
+                                                value={(config.options?.offValue as string) ?? ''}
+                                                onChange={(e) =>
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: {
+                                                            ...config.options,
+                                                            offValue: e.target.value || undefined,
+                                                        },
+                                                    })
+                                                }
+                                                placeholder="AUS: false"
+                                                className="flex-1 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                style={{
+                                                    background: 'var(--app-bg)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--app-border)',
+                                                }}
+                                            />
+                                        </div>
+                                        <p
+                                            className="text-[10px] mt-1"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            Schreibwerte (z.B. 0/100, 0/255, true/false, an/aus). Leer = true/false.
+                                        </p>
                                     </div>
-                                    <p
-                                        className="text-[10px] mt-1"
-                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                    >
-                                        Schreibwerte (z.B. 0/100, 0/255, true/false, an/aus). Leer = true/false.
-                                    </p>
-                                </div>
+                                </ConfigSection>
                             )}
                             {config.type === 'switch' &&
                                 (() => {
@@ -11443,113 +11313,122 @@ function WidgetFrameInner({
                                     };
                                     return (
                                         <>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Status-Datenpunkt (optional)
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={(o.statusDp as string) ?? ''}
-                                                        onChange={(e) => set({ statusDp: e.target.value || undefined })}
-                                                        placeholder="z.B. mqtt.1.plug1.stat.POWER"
-                                                        className={`flex-1 min-w-0 ${fieldCls}`}
-                                                        style={fieldSty}
-                                                    />
-                                                    <button
-                                                        onClick={() => setSwitchStatusDpPicker(true)}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
+                                            <ConfigSection title="Auswertung" sectionKey="evaluation">
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        <Database size={13} />
-                                                    </button>
-                                                </div>
-                                                <p
-                                                    className="text-[10px] mt-1"
-                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                >
-                                                    Separater Status-DP für Geräte, die Schalten und Rückmeldung trennen
-                                                    (z.B. Tasmota: cmnd.POWER schaltet, stat.POWER meldet ON/OFF).
-                                                    Zustand und Farben kommen dann von hier – geschrieben wird weiter
-                                                    auf den Hauptdatenpunkt. Leer = Hauptdatenpunkt.
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] font-medium mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Auswertung
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    {(
-                                                        [
-                                                            ['boolean', 'Automatisch'],
-                                                            ['condition', 'Bedingung'],
-                                                        ] as const
-                                                    ).map(([mode, lbl]) => (
-                                                        <button
-                                                            key={mode}
-                                                            onClick={() => set({ stateMode: mode })}
-                                                            className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
-                                                            style={{
-                                                                background:
-                                                                    sMode === mode ? 'var(--accent)' : 'var(--app-bg)',
-                                                                color:
-                                                                    sMode === mode ? '#fff' : 'var(--text-secondary)',
-                                                                border: `1px solid ${sMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                            }}
-                                                        >
-                                                            {lbl}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                                {sMode === 'condition' ? (
-                                                    <div className="flex gap-1 items-center mt-1.5">
-                                                        <span
-                                                            className="text-[11px] shrink-0"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            An wenn
-                                                        </span>
-                                                        <select
-                                                            value={(o.stateOperator as string) ?? '>'}
-                                                            onChange={(e) => set({ stateOperator: e.target.value })}
-                                                            className={`shrink-0 ${fieldCls}`}
-                                                            style={fieldSty}
-                                                        >
-                                                            {['==', '!=', '>', '>=', '<', '<='].map((op) => (
-                                                                <option key={op} value={op}>
-                                                                    {op}
-                                                                </option>
-                                                            ))}
-                                                        </select>
+                                                        Status-Datenpunkt (optional)
+                                                    </label>
+                                                    <div className="flex gap-1">
                                                         <input
                                                             type="text"
-                                                            value={(o.stateValue as string) ?? ''}
-                                                            onChange={(e) => set({ stateValue: e.target.value })}
-                                                            placeholder="ON"
+                                                            value={(o.statusDp as string) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({ statusDp: e.target.value || undefined })
+                                                            }
+                                                            placeholder="z.B. mqtt.1.plug1.stat.POWER"
                                                             className={`flex-1 min-w-0 ${fieldCls}`}
                                                             style={fieldSty}
                                                         />
+                                                        <button
+                                                            onClick={() => setSwitchStatusDpPicker(true)}
+                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <Database size={13} />
+                                                        </button>
                                                     </div>
-                                                ) : (
                                                     <p
                                                         className="text-[10px] mt-1"
                                                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                     >
-                                                        An bei true, Zahlen ungleich 0 und Texten wie ON; aus bei false,
-                                                        0, off und leer. Andere Werte über Bedingung vergleichen.
+                                                        Separater Status-DP für Geräte, die Schalten und Rückmeldung
+                                                        trennen (z.B. Tasmota: cmnd.POWER schaltet, stat.POWER meldet
+                                                        ON/OFF). Zustand und Farben kommen dann von hier – geschrieben
+                                                        wird weiter auf den Hauptdatenpunkt. Leer = Hauptdatenpunkt.
                                                     </p>
-                                                )}
-                                            </div>
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] font-medium mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Auswertung
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {(
+                                                            [
+                                                                ['boolean', 'Automatisch'],
+                                                                ['condition', 'Bedingung'],
+                                                            ] as const
+                                                        ).map(([mode, lbl]) => (
+                                                            <button
+                                                                key={mode}
+                                                                onClick={() => set({ stateMode: mode })}
+                                                                className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                                                style={{
+                                                                    background:
+                                                                        sMode === mode
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                    color:
+                                                                        sMode === mode
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                    border: `1px solid ${sMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                }}
+                                                            >
+                                                                {lbl}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    {sMode === 'condition' ? (
+                                                        <div className="flex gap-1 items-center mt-1.5">
+                                                            <span
+                                                                className="text-[11px] shrink-0"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                An wenn
+                                                            </span>
+                                                            <select
+                                                                value={(o.stateOperator as string) ?? '>'}
+                                                                onChange={(e) => set({ stateOperator: e.target.value })}
+                                                                className={`shrink-0 ${fieldCls}`}
+                                                                style={fieldSty}
+                                                            >
+                                                                {['==', '!=', '>', '>=', '<', '<='].map((op) => (
+                                                                    <option key={op} value={op}>
+                                                                        {op}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <input
+                                                                type="text"
+                                                                value={(o.stateValue as string) ?? ''}
+                                                                onChange={(e) => set({ stateValue: e.target.value })}
+                                                                placeholder="ON"
+                                                                className={`flex-1 min-w-0 ${fieldCls}`}
+                                                                style={fieldSty}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <p
+                                                            className="text-[10px] mt-1"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        >
+                                                            An bei true, Zahlen ungleich 0 und Texten wie ON; aus bei
+                                                            false, 0, off und leer. Andere Werte über Bedingung
+                                                            vergleichen.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </ConfigSection>
                                         </>
                                     );
                                 })()}
@@ -11699,398 +11578,407 @@ function WidgetFrameInner({
                                         : null;
                                     return (
                                         <>
-                                            <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                                            <div>
-                                                <label
-                                                    className="text-[11px] font-medium mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Bedienelement
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    {(
-                                                        [
-                                                            ['toggle', 'Schiebeschalter'],
-                                                            ['checkbox', 'Checkbox'],
-                                                            ['icon', 'Icon'],
-                                                            ['image', 'Bild'],
-                                                        ] as const
-                                                    ).map(([val, lbl]) => (
-                                                        <button
-                                                            key={val}
-                                                            onClick={() => set({ controlMode: val })}
-                                                            className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
-                                                            style={{
-                                                                background:
-                                                                    controlMode === val
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-bg)',
-                                                                color:
-                                                                    controlMode === val
-                                                                        ? '#fff'
-                                                                        : 'var(--text-secondary)',
-                                                                border: `1px solid ${controlMode === val ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                            }}
-                                                        >
-                                                            {lbl}
-                                                        </button>
-                                                    ))}
+                                            <ConfigSection title="Bedienelement" sectionKey="control">
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] font-medium mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Bedienelement
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {(
+                                                            [
+                                                                ['toggle', 'Schiebeschalter'],
+                                                                ['checkbox', 'Checkbox'],
+                                                                ['icon', 'Icon'],
+                                                                ['image', 'Bild'],
+                                                            ] as const
+                                                        ).map(([val, lbl]) => (
+                                                            <button
+                                                                key={val}
+                                                                onClick={() => set({ controlMode: val })}
+                                                                className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                                                style={{
+                                                                    background:
+                                                                        controlMode === val
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                    color:
+                                                                        controlMode === val
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                    border: `1px solid ${controlMode === val ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                }}
+                                                            >
+                                                                {lbl}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {controlMode === 'icon' && (
-                                                <>
-                                                    {(['on', 'off'] as const).map((state) => {
-                                                        const isOnState = state === 'on';
-                                                        const stateLabel = isOnState ? 'AN' : 'AUS';
-                                                        const iconName = isOnState ? onIconName : offIconName;
-                                                        const color = isOnState ? onColor : offColor;
-                                                        const Preview = isOnState ? OnPreview : OffPreview;
-                                                        const pickerOpen = isOnState
-                                                            ? iconPickerTrueOpen
-                                                            : iconPickerFalseOpen;
-                                                        const setOpen = isOnState
-                                                            ? setIconPickerTrueOpen
-                                                            : setIconPickerFalseOpen;
-                                                        const optIconKey = isOnState ? 'onIcon' : 'offIcon';
-                                                        const optColorKey = isOnState ? 'onColor' : 'offColor';
-                                                        return (
-                                                            <div key={state} className="space-y-1.5">
-                                                                <p
-                                                                    className="text-[11px] font-semibold"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Icon {stateLabel}
-                                                                </p>
-                                                                <div className="flex gap-1 items-start">
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <button
-                                                                            onClick={() => setOpen(true)}
-                                                                            className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                                                {controlMode === 'icon' && (
+                                                    <>
+                                                        {(['on', 'off'] as const).map((state) => {
+                                                            const isOnState = state === 'on';
+                                                            const stateLabel = isOnState ? 'AN' : 'AUS';
+                                                            const iconName = isOnState ? onIconName : offIconName;
+                                                            const color = isOnState ? onColor : offColor;
+                                                            const Preview = isOnState ? OnPreview : OffPreview;
+                                                            const pickerOpen = isOnState
+                                                                ? iconPickerTrueOpen
+                                                                : iconPickerFalseOpen;
+                                                            const setOpen = isOnState
+                                                                ? setIconPickerTrueOpen
+                                                                : setIconPickerFalseOpen;
+                                                            const optIconKey = isOnState ? 'onIcon' : 'offIcon';
+                                                            const optColorKey = isOnState ? 'onColor' : 'offColor';
+                                                            return (
+                                                                <div key={state} className="space-y-1.5">
+                                                                    <p
+                                                                        className="text-[11px] font-semibold"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Icon {stateLabel}
+                                                                    </p>
+                                                                    <div className="flex gap-1 items-start">
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <button
+                                                                                onClick={() => setOpen(true)}
+                                                                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                                                                                style={{
+                                                                                    background: 'var(--app-bg)',
+                                                                                    border: '1px solid var(--app-border)',
+                                                                                    color: 'var(--text-primary)',
+                                                                                }}
+                                                                            >
+                                                                                {Preview ? (
+                                                                                    <Preview
+                                                                                        size={14}
+                                                                                        style={{ flexShrink: 0, color }}
+                                                                                    />
+                                                                                ) : (
+                                                                                    <span
+                                                                                        style={{
+                                                                                            width: 14,
+                                                                                            height: 14,
+                                                                                            display: 'inline-block',
+                                                                                            flexShrink: 0,
+                                                                                        }}
+                                                                                    />
+                                                                                )}
+                                                                                <span
+                                                                                    className="flex-1 truncate text-[11px]"
+                                                                                    style={{
+                                                                                        color: iconName
+                                                                                            ? 'var(--text-primary)'
+                                                                                            : 'var(--text-secondary)',
+                                                                                    }}
+                                                                                >
+                                                                                    {iconName ?? 'Icon wählen…'}
+                                                                                </span>
+                                                                            </button>
+                                                                            {pickerOpen && (
+                                                                                <IconPickerModal
+                                                                                    current={iconName ?? ''}
+                                                                                    onSelect={(name) => {
+                                                                                        set({
+                                                                                            [optIconKey]:
+                                                                                                name || undefined,
+                                                                                        });
+                                                                                        setOpen(false);
+                                                                                    }}
+                                                                                    onClose={() => setOpen(false)}
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                        <ColorPicker
+                                                                            value={color}
+                                                                            onChange={(v) => set({ [optColorKey]: v })}
+                                                                            title={`Farbe ${stateLabel}`}
+                                                                            className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
                                                                             style={{
                                                                                 background: 'var(--app-bg)',
                                                                                 border: '1px solid var(--app-border)',
-                                                                                color: 'var(--text-primary)',
                                                                             }}
-                                                                        >
-                                                                            {Preview ? (
-                                                                                <Preview
-                                                                                    size={14}
-                                                                                    style={{ flexShrink: 0, color }}
-                                                                                />
-                                                                            ) : (
-                                                                                <span
-                                                                                    style={{
-                                                                                        width: 14,
-                                                                                        height: 14,
-                                                                                        display: 'inline-block',
-                                                                                        flexShrink: 0,
-                                                                                    }}
-                                                                                />
-                                                                            )}
-                                                                            <span
-                                                                                className="flex-1 truncate text-[11px]"
-                                                                                style={{
-                                                                                    color: iconName
-                                                                                        ? 'var(--text-primary)'
-                                                                                        : 'var(--text-secondary)',
-                                                                                }}
-                                                                            >
-                                                                                {iconName ?? 'Icon wählen…'}
-                                                                            </span>
-                                                                        </button>
-                                                                        {pickerOpen && (
-                                                                            <IconPickerModal
-                                                                                current={iconName ?? ''}
-                                                                                onSelect={(name) => {
-                                                                                    set({
-                                                                                        [optIconKey]: name || undefined,
-                                                                                    });
-                                                                                    setOpen(false);
-                                                                                }}
-                                                                                onClose={() => setOpen(false)}
-                                                                            />
-                                                                        )}
+                                                                        />
                                                                     </div>
-                                                                    <ColorPicker
-                                                                        value={color}
-                                                                        onChange={(v) => set({ [optColorKey]: v })}
-                                                                        title={`Farbe ${stateLabel}`}
-                                                                        className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        <div>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label
+                                                                    className="text-[11px]"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Icon-Größe
+                                                                </label>
+                                                                <span
+                                                                    className="text-[11px] tabular-nums"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {ctrlIconSize} px
+                                                                </span>
+                                                            </div>
+                                                            <input
+                                                                type="range"
+                                                                min={16}
+                                                                max={192}
+                                                                step={2}
+                                                                value={ctrlIconSize}
+                                                                onChange={(e) =>
+                                                                    set({ controlIconSize: Number(e.target.value) })
+                                                                }
+                                                                className="w-full h-1"
+                                                                style={{ accentColor: 'var(--accent)' }}
+                                                            />
+                                                        </div>
+                                                    </>
+                                                )}
+                                                {controlMode === 'checkbox' && (
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Farbe AN
+                                                        </label>
+                                                        <ColorPicker
+                                                            value={onColor}
+                                                            onChange={(v) => set({ onColor: v })}
+                                                            title="Farbe AN"
+                                                            className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {controlMode === 'image' && (
+                                                    <>
+                                                        {(['on', 'off'] as const).map((state) => {
+                                                            const isOnState = state === 'on';
+                                                            const stateLabel = isOnState ? 'AN' : 'AUS';
+                                                            const optKey = isOnState ? 'onImage' : 'offImage';
+                                                            const img = (o[optKey] as string | undefined) ?? '';
+                                                            return (
+                                                                <div key={state} className="space-y-1.5">
+                                                                    <p
+                                                                        className="text-[11px] font-semibold"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Bild {stateLabel}
+                                                                    </p>
+                                                                    <input
+                                                                        type="file"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => {
+                                                                            const file = e.target.files?.[0];
+                                                                            if (!file) return;
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = () =>
+                                                                                set({
+                                                                                    [optKey]: reader.result as string,
+                                                                                });
+                                                                            reader.readAsDataURL(file);
+                                                                        }}
+                                                                        className="w-full text-[11px] cursor-pointer"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    />
+                                                                    <textarea
+                                                                        rows={2}
+                                                                        value={img}
+                                                                        onChange={(e) =>
+                                                                            set({
+                                                                                [optKey]:
+                                                                                    e.target.value.trim() || undefined,
+                                                                            })
+                                                                        }
+                                                                        placeholder="https://…/bild.png · /adapter/… · data:image/…"
+                                                                        className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
                                                                         style={{
                                                                             background: 'var(--app-bg)',
+                                                                            color: 'var(--text-secondary)',
                                                                             border: '1px solid var(--app-border)',
                                                                         }}
                                                                     />
+                                                                    <ImagePathHint />
+                                                                    {img && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <img
+                                                                                src={img}
+                                                                                style={{
+                                                                                    width: 32,
+                                                                                    height: 32,
+                                                                                    objectFit: 'contain',
+                                                                                    border: '1px solid var(--app-border)',
+                                                                                    borderRadius: 4,
+                                                                                }}
+                                                                                alt=""
+                                                                            />
+                                                                            <button
+                                                                                onClick={() =>
+                                                                                    set({ [optKey]: undefined })
+                                                                                }
+                                                                                className="text-[10px] hover:opacity-70"
+                                                                                style={{
+                                                                                    color: 'var(--accent-red, #ef4444)',
+                                                                                }}
+                                                                            >
+                                                                                Entfernen
+                                                                            </button>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <label
-                                                                className="text-[11px]"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Icon-Größe
-                                                            </label>
-                                                            <span
-                                                                className="text-[11px] tabular-nums"
-                                                                style={{ color: 'var(--text-primary)' }}
-                                                            >
-                                                                {ctrlIconSize} px
-                                                            </span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            min={16}
-                                                            max={192}
-                                                            step={2}
-                                                            value={ctrlIconSize}
-                                                            onChange={(e) =>
-                                                                set({ controlIconSize: Number(e.target.value) })
-                                                            }
-                                                            className="w-full h-1"
-                                                            style={{ accentColor: 'var(--accent)' }}
-                                                        />
-                                                    </div>
-                                                </>
-                                            )}
-                                            {controlMode === 'checkbox' && (
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <label
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Farbe AN
-                                                    </label>
-                                                    <ColorPicker
-                                                        value={onColor}
-                                                        onChange={(v) => set({ onColor: v })}
-                                                        title="Farbe AN"
-                                                        className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
-                                            {controlMode === 'image' && (
-                                                <>
-                                                    {(['on', 'off'] as const).map((state) => {
-                                                        const isOnState = state === 'on';
-                                                        const stateLabel = isOnState ? 'AN' : 'AUS';
-                                                        const optKey = isOnState ? 'onImage' : 'offImage';
-                                                        const img = (o[optKey] as string | undefined) ?? '';
-                                                        return (
-                                                            <div key={state} className="space-y-1.5">
-                                                                <p
-                                                                    className="text-[11px] font-semibold"
+                                                            );
+                                                        })}
+                                                        <div>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label
+                                                                    className="text-[11px]"
                                                                     style={{ color: 'var(--text-secondary)' }}
                                                                 >
-                                                                    Bild {stateLabel}
-                                                                </p>
-                                                                <input
-                                                                    type="file"
-                                                                    accept="image/*"
-                                                                    onChange={(e) => {
-                                                                        const file = e.target.files?.[0];
-                                                                        if (!file) return;
-                                                                        const reader = new FileReader();
-                                                                        reader.onload = () =>
-                                                                            set({
-                                                                                [optKey]: reader.result as string,
-                                                                            });
-                                                                        reader.readAsDataURL(file);
-                                                                    }}
-                                                                    className="w-full text-[11px] cursor-pointer"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                />
-                                                                <textarea
-                                                                    rows={2}
-                                                                    value={img}
-                                                                    onChange={(e) =>
-                                                                        set({
-                                                                            [optKey]:
-                                                                                e.target.value.trim() || undefined,
-                                                                        })
-                                                                    }
-                                                                    placeholder="https://…/bild.png · /adapter/… · data:image/…"
-                                                                    className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
-                                                                    style={{
-                                                                        background: 'var(--app-bg)',
-                                                                        color: 'var(--text-secondary)',
-                                                                        border: '1px solid var(--app-border)',
-                                                                    }}
-                                                                />
-                                                                <ImagePathHint />
-                                                                {img && (
-                                                                    <div className="flex items-center gap-2">
-                                                                        <img
-                                                                            src={img}
-                                                                            style={{
-                                                                                width: 32,
-                                                                                height: 32,
-                                                                                objectFit: 'contain',
-                                                                                border: '1px solid var(--app-border)',
-                                                                                borderRadius: 4,
-                                                                            }}
-                                                                            alt=""
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => set({ [optKey]: undefined })}
-                                                                            className="text-[10px] hover:opacity-70"
-                                                                            style={{
-                                                                                color: 'var(--accent-red, #ef4444)',
-                                                                            }}
-                                                                        >
-                                                                            Entfernen
-                                                                        </button>
-                                                                    </div>
-                                                                )}
+                                                                    Bildgröße
+                                                                </label>
+                                                                <span
+                                                                    className="text-[11px] tabular-nums"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {ctrlIconSize} px
+                                                                </span>
                                                             </div>
-                                                        );
-                                                    })}
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <label
-                                                                className="text-[11px]"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Bildgröße
-                                                            </label>
-                                                            <span
-                                                                className="text-[11px] tabular-nums"
-                                                                style={{ color: 'var(--text-primary)' }}
-                                                            >
-                                                                {ctrlIconSize} px
-                                                            </span>
+                                                            <input
+                                                                type="range"
+                                                                min={16}
+                                                                max={192}
+                                                                step={2}
+                                                                value={ctrlIconSize}
+                                                                onChange={(e) =>
+                                                                    set({ controlIconSize: Number(e.target.value) })
+                                                                }
+                                                                className="w-full h-1"
+                                                                style={{ accentColor: 'var(--accent)' }}
+                                                            />
                                                         </div>
+                                                    </>
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] font-medium"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Taster-Modus
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        >
+                                                            Kurz true, danach automatisch false
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => set({ momentary: !momentary })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background: momentary
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: momentary ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                {momentary && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Impulsdauer (ms)
+                                                        </label>
                                                         <input
-                                                            type="range"
-                                                            min={16}
-                                                            max={192}
-                                                            step={2}
-                                                            value={ctrlIconSize}
+                                                            type="number"
+                                                            min={50}
+                                                            max={10000}
+                                                            step={50}
+                                                            value={delay}
                                                             onChange={(e) =>
-                                                                set({ controlIconSize: Number(e.target.value) })
+                                                                set({
+                                                                    momentaryDelay: Math.max(
+                                                                        50,
+                                                                        Number(e.target.value),
+                                                                    ),
+                                                                })
                                                             }
-                                                            className="w-full h-1"
-                                                            style={{ accentColor: 'var(--accent)' }}
+                                                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-primary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
                                                         />
                                                     </div>
-                                                </>
-                                            )}
-                                            <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] font-medium"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Taster-Modus
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                    >
-                                                        Kurz true, danach automatisch false
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => set({ momentary: !momentary })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background: momentary ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: momentary ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {momentary && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Impulsdauer (ms)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={50}
-                                                        max={10000}
-                                                        step={50}
-                                                        value={delay}
-                                                        onChange={(e) =>
-                                                            set({
-                                                                momentaryDelay: Math.max(50, Number(e.target.value)),
-                                                            })
-                                                        }
-                                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                )}
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] font-medium"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Sicherheitsabfrage
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        >
+                                                            Bestätigung vor dem Schalten
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => set({ confirmAction: !confirmAction })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
                                                         style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-primary)',
-                                                            border: '1px solid var(--app-border)',
+                                                            background: confirmAction
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
                                                         }}
-                                                    />
-                                                </div>
-                                            )}
-                                            <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] font-medium"
-                                                        style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Sicherheitsabfrage
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                    >
-                                                        Bestätigung vor dem Schalten
-                                                    </p>
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: confirmAction ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
                                                 </div>
-                                                <button
-                                                    onClick={() => set({ confirmAction: !confirmAction })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background: confirmAction
-                                                            ? 'var(--accent)'
-                                                            : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: confirmAction ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {confirmAction && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Abfragetext (optional)
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={(o.confirmText as string) ?? ''}
-                                                        onChange={(e) => set({ confirmText: e.target.value })}
-                                                        placeholder="Wirklich schalten?"
-                                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-primary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
+                                                {confirmAction && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Abfragetext (optional)
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={(o.confirmText as string) ?? ''}
+                                                            onChange={(e) => set({ confirmText: e.target.value })}
+                                                            placeholder="Wirklich schalten?"
+                                                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-primary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </ConfigSection>
                                         </>
                                     );
                                 })()}
@@ -12144,14 +12032,6 @@ function WidgetFrameInner({
                                         border: '1px solid var(--app-border)',
                                     };
                                     const dynamicMax = !!o.dynamicMax;
-                                    const sectionHdr = (label: string) => (
-                                        <div
-                                            className="text-[10px] font-semibold uppercase tracking-wider pt-1"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {label}
-                                        </div>
-                                    );
                                     // Per-pointer opt-in to the color of the zone its own value falls into.
                                     // Only rendered while color zones are active; on by default for pointer 1.
                                     const zoneColorOn = (key: string, def: boolean) => (o[key] as boolean) ?? def;
@@ -12182,470 +12062,342 @@ function WidgetFrameInner({
                                     };
                                     return (
                                         <>
-                                            {sectionHdr('Skala')}
-                                            <div className="flex gap-2">
-                                                <div className="flex-1">
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Min
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        value={min}
-                                                        onChange={(e) => set({ minValue: Number(e.target.value) })}
-                                                        className={gCls}
-                                                        style={gSty}
-                                                    />
+                                            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                                                {renderMainDpField()}
+                                            </ConfigSection>
+                                            <ConfigSection title="Skala" sectionKey="scale">
+                                                <div className="flex gap-2">
+                                                    <div className="flex-1">
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Min
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={min}
+                                                            onChange={(e) => set({ minValue: Number(e.target.value) })}
+                                                            className={gCls}
+                                                            style={gSty}
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Max
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={max}
+                                                            onChange={(e) => set({ maxValue: Number(e.target.value) })}
+                                                            className={gCls}
+                                                            style={gSty}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Max
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        value={max}
-                                                        onChange={(e) => set({ maxValue: Number(e.target.value) })}
-                                                        className={gCls}
-                                                        style={gSty}
-                                                    />
+                                                <DpRangeHint
+                                                    type={config.type}
+                                                    datapoint={config.datapoint}
+                                                    options={o}
+                                                    onApply={set}
+                                                />
+                                                <ScaleBoundsRow
+                                                    minDatapoint={o.minDatapoint as string | undefined}
+                                                    maxDatapoint={o.maxDatapoint as string | undefined}
+                                                    onChange={set}
+                                                    onPick={(which) =>
+                                                        setPickerTarget(which === 'min' ? 'scale_minDp' : 'scale_maxDp')
+                                                    }
+                                                    inputClassName={gCls}
+                                                    inputStyle={gSty}
+                                                />
+                                                <ValueFormatRow
+                                                    unit={o.unit as string | undefined}
+                                                    unitPlaceholder="°C, %, W"
+                                                    onUnitChange={(v) => set({ unit: v })}
+                                                    decimals={o.decimals as number | undefined}
+                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
+                                                    onChange={set}
+                                                    inputClassName={gCls}
+                                                    inputStyle={gSty}
+                                                />
+                                                <div className="flex gap-2">
+                                                    <div className="flex-1">
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Bogenbreite
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            max={30}
+                                                            value={(o.strokeWidth as number) ?? 12}
+                                                            onChange={(e) =>
+                                                                set({ strokeWidth: Number(e.target.value) })
+                                                            }
+                                                            className={gCls}
+                                                            style={gSty}
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Schriftgröße Wert
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={8}
+                                                            max={60}
+                                                            value={(o.valueFontSize as number) ?? 22}
+                                                            onChange={(e) =>
+                                                                set({ valueFontSize: Number(e.target.value) })
+                                                            }
+                                                            className={gCls}
+                                                            style={gSty}
+                                                        />
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            <DpRangeHint
-                                                type={config.type}
-                                                datapoint={config.datapoint}
-                                                options={o}
-                                                onApply={set}
-                                            />
-                                            <ScaleBoundsRow
-                                                minDatapoint={o.minDatapoint as string | undefined}
-                                                maxDatapoint={o.maxDatapoint as string | undefined}
-                                                onChange={set}
-                                                onPick={(which) =>
-                                                    setPickerTarget(which === 'min' ? 'scale_minDp' : 'scale_maxDp')
-                                                }
-                                                inputClassName={gCls}
-                                                inputStyle={gSty}
-                                            />
-                                            <ValueFormatRow
-                                                unit={o.unit as string | undefined}
-                                                unitPlaceholder="°C, %, W"
-                                                onUnitChange={(v) => set({ unit: v })}
-                                                decimals={o.decimals as number | undefined}
-                                                numberFormat={o.numberFormat as NumberFormat | undefined}
-                                                onChange={set}
-                                                inputClassName={gCls}
-                                                inputStyle={gSty}
-                                            />
-                                            <div className="flex gap-2">
-                                                <div className="flex-1">
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Bogenbreite
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={1}
-                                                        max={30}
-                                                        value={(o.strokeWidth as number) ?? 12}
-                                                        onChange={(e) => set({ strokeWidth: Number(e.target.value) })}
-                                                        className={gCls}
-                                                        style={gSty}
-                                                    />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Schriftgröße Wert
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={8}
-                                                        max={60}
-                                                        value={(o.valueFontSize as number) ?? 22}
-                                                        onChange={(e) => set({ valueFontSize: Number(e.target.value) })}
-                                                        className={gCls}
-                                                        style={gSty}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] font-medium"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Dynamisches Maximum
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                    >
-                                                        Max auf aktuellen Wert ausweiten
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => set({ dynamicMax: !dynamicMax })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background: dynamicMax ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: dynamicMax ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Wert im Bogen anzeigen
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ showValue: !(o.showValue !== false) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background:
-                                                            o.showValue !== false
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: o.showValue !== false ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] font-medium"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Wert als Badge
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                    >
-                                                        Unter dem Bogen, in der Farbe der aktiven Zone
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => set({ showValueBadge: !o.showValueBadge })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background: o.showValueBadge
-                                                            ? 'var(--accent)'
-                                                            : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: o.showValueBadge ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Min/Max anzeigen
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ showMinMax: !(o.showMinMax ?? true) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background:
-                                                            (o.showMinMax ?? true)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.showMinMax ?? true) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-
-                                            {sectionHdr('Farbzonen')}
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Farbzonen aktiv
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ colorZones: !colorZones })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background: colorZones ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: colorZones ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {colorZones &&
-                                                (() => {
-                                                    // Build zones with fallback from legacy zone1Max/zone2Max props
-                                                    type CZ = { max: number; color: string };
-                                                    const rawZones = o.zones as CZ[] | undefined;
-                                                    const zones: CZ[] =
-                                                        rawZones && rawZones.length > 0
-                                                            ? rawZones
-                                                            : [
-                                                                  {
-                                                                      max: (o.zone1Max as number) ?? min + range * 0.33,
-                                                                      color: (o.zone1Color as string) ?? '#10b981',
-                                                                  },
-                                                                  {
-                                                                      max: (o.zone2Max as number) ?? min + range * 0.66,
-                                                                      color: (o.zone2Color as string) ?? '#f59e0b',
-                                                                  },
-                                                                  {
-                                                                      max: max,
-                                                                      color: (o.zone3Color as string) ?? '#ef4444',
-                                                                  },
-                                                              ];
-                                                    // Normalize: always ensure the last zone's max equals the gauge max.
-                                                    // This corrects stale stored values after zones are removed/reordered.
-                                                    const normalizeZones = (z: CZ[]): CZ[] =>
-                                                        z.map((zone, idx) =>
-                                                            idx === z.length - 1 ? { ...zone, max } : zone,
-                                                        );
-                                                    const setZones = (z: CZ[]) =>
-                                                        set({
-                                                            zones: normalizeZones(z),
-                                                            zone1Max: undefined,
-                                                            zone2Max: undefined,
-                                                            zone1Color: undefined,
-                                                            zone2Color: undefined,
-                                                            zone3Color: undefined,
-                                                        });
-                                                    const updateZone = (i: number, patch: Partial<CZ>) =>
-                                                        setZones(
-                                                            zones.map((z, idx) => (idx === i ? { ...z, ...patch } : z)),
-                                                        );
-                                                    const removeZone = (i: number) => {
-                                                        if (zones.length > 1)
-                                                            setZones(zones.filter((_, idx) => idx !== i));
-                                                    };
-                                                    const addZone = () => {
-                                                        const insertBefore = zones.length - 1;
-                                                        const prevMax =
-                                                            insertBefore > 0 ? zones[insertBefore - 1].max : min;
-                                                        // The last zone always extends to max visually, so use max (not zone.max)
-                                                        // as the upper boundary when computing the midpoint for the new zone.
-                                                        const newMax = Math.round((prevMax + max) / 2);
-                                                        const newZones = [...zones];
-                                                        newZones.splice(insertBefore, 0, {
-                                                            max: newMax,
-                                                            color: '#6366f1',
-                                                        });
-                                                        setZones(newZones);
-                                                    };
-                                                    return (
-                                                        <div className="space-y-2">
-                                                            {zones.map((zone, i) => {
-                                                                const isLast = i === zones.length - 1;
-                                                                return (
-                                                                    <div key={i} className="flex items-center gap-2">
-                                                                        <button
-                                                                            onClick={() => removeZone(i)}
-                                                                            className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0 transition-opacity"
-                                                                            style={{
-                                                                                color: 'var(--text-secondary)',
-                                                                                background: 'var(--app-bg)',
-                                                                                border: '1px solid var(--app-border)',
-                                                                                opacity: zones.length <= 1 ? 0.3 : 1,
-                                                                            }}
-                                                                        >
-                                                                            ×
-                                                                        </button>
-                                                                        <ColorPicker
-                                                                            value={zone.color}
-                                                                            onChange={(v) =>
-                                                                                updateZone(i, { color: v })
-                                                                            }
-                                                                            className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                                            style={{
-                                                                                border: '1px solid var(--app-border)',
-                                                                                padding: '1px',
-                                                                            }}
-                                                                        />
-                                                                        <div className="flex-1">
-                                                                            <label
-                                                                                className="text-[11px] mb-1 block"
-                                                                                style={{
-                                                                                    color: 'var(--text-secondary)',
-                                                                                }}
-                                                                            >
-                                                                                Zone {i + 1} {isLast ? '(Rest)' : 'bis'}
-                                                                            </label>
-                                                                            {isLast ? (
-                                                                                <div
-                                                                                    className="text-[10px] py-2 px-2.5 rounded-lg"
-                                                                                    style={{
-                                                                                        background: 'var(--app-bg)',
-                                                                                        color: 'var(--text-secondary)',
-                                                                                        border: '1px solid var(--app-border)',
-                                                                                    }}
-                                                                                >
-                                                                                    bis {max}
-                                                                                </div>
-                                                                            ) : (
-                                                                                <input
-                                                                                    type="number"
-                                                                                    value={zone.max}
-                                                                                    onChange={(e) =>
-                                                                                        updateZone(i, {
-                                                                                            max: Number(e.target.value),
-                                                                                        })
-                                                                                    }
-                                                                                    className={gCls}
-                                                                                    style={gSty}
-                                                                                />
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                            <button
-                                                                onClick={addZone}
-                                                                className="w-full text-[11px] py-1.5 rounded-lg transition-colors hover:opacity-80"
-                                                                style={{
-                                                                    background: 'var(--app-bg)',
-                                                                    color: 'var(--text-secondary)',
-                                                                    border: '1px solid var(--app-border)',
-                                                                }}
-                                                            >
-                                                                + Zone hinzufügen
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })()}
-
-                                            {sectionHdr('Zeiger')}
-                                            {/* Pointer 1 (primary) */}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Zeiger 1 – Datenpunkt
-                                                </label>
-                                                <div
-                                                    className="text-[10px] py-2 px-2.5 rounded-lg font-mono truncate"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        color: 'var(--text-secondary)',
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                >
-                                                    {config.datapoint || '–'}
-                                                </div>
-                                            </div>
-                                            {colorZones && zoneColorToggle('pointer1ZoneColor', true)}
-                                            <div className="flex items-center gap-2">
-                                                {/* The picker only matters while this pointer keeps its own color */}
-                                                {!(colorZones && zoneColorOn('pointer1ZoneColor', true)) && (
-                                                    <ColorPicker
-                                                        value={(o.pointer1Color as string) ?? '#6366f1'}
-                                                        onChange={(v) => set({ pointer1Color: v })}
-                                                        className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                        style={{
-                                                            border: '1px solid var(--app-border)',
-                                                            padding: '1px',
-                                                        }}
-                                                    />
-                                                )}
-                                                <div className="flex-1">
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Zeiger 1 – Bezeichnung
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={(o.pointer1Label as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            set({ pointer1Label: e.target.value || undefined })
-                                                        }
-                                                        placeholder="z.B. Innen"
-                                                        className={gCls}
-                                                        style={gSty}
-                                                    />
-                                                    {!o.showValueBadge && (
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] font-medium"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Dynamisches Maximum
+                                                        </label>
                                                         <p
-                                                            className="text-[10px] mt-1"
+                                                            className="text-[10px]"
                                                             style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                         >
-                                                            Sichtbar, sobald {'„Wert als Badge“'} aktiv ist
+                                                            Max auf aktuellen Wert ausweiten
                                                         </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {/* Pointer 2 */}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Zeiger 2 – Datenpunkt
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={(o.pointer2Datapoint as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            set({ pointer2Datapoint: e.target.value || undefined })
-                                                        }
-                                                        placeholder="Datenpunkt-ID (leer = deaktiviert)"
-                                                        className={`${gCls} font-mono flex-1 min-w-0`}
-                                                        style={gSty}
-                                                    />
+                                                    </div>
                                                     <button
-                                                        type="button"
-                                                        onClick={() => setPickerTarget('gauge_pointer2Dp')}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                        onClick={() => set({ dynamicMax: !dynamicMax })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background: dynamicMax
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: dynamicMax ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            </ConfigSection>
+                                            <ConfigSection title="Farbzonen" sectionKey="zones">
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Farbzonen aktiv
+                                                    </label>
+                                                    <button
+                                                        onClick={() => set({ colorZones: !colorZones })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                                        style={{
+                                                            background: colorZones
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: colorZones ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                {colorZones &&
+                                                    (() => {
+                                                        // Build zones with fallback from legacy zone1Max/zone2Max props
+                                                        type CZ = { max: number; color: string };
+                                                        const rawZones = o.zones as CZ[] | undefined;
+                                                        const zones: CZ[] =
+                                                            rawZones && rawZones.length > 0
+                                                                ? rawZones
+                                                                : [
+                                                                      {
+                                                                          max:
+                                                                              (o.zone1Max as number) ??
+                                                                              min + range * 0.33,
+                                                                          color: (o.zone1Color as string) ?? '#10b981',
+                                                                      },
+                                                                      {
+                                                                          max:
+                                                                              (o.zone2Max as number) ??
+                                                                              min + range * 0.66,
+                                                                          color: (o.zone2Color as string) ?? '#f59e0b',
+                                                                      },
+                                                                      {
+                                                                          max: max,
+                                                                          color: (o.zone3Color as string) ?? '#ef4444',
+                                                                      },
+                                                                  ];
+                                                        // Normalize: always ensure the last zone's max equals the gauge max.
+                                                        // This corrects stale stored values after zones are removed/reordered.
+                                                        const normalizeZones = (z: CZ[]): CZ[] =>
+                                                            z.map((zone, idx) =>
+                                                                idx === z.length - 1 ? { ...zone, max } : zone,
+                                                            );
+                                                        const setZones = (z: CZ[]) =>
+                                                            set({
+                                                                zones: normalizeZones(z),
+                                                                zone1Max: undefined,
+                                                                zone2Max: undefined,
+                                                                zone1Color: undefined,
+                                                                zone2Color: undefined,
+                                                                zone3Color: undefined,
+                                                            });
+                                                        const updateZone = (i: number, patch: Partial<CZ>) =>
+                                                            setZones(
+                                                                zones.map((z, idx) =>
+                                                                    idx === i ? { ...z, ...patch } : z,
+                                                                ),
+                                                            );
+                                                        const removeZone = (i: number) => {
+                                                            if (zones.length > 1)
+                                                                setZones(zones.filter((_, idx) => idx !== i));
+                                                        };
+                                                        const addZone = () => {
+                                                            const insertBefore = zones.length - 1;
+                                                            const prevMax =
+                                                                insertBefore > 0 ? zones[insertBefore - 1].max : min;
+                                                            // The last zone always extends to max visually, so use max (not zone.max)
+                                                            // as the upper boundary when computing the midpoint for the new zone.
+                                                            const newMax = Math.round((prevMax + max) / 2);
+                                                            const newZones = [...zones];
+                                                            newZones.splice(insertBefore, 0, {
+                                                                max: newMax,
+                                                                color: '#6366f1',
+                                                            });
+                                                            setZones(newZones);
+                                                        };
+                                                        return (
+                                                            <div className="space-y-2">
+                                                                {zones.map((zone, i) => {
+                                                                    const isLast = i === zones.length - 1;
+                                                                    return (
+                                                                        <div
+                                                                            key={i}
+                                                                            className="flex items-center gap-2"
+                                                                        >
+                                                                            <button
+                                                                                onClick={() => removeZone(i)}
+                                                                                className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0 transition-opacity"
+                                                                                style={{
+                                                                                    color: 'var(--text-secondary)',
+                                                                                    background: 'var(--app-bg)',
+                                                                                    border: '1px solid var(--app-border)',
+                                                                                    opacity:
+                                                                                        zones.length <= 1 ? 0.3 : 1,
+                                                                                }}
+                                                                            >
+                                                                                ×
+                                                                            </button>
+                                                                            <ColorPicker
+                                                                                value={zone.color}
+                                                                                onChange={(v) =>
+                                                                                    updateZone(i, { color: v })
+                                                                                }
+                                                                                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                                style={{
+                                                                                    border: '1px solid var(--app-border)',
+                                                                                    padding: '1px',
+                                                                                }}
+                                                                            />
+                                                                            <div className="flex-1">
+                                                                                <label
+                                                                                    className="text-[11px] mb-1 block"
+                                                                                    style={{
+                                                                                        color: 'var(--text-secondary)',
+                                                                                    }}
+                                                                                >
+                                                                                    Zone {i + 1}{' '}
+                                                                                    {isLast ? '(Rest)' : 'bis'}
+                                                                                </label>
+                                                                                {isLast ? (
+                                                                                    <div
+                                                                                        className="text-[10px] py-2 px-2.5 rounded-lg"
+                                                                                        style={{
+                                                                                            background: 'var(--app-bg)',
+                                                                                            color: 'var(--text-secondary)',
+                                                                                            border: '1px solid var(--app-border)',
+                                                                                        }}
+                                                                                    >
+                                                                                        bis {max}
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        value={zone.max}
+                                                                                        onChange={(e) =>
+                                                                                            updateZone(i, {
+                                                                                                max: Number(
+                                                                                                    e.target.value,
+                                                                                                ),
+                                                                                            })
+                                                                                        }
+                                                                                        className={gCls}
+                                                                                        style={gSty}
+                                                                                    />
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                <button
+                                                                    onClick={addZone}
+                                                                    className="w-full text-[11px] py-1.5 rounded-lg transition-colors hover:opacity-80"
+                                                                    style={{
+                                                                        background: 'var(--app-bg)',
+                                                                        color: 'var(--text-secondary)',
+                                                                        border: '1px solid var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    + Zone hinzufügen
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                            </ConfigSection>
+                                            <ConfigSection title="Zeiger" sectionKey="pointers">
+                                                {/* Pointer 1 (primary) */}
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Zeiger 1 – Datenpunkt
+                                                    </label>
+                                                    <div
+                                                        className="text-[10px] py-2 px-2.5 rounded-lg font-mono truncate"
                                                         style={{
                                                             background: 'var(--app-bg)',
                                                             color: 'var(--text-secondary)',
                                                             border: '1px solid var(--app-border)',
                                                         }}
                                                     >
-                                                        <Database size={13} />
-                                                    </button>
+                                                        {config.datapoint || '–'}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                            {(o.pointer2Datapoint as string) &&
-                                                colorZones &&
-                                                zoneColorToggle('pointer2ZoneColor', false)}
-                                            {(o.pointer2Datapoint as string) && (
+                                                {colorZones && zoneColorToggle('pointer1ZoneColor', true)}
                                                 <div className="flex items-center gap-2">
-                                                    {!(colorZones && zoneColorOn('pointer2ZoneColor', false)) && (
+                                                    {/* The picker only matters while this pointer keeps its own color */}
+                                                    {!(colorZones && zoneColorOn('pointer1ZoneColor', true)) && (
                                                         <ColorPicker
-                                                            value={(o.pointer2Color as string) ?? '#f97316'}
-                                                            onChange={(v) => set({ pointer2Color: v })}
+                                                            value={(o.pointer1Color as string) ?? '#6366f1'}
+                                                            onChange={(v) => set({ pointer1Color: v })}
                                                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                             style={{
                                                                 border: '1px solid var(--app-border)',
@@ -12658,90 +12410,167 @@ function WidgetFrameInner({
                                                             className="text-[11px] mb-1 block"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            Zeiger 2 – Bezeichnung
+                                                            Zeiger 1 – Bezeichnung
                                                         </label>
                                                         <input
                                                             type="text"
-                                                            value={(o.pointer2Label as string) ?? ''}
+                                                            value={(o.pointer1Label as string) ?? ''}
                                                             onChange={(e) =>
-                                                                set({ pointer2Label: e.target.value || undefined })
+                                                                set({ pointer1Label: e.target.value || undefined })
                                                             }
-                                                            placeholder="z.B. Außen"
+                                                            placeholder="z.B. Innen"
                                                             className={gCls}
                                                             style={gSty}
                                                         />
+                                                        {!o.showValueBadge && (
+                                                            <p
+                                                                className="text-[10px] mt-1"
+                                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                            >
+                                                                Sichtbar, sobald {'„Wert als Badge“'} aktiv ist
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
-                                            )}
-                                            {/* Pointer 3 */}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Zeiger 3 – Datenpunkt
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={(o.pointer3Datapoint as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            set({ pointer3Datapoint: e.target.value || undefined })
-                                                        }
-                                                        placeholder="Datenpunkt-ID (leer = deaktiviert)"
-                                                        className={`${gCls} font-mono flex-1 min-w-0`}
-                                                        style={gSty}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setPickerTarget('gauge_pointer3Dp')}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
+                                                {/* Pointer 2 */}
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        <Database size={13} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            {(o.pointer3Datapoint as string) &&
-                                                colorZones &&
-                                                zoneColorToggle('pointer3ZoneColor', false)}
-                                            {(o.pointer3Datapoint as string) && (
-                                                <div className="flex items-center gap-2">
-                                                    {!(colorZones && zoneColorOn('pointer3ZoneColor', false)) && (
-                                                        <ColorPicker
-                                                            value={(o.pointer3Color as string) ?? '#8b5cf6'}
-                                                            onChange={(v) => set({ pointer3Color: v })}
-                                                            className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                            style={{
-                                                                border: '1px solid var(--app-border)',
-                                                                padding: '1px',
-                                                            }}
-                                                        />
-                                                    )}
-                                                    <div className="flex-1">
-                                                        <label
-                                                            className="text-[11px] mb-1 block"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            Zeiger 3 – Bezeichnung
-                                                        </label>
+                                                        Zeiger 2 – Datenpunkt
+                                                    </label>
+                                                    <div className="flex gap-1">
                                                         <input
                                                             type="text"
-                                                            value={(o.pointer3Label as string) ?? ''}
+                                                            value={(o.pointer2Datapoint as string) ?? ''}
                                                             onChange={(e) =>
-                                                                set({ pointer3Label: e.target.value || undefined })
+                                                                set({ pointer2Datapoint: e.target.value || undefined })
                                                             }
-                                                            placeholder="z.B. Keller"
-                                                            className={gCls}
+                                                            placeholder="Datenpunkt-ID (leer = deaktiviert)"
+                                                            className={`${gCls} font-mono flex-1 min-w-0`}
                                                             style={gSty}
                                                         />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setPickerTarget('gauge_pointer2Dp')}
+                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <Database size={13} />
+                                                        </button>
                                                     </div>
                                                 </div>
-                                            )}
+                                                {(o.pointer2Datapoint as string) &&
+                                                    colorZones &&
+                                                    zoneColorToggle('pointer2ZoneColor', false)}
+                                                {(o.pointer2Datapoint as string) && (
+                                                    <div className="flex items-center gap-2">
+                                                        {!(colorZones && zoneColorOn('pointer2ZoneColor', false)) && (
+                                                            <ColorPicker
+                                                                value={(o.pointer2Color as string) ?? '#f97316'}
+                                                                onChange={(v) => set({ pointer2Color: v })}
+                                                                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                style={{
+                                                                    border: '1px solid var(--app-border)',
+                                                                    padding: '1px',
+                                                                }}
+                                                            />
+                                                        )}
+                                                        <div className="flex-1">
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Zeiger 2 – Bezeichnung
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={(o.pointer2Label as string) ?? ''}
+                                                                onChange={(e) =>
+                                                                    set({ pointer2Label: e.target.value || undefined })
+                                                                }
+                                                                placeholder="z.B. Außen"
+                                                                className={gCls}
+                                                                style={gSty}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* Pointer 3 */}
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Zeiger 3 – Datenpunkt
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        <input
+                                                            type="text"
+                                                            value={(o.pointer3Datapoint as string) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({ pointer3Datapoint: e.target.value || undefined })
+                                                            }
+                                                            placeholder="Datenpunkt-ID (leer = deaktiviert)"
+                                                            className={`${gCls} font-mono flex-1 min-w-0`}
+                                                            style={gSty}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setPickerTarget('gauge_pointer3Dp')}
+                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <Database size={13} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                {(o.pointer3Datapoint as string) &&
+                                                    colorZones &&
+                                                    zoneColorToggle('pointer3ZoneColor', false)}
+                                                {(o.pointer3Datapoint as string) && (
+                                                    <div className="flex items-center gap-2">
+                                                        {!(colorZones && zoneColorOn('pointer3ZoneColor', false)) && (
+                                                            <ColorPicker
+                                                                value={(o.pointer3Color as string) ?? '#8b5cf6'}
+                                                                onChange={(v) => set({ pointer3Color: v })}
+                                                                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                style={{
+                                                                    border: '1px solid var(--app-border)',
+                                                                    padding: '1px',
+                                                                }}
+                                                            />
+                                                        )}
+                                                        <div className="flex-1">
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Zeiger 3 – Bezeichnung
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={(o.pointer3Label as string) ?? ''}
+                                                                onChange={(e) =>
+                                                                    set({ pointer3Label: e.target.value || undefined })
+                                                                }
+                                                                placeholder="z.B. Keller"
+                                                                className={gCls}
+                                                                style={gSty}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </ConfigSection>
                                         </>
                                     );
                                 })()}
@@ -13176,481 +13005,493 @@ function WidgetFrameInner({
                                     const camUrlMode = (o.streamUrlMode as string) ?? 'static';
                                     return (
                                         <>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    URL-Quelle
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    {(['static', 'datapoint'] as const).map((m) => (
-                                                        <button
-                                                            key={m}
-                                                            onClick={() => set({ streamUrlMode: m })}
-                                                            className="flex-1 text-[11px] py-1 rounded-lg transition-colors"
-                                                            style={{
-                                                                background:
-                                                                    camUrlMode === m
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-bg)',
-                                                                color:
-                                                                    camUrlMode === m ? '#fff' : 'var(--text-secondary)',
-                                                                border: '1px solid var(--app-border)',
-                                                            }}
-                                                        >
-                                                            {m === 'static' ? 'Direkte URL' : 'Datenpunkt'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            {camUrlMode === 'static' && (
+                                            <ConfigSection title="Quelle" sectionKey="source">
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Stream-URL
+                                                        URL-Quelle
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {(['static', 'datapoint'] as const).map((m) => (
+                                                            <button
+                                                                key={m}
+                                                                onClick={() => set({ streamUrlMode: m })}
+                                                                className="flex-1 text-[11px] py-1 rounded-lg transition-colors"
+                                                                style={{
+                                                                    background:
+                                                                        camUrlMode === m
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                    color:
+                                                                        camUrlMode === m
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                            >
+                                                                {m === 'static' ? 'Direkte URL' : 'Datenpunkt'}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                {camUrlMode === 'static' && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Stream-URL
+                                                        </label>
+                                                        <input
+                                                            type="url"
+                                                            value={(o.streamUrl as string) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({ streamUrl: e.target.value || undefined })
+                                                            }
+                                                            placeholder="http://…/stream.mjpg"
+                                                            className={`${cCls} font-mono`}
+                                                            style={cSty}
+                                                        />
+                                                        {(() => {
+                                                            const url = (o.streamUrl as string) ?? '';
+                                                            const mixedContent =
+                                                                url.startsWith('http://') &&
+                                                                window.location.protocol === 'https:';
+                                                            if (!mixedContent) return null;
+                                                            return (
+                                                                <p
+                                                                    className="text-[10px] mt-1 leading-tight"
+                                                                    style={{ color: '#f59e0b' }}
+                                                                >
+                                                                    ⚠ Mixed Content: Aura läuft über HTTPS, die
+                                                                    Stream-URL ist HTTP. Desktop-Browser erlauben dies
+                                                                    oft, mobile WebViews (z.B. Fully Kiosk) blockieren
+                                                                    es. Lösung: in Fully Kiosk → Advanced Web Settings →{' '}
+                                                                    <em>Allow Mixed Content</em> aktivieren, oder go2rtc
+                                                                    per HTTPS bereitstellen.
+                                                                </p>
+                                                            );
+                                                        })()}
+                                                        <ImagePathHint className="mt-1.5" />
+                                                    </div>
+                                                )}
+                                                {camUrlMode === 'datapoint' && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            URL-Datenpunkt{' '}
+                                                            <span style={{ opacity: 0.6 }}>(Wert = Stream-URL)</span>
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={(o.streamUrlDp as string) ?? ''}
+                                                                onChange={(e) =>
+                                                                    set({ streamUrlDp: e.target.value || undefined })
+                                                                }
+                                                                placeholder="adapter.0.channel.url"
+                                                                className={`${cCls} flex-1 font-mono min-w-0`}
+                                                                style={cSty}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setPickerTarget('camera_urlDp')}
+                                                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    color: 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                                title={t('wf.edit.fromIoBroker')}
+                                                            >
+                                                                <Database size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Aktualisierung (Sek., 0 = MJPEG)
                                                     </label>
                                                     <input
-                                                        type="url"
-                                                        value={(o.streamUrl as string) ?? ''}
+                                                        type="number"
+                                                        min={0}
+                                                        value={(o.refreshInterval as number) ?? 5}
                                                         onChange={(e) =>
-                                                            set({ streamUrl: e.target.value || undefined })
+                                                            set({ refreshInterval: Number(e.target.value) })
                                                         }
-                                                        placeholder="http://…/stream.mjpg"
-                                                        className={`${cCls} font-mono`}
+                                                        className={cCls}
                                                         style={cSty}
                                                     />
-                                                    {(() => {
-                                                        const url = (o.streamUrl as string) ?? '';
-                                                        const mixedContent =
-                                                            url.startsWith('http://') &&
-                                                            window.location.protocol === 'https:';
-                                                        if (!mixedContent) return null;
-                                                        return (
-                                                            <p
-                                                                className="text-[10px] mt-1 leading-tight"
-                                                                style={{ color: '#f59e0b' }}
-                                                            >
-                                                                ⚠ Mixed Content: Aura läuft über HTTPS, die Stream-URL
-                                                                ist HTTP. Desktop-Browser erlauben dies oft, mobile
-                                                                WebViews (z.B. Fully Kiosk) blockieren es. Lösung: in
-                                                                Fully Kiosk → Advanced Web Settings →{' '}
-                                                                <em>Allow Mixed Content</em> aktivieren, oder go2rtc per
-                                                                HTTPS bereitstellen.
-                                                            </p>
-                                                        );
-                                                    })()}
-                                                    <ImagePathHint className="mt-1.5" />
                                                 </div>
-                                            )}
-                                            {camUrlMode === 'datapoint' && (
+                                            </ConfigSection>
+                                            <ConfigSection title="Aufwecken" sectionKey="wakeup">
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        URL-Datenpunkt{' '}
-                                                        <span style={{ opacity: 0.6 }}>(Wert = Stream-URL)</span>
+                                                        Wake-Up Datenpunkt{' '}
+                                                        <span style={{ opacity: 0.6 }}>(optional, z.B. Eufy)</span>
                                                     </label>
                                                     <div className="flex gap-1">
                                                         <input
                                                             type="text"
-                                                            value={(o.streamUrlDp as string) ?? ''}
+                                                            value={(o.wakeUpDp as string) ?? ''}
                                                             onChange={(e) =>
-                                                                set({ streamUrlDp: e.target.value || undefined })
+                                                                set({ wakeUpDp: e.target.value || undefined })
                                                             }
-                                                            placeholder="adapter.0.channel.url"
+                                                            placeholder="adapter.0.channel.state"
                                                             className={`${cCls} flex-1 font-mono min-w-0`}
                                                             style={cSty}
                                                         />
                                                         <button
                                                             type="button"
-                                                            onClick={() => setPickerTarget('camera_urlDp')}
-                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            onClick={() => setPickerTarget('camera_wakeUpDp')}
+                                                            className="px-2 rounded-lg shrink-0"
                                                             style={{
                                                                 background: 'var(--app-bg)',
                                                                 color: 'var(--text-secondary)',
                                                                 border: '1px solid var(--app-border)',
                                                             }}
-                                                            title={t('wf.edit.fromIoBroker')}
                                                         >
-                                                            <Database size={13} />
+                                                            …
                                                         </button>
                                                     </div>
                                                 </div>
-                                            )}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Aktualisierung (Sek., 0 = MJPEG)
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={(o.refreshInterval as number) ?? 5}
-                                                    onChange={(e) => set({ refreshInterval: Number(e.target.value) })}
-                                                    className={cCls}
-                                                    style={cSty}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Bildanpassung
-                                                </label>
-                                                <select
-                                                    value={fitMode}
-                                                    onChange={(e) => set({ fitMode: e.target.value })}
-                                                    className={cCls}
-                                                    style={cSty}
-                                                >
-                                                    <option value="cover">Cover (ausfüllen)</option>
-                                                    <option value="contain">Contain (einpassen)</option>
-                                                </select>
-                                            </div>
-                                            {/* Only .html/.htm streams render in an iframe (see detectMode) — an
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {(o.wakeUpDp as string) ? 'Wake-Up Auslöser' : 'Stream starten'}
+                                                    </label>
+                                                    <select
+                                                        value={
+                                                            (o.wakeUpMode as string) === 'onView'
+                                                                ? 'onView'
+                                                                : (o.wakeUpMode as string) === 'onClick' ||
+                                                                    (o.wakeUpDp as string)
+                                                                  ? 'onClick'
+                                                                  : 'auto'
+                                                        }
+                                                        onChange={(e) => set({ wakeUpMode: e.target.value })}
+                                                        className={cCls}
+                                                        style={cSty}
+                                                    >
+                                                        {!(o.wakeUpDp as string) && (
+                                                            <option value="auto">Sofort beim Anzeigen</option>
+                                                        )}
+                                                        <option value="onClick">Manuell (bei Klick)</option>
+                                                        <option value="onView">Bei Sicht (Viewport)</option>
+                                                    </select>
+                                                </div>
+                                                {(o.wakeUpDp as string) && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Wartezeit nach Wake-Up (Sek.)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            max={30}
+                                                            value={(o.wakeUpDelay as number) ?? 3}
+                                                            onChange={(e) =>
+                                                                set({ wakeUpDelay: Number(e.target.value) })
+                                                            }
+                                                            className={cCls}
+                                                            style={cSty}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {((o.wakeUpDp as string) ||
+                                                    (o.wakeUpMode as string) === 'onClick' ||
+                                                    (o.wakeUpMode as string) === 'onView') && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Stream-Timeout (Sek., 0 = deaktiviert)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            value={(o.streamTimeout as number) ?? 60}
+                                                            onChange={(e) =>
+                                                                set({ streamTimeout: Number(e.target.value) })
+                                                            }
+                                                            className={cCls}
+                                                            style={cSty}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Bildanpassung
+                                                    </label>
+                                                    <select
+                                                        value={fitMode}
+                                                        onChange={(e) => set({ fitMode: e.target.value })}
+                                                        className={cCls}
+                                                        style={cSty}
+                                                    >
+                                                        <option value="cover">Cover (ausfüllen)</option>
+                                                        <option value="contain">Contain (einpassen)</option>
+                                                    </select>
+                                                </div>
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                                {/* Only .html/.htm streams render in an iframe (see detectMode) — an
                                             MJPEG image has no embedded document to hand interaction to. A
                                             datapoint URL is unknown at config time, so offer it there too. */}
-                                            {(() => {
-                                                const camPath = ((o.streamUrl as string) ?? '')
-                                                    .split('?')[0]
-                                                    .toLowerCase();
-                                                const isHtmlStream =
-                                                    camPath.endsWith('.html') || camPath.endsWith('.htm');
-                                                if (camUrlMode !== 'datapoint' && !isHtmlStream) return null;
-                                                return (
-                                                    <IframeInteractionSelect
-                                                        o={o}
-                                                        set={set}
-                                                        sty={cSty}
-                                                        hasClickAction={hasClickAction}
-                                                    />
-                                                );
-                                            })()}
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Zeitstempel anzeigen
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ showTimestamp: !(o.showTimestamp ?? true) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background:
-                                                            (o.showTimestamp ?? true)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.showTimestamp ?? true) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-2">
-                                                <div className="min-w-0">
-                                                    <label
-                                                        className="text-[11px] block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Nach Standby neu laden
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                    >
-                                                        Holt den Stream nach Display-Standby zurück
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => set({ reloadOnWake: !(o.reloadOnWake ?? true) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background:
-                                                            (o.reloadOnWake ?? true)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.reloadOnWake ?? true) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Wake-Up Datenpunkt{' '}
-                                                    <span style={{ opacity: 0.6 }}>(optional, z.B. Eufy)</span>
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={(o.wakeUpDp as string) ?? ''}
-                                                        onChange={(e) => set({ wakeUpDp: e.target.value || undefined })}
-                                                        placeholder="adapter.0.channel.state"
-                                                        className={`${cCls} flex-1 font-mono min-w-0`}
-                                                        style={cSty}
-                                                    />
+                                                {(() => {
+                                                    const camPath = ((o.streamUrl as string) ?? '')
+                                                        .split('?')[0]
+                                                        .toLowerCase();
+                                                    const isHtmlStream =
+                                                        camPath.endsWith('.html') || camPath.endsWith('.htm');
+                                                    if (camUrlMode !== 'datapoint' && !isHtmlStream) return null;
+                                                    return (
+                                                        <IframeInteractionSelect
+                                                            o={o}
+                                                            set={set}
+                                                            sty={cSty}
+                                                            hasClickAction={hasClickAction}
+                                                        />
+                                                    );
+                                                })()}
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="min-w-0">
+                                                        <label
+                                                            className="text-[11px] block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Nach Standby neu laden
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                        >
+                                                            Holt den Stream nach Display-Standby zurück
+                                                        </p>
+                                                    </div>
                                                     <button
-                                                        type="button"
-                                                        onClick={() => setPickerTarget('camera_wakeUpDp')}
-                                                        className="px-2 rounded-lg shrink-0"
+                                                        onClick={() => set({ reloadOnWake: !(o.reloadOnWake ?? true) })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
                                                         style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
+                                                            background:
+                                                                (o.reloadOnWake ?? true)
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
                                                         }}
                                                     >
-                                                        …
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: (o.reloadOnWake ?? true) ? '18px' : '2px' }}
+                                                        />
                                                     </button>
                                                 </div>
-                                            </div>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {(o.wakeUpDp as string) ? 'Wake-Up Auslöser' : 'Stream starten'}
-                                                </label>
-                                                <select
-                                                    value={
-                                                        (o.wakeUpMode as string) === 'onView'
-                                                            ? 'onView'
-                                                            : (o.wakeUpMode as string) === 'onClick' ||
-                                                                (o.wakeUpDp as string)
-                                                              ? 'onClick'
-                                                              : 'auto'
-                                                    }
-                                                    onChange={(e) => set({ wakeUpMode: e.target.value })}
-                                                    className={cCls}
-                                                    style={cSty}
-                                                >
-                                                    {!(o.wakeUpDp as string) && (
-                                                        <option value="auto">Sofort beim Anzeigen</option>
-                                                    )}
-                                                    <option value="onClick">Manuell (bei Klick)</option>
-                                                    <option value="onView">Bei Sicht (Viewport)</option>
-                                                </select>
-                                            </div>
-                                            {(o.wakeUpDp as string) && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Wartezeit nach Wake-Up (Sek.)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={1}
-                                                        max={30}
-                                                        value={(o.wakeUpDelay as number) ?? 3}
-                                                        onChange={(e) => set({ wakeUpDelay: Number(e.target.value) })}
-                                                        className={cCls}
-                                                        style={cSty}
-                                                    />
-                                                </div>
-                                            )}
-                                            {((o.wakeUpDp as string) ||
-                                                (o.wakeUpMode as string) === 'onClick' ||
-                                                (o.wakeUpMode as string) === 'onView') && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Stream-Timeout (Sek., 0 = deaktiviert)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        value={(o.streamTimeout as number) ?? 60}
-                                                        onChange={(e) => set({ streamTimeout: Number(e.target.value) })}
-                                                        className={cCls}
-                                                        style={cSty}
-                                                    />
-                                                </div>
-                                            )}
-
+                                            </ConfigSection>
                                             {/* ── Standard layout: video ratio + info rows ── */}
-                                            {(config.layout ?? 'minimal') === 'default' &&
-                                                (() => {
-                                                    const ratio = (o.videoRatio as number) ?? 60;
-                                                    const items: CameraSlot[] = (o.infoItems as CameraSlot[]) ?? [];
-                                                    const updateItem = (idx: number, patch: Partial<CameraSlot>) => {
-                                                        const next = items.map((it, i) =>
-                                                            i === idx ? { ...it, ...patch } : it,
-                                                        );
-                                                        set({ infoItems: next });
-                                                    };
-                                                    const removeItem = (idx: number) =>
-                                                        set({ infoItems: items.filter((_, i) => i !== idx) });
-                                                    const addItem = () =>
-                                                        set({
-                                                            infoItems: [...items, { type: 'empty' as CameraSlotType }],
-                                                        });
-                                                    return (
-                                                        <>
-                                                            <div>
-                                                                <label
-                                                                    className="text-[11px] mb-1 flex items-center justify-between"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    <span>Video-Anteil</span>
-                                                                    <span className="font-mono">{ratio}%</span>
-                                                                </label>
-                                                                <input
-                                                                    type="range"
-                                                                    min={20}
-                                                                    max={85}
-                                                                    value={ratio}
-                                                                    onChange={(e) =>
-                                                                        set({ videoRatio: Number(e.target.value) })
-                                                                    }
-                                                                    className="w-full h-1 rounded"
-                                                                    style={{ accentColor: 'var(--accent)' }}
-                                                                />
-                                                            </div>
-                                                            <div>
-                                                                <label
-                                                                    className="text-[11px] mb-1.5 block"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Zeilen{' '}
-                                                                    <span style={{ opacity: 0.6 }}>
-                                                                        (Anzeige &amp; Aktionen)
-                                                                    </span>
-                                                                </label>
-                                                                <div className="flex flex-col gap-1.5">
-                                                                    {items.map((item, idx) => (
-                                                                        <CameraSlotEditorRow
-                                                                            key={idx}
-                                                                            slot={item}
-                                                                            idx={idx}
-                                                                            label={`Zeile ${idx + 1}`}
-                                                                            cCls={cCls}
-                                                                            cSty={cSty}
-                                                                            onChange={updateItem}
-                                                                            onRemove={() => removeItem(idx)}
-                                                                            onPickDp={(i) => {
-                                                                                setCameraSlotPickerIdx(i);
-                                                                                setPickerTarget('camera_slot');
-                                                                            }}
-                                                                        />
-                                                                    ))}
-                                                                    <button
-                                                                        onClick={addItem}
-                                                                        className="text-xs py-1.5 rounded-lg w-full"
-                                                                        style={{
-                                                                            background: 'var(--app-bg)',
-                                                                            color: 'var(--text-secondary)',
-                                                                            border: '1px dashed var(--app-border)',
-                                                                        }}
+                                            {(config.layout ?? 'minimal') === 'default' && (
+                                                <ConfigSection title="Layout" sectionKey="layout">
+                                                    {(() => {
+                                                        const ratio = (o.videoRatio as number) ?? 60;
+                                                        const items: CameraSlot[] = (o.infoItems as CameraSlot[]) ?? [];
+                                                        const updateItem = (
+                                                            idx: number,
+                                                            patch: Partial<CameraSlot>,
+                                                        ) => {
+                                                            const next = items.map((it, i) =>
+                                                                i === idx ? { ...it, ...patch } : it,
+                                                            );
+                                                            set({ infoItems: next });
+                                                        };
+                                                        const removeItem = (idx: number) =>
+                                                            set({ infoItems: items.filter((_, i) => i !== idx) });
+                                                        const addItem = () =>
+                                                            set({
+                                                                infoItems: [
+                                                                    ...items,
+                                                                    { type: 'empty' as CameraSlotType },
+                                                                ],
+                                                            });
+                                                        return (
+                                                            <>
+                                                                <div>
+                                                                    <label
+                                                                        className="text-[11px] mb-1 flex items-center justify-between"
+                                                                        style={{ color: 'var(--text-secondary)' }}
                                                                     >
-                                                                        + Zeile hinzufügen
-                                                                    </button>
+                                                                        <span>Video-Anteil</span>
+                                                                        <span className="font-mono">{ratio}%</span>
+                                                                    </label>
+                                                                    <input
+                                                                        type="range"
+                                                                        min={20}
+                                                                        max={85}
+                                                                        value={ratio}
+                                                                        onChange={(e) =>
+                                                                            set({ videoRatio: Number(e.target.value) })
+                                                                        }
+                                                                        className="w-full h-1 rounded"
+                                                                        style={{ accentColor: 'var(--accent)' }}
+                                                                    />
                                                                 </div>
-                                                            </div>
-                                                        </>
-                                                    );
-                                                })()}
-
+                                                                <div>
+                                                                    <label
+                                                                        className="text-[11px] mb-1.5 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Zeilen{' '}
+                                                                        <span style={{ opacity: 0.6 }}>
+                                                                            (Anzeige &amp; Aktionen)
+                                                                        </span>
+                                                                    </label>
+                                                                    <div className="flex flex-col gap-1.5">
+                                                                        {items.map((item, idx) => (
+                                                                            <CameraSlotEditorRow
+                                                                                key={idx}
+                                                                                slot={item}
+                                                                                idx={idx}
+                                                                                label={`Zeile ${idx + 1}`}
+                                                                                cCls={cCls}
+                                                                                cSty={cSty}
+                                                                                onChange={updateItem}
+                                                                                onRemove={() => removeItem(idx)}
+                                                                                onPickDp={(i) => {
+                                                                                    setCameraSlotPickerIdx(i);
+                                                                                    setPickerTarget('camera_slot');
+                                                                                }}
+                                                                            />
+                                                                        ))}
+                                                                        <button
+                                                                            onClick={addItem}
+                                                                            className="text-xs py-1.5 rounded-lg w-full"
+                                                                            style={{
+                                                                                background: 'var(--app-bg)',
+                                                                                color: 'var(--text-secondary)',
+                                                                                border: '1px dashed var(--app-border)',
+                                                                            }}
+                                                                        >
+                                                                            + Zeile hinzufügen
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </ConfigSection>
+                                            )}
                                             {/* ── Custom Grid layout: template + slots ── */}
-                                            {(config.layout ?? 'minimal') === 'custom' &&
-                                                (() => {
-                                                    const tmplId =
-                                                        (o.cameraTemplate as CameraTemplateId) ?? 'stream-left';
-                                                    const tmpl = CAMERA_TEMPLATES[tmplId];
-                                                    const slots: CameraSlot[] = (o.customSlots as CameraSlot[]) ?? [];
-                                                    const handleTmplChange = (newId: string) => {
-                                                        const spec = CAMERA_TEMPLATES[newId as CameraTemplateId];
-                                                        const padded = Array.from(
-                                                            { length: spec.slotCount },
+                                            {(config.layout ?? 'minimal') === 'custom' && (
+                                                <ConfigSection title="Layout" sectionKey="layout">
+                                                    {(() => {
+                                                        const tmplId =
+                                                            (o.cameraTemplate as CameraTemplateId) ?? 'stream-left';
+                                                        const tmpl = CAMERA_TEMPLATES[tmplId];
+                                                        const slots: CameraSlot[] =
+                                                            (o.customSlots as CameraSlot[]) ?? [];
+                                                        const handleTmplChange = (newId: string) => {
+                                                            const spec = CAMERA_TEMPLATES[newId as CameraTemplateId];
+                                                            const padded = Array.from(
+                                                                { length: spec.slotCount },
+                                                                (_, i) =>
+                                                                    slots[i] ?? { type: 'empty' as CameraSlotType },
+                                                            );
+                                                            set({ cameraTemplate: newId, customSlots: padded });
+                                                        };
+                                                        const updateSlot = (
+                                                            idx: number,
+                                                            patch: Partial<CameraSlot>,
+                                                        ) => {
+                                                            const next = slots.map((s, i) =>
+                                                                i === idx ? { ...s, ...patch } : s,
+                                                            );
+                                                            set({ customSlots: next });
+                                                        };
+                                                        const paddedSlots = Array.from(
+                                                            { length: tmpl.slotCount },
                                                             (_, i) => slots[i] ?? { type: 'empty' as CameraSlotType },
                                                         );
-                                                        set({ cameraTemplate: newId, customSlots: padded });
-                                                    };
-                                                    const updateSlot = (idx: number, patch: Partial<CameraSlot>) => {
-                                                        const next = slots.map((s, i) =>
-                                                            i === idx ? { ...s, ...patch } : s,
-                                                        );
-                                                        set({ customSlots: next });
-                                                    };
-                                                    const paddedSlots = Array.from(
-                                                        { length: tmpl.slotCount },
-                                                        (_, i) => slots[i] ?? { type: 'empty' as CameraSlotType },
-                                                    );
-                                                    return (
-                                                        <>
-                                                            <div>
-                                                                <label
-                                                                    className="text-[11px] mb-1 block"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Aufteilung
-                                                                </label>
-                                                                <select
-                                                                    value={tmplId}
-                                                                    onChange={(e) => handleTmplChange(e.target.value)}
-                                                                    className={cCls}
-                                                                    style={cSty}
-                                                                >
-                                                                    {(
-                                                                        Object.entries(CAMERA_TEMPLATES) as [
-                                                                            CameraTemplateId,
-                                                                            typeof tmpl,
-                                                                        ][]
-                                                                    ).map(([id, spec]) => (
-                                                                        <option key={id} value={id}>
-                                                                            {spec.label}
-                                                                        </option>
-                                                                    ))}
-                                                                </select>
-                                                            </div>
-                                                            <div>
-                                                                <label
-                                                                    className="text-[11px] mb-1.5 block"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Slots{' '}
-                                                                    <span style={{ opacity: 0.6 }}>
-                                                                        (Anzeige &amp; Aktionen)
-                                                                    </span>
-                                                                </label>
-                                                                <div className="flex flex-col gap-1.5">
-                                                                    {paddedSlots.map((slot, idx) => (
-                                                                        <CameraSlotEditorRow
-                                                                            key={idx}
-                                                                            slot={slot}
-                                                                            idx={idx}
-                                                                            label={`Slot ${idx + 1}`}
-                                                                            cCls={cCls}
-                                                                            cSty={cSty}
-                                                                            onChange={updateSlot}
-                                                                            onPickDp={(i) => {
-                                                                                setCameraSlotPickerIdx(i);
-                                                                                setPickerTarget('camera_slot');
-                                                                            }}
-                                                                        />
-                                                                    ))}
+                                                        return (
+                                                            <>
+                                                                <div>
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Aufteilung
+                                                                    </label>
+                                                                    <select
+                                                                        value={tmplId}
+                                                                        onChange={(e) =>
+                                                                            handleTmplChange(e.target.value)
+                                                                        }
+                                                                        className={cCls}
+                                                                        style={cSty}
+                                                                    >
+                                                                        {(
+                                                                            Object.entries(CAMERA_TEMPLATES) as [
+                                                                                CameraTemplateId,
+                                                                                typeof tmpl,
+                                                                            ][]
+                                                                        ).map(([id, spec]) => (
+                                                                            <option key={id} value={id}>
+                                                                                {spec.label}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
                                                                 </div>
-                                                            </div>
-                                                        </>
-                                                    );
-                                                })()}
+                                                                <div>
+                                                                    <label
+                                                                        className="text-[11px] mb-1.5 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Slots{' '}
+                                                                        <span style={{ opacity: 0.6 }}>
+                                                                            (Anzeige &amp; Aktionen)
+                                                                        </span>
+                                                                    </label>
+                                                                    <div className="flex flex-col gap-1.5">
+                                                                        {paddedSlots.map((slot, idx) => (
+                                                                            <CameraSlotEditorRow
+                                                                                key={idx}
+                                                                                slot={slot}
+                                                                                idx={idx}
+                                                                                label={`Slot ${idx + 1}`}
+                                                                                cCls={cCls}
+                                                                                cSty={cSty}
+                                                                                onChange={updateSlot}
+                                                                                onPickDp={(i) => {
+                                                                                    setCameraSlotPickerIdx(i);
+                                                                                    setPickerTarget('camera_slot');
+                                                                                }}
+                                                                            />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    })()}
+                                                </ConfigSection>
+                                            )}
                                         </>
                                     );
                                 })()}
@@ -14034,454 +13875,438 @@ function WidgetFrameInner({
                                     const urlMode = (o.iframeUrlMode as string) ?? 'static';
                                     return (
                                         <>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    URL-Quelle
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    {(['static', 'datapoint'] as const).map((m) => (
-                                                        <button
-                                                            key={m}
-                                                            onClick={() => set({ iframeUrlMode: m })}
-                                                            className="flex-1 text-[11px] py-1 rounded-lg transition-colors"
-                                                            style={{
-                                                                background:
-                                                                    urlMode === m ? 'var(--accent)' : 'var(--app-bg)',
-                                                                color: urlMode === m ? '#fff' : 'var(--text-secondary)',
-                                                                border: '1px solid var(--app-border)',
-                                                            }}
-                                                        >
-                                                            {m === 'static' ? 'Direkte URL' : 'Datenpunkt'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            {urlMode === 'static' && (
+                                            <ConfigSection title="Quelle" sectionKey="source">
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        URL
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={(o.iframeUrl as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            set({ iframeUrl: e.target.value || undefined })
-                                                        }
-                                                        placeholder="https://…"
-                                                        className={iCls}
-                                                        style={iSty}
-                                                    />
-                                                </div>
-                                            )}
-                                            {urlMode === 'datapoint' && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        URL-Datenpunkt
+                                                        URL-Quelle
                                                     </label>
                                                     <div className="flex gap-1">
-                                                        <input
-                                                            type="text"
-                                                            value={(o.iframeUrlDp as string) ?? ''}
-                                                            onChange={(e) =>
-                                                                set({ iframeUrlDp: e.target.value || undefined })
-                                                            }
-                                                            placeholder="Datenpunkt-ID"
-                                                            className={`${iCls} font-mono flex-1 min-w-0`}
-                                                            style={iSty}
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setPickerTarget('iframe_urlDp')}
-                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                            style={{
-                                                                background: 'var(--app-bg)',
-                                                                color: 'var(--text-secondary)',
-                                                                border: '1px solid var(--app-border)',
-                                                            }}
-                                                            title={t('wf.edit.fromIoBroker')}
-                                                        >
-                                                            <Database size={13} />
-                                                        </button>
+                                                        {(['static', 'datapoint'] as const).map((m) => (
+                                                            <button
+                                                                key={m}
+                                                                onClick={() => set({ iframeUrlMode: m })}
+                                                                className="flex-1 text-[11px] py-1 rounded-lg transition-colors"
+                                                                style={{
+                                                                    background:
+                                                                        urlMode === m
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                    color:
+                                                                        urlMode === m
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                            >
+                                                                {m === 'static' ? 'Direkte URL' : 'Datenpunkt'}
+                                                            </button>
+                                                        ))}
                                                     </div>
                                                 </div>
-                                            )}
-
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div>
-                                                    <label
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Proxy nutzen
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                    >
-                                                        Umgeht X-Frame-Options des Zielservers
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => set({ useProxy: !(o.useProxy ?? false) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background:
-                                                            (o.useProxy ?? false)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.useProxy ?? false) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Aufrechterhalten (kein Reload)
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ keepAlive: !(o.keepAlive ?? false) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background:
-                                                            (o.keepAlive ?? false)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.keepAlive ?? false) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between gap-2">
-                                                <div className="min-w-0">
-                                                    <label
-                                                        className="text-[11px] block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Nach Standby neu laden
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                    >
-                                                        Startet Videos/Streams nach Display-Standby wieder
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() => set({ reloadOnWake: !(o.reloadOnWake ?? false) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background:
-                                                            (o.reloadOnWake ?? false)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.reloadOnWake ?? false) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <IframeInteractionSelect
-                                                o={o}
-                                                set={set}
-                                                sty={iSty}
-                                                hasClickAction={hasClickAction}
-                                            />
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Farbschema der Seite
-                                                </label>
-                                                <select
-                                                    value={resolveIframeColorSchemeMode(o)}
-                                                    onChange={(e) => set({ iframeColorScheme: e.target.value })}
-                                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                                    style={iSty}
-                                                >
-                                                    {IFRAME_COLOR_SCHEME_MODES.map((m) => (
-                                                        <option key={m.value} value={m.value}>
-                                                            {m.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <p
-                                                    className="text-[10px] mt-1"
-                                                    style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                >
-                                                    Safari und Firefox reichen die Helligkeit an die eingebettete Seite
-                                                    weiter, Chrome folgt immer dem Gerät. {'„Neutral“'} lässt die
-                                                    Widget-Karte durchscheinen, zeigt die Seite aber hell.
-                                                </p>
-                                            </div>
-                                            {(() => {
-                                                // A level set through the MCP need not sit on the ladder —
-                                                // list it alongside instead of silently snapping it away.
-                                                const zoom = clampIframeZoom((o.iframeZoom as number) ?? 100);
-                                                const stops = (IFRAME_ZOOM_STOPS as readonly number[]).includes(zoom)
-                                                    ? [...IFRAME_ZOOM_STOPS]
-                                                    : [...IFRAME_ZOOM_STOPS, zoom].sort((a, b) => a - b);
-                                                return (
+                                                {urlMode === 'static' && (
                                                     <div>
                                                         <label
                                                             className="text-[11px] mb-1 block"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            Zoom
+                                                            URL
                                                         </label>
-                                                        <select
-                                                            value={zoom}
+                                                        <input
+                                                            type="text"
+                                                            value={(o.iframeUrl as string) ?? ''}
                                                             onChange={(e) =>
-                                                                set({ iframeZoom: parseInt(e.target.value) })
+                                                                set({ iframeUrl: e.target.value || undefined })
+                                                            }
+                                                            placeholder="https://…"
+                                                            className={iCls}
+                                                            style={iSty}
+                                                        />
+                                                    </div>
+                                                )}
+                                                {urlMode === 'datapoint' && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            URL-Datenpunkt
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={(o.iframeUrlDp as string) ?? ''}
+                                                                onChange={(e) =>
+                                                                    set({ iframeUrlDp: e.target.value || undefined })
+                                                                }
+                                                                placeholder="Datenpunkt-ID"
+                                                                className={`${iCls} font-mono flex-1 min-w-0`}
+                                                                style={iSty}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setPickerTarget('iframe_urlDp')}
+                                                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    color: 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                                title={t('wf.edit.fromIoBroker')}
+                                                            >
+                                                                <Database size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title="Laden & Proxy" sectionKey="loading">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Proxy nutzen
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                        >
+                                                            Umgeht X-Frame-Options des Zielservers
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => set({ useProxy: !(o.useProxy ?? false) })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background:
+                                                                (o.useProxy ?? false)
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: (o.useProxy ?? false) ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Aufrechterhalten (kein Reload)
+                                                    </label>
+                                                    <button
+                                                        onClick={() => set({ keepAlive: !(o.keepAlive ?? false) })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                                        style={{
+                                                            background:
+                                                                (o.keepAlive ?? false)
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: (o.keepAlive ?? false) ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className="min-w-0">
+                                                        <label
+                                                            className="text-[11px] block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Nach Standby neu laden
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                        >
+                                                            Startet Videos/Streams nach Display-Standby wieder
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() =>
+                                                            set({ reloadOnWake: !(o.reloadOnWake ?? false) })
+                                                        }
+                                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background:
+                                                                (o.reloadOnWake ?? false)
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: (o.reloadOnWake ?? false) ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                {!(o.keepAlive ?? false) && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Aktualisierungsintervall (Sekunden, 0 = aus)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={0}
+                                                            value={(o.refreshInterval as number) ?? 0}
+                                                            onChange={(e) =>
+                                                                set({ refreshInterval: parseInt(e.target.value) || 0 })
                                                             }
                                                             className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                                                             style={iSty}
-                                                        >
-                                                            {stops.map((z) => (
-                                                                <option key={z} value={z}>
-                                                                    {z} %{z === 100 ? ' (Standard)' : ''}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                        <p
-                                                            className="text-[10px] mt-1 leading-tight"
-                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                        >
-                                                            Gilt auf allen Geräten. Unter 100 % baut die Seite sich für
-                                                            eine breitere Fläche auf und passt dann ins Widget.
-                                                        </p>
+                                                        />
                                                     </div>
-                                                );
-                                            })()}
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div className="min-w-0">
-                                                    <label
-                                                        className="text-[11px] block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Zoom am Gerät einstellbar
-                                                    </label>
-                                                    <p
-                                                        className="text-[10px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                    >
-                                                        Tasten am Widget; die Stufe gilt nur auf diesem Gerät. Bei {'„'}
-                                                        Nur Klick-Aktion{'“'} zusätzlich Zwei-Finger-Zoom — ein
-                                                        bedienbarer Inhalt behält die Berührung für sich.
-                                                    </p>
-                                                </div>
-                                                <button
-                                                    onClick={() =>
-                                                        set({
-                                                            iframeZoomControls: !(o.iframeZoomControls ?? false),
-                                                        })
-                                                    }
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background:
-                                                            (o.iframeZoomControls ?? false)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{
-                                                            left: (o.iframeZoomControls ?? false) ? '18px' : '2px',
-                                                        }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <EmbedMobileHeightField options={o} onChange={set} />
-                                            {!(o.keepAlive ?? false) && (
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Aktualisierungsintervall (Sekunden, 0 = aus)
+                                                        Farbschema der Seite
                                                     </label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        value={(o.refreshInterval as number) ?? 0}
-                                                        onChange={(e) =>
-                                                            set({ refreshInterval: parseInt(e.target.value) || 0 })
-                                                        }
+                                                    <select
+                                                        value={resolveIframeColorSchemeMode(o)}
+                                                        onChange={(e) => set({ iframeColorScheme: e.target.value })}
                                                         className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                                                         style={iSty}
-                                                    />
-                                                </div>
-                                            )}
-                                            {(() => {
-                                                const preset = ((o.sandboxPreset as SandboxPreset | undefined) ??
-                                                    ((o.sandbox as boolean) ? 'extended' : 'off')) as SandboxPreset;
-                                                const info =
-                                                    SANDBOX_PRESETS.find((p) => p.value === preset) ??
-                                                    SANDBOX_PRESETS[0];
-                                                return (
-                                                    <div>
-                                                        <label
-                                                            className="text-[11px] mb-1 block"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            Sandbox
-                                                        </label>
-                                                        <select
-                                                            value={preset}
-                                                            onChange={(e) =>
-                                                                set({
-                                                                    sandboxPreset: e.target.value,
-                                                                    sandbox: undefined,
-                                                                })
-                                                            }
-                                                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                                            style={iSty}
-                                                        >
-                                                            {SANDBOX_PRESETS.map((p) => (
-                                                                <option key={p.value} value={p.value}>
-                                                                    {p.label}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                        <p
-                                                            className="text-[10px] mt-1 leading-tight"
-                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                        >
-                                                            {info.description}
-                                                        </p>
-                                                        {preset !== 'off' && preset !== 'custom' && info.flags && (
-                                                            <p
-                                                                className="text-[10px] mt-0.5 font-mono leading-tight"
-                                                                style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    opacity: 0.5,
-                                                                }}
-                                                            >
-                                                                {info.flags}
-                                                            </p>
-                                                        )}
-                                                        {preset === 'custom' && (
-                                                            <input
-                                                                type="text"
-                                                                value={(o.sandboxCustom as string) ?? ''}
-                                                                onChange={(e) =>
-                                                                    set({
-                                                                        sandboxCustom: e.target.value || undefined,
-                                                                    })
-                                                                }
-                                                                placeholder="allow-scripts allow-forms"
-                                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono mt-1"
-                                                                style={iSty}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                );
-                                            })()}
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <label
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Vollbild-Button anzeigen
-                                                    </label>
+                                                        {IFRAME_COLOR_SCHEME_MODES.map((m) => (
+                                                            <option key={m.value} value={m.value}>
+                                                                {m.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
                                                     <p
-                                                        className="text-[10px]"
+                                                        className="text-[10px] mt-1"
                                                         style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
                                                     >
-                                                        Button erscheint beim Darüberfahren mit der Maus
+                                                        Safari und Firefox reichen die Helligkeit an die eingebettete
+                                                        Seite weiter, Chrome folgt immer dem Gerät. {'„Neutral“'} lässt
+                                                        die Widget-Karte durchscheinen, zeigt die Seite aber hell.
                                                     </p>
                                                 </div>
-                                                <button
-                                                    onClick={() =>
-                                                        set({ fullscreenButton: !(o.fullscreenButton ?? false) })
-                                                    }
-                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background:
-                                                            (o.fullscreenButton ?? false)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{
-                                                            left: (o.fullscreenButton ?? false) ? '18px' : '2px',
-                                                        }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {(() => {
-                                                const currentTab = activeSectionState(
-                                                    useDashboardStore.getState(),
-                                                )?.tabs.find((t) => t.widgets?.some((w) => w.id === config.id));
-                                                const otherCount = (currentTab?.widgets?.length ?? 1) - 1;
-                                                const canEnable = otherCount === 0;
-                                                const isEnabled = !!(o.fillTab ?? false);
-                                                return (
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div style={{ opacity: canEnable || isEnabled ? 1 : 0.5 }}>
+                                                {(() => {
+                                                    // A level set through the MCP need not sit on the ladder —
+                                                    // list it alongside instead of silently snapping it away.
+                                                    const zoom = clampIframeZoom((o.iframeZoom as number) ?? 100);
+                                                    const stops = (IFRAME_ZOOM_STOPS as readonly number[]).includes(
+                                                        zoom,
+                                                    )
+                                                        ? [...IFRAME_ZOOM_STOPS]
+                                                        : [...IFRAME_ZOOM_STOPS, zoom].sort((a, b) => a - b);
+                                                    return (
+                                                        <div>
                                                             <label
-                                                                className="text-[11px]"
+                                                                className="text-[11px] mb-1 block"
                                                                 style={{ color: 'var(--text-secondary)' }}
                                                             >
-                                                                Tab ausfüllen
+                                                                Zoom
                                                             </label>
-                                                            <p
-                                                                className="text-[10px]"
-                                                                style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    opacity: 0.7,
-                                                                }}
+                                                            <select
+                                                                value={zoom}
+                                                                onChange={(e) =>
+                                                                    set({ iframeZoom: parseInt(e.target.value) })
+                                                                }
+                                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                                style={iSty}
                                                             >
-                                                                {canEnable || isEnabled
-                                                                    ? 'iFrame füllt den gesamten Tab-Bereich aus'
-                                                                    : `Entferne zuerst die anderen ${otherCount} Widget${otherCount === 1 ? '' : 's'} aus diesem Tab`}
+                                                                {stops.map((z) => (
+                                                                    <option key={z} value={z}>
+                                                                        {z} %{z === 100 ? ' (Standard)' : ''}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <p
+                                                                className="text-[10px] mt-1 leading-tight"
+                                                                style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                            >
+                                                                Gilt auf allen Geräten. Unter 100 % baut die Seite sich
+                                                                für eine breitere Fläche auf und passt dann ins Widget.
                                                             </p>
                                                         </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                if (canEnable || isEnabled)
-                                                                    set({ fillTab: !isEnabled });
-                                                            }}
-                                                            disabled={!canEnable && !isEnabled}
-                                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                            style={{
-                                                                background: isEnabled
+                                                    );
+                                                })()}
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="min-w-0">
+                                                        <label
+                                                            className="text-[11px] block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Zoom am Gerät einstellbar
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                        >
+                                                            Tasten am Widget; die Stufe gilt nur auf diesem Gerät. Bei{' '}
+                                                            {'„'}
+                                                            Nur Klick-Aktion{'“'} zusätzlich Zwei-Finger-Zoom — ein
+                                                            bedienbarer Inhalt behält die Berührung für sich.
+                                                        </p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() =>
+                                                            set({
+                                                                iframeZoomControls: !(o.iframeZoomControls ?? false),
+                                                            })
+                                                        }
+                                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background:
+                                                                (o.iframeZoomControls ?? false)
                                                                     ? 'var(--accent)'
                                                                     : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{
+                                                                left: (o.iframeZoomControls ?? false) ? '18px' : '2px',
                                                             }}
-                                                        >
-                                                            <span
-                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                                style={{ left: isEnabled ? '18px' : '2px' }}
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                );
-                                            })()}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                <EmbedMobileHeightField options={o} onChange={set} />
+                                            </ConfigSection>
+                                            <ConfigSection title="Sicherheit" sectionKey="sandbox">
+                                                {(() => {
+                                                    const preset = ((o.sandboxPreset as SandboxPreset | undefined) ??
+                                                        ((o.sandbox as boolean) ? 'extended' : 'off')) as SandboxPreset;
+                                                    const info =
+                                                        SANDBOX_PRESETS.find((p) => p.value === preset) ??
+                                                        SANDBOX_PRESETS[0];
+                                                    return (
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Sandbox
+                                                            </label>
+                                                            <select
+                                                                value={preset}
+                                                                onChange={(e) =>
+                                                                    set({
+                                                                        sandboxPreset: e.target.value,
+                                                                        sandbox: undefined,
+                                                                    })
+                                                                }
+                                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                                style={iSty}
+                                                            >
+                                                                {SANDBOX_PRESETS.map((p) => (
+                                                                    <option key={p.value} value={p.value}>
+                                                                        {p.label}
+                                                                    </option>
+                                                                ))}
+                                                            </select>
+                                                            <p
+                                                                className="text-[10px] mt-1 leading-tight"
+                                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                            >
+                                                                {info.description}
+                                                            </p>
+                                                            {preset !== 'off' && preset !== 'custom' && info.flags && (
+                                                                <p
+                                                                    className="text-[10px] mt-0.5 font-mono leading-tight"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.5,
+                                                                    }}
+                                                                >
+                                                                    {info.flags}
+                                                                </p>
+                                                            )}
+                                                            {preset === 'custom' && (
+                                                                <input
+                                                                    type="text"
+                                                                    value={(o.sandboxCustom as string) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        set({
+                                                                            sandboxCustom: e.target.value || undefined,
+                                                                        })
+                                                                    }
+                                                                    placeholder="allow-scripts allow-forms"
+                                                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono mt-1"
+                                                                    style={iSty}
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                                <IframeInteractionSelect
+                                                    o={o}
+                                                    set={set}
+                                                    sty={iSty}
+                                                    hasClickAction={hasClickAction}
+                                                />
+                                                {(() => {
+                                                    const currentTab = activeSectionState(
+                                                        useDashboardStore.getState(),
+                                                    )?.tabs.find((t) => t.widgets?.some((w) => w.id === config.id));
+                                                    const otherCount = (currentTab?.widgets?.length ?? 1) - 1;
+                                                    const canEnable = otherCount === 0;
+                                                    const isEnabled = !!(o.fillTab ?? false);
+                                                    return (
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <div style={{ opacity: canEnable || isEnabled ? 1 : 0.5 }}>
+                                                                <label
+                                                                    className="text-[11px]"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Tab ausfüllen
+                                                                </label>
+                                                                <p
+                                                                    className="text-[10px]"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
+                                                                >
+                                                                    {canEnable || isEnabled
+                                                                        ? 'iFrame füllt den gesamten Tab-Bereich aus'
+                                                                        : `Entferne zuerst die anderen ${otherCount} Widget${otherCount === 1 ? '' : 's'} aus diesem Tab`}
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (canEnable || isEnabled)
+                                                                        set({ fillTab: !isEnabled });
+                                                                }}
+                                                                disabled={!canEnable && !isEnabled}
+                                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                style={{
+                                                                    background: isEnabled
+                                                                        ? 'var(--accent)'
+                                                                        : 'var(--app-border)',
+                                                                }}
+                                                            >
+                                                                <span
+                                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                    style={{ left: isEnabled ? '18px' : '2px' }}
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </ConfigSection>
                                         </>
                                     );
                                 })()}
@@ -14508,128 +14333,79 @@ function WidgetFrameInner({
                                         color: 'var(--text-primary)',
                                         border: '1px solid var(--app-border)',
                                     };
-                                    const hdr = (label: string) => (
-                                        <div
-                                            className="text-[10px] font-semibold uppercase tracking-wider pt-1"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {label}
-                                        </div>
-                                    );
                                     return (
                                         <>
-                                            {hdr('Anzeige')}
-                                            {(['default', 'battery', 'segments', 'bar'] as string[]).includes(
-                                                config.layout ?? 'default',
-                                            ) && (
-                                                <div className="flex items-center justify-between">
-                                                    <label
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Orientierung
-                                                    </label>
-                                                    <div
-                                                        className="flex rounded-lg overflow-hidden"
-                                                        style={{ border: '1px solid var(--app-border)' }}
-                                                    >
-                                                        {(['vertical', 'horizontal'] as const).map((v) => (
-                                                            <button
-                                                                key={v}
-                                                                onClick={() => set({ orientation: v })}
-                                                                className="px-3 py-1 text-[11px] transition-colors"
-                                                                style={{
-                                                                    background:
-                                                                        (o.orientation ?? 'vertical') === v
-                                                                            ? 'var(--accent)'
-                                                                            : 'var(--app-bg)',
-                                                                    color:
-                                                                        (o.orientation ?? 'vertical') === v
-                                                                            ? '#fff'
-                                                                            : 'var(--text-secondary)',
-                                                                }}
-                                                            >
-                                                                {v === 'vertical' ? 'Vertikal' : 'Horizontal'}
-                                                            </button>
-                                                        ))}
+                                            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                                                {renderMainDpField()}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                {(['default', 'battery', 'segments', 'bar'] as string[]).includes(
+                                                    config.layout ?? 'default',
+                                                ) && (
+                                                    <div className="flex items-center justify-between">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Orientierung
+                                                        </label>
+                                                        <div
+                                                            className="flex rounded-lg overflow-hidden"
+                                                            style={{ border: '1px solid var(--app-border)' }}
+                                                        >
+                                                            {(['vertical', 'horizontal'] as const).map((v) => (
+                                                                <button
+                                                                    key={v}
+                                                                    onClick={() => set({ orientation: v })}
+                                                                    className="px-3 py-1 text-[11px] transition-colors"
+                                                                    style={{
+                                                                        background:
+                                                                            (o.orientation ?? 'vertical') === v
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                        color:
+                                                                            (o.orientation ?? 'vertical') === v
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                    }}
+                                                                >
+                                                                    {v === 'vertical' ? 'Vertikal' : 'Horizontal'}
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                            {['default', 'battery', 'segments', 'wave', 'bar'].includes(
-                                                config.layout ?? 'default',
-                                            ) && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Balkenbreite/-höhe{' '}
-                                                        <span style={{ opacity: 0.6 }}>(% des Widgets)</span>
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={20}
-                                                        max={150}
-                                                        defaultValue={(o.barSize as number) ?? 80}
-                                                        onChange={(e) => {
-                                                            // Live preview: commit on every keystroke/spin so the
-                                                            // widget resizes immediately. Input stays uncontrolled
-                                                            // (defaultValue) to avoid cursor jumps while typing.
-                                                            if (e.target.value === '') return;
-                                                            const n = Number(e.target.value);
-                                                            if (!isNaN(n))
-                                                                set({ barSize: Math.min(150, Math.max(20, n)) });
-                                                        }}
-                                                        onBlur={(e) => {
-                                                            const v = Math.min(
-                                                                150,
-                                                                Math.max(20, Number(e.target.value) || 80),
-                                                            );
-                                                            set({ barSize: v });
-                                                        }}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter')
-                                                                (e.target as HTMLInputElement).blur();
-                                                        }}
-                                                        className={fCls}
-                                                        style={fSty}
-                                                    />
-                                                </div>
-                                            )}
-                                            {config.layout === 'segments' && (
-                                                <>
+                                                )}
+                                                {['default', 'battery', 'segments', 'wave', 'bar'].includes(
+                                                    config.layout ?? 'default',
+                                                ) && (
                                                     <div>
                                                         <label
                                                             className="text-[11px] mb-1 block"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            Anzahl Segmente
+                                                            Balkenbreite/-höhe{' '}
+                                                            <span style={{ opacity: 0.6 }}>(% des Widgets)</span>
                                                         </label>
                                                         <input
                                                             type="number"
-                                                            min={2}
-                                                            max={200}
-                                                            defaultValue={(o.segmentCount as number) ?? 12}
+                                                            min={20}
+                                                            max={150}
+                                                            defaultValue={(o.barSize as number) ?? 80}
                                                             onChange={(e) => {
+                                                                // Live preview: commit on every keystroke/spin so the
+                                                                // widget resizes immediately. Input stays uncontrolled
+                                                                // (defaultValue) to avoid cursor jumps while typing.
                                                                 if (e.target.value === '') return;
                                                                 const n = Number(e.target.value);
                                                                 if (!isNaN(n))
-                                                                    set({
-                                                                        segmentCount: Math.min(
-                                                                            200,
-                                                                            Math.max(2, Math.round(n)),
-                                                                        ),
-                                                                    });
+                                                                    set({ barSize: Math.min(150, Math.max(20, n)) });
                                                             }}
                                                             onBlur={(e) => {
                                                                 const v = Math.min(
-                                                                    200,
-                                                                    Math.max(
-                                                                        2,
-                                                                        Math.round(Number(e.target.value)) || 12,
-                                                                    ),
+                                                                    150,
+                                                                    Math.max(20, Number(e.target.value) || 80),
                                                                 );
-                                                                set({ segmentCount: v });
+                                                                set({ barSize: v });
                                                             }}
                                                             onKeyDown={(e) => {
                                                                 if (e.key === 'Enter')
@@ -14639,60 +14415,72 @@ function WidgetFrameInner({
                                                             style={fSty}
                                                         />
                                                     </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <label
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                            title="Die eingestellte Anzahl Segmente gleichmäßig über die ganze Länge verteilen"
-                                                        >
-                                                            {(o.orientation ?? 'vertical') === 'vertical'
-                                                                ? 'Höhe ausfüllen'
-                                                                : 'Breite ausfüllen'}
-                                                        </label>
-                                                        <button
-                                                            onClick={() =>
-                                                                set({
-                                                                    segmentFillWidth: !(o.segmentFillWidth ?? false),
-                                                                })
-                                                            }
-                                                            className="relative w-9 h-5 rounded-full transition-colors"
-                                                            style={{
-                                                                background:
-                                                                    (o.segmentFillWidth ?? false)
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-border)',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                                style={{
-                                                                    left:
-                                                                        (o.segmentFillWidth ?? false) ? '18px' : '2px',
+                                                )}
+                                                {config.layout === 'segments' && (
+                                                    <>
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Anzahl Segmente
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                min={2}
+                                                                max={200}
+                                                                defaultValue={(o.segmentCount as number) ?? 12}
+                                                                onChange={(e) => {
+                                                                    if (e.target.value === '') return;
+                                                                    const n = Number(e.target.value);
+                                                                    if (!isNaN(n))
+                                                                        set({
+                                                                            segmentCount: Math.min(
+                                                                                200,
+                                                                                Math.max(2, Math.round(n)),
+                                                                            ),
+                                                                        });
                                                                 }}
+                                                                onBlur={(e) => {
+                                                                    const v = Math.min(
+                                                                        200,
+                                                                        Math.max(
+                                                                            2,
+                                                                            Math.round(Number(e.target.value)) || 12,
+                                                                        ),
+                                                                    );
+                                                                    set({ segmentCount: v });
+                                                                }}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter')
+                                                                        (e.target as HTMLInputElement).blur();
+                                                                }}
+                                                                className={fCls}
+                                                                style={fSty}
                                                             />
-                                                        </button>
-                                                    </div>
-                                                    {(o.segmentFillWidth ?? false) && (
+                                                        </div>
                                                         <div className="flex items-center justify-between">
                                                             <label
                                                                 className="text-[11px]"
                                                                 style={{ color: 'var(--text-secondary)' }}
-                                                                title="Statt breiterer Segmente weitere Segmente gleicher Größe; die eingestellte Anzahl ist dann das Minimum"
+                                                                title="Die eingestellte Anzahl Segmente gleichmäßig über die ganze Länge verteilen"
                                                             >
-                                                                Anzahl an Länge anpassen
+                                                                {(o.orientation ?? 'vertical') === 'vertical'
+                                                                    ? 'Höhe ausfüllen'
+                                                                    : 'Breite ausfüllen'}
                                                             </label>
                                                             <button
                                                                 onClick={() =>
                                                                     set({
-                                                                        segmentAutoCount: !(
-                                                                            o.segmentAutoCount ?? false
+                                                                        segmentFillWidth: !(
+                                                                            o.segmentFillWidth ?? false
                                                                         ),
                                                                     })
                                                                 }
                                                                 className="relative w-9 h-5 rounded-full transition-colors"
                                                                 style={{
                                                                     background:
-                                                                        (o.segmentAutoCount ?? false)
+                                                                        (o.segmentFillWidth ?? false)
                                                                             ? 'var(--accent)'
                                                                             : 'var(--app-border)',
                                                                 }}
@@ -14701,401 +14489,405 @@ function WidgetFrameInner({
                                                                     className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                                                                     style={{
                                                                         left:
-                                                                            (o.segmentAutoCount ?? false)
+                                                                            (o.segmentFillWidth ?? false)
                                                                                 ? '18px'
                                                                                 : '2px',
                                                                     }}
                                                                 />
                                                             </button>
                                                         </div>
-                                                    )}
-                                                </>
-                                            )}
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Skala anzeigen
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ showTicks: !(o.showTicks ?? true) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background:
-                                                            (o.showTicks ?? true)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.showTicks ?? true) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Wert anzeigen
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ showValue: !(o.showValue ?? true) })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background:
-                                                            (o.showValue ?? true)
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: (o.showValue ?? true) ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {config.layout === 'segments' && (o.showValue ?? true) && (
+                                                        {(o.segmentFillWidth ?? false) && (
+                                                            <div className="flex items-center justify-between">
+                                                                <label
+                                                                    className="text-[11px]"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                    title="Statt breiterer Segmente weitere Segmente gleicher Größe; die eingestellte Anzahl ist dann das Minimum"
+                                                                >
+                                                                    Anzahl an Länge anpassen
+                                                                </label>
+                                                                <button
+                                                                    onClick={() =>
+                                                                        set({
+                                                                            segmentAutoCount: !(
+                                                                                o.segmentAutoCount ?? false
+                                                                            ),
+                                                                        })
+                                                                    }
+                                                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                                                    style={{
+                                                                        background:
+                                                                            (o.segmentAutoCount ?? false)
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                        style={{
+                                                                            left:
+                                                                                (o.segmentAutoCount ?? false)
+                                                                                    ? '18px'
+                                                                                    : '2px',
+                                                                        }}
+                                                                    />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {config.layout === 'segments' && (o.showValue ?? true) && (
+                                                    <div className="flex gap-2">
+                                                        <div className="flex-1">
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Wert-Position
+                                                            </label>
+                                                            <select
+                                                                value={
+                                                                    o.segmentValuePosition === 'beside'
+                                                                        ? 'beside'
+                                                                        : 'below'
+                                                                }
+                                                                onChange={(e) =>
+                                                                    set({ segmentValuePosition: e.target.value })
+                                                                }
+                                                                className={fCls}
+                                                                style={fSty}
+                                                            >
+                                                                <option value="below">Unter den Segmenten</option>
+                                                                <option value="beside">Neben den Segmenten</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                                title="Schriftgröße des Werts in px; leer = passt sich der Größe an"
+                                                            >
+                                                                Wert-Größe <span style={{ opacity: 0.6 }}>(px)</span>
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                min={6}
+                                                                max={200}
+                                                                placeholder="auto"
+                                                                defaultValue={(o.valueFontSize as number) || ''}
+                                                                onChange={(e) => {
+                                                                    const n = Number(e.target.value);
+                                                                    set({
+                                                                        valueFontSize:
+                                                                            e.target.value === '' || !(n > 0)
+                                                                                ? undefined
+                                                                                : Math.min(200, n),
+                                                                    });
+                                                                }}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter')
+                                                                        (e.target as HTMLInputElement).blur();
+                                                                }}
+                                                                className={fCls}
+                                                                style={fSty}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* Same block as the Universal widget's progress cell (#719, #720). */}
+                                                <BarValueFields
+                                                    fillOnly={config.layout !== 'bar'}
+                                                    showValue={(o.showValue as boolean) ?? true}
+                                                    placement={o.valuePlacement === 'inside' ? 'inside' : 'outside'}
+                                                    fillColor={o.fillColor as string | undefined}
+                                                    fillFallback="var(--accent)"
+                                                    onFillColor={(v) => set({ fillColor: v })}
+                                                    trackColor={o.trackColor as string | undefined}
+                                                    trackFallback="var(--app-bg)"
+                                                    valueFilledColor={o.valueFilledColor as string | undefined}
+                                                    valueEmptyColor={o.valueEmptyColor as string | undefined}
+                                                    onChange={(patch) => set({ ...patch })}
+                                                />
+                                            </ConfigSection>
+                                            <ConfigSection title="Skala" sectionKey="scale">
                                                 <div className="flex gap-2">
                                                     <div className="flex-1">
                                                         <label
                                                             className="text-[11px] mb-1 block"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            Wert-Position
+                                                            Min
                                                         </label>
-                                                        <select
-                                                            value={
-                                                                o.segmentValuePosition === 'beside' ? 'beside' : 'below'
-                                                            }
-                                                            onChange={(e) =>
-                                                                set({ segmentValuePosition: e.target.value })
-                                                            }
+                                                        <input
+                                                            type="number"
+                                                            value={min}
+                                                            onChange={(e) => set({ minValue: Number(e.target.value) })}
                                                             className={fCls}
                                                             style={fSty}
-                                                        >
-                                                            <option value="below">Unter den Segmenten</option>
-                                                            <option value="beside">Neben den Segmenten</option>
-                                                        </select>
+                                                        />
                                                     </div>
                                                     <div className="flex-1">
                                                         <label
                                                             className="text-[11px] mb-1 block"
                                                             style={{ color: 'var(--text-secondary)' }}
-                                                            title="Schriftgröße des Werts in px; leer = passt sich der Größe an"
                                                         >
-                                                            Wert-Größe <span style={{ opacity: 0.6 }}>(px)</span>
+                                                            Max
                                                         </label>
                                                         <input
                                                             type="number"
-                                                            min={6}
-                                                            max={200}
-                                                            placeholder="auto"
-                                                            defaultValue={(o.valueFontSize as number) || ''}
-                                                            onChange={(e) => {
-                                                                const n = Number(e.target.value);
-                                                                set({
-                                                                    valueFontSize:
-                                                                        e.target.value === '' || !(n > 0)
-                                                                            ? undefined
-                                                                            : Math.min(200, n),
-                                                                });
-                                                            }}
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter')
-                                                                    (e.target as HTMLInputElement).blur();
-                                                            }}
+                                                            value={max}
+                                                            onChange={(e) => set({ maxValue: Number(e.target.value) })}
                                                             className={fCls}
                                                             style={fSty}
                                                         />
                                                     </div>
                                                 </div>
-                                            )}
-                                            {/* Same block as the Universal widget's progress cell (#719, #720). */}
-                                            <BarValueFields
-                                                fillOnly={config.layout !== 'bar'}
-                                                showValue={(o.showValue as boolean) ?? true}
-                                                placement={o.valuePlacement === 'inside' ? 'inside' : 'outside'}
-                                                fillColor={o.fillColor as string | undefined}
-                                                fillFallback="var(--accent)"
-                                                onFillColor={(v) => set({ fillColor: v })}
-                                                trackColor={o.trackColor as string | undefined}
-                                                trackFallback="var(--app-bg)"
-                                                valueFilledColor={o.valueFilledColor as string | undefined}
-                                                valueEmptyColor={o.valueEmptyColor as string | undefined}
-                                                onChange={(patch) => set({ ...patch })}
-                                            />
-
-                                            {hdr('Skala')}
-                                            <div className="flex gap-2">
-                                                <div className="flex-1">
+                                                <DpRangeHint
+                                                    type={config.type}
+                                                    datapoint={config.datapoint}
+                                                    options={o}
+                                                    onApply={set}
+                                                />
+                                                <ScaleBoundsRow
+                                                    minDatapoint={o.minDatapoint as string | undefined}
+                                                    maxDatapoint={o.maxDatapoint as string | undefined}
+                                                    onChange={set}
+                                                    onPick={(which) =>
+                                                        setPickerTarget(which === 'min' ? 'scale_minDp' : 'scale_maxDp')
+                                                    }
+                                                    inputClassName={fCls}
+                                                    inputStyle={fSty}
+                                                />
+                                                <ValueFormatRow
+                                                    unit={o.unit as string | undefined}
+                                                    unitPlaceholder="%, L, m³"
+                                                    onUnitChange={(v) => set({ unit: v })}
+                                                    decimals={o.decimals as number | undefined}
+                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
+                                                    onChange={set}
+                                                    inputClassName={fCls}
+                                                    inputStyle={fSty}
+                                                />
+                                            </ConfigSection>
+                                            <ConfigSection title="Farbzonen" sectionKey="zones">
+                                                <div className="flex items-center justify-between">
                                                     <label
-                                                        className="text-[11px] mb-1 block"
+                                                        className="text-[11px]"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Min
+                                                        Farbzonen aktiv
                                                     </label>
-                                                    <input
-                                                        type="number"
-                                                        value={min}
-                                                        onChange={(e) => set({ minValue: Number(e.target.value) })}
-                                                        className={fCls}
-                                                        style={fSty}
-                                                    />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    <button
+                                                        onClick={() => set({ colorZones: !colorZones })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                                        style={{
+                                                            background: colorZones
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                        }}
                                                     >
-                                                        Max
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        value={max}
-                                                        onChange={(e) => set({ maxValue: Number(e.target.value) })}
-                                                        className={fCls}
-                                                        style={fSty}
-                                                    />
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: colorZones ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
                                                 </div>
-                                            </div>
-                                            <DpRangeHint
-                                                type={config.type}
-                                                datapoint={config.datapoint}
-                                                options={o}
-                                                onApply={set}
-                                            />
-                                            <ScaleBoundsRow
-                                                minDatapoint={o.minDatapoint as string | undefined}
-                                                maxDatapoint={o.maxDatapoint as string | undefined}
-                                                onChange={set}
-                                                onPick={(which) =>
-                                                    setPickerTarget(which === 'min' ? 'scale_minDp' : 'scale_maxDp')
-                                                }
-                                                inputClassName={fCls}
-                                                inputStyle={fSty}
-                                            />
-                                            <ValueFormatRow
-                                                unit={o.unit as string | undefined}
-                                                unitPlaceholder="%, L, m³"
-                                                onUnitChange={(v) => set({ unit: v })}
-                                                decimals={o.decimals as number | undefined}
-                                                numberFormat={o.numberFormat as NumberFormat | undefined}
-                                                onChange={set}
-                                                inputClassName={fCls}
-                                                inputStyle={fSty}
-                                            />
-
-                                            {hdr('Farbzonen')}
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Farbzonen aktiv
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ colorZones: !colorZones })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background: colorZones ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: colorZones ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {colorZones &&
-                                                (() => {
-                                                    type CZ = { max: number; color: string };
-                                                    const rawZones = o.zones as CZ[] | undefined;
-                                                    const zones: CZ[] =
-                                                        rawZones && rawZones.length > 0
-                                                            ? rawZones
-                                                            : [
-                                                                  { max: min + range * 0.33, color: '#ef4444' },
-                                                                  { max: min + range * 0.66, color: '#f59e0b' },
-                                                                  { max: max, color: '#22c55e' },
-                                                              ];
-                                                    const normalizeZones = (z: CZ[]): CZ[] =>
-                                                        z.map((zone, idx) =>
-                                                            idx === z.length - 1 ? { ...zone, max } : zone,
-                                                        );
-                                                    const setZones = (z: CZ[]) => set({ zones: normalizeZones(z) });
-                                                    const updateZone = (i: number, patch: Partial<CZ>) =>
-                                                        setZones(
-                                                            zones.map((z, idx) => (idx === i ? { ...z, ...patch } : z)),
-                                                        );
-                                                    const removeZone = (i: number) => {
-                                                        if (zones.length > 1)
-                                                            setZones(zones.filter((_, idx) => idx !== i));
-                                                    };
-                                                    const addZone = () => {
-                                                        const insertBefore = zones.length - 1;
-                                                        const prevMax =
-                                                            insertBefore > 0 ? zones[insertBefore - 1].max : min;
-                                                        const newZones = [...zones];
-                                                        newZones.splice(insertBefore, 0, {
-                                                            max: Math.round((prevMax + max) / 2),
-                                                            color: '#6366f1',
-                                                        });
-                                                        setZones(newZones);
-                                                    };
-                                                    return (
-                                                        <div className="space-y-2">
-                                                            {zones.map((zone, i) => {
-                                                                const isLast = i === zones.length - 1;
-                                                                return (
-                                                                    <div key={i} className="flex items-center gap-2">
-                                                                        <button
-                                                                            onClick={() => removeZone(i)}
-                                                                            className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0"
-                                                                            style={{
-                                                                                color: 'var(--text-secondary)',
-                                                                                background: 'var(--app-bg)',
-                                                                                border: '1px solid var(--app-border)',
-                                                                                opacity: zones.length <= 1 ? 0.3 : 1,
-                                                                            }}
+                                                {colorZones &&
+                                                    (() => {
+                                                        type CZ = { max: number; color: string };
+                                                        const rawZones = o.zones as CZ[] | undefined;
+                                                        const zones: CZ[] =
+                                                            rawZones && rawZones.length > 0
+                                                                ? rawZones
+                                                                : [
+                                                                      { max: min + range * 0.33, color: '#ef4444' },
+                                                                      { max: min + range * 0.66, color: '#f59e0b' },
+                                                                      { max: max, color: '#22c55e' },
+                                                                  ];
+                                                        const normalizeZones = (z: CZ[]): CZ[] =>
+                                                            z.map((zone, idx) =>
+                                                                idx === z.length - 1 ? { ...zone, max } : zone,
+                                                            );
+                                                        const setZones = (z: CZ[]) => set({ zones: normalizeZones(z) });
+                                                        const updateZone = (i: number, patch: Partial<CZ>) =>
+                                                            setZones(
+                                                                zones.map((z, idx) =>
+                                                                    idx === i ? { ...z, ...patch } : z,
+                                                                ),
+                                                            );
+                                                        const removeZone = (i: number) => {
+                                                            if (zones.length > 1)
+                                                                setZones(zones.filter((_, idx) => idx !== i));
+                                                        };
+                                                        const addZone = () => {
+                                                            const insertBefore = zones.length - 1;
+                                                            const prevMax =
+                                                                insertBefore > 0 ? zones[insertBefore - 1].max : min;
+                                                            const newZones = [...zones];
+                                                            newZones.splice(insertBefore, 0, {
+                                                                max: Math.round((prevMax + max) / 2),
+                                                                color: '#6366f1',
+                                                            });
+                                                            setZones(newZones);
+                                                        };
+                                                        return (
+                                                            <div className="space-y-2">
+                                                                {zones.map((zone, i) => {
+                                                                    const isLast = i === zones.length - 1;
+                                                                    return (
+                                                                        <div
+                                                                            key={i}
+                                                                            className="flex items-center gap-2"
                                                                         >
-                                                                            ×
-                                                                        </button>
-                                                                        <ColorPicker
-                                                                            value={zone.color}
-                                                                            onChange={(v) =>
-                                                                                updateZone(i, { color: v })
-                                                                            }
-                                                                            className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                                            style={{
-                                                                                border: '1px solid var(--app-border)',
-                                                                                padding: '1px',
-                                                                            }}
-                                                                        />
-                                                                        <div className="flex-1">
-                                                                            <label
-                                                                                className="text-[11px] mb-1 block"
+                                                                            <button
+                                                                                onClick={() => removeZone(i)}
+                                                                                className="text-[11px] w-5 h-5 flex items-center justify-center rounded shrink-0"
                                                                                 style={{
                                                                                     color: 'var(--text-secondary)',
+                                                                                    background: 'var(--app-bg)',
+                                                                                    border: '1px solid var(--app-border)',
+                                                                                    opacity:
+                                                                                        zones.length <= 1 ? 0.3 : 1,
                                                                                 }}
                                                                             >
-                                                                                Zone {i + 1} {isLast ? '(Rest)' : 'bis'}
-                                                                            </label>
-                                                                            {isLast ? (
-                                                                                <div
-                                                                                    className="text-[10px] py-2 px-2.5 rounded-lg"
+                                                                                ×
+                                                                            </button>
+                                                                            <ColorPicker
+                                                                                value={zone.color}
+                                                                                onChange={(v) =>
+                                                                                    updateZone(i, { color: v })
+                                                                                }
+                                                                                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                                style={{
+                                                                                    border: '1px solid var(--app-border)',
+                                                                                    padding: '1px',
+                                                                                }}
+                                                                            />
+                                                                            <div className="flex-1">
+                                                                                <label
+                                                                                    className="text-[11px] mb-1 block"
                                                                                     style={{
-                                                                                        background: 'var(--app-bg)',
                                                                                         color: 'var(--text-secondary)',
-                                                                                        border: '1px solid var(--app-border)',
                                                                                     }}
                                                                                 >
-                                                                                    bis {max}
-                                                                                </div>
-                                                                            ) : (
-                                                                                <input
-                                                                                    type="number"
-                                                                                    value={zone.max}
-                                                                                    onChange={(e) =>
-                                                                                        updateZone(i, {
-                                                                                            max: Number(e.target.value),
-                                                                                        })
-                                                                                    }
-                                                                                    className={fCls}
-                                                                                    style={fSty}
-                                                                                />
-                                                                            )}
+                                                                                    Zone {i + 1}{' '}
+                                                                                    {isLast ? '(Rest)' : 'bis'}
+                                                                                </label>
+                                                                                {isLast ? (
+                                                                                    <div
+                                                                                        className="text-[10px] py-2 px-2.5 rounded-lg"
+                                                                                        style={{
+                                                                                            background: 'var(--app-bg)',
+                                                                                            color: 'var(--text-secondary)',
+                                                                                            border: '1px solid var(--app-border)',
+                                                                                        }}
+                                                                                    >
+                                                                                        bis {max}
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        value={zone.max}
+                                                                                        onChange={(e) =>
+                                                                                            updateZone(i, {
+                                                                                                max: Number(
+                                                                                                    e.target.value,
+                                                                                                ),
+                                                                                            })
+                                                                                        }
+                                                                                        className={fCls}
+                                                                                        style={fSty}
+                                                                                    />
+                                                                                )}
+                                                                            </div>
                                                                         </div>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                            <button
-                                                                onClick={addZone}
-                                                                className="w-full text-[11px] py-1.5 rounded-lg transition-colors hover:opacity-80"
-                                                                style={{
-                                                                    background: 'var(--app-bg)',
-                                                                    color: 'var(--text-secondary)',
-                                                                    border: '1px solid var(--app-border)',
-                                                                }}
-                                                            >
-                                                                + Zone hinzufügen
-                                                            </button>
-                                                        </div>
-                                                    );
-                                                })()}
-
+                                                                    );
+                                                                })}
+                                                                <button
+                                                                    onClick={addZone}
+                                                                    className="w-full text-[11px] py-1.5 rounded-lg transition-colors hover:opacity-80"
+                                                                    style={{
+                                                                        background: 'var(--app-bg)',
+                                                                        color: 'var(--text-secondary)',
+                                                                        border: '1px solid var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    + Zone hinzufügen
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                            </ConfigSection>
                                             {/* Adjustable limits with their own datapoints (#613). Kept in
                                             its own dialog: a limit row carries a datapoint, an icon and
                                             two colours, which does not belong in this column. Hides
                                             itself in the layouts that have no bar to hang a line on. */}
                                             <FillLimitsSection options={o} layout={config.layout} set={set} />
-
                                             {/* Warning colour past a share of the scale. Wins over the
                                             zones, because a value clamped to max cannot be told from
                                             an overrun by the fill level alone (#607). */}
-                                            {hdr('Warnfarbe')}
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Farbe ab Schwelle wechseln
-                                                </label>
-                                                <button
-                                                    onClick={() => set({ overActive: !overActive })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background: overActive ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: overActive ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {overActive && (
-                                                <>
-                                                    <div className="flex items-end gap-2">
-                                                        <div className="flex-1 min-w-0">
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Ab % der Skala
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={(o.overThreshold as number) ?? 100}
-                                                                onChange={(e) =>
-                                                                    set({ overThreshold: Number(e.target.value) })
-                                                                }
-                                                                className={fCls}
-                                                                style={fSty}
-                                                            />
-                                                        </div>
-                                                        <ColorPicker
-                                                            value={(o.overColor as string) ?? FILL_OVER_COLOR}
-                                                            onChange={(v) => set({ overColor: v })}
-                                                            className="w-8 h-8 rounded cursor-pointer shrink-0"
-                                                            style={{
-                                                                border: '1px solid var(--app-border)',
-                                                                padding: '1px',
-                                                            }}
-                                                        />
-                                                    </div>
-                                                    <p
-                                                        className="text-[10px] leading-snug"
+                                            <ConfigSection title="Warnfarbe" sectionKey="warning">
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        100 % = der Max-Wert. Ab diesem Anteil färbt sich die Füllung
-                                                        komplett in der Warnfarbe.
-                                                    </p>
-                                                </>
-                                            )}
-
+                                                        Farbe ab Schwelle wechseln
+                                                    </label>
+                                                    <button
+                                                        onClick={() => set({ overActive: !overActive })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                                        style={{
+                                                            background: overActive
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: overActive ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                {overActive && (
+                                                    <>
+                                                        <div className="flex items-end gap-2">
+                                                            <div className="flex-1 min-w-0">
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Ab % der Skala
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={(o.overThreshold as number) ?? 100}
+                                                                    onChange={(e) =>
+                                                                        set({ overThreshold: Number(e.target.value) })
+                                                                    }
+                                                                    className={fCls}
+                                                                    style={fSty}
+                                                                />
+                                                            </div>
+                                                            <ColorPicker
+                                                                value={(o.overColor as string) ?? FILL_OVER_COLOR}
+                                                                onChange={(v) => set({ overColor: v })}
+                                                                className="w-8 h-8 rounded cursor-pointer shrink-0"
+                                                                style={{
+                                                                    border: '1px solid var(--app-border)',
+                                                                    padding: '1px',
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <p
+                                                            className="text-[10px] leading-snug"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            100 % = der Max-Wert. Ab diesem Anteil färbt sich die
+                                                            Füllung komplett in der Warnfarbe.
+                                                        </p>
+                                                    </>
+                                                )}
+                                            </ConfigSection>
                                             {/* Laden / Entladen / Verbindung als eigene Datenpunkte (#671, #691). */}
                                             <FillStatusSection
                                                 options={o}
@@ -18086,10 +17878,7 @@ function WidgetFrameInner({
                                         open: { color: '#ef4444', label: 'Offen', iconName: 'XCircle' },
                                     };
 
-                                    const renderStateSection = (
-                                        st: 'closed' | 'tilted' | 'open',
-                                        stateLabel: string,
-                                    ) => {
+                                    const renderStateSection = (st: 'closed' | 'tilted' | 'open') => {
                                         const d = WC_DEFAULTS[st];
                                         const currentType = (o[`${st}Type`] as 'icon' | 'base64') ?? 'icon';
                                         const currentIcon = o[`${st}Icon`] as string | undefined;
@@ -18102,12 +17891,6 @@ function WidgetFrameInner({
 
                                         return (
                                             <div key={st} className="space-y-2">
-                                                <p
-                                                    className="text-[11px] font-semibold"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {stateLabel}
-                                                </p>
                                                 {/* Type selector */}
                                                 <div className="flex gap-1">
                                                     {(['icon', 'base64'] as const).map((btnType) => (
@@ -18301,148 +18084,149 @@ function WidgetFrameInner({
 
                                     return (
                                         <>
-                                            {/* Preset / value mapping */}
-                                            <div className="space-y-2">
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] block mb-1"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Wertemapping
-                                                    </label>
-                                                    <select
-                                                        value={currentPreset}
-                                                        onChange={(e) => {
-                                                            const next = e.target.value;
-                                                            if (next !== 'custom') {
-                                                                setO({
-                                                                    statePreset: next,
-                                                                    stateValuesClosed: undefined,
-                                                                    stateValuesTilted: undefined,
-                                                                    stateValuesOpen: undefined,
-                                                                });
-                                                            } else {
-                                                                const cur =
-                                                                    WC_PRESETS[currentPreset] ?? WC_PRESETS.hmip;
-                                                                setO({
-                                                                    statePreset: 'custom',
-                                                                    stateValuesClosed: cur.closed,
-                                                                    stateValuesTilted: cur.tilted,
-                                                                    stateValuesOpen: cur.open,
-                                                                });
-                                                            }
-                                                        }}
-                                                        className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                                        style={wcInputStyle}
-                                                    >
-                                                        {Object.entries(WC_PRESET_LABELS).map(([k, lbl]) => (
-                                                            <option key={k} value={k}>
-                                                                {lbl}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                                {currentPreset === 'custom' && (
-                                                    <>
-                                                        {(['closed', 'tilted', 'open'] as const).map((st) => (
-                                                            <div key={st}>
-                                                                <label
-                                                                    className="text-[11px] block mb-1"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Werte &bdquo;{WC_DEFAULTS[st].label}&ldquo;
-                                                                    (kommagetrennt)
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={
-                                                                        (o[
-                                                                            `stateValues${st.charAt(0).toUpperCase() + st.slice(1)}`
-                                                                        ] as string) ?? WC_PRESETS.hmip[st]
-                                                                    }
-                                                                    onChange={(e) =>
-                                                                        setO({
-                                                                            [`stateValues${st.charAt(0).toUpperCase() + st.slice(1)}`]:
-                                                                                e.target.value,
-                                                                        })
-                                                                    }
-                                                                    placeholder={WC_PRESETS.hmip[st] || '–'}
-                                                                    className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono"
-                                                                    style={wcInputStyle}
-                                                                />
-                                                            </div>
-                                                        ))}
-                                                    </>
-                                                )}
-                                            </div>
-                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
-                                            {/* State appearance */}
-                                            {renderStateSection('closed', 'Geschlossen')}
-                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                            {renderStateSection('tilted', 'Gekippt')}
-                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                            {renderStateSection('open', 'Offen')}
-                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-
-                                            {/* Lock DP */}
-                                            <div className="space-y-2">
-                                                <p
-                                                    className="text-[11px] font-semibold"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Schloss (optional)
-                                                </p>
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] block mb-1"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Datenpunkt
-                                                    </label>
-                                                    <div className="flex gap-1">
-                                                        <input
-                                                            type="text"
-                                                            value={(o.lockDp as string) ?? ''}
-                                                            onChange={(e) =>
-                                                                setO({ lockDp: e.target.value || undefined })
-                                                            }
-                                                            placeholder="optional"
-                                                            className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono min-w-0"
-                                                            style={wcInputStyle}
-                                                        />
-                                                        <button
-                                                            onClick={() => setPickerTarget('wc_lockDp')}
-                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                            style={{
-                                                                background: 'var(--app-bg)',
-                                                                color: 'var(--text-secondary)',
-                                                                border: '1px solid var(--app-border)',
-                                                            }}
-                                                        >
-                                                            <Database size={13} />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                {(o.lockDp as string) && (
+                                            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                                                {renderMainDpField()}
+                                            </ConfigSection>
+                                            <ConfigSection title="Wertemapping" sectionKey="mapping">
+                                                {/* Preset / value mapping */}
+                                                <div className="space-y-2">
                                                     <div>
                                                         <label
                                                             className="text-[11px] block mb-1"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            Wert &bdquo;Abgeschlossen&ldquo; (kommagetrennt)
+                                                            Wertemapping
                                                         </label>
-                                                        <input
-                                                            type="text"
-                                                            value={(o.lockLockedValues as string) ?? 'true,1'}
-                                                            onChange={(e) => setO({ lockLockedValues: e.target.value })}
-                                                            placeholder="true,1"
-                                                            className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono"
+                                                        <select
+                                                            value={currentPreset}
+                                                            onChange={(e) => {
+                                                                const next = e.target.value;
+                                                                if (next !== 'custom') {
+                                                                    setO({
+                                                                        statePreset: next,
+                                                                        stateValuesClosed: undefined,
+                                                                        stateValuesTilted: undefined,
+                                                                        stateValuesOpen: undefined,
+                                                                    });
+                                                                } else {
+                                                                    const cur =
+                                                                        WC_PRESETS[currentPreset] ?? WC_PRESETS.hmip;
+                                                                    setO({
+                                                                        statePreset: 'custom',
+                                                                        stateValuesClosed: cur.closed,
+                                                                        stateValuesTilted: cur.tilted,
+                                                                        stateValuesOpen: cur.open,
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
                                                             style={wcInputStyle}
-                                                        />
+                                                        >
+                                                            {Object.entries(WC_PRESET_LABELS).map(([k, lbl]) => (
+                                                                <option key={k} value={k}>
+                                                                    {lbl}
+                                                                </option>
+                                                            ))}
+                                                        </select>
                                                     </div>
-                                                )}
-                                            </div>
+                                                    {currentPreset === 'custom' && (
+                                                        <>
+                                                            {(['closed', 'tilted', 'open'] as const).map((st) => (
+                                                                <div key={st}>
+                                                                    <label
+                                                                        className="text-[11px] block mb-1"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Werte &bdquo;{WC_DEFAULTS[st].label}&ldquo;
+                                                                        (kommagetrennt)
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={
+                                                                            (o[
+                                                                                `stateValues${st.charAt(0).toUpperCase() + st.slice(1)}`
+                                                                            ] as string) ?? WC_PRESETS.hmip[st]
+                                                                        }
+                                                                        onChange={(e) =>
+                                                                            setO({
+                                                                                [`stateValues${st.charAt(0).toUpperCase() + st.slice(1)}`]:
+                                                                                    e.target.value,
+                                                                            })
+                                                                        }
+                                                                        placeholder={WC_PRESETS.hmip[st] || '–'}
+                                                                        className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono"
+                                                                        style={wcInputStyle}
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </ConfigSection>
+                                            <ConfigSection title="Geschlossen" sectionKey="state-closed">
+                                                {renderStateSection('closed')}
+                                            </ConfigSection>
+                                            <ConfigSection title="Gekippt" sectionKey="state-tilted">
+                                                {renderStateSection('tilted')}
+                                            </ConfigSection>
+                                            <ConfigSection title="Offen" sectionKey="state-open">
+                                                {renderStateSection('open')}
+                                            </ConfigSection>
+                                            <ConfigSection title="Schloss (optional)" sectionKey="lock">
+                                                <div className="space-y-2">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] block mb-1"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Datenpunkt
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={(o.lockDp as string) ?? ''}
+                                                                onChange={(e) =>
+                                                                    setO({ lockDp: e.target.value || undefined })
+                                                                }
+                                                                placeholder="optional"
+                                                                className="flex-1 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono min-w-0"
+                                                                style={wcInputStyle}
+                                                            />
+                                                            <button
+                                                                onClick={() => setPickerTarget('wc_lockDp')}
+                                                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    color: 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                            >
+                                                                <Database size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    {(o.lockDp as string) && (
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] block mb-1"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Wert &bdquo;Abgeschlossen&ldquo; (kommagetrennt)
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={(o.lockLockedValues as string) ?? 'true,1'}
+                                                                onChange={(e) =>
+                                                                    setO({ lockLockedValues: e.target.value })
+                                                                }
+                                                                placeholder="true,1"
+                                                                className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none font-mono"
+                                                                style={wcInputStyle}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </ConfigSection>
                                         </>
                                     );
                                 })()}
@@ -20246,7 +20030,6 @@ function WidgetFrameInner({
                                     const numericInput = o.inputMode === 'number' && !multiline;
                                     const submitMode = ((o.submitMode as string) ?? 'submit') as 'live' | 'submit';
                                     const readOnly = !!o.readOnly;
-                                    const showSubmit = o.showSubmit !== false;
                                     const placeholder = (o.placeholder as string) ?? '';
                                     const textAlign = (o.textAlign as 'left' | 'right' | 'center') ?? 'left';
                                     const fieldAlign = (o.fieldAlign as 'left' | 'right' | 'center') ?? 'left';
@@ -20271,103 +20054,199 @@ function WidgetFrameInner({
                                     );
                                     return (
                                         <>
-                                            {/* Mehrzeilig */}
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Mehrzeilig (Textarea)
-                                                </label>
-                                                <Toggle on={multiline} onClick={() => set({ multiline: !multiline })} />
-                                            </div>
-                                            {/* Platzhalter (50%) + Einheit (20%) + Feldbreite (30%) nebeneinander */}
-                                            <div className="flex gap-2">
-                                                <div style={{ flex: '5 1 0%', minWidth: 0 }}>
+                                            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                                                {renderMainDpField()}
+                                            </ConfigSection>
+                                            <ConfigSection title="Eingabe" sectionKey="input">
+                                                {/* Mehrzeilig */}
+                                                <div className="flex items-center justify-between">
                                                     <label
-                                                        className="text-[11px] mb-1 block"
+                                                        className="text-[11px]"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Platzhalter
+                                                        Mehrzeilig (Textarea)
                                                     </label>
-                                                    <input
-                                                        type="text"
-                                                        value={placeholder}
-                                                        onChange={(e) =>
-                                                            set({ placeholder: e.target.value || undefined })
-                                                        }
-                                                        placeholder="z.B. Nachricht eingeben…"
-                                                        className={inputCls3}
-                                                        style={inputSty3}
+                                                    <Toggle
+                                                        on={multiline}
+                                                        onClick={() => set({ multiline: !multiline })}
                                                     />
                                                 </div>
-                                                {/* Leer = keine Einheit. Beim Auswählen eines Datenpunkts
+                                                {/* Platzhalter (50%) + Einheit (20%) + Feldbreite (30%) nebeneinander */}
+                                                <div className="flex gap-2">
+                                                    <div style={{ flex: '5 1 0%', minWidth: 0 }}>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Platzhalter
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={placeholder}
+                                                            onChange={(e) =>
+                                                                set({ placeholder: e.target.value || undefined })
+                                                            }
+                                                            placeholder="z.B. Nachricht eingeben…"
+                                                            className={inputCls3}
+                                                            style={inputSty3}
+                                                        />
+                                                    </div>
+                                                    {/* Leer = keine Einheit. Beim Auswählen eines Datenpunkts
                                                 wird common.unit vorbelegt (siehe supportsUnit). */}
-                                                <div style={{ flex: '2 1 0%', minWidth: 0 }}>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Einheit
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={(o.unit as string) ?? ''}
-                                                        onChange={(e) => set({ unit: e.target.value || undefined })}
-                                                        placeholder="z.B. °C"
-                                                        className={inputCls3}
-                                                        style={inputSty3}
-                                                    />
+                                                    <div style={{ flex: '2 1 0%', minWidth: 0 }}>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Einheit
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            value={(o.unit as string) ?? ''}
+                                                            onChange={(e) => set({ unit: e.target.value || undefined })}
+                                                            placeholder="z.B. °C"
+                                                            className={inputCls3}
+                                                            style={inputSty3}
+                                                        />
+                                                    </div>
+                                                    <div style={{ flex: '3 1 0%', minWidth: 0 }}>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Feldbreite (px)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            min={20}
+                                                            step={10}
+                                                            value={(o.inputWidth as number) ?? ''}
+                                                            onChange={(e) => {
+                                                                const n = Number(e.target.value);
+                                                                set({
+                                                                    inputWidth: e.target.value && n > 0 ? n : undefined,
+                                                                });
+                                                            }}
+                                                            placeholder="voll"
+                                                            className={inputCls3}
+                                                            style={inputSty3}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div style={{ flex: '3 1 0%', minWidth: 0 }}>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Feldbreite (px)
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min={20}
-                                                        step={10}
-                                                        value={(o.inputWidth as number) ?? ''}
-                                                        onChange={(e) => {
-                                                            const n = Number(e.target.value);
-                                                            set({
-                                                                inputWidth: e.target.value && n > 0 ? n : undefined,
-                                                            });
+                                                {/* Eingabeart — bei Textarea ausgeblendet (immer Text) */}
+                                                {!multiline && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Eingabeart
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            {(
+                                                                [
+                                                                    { v: 'text', label: 'Text' },
+                                                                    { v: 'number', label: 'Zahl' },
+                                                                ] as const
+                                                            ).map(({ v, label }) => {
+                                                                const active = (o.inputMode ?? 'text') === v;
+                                                                return (
+                                                                    <button
+                                                                        key={v}
+                                                                        onClick={() =>
+                                                                            set({
+                                                                                inputMode: v === 'text' ? undefined : v,
+                                                                            })
+                                                                        }
+                                                                        className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                                                                        style={{
+                                                                            background: active
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                            color: active
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                        }}
+                                                                    >
+                                                                        {label}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* Zahl-Optionen — visuell als Untergruppe von "Zahl" */}
+                                                {numericInput && (
+                                                    <div
+                                                        className="flex gap-2"
+                                                        style={{
+                                                            borderLeft: '2px solid var(--app-border)',
+                                                            paddingLeft: 10,
+                                                            marginLeft: 2,
                                                         }}
-                                                        placeholder="voll"
-                                                        className={inputCls3}
-                                                        style={inputSty3}
-                                                    />
-                                                </div>
-                                            </div>
-                                            {/* Eingabeart — bei Textarea ausgeblendet (immer Text) */}
-                                            {!multiline && (
+                                                    >
+                                                        {(
+                                                            [
+                                                                { key: 'min', label: 'Min', def: '' },
+                                                                { key: 'max', label: 'Max', def: '' },
+                                                                { key: 'step', label: 'Step', def: '1' },
+                                                            ] as const
+                                                        ).map(({ key, label, def }) => (
+                                                            <div key={key} className="flex-1">
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {label}
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={
+                                                                        (o as Record<string, number | undefined>)[
+                                                                            key
+                                                                        ] ?? ''
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        set({
+                                                                            [key]: e.target.value
+                                                                                ? Number(e.target.value)
+                                                                                : undefined,
+                                                                        })
+                                                                    }
+                                                                    placeholder={def}
+                                                                    className={inputCls3}
+                                                                    style={inputSty3}
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title="Übertragung" sectionKey="submit">
+                                                {/* Übertragungs-Modus */}
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Eingabeart
+                                                        Übertragen
                                                     </label>
                                                     <div className="flex gap-1">
                                                         {(
                                                             [
-                                                                { v: 'text', label: 'Text' },
-                                                                { v: 'number', label: 'Zahl' },
+                                                                {
+                                                                    v: 'submit',
+                                                                    label: 'Nach Bestätigung (Enter / Senden)',
+                                                                },
+                                                                { v: 'live', label: 'Bei jedem Tastenschlag' },
                                                             ] as const
                                                         ).map(({ v, label }) => {
-                                                            const active = (o.inputMode ?? 'text') === v;
+                                                            const active = submitMode === v;
                                                             return (
                                                                 <button
                                                                     key={v}
-                                                                    onClick={() =>
-                                                                        set({
-                                                                            inputMode: v === 'text' ? undefined : v,
-                                                                        })
-                                                                    }
+                                                                    onClick={() => set({ submitMode: v })}
                                                                     className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
                                                                     style={{
                                                                         background: active
@@ -20385,252 +20264,118 @@ function WidgetFrameInner({
                                                         })}
                                                     </div>
                                                 </div>
-                                            )}
-                                            {/* Zahl-Optionen — visuell als Untergruppe von "Zahl" */}
-                                            {numericInput && (
-                                                <div
-                                                    className="flex gap-2"
-                                                    style={{
-                                                        borderLeft: '2px solid var(--app-border)',
-                                                        paddingLeft: 10,
-                                                        marginLeft: 2,
-                                                    }}
-                                                >
-                                                    {(
-                                                        [
-                                                            { key: 'min', label: 'Min', def: '' },
-                                                            { key: 'max', label: 'Max', def: '' },
-                                                            { key: 'step', label: 'Step', def: '1' },
-                                                        ] as const
-                                                    ).map(({ key, label, def }) => (
-                                                        <div key={key} className="flex-1">
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                {label}
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={
-                                                                    (o as Record<string, number | undefined>)[key] ?? ''
-                                                                }
-                                                                onChange={(e) =>
-                                                                    set({
-                                                                        [key]: e.target.value
-                                                                            ? Number(e.target.value)
-                                                                            : undefined,
-                                                                    })
-                                                                }
-                                                                placeholder={def}
-                                                                className={inputCls3}
-                                                                style={inputSty3}
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {/* Übertragungs-Modus */}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Übertragen
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    {(
-                                                        [
-                                                            {
-                                                                v: 'submit',
-                                                                label: 'Nach Bestätigung (Enter / Senden)',
-                                                            },
-                                                            { v: 'live', label: 'Bei jedem Tastenschlag' },
-                                                        ] as const
-                                                    ).map(({ v, label }) => {
-                                                        const active = submitMode === v;
-                                                        return (
-                                                            <button
-                                                                key={v}
-                                                                onClick={() => set({ submitMode: v })}
-                                                                className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
-                                                                style={{
-                                                                    background: active
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-bg)',
-                                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                }}
-                                                            >
-                                                                {label}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                            {/* Submit-Modus-Optionen — visuell als Untergruppe von "Nach Bestätigung" */}
-                                            {submitMode === 'submit' && (
-                                                <div
-                                                    className="flex flex-col gap-2"
-                                                    style={{
-                                                        borderLeft: '2px solid var(--app-border)',
-                                                        paddingLeft: 10,
-                                                        marginLeft: 2,
-                                                    }}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <label
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            Senden-Button anzeigen
-                                                        </label>
-                                                        <Toggle
-                                                            on={showSubmit}
-                                                            onClick={() => set({ showSubmit: !showSubmit })}
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <label
-                                                                className="text-[11px] font-medium"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Feld nach dem Senden leeren
-                                                            </label>
-                                                            <p
-                                                                className="text-[10px]"
-                                                                style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    opacity: 0.7,
-                                                                }}
-                                                            >
-                                                                Kommandofeld: zeigt den Datenpunkt-Wert nicht an
-                                                            </p>
-                                                        </div>
-                                                        <Toggle
-                                                            on={!!o.clearAfterSubmit}
-                                                            onClick={() =>
-                                                                set({ clearAfterSubmit: !o.clearAfterSubmit })
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <div>
-                                                            <label
-                                                                className="text-[11px] font-medium"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Sicherheitsabfrage
-                                                            </label>
-                                                            <p
-                                                                className="text-[10px]"
-                                                                style={{
-                                                                    color: 'var(--text-secondary)',
-                                                                    opacity: 0.7,
-                                                                }}
-                                                            >
-                                                                Bestätigung vor dem Schalten
-                                                            </p>
-                                                        </div>
-                                                        <Toggle
-                                                            on={!!o.confirmAction}
-                                                            onClick={() => set({ confirmAction: !o.confirmAction })}
-                                                        />
-                                                    </div>
-                                                    {o.confirmAction === true && (
-                                                        <div
-                                                            style={{
-                                                                borderLeft: '2px solid var(--app-border)',
-                                                                paddingLeft: 10,
-                                                                marginLeft: 2,
-                                                            }}
-                                                        >
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Abfragetext (optional)
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={(o.confirmText as string) ?? ''}
-                                                                onChange={(e) =>
-                                                                    set({
-                                                                        confirmText: e.target.value || undefined,
-                                                                    })
-                                                                }
-                                                                placeholder="Wirklich senden?"
-                                                                className={inputCls3}
-                                                                style={inputSty3}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                            {/* Textausrichtung */}
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Textausrichtung
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    {(
-                                                        [
-                                                            { v: 'left', label: 'Links' },
-                                                            { v: 'center', label: 'Zentriert' },
-                                                            { v: 'right', label: 'Rechts' },
-                                                        ] as const
-                                                    ).map(({ v, label }) => {
-                                                        const active = textAlign === v;
-                                                        return (
-                                                            <button
-                                                                key={v}
+                                                {/* Submit-Modus-Optionen — visuell als Untergruppe von "Nach Bestätigung" */}
+                                                {submitMode === 'submit' && (
+                                                    <div
+                                                        className="flex flex-col gap-2"
+                                                        style={{
+                                                            borderLeft: '2px solid var(--app-border)',
+                                                            paddingLeft: 10,
+                                                            marginLeft: 2,
+                                                        }}
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <label
+                                                                    className="text-[11px] font-medium"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Feld nach dem Senden leeren
+                                                                </label>
+                                                                <p
+                                                                    className="text-[10px]"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
+                                                                >
+                                                                    Kommandofeld: zeigt den Datenpunkt-Wert nicht an
+                                                                </p>
+                                                            </div>
+                                                            <Toggle
+                                                                on={!!o.clearAfterSubmit}
                                                                 onClick={() =>
-                                                                    set({ textAlign: v === 'left' ? undefined : v })
+                                                                    set({ clearAfterSubmit: !o.clearAfterSubmit })
                                                                 }
-                                                                className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <label
+                                                                    className="text-[11px] font-medium"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Sicherheitsabfrage
+                                                                </label>
+                                                                <p
+                                                                    className="text-[10px]"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
+                                                                >
+                                                                    Bestätigung vor dem Schalten
+                                                                </p>
+                                                            </div>
+                                                            <Toggle
+                                                                on={!!o.confirmAction}
+                                                                onClick={() => set({ confirmAction: !o.confirmAction })}
+                                                            />
+                                                        </div>
+                                                        {o.confirmAction === true && (
+                                                            <div
                                                                 style={{
-                                                                    background: active
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-bg)',
-                                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    borderLeft: '2px solid var(--app-border)',
+                                                                    paddingLeft: 10,
+                                                                    marginLeft: 2,
                                                                 }}
                                                             >
-                                                                {label}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                            {/* Feldausrichtung — nur bei fester Feldbreite wirksam */}
-                                            {hasFixedWidth && (
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Abfragetext (optional)
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={(o.confirmText as string) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        set({
+                                                                            confirmText: e.target.value || undefined,
+                                                                        })
+                                                                    }
+                                                                    placeholder="Wirklich senden?"
+                                                                    className={inputCls3}
+                                                                    style={inputSty3}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                {/* Textausrichtung */}
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Feldausrichtung
+                                                        Textausrichtung
                                                     </label>
                                                     <div className="flex gap-1">
                                                         {(
                                                             [
                                                                 { v: 'left', label: 'Links' },
-                                                                { v: 'center', label: 'Mittig' },
+                                                                { v: 'center', label: 'Zentriert' },
                                                                 { v: 'right', label: 'Rechts' },
                                                             ] as const
                                                         ).map(({ v, label }) => {
-                                                            const active = fieldAlign === v;
+                                                            const active = textAlign === v;
                                                             return (
                                                                 <button
                                                                     key={v}
                                                                     onClick={() =>
-                                                                        set({
-                                                                            fieldAlign: v === 'left' ? undefined : v,
-                                                                        })
+                                                                        set({ textAlign: v === 'left' ? undefined : v })
                                                                     }
                                                                     className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
                                                                     style={{
@@ -20649,17 +20394,67 @@ function WidgetFrameInner({
                                                         })}
                                                     </div>
                                                 </div>
-                                            )}
-                                            {/* Schreibschutz */}
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Schreibschutz (nur anzeigen)
-                                                </label>
-                                                <Toggle on={readOnly} onClick={() => set({ readOnly: !readOnly })} />
-                                            </div>
+                                                {/* Feldausrichtung — nur bei fester Feldbreite wirksam */}
+                                                {hasFixedWidth && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Feldausrichtung
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            {(
+                                                                [
+                                                                    { v: 'left', label: 'Links' },
+                                                                    { v: 'center', label: 'Mittig' },
+                                                                    { v: 'right', label: 'Rechts' },
+                                                                ] as const
+                                                            ).map(({ v, label }) => {
+                                                                const active = fieldAlign === v;
+                                                                return (
+                                                                    <button
+                                                                        key={v}
+                                                                        onClick={() =>
+                                                                            set({
+                                                                                fieldAlign:
+                                                                                    v === 'left' ? undefined : v,
+                                                                            })
+                                                                        }
+                                                                        className="flex-1 text-[10px] py-1.5 px-2 rounded-lg transition-colors"
+                                                                        style={{
+                                                                            background: active
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                            color: active
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                        }}
+                                                                    >
+                                                                        {label}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                                {/* Schreibschutz */}
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Schreibschutz (nur anzeigen)
+                                                    </label>
+                                                    <Toggle
+                                                        on={readOnly}
+                                                        onClick={() => set({ readOnly: !readOnly })}
+                                                    />
+                                                </div>
+                                            </ConfigSection>
                                         </>
                                     );
                                 })()}

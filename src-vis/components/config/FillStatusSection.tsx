@@ -11,6 +11,7 @@
  * Everything below only shows up once the datapoint above it is filled — an empty field
  * means the widget looks exactly as it always did.
  */
+import { ConfigSection } from './ConfigSection';
 import { useState } from 'react';
 import { Database } from 'lucide-react';
 import { ColorPicker } from '../common/ColorPicker';
@@ -221,14 +222,7 @@ export function FillStatusSection({
     );
 
     return (
-        <>
-            <div
-                className="text-[10px] font-semibold uppercase tracking-wider pt-1"
-                style={{ color: 'var(--text-secondary)' }}
-            >
-                Status
-            </div>
-
+        <ConfigSection title="Status" sectionKey="fillstatus">
             {dpRow('charge', chargeDp, 'Laden aus Datenpunkt', 'z. B. …CHARGING (leer = aus)')}
             {chargeDp.trim() !== '' && (
                 <>
@@ -289,6 +283,6 @@ export function FillStatusSection({
                     onClose={() => setIconPicker(null)}
                 />
             )}
-        </>
+        </ConfigSection>
     );
 }
