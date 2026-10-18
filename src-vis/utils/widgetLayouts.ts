@@ -127,7 +127,6 @@ const LABEL_TEXT: Partial<Record<WidgetLayout, string>> = {
 
 /** The same layout means something else per widget, so the label does too. */
 const LABEL_PER_TYPE: Record<string, Partial<Record<WidgetLayout, string>>> = {
-    camera: { custom: 'Custom Grid' },
     fill: { default: 'Tank', battery: 'Batterie', bar: 'Balken' },
     knob: { default: 'Bogen' },
     trashSchedule: { compact: 'Kompakt' },
@@ -154,7 +153,13 @@ export function getLayoutOptions(
     t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
 ): LayoutOption[] {
     const perType = LABEL_PER_TYPE[widgetType] ?? {};
-    return getAvailableLayouts(widgetType).map((value) => ({
+    const available = getAvailableLayouts(widgetType);
+    // "Standard" leads the picker even where another layout is the fallback (camera: minimal);
+    // the fallback itself stays the first entry of the list, see defaultLayoutFor.
+    const ordered = available.includes('default')
+        ? (['default', ...available.filter((v) => v !== 'default')] as WidgetLayout[])
+        : available;
+    return ordered.map((value) => ({
         value,
         label:
             perType[value] ??

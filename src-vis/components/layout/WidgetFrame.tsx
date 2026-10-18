@@ -3255,7 +3255,7 @@ function IframeInteractionSelect({
     );
 }
 
-// ── Camera slot editor row (used in Standard and Custom Grid config) ──────────
+// ── Camera slot editor row (used in Standard and Custom config) ──────────
 
 interface CameraSlotEditorRowProps {
     slot: CameraSlot;
@@ -9571,194 +9571,141 @@ function WidgetFrameInner({
                         </div>
 
                         {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
-                        {config.type !== 'header' &&
-                            config.type !== 'iframe' &&
-                            config.type !== 'jsontable' &&
-                            config.type !== 'html' &&
-                            config.type !== 'adapterstatus' &&
-                            config.type !== 'scriptstatus' &&
-                            config.type !== 'adapterlogs' &&
-                            config.type !== 'alarm' &&
-                            config.type !== 'map' &&
-                            config.type !== 'mirror' &&
-                            config.type !== 'menu' &&
-                            config.type !== 'aircontrol' &&
-                            config.type !== 'energiebilanz' &&
-                            (() => {
-                                const activeLayout = config.layout ?? defaultLayoutFor(config.type);
-                                // One list for the picker, the popup type defaults and the AI
-                                // schema — see src-vis/utils/widgetLayouts.ts. The nested ternary
-                                // that used to stand here had drifted from it in both directions.
-                                const layouts = getLayoutOptions(config.type, t);
-                                const unknown = isUnknownLayout(config.type, config.layout);
-                                return (
-                                    <div className="flex items-center gap-1 flex-wrap">
+                        {/* Every type shows its layout, even with only "Standard" to pick. The section
+                            title stores its style in `layout` — that is picked under "Optik", so here it
+                            only reads "Standard" like every type with a single layout. */}
+                        {(() => {
+                            const activeLayout = config.layout ?? defaultLayoutFor(config.type);
+                            // One list for the picker, the popup type defaults and the AI
+                            // schema — see src-vis/utils/widgetLayouts.ts. The nested ternary
+                            // that used to stand here had drifted from it in both directions.
+                            const isHeader = config.type === 'header';
+                            const layouts = isHeader
+                                ? [{ value: activeLayout, label: t('wf.edit.layout.standard') }]
+                                : getLayoutOptions(config.type, t);
+                            const unknown = !isHeader && isUnknownLayout(config.type, config.layout);
+                            return (
+                                <div className="flex items-center gap-1 flex-wrap">
+                                    <span
+                                        className="text-[11px] shrink-0 mr-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('wf.edit.layout')}
+                                    </span>
+                                    {layouts.map(({ value, label }) => {
+                                        const active = activeLayout === value;
+                                        return (
+                                            <button
+                                                key={value}
+                                                onClick={() => {
+                                                    const nextLayout = value as WidgetConfig['layout'];
+                                                    if (
+                                                        nextLayout === 'custom' &&
+                                                        activeLayout !== 'custom' &&
+                                                        activeLayout &&
+                                                        hasCustomGridPreset(config.type, activeLayout)
+                                                    ) {
+                                                        setPendingCustomFrom(activeLayout);
+                                                        return;
+                                                    }
+                                                    setPendingCustomFrom(null);
+                                                    onConfigChange({ ...config, layout: nextLayout });
+                                                }}
+                                                className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                    {unknown && (
                                         <span
-                                            className="text-[11px] shrink-0 mr-0.5"
-                                            style={{ color: 'var(--text-secondary)' }}
+                                            className="w-full text-[10px] mt-0.5"
+                                            style={{ color: 'var(--accent-orange, #f59e0b)' }}
                                         >
-                                            {t('wf.edit.layout')}
+                                            {t('wf.edit.layout.unknown', { layout: String(config.layout) })}
                                         </span>
-                                        {layouts.map(({ value, label }) => {
-                                            const active = activeLayout === value;
+                                    )}
+                                    {pendingCustomFrom &&
+                                        pendingCustomFrom === activeLayout &&
+                                        (() => {
+                                            const fromLabel =
+                                                layouts.find((l) => l.value === pendingCustomFrom)?.label ??
+                                                String(pendingCustomFrom);
+                                            const hasGrid = !!config.options?.customGrid;
+                                            const applyCustom = (start: 'layout' | 'keep' | 'blank') => {
+                                                const o = config.options ?? {};
+                                                onConfigChange({
+                                                    ...config,
+                                                    layout: 'custom',
+                                                    options:
+                                                        start === 'keep'
+                                                            ? o
+                                                            : customOptionsFromLayout(
+                                                                  config,
+                                                                  start === 'layout' ? pendingCustomFrom : '__blank',
+                                                              ),
+                                                });
+                                                setSelectedCustomCell(null);
+                                                setPendingCustomFrom(null);
+                                            };
+                                            const btnSty = (primary: boolean): React.CSSProperties => ({
+                                                background: primary ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: primary ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${primary ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            });
                                             return (
-                                                <button
-                                                    key={value}
-                                                    onClick={() => {
-                                                        const nextLayout = value as WidgetConfig['layout'];
-                                                        if (
-                                                            nextLayout === 'custom' &&
-                                                            activeLayout !== 'custom' &&
-                                                            activeLayout &&
-                                                            hasCustomGridPreset(config.type, activeLayout)
-                                                        ) {
-                                                            setPendingCustomFrom(activeLayout);
-                                                            return;
-                                                        }
-                                                        setPendingCustomFrom(null);
-                                                        onConfigChange({ ...config, layout: nextLayout });
-                                                    }}
-                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                <div
+                                                    className="aura-custom-start w-full mt-1 p-2 rounded-lg flex flex-col gap-1.5"
                                                     style={{
-                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        background: 'var(--app-bg)',
+                                                        border: '1px solid var(--app-border)',
                                                     }}
                                                 >
-                                                    {label}
-                                                </button>
-                                            );
-                                        })}
-                                        {unknown && (
-                                            <span
-                                                className="w-full text-[10px] mt-0.5"
-                                                style={{ color: 'var(--accent-orange, #f59e0b)' }}
-                                            >
-                                                {t('wf.edit.layout.unknown', { layout: String(config.layout) })}
-                                            </span>
-                                        )}
-                                        {pendingCustomFrom &&
-                                            pendingCustomFrom === activeLayout &&
-                                            (() => {
-                                                const fromLabel =
-                                                    layouts.find((l) => l.value === pendingCustomFrom)?.label ??
-                                                    String(pendingCustomFrom);
-                                                const hasGrid = !!config.options?.customGrid;
-                                                const applyCustom = (start: 'layout' | 'keep' | 'blank') => {
-                                                    const o = config.options ?? {};
-                                                    onConfigChange({
-                                                        ...config,
-                                                        layout: 'custom',
-                                                        options:
-                                                            start === 'keep'
-                                                                ? o
-                                                                : customOptionsFromLayout(
-                                                                      config,
-                                                                      start === 'layout'
-                                                                          ? pendingCustomFrom
-                                                                          : '__blank',
-                                                                  ),
-                                                    });
-                                                    setSelectedCustomCell(null);
-                                                    setPendingCustomFrom(null);
-                                                };
-                                                const btnSty = (primary: boolean): React.CSSProperties => ({
-                                                    background: primary ? 'var(--accent)' : 'var(--app-bg)',
-                                                    color: primary ? '#fff' : 'var(--text-secondary)',
-                                                    border: `1px solid ${primary ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                });
-                                                return (
-                                                    <div
-                                                        className="aura-custom-start w-full mt-1 p-2 rounded-lg flex flex-col gap-1.5"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
+                                                    <span
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-primary)' }}
                                                     >
-                                                        <span
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-primary)' }}
+                                                        {t('wf.edit.layout.customPrompt')}
+                                                    </span>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        <button
+                                                            data-aura-custom-start="layout"
+                                                            onClick={() => applyCustom('layout')}
+                                                            className="text-[11px] px-2 py-1 rounded-md"
+                                                            style={btnSty(true)}
                                                         >
-                                                            {t('wf.edit.layout.customPrompt')}
-                                                        </span>
-                                                        <div className="flex flex-wrap gap-1">
-                                                            <button
-                                                                data-aura-custom-start="layout"
-                                                                onClick={() => applyCustom('layout')}
-                                                                className="text-[11px] px-2 py-1 rounded-md"
-                                                                style={btnSty(true)}
-                                                            >
-                                                                {t('wf.edit.layout.customFrom', { layout: fromLabel })}
-                                                            </button>
-                                                            <button
-                                                                data-aura-custom-start={hasGrid ? 'keep' : 'blank'}
-                                                                onClick={() => applyCustom(hasGrid ? 'keep' : 'blank')}
-                                                                className="text-[11px] px-2 py-1 rounded-md"
-                                                                style={btnSty(false)}
-                                                            >
-                                                                {hasGrid
-                                                                    ? t('wf.edit.layout.customKeep')
-                                                                    : t('wf.edit.layout.customBlank')}
-                                                            </button>
-                                                            <button
-                                                                data-aura-custom-start="cancel"
-                                                                onClick={() => setPendingCustomFrom(null)}
-                                                                className="text-[11px] px-2 py-1 rounded-md"
-                                                                style={btnSty(false)}
-                                                            >
-                                                                {t('common.cancel')}
-                                                            </button>
-                                                        </div>
+                                                            {t('wf.edit.layout.customFrom', { layout: fromLabel })}
+                                                        </button>
+                                                        <button
+                                                            data-aura-custom-start={hasGrid ? 'keep' : 'blank'}
+                                                            onClick={() => applyCustom(hasGrid ? 'keep' : 'blank')}
+                                                            className="text-[11px] px-2 py-1 rounded-md"
+                                                            style={btnSty(false)}
+                                                        >
+                                                            {hasGrid
+                                                                ? t('wf.edit.layout.customKeep')
+                                                                : t('wf.edit.layout.customBlank')}
+                                                        </button>
+                                                        <button
+                                                            data-aura-custom-start="cancel"
+                                                            onClick={() => setPendingCustomFrom(null)}
+                                                            className="text-[11px] px-2 py-1 rounded-md"
+                                                            style={btnSty(false)}
+                                                        >
+                                                            {t('common.cancel')}
+                                                        </button>
                                                     </div>
-                                                );
-                                            })()}
-                                    </div>
-                                );
-                            })()}
-
-                        {/* Header: nur der Stil steht hier oben beim Typ — Untertitel, Strich
-                            und Textfarben/-groessen leben im eigenen Abschnitt weiter unten. */}
-                        {config.type === 'header' && (
-                            <div>
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('wf.edit.header.style')}
-                                </label>
-                                <select
-                                    value={config.layout ?? 'default'}
-                                    onChange={(e) =>
-                                        onConfigChange({
-                                            ...config,
-                                            layout: e.target.value as WidgetConfig['layout'],
-                                        })
-                                    }
-                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                >
-                                    {getLayoutOptions('header', t).map(({ value, label }) => (
-                                        <option key={value} value={value}>
-                                            {label}
-                                        </option>
-                                    ))}
-                                    {/* Without this the select would just stand empty on a stored
-                                        style nobody knows — the hint below says what it is. */}
-                                    {isUnknownLayout('header', config.layout) && (
-                                        <option value={config.layout}>{config.layout}</option>
-                                    )}
-                                </select>
-                                {isUnknownLayout('header', config.layout) && (
-                                    <span
-                                        className="block text-[10px] mt-1"
-                                        style={{ color: 'var(--accent-orange, #f59e0b)' }}
-                                    >
-                                        {t('wf.edit.layout.unknown', { layout: String(config.layout) })}
-                                    </span>
-                                )}
-                            </div>
-                        )}
+                                                </div>
+                                            );
+                                        })()}
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
@@ -11001,6 +10948,51 @@ function WidgetFrameInner({
                                                 </div>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                {/* The section title's layout is its style — a look option. */}
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.header.style')}
+                                                    </label>
+                                                    <select
+                                                        value={config.layout ?? 'default'}
+                                                        onChange={(e) =>
+                                                            onConfigChange({
+                                                                ...config,
+                                                                layout: e.target.value as WidgetConfig['layout'],
+                                                            })
+                                                        }
+                                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-primary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    >
+                                                        {getLayoutOptions('header', t).map(({ value, label }) => (
+                                                            <option key={value} value={value}>
+                                                                {label}
+                                                            </option>
+                                                        ))}
+                                                        {/* Without this the select would just stand empty on a stored
+                                        style nobody knows — the hint below says what it is. */}
+                                                        {isUnknownLayout('header', config.layout) && (
+                                                            <option value={config.layout}>{config.layout}</option>
+                                                        )}
+                                                    </select>
+                                                    {isUnknownLayout('header', config.layout) && (
+                                                        <span
+                                                            className="block text-[10px] mt-1"
+                                                            style={{ color: 'var(--accent-orange, #f59e0b)' }}
+                                                        >
+                                                            {t('wf.edit.layout.unknown', {
+                                                                layout: String(config.layout),
+                                                            })}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="flex items-center justify-between gap-2">
                                                     <span
                                                         className="text-[11px]"

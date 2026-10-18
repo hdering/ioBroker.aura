@@ -246,6 +246,7 @@ const FRAME = ['visible', 'datapoints', 'settings', 'look', 'behavior'];
 
 /** Same gap between all neighbouring sections, nothing loose between them. */
 function checkLayout(type, r) {
+    check(`${type}: shows the layout row`, r.hasLayout);
     const idx = r.order.map((k) => FRAME.indexOf(k));
     check(
         `${type}: only the six fixed sections, in order`,
@@ -293,6 +294,8 @@ const inspect = () =>
                 .filter((s) => s.tagName === 'DETAILS' && s.open)
                 .map((s) => s.getAttribute('data-aura-config-section')),
             visibleFolds: vis?.tagName === 'DETAILS',
+            // The layout row at the top ("Layout: Standard …").
+            hasLayout: [...dlg.querySelectorAll('span')].some((el) => el.textContent?.trim() === 'Layout'),
             // Sections without any content (a body whose only child is conditional and off).
             empty: sections
                 .filter((el) => el.tagName === 'DETAILS' && !el.querySelector(':scope > div')?.childElementCount)
