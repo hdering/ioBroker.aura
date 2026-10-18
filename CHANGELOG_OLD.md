@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.81.2 (2026-10-11)
+- Status overview - new row action "Ignore" (option latchIgnore, with confirmation) hides a false alarm such as an empty wallbox for good; ignored datapoints are never remembered again and can be shown and restored with showIgnored
+- Status overview - commands on status.<cat>.cmd run one after another, accept several ids (remove:<id1>,<id2>) and report their outcome in status.<cat>.cmdResult; excluded datapoints (excludeIdPatterns) take effect in the adapter immediately, without a browser
+- Status overview - remembered entries of datapoints with a bare name (e.g. vehicleSoc) are named after their channel or title
+
 ## 0.81.1 (2026-10-10)
 - Shutter - without an activity datapoint, "Re-set after drive" waits until the actual position stops changing, and a preset counts as reached within ±2 points of the actual position ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
 

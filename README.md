@@ -122,6 +122,20 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.85.0 (2026-10-18)
+- Map - all sections of the map settings now start folded when the settings open
+- 🌟 **New feature:** Universal Widget / Custom layout - optional vertical and/or horizontal separator lines between the grid cells, with adjustable colour and thickness ([#793](https://github.com/hdering/ioBroker.aura/issues/793))
+- 🌟 **New feature:** Device widgets - any number of own status symbols next to battery / reach / window (e.g. motion sensor locked), optionally toggled by a click, with a freely adjustable order; also placeable as single custom layout cells; the status row can sit in any corner or on the card edge so it no longer covers switches and sliders, and the fill level, air control, alarm, button, camera, gauge, evcc, calendar, trash, trash schedule, map, HTML and universal widgets show it too ([#792](https://github.com/hdering/ioBroker.aura/issues/792))
+- AI assistant (MCP) - height check now computes the status overview card grid (columns, wrapped names, the +N more line) and warns when maxRows needs more rows than fit; the browser check reports the remaining space in px, treats a 1 px overflow as scrolling and can fill runtime lists to their worst case
+- Settings - every widget dialog follows the same frame: "Visible fields" (show/hide toggles), "Datapoints", "Settings" (widget topics as sub-headings), "Look" and "Behavior", then the status datapoints; all sections start folded and look the same
+- 🌟 **New feature:** Lists - the "+ datapoint of the device" picker for the second line now shows the object ID next to the name ([#795](https://github.com/hdering/ioBroker.aura/issues/795))
+- 🌟 **New feature:** Static list - an entry can show one field of a JSON datapoint (JSON path button next to the datapoint), and the value conversion of both lists gains an "Expression" mode, e.g. `dp.objektName * 0.4 | fixed(2)` ([#794](https://github.com/hdering/ioBroker.aura/issues/794))
+- Load times - the settings no longer show a datapoint field the widget does not use
+- Settings - the layout row now shows for every widget, also where "Standard" is the only layout; the camera lists "Standard" first and calls its grid layout "Custom"; the section title picks its style under "Look"
+- AI assistant (MCP) - device card and popup children with {{dp}} / {{parent}} placeholders are no longer rejected as missing datapoints when the shared layout is changed ([#789](https://github.com/hdering/ioBroker.aura/issues/789))
+- Map - the satellite view now shows place names and borders on top of the imagery (switchable in the settings) ([#797](https://github.com/hdering/ioBroker.aura/issues/797))
+
+
 ### 0.84.0 (2026-10-17)
 - Tab bar - a menu item next to left- or right-aligned tabs now only takes its own width instead of half the bar ([#791](https://github.com/hdering/ioBroker.aura/issues/791))
 - 🌟 **New feature:** Map - show a route along the roads between two markers, with distance and travel time ([#790](https://github.com/hdering/ioBroker.aura/issues/790))
@@ -229,12 +243,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Fill level - LED segments: "Fill width" now keeps the configured segment count and spreads it over the tile (the old behaviour is the new "Adapt count to length" switch), up to 200 segments, and the value can sit below or beside the segments with its own font size ([#765](https://github.com/hdering/ioBroker.aura/issues/765))
 
 
-### 0.81.2 (2026-10-11)
-- Status overview - new row action "Ignore" (option latchIgnore, with confirmation) hides a false alarm such as an empty wallbox for good; ignored datapoints are never remembered again and can be shown and restored with showIgnored
-- Status overview - commands on status.<cat>.cmd run one after another, accept several ids (remove:<id1>,<id2>) and report their outcome in status.<cat>.cmdResult; excluded datapoints (excludeIdPatterns) take effect in the adapter immediately, without a browser
-- Status overview - remembered entries of datapoints with a bare name (e.g. vehicleSoc) are named after their channel or title
-
-
 ## License
 
 MIT License
@@ -246,6 +254,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
