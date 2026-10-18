@@ -15,3 +15,4 @@
 - Static list - an entry can show one field of a JSON datapoint (JSON path button next to the datapoint), and the value conversion of both lists gains an "Expression" mode, e.g. `dp.objektName * 0.4 | fixed(2)` (#794)
 - Load times - the settings no longer show a datapoint field the widget does not use
 - Settings - the layout row now shows for every widget, also where "Standard" is the only layout; the camera lists "Standard" first and calls its grid layout "Custom"; the section title picks its style under "Look"
+- AI assistant (MCP) - device card and popup children with {{dp}} / {{parent}} placeholders are no longer rejected as missing datapoints when the shared layout is changed (#789)

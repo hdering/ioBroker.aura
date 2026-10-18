@@ -319,6 +319,23 @@ check('a datapoint one level down is checked too, placeholders are not', () => {
     assert.deepEqual(validateWidget(templated, schema, { knownDatapoints: known }).errors, []);
 });
 
+check('the widget datapoint of a device card child may be a placeholder', () => {
+    const known = new Set(['hm-rpc.0.LEQ1.1.STATE']);
+    // aura_write_group on a devicecard def: the children read {{dp}} and
+    // {{parent}}.X from the card. Refusing them made the shared layout unwritable.
+    const child = (datapoint) => ({
+        id: 'child-1',
+        type: 'shutter',
+        title: 'Rollladen',
+        datapoint,
+        gridPos: { x: 0, y: 0, w: 8, h: 5 },
+    });
+    for (const dp of ['{{dp}}', '{{parent}}.LEVEL']) {
+        assert.deepEqual(validateWidget(child(dp), schema, { knownDatapoints: known }).errors, []);
+    }
+    assert.ok(hasError(validateWidget(child('erfunden.0.dp'), schema, { knownDatapoints: known }), /erfunden\.0\.dp/));
+});
+
 // ── A chart on a datapoint nobody logs ────────────────────────────────────────
 // The mistake that looks least like one: the id exists, the type is a number, the
 // options are spelled right, and the chart draws an empty frame for ever.
