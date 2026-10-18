@@ -540,12 +540,19 @@ export function SubDpFields({
                             ? 'Keine weiteren DPs am Gerät'
                             : `+ DP des Geräts (${siblings.length}) …`}
                     </option>
-                    {siblings.map((s) => (
-                        <option key={s.id} value={s.id}>
-                            {s.name}
-                            {s.unit ? ` (${s.unit})` : ''}
-                        </option>
-                    ))}
+                    {siblings.map((s) => {
+                        // Name und Objekt-ID nebeneinander (#795) — gleich benannte DPs
+                        // (z. B. „Datenpunkt 1“ an zwei Kanälen) sind sonst nicht unterscheidbar.
+                        const key = s.id.split('.').pop() ?? s.id;
+                        const showKey = key !== s.name;
+                        return (
+                            <option key={s.id} value={s.id} title={s.id}>
+                                {s.name}
+                                {s.unit ? ` (${s.unit})` : ''}
+                                {showKey ? `  ·  ${key}` : ''}
+                            </option>
+                        );
+                    })}
                 </select>
                 <button
                     onClick={() => setPickerOpen(true)}
