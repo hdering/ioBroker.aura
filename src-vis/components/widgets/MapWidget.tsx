@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Tooltip, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Pane, Marker, Tooltip, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
@@ -167,6 +167,8 @@ interface MapOptions {
     styleChipsCorner?: MapChipsCorner;
     /** Which types the switcher offers; unset or empty offers all presets. */
     styleChoices?: MapStyle[];
+    /** Overlay place names and borders on the satellite imagery (default on). */
+    satelliteLabels?: boolean;
     lines?: MapLine[];
     /** Corner of the box listing each line's length (default bottom-left), or 'off'. */
     lineInfo?: MapLineInfoMode;
@@ -185,7 +187,10 @@ interface MapOptions {
 }
 
 /** Free tile presets (no API key required). */
-export const TILE_PRESETS: Record<MapStyle, { url: string; attribution: string; maxZoom?: number }> = {
+export const TILE_PRESETS: Record<
+    MapStyle,
+    { url: string; attribution: string; maxZoom?: number; labelsUrl?: string }
+> = {
     standard: {
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         attribution: '&copy; OpenStreetMap',
@@ -193,6 +198,9 @@ export const TILE_PRESETS: Record<MapStyle, { url: string; attribution: string; 
     satellite: {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+        // Imagery carries no names; this transparent layer adds places and borders on top.
+        labelsUrl:
+            'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     },
     terrain: {
         url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
@@ -1264,6 +1272,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const customTiles = !!o.tileUrl && !styleOverride;
     const tileUrl = customTiles ? (o.tileUrl as string) : preset.url;
     const attribution = customTiles ? (o.tileAttribution ?? '') : preset.attribution;
+    const labelsUrl = !customTiles && o.satelliteLabels !== false ? preset.labelsUrl : undefined;
 
     const showStyleChips = o.showStyleChips === true;
     const styleCorner = normalizeCorner(o.styleChipsCorner, 'top-left');
@@ -1502,6 +1511,12 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                         setUrl. Remounting the layer triggers Leaflet onAdd → _resetView,
                         which can throw "infinite number of tiles" and crash the tree. */}
                     <TileLayer url={tileUrl} attribution={attribution} />
+                    {/* Own pane above the tiles, below markers/lines; no pointer events so the
+                        map underneath stays draggable. Adding/removing this extra layer is safe —
+                        only remounting the base layer trips _resetView. */}
+                    <Pane name="placeLabels" style={{ zIndex: 450, pointerEvents: 'none' }}>
+                        {labelsUrl && <TileLayer url={labelsUrl} />}
+                    </Pane>
                     <ResizeHandler />
                     <FollowMarkers positions={fitPositions} enabled={followMarkers} maxZoom={followMaxZoom} />
                     <FlyToController target={flyTarget} />

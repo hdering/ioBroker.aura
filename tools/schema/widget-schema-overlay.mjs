@@ -1117,6 +1117,10 @@ export const WIDGET_OPTION_NOTES = {
         center: { description: 'Kartenmittelpunkt als [Breitengrad, Längengrad].' },
         zoom: { description: 'Zoomstufe der Karte.' },
         mapStyle: { description: 'Kartenstil.' },
+        satelliteLabels: {
+            description:
+                'Beim Kartentyp Satellit Ortsnamen und Grenzen (Esri) über das Luftbild legen, auch nach Umschalten im Frontend. Standard an.',
+        },
         tileUrl: {
             description:
                 'Veraltet – nicht setzen. Eigener Kachel-Server älterer Karten; bestehende Werte bleiben wirksam (überschreiben mapStyle), neu konfigurieren lässt er sich nicht mehr. Für den Kartenstil mapStyle verwenden.',

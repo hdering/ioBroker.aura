@@ -1259,6 +1259,15 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                             </p>
                         )}
                     </div>
+                    <div className="flex items-center justify-between">
+                        <label className={lblCls} style={lblSty}>
+                            Ortsnamen auf Satellitenbild
+                        </label>
+                        <Toggle
+                            value={o.satelliteLabels !== false}
+                            onToggle={() => set({ satelliteLabels: o.satelliteLabels === false })}
+                        />
+                    </div>
                 </SubGroup>
                 <SubGroup title="Ansicht">
                     <div className="flex items-center justify-between">

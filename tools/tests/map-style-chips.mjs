@@ -162,6 +162,37 @@ const tileHosts = () =>
     check('preset attribution takes over', (await attribution()).includes('Esri'), await attribution());
 }
 
+// ── 8. Satellite gets a place-name overlay (issue #797) ─────────────────────
+{
+    /** Tile urls in the label pane — empty when the overlay is off. */
+    const labelTiles = () =>
+        page.evaluate(() =>
+            [...document.querySelectorAll('.leaflet-placeLabels-pane img.leaflet-tile')].map((i) => i.src),
+        );
+
+    await render({ showStyleChips: true, mapStyle: 'satellite' });
+    const tiles = await labelTiles();
+    check(
+        'satellite shows place names',
+        tiles.length > 0 && tiles.every((u) => u.includes('World_Boundaries_and_Places')),
+        `${tiles.length} tiles`,
+    );
+    const pe = await page.evaluate(
+        () => getComputedStyle(document.querySelector('.leaflet-placeLabels-pane')).pointerEvents,
+    );
+    check('label pane lets pointer events through', pe === 'none', pe);
+
+    await page.locator('[data-aura-map-style="terrain"]').click();
+    await page.waitForTimeout(400);
+    check('terrain has no extra labels', (await labelTiles()).length === 0);
+    await page.locator('[data-aura-map-style="satellite"]').click();
+    await page.waitForTimeout(400);
+    check('labels return with satellite', (await labelTiles()).length > 0);
+
+    await render({ mapStyle: 'satellite', satelliteLabels: false });
+    check('satelliteLabels: false turns them off', (await labelTiles()).length === 0);
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 
 await browser.close();

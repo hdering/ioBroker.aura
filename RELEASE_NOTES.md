@@ -16,3 +16,4 @@
 - Load times - the settings no longer show a datapoint field the widget does not use
 - Settings - the layout row now shows for every widget, also where "Standard" is the only layout; the camera lists "Standard" first and calls its grid layout "Custom"; the section title picks its style under "Look"
 - AI assistant (MCP) - device card and popup children with {{dp}} / {{parent}} placeholders are no longer rejected as missing datapoints when the shared layout is changed (#789)
+- Map - the satellite view now shows place names and borders on top of the imagery (switchable in the settings) (#797)

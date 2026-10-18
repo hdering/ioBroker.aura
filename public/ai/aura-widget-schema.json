@@ -15641,6 +15641,11 @@
           "description": "Farbe des Erreichbarkeits-Badges bei „nicht erreichbar“. Leer = var(--badge-crit) (rot).",
           "color": true
         },
+        "satelliteLabels": {
+          "type": "boolean",
+          "description": "Beim Kartentyp Satellit Ortsnamen und Grenzen (Esri) über das Luftbild legen, auch nach Umschalten im Frontend. Standard an.",
+          "default": true
+        },
         "showDistance": {
           "type": "boolean",
           "default": false,
