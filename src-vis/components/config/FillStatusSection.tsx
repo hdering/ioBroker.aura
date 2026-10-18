@@ -70,8 +70,6 @@ export interface FillStatusSectionProps {
     chargeColor: string;
     dischargeColor: string;
     offlineColor: string;
-    /** Which part to render: its datapoints, their conditions, or effects/icons/colours. */
-    part: 'datapoints' | 'settings' | 'look';
 }
 
 export function FillStatusSection({
@@ -83,7 +81,6 @@ export function FillStatusSection({
     chargeColor,
     dischargeColor,
     offlineColor,
-    part,
 }: FillStatusSectionProps) {
     const chargeDp = (o.chargeDatapoint as string) ?? '';
     const dischargeDp = (o.dischargeDatapoint as string) ?? '';
@@ -224,72 +221,59 @@ export function FillStatusSection({
         </div>
     );
 
-    const hasCharge = chargeDp.trim() !== '';
-    const hasDischarge = dischargeDp.trim() !== '';
-    const hasConnected = connectedDp.trim() !== '';
-
-    // E-B1: the three datapoints sit in "Datenpunkte", their conditions in "Einstellungen",
-    // effects, icons and colours in "Optik" — each part a SubGroup "Status".
-    if (part === 'datapoints')
-        return (
-            <SubGroup title="Status">
-                {dpRow('charge', chargeDp, 'Laden aus Datenpunkt', 'z. B. …CHARGING (leer = aus)')}
-                {dpRow('discharge', dischargeDp, 'Entladen aus Datenpunkt', 'z. B. …packPower (leer = aus)')}
-                {/* A signed power answers both questions. One click saves typing the id twice. */}
-                {!hasDischarge && hasCharge && (
-                    <button
-                        type="button"
-                        onClick={() => set({ dischargeDatapoint: chargeDp })}
-                        className="text-[10px] text-left underline underline-offset-2 hover:opacity-80 -mt-1"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        Denselben Datenpunkt wie beim Laden übernehmen
-                    </button>
-                )}
-                {dpRow('connected', connectedDp, 'Verbunden aus Datenpunkt', 'z. B. …UNREACH (leer = aus)')}
-                <p className="text-[10px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
-                    Alle drei Datenpunkte werden nur gelesen. Eine vorzeichenbehaftete Leistung deckt Laden und Entladen
-                    ab — oben {'„größer 0“'}, unten {'„kleiner 0“'}. Ein <code>UNREACH</code>-Datenpunkt meldet die
-                    Störung, nicht die Verbindung — dort {'„falsch / 0“'} wählen. Das Custom-Layout zeigt keinen Status.
-                </p>
-            </SubGroup>
-        );
-    if (!hasCharge && !hasDischarge && !hasConnected) return null;
-    if (part === 'settings')
-        return (
-            <SubGroup title="Status">
-                {hasCharge && conditionRow('chargeCondition', 'Lädt, wenn der Wert …')}
-                {hasDischarge &&
-                    conditionRow('dischargeCondition', 'Entlädt, wenn der Wert …', DEFAULT_DISCHARGE_CONDITION)}
-                {hasConnected && conditionRow('connectedCondition', 'Verbunden, wenn der Wert …')}
-            </SubGroup>
-        );
+    // One topic, kept together: each datapoint with its condition, effect, icon and colour.
     return (
         <SubGroup title="Status">
-            {hasCharge && (
+            {dpRow('charge', chargeDp, 'Laden aus Datenpunkt', 'z. B. …CHARGING (leer = aus)')}
+            {chargeDp.trim() !== '' && (
                 <>
+                    {conditionRow('chargeCondition', 'Lädt, wenn der Wert …')}
                     {effectRow('chargeEffect', 'Effekt während des Ladens')}
-                    {toggle('showChargeIcon', 'Icon beim Laden anzeigen')}
+                    {toggle('showChargeIcon', 'Icon anzeigen')}
                     {(o.showChargeIcon ?? true) !== false && iconRow('charge', 'Icon beim Laden')}
-                    {colorRow('chargeColor', 'Farbe beim Laden (Icon und Lauflicht)', chargeColor)}
+                    {colorRow('chargeColor', 'Farbe (Icon und Lauflicht)', chargeColor)}
                 </>
             )}
-            {hasDischarge && (
+
+            {dpRow('discharge', dischargeDp, 'Entladen aus Datenpunkt', 'z. B. …packPower (leer = aus)')}
+            {/* A signed power answers both questions. One click saves typing the id twice. */}
+            {dischargeDp.trim() === '' && chargeDp.trim() !== '' && (
+                <button
+                    type="button"
+                    onClick={() => set({ dischargeDatapoint: chargeDp })}
+                    className="text-[10px] text-left underline underline-offset-2 hover:opacity-80 -mt-1"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    Denselben Datenpunkt wie beim Laden übernehmen
+                </button>
+            )}
+            {dischargeDp.trim() !== '' && (
                 <>
+                    {conditionRow('dischargeCondition', 'Entlädt, wenn der Wert …', DEFAULT_DISCHARGE_CONDITION)}
                     {effectRow('dischargeEffect', 'Effekt während des Entladens')}
-                    {toggle('showDischargeIcon', 'Icon beim Entladen anzeigen')}
+                    {toggle('showDischargeIcon', 'Icon anzeigen')}
                     {(o.showDischargeIcon ?? true) !== false && iconRow('discharge', 'Icon beim Entladen')}
-                    {colorRow('dischargeColor', 'Farbe beim Entladen (Icon und Lauflicht)', dischargeColor)}
+                    {colorRow('dischargeColor', 'Farbe (Icon und Lauflicht)', dischargeColor)}
                 </>
             )}
-            {hasConnected && (
+
+            {dpRow('connected', connectedDp, 'Verbunden aus Datenpunkt', 'z. B. …UNREACH (leer = aus)')}
+            {connectedDp.trim() !== '' && (
                 <>
+                    {conditionRow('connectedCondition', 'Verbunden, wenn der Wert …')}
                     {toggle('showOfflineIcon', 'Icon bei fehlender Verbindung')}
                     {(o.showOfflineIcon ?? true) !== false && iconRow('offline', 'Icon ohne Verbindung')}
                     {toggle('offlineDim', 'Anzeige ausgrauen, wenn getrennt')}
                     {colorRow('offlineColor', 'Farbe des Verbindungs-Icons', offlineColor)}
                 </>
             )}
+
+            <p className="text-[10px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                Alle drei Datenpunkte werden nur gelesen. Eine vorzeichenbehaftete Leistung deckt Laden und Entladen ab
+                — oben {'„größer 0“'}, unten {'„kleiner 0“'}. Ein <code>UNREACH</code>-Datenpunkt meldet die Störung,
+                nicht die Verbindung — dort {'„falsch / 0“'} wählen. Das Custom-Layout zeigt keinen Status.
+            </p>
+
             {iconPicker && (
                 <IconPickerModal
                     current={(o[ICON_OPTION[iconPicker]] as string) ?? ''}

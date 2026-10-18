@@ -2018,7 +2018,15 @@ function ClimateConfig({
                         >
                             ✨ Auto-Erkennen — Soll, Feuchte, Luftdruck und weitere Werte beim Sensor suchen
                         </button>
-                        <SubGroup title="Temperatur">{mainDpField}</SubGroup>
+                        <SubGroup title="Temperatur">
+                            {mainDpField}
+                            {colorRow(
+                                'Farbe (Icon und Verlauf)',
+                                (o.lineColor as string | undefined) ?? '#06b6d4',
+                                (v) => set({ lineColor: v }),
+                                () => set({ lineColor: undefined }),
+                            )}
+                        </SubGroup>
                         {showTarget && (
                             <SubGroup title="Soll-Temperatur">
                                 {dpField(
@@ -2042,6 +2050,30 @@ function ClimateConfig({
                                         {humidityUsers.join(', ')}.
                                     </p>
                                 )}
+                                {showHum && (
+                                    <div className="flex gap-2 mt-1.5">
+                                        <div className="flex-1 min-w-0">
+                                            <label className={labelCls} style={labelStyle}>
+                                                Icon
+                                            </label>
+                                            {iconButton(humidityIconName, HumidityIconPreview, 'Droplets', () =>
+                                                setHumidityIconPickerOpen(true),
+                                            )}
+                                        </div>
+                                        <div className="w-20 shrink-0">
+                                            <label className={labelCls} style={labelStyle}>
+                                                Einheit
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={(o.humidityUnit as string) ?? '%'}
+                                                onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
+                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                style={inputStyle}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
                             </SubGroup>
                         )}
                         {showPress && (
@@ -2051,87 +2083,6 @@ function ClimateConfig({
                                     (v) => set({ pressureDatapoint: v }),
                                     'climate_pressureDp',
                                 )}
-                            </SubGroup>
-                        )}
-                        <SubGroup title="Weitere Werte">
-                            <button
-                                onClick={() => setMetricsOpen(true)}
-                                className="w-full text-xs px-2.5 py-2 rounded-lg text-left flex items-center justify-between hover:opacity-80"
-                                style={inputStyle}
-                            >
-                                <span style={{ color: 'var(--text-primary)' }}>
-                                    {climateMetrics.length
-                                        ? `${climateMetrics.length} ${climateMetrics.length === 1 ? 'Wert' : 'Werte'} bearbeiten…`
-                                        : 'CO₂, VOC, Taupunkt … hinzufügen'}
-                                </span>
-                                <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                    ›
-                                </span>
-                            </button>
-                            {climateMetrics.length > 0 && (
-                                <p className="text-[10px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
-                                    {climateMetrics.map((m) => m.label || m.id).join(' · ')}
-                                </p>
-                            )}
-                        </SubGroup>
-                    </>
-                }
-                settingsBefore={
-                    <SubGroup title="Format">
-                        <div className="mb-1.5">
-                            <ValueFormatRow
-                                unit={(o.unit as string | undefined) ?? '°C'}
-                                unitPlaceholder="°C"
-                                onUnitChange={(v) => set({ unit: v || undefined })}
-                                decimals={o.decimals as number | undefined}
-                                numberFormat={o.numberFormat as NumberFormat | undefined}
-                                onChange={set}
-                                inputStyle={inputStyle}
-                            />
-                            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                Nachkommastellen gelten auch für Feuchte und weitere Werte ohne eigene Angabe.
-                            </p>
-                        </div>
-                    </SubGroup>
-                }
-                lookBefore={
-                    <>
-                        <SubGroup title="Temperatur">
-                            {colorRow(
-                                'Farbe (Icon und Verlauf)',
-                                (o.lineColor as string | undefined) ?? '#06b6d4',
-                                (v) => set({ lineColor: v }),
-                                () => set({ lineColor: undefined }),
-                            )}
-                        </SubGroup>
-                        {showHum && (
-                            <SubGroup title="Luftfeuchtigkeit">
-                                <div className="flex gap-2 mt-1.5">
-                                    <div className="flex-1 min-w-0">
-                                        <label className={labelCls} style={labelStyle}>
-                                            Icon
-                                        </label>
-                                        {iconButton(humidityIconName, HumidityIconPreview, 'Droplets', () =>
-                                            setHumidityIconPickerOpen(true),
-                                        )}
-                                    </div>
-                                    <div className="w-20 shrink-0">
-                                        <label className={labelCls} style={labelStyle}>
-                                            Einheit
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={(o.humidityUnit as string) ?? '%'}
-                                            onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
-                                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                            style={inputStyle}
-                                        />
-                                    </div>
-                                </div>
-                            </SubGroup>
-                        )}
-                        {showPress && (
-                            <SubGroup title="Luftdruck">
                                 <div className="flex gap-2 mt-1.5">
                                     <div className="flex-1 min-w-0">
                                         <label className={labelCls} style={labelStyle}>
@@ -2178,6 +2129,25 @@ function ClimateConfig({
                             </SubGroup>
                         )}
                         <SubGroup title="Weitere Werte">
+                            <button
+                                onClick={() => setMetricsOpen(true)}
+                                className="w-full text-xs px-2.5 py-2 rounded-lg text-left flex items-center justify-between hover:opacity-80"
+                                style={inputStyle}
+                            >
+                                <span style={{ color: 'var(--text-primary)' }}>
+                                    {climateMetrics.length
+                                        ? `${climateMetrics.length} ${climateMetrics.length === 1 ? 'Wert' : 'Werte'} bearbeiten…`
+                                        : 'CO₂, VOC, Taupunkt … hinzufügen'}
+                                </span>
+                                <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                    ›
+                                </span>
+                            </button>
+                            {climateMetrics.length > 0 && (
+                                <p className="text-[10px] mt-1 truncate" style={{ color: 'var(--text-secondary)' }}>
+                                    {climateMetrics.map((m) => m.label || m.id).join(' · ')}
+                                </p>
+                            )}
                             <div className="flex gap-2 mt-2 mb-1.5">
                                 <div className="flex-1">
                                     <label className={labelCls} style={labelStyle}>
@@ -2201,6 +2171,24 @@ function ClimateConfig({
                             </div>
                         </SubGroup>
                     </>
+                }
+                settingsBefore={
+                    <SubGroup title="Format">
+                        <div className="mb-1.5">
+                            <ValueFormatRow
+                                unit={(o.unit as string | undefined) ?? '°C'}
+                                unitPlaceholder="°C"
+                                onUnitChange={(v) => set({ unit: v || undefined })}
+                                decimals={o.decimals as number | undefined}
+                                numberFormat={o.numberFormat as NumberFormat | undefined}
+                                onChange={set}
+                                inputStyle={inputStyle}
+                            />
+                            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                Nachkommastellen gelten auch für Feuchte und weitere Werte ohne eigene Angabe.
+                            </p>
+                        </div>
+                    </SubGroup>
                 }
             />
             {humidityIconPickerOpen && (
@@ -12224,7 +12212,7 @@ function WidgetFrameInner({
                                             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                                                 <>
                                                     {renderMainDpField()}
-                                                    <SubGroup title="Zeiger">
+                                                    <SubGroup title="Zeiger 1">
                                                         <div>
                                                             <label
                                                                 className="text-[11px] mb-1 block"
@@ -12243,6 +12231,56 @@ function WidgetFrameInner({
                                                                 {config.datapoint || '–'}
                                                             </div>
                                                         </div>
+                                                        {colorZones && zoneColorToggle('pointer1ZoneColor', true)}
+                                                        <div className="flex items-center gap-2">
+                                                            {/* The picker only matters while this pointer keeps its own color */}
+                                                            {!(
+                                                                colorZones && zoneColorOn('pointer1ZoneColor', true)
+                                                            ) && (
+                                                                <ColorPicker
+                                                                    value={(o.pointer1Color as string) ?? '#6366f1'}
+                                                                    onChange={(v) => set({ pointer1Color: v })}
+                                                                    className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                    style={{
+                                                                        border: '1px solid var(--app-border)',
+                                                                        padding: '1px',
+                                                                    }}
+                                                                />
+                                                            )}
+                                                            <div className="flex-1">
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Zeiger 1 – Bezeichnung
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={(o.pointer1Label as string) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        set({
+                                                                            pointer1Label: e.target.value || undefined,
+                                                                        })
+                                                                    }
+                                                                    placeholder="z.B. Innen"
+                                                                    className={gCls}
+                                                                    style={gSty}
+                                                                />
+                                                                {!o.showValueBadge && (
+                                                                    <p
+                                                                        className="text-[10px] mt-1"
+                                                                        style={{
+                                                                            color: 'var(--text-secondary)',
+                                                                            opacity: 0.7,
+                                                                        }}
+                                                                    >
+                                                                        Sichtbar, sobald {'„Wert als Badge“'} aktiv ist
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </SubGroup>
+                                                    <SubGroup title="Zeiger 2">
                                                         <div>
                                                             <label
                                                                 className="text-[11px] mb-1 block"
@@ -12278,6 +12316,50 @@ function WidgetFrameInner({
                                                                 </button>
                                                             </div>
                                                         </div>
+                                                        {(o.pointer2Datapoint as string) &&
+                                                            colorZones &&
+                                                            zoneColorToggle('pointer2ZoneColor', false)}
+                                                        {(o.pointer2Datapoint as string) && (
+                                                            <div className="flex items-center gap-2">
+                                                                {!(
+                                                                    colorZones &&
+                                                                    zoneColorOn('pointer2ZoneColor', false)
+                                                                ) && (
+                                                                    <ColorPicker
+                                                                        value={(o.pointer2Color as string) ?? '#f97316'}
+                                                                        onChange={(v) => set({ pointer2Color: v })}
+                                                                        className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                        style={{
+                                                                            border: '1px solid var(--app-border)',
+                                                                            padding: '1px',
+                                                                        }}
+                                                                    />
+                                                                )}
+                                                                <div className="flex-1">
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Zeiger 2 – Bezeichnung
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={(o.pointer2Label as string) ?? ''}
+                                                                        onChange={(e) =>
+                                                                            set({
+                                                                                pointer2Label:
+                                                                                    e.target.value || undefined,
+                                                                            })
+                                                                        }
+                                                                        placeholder="z.B. Außen"
+                                                                        className={gCls}
+                                                                        style={gSty}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </SubGroup>
+                                                    <SubGroup title="Zeiger 3">
                                                         <div>
                                                             <label
                                                                 className="text-[11px] mb-1 block"
@@ -12313,6 +12395,48 @@ function WidgetFrameInner({
                                                                 </button>
                                                             </div>
                                                         </div>
+                                                        {(o.pointer3Datapoint as string) &&
+                                                            colorZones &&
+                                                            zoneColorToggle('pointer3ZoneColor', false)}
+                                                        {(o.pointer3Datapoint as string) && (
+                                                            <div className="flex items-center gap-2">
+                                                                {!(
+                                                                    colorZones &&
+                                                                    zoneColorOn('pointer3ZoneColor', false)
+                                                                ) && (
+                                                                    <ColorPicker
+                                                                        value={(o.pointer3Color as string) ?? '#8b5cf6'}
+                                                                        onChange={(v) => set({ pointer3Color: v })}
+                                                                        className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                                        style={{
+                                                                            border: '1px solid var(--app-border)',
+                                                                            padding: '1px',
+                                                                        }}
+                                                                    />
+                                                                )}
+                                                                <div className="flex-1">
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        Zeiger 3 – Bezeichnung
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={(o.pointer3Label as string) ?? ''}
+                                                                        onChange={(e) =>
+                                                                            set({
+                                                                                pointer3Label:
+                                                                                    e.target.value || undefined,
+                                                                            })
+                                                                        }
+                                                                        placeholder="z.B. Keller"
+                                                                        className={gCls}
+                                                                        style={gSty}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </SubGroup>
                                                 </>
                                             </ConfigSection>
@@ -12636,135 +12760,6 @@ function WidgetFrameInner({
                                                                 </div>
                                                             );
                                                         })()}
-                                                </SubGroup>
-                                                <SubGroup title="Zeiger">
-                                                    {/* Pointer 1 (primary) */}
-                                                    {colorZones && zoneColorToggle('pointer1ZoneColor', true)}
-                                                    <div className="flex items-center gap-2">
-                                                        {/* The picker only matters while this pointer keeps its own color */}
-                                                        {!(colorZones && zoneColorOn('pointer1ZoneColor', true)) && (
-                                                            <ColorPicker
-                                                                value={(o.pointer1Color as string) ?? '#6366f1'}
-                                                                onChange={(v) => set({ pointer1Color: v })}
-                                                                className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                                style={{
-                                                                    border: '1px solid var(--app-border)',
-                                                                    padding: '1px',
-                                                                }}
-                                                            />
-                                                        )}
-                                                        <div className="flex-1">
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Zeiger 1 – Bezeichnung
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={(o.pointer1Label as string) ?? ''}
-                                                                onChange={(e) =>
-                                                                    set({ pointer1Label: e.target.value || undefined })
-                                                                }
-                                                                placeholder="z.B. Innen"
-                                                                className={gCls}
-                                                                style={gSty}
-                                                            />
-                                                            {!o.showValueBadge && (
-                                                                <p
-                                                                    className="text-[10px] mt-1"
-                                                                    style={{
-                                                                        color: 'var(--text-secondary)',
-                                                                        opacity: 0.7,
-                                                                    }}
-                                                                >
-                                                                    Sichtbar, sobald {'„Wert als Badge“'} aktiv ist
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    {/* Pointer 2 */}
-                                                    {(o.pointer2Datapoint as string) &&
-                                                        colorZones &&
-                                                        zoneColorToggle('pointer2ZoneColor', false)}
-                                                    {(o.pointer2Datapoint as string) && (
-                                                        <div className="flex items-center gap-2">
-                                                            {!(
-                                                                colorZones && zoneColorOn('pointer2ZoneColor', false)
-                                                            ) && (
-                                                                <ColorPicker
-                                                                    value={(o.pointer2Color as string) ?? '#f97316'}
-                                                                    onChange={(v) => set({ pointer2Color: v })}
-                                                                    className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                                    style={{
-                                                                        border: '1px solid var(--app-border)',
-                                                                        padding: '1px',
-                                                                    }}
-                                                                />
-                                                            )}
-                                                            <div className="flex-1">
-                                                                <label
-                                                                    className="text-[11px] mb-1 block"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Zeiger 2 – Bezeichnung
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={(o.pointer2Label as string) ?? ''}
-                                                                    onChange={(e) =>
-                                                                        set({
-                                                                            pointer2Label: e.target.value || undefined,
-                                                                        })
-                                                                    }
-                                                                    placeholder="z.B. Außen"
-                                                                    className={gCls}
-                                                                    style={gSty}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    {/* Pointer 3 */}
-                                                    {(o.pointer3Datapoint as string) &&
-                                                        colorZones &&
-                                                        zoneColorToggle('pointer3ZoneColor', false)}
-                                                    {(o.pointer3Datapoint as string) && (
-                                                        <div className="flex items-center gap-2">
-                                                            {!(
-                                                                colorZones && zoneColorOn('pointer3ZoneColor', false)
-                                                            ) && (
-                                                                <ColorPicker
-                                                                    value={(o.pointer3Color as string) ?? '#8b5cf6'}
-                                                                    onChange={(v) => set({ pointer3Color: v })}
-                                                                    className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                                    style={{
-                                                                        border: '1px solid var(--app-border)',
-                                                                        padding: '1px',
-                                                                    }}
-                                                                />
-                                                            )}
-                                                            <div className="flex-1">
-                                                                <label
-                                                                    className="text-[11px] mb-1 block"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    Zeiger 3 – Bezeichnung
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={(o.pointer3Label as string) ?? ''}
-                                                                    onChange={(e) =>
-                                                                        set({
-                                                                            pointer3Label: e.target.value || undefined,
-                                                                        })
-                                                                    }
-                                                                    placeholder="z.B. Keller"
-                                                                    className={gCls}
-                                                                    style={gSty}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
                                                 </SubGroup>
                                             </ConfigSection>
                                         </>
@@ -14634,7 +14629,6 @@ function WidgetFrameInner({
                                                 {renderMainDpField()}
                                                 {/* Laden / Entladen / Verbindung als eigene Datenpunkte (#671, #691). */}
                                                 <FillStatusSection
-                                                    part="datapoints"
                                                     options={o}
                                                     set={set}
                                                     onPick={(which) => setPickerTarget(`fill_${which}Dp`)}
@@ -14644,6 +14638,11 @@ function WidgetFrameInner({
                                                     dischargeColor={FILL_DISCHARGE_COLOR}
                                                     offlineColor={FILL_OFFLINE_COLOR}
                                                 />
+                                                {/* Adjustable limits with their own datapoints (#613). Kept in
+                                            its own dialog: a limit row carries a datapoint, an icon and
+                                            two colours, which does not belong in this column. Hides
+                                            itself in the layouts that have no bar to hang a line on. */}
+                                                <FillLimitsSection options={o} layout={config.layout} set={set} />
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                                                 <SubGroup title="Skala">
@@ -14712,22 +14711,6 @@ function WidgetFrameInner({
                                                         inputStyle={fSty}
                                                     />
                                                 </SubGroup>
-                                                {/* Adjustable limits with their own datapoints (#613). Kept in
-                                            its own dialog: a limit row carries a datapoint, an icon and
-                                            two colours, which does not belong in this column. Hides
-                                            itself in the layouts that have no bar to hang a line on. */}
-                                                <FillLimitsSection options={o} layout={config.layout} set={set} />
-                                                <FillStatusSection
-                                                    part="settings"
-                                                    options={o}
-                                                    set={set}
-                                                    onPick={(which) => setPickerTarget(`fill_${which}Dp`)}
-                                                    inputClassName={fCls}
-                                                    inputStyle={fSty}
-                                                    chargeColor={FILL_CHARGE_COLOR}
-                                                    dischargeColor={FILL_DISCHARGE_COLOR}
-                                                    offlineColor={FILL_OFFLINE_COLOR}
-                                                />
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                                                 <SubGroup title="Darstellung">
@@ -15225,17 +15208,6 @@ function WidgetFrameInner({
                                                         </>
                                                     )}
                                                 </SubGroup>
-                                                <FillStatusSection
-                                                    part="look"
-                                                    options={o}
-                                                    set={set}
-                                                    onPick={(which) => setPickerTarget(`fill_${which}Dp`)}
-                                                    inputClassName={fCls}
-                                                    inputStyle={fSty}
-                                                    chargeColor={FILL_CHARGE_COLOR}
-                                                    dischargeColor={FILL_DISCHARGE_COLOR}
-                                                    offlineColor={FILL_OFFLINE_COLOR}
-                                                />
                                             </ConfigSection>
                                         </>
                                     );
@@ -16115,16 +16087,55 @@ function WidgetFrameInner({
                                                     </button>
                                                 </div>
 
-                                                {/* Switch DP */}
-                                                <div>
-                                                    <label className="text-[11px] mb-1 block" style={hint}>
-                                                        Schalt-DP (An/Aus, boolean)
-                                                    </label>
-                                                    {dpRow('switchDp', 'light_switchDp', 'optional')}
-                                                    <p className="text-[10px] mt-1" style={hint}>
-                                                        Ohne Schalt-DP wird LEVEL/Brightness=0 als Aus interpretiert.
-                                                    </p>
-                                                </div>
+                                                <SubGroup title="Schalten">
+                                                    {/* Switch DP */}
+                                                    <div>
+                                                        <label className="text-[11px] mb-1 block" style={hint}>
+                                                            Schalt-DP (An/Aus, boolean)
+                                                        </label>
+                                                        {dpRow('switchDp', 'light_switchDp', 'optional')}
+                                                        <p className="text-[10px] mt-1" style={hint}>
+                                                            Ohne Schalt-DP wird LEVEL/Brightness=0 als Aus
+                                                            interpretiert.
+                                                        </p>
+                                                    </div>
+                                                    {!!(o.switchDp as string) &&
+                                                        (() => {
+                                                            const raw = o.powerButtonSize;
+                                                            const pxVal =
+                                                                typeof raw === 'number' && Number.isFinite(raw)
+                                                                    ? Math.max(40, Math.min(480, Math.round(raw)))
+                                                                    : 120;
+                                                            return (
+                                                                <div className="mt-2">
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <label className="text-[11px]" style={hint}>
+                                                                            Schalter-Größe (max.)
+                                                                        </label>
+                                                                        <span
+                                                                            className="text-[10px] font-mono"
+                                                                            style={hint}
+                                                                        >
+                                                                            {pxVal} px
+                                                                        </span>
+                                                                    </div>
+                                                                    <input
+                                                                        type="range"
+                                                                        min={40}
+                                                                        max={480}
+                                                                        step={4}
+                                                                        value={pxVal}
+                                                                        onChange={(e) =>
+                                                                            setO({
+                                                                                powerButtonSize: Number(e.target.value),
+                                                                            })
+                                                                        }
+                                                                        className="w-full"
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                </SubGroup>
                                                 <SubGroup title="Helligkeit">
                                                     <div>
                                                         <label className="text-[11px] mb-1 block" style={hint}>
@@ -16136,8 +16147,112 @@ function WidgetFrameInner({
                                                             'z.B. hue.0…level',
                                                         )}
                                                     </div>
+                                                    <div className="grid grid-cols-2 gap-2 mt-1">
+                                                        <div>
+                                                            <label className="text-[10px]" style={hint}>
+                                                                Min
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                value={(o.brightnessMin as number) ?? 0}
+                                                                onChange={(e) =>
+                                                                    setO({ brightnessMin: Number(e.target.value) })
+                                                                }
+                                                                className={lInputCls}
+                                                                style={lInputStyle}
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-[10px]" style={hint}>
+                                                                Max
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                value={(o.brightnessMax as number) ?? 100}
+                                                                onChange={(e) =>
+                                                                    setO({ brightnessMax: Number(e.target.value) })
+                                                                }
+                                                                className={lInputCls}
+                                                                style={lInputStyle}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    {!!(o.brightnessDp as string) &&
+                                                        (() => {
+                                                            const raw = o.brightnessBarSize;
+                                                            const pxVal =
+                                                                typeof raw === 'number' && Number.isFinite(raw)
+                                                                    ? Math.max(60, Math.min(800, Math.round(raw)))
+                                                                    : 220;
+                                                            return (
+                                                                <div className="mt-2">
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <label className="text-[11px]" style={hint}>
+                                                                            Helligkeits-Balken-Größe (max.)
+                                                                        </label>
+                                                                        <span
+                                                                            className="text-[10px] font-mono"
+                                                                            style={hint}
+                                                                        >
+                                                                            {pxVal} px
+                                                                        </span>
+                                                                    </div>
+                                                                    <input
+                                                                        type="range"
+                                                                        min={60}
+                                                                        max={800}
+                                                                        step={4}
+                                                                        value={pxVal}
+                                                                        onChange={(e) =>
+                                                                            setO({
+                                                                                brightnessBarSize: Number(
+                                                                                    e.target.value,
+                                                                                ),
+                                                                            })
+                                                                        }
+                                                                        className="w-full"
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })()}
                                                 </SubGroup>
                                                 <SubGroup title="Farbe">
+                                                    {/* Color mode */}
+                                                    <div>
+                                                        <label className="text-[11px] mb-1 block" style={hint}>
+                                                            Farb-Modus
+                                                        </label>
+                                                        <div className="grid grid-cols-2 gap-1">
+                                                            {(
+                                                                [
+                                                                    { val: 'none', label: 'Keine Farbe' },
+                                                                    { val: 'hsv', label: 'HSV (Hue + Sat)' },
+                                                                    { val: 'rgb', label: 'RGB (3 DPs)' },
+                                                                    { val: 'hex', label: 'Hex (#RRGGBB)' },
+                                                                    { val: 'hm-color', label: 'HmIP Color (0–200)' },
+                                                                ] as const
+                                                            ).map(({ val, label }) => (
+                                                                <button
+                                                                    key={val}
+                                                                    onClick={() => setO({ colorMode: val })}
+                                                                    className="py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                                                    style={{
+                                                                        background:
+                                                                            colorMode === val
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                        color:
+                                                                            colorMode === val
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                        border: '1px solid var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    {label}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                     {/* Mode-specific DPs */}
                                                     {colorMode === 'hsv' && (
                                                         <>
@@ -16229,6 +16344,78 @@ function WidgetFrameInner({
                                                             </div>
                                                         </div>
                                                     )}
+                                                    {/* Wheel style — only if color mode active */}
+                                                    {colorMode !== 'none' && (
+                                                        <div>
+                                                            <label className="text-[11px] mb-1 block" style={hint}>
+                                                                Farbrad-Stil
+                                                            </label>
+                                                            <div className="flex gap-1">
+                                                                {(
+                                                                    [
+                                                                        { val: 'disc', label: 'Disc (HSV-Scheibe)' },
+                                                                        { val: 'ring', label: 'Ring (nur Hue)' },
+                                                                    ] as const
+                                                                ).map(({ val, label }) => (
+                                                                    <button
+                                                                        key={val}
+                                                                        onClick={() => setO({ colorWheelStyle: val })}
+                                                                        className="flex-1 py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                                                        style={{
+                                                                            background:
+                                                                                wheelStyle === val
+                                                                                    ? 'var(--accent)'
+                                                                                    : 'var(--app-bg)',
+                                                                            color:
+                                                                                wheelStyle === val
+                                                                                    ? '#fff'
+                                                                                    : 'var(--text-secondary)',
+                                                                            border: '1px solid var(--app-border)',
+                                                                        }}
+                                                                    >
+                                                                        {label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            {(() => {
+                                                                const raw = o.colorWheelSize;
+                                                                const wheelSizePx =
+                                                                    typeof raw === 'number' && Number.isFinite(raw)
+                                                                        ? Math.max(80, Math.min(800, Math.round(raw)))
+                                                                        : 240;
+                                                                return (
+                                                                    <div className="mt-2">
+                                                                        <div className="flex items-center justify-between mb-1">
+                                                                            <label className="text-[11px]" style={hint}>
+                                                                                Farbrad-Größe (max.)
+                                                                            </label>
+                                                                            <span
+                                                                                className="text-[10px] font-mono"
+                                                                                style={hint}
+                                                                            >
+                                                                                {wheelSizePx} px
+                                                                            </span>
+                                                                        </div>
+                                                                        <input
+                                                                            type="range"
+                                                                            min={80}
+                                                                            max={800}
+                                                                            step={4}
+                                                                            value={wheelSizePx}
+                                                                            onChange={(e) =>
+                                                                                setO({
+                                                                                    colorWheelSize: Number(
+                                                                                        e.target.value,
+                                                                                    ),
+                                                                                })
+                                                                            }
+                                                                            className="w-full"
+                                                                        />
+                                                                    </div>
+                                                                );
+                                                            })()}
+                                                        </div>
+                                                    )}
                                                 </SubGroup>
                                                 <SubGroup title="Lichtwärme">
                                                     <div>
@@ -16241,92 +16428,6 @@ function WidgetFrameInner({
                                                             'optional, z.B. hue.0…ct',
                                                         )}
                                                     </div>
-                                                </SubGroup>
-                                                <SubGroup title="Effekte">
-                                                    <div>
-                                                        <label className="text-[11px] mb-1 block" style={hint}>
-                                                            Effekt-DP (Programm)
-                                                        </label>
-                                                        {dpRow(
-                                                            'effectDp',
-                                                            'light_effectDp',
-                                                            'optional, z.B. hm-rpc…3.PROGRAM',
-                                                        )}
-                                                    </div>
-                                                </SubGroup>
-                                            </ConfigSection>
-                                            <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
-                                                <SubGroup title="Helligkeit">
-                                                    <div className="grid grid-cols-2 gap-2 mt-1">
-                                                        <div>
-                                                            <label className="text-[10px]" style={hint}>
-                                                                Min
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={(o.brightnessMin as number) ?? 0}
-                                                                onChange={(e) =>
-                                                                    setO({ brightnessMin: Number(e.target.value) })
-                                                                }
-                                                                className={lInputCls}
-                                                                style={lInputStyle}
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-[10px]" style={hint}>
-                                                                Max
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={(o.brightnessMax as number) ?? 100}
-                                                                onChange={(e) =>
-                                                                    setO({ brightnessMax: Number(e.target.value) })
-                                                                }
-                                                                className={lInputCls}
-                                                                style={lInputStyle}
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </SubGroup>
-                                                <SubGroup title="Farbe">
-                                                    {/* Color mode */}
-                                                    <div>
-                                                        <label className="text-[11px] mb-1 block" style={hint}>
-                                                            Farb-Modus
-                                                        </label>
-                                                        <div className="grid grid-cols-2 gap-1">
-                                                            {(
-                                                                [
-                                                                    { val: 'none', label: 'Keine Farbe' },
-                                                                    { val: 'hsv', label: 'HSV (Hue + Sat)' },
-                                                                    { val: 'rgb', label: 'RGB (3 DPs)' },
-                                                                    { val: 'hex', label: 'Hex (#RRGGBB)' },
-                                                                    { val: 'hm-color', label: 'HmIP Color (0–200)' },
-                                                                ] as const
-                                                            ).map(({ val, label }) => (
-                                                                <button
-                                                                    key={val}
-                                                                    onClick={() => setO({ colorMode: val })}
-                                                                    className="py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                                                                    style={{
-                                                                        background:
-                                                                            colorMode === val
-                                                                                ? 'var(--accent)'
-                                                                                : 'var(--app-bg)',
-                                                                        color:
-                                                                            colorMode === val
-                                                                                ? '#fff'
-                                                                                : 'var(--text-secondary)',
-                                                                        border: '1px solid var(--app-border)',
-                                                                    }}
-                                                                >
-                                                                    {label}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                </SubGroup>
-                                                <SubGroup title="Lichtwärme">
                                                     <div className="grid grid-cols-2 gap-2 mt-1">
                                                         <div>
                                                             <label className="text-[10px]" style={hint}>
@@ -16357,8 +16458,54 @@ function WidgetFrameInner({
                                                             />
                                                         </div>
                                                     </div>
+                                                    {(!!(o.temperatureDp as string) || colorMode === 'hm-color') &&
+                                                        (() => {
+                                                            const raw = o.ctSliderSize;
+                                                            const pxVal =
+                                                                typeof raw === 'number' && Number.isFinite(raw)
+                                                                    ? Math.max(60, Math.min(800, Math.round(raw)))
+                                                                    : 220;
+                                                            return (
+                                                                <div className="mt-2">
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <label className="text-[11px]" style={hint}>
+                                                                            Lichtwärme-Slider-Größe (max.)
+                                                                        </label>
+                                                                        <span
+                                                                            className="text-[10px] font-mono"
+                                                                            style={hint}
+                                                                        >
+                                                                            {pxVal} px
+                                                                        </span>
+                                                                    </div>
+                                                                    <input
+                                                                        type="range"
+                                                                        min={60}
+                                                                        max={800}
+                                                                        step={4}
+                                                                        value={pxVal}
+                                                                        onChange={(e) =>
+                                                                            setO({
+                                                                                ctSliderSize: Number(e.target.value),
+                                                                            })
+                                                                        }
+                                                                        className="w-full"
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })()}
                                                 </SubGroup>
                                                 <SubGroup title="Effekte">
+                                                    <div>
+                                                        <label className="text-[11px] mb-1 block" style={hint}>
+                                                            Effekt-DP (Programm)
+                                                        </label>
+                                                        {dpRow(
+                                                            'effectDp',
+                                                            'light_effectDp',
+                                                            'optional, z.B. hm-rpc…3.PROGRAM',
+                                                        )}
+                                                    </div>
                                                     {!!(o.effectDp as string) && (
                                                         <div className="mt-2 space-y-1.5">
                                                             <p className="text-[10px]" style={hint}>
@@ -16455,192 +16602,6 @@ function WidgetFrameInner({
                                                 </SubGroup>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
-                                                <SubGroup title="Größen">
-                                                    {!!(o.switchDp as string) &&
-                                                        (() => {
-                                                            const raw = o.powerButtonSize;
-                                                            const pxVal =
-                                                                typeof raw === 'number' && Number.isFinite(raw)
-                                                                    ? Math.max(40, Math.min(480, Math.round(raw)))
-                                                                    : 120;
-                                                            return (
-                                                                <div className="mt-2">
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <label className="text-[11px]" style={hint}>
-                                                                            Schalter-Größe (max.)
-                                                                        </label>
-                                                                        <span
-                                                                            className="text-[10px] font-mono"
-                                                                            style={hint}
-                                                                        >
-                                                                            {pxVal} px
-                                                                        </span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min={40}
-                                                                        max={480}
-                                                                        step={4}
-                                                                        value={pxVal}
-                                                                        onChange={(e) =>
-                                                                            setO({
-                                                                                powerButtonSize: Number(e.target.value),
-                                                                            })
-                                                                        }
-                                                                        className="w-full"
-                                                                    />
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                    {!!(o.brightnessDp as string) &&
-                                                        (() => {
-                                                            const raw = o.brightnessBarSize;
-                                                            const pxVal =
-                                                                typeof raw === 'number' && Number.isFinite(raw)
-                                                                    ? Math.max(60, Math.min(800, Math.round(raw)))
-                                                                    : 220;
-                                                            return (
-                                                                <div className="mt-2">
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <label className="text-[11px]" style={hint}>
-                                                                            Helligkeits-Balken-Größe (max.)
-                                                                        </label>
-                                                                        <span
-                                                                            className="text-[10px] font-mono"
-                                                                            style={hint}
-                                                                        >
-                                                                            {pxVal} px
-                                                                        </span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min={60}
-                                                                        max={800}
-                                                                        step={4}
-                                                                        value={pxVal}
-                                                                        onChange={(e) =>
-                                                                            setO({
-                                                                                brightnessBarSize: Number(
-                                                                                    e.target.value,
-                                                                                ),
-                                                                            })
-                                                                        }
-                                                                        className="w-full"
-                                                                    />
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                    {(!!(o.temperatureDp as string) || colorMode === 'hm-color') &&
-                                                        (() => {
-                                                            const raw = o.ctSliderSize;
-                                                            const pxVal =
-                                                                typeof raw === 'number' && Number.isFinite(raw)
-                                                                    ? Math.max(60, Math.min(800, Math.round(raw)))
-                                                                    : 220;
-                                                            return (
-                                                                <div className="mt-2">
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <label className="text-[11px]" style={hint}>
-                                                                            Lichtwärme-Slider-Größe (max.)
-                                                                        </label>
-                                                                        <span
-                                                                            className="text-[10px] font-mono"
-                                                                            style={hint}
-                                                                        >
-                                                                            {pxVal} px
-                                                                        </span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min={60}
-                                                                        max={800}
-                                                                        step={4}
-                                                                        value={pxVal}
-                                                                        onChange={(e) =>
-                                                                            setO({
-                                                                                ctSliderSize: Number(e.target.value),
-                                                                            })
-                                                                        }
-                                                                        className="w-full"
-                                                                    />
-                                                                </div>
-                                                            );
-                                                        })()}
-                                                </SubGroup>
-                                                <SubGroup title="Farbrad">
-                                                    {/* Wheel style — only if color mode active */}
-                                                    {colorMode !== 'none' && (
-                                                        <div>
-                                                            <label className="text-[11px] mb-1 block" style={hint}>
-                                                                Farbrad-Stil
-                                                            </label>
-                                                            <div className="flex gap-1">
-                                                                {(
-                                                                    [
-                                                                        { val: 'disc', label: 'Disc (HSV-Scheibe)' },
-                                                                        { val: 'ring', label: 'Ring (nur Hue)' },
-                                                                    ] as const
-                                                                ).map(({ val, label }) => (
-                                                                    <button
-                                                                        key={val}
-                                                                        onClick={() => setO({ colorWheelStyle: val })}
-                                                                        className="flex-1 py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                                                                        style={{
-                                                                            background:
-                                                                                wheelStyle === val
-                                                                                    ? 'var(--accent)'
-                                                                                    : 'var(--app-bg)',
-                                                                            color:
-                                                                                wheelStyle === val
-                                                                                    ? '#fff'
-                                                                                    : 'var(--text-secondary)',
-                                                                            border: '1px solid var(--app-border)',
-                                                                        }}
-                                                                    >
-                                                                        {label}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            {(() => {
-                                                                const raw = o.colorWheelSize;
-                                                                const wheelSizePx =
-                                                                    typeof raw === 'number' && Number.isFinite(raw)
-                                                                        ? Math.max(80, Math.min(800, Math.round(raw)))
-                                                                        : 240;
-                                                                return (
-                                                                    <div className="mt-2">
-                                                                        <div className="flex items-center justify-between mb-1">
-                                                                            <label className="text-[11px]" style={hint}>
-                                                                                Farbrad-Größe (max.)
-                                                                            </label>
-                                                                            <span
-                                                                                className="text-[10px] font-mono"
-                                                                                style={hint}
-                                                                            >
-                                                                                {wheelSizePx} px
-                                                                            </span>
-                                                                        </div>
-                                                                        <input
-                                                                            type="range"
-                                                                            min={80}
-                                                                            max={800}
-                                                                            step={4}
-                                                                            value={wheelSizePx}
-                                                                            onChange={(e) =>
-                                                                                setO({
-                                                                                    colorWheelSize: Number(
-                                                                                        e.target.value,
-                                                                                    ),
-                                                                                })
-                                                                            }
-                                                                            className="w-full"
-                                                                        />
-                                                                    </div>
-                                                                );
-                                                            })()}
-                                                        </div>
-                                                    )}
-                                                </SubGroup>
                                                 <SubGroup title="Farbpalette">
                                                     {/* Color presets */}
                                                     <div>
@@ -17654,131 +17615,127 @@ function WidgetFrameInner({
                                                                     Geschrieben wird weiter auf den Neigungs-DP.
                                                                 </p>
                                                             </div>
+                                                            {/* Wertebereich */}
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[11px] block" style={hint}>
+                                                                    Wertebereich des Datenpunkts
+                                                                </label>
+                                                                {numRow('Wert für „geschlossen“', 'tiltMin', 0, 0.1)}
+                                                                {numRow('Wert für „offen“', 'tiltMax', 100, 0.1)}
+                                                                <p className="text-[10px]" style={hint}>
+                                                                    Standard 0…100. Andere Geräte melden 0…1, -90…90
+                                                                    oder 0…180.
+                                                                </p>
+                                                            </div>
+
+                                                            {toggleRow(
+                                                                'Neigung invertieren',
+                                                                'Wenn beim Gerät der kleinere Wert „offen“ bedeutet.',
+                                                                !!o.invertTilt,
+                                                                () => setO({ invertTilt: !o.invertTilt }),
+                                                            )}
+
+                                                            {segRow(
+                                                                'Bedienung',
+                                                                tiltPlacement === 'inline'
+                                                                    ? 'Regler bzw. Tasten direkt im Widget.'
+                                                                    : tiltPlacement === 'popup'
+                                                                      ? 'Kleine Lamellen-Taste öffnet ein Popover mit Regler und Schnellwerten.'
+                                                                      : 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).',
+                                                                tiltPlacement,
+                                                                [
+                                                                    { label: 'Im Widget', val: 'inline' },
+                                                                    { label: 'Popover', val: 'popup' },
+                                                                    { label: 'Aus', val: 'off' },
+                                                                ],
+                                                                (val) => setO({ tiltPlacement: val }),
+                                                            )}
+
+                                                            {tiltPlacement === 'inline' &&
+                                                                config.layout !== 'compact' &&
+                                                                config.layout !== 'minimal' &&
+                                                                segRow(
+                                                                    'Regler-Form',
+                                                                    'Senkrecht neben der Lamellen-Grafik, waagerecht unter dem Positionsregler oder als Schrittasten.',
+                                                                    (o.tiltControl as string) ?? 'slider-v',
+                                                                    [
+                                                                        { label: 'Senkrecht', val: 'slider-v' },
+                                                                        { label: 'Waagerecht', val: 'slider-h' },
+                                                                        { label: 'Tasten', val: 'buttons' },
+                                                                    ],
+                                                                    (val) => setO({ tiltControl: val }),
+                                                                )}
+
+                                                            {((o.tiltControl as string) === 'buttons' ||
+                                                                config.layout === 'compact' ||
+                                                                config.layout === 'minimal') &&
+                                                                numRow('Schrittweite (%)', 'tiltStep', 10)}
+
+                                                            {((o.tiltControl as string) ?? 'slider-v') === 'slider-v' &&
+                                                                tiltPlacement === 'inline' &&
+                                                                config.layout !== 'compact' &&
+                                                                config.layout !== 'minimal' && (
+                                                                    <>
+                                                                        {segRow(
+                                                                            'Regler-Seite',
+                                                                            'Auf welcher Seite der Lamellen-Grafik der senkrechte Regler sitzt.',
+                                                                            (o.tiltSliderSide as string) === 'left'
+                                                                                ? 'left'
+                                                                                : 'right',
+                                                                            [
+                                                                                { label: 'Links', val: 'left' },
+                                                                                { label: 'Rechts', val: 'right' },
+                                                                            ],
+                                                                            (val) => setO({ tiltSliderSide: val }),
+                                                                        )}
+                                                                        {numRow(
+                                                                            'Regler-Breite (px)',
+                                                                            'tiltSliderWidth',
+                                                                            14,
+                                                                        )}
+                                                                    </>
+                                                                )}
+
+                                                            {toggleRow(
+                                                                'Lamellen live mitzeichnen',
+                                                                'Lamellen-Grafik und Prozentwert folgen dem Neigungsregler schon beim Ziehen. Aus: erst beim Loslassen.',
+                                                                o.tiltLivePreview !== false,
+                                                                () =>
+                                                                    setO({
+                                                                        tiltLivePreview: !(o.tiltLivePreview !== false),
+                                                                    }),
+                                                            )}
+
+                                                            {toggleRow(
+                                                                'Nach Fahrt neu setzen',
+                                                                'Manche Aktoren stellen die Lamellen bei einer Fahrt in die Endlage. Dann wird der Winkel nach Fahrtende erneut geschrieben.',
+                                                                !!o.reapplyTiltAfterMove,
+                                                                () =>
+                                                                    setO({
+                                                                        reapplyTiltAfterMove: !o.reapplyTiltAfterMove,
+                                                                    }),
+                                                            )}
+
+                                                            <div>
+                                                                <label className="text-[11px] mb-1 block" style={hint}>
+                                                                    Beschriftung
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={(o.tiltLabel as string) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        setO({ tiltLabel: e.target.value || undefined })
+                                                                    }
+                                                                    placeholder="Lamellen"
+                                                                    className={sInputCls}
+                                                                    style={sInputStyle}
+                                                                />
+                                                            </div>
                                                         </>
                                                     )}
                                                 </SubGroup>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
-                                                {tiltOn && (
-                                                    <SubGroup title="Lamellen / Neigung">
-                                                        {/* Wertebereich */}
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-[11px] block" style={hint}>
-                                                                Wertebereich des Datenpunkts
-                                                            </label>
-                                                            {numRow('Wert für „geschlossen“', 'tiltMin', 0, 0.1)}
-                                                            {numRow('Wert für „offen“', 'tiltMax', 100, 0.1)}
-                                                            <p className="text-[10px]" style={hint}>
-                                                                Standard 0…100. Andere Geräte melden 0…1, -90…90 oder
-                                                                0…180.
-                                                            </p>
-                                                        </div>
-
-                                                        {toggleRow(
-                                                            'Neigung invertieren',
-                                                            'Wenn beim Gerät der kleinere Wert „offen“ bedeutet.',
-                                                            !!o.invertTilt,
-                                                            () => setO({ invertTilt: !o.invertTilt }),
-                                                        )}
-
-                                                        {segRow(
-                                                            'Bedienung',
-                                                            tiltPlacement === 'inline'
-                                                                ? 'Regler bzw. Tasten direkt im Widget.'
-                                                                : tiltPlacement === 'popup'
-                                                                  ? 'Kleine Lamellen-Taste öffnet ein Popover mit Regler und Schnellwerten.'
-                                                                  : 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).',
-                                                            tiltPlacement,
-                                                            [
-                                                                { label: 'Im Widget', val: 'inline' },
-                                                                { label: 'Popover', val: 'popup' },
-                                                                { label: 'Aus', val: 'off' },
-                                                            ],
-                                                            (val) => setO({ tiltPlacement: val }),
-                                                        )}
-
-                                                        {tiltPlacement === 'inline' &&
-                                                            config.layout !== 'compact' &&
-                                                            config.layout !== 'minimal' &&
-                                                            segRow(
-                                                                'Regler-Form',
-                                                                'Senkrecht neben der Lamellen-Grafik, waagerecht unter dem Positionsregler oder als Schrittasten.',
-                                                                (o.tiltControl as string) ?? 'slider-v',
-                                                                [
-                                                                    { label: 'Senkrecht', val: 'slider-v' },
-                                                                    { label: 'Waagerecht', val: 'slider-h' },
-                                                                    { label: 'Tasten', val: 'buttons' },
-                                                                ],
-                                                                (val) => setO({ tiltControl: val }),
-                                                            )}
-
-                                                        {((o.tiltControl as string) === 'buttons' ||
-                                                            config.layout === 'compact' ||
-                                                            config.layout === 'minimal') &&
-                                                            numRow('Schrittweite (%)', 'tiltStep', 10)}
-
-                                                        {((o.tiltControl as string) ?? 'slider-v') === 'slider-v' &&
-                                                            tiltPlacement === 'inline' &&
-                                                            config.layout !== 'compact' &&
-                                                            config.layout !== 'minimal' && (
-                                                                <>
-                                                                    {segRow(
-                                                                        'Regler-Seite',
-                                                                        'Auf welcher Seite der Lamellen-Grafik der senkrechte Regler sitzt.',
-                                                                        (o.tiltSliderSide as string) === 'left'
-                                                                            ? 'left'
-                                                                            : 'right',
-                                                                        [
-                                                                            { label: 'Links', val: 'left' },
-                                                                            { label: 'Rechts', val: 'right' },
-                                                                        ],
-                                                                        (val) => setO({ tiltSliderSide: val }),
-                                                                    )}
-                                                                    {numRow(
-                                                                        'Regler-Breite (px)',
-                                                                        'tiltSliderWidth',
-                                                                        14,
-                                                                    )}
-                                                                </>
-                                                            )}
-
-                                                        {toggleRow(
-                                                            'Lamellen live mitzeichnen',
-                                                            'Lamellen-Grafik und Prozentwert folgen dem Neigungsregler schon beim Ziehen. Aus: erst beim Loslassen.',
-                                                            o.tiltLivePreview !== false,
-                                                            () =>
-                                                                setO({
-                                                                    tiltLivePreview: !(o.tiltLivePreview !== false),
-                                                                }),
-                                                        )}
-
-                                                        {toggleRow(
-                                                            'Nach Fahrt neu setzen',
-                                                            'Manche Aktoren stellen die Lamellen bei einer Fahrt in die Endlage. Dann wird der Winkel nach Fahrtende erneut geschrieben.',
-                                                            !!o.reapplyTiltAfterMove,
-                                                            () =>
-                                                                setO({
-                                                                    reapplyTiltAfterMove: !o.reapplyTiltAfterMove,
-                                                                }),
-                                                        )}
-
-                                                        <div>
-                                                            <label className="text-[11px] mb-1 block" style={hint}>
-                                                                Beschriftung
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={(o.tiltLabel as string) ?? ''}
-                                                                onChange={(e) =>
-                                                                    setO({ tiltLabel: e.target.value || undefined })
-                                                                }
-                                                                placeholder="Lamellen"
-                                                                className={sInputCls}
-                                                                style={sInputStyle}
-                                                            />
-                                                        </div>
-                                                    </SubGroup>
-                                                )}
                                                 <SubGroup title="Schnellwahl">
                                                     {/* ── Schnellwahl (#745) ──────────────────────────────────── */}
                                                     {(() => {

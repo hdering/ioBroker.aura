@@ -158,7 +158,7 @@ async function show(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('[data-aura-config-section="history"]', { timeout: 10000 });
+    await page.waitForSelector('[data-aura-config-section="datapoints"]', { timeout: 10000 });
     const toggle = (label) => page.locator(`div.flex:has(> span:text-is("${label}")) > button`).last();
     const opts = () =>
         page.evaluate((id) => {
@@ -195,7 +195,7 @@ async function show(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('[data-aura-config-section="history"]', { timeout: 10000 });
+    await page.waitForSelector('[data-aura-config-section="datapoints"]', { timeout: 10000 });
     const bg = (label) =>
         page
             .locator(`div.flex:has(> span:text-is("${label}")) > button`)
@@ -238,7 +238,7 @@ async function openEditor(options) {
         .locator('button:text-is("Bearbeiten")')
         .click()
         .catch(() => {});
-    await page.waitForSelector('[data-aura-config-section="history"]', { timeout: 10000 });
+    await page.waitForSelector('[data-aura-config-section="datapoints"]', { timeout: 10000 });
     return page.evaluate(() => ({
         dpInputs: document.querySelectorAll('input[placeholder="Datenpunkt (optional)"]').length,
         stellen: [...document.querySelectorAll('label')].filter((l) => l.textContent === 'Stellen').length,

@@ -241,54 +241,6 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     'z.B. hue.0.light.1.on',
                                 )}
                             </div>
-                        </SubGroup>
-                    )}
-                </ConfigSection>
-                {!isDp && (
-                    <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
-                        <SubGroup title={t('countdown.cfg.duration')}>
-                            <div className="flex items-start gap-1.5">
-                                {durationField(t('countdown.hours'), dur.h, 999, (v) => setDuration(v, dur.m, dur.s))}
-                                {durationField(t('countdown.minutes'), dur.m, 59, (v) => setDuration(dur.h, v, dur.s))}
-                                {durationField(t('countdown.seconds'), dur.s, 59, (v) => setDuration(dur.h, dur.m, v))}
-                            </div>
-                            <p className={hintCls} style={hintStyle}>
-                                {t('countdown.cfg.durationHint')}
-                            </p>
-                            <div>
-                                <label className={labelCls} style={labelStyle}>
-                                    {t('countdown.cfg.step')}
-                                </label>
-                                <input
-                                    type="number"
-                                    min={1}
-                                    value={stepSec}
-                                    onChange={(e) => setOpts({ stepSec: Math.max(1, Number(e.target.value) || 1) })}
-                                    className={`${inputCls} tabular-nums`}
-                                    style={inputStyle}
-                                />
-                            </div>
-                            <div>
-                                <label className={labelCls} style={labelStyle}>
-                                    {t('countdown.cfg.presets')}
-                                </label>
-                                <input
-                                    type="text"
-                                    value={presetText}
-                                    onChange={(e) => onPresetText(e.target.value)}
-                                    placeholder="5m, 15m, 1h"
-                                    className={`${inputCls} font-mono`}
-                                    style={{
-                                        ...inputStyle,
-                                        borderColor: presetError ? 'var(--accent-red)' : 'var(--app-border)',
-                                    }}
-                                />
-                                <p className={hintCls} style={hintStyle}>
-                                    {t('countdown.cfg.presetsHint')}
-                                </p>
-                            </div>
-                        </SubGroup>
-                        <SubGroup title={t('countdown.cfg.target')}>
                             <div className="flex gap-1.5">
                                 <div className="flex-1 min-w-0">
                                     <label className={labelCls} style={labelStyle}>
@@ -349,6 +301,52 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     on={publishRemaining}
                                     onToggle={() => setOpts({ publishRemaining: !publishRemaining })}
                                 />
+                            </div>
+                        </SubGroup>
+                    )}
+                </ConfigSection>
+                {!isDp && (
+                    <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                        <SubGroup title={t('countdown.cfg.duration')}>
+                            <div className="flex items-start gap-1.5">
+                                {durationField(t('countdown.hours'), dur.h, 999, (v) => setDuration(v, dur.m, dur.s))}
+                                {durationField(t('countdown.minutes'), dur.m, 59, (v) => setDuration(dur.h, v, dur.s))}
+                                {durationField(t('countdown.seconds'), dur.s, 59, (v) => setDuration(dur.h, dur.m, v))}
+                            </div>
+                            <p className={hintCls} style={hintStyle}>
+                                {t('countdown.cfg.durationHint')}
+                            </p>
+                            <div>
+                                <label className={labelCls} style={labelStyle}>
+                                    {t('countdown.cfg.step')}
+                                </label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={stepSec}
+                                    onChange={(e) => setOpts({ stepSec: Math.max(1, Number(e.target.value) || 1) })}
+                                    className={`${inputCls} tabular-nums`}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <div>
+                                <label className={labelCls} style={labelStyle}>
+                                    {t('countdown.cfg.presets')}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={presetText}
+                                    onChange={(e) => onPresetText(e.target.value)}
+                                    placeholder="5m, 15m, 1h"
+                                    className={`${inputCls} font-mono`}
+                                    style={{
+                                        ...inputStyle,
+                                        borderColor: presetError ? 'var(--accent-red)' : 'var(--app-border)',
+                                    }}
+                                />
+                                <p className={hintCls} style={hintStyle}>
+                                    {t('countdown.cfg.presetsHint')}
+                                </p>
                             </div>
                         </SubGroup>
                         {stateBaseId && (

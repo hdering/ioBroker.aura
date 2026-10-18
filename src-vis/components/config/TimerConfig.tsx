@@ -388,6 +388,45 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                 Alle Datenpunkte bekommen beim Auslösen denselben Wert — z. B. mehrere Thermostate.
                             </p>
                         </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Wert beim Auslösen
+                            </label>
+                            <input
+                                type="text"
+                                value={value}
+                                onChange={(e) => setOpts({ value: e.target.value })}
+                                placeholder="true / false / 50 / Text"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                            <p className={hintCls} style={hintStyle}>
+                                {
+                                    'Wird automatisch als Boolean / Zahl / Text geparst. Bei „Zeitraum“-Ereignissen wird am Ende der invertierte Wert geschrieben.'
+                                }
+                            </p>
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                            <div className="min-w-0 pr-2">
+                                <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                    Wert pro Ereignis erlauben
+                                </p>
+                                <p className={hintCls} style={hintStyle}>
+                                    Anwender darf pro Ereignis einen eigenen Wert setzen (überschreibt den
+                                    Standardwert).
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setOpts({ allowEventValue: !allowEventValue })}
+                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                style={{ background: allowEventValue ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: allowEventValue ? '14px' : '2px' }}
+                                />
+                            </button>
+                        </div>
                     </SubGroup>
                     <SubGroup title="Sondertage">
                         <div className={hintCls} style={hintStyle}>
@@ -468,30 +507,6 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             B. mit dem Adapter <code className="font-mono">iobroker.javascript</code> bzw. einer
                             Blockly-Routine.
                         </p>
-                    </SubGroup>
-                </ConfigSection>
-                <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
-                    <SubGroup title="Ziel-Aktion">
-                        <div>
-                            <label className={labelCls} style={labelStyle}>
-                                Wert beim Auslösen
-                            </label>
-                            <input
-                                type="text"
-                                value={value}
-                                onChange={(e) => setOpts({ value: e.target.value })}
-                                placeholder="true / false / 50 / Text"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                            <p className={hintCls} style={hintStyle}>
-                                {
-                                    'Wird automatisch als Boolean / Zahl / Text geparst. Bei „Zeitraum“-Ereignissen wird am Ende der invertierte Wert geschrieben.'
-                                }
-                            </p>
-                        </div>
-                    </SubGroup>
-                    <SubGroup title="Sondertage">
                         <div>
                             <p className={labelCls} style={labelStyle}>
                                 Feiertage
@@ -525,28 +540,6 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             />
                         </div>
                     </SubGroup>
-                </ConfigSection>
-                <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
-                    <div className="flex items-center justify-between pt-1">
-                        <div className="min-w-0 pr-2">
-                            <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                Wert pro Ereignis erlauben
-                            </p>
-                            <p className={hintCls} style={hintStyle}>
-                                Anwender darf pro Ereignis einen eigenen Wert setzen (überschreibt den Standardwert).
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setOpts({ allowEventValue: !allowEventValue })}
-                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                            style={{ background: allowEventValue ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                style={{ left: allowEventValue ? '14px' : '2px' }}
-                            />
-                        </button>
-                    </div>
                 </ConfigSection>
             </div>
         </>

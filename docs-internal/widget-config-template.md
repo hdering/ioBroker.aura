@@ -21,9 +21,10 @@ Name · Widget-Typ · Layout
 
 Nur diese sechs Bereiche auf oberster Ebene (sectionKey visible/datapoints/settings/look/behavior,
 Status separat), in dieser Reihenfolge; ein Bereich ohne Inhalt entfällt. Alle eingeklappt.
-Ein Thema mit eigenem Datenpunkt (Licht-Helligkeit, Rollladen-Neigung, Gauge-Zeiger, Füllstand-Status):
-der Datenpunkt steht in „Datenpunkte“, der Rest in „Einstellungen“/„Optik“ – jeweils unter derselben
-Unterüberschrift. In „Einstellungen“ immer SubGroups, in den anderen Bereichen erst ab zwei Themen.
+**Ein Thema bleibt beisammen:** Ein Thema mit eigenem Datenpunkt (Gauge-Zeiger, Licht-Kanal, Klima-Wert,
+Rollladen-Neigung, Füllstand-Status/Grenzen, Karten-Marker, Ziel-Aktion) steht komplett unter „Datenpunkte“ –
+Datenpunkt, Werte, Farbe, Icon. Ein Thema ohne eigenen Datenpunkt steht komplett unter „Einstellungen“.
+„Optik“ und „Verhalten“ nur für das, was das ganze Widget betrifft. In „Einstellungen“ immer SubGroups, in den anderen Bereichen erst ab zwei Themen.
 
 ## Bausteine
 

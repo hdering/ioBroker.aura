@@ -362,8 +362,10 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
         check(`${type}: every section starts folded`, r.open.length === 0, JSON.stringify(r.open));
     } else {
         check(
-            `${type}: at least two own sections, not one catch-all`,
-            r.order.filter((k) => k !== 'visible').length >= 2,
+            `${type}: own sections, not one catch-all`,
+            ((rest) => rest.length >= 2 || (rest.length === 1 && rest[0] !== 'settings'))(
+                r.order.filter((k) => k !== 'visible'),
+            ),
             JSON.stringify(r.order),
         );
         check(`${type}: every section starts folded`, r.open.length === 0, JSON.stringify(r.open));
