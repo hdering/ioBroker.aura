@@ -37,6 +37,23 @@ Ein Schritt: Datenpunkt wählen (Widget-Typ wird automatisch erkannt) oder Typ a
 
 Jedes Widget bietet über sein Menü (Chevron) `Bearbeiten`, `Bedingungen`, `Klick-Aktion`, `Exportieren`, `Kopieren` und `Löschen`.
 
+## Widget bearbeiten: Aufbau
+
+Alle Bereiche starten eingeklappt; ein Bereich ohne Inhalt entfällt.
+
+![](./assets/editor-widget-bearbeiten.png)
+
+| Bereich | Inhalt |
+| --- | --- |
+| Name · Widget-Typ · Layout | immer oben |
+| Darstellung / Erweitert | für alle Widgets gleich |
+| Sichtbare Felder | Schalter zum Ein-/Ausblenden einzelner Elemente, Zähler `an/gesamt` |
+| Datenpunkte | alles mit eigenem Datenpunkt – samt Werten, Farbe, Icon |
+| Einstellungen | Widget-Eigenes ohne Datenpunkt, nach Themen gegliedert |
+| Optik | Größen, Farben, Stil, Farbschwellen des ganzen Widgets |
+| Verhalten | Bestätigung, Schreibschutz, Animation |
+| Status-Datenpunkte | immer zuletzt |
+
 ## Datenpunkt wählen
 
 Der Knopf mit dem Datenbank-Symbol neben einem Datenpunkt-Feld öffnet die Auswahl. Oben rechts wird zwischen Liste und Baum umgeschaltet; die Wahl merkt sich der Browser.

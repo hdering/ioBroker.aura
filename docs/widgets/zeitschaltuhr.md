@@ -49,7 +49,7 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 
 ## Einstellungen (Admin)
 
-### Anzeige-Elemente
+### Sichtbare Felder
 
 | Option | Standard | |
 | --- | --- | --- |

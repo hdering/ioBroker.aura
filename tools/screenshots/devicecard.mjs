@@ -125,7 +125,8 @@ await page.screenshot({
     ),
 });
 
-// Config dialog of one card.
+// Config dialog of one card (sections start folded).
+await page.evaluate(() => window.__auraShot.unfoldSections());
 await show(cards, { [DEF]: children }, true);
 await page.locator('[data-aura-widget="w-card-kueche"]').hover({ position: { x: 20, y: 10 } });
 const btn = await page.evaluateHandle(() => {

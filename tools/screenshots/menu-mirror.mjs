@@ -107,12 +107,14 @@ async function shotArea(ids, file, pad = 14) {
     console.log('✓', file);
 }
 
-/** Open a widget's edit dialog in the editor and crop the modal. */
-async function shotConfig(id, file) {
+/** Open a widget's edit dialog in the editor and crop the modal; `open` unfolds those sections. */
+async function shotConfig(id, file, open = []) {
     await page.locator(`.aura-widget-${id} button[title="Widget-Optionen"]`).first().click({ force: true });
     await page.waitForTimeout(300);
     await page.getByRole('button', { name: 'Bearbeiten' }).first().click();
     await page.waitForTimeout(900);
+    for (const key of open) await page.locator(`details[data-aura-config-section="${key}"] > summary`).first().click();
+    if (open.length) await page.waitForTimeout(300);
     const box = await page.evaluate(() => {
         const el = document.querySelector('div.pointer-events-auto.rounded-xl.shadow-2xl');
         if (!el) return null;
@@ -258,7 +260,7 @@ await shotConfig(MENU_ID, `${ASSETS}/menue/config.png`);
 
 // The overview's own options only show in that mode.
 await seed(OVERVIEW_LAYOUT, true);
-await shotConfig(MENU_ID, `${ASSETS}/menue/config-overview.png`);
+await shotConfig(MENU_ID, `${ASSETS}/menue/config-overview.png`, ['settings']);
 
 await seed(LAYOUT([sourceWidget, mirrorWidget]), true);
 await shotConfig(MIRROR_ID, `${ASSETS}/spiegel/config.png`);

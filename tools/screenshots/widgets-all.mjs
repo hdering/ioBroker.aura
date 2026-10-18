@@ -64,7 +64,9 @@ await page.evaluate(() => localStorage.setItem('aura-auth', JSON.stringify({ sta
 const onlyArg = process.argv.indexOf('--only');
 const ONLY = onlyArg > -1 ? (process.argv[onlyArg + 1] ?? '').split(',').filter(Boolean) : null;
 const GENERIC = WIDGETS.filter((w) => !w.customShots).filter((w) => !ONLY || ONLY.includes(w.slug));
-const withRuntime = GENERIC.filter((w) => w.runtime !== null);
+// `--config-only` retakes just the settings dialogs (e.g. after a dialog layout change).
+const CONFIG_ONLY = process.argv.includes('--config-only');
+const withRuntime = CONFIG_ONLY ? [] : GENERIC.filter((w) => w.runtime !== null);
 
 async function renderShot(w, cfg, dp, val, mock, click, file) {
     await page.evaluate(
