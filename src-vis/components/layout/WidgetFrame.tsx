@@ -270,7 +270,6 @@ import { MapConfig } from '../config/MapConfig';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
 import { MultiSelect } from '../config/MultiSelect';
-import { ToggleRow } from '../../pages/admin/layouts/shared/SettingControls';
 
 import { AlarmConfig } from '../widgets/AlarmWidget';
 import { TimerConfig } from '../config/TimerConfig';
@@ -4706,11 +4705,6 @@ function MenuEditPanel({
                                     <option value="all">{tHook('menu.source.all')}</option>
                                 </select>
                             </div>
-                            <ToggleRow
-                                label={tHook('menu.showSearch')}
-                                value={o.showSearch === true}
-                                onChange={(v) => setO({ showSearch: v })}
-                            />
                             <div>
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                     {tHook('menu.groupTitle')}
@@ -4828,19 +4822,6 @@ function MenuEditPanel({
                             style={sInputStyle}
                         />
                     </div>
-
-                    <ToggleRow
-                        label={tHook('menu.showIcons')}
-                        value={o.showIcons !== false}
-                        onChange={(v) => setO({ showIcons: v })}
-                    />
-                    {menuMode !== 'overview' && (
-                        <ToggleRow
-                            label={tHook('menu.showLabels')}
-                            value={o.showLabels !== false}
-                            onChange={(v) => setO({ showLabels: v })}
-                        />
-                    )}
                 </div>
             </ConfigSection>
         </>
@@ -5653,16 +5634,6 @@ function CarouselEditPanel({
                         />
                         <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                             {tHook('carousel.opt.snap' as never)}
-                        </span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            checked={o.hideScrollbar === true}
-                            onChange={(e) => setO({ hideScrollbar: e.target.checked || undefined })}
-                        />
-                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {tHook('carousel.opt.hideScrollbar' as never)}
                         </span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -10728,6 +10699,22 @@ function WidgetFrameInner({
                                 );
                             }
                             if (config.type === 'stateimage') fields.push({ key: 'showIcon', label: 'Icon' });
+                            if (config.type === 'menu') {
+                                const overview = ((o.menuMode as string) ?? 'section') === 'overview';
+                                fields.push(
+                                    // The search field exists in the overview only, the labels everywhere else.
+                                    { key: 'showSearch', label: t('menu.showSearch'), def: false, hidden: !overview },
+                                    { key: 'showIcons', label: t('menu.showIcons') },
+                                    { key: 'showLabels', label: t('menu.showLabels'), hidden: overview },
+                                );
+                            }
+                            if (config.type === 'carousel')
+                                fields.push({
+                                    key: 'hideScrollbar',
+                                    label: t('carousel.opt.hideScrollbar' as never),
+                                    invert: true,
+                                    def: true,
+                                });
                             if (config.type === 'clock') {
                                 // Seconds only where a time is shown at all.
                                 fields.push({

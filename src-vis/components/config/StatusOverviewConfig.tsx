@@ -1,4 +1,5 @@
 import { ConfigSection } from './ConfigSection';
+import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { WidgetConfig } from '../../types';
 import {
@@ -297,8 +298,93 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         );
     };
 
+    // Sichtbare Felder first; the "seit …" categories and the all-clear text sit under their switch.
+    const visibleFields: VisibleField[] = [
+        {
+            key: 'showMore',
+            label: '„+N weitere“-Zeile',
+            hint: 'Abgeschnittene Zeilen zusammenfassen',
+            hidden: !o.maxRows,
+        },
+        { key: 'showReason', label: 'Kennzeichen „per Knopf“ / „automatisch“', hidden: config.layout !== 'history' },
+        { key: 'showDuration', label: 'Dauer der schwachen Batterie', hidden: config.layout !== 'history' },
+        {
+            key: 'showLifetime',
+            label: 'Laufzeit seit dem Wechsel',
+            hint: '„hielt 14 Monate“',
+            hidden: config.layout !== 'history',
+        },
+        { key: 'showCount', label: 'Anzahl der Hinweise', hint: 'oben rechts' },
+        { key: 'showRoom', label: 'Raum', hint: 'hinter dem Gerätenamen (nur Layout Standard und Kompakt)' },
+        {
+            key: 'showSince',
+            label: '„seit …“',
+            hint: 'Fenster/Türen ab dem Öffnen, Batterien und Erreichbarkeit ab der letzten Änderung; gemerkte Hinweise zeigen den Tag der ersten Meldung',
+            children: (
+                <div className="flex flex-wrap gap-1">
+                    {(['window', 'battery', 'unreach'] as CategoryKey[]).map((cat) => {
+                        const cur = o.sinceCategories ?? ['window'];
+                        const on = cur.includes(cat);
+                        const label =
+                            cat === 'window' ? 'Fenster & Türen' : cat === 'battery' ? 'Batterien' : 'Erreichbarkeit';
+                        return (
+                            <button
+                                key={cat}
+                                onClick={() => {
+                                    const next = on ? cur.filter((c) => c !== cat) : [...cur, cat];
+                                    // ['window'] is the default — store nothing for it.
+                                    set({
+                                        sinceCategories: next.length === 1 && next[0] === 'window' ? undefined : next,
+                                    });
+                                }}
+                                className="text-[11px] rounded-full px-2 py-0.5"
+                                style={{
+                                    background: on ? 'var(--accent)' : 'transparent',
+                                    color: on ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
+                </div>
+            ),
+        },
+        {
+            key: 'showOkCategories',
+            label: 'Kategorien ohne Hinweise',
+            def: false,
+            hint: 'Jede aktive Kategorie mit „ok“-Häkchen, auch wenn nichts anliegt (nur Layout Standard)',
+        },
+        {
+            key: 'showAllClear',
+            label: 'Hinweis „Alles in Ordnung“',
+            hint: 'Aus: liegt nichts an, bleibt das Widget leer (nur Titel und Zähler)',
+            children: (
+                <div>
+                    <label className={labelCls} style={labelStyle}>
+                        Text bei {'„Alles in Ordnung“'}
+                    </label>
+                    <input
+                        type="text"
+                        value={o.allClearText ?? ''}
+                        onChange={(e) => set({ allClearText: e.target.value || undefined })}
+                        placeholder="Alles in Ordnung"
+                        className={inputCls}
+                        style={inputStyle}
+                    />
+                </div>
+            ),
+        },
+    ];
+    // "Alles in Ordnung" on is the default and stored as unset, like before.
+    const setVisible = (patch: Record<string, unknown>) =>
+        set((patch.showAllClear === true ? { showAllClear: undefined } : patch) as Partial<StatusOverviewOptions>);
+
     return (
         <div className="space-y-2.5">
+            <VisibleFieldsSection fields={visibleFields} values={o as Record<string, unknown>} onChange={setVisible} />
             {/* ── Categories (each with its own settings, shown when enabled) ── */}
             <ConfigSection title="Kategorien" sectionKey="categories">
                 <CatSection
@@ -574,13 +660,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             welche Zeilen bleiben.
                         </p>
                     </div>
-                    {!!o.maxRows && (
-                        <Toggle
-                            checked={o.showMore !== false}
-                            onChange={(v) => set({ showMore: v })}
-                            label={'Abgeschnittene Zeilen als „+N weitere“ anzeigen'}
-                        />
-                    )}
                     {config.layout === 'history' && (
                         <>
                             <div>
@@ -605,88 +684,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                                     Die Merkliste-Optionen gehören an die Live-Übersicht daneben, nicht hierher.
                                 </p>
                             </div>
-                            <Toggle
-                                checked={o.showReason !== false}
-                                onChange={(v) => set({ showReason: v })}
-                                label={'Kennzeichen „per Knopf“ / „automatisch“'}
-                            />
-                            <Toggle
-                                checked={o.showDuration !== false}
-                                onChange={(v) => set({ showDuration: v })}
-                                label="Wie lange die Batterie schwach war"
-                            />
-                            <Toggle
-                                checked={o.showLifetime !== false}
-                                onChange={(v) => set({ showLifetime: v })}
-                                label={'Laufzeit seit dem vorigen Wechsel („hielt 14 Monate“)'}
-                            />
                         </>
                     )}
-                    <Toggle
-                        checked={o.showCount !== false}
-                        onChange={(v) => set({ showCount: v })}
-                        label="Anzahl der Hinweise anzeigen (oben rechts)"
-                    />
-                    <Toggle
-                        checked={o.showRoom !== false}
-                        onChange={(v) => set({ showRoom: v })}
-                        label="Raum des Geräts anzeigen"
-                    />
-                    <Toggle
-                        checked={o.showSince !== false}
-                        onChange={(v) => set({ showSince: v })}
-                        label={'„seit …“ anzeigen'}
-                    />
-                    {o.showSince !== false && (
-                        <div className="flex flex-wrap gap-1">
-                            {(['window', 'battery', 'unreach'] as CategoryKey[]).map((cat) => {
-                                const cur = o.sinceCategories ?? ['window'];
-                                const on = cur.includes(cat);
-                                const label =
-                                    cat === 'window'
-                                        ? 'Fenster & Türen'
-                                        : cat === 'battery'
-                                          ? 'Batterien'
-                                          : 'Erreichbarkeit';
-                                return (
-                                    <button
-                                        key={cat}
-                                        onClick={() => {
-                                            const next = on ? cur.filter((c) => c !== cat) : [...cur, cat];
-                                            // ['window'] is the default — store nothing for it.
-                                            set({
-                                                sinceCategories:
-                                                    next.length === 1 && next[0] === 'window' ? undefined : next,
-                                            });
-                                        }}
-                                        className="text-[11px] rounded-full px-2 py-0.5"
-                                        style={{
-                                            background: on ? 'var(--accent)' : 'transparent',
-                                            color: on ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        }}
-                                    >
-                                        {label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        Raum und Dauer stehen hinter dem Gerätenamen (nur Layout Standard und Kompakt). Fenster/Türen
-                        zählen ab dem Öffnen, Batterien und Erreichbarkeit ab der letzten Änderung des Datenpunkts.
-                        Gemerkte Hinweise zeigen den Tag der ersten Meldung.
-                    </p>
-                    <Toggle
-                        checked={!!o.showOkCategories}
-                        onChange={(v) => set({ showOkCategories: v })}
-                        label="Auch Kategorien ohne Hinweise zeigen"
-                    />
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        Standardmäßig werden Kategorien ohne Auffälligkeiten ausgeblendet. Aktiviert erscheint jede
-                        aktive Kategorie mit einem {'„ok“'}-Häkchen, auch wenn dort gerade nichts anliegt (nur Layout
-                        Standard).
-                    </p>
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             Sortierung
@@ -705,29 +704,6 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
                         </p>
                     </div>
-                    <Toggle
-                        checked={o.showAllClear !== false}
-                        onChange={(v) => set({ showAllClear: v ? undefined : false })}
-                        label={'Hinweis „Alles in Ordnung“ zeigen'}
-                    />
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        Aus: Liegt nichts an, bleibt das Widget leer (nur Titel und Zähler).
-                    </p>
-                    {o.showAllClear !== false && (
-                        <div>
-                            <label className={labelCls} style={labelStyle}>
-                                Text bei {'„Alles in Ordnung“'}
-                            </label>
-                            <input
-                                type="text"
-                                value={o.allClearText ?? ''}
-                                onChange={(e) => set({ allClearText: e.target.value || undefined })}
-                                placeholder="Alles in Ordnung"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                        </div>
-                    )}
                 </div>
             </ConfigSection>
 

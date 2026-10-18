@@ -27,6 +27,7 @@ import { RowClickSection } from './RowClickSection';
 import { NS } from '../../utils/namespace';
 import { ColorField } from './list/listFieldUi';
 import { ConfigSection } from './ConfigSection';
+import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import type { ListStat } from '../../utils/listStats';
@@ -119,92 +120,127 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const updateEntry = (id: string, patch: Partial<AutoListEntry>) =>
         setOpts({ entries: (opts.entries ?? []).map((e) => (e.id === id ? { ...e, ...patch } : e)) });
 
+    // Sichtbare Felder first: the list shows these parts of itself or not.
+    const visibleFields: VisibleField[] = [
+        {
+            key: 'showMore',
+            label: '„+N weitere“-Zeile',
+            hint: 'Abgeschnittene Zeilen zusammengefasst',
+            hidden: !opts.maxRows,
+        },
+        { key: 'showCount', label: 'Anzahl' },
+        { key: 'showRoom', label: 'Raum', def: false },
+        { key: 'showId', label: 'DP-ID', def: false },
+        { key: 'showDividers', label: 'Trennlinien' },
+        {
+            key: 'showEntryLastChange',
+            label: 'Letzte Änderung pro Eintrag',
+            def: false,
+            children: (
+                <LastChangeSourcePicker
+                    value={opts.entryLastChangeSource}
+                    onChange={(next) => setOpts({ entryLastChangeSource: next })}
+                />
+            ),
+        },
+        { key: 'hideFilterButton', label: 'Filter-Button', invert: true, def: true },
+    ];
+
     return (
         <>
-            {/* -- Datapoints (own dialog) -- */}
-            <DatapointManagerField
-                title="Datenpunkte verwalten"
-                storageKey="aura-autolist-dp-modal"
-                count={(opts.entries ?? []).length}
-                hint="Datenpunkte suchen, übernehmen und im Detail konfigurieren."
-                entries={opts.entries ?? []}
-                resolvedNames={resolvedNames}
-                entriesTabIndex={3}
-                onRemove={removeEntry}
-                onRemoveAll={discovery.removeAllEntries}
-                emptyState={'Noch keine Datenpunkte – im Tab „Suchen & Filter“ welche finden.'}
-                renderDetail={(id) => (
-                    <AutoEntryDetail
-                        entry={(opts.entries ?? []).find((e) => e.id === id)!}
-                        listConfig={config}
-                        onUpdate={(patch) => updateEntry(id, patch)}
-                    />
-                )}
-                tabs={[
-                    {
-                        key: 'discovery',
-                        label: 'Suchen & Filter',
-                        node: (api) => (
-                            <AutoDiscoveryPanel
-                                opts={opts}
-                                onOptsChange={setOpts}
-                                discovery={discovery}
-                                onApplied={(firstNewId) => {
-                                    if (firstNewId) api.select(firstNewId);
-                                    api.goToEntries();
-                                }}
-                            />
-                        ),
-                    },
-                    {
-                        key: 'icon',
-                        label: 'Icon',
-                        node: <ListIconPanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
-                    },
-                    {
-                        key: 'display',
-                        label: 'Darstellung',
-                        node: <ListDisplayPanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
-                    },
-                    {
-                        key: 'rowconds',
-                        label: 'Bedingungen',
-                        node: (
-                            <RowConditionsPanel
-                                rules={opts.rowConditions}
-                                sampleDp={(opts.entries ?? []).find((e) => !!e.id)?.id}
-                                onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
-                            />
-                        ),
-                    },
-                    {
-                        key: 'subline',
-                        label: 'Zweite Zeile',
-                        node: <SubDpTemplatePanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
-                    },
-                    {
-                        key: 'rowclick',
-                        label: 'Klick auf Zeile',
-                        node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
-                    },
-                    {
-                        key: 'names',
-                        label: 'Namen',
-                        node: (
-                            <NameDisplayFields
-                                pattern={opts.namePattern}
-                                rules={opts.nameFilters}
-                                samples={nameSamples}
-                                sampleTotal={(opts.entries ?? []).length}
-                                onChange={setOpts}
-                                inline
-                            />
-                        ),
-                    },
-                ]}
+            <VisibleFieldsSection
+                fields={visibleFields}
+                values={opts as unknown as Record<string, unknown>}
+                onChange={(p) => setOpts(p as Partial<AutoListOptions>)}
             />
+            <ConfigSection title="Einträge" sectionKey="entries">
+                {/* -- Datapoints (own dialog) -- */}
+                <DatapointManagerField
+                    title="Datenpunkte verwalten"
+                    storageKey="aura-autolist-dp-modal"
+                    count={(opts.entries ?? []).length}
+                    hint="Datenpunkte suchen, übernehmen und im Detail konfigurieren."
+                    entries={opts.entries ?? []}
+                    resolvedNames={resolvedNames}
+                    entriesTabIndex={3}
+                    onRemove={removeEntry}
+                    onRemoveAll={discovery.removeAllEntries}
+                    emptyState={'Noch keine Datenpunkte – im Tab „Suchen & Filter“ welche finden.'}
+                    renderDetail={(id) => (
+                        <AutoEntryDetail
+                            entry={(opts.entries ?? []).find((e) => e.id === id)!}
+                            listConfig={config}
+                            onUpdate={(patch) => updateEntry(id, patch)}
+                        />
+                    )}
+                    tabs={[
+                        {
+                            key: 'discovery',
+                            label: 'Suchen & Filter',
+                            node: (api) => (
+                                <AutoDiscoveryPanel
+                                    opts={opts}
+                                    onOptsChange={setOpts}
+                                    discovery={discovery}
+                                    onApplied={(firstNewId) => {
+                                        if (firstNewId) api.select(firstNewId);
+                                        api.goToEntries();
+                                    }}
+                                />
+                            ),
+                        },
+                        {
+                            key: 'icon',
+                            label: 'Icon',
+                            node: <ListIconPanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
+                        },
+                        {
+                            key: 'display',
+                            label: 'Darstellung',
+                            node: <ListDisplayPanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
+                        },
+                        {
+                            key: 'rowconds',
+                            label: 'Bedingungen',
+                            node: (
+                                <RowConditionsPanel
+                                    rules={opts.rowConditions}
+                                    sampleDp={(opts.entries ?? []).find((e) => !!e.id)?.id}
+                                    onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
+                                />
+                            ),
+                        },
+                        {
+                            key: 'subline',
+                            label: 'Zweite Zeile',
+                            node: (
+                                <SubDpTemplatePanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />
+                            ),
+                        },
+                        {
+                            key: 'rowclick',
+                            label: 'Klick auf Zeile',
+                            node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
+                        },
+                        {
+                            key: 'names',
+                            label: 'Namen',
+                            node: (
+                                <NameDisplayFields
+                                    pattern={opts.namePattern}
+                                    rules={opts.nameFilters}
+                                    samples={nameSamples}
+                                    sampleTotal={(opts.entries ?? []).length}
+                                    onChange={setOpts}
+                                    inline
+                                />
+                            ),
+                        },
+                    ]}
+                />
+            </ConfigSection>
 
-            <ConfigSection title="Anzeige">
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                 <div>
                     <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
                         {t('autolist.maxRows')}
@@ -226,53 +262,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                         {t('autolist.maxRowsHint')}
                     </p>
-                </div>
-                {!!opts.maxRows && (
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('autolist.showMore')}
-                        </label>
-                        <button
-                            onClick={() => setOpts({ showMore: !(opts.showMore ?? true) })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: (opts.showMore ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                style={{ left: (opts.showMore ?? true) ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                )}
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Anzahl anzeigen
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showCount: !(opts.showCount ?? true) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showCount ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showCount ?? true) ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('autolist.showRoom')}
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showRoom: !(opts.showRoom ?? false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showRoom ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showRoom ?? false) ? '18px' : '2px' }}
-                        />
-                    </button>
                 </div>
                 <div>
                     <div className="flex items-center justify-between">
@@ -348,36 +337,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         </div>
                     )}
                 </div>
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        DP-ID anzeigen
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showId: !(opts.showId ?? false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showId ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showId ?? false) ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Trennlinien anzeigen
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showDividers: !(opts.showDividers ?? true) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showDividers ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showDividers ?? true) ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
                 <div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
@@ -418,27 +377,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         </div>
                     )}
                 </div>
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Letzte Änderung pro Eintrag
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showEntryLastChange: !opts.showEntryLastChange })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: opts.showEntryLastChange ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: opts.showEntryLastChange ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-                {opts.showEntryLastChange && (
-                    <LastChangeSourcePicker
-                        value={opts.entryLastChangeSource}
-                        onChange={(next) => setOpts({ entryLastChangeSource: next })}
-                    />
-                )}
                 {/* ── Layout: Karte – Kartenbreite ── */}
                 {config.layout === 'card' && (
                     <div>
@@ -461,7 +399,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     </div>
                 )}
             </ConfigSection>
-            <ConfigSection title="Werte & Farben">
+            <ConfigSection title="Werte & Farben" sectionKey="values">
                 <ValueFormatRow decimals={opts.decimals} numberFormat={opts.numberFormat} onChange={setOpts} />
                 {/* ── Wert-Umrechnung / Zeit (global) ── */}
                 <div>
@@ -564,7 +502,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     </p>
                 </div>
             </ConfigSection>
-            <ConfigSection title="Statistik">
+            <ConfigSection title="Statistik" sectionKey="stats">
                 <div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
@@ -782,7 +720,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     )}
                 </div>
             </ConfigSection>
-            <ConfigSection title="Filter & Sortierung">
+            <ConfigSection title="Filter & Sortierung" sectionKey="filter">
                 <ListFilterSection
                     opts={opts}
                     setOpts={setOpts}
@@ -797,7 +735,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     storageKey="aura-autolist-sort-modal"
                 />
             </ConfigSection>
-            <ConfigSection title="Veröffentlichen">
+            <ConfigSection title="Veröffentlichen" sectionKey="publish">
                 <div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

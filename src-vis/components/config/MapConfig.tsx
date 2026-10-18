@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronRight, Database, Plus, Trash2, MapPin } from 'lucide-react';
 import { ConfigSection } from './ConfigSection';
+import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetConfig } from '../../types';
 import type {
@@ -161,7 +162,6 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
     };
 
     const followMarkers = (o.followMarkers as boolean) ?? true;
-    const showDistance = (o.showDistance as boolean) ?? false;
 
     const quickViews: MapQuickView[] = Array.isArray(o.quickViews) ? (o.quickViews as MapQuickView[]) : [];
     const chipsPosition: MapChipsPosition = o.chipsPosition === 'below' ? 'below' : 'overlay';
@@ -196,7 +196,6 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
 
     // Runtime map-type switcher. An empty `styleChoices` means "offer all types",
     // which is why the option is stored as undefined once nothing is picked.
-    const showStyleChips = o.showStyleChips === true;
     const styleChipsCorner: MapChipsCorner = (o.styleChipsCorner as MapChipsCorner) || 'top-left';
     const styleChoices: MapStyle[] = Array.isArray(o.styleChoices) ? (o.styleChoices as MapStyle[]) : [];
     const toggleStyleChoice = (value: MapStyle) => {
@@ -206,10 +205,96 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
         set({ styleChoices: next.length ? next : undefined });
     };
 
+    // Sichtbare Felder first; the switcher's and the distance's options sit under their switch.
+    const visibleFields: VisibleField[] = [
+        {
+            key: 'showStyleChips',
+            label: 'Kartentyp-Umschalter',
+            def: false,
+            hint: 'Chips über der Karte, mit denen der Kartentyp im Betrieb gewechselt wird',
+            children: (
+                <div className="mt-2 space-y-2">
+                    <div>
+                        <label className={lblCls} style={lblSty}>
+                            Ecke der Chips
+                        </label>
+                        <select
+                            value={styleChipsCorner}
+                            onChange={(e) => set({ styleChipsCorner: e.target.value as MapChipsCorner })}
+                            className={iCls}
+                            style={iSty}
+                        >
+                            {CORNER_LABELS.map((c) => (
+                                <option key={c.value} value={c.value}>
+                                    {c.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className={lblCls} style={lblSty}>
+                            Auswählbare Kartentypen
+                        </label>
+                        <div className="flex flex-wrap gap-1">
+                            {MAP_STYLES.map((s) => {
+                                const on = styleChoices.includes(s.value);
+                                return (
+                                    <button
+                                        key={s.value}
+                                        type="button"
+                                        onClick={() => toggleStyleChoice(s.value)}
+                                        className="px-2 py-1 rounded-full text-[11px] hover:opacity-80"
+                                        style={{
+                                            background: on ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: on ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {s.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                            Ohne Auswahl werden alle Kartentypen angeboten.
+                        </p>
+                    </div>
+                </div>
+            ),
+        },
+        {
+            key: 'showDistance',
+            label: 'Entfernung',
+            def: false,
+            children: (
+                <div>
+                    <label className={lblCls} style={lblSty}>
+                        <MapPin size={11} className="inline mr-1" />
+                        Bezugspunkt (Entfernung wird ab hier berechnet)
+                    </label>
+                    <select
+                        value={(o.homeMarkerId as string | undefined) ?? ''}
+                        onChange={(e) => set({ homeMarkerId: e.target.value || undefined })}
+                        className={iCls}
+                        style={iSty}
+                    >
+                        <option value="">– kein Bezugspunkt –</option>
+                        {markers.map((m) => (
+                            <option key={m.id} value={m.id}>
+                                {m.label || m.id}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            ),
+        },
+    ];
+
     return (
         <div className="space-y-2">
+            <VisibleFieldsSection fields={visibleFields} values={o} onChange={set} />
             {/* ── Map style ── */}
-            <ConfigSection title="Kartentyp">
+            <ConfigSection title="Kartentyp" sectionKey="style">
                 <div>
                     <label className={lblCls} style={lblSty}>
                         Kartentyp
@@ -233,77 +318,12 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                         </p>
                     )}
                 </div>
-
-                {/* ── Runtime map-type switcher ── */}
-                <div>
-                    <div className="flex items-center justify-between">
-                        <label className={lblCls} style={lblSty}>
-                            Kartentyp im Frontend umschaltbar
-                        </label>
-                        <Toggle value={showStyleChips} onToggle={() => set({ showStyleChips: !showStyleChips })} />
-                    </div>
-                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                        Blendet Chips über der Karte ein, mit denen der Kartentyp im laufenden Betrieb gewechselt wird.
-                    </p>
-
-                    {showStyleChips && (
-                        <div className="mt-2 space-y-2">
-                            <div>
-                                <label className={lblCls} style={lblSty}>
-                                    Ecke der Chips
-                                </label>
-                                <select
-                                    value={styleChipsCorner}
-                                    onChange={(e) => set({ styleChipsCorner: e.target.value as MapChipsCorner })}
-                                    className={iCls}
-                                    style={iSty}
-                                >
-                                    {CORNER_LABELS.map((c) => (
-                                        <option key={c.value} value={c.value}>
-                                            {c.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className={lblCls} style={lblSty}>
-                                    Auswählbare Kartentypen
-                                </label>
-                                <div className="flex flex-wrap gap-1">
-                                    {MAP_STYLES.map((s) => {
-                                        const on = styleChoices.includes(s.value);
-                                        return (
-                                            <button
-                                                key={s.value}
-                                                type="button"
-                                                onClick={() => toggleStyleChoice(s.value)}
-                                                className="px-2 py-1 rounded-full text-[11px] hover:opacity-80"
-                                                style={{
-                                                    background: on ? 'var(--accent)' : 'var(--app-bg)',
-                                                    color: on ? '#fff' : 'var(--text-secondary)',
-                                                    border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                }}
-                                            >
-                                                {s.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <p
-                                    className="text-[10px] mt-0.5"
-                                    style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                >
-                                    Ohne Auswahl werden alle Kartentypen angeboten.
-                                </p>
-                            </div>
-                        </div>
-                    )}
-                </div>
             </ConfigSection>
 
             {/* ── Markers ── */}
             <ConfigSection
                 title={`Marker (${markers.length})`}
+                sectionKey="markers"
                 action={
                     <button
                         type="button"
@@ -501,6 +521,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
             {/* ── Lines: routes + recorded tracks ── */}
             <ConfigSection
                 title={`Linien (${lines.length})`}
+                sectionKey="lines"
                 action={
                     <button
                         type="button"
@@ -926,6 +947,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
             {/* ── Quick-access chips ── */}
             <ConfigSection
                 title={`Schnellzugriff-Chips (${quickViews.length})`}
+                sectionKey="chips"
                 action={
                     <button
                         type="button"
@@ -1209,7 +1231,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
             </ConfigSection>
 
             {/* ── View ── */}
-            <ConfigSection title="Ansicht & Entfernung">
+            <ConfigSection title="Ansicht" sectionKey="view">
                 <div className="flex items-center justify-between">
                     <label className={lblCls} style={lblSty}>
                         Ansicht automatisch auf Marker zentrieren
@@ -1267,42 +1289,12 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                             : 'Feste Zoomstufe der Karte. Höher = näher.'}
                     </p>
                 </div>
-
-                {/* ── Distance ── */}
-                <div className="flex items-center justify-between">
-                    <label className={lblCls} style={lblSty}>
-                        Entfernung anzeigen
-                    </label>
-                    <Toggle value={showDistance} onToggle={() => set({ showDistance: !showDistance })} />
-                </div>
-
-                {showDistance && (
-                    <div>
-                        <label className={lblCls} style={lblSty}>
-                            <MapPin size={11} className="inline mr-1" />
-                            Bezugspunkt (Entfernung wird ab hier berechnet)
-                        </label>
-                        <select
-                            value={(o.homeMarkerId as string | undefined) ?? ''}
-                            onChange={(e) => set({ homeMarkerId: e.target.value || undefined })}
-                            className={iCls}
-                            style={iSty}
-                        >
-                            <option value="">– kein Bezugspunkt –</option>
-                            {markers.map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    {m.label || m.id}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
             </ConfigSection>
 
             {/* ── Custom tile server: no longer offered. Maps that already have one keep
                  using it (the widget still reads tileUrl); here it can only be removed. ── */}
             {!!o.tileUrl && (
-                <ConfigSection title="Eigener Kachel-Server">
+                <ConfigSection title="Eigener Kachel-Server" sectionKey="tiles">
                     <div data-aura-map-legacy-tiles>
                         <div className="flex gap-1">
                             <input

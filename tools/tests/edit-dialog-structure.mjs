@@ -59,6 +59,11 @@ const VISIBLE = {
     thermostat: ['showSetpoint', 'showActualTemp', 'showControls', 'showPresets'],
     shutter: ['showValue', 'showControls', 'showSlider'],
     jsontable: ['showSearch', 'showHeader'],
+    list: ['showCount', 'showRoom', 'showId', 'showDividers', 'hideFilterButton'],
+    autolist: ['showCount', 'showRoom', 'showId', 'showDividers', 'showEntryLastChange', 'hideFilterButton'],
+    carousel: ['hideScrollbar'],
+    map: ['showStyleChips', 'showDistance'],
+    statusoverview: ['showCount', 'showRoom', 'showSince', 'showOkCategories', 'showAllClear'],
     echart: [
         'echartShowLegend',
         'echartShowYAxis',
@@ -137,7 +142,7 @@ const VISIBLE = {
     aircontrol: ['showVanes', 'showEco', 'showBoost', 'showConsumption', 'showHumidity', 'showOutside'],
 };
 /** Types that already bring sections of their own (visible fields follow later). */
-const OWN_SECTIONS = ['statusoverview', 'map', 'list', 'autolist', 'mediaplayer', 'chips', 'carousel'];
+const OWN_SECTIONS = ['chips'];
 // (menu too, but the harness draws no edit chrome for it)
 /** Types without any visibility toggle. */
 const NONE = ['button', 'image', 'html', 'mirror'];
@@ -158,6 +163,11 @@ const SECTIONED = [
     'httpRequest',
     'enum',
     'mediaplayer',
+    'list',
+    'autolist',
+    'carousel',
+    'map',
+    'statusoverview',
     'chart',
     'climate',
     'echart',

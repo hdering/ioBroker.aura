@@ -11,6 +11,8 @@ import { isDivider, type StaticListEntry, type StaticListOptions } from '../widg
 import type { ListStat } from '../../utils/listStats';
 import { ColorField } from './list/listFieldUi';
 import { ConfigSection } from './ConfigSection';
+import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
+import { useT } from '../../i18n';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -44,6 +46,7 @@ interface Props {
 // ── Main config panel ─────────────────────────────────────────────────────────
 
 export function StaticListConfig({ config, onConfigChange }: Props) {
+    const t = useT();
     const opts = (config.options ?? { entries: [] }) as unknown as StaticListOptions;
     const entries = opts.entries ?? [];
     const [showPicker, setShowPicker] = useState(false);
@@ -145,146 +148,98 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
         setOpts({ entries: next });
     };
 
+    // Sichtbare Felder first: the list shows these parts of itself or not.
+    const visibleFields: VisibleField[] = [
+        { key: 'showCount', label: 'Anzahl' },
+        { key: 'showRoom', label: 'Raum', def: false },
+        { key: 'showId', label: 'DP-ID', def: false },
+        { key: 'showDividers', label: 'Trennlinien' },
+        { key: 'hideFilterButton', label: 'Filter-Button', invert: true, def: true },
+    ];
+
     return (
         <>
-            {/* ── Datapoints (own dialog) ── */}
-            <DatapointManagerField
-                title="Datenpunkte verwalten"
-                storageKey="aura-staticlist-dp-modal"
-                count={entries.length}
-                hint="Datenpunkte hinzufügen, sortieren und im Detail konfigurieren."
-                entries={entries}
-                resolvedNames={resolvedNames}
-                onRemove={removeEntry}
-                onRemoveAll={() => setOpts({ entries: [] })}
-                onAdd={() => setShowPicker(true)}
-                onAddDivider={addDivider}
-                onReorder={reorderEntries}
-                sortHint={
-                    !sortText
-                        ? undefined
-                        : hasDividers
-                          ? `Sortierung „${sortText}“ ist aktiv — sie wirkt innerhalb eines Abschnitts. Die Reihenfolge der Trennlinien und Abschnitte bleibt manuell.`
-                          : `Sortierung „${sortText}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn kein Sortierkriterium gesetzt ist.`
-                }
-                keepDraggable={hasDividers}
-                renderDetail={(id, api) => {
-                    const found = entries.find((e) => e.id === id)!;
-                    if (isDivider(found))
-                        return <DividerDetail entry={found} onUpdate={(patch) => updateEntry(id, patch)} />;
-                    return (
-                        <StaticEntryDetail
-                            entry={entries.find((e) => e.id === id)!}
-                            listConfig={config}
-                            onUpdate={(patch) => updateEntry(id, patch)}
-                            onChangeId={(newId, unit, role, writable) => {
-                                changeEntryId(id, newId, unit, role, writable);
-                                // The id is the selection key - follow it, or the detail
-                                // pane would empty out mid-edit.
-                                api.select(newId);
-                            }}
-                        />
-                    );
-                }}
-                tabs={[
-                    {
-                        key: 'rowconds',
-                        label: 'Bedingungen',
-                        node: (
-                            <RowConditionsPanel
-                                rules={opts.rowConditions}
-                                sampleDp={entries.find((e) => !!e.id)?.id}
-                                onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
-                            />
-                        ),
-                    },
-                    {
-                        key: 'rowclick',
-                        label: 'Klick auf Zeile',
-                        node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
-                    },
-                    {
-                        key: 'names',
-                        label: 'Namen',
-                        node: (
-                            <NameDisplayFields
-                                pattern={opts.namePattern}
-                                rules={opts.nameFilters}
-                                samples={nameSamples}
-                                sampleTotal={entries.length}
-                                onChange={setOpts}
-                                inline
-                            />
-                        ),
-                    },
-                ]}
+            <VisibleFieldsSection
+                fields={visibleFields}
+                values={opts as unknown as Record<string, unknown>}
+                onChange={(p) => setOpts(p as Partial<StaticListOptions>)}
             />
+            <ConfigSection title="Einträge" sectionKey="entries">
+                {/* ── Datapoints (own dialog) ── */}
+                <DatapointManagerField
+                    title="Datenpunkte verwalten"
+                    storageKey="aura-staticlist-dp-modal"
+                    count={entries.length}
+                    hint="Datenpunkte hinzufügen, sortieren und im Detail konfigurieren."
+                    entries={entries}
+                    resolvedNames={resolvedNames}
+                    onRemove={removeEntry}
+                    onRemoveAll={() => setOpts({ entries: [] })}
+                    onAdd={() => setShowPicker(true)}
+                    onAddDivider={addDivider}
+                    onReorder={reorderEntries}
+                    sortHint={
+                        !sortText
+                            ? undefined
+                            : hasDividers
+                              ? `Sortierung „${sortText}“ ist aktiv — sie wirkt innerhalb eines Abschnitts. Die Reihenfolge der Trennlinien und Abschnitte bleibt manuell.`
+                              : `Sortierung „${sortText}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn kein Sortierkriterium gesetzt ist.`
+                    }
+                    keepDraggable={hasDividers}
+                    renderDetail={(id, api) => {
+                        const found = entries.find((e) => e.id === id)!;
+                        if (isDivider(found))
+                            return <DividerDetail entry={found} onUpdate={(patch) => updateEntry(id, patch)} />;
+                        return (
+                            <StaticEntryDetail
+                                entry={entries.find((e) => e.id === id)!}
+                                listConfig={config}
+                                onUpdate={(patch) => updateEntry(id, patch)}
+                                onChangeId={(newId, unit, role, writable) => {
+                                    changeEntryId(id, newId, unit, role, writable);
+                                    // The id is the selection key - follow it, or the detail
+                                    // pane would empty out mid-edit.
+                                    api.select(newId);
+                                }}
+                            />
+                        );
+                    }}
+                    tabs={[
+                        {
+                            key: 'rowconds',
+                            label: 'Bedingungen',
+                            node: (
+                                <RowConditionsPanel
+                                    rules={opts.rowConditions}
+                                    sampleDp={entries.find((e) => !!e.id)?.id}
+                                    onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
+                                />
+                            ),
+                        },
+                        {
+                            key: 'rowclick',
+                            label: 'Klick auf Zeile',
+                            node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
+                        },
+                        {
+                            key: 'names',
+                            label: 'Namen',
+                            node: (
+                                <NameDisplayFields
+                                    pattern={opts.namePattern}
+                                    rules={opts.nameFilters}
+                                    samples={nameSamples}
+                                    sampleTotal={entries.length}
+                                    onChange={setOpts}
+                                    inline
+                                />
+                            ),
+                        },
+                    ]}
+                />
+            </ConfigSection>
 
-            <ConfigSection title="Anzeige">
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Anzahl anzeigen
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showCount: !(opts.showCount ?? true) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showCount ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showCount ?? true) ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Raum anzeigen
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showRoom: !(opts.showRoom ?? false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showRoom ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showRoom ?? false) ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        DP-ID anzeigen
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showId: !(opts.showId ?? false) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showId ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showId ?? false) ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Trennlinien anzeigen
-                    </label>
-                    <button
-                        onClick={() => setOpts({ showDividers: !(opts.showDividers ?? true) })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: (opts.showDividers ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.showDividers ?? true) ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                 <div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
@@ -326,7 +281,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     )}
                 </div>
             </ConfigSection>
-            <ConfigSection title="Werte & Farben">
+            <ConfigSection title="Werte & Farben" sectionKey="values">
                 {/* ── Wert-Umrechnung / Zeit (global) ── */}
                 <div>
                     <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
@@ -428,7 +383,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     </p>
                 </div>
             </ConfigSection>
-            <ConfigSection title="Statistik">
+            <ConfigSection title="Statistik" sectionKey="stats">
                 <div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
@@ -646,7 +601,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     )}
                 </div>
             </ConfigSection>
-            <ConfigSection title="Filter & Sortierung">
+            <ConfigSection title="Filter & Sortierung" sectionKey="filter">
                 <ListFilterSection
                     opts={opts}
                     setOpts={setOpts}
@@ -672,7 +627,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     }
                 />
             </ConfigSection>
-            <ConfigSection title="Veröffentlichen">
+            <ConfigSection title="Veröffentlichen" sectionKey="publish">
                 <div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

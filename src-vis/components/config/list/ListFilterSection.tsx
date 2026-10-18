@@ -139,16 +139,6 @@ export function ListFilterSection({
 
             <div className="flex items-center justify-between gap-2">
                 <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                    Filter-Button im Frontend anzeigen
-                </label>
-                <Toggle
-                    on={!(opts.hideFilterButton ?? false)}
-                    onClick={() => setOpts({ hideFilterButton: !(opts.hideFilterButton ?? false) })}
-                />
-            </div>
-
-            <div className="flex items-center justify-between gap-2">
-                <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                     Freitext-Suche im Filter-Menü
                 </label>
                 <Toggle
