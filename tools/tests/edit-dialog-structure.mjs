@@ -47,6 +47,14 @@ const VISIBLE = {
     thermostat: ['showSetpoint', 'showActualTemp', 'showControls', 'showPresets'],
     shutter: ['showValue', 'showControls', 'showSlider'],
     jsontable: ['showSearch', 'showHeader'],
+    adapterstatus: ['showFilter', 'showSearch', 'showVersion', 'compact'],
+    scriptstatus: ['showFilter', 'showSearch', 'showEngine', 'compact'],
+    adapterlogs: ['showFilter', 'showSearch', 'showControls'],
+    messages: ['showFilter'],
+    loadtimes: ['showLegend', 'showThresholds'],
+    panels: ['showDots', 'showArrows'],
+    httpRequest: ['showStatus'],
+    enum: ['showValue', 'showSelect'],
     alarm: [
         'showHeader',
         'showModes',
@@ -221,6 +229,18 @@ for (const type of NONE) {
     await page.waitForTimeout(300);
     const o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
     check('dimmer: switch writes showSlider=false', o?.showSlider === false, JSON.stringify(o));
+    await closeDialog();
+}
+
+// An inverted option: switching "Untertitel" off stores compact=true.
+{
+    const id = await openDialog('adapterstatus');
+    const sw = page.locator('.aura-widget-edit-modal [data-aura-vis-key="compact"] button[role="switch"]');
+    check('adapterstatus: subtitle shown by default', (await sw.getAttribute('aria-checked')) === 'true');
+    await sw.click();
+    await page.waitForTimeout(300);
+    const o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check('adapterstatus: switching the subtitle off writes compact=true', o?.compact === true, JSON.stringify(o));
     await closeDialog();
 }
 

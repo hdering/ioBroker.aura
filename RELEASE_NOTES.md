@@ -13,3 +13,4 @@
 - Settings - every widget's show/hide toggles are now listed under one "Visible fields" heading at the top of its own settings; widgets with many settings (RGB light, dimmer, knob, state image, slider, thermostat, shutter, alarm, timer, countdown, trash schedule, air control, JSON table) split them into sections that start folded, and all section headings look the same
 - Lists - the "+ datapoint of the device" picker for the second line now shows the object ID next to the name (#795)
 - Static list - an entry can show one field of a JSON datapoint (JSON path button next to the datapoint), and the value conversion of both lists gains an "Expression" mode, e.g. `dp.objektName * 0.4 | fixed(2)` (#794)
+- Load times - the settings no longer show a datapoint field the widget does not use

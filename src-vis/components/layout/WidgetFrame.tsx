@@ -298,7 +298,7 @@ const NO_BADGES: BadgeDef[] = [];
 // section from their own block instead.
 // `def` is the widget's own default for an option it reads as off-by-default —
 // without it the toggle shows ON for a field nothing is drawing yet.
-const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string; def?: boolean }[]>> = {
+const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
     shutter: [
         { key: 'showValue', label: 'Position %' },
         { key: 'showControls', label: 'Steuerknöpfe' },
@@ -323,8 +323,10 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showValue', label: 'Wert' },
         { key: 'showUnit', label: 'Einheit' },
     ],
-    // enum: current-selection / dropdown / display-mode toggles live in EnumConfig
-    // (below the entries), matching the universal widget's DP-Auswahlfeld cell editor.
+    enum: [
+        { key: 'showValue', label: 'Aktuelles Label' },
+        { key: 'showSelect', label: 'Dropdown', hint: 'Aus: nur die Einträge' },
+    ],
     // climate: Ist/Soll/Luftfeuchtigkeit/Komfortzone toggles and the chart series live
     // in the Raumklima settings block (ClimateConfig) — kept out of this generic list.
     windowcontact: [{ key: 'showLabel', label: 'Status-Text' }],
@@ -340,6 +342,23 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showMore', label: '+ weitere Termine' },
     ],
     datepicker: [{ key: 'showCurrentValue', label: 'Gesetzter Wert' }],
+    httpRequest: [{ key: 'showStatus', label: 'Letzter Status' }],
+    adapterstatus: [
+        { key: 'showFilter', label: 'Filter-Buttons', hint: 'Nutzer können den Filter umschalten' },
+        { key: 'showSearch', label: 'Suchfeld', hint: 'Erscheint ab > 5 Instanzen' },
+        { key: 'showVersion', label: 'Version' },
+        { key: 'compact', label: 'Untertitel / Beschreibung', invert: true },
+    ],
+    adapterlogs: [
+        { key: 'showFilter', label: 'Filter-Buttons', hint: 'Severity- + Adapter-Filter' },
+        { key: 'showSearch', label: 'Suchfeld', hint: 'Freitext-Filter' },
+        { key: 'showControls', label: 'Steuerleiste', hint: 'Pause / Auto-Scroll / Puffer leeren' },
+    ],
+    messages: [{ key: 'showFilter', label: 'Filter-Buttons', hint: 'Schweregrad-Pillen zum Umschalten' }],
+    loadtimes: [
+        { key: 'showLegend', label: 'Legende' },
+        { key: 'showThresholds', label: 'Schwellwerte (gut/ok/langsam)' },
+    ],
     header: [{ key: 'showSubtitle', label: 'Untertitel' }],
     light: [{ key: 'showPalette', label: 'Farbpalette (Presets)' }],
     knob: [
@@ -10921,6 +10940,54 @@ function WidgetFrameInner({
                                 );
                             }
                             if (config.type === 'stateimage') fields.push({ key: 'showIcon', label: 'Icon' });
+                            if (config.type === 'panels')
+                                fields.push(
+                                    { key: 'showDots', label: t('panels.opt.showDots') },
+                                    { key: 'showArrows', label: t('panels.opt.showArrows') },
+                                );
+                            if (config.type === 'scriptstatus')
+                                fields.push(
+                                    {
+                                        key: 'showFilter',
+                                        label: 'Filter-Buttons',
+                                        hint: 'Nutzer kann den Filter umschalten',
+                                    },
+                                    {
+                                        key: 'showSearch',
+                                        label: 'Suchfeld',
+                                        hint: 'Erscheint ab > 5 Skripten',
+                                        children: (
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Suche durchsucht
+                                                </label>
+                                                <select
+                                                    value={(o.searchScope as string) ?? 'both'}
+                                                    onChange={(e) => setO({ searchScope: e.target.value })}
+                                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-primary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                >
+                                                    <option value="both">Name und Pfad</option>
+                                                    <option value="name">Nur Name</option>
+                                                    <option value="path">Nur Pfad</option>
+                                                </select>
+                                            </div>
+                                        ),
+                                    },
+                                    {
+                                        key: 'showEngine',
+                                        label: 'Engine-Typ',
+                                        hint: 'Badge: JS / TS / Blockly / Rules',
+                                    },
+                                    { key: 'compact', label: 'Pfad-Zeile', invert: true },
+                                );
                             if (config.type === 'shutter')
                                 // Only with a tilt datapoint is there a tilt value to show.
                                 fields.push({
@@ -11382,6 +11449,7 @@ function WidgetFrameInner({
                             config.type !== 'mirror' &&
                             config.type !== 'menu' &&
                             config.type !== 'messages' &&
+                            config.type !== 'loadtimes' &&
                             config.type !== 'aircontrol' &&
                             config.type !== 'energiebilanz' &&
                             !SECTIONED_EDIT_TYPES.has(config.type) &&
@@ -13774,8 +13842,6 @@ function WidgetFrameInner({
                                 const set = (patch: Record<string, unknown>) =>
                                     onConfigChange({ ...config, options: { ...o, ...patch } });
                                 const loop = !!o.loop;
-                                const showDots = o.showDots !== false;
-                                const showArrows = o.showArrows !== false;
                                 const autoplay = !!o.autoplay;
                                 const interval = (o.autoplayInterval as number) ?? 5;
                                 const Toggle = ({
@@ -13786,23 +13852,7 @@ function WidgetFrameInner({
                                     label: string;
                                     value: boolean;
                                     onToggle: () => void;
-                                }) => (
-                                    <div className="flex items-center justify-between">
-                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                            {label}
-                                        </label>
-                                        <button
-                                            onClick={onToggle}
-                                            className="relative w-9 h-5 rounded-full transition-colors"
-                                            style={{ background: value ? 'var(--accent)' : 'var(--app-border)' }}
-                                        >
-                                            <span
-                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: value ? '18px' : '2px' }}
-                                            />
-                                        </button>
-                                    </div>
-                                );
+                                }) => <VisToggleRow label={label} on={value} onChange={onToggle} />;
                                 const activeDp = ((o.activeDp as string | undefined) ?? '').trim();
                                 const autoDp = panelActiveStateId(config.id);
                                 const activeDpBase = (o.activeDpBase as number | undefined) === 1 ? 1 : 0;
@@ -13898,54 +13948,50 @@ function WidgetFrameInner({
                                             value={activeDpWrite}
                                             onToggle={() => set({ activeDpWrite: !activeDpWrite })}
                                         />
-                                        <Toggle
-                                            label={t('panels.opt.loop')}
-                                            value={loop}
-                                            onToggle={() => set({ loop: !loop })}
-                                        />
-                                        <Toggle
-                                            label={t('panels.opt.showDots')}
-                                            value={showDots}
-                                            onToggle={() => set({ showDots: !showDots })}
-                                        />
-                                        <Toggle
-                                            label={t('panels.opt.showArrows')}
-                                            value={showArrows}
-                                            onToggle={() => set({ showArrows: !showArrows })}
-                                        />
-                                        <Toggle
-                                            label={t('panels.opt.autoplay')}
-                                            value={autoplay}
-                                            onToggle={() => set({ autoplay: !autoplay })}
-                                        />
-                                        {autoplay && (
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('panels.opt.interval')} <span style={{ opacity: 0.6 }}>(s)</span>
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    max={60}
-                                                    step={1}
-                                                    value={interval}
-                                                    onChange={(e) =>
-                                                        set({
-                                                            autoplayInterval: Math.max(1, Number(e.target.value) || 5),
-                                                        })
-                                                    }
-                                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        color: 'var(--text-primary)',
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
+                                        <FlatSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                            <Toggle
+                                                label={t('panels.opt.loop')}
+                                                value={loop}
+                                                onToggle={() => set({ loop: !loop })}
+                                            />
+                                            <Toggle
+                                                label={t('panels.opt.autoplay')}
+                                                value={autoplay}
+                                                onToggle={() => set({ autoplay: !autoplay })}
+                                            />
+                                            {autoplay && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('panels.opt.interval')}{' '}
+                                                        <span style={{ opacity: 0.6 }}>(s)</span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={1}
+                                                        max={60}
+                                                        step={1}
+                                                        value={interval}
+                                                        onChange={(e) =>
+                                                            set({
+                                                                autoplayInterval: Math.max(
+                                                                    1,
+                                                                    Number(e.target.value) || 5,
+                                                                ),
+                                                            })
+                                                        }
+                                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-primary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </FlatSection>
                                     </>
                                 );
                             })()}
@@ -15018,34 +15064,12 @@ function WidgetFrameInner({
                                 }) => {
                                     const val = (o[k] as boolean | undefined) ?? def ?? false;
                                     return (
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {label}
-                                                </label>
-                                                {hint && (
-                                                    <span
-                                                        className="text-[10px] opacity-60"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {hint}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => set({ [k]: !val })}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: val ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
+                                        <VisToggleRow
+                                            label={label}
+                                            hint={hint}
+                                            on={val}
+                                            onChange={(next) => set({ [k]: next })}
+                                        />
                                     );
                                 };
                                 return (
@@ -15090,43 +15114,25 @@ function WidgetFrameInner({
                                             </select>
                                         </div>
                                         <Toggle
-                                            label="Filter-Buttons im Frontend"
-                                            k="showFilter"
-                                            def={true}
-                                            hint="Nutzer können den Filter umschalten"
-                                        />
-                                        <Toggle
-                                            label="Suchfeld anzeigen"
-                                            k="showSearch"
-                                            def={true}
-                                            hint="Erscheint ab > 5 Instanzen"
-                                        />
-                                        <Toggle label="Version anzeigen" k="showVersion" def={true} />
-                                        <Toggle
-                                            label="Kompakte Darstellung"
-                                            k="compact"
-                                            def={false}
-                                            hint="Untertitel/Beschreibung ausblenden"
-                                        />
-                                        <Toggle
                                             label="Zebra-Streifen"
                                             k="striped"
                                             def={true}
                                             hint="Zeilen abwechselnd einfärben statt als Karten"
                                         />
-                                        <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                                        <Toggle
-                                            label="Neustart erlauben"
-                                            k="allowRestart"
-                                            def={false}
-                                            hint="Button zum Neustarten der Instanz"
-                                        />
-                                        <Toggle
-                                            label="Update-Installation erlauben"
-                                            k="allowUpdate"
-                                            def={false}
-                                            hint="Button zum Installieren verfügbarer Updates (Host-Befehl)"
-                                        />
+                                        <FlatSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                            <Toggle
+                                                label="Neustart erlauben"
+                                                k="allowRestart"
+                                                def={false}
+                                                hint="Button zum Neustarten der Instanz"
+                                            />
+                                            <Toggle
+                                                label="Update-Installation erlauben"
+                                                k="allowUpdate"
+                                                def={false}
+                                                hint="Button zum Installieren verfügbarer Updates (Host-Befehl)"
+                                            />
+                                        </FlatSection>
                                     </>
                                 );
                             })()}
@@ -15146,7 +15152,6 @@ function WidgetFrameInner({
                                 const filterMode = (o.filterMode as string) ?? 'all';
                                 const sortBy = (o.sortBy as string) ?? 'name';
                                 const groupF = (o.groupFilter as string) ?? '';
-                                const searchScope = (o.searchScope as string) ?? 'both';
                                 const Toggle = ({
                                     label,
                                     k,
@@ -15160,34 +15165,12 @@ function WidgetFrameInner({
                                 }) => {
                                     const val = (o[k] as boolean | undefined) ?? def ?? false;
                                     return (
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {label}
-                                                </label>
-                                                {hint && (
-                                                    <span
-                                                        className="text-[10px] opacity-60"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {hint}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => set({ [k]: !val })}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: val ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
+                                        <VisToggleRow
+                                            label={label}
+                                            hint={hint}
+                                            on={val}
+                                            onChange={(next) => set({ [k]: next })}
+                                        />
                                     );
                                 };
                                 return (
@@ -15244,66 +15227,25 @@ function WidgetFrameInner({
                                             />
                                         </div>
                                         <Toggle
-                                            label="Filter-Buttons im Frontend"
-                                            k="showFilter"
-                                            def={true}
-                                            hint="Nutzer kann den Filter umschalten"
-                                        />
-                                        <Toggle
-                                            label="Suchfeld anzeigen"
-                                            k="showSearch"
-                                            def={true}
-                                            hint="Erscheint ab > 5 Skripten"
-                                        />
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Suche durchsucht
-                                            </label>
-                                            <select
-                                                value={searchScope}
-                                                onChange={(e) => set({ searchScope: e.target.value })}
-                                                className={sCls}
-                                                style={sSty}
-                                            >
-                                                <option value="both">Name und Pfad</option>
-                                                <option value="name">Nur Name</option>
-                                                <option value="path">Nur Pfad</option>
-                                            </select>
-                                        </div>
-                                        <Toggle
-                                            label="Engine-Typ anzeigen"
-                                            k="showEngine"
-                                            def={true}
-                                            hint="Badge: JS / TS / Blockly / Rules"
-                                        />
-                                        <Toggle
-                                            label="Kompakte Darstellung"
-                                            k="compact"
-                                            def={false}
-                                            hint="Pfad-Zeile ausblenden"
-                                        />
-                                        <Toggle
                                             label="Zebra-Streifen"
                                             k="striped"
                                             def={true}
                                             hint="Zeilen abwechselnd einfärben statt als Karten"
                                         />
-                                        <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                                        <Toggle
-                                            label="Start erlauben"
-                                            k="allowStart"
-                                            def={false}
-                                            hint="Button zum Starten gestoppter Skripte anzeigen"
-                                        />
-                                        <Toggle
-                                            label="Stopp erlauben"
-                                            k="allowStop"
-                                            def={false}
-                                            hint="Button zum Stoppen laufender Skripte anzeigen"
-                                        />
+                                        <FlatSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                            <Toggle
+                                                label="Start erlauben"
+                                                k="allowStart"
+                                                def={false}
+                                                hint="Button zum Starten gestoppter Skripte anzeigen"
+                                            />
+                                            <Toggle
+                                                label="Stopp erlauben"
+                                                k="allowStop"
+                                                def={false}
+                                                hint="Button zum Stoppen laufender Skripte anzeigen"
+                                            />
+                                        </FlatSection>
                                     </>
                                 );
                             })()}
@@ -15351,34 +15293,12 @@ function WidgetFrameInner({
                                 }) => {
                                     const val = (o[k] as boolean | undefined) ?? def ?? false;
                                     return (
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {label}
-                                                </label>
-                                                {hint && (
-                                                    <span
-                                                        className="text-[10px] opacity-60"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {hint}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => set({ [k]: !val })}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: val ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
+                                        <VisToggleRow
+                                            label={label}
+                                            hint={hint}
+                                            on={val}
+                                            onChange={(next) => set({ [k]: next })}
+                                        />
                                     );
                                 };
                                 return (
@@ -15498,24 +15418,6 @@ function WidgetFrameInner({
                                             </div>
                                         </div>
                                         <Toggle
-                                            label="Filter-Buttons im Frontend"
-                                            k="showFilter"
-                                            def={true}
-                                            hint="Severity- + Adapter-Filter"
-                                        />
-                                        <Toggle
-                                            label="Suchfeld anzeigen"
-                                            k="showSearch"
-                                            def={true}
-                                            hint="Freitext-Filter"
-                                        />
-                                        <Toggle
-                                            label="Steuerleiste"
-                                            k="showControls"
-                                            def={true}
-                                            hint="Pause / Auto-Scroll / Puffer leeren"
-                                        />
-                                        <Toggle
                                             label="Kompakte Darstellung"
                                             k="compact"
                                             def={false}
@@ -15579,34 +15481,12 @@ function WidgetFrameInner({
                                 }) => {
                                     const val = (o[k] as boolean | undefined) ?? def ?? false;
                                     return (
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {label}
-                                                </label>
-                                                {hint && (
-                                                    <span
-                                                        className="text-[10px] opacity-60"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {hint}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <button
-                                                onClick={() => set({ [k]: !val })}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: val ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
+                                        <VisToggleRow
+                                            label={label}
+                                            hint={hint}
+                                            on={val}
+                                            onChange={(next) => set({ [k]: next })}
+                                        />
                                     );
                                 };
                                 return (
@@ -15721,30 +15601,26 @@ function WidgetFrameInner({
                                             def={false}
                                             hint="Datums-Zwischenzeilen einfügen"
                                         />
-                                        <MToggle
-                                            label="Nur ungelesene"
-                                            k="unreadOnly"
-                                            def={false}
-                                            hint="Bestätigte Meldungen ausblenden"
-                                        />
-                                        <MToggle
-                                            label="Filter-Buttons im Frontend"
-                                            k="showFilter"
-                                            def={true}
-                                            hint="Schweregrad-Pillen zum Umschalten"
-                                        />
-                                        <MToggle
-                                            label="Bestätigen erlauben"
-                                            k="showAck"
-                                            def={true}
-                                            hint="Häkchen pro Zeile — gilt für alle Clients"
-                                        />
-                                        <MToggle
-                                            label="Verlauf leeren erlauben"
-                                            k="allowClear"
-                                            def={false}
-                                            hint="Löscht das Archiv für alle Clients"
-                                        />
+                                        <FlatSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                            <MToggle
+                                                label="Nur ungelesene"
+                                                k="unreadOnly"
+                                                def={false}
+                                                hint="Bestätigte Meldungen ausblenden"
+                                            />
+                                            <MToggle
+                                                label="Bestätigen erlauben"
+                                                k="showAck"
+                                                def={true}
+                                                hint="Häkchen pro Zeile — gilt für alle Clients"
+                                            />
+                                            <MToggle
+                                                label="Verlauf leeren erlauben"
+                                                k="allowClear"
+                                                def={false}
+                                                hint="Löscht das Archiv für alle Clients"
+                                            />
+                                        </FlatSection>
                                     </>
                                 );
                             })()}
@@ -15784,8 +15660,6 @@ function WidgetFrameInner({
                                 };
                                 const timeWindow = (o.timeWindow as string) ?? '24h';
                                 const chartType = (o.chartType as string) ?? 'line';
-                                const showLegend = (o.showLegend as boolean | undefined) ?? true;
-                                const showThresholds = (o.showThresholds as boolean | undefined) ?? true;
                                 const clientFilter = (o.clientFilter as string) ?? 'current';
                                 const view = (o.view as string) ?? 'chart';
                                 return (
@@ -15891,40 +15765,6 @@ function WidgetFrameInner({
                                                     <option value="all">Alle Clients</option>
                                                 </select>
                                             </div>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Legende anzeigen
-                                            </label>
-                                            <button
-                                                onClick={() => set({ showLegend: !showLegend })}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{
-                                                    background: showLegend ? 'var(--accent)' : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: showLegend ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Schwellwerte (gut/ok/langsam)
-                                            </label>
-                                            <button
-                                                onClick={() => set({ showThresholds: !showThresholds })}
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{
-                                                    background: showThresholds ? 'var(--accent)' : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: showThresholds ? '18px' : '2px' }}
-                                                />
-                                            </button>
                                         </div>
                                         <div
                                             className="text-[10px] leading-snug rounded-lg px-2.5 py-2"
@@ -19154,62 +18994,49 @@ function WidgetFrameInner({
                                             />
                                         </div>
 
-                                        {/* Show status */}
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Letzten Status anzeigen
-                                            </span>
-                                            <button
-                                                onClick={() => setO({ showStatus: !(o.showStatus ?? true) })}
-                                                className="relative w-8 h-4 rounded-full transition-colors"
-                                                style={{
-                                                    background:
-                                                        (o.showStatus ?? true) ? 'var(--accent)' : 'var(--app-border)',
-                                                }}
-                                            >
+                                        <FlatSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                                            {/* Confirm action */}
+                                            <div className="flex items-center justify-between">
                                                 <span
-                                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: (o.showStatus ?? true) ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        {/* Confirm action */}
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Bestätigung anfordern
-                                            </span>
-                                            <button
-                                                onClick={() => setO({ confirmAction: !o.confirmAction })}
-                                                className="relative w-8 h-4 rounded-full transition-colors"
-                                                style={{
-                                                    background: o.confirmAction ? 'var(--accent)' : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: o.confirmAction ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
-                                        {o.confirmAction && (
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
+                                                    className="text-[11px]"
                                                     style={{ color: 'var(--text-secondary)' }}
                                                 >
-                                                    Bestätigungs-Text (optional)
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={(o.confirmText as string) || ''}
-                                                    onChange={(e) => setO({ confirmText: e.target.value })}
-                                                    className={inputCls}
-                                                    style={inputStyle}
-                                                    placeholder="Wirklich senden?"
-                                                />
+                                                    Bestätigung anfordern
+                                                </span>
+                                                <button
+                                                    onClick={() => setO({ confirmAction: !o.confirmAction })}
+                                                    className="relative w-8 h-4 rounded-full transition-colors"
+                                                    style={{
+                                                        background: o.confirmAction
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: o.confirmAction ? '18px' : '2px' }}
+                                                    />
+                                                </button>
                                             </div>
-                                        )}
+                                            {!!o.confirmAction && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Bestätigungs-Text (optional)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={(o.confirmText as string) || ''}
+                                                        onChange={(e) => setO({ confirmText: e.target.value })}
+                                                        className={inputCls}
+                                                        style={inputStyle}
+                                                        placeholder="Wirklich senden?"
+                                                    />
+                                                </div>
+                                            )}
+                                        </FlatSection>
                                     </>
                                 );
                             })()}
