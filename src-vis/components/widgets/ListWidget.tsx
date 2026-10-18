@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { List, Power } from 'lucide-react';
-import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectViewDirect, subscribeDpValue } from '../../hooks/useIoBroker';
+import { baseDpId, resolveDpValue, splitDpRef } from '../../utils/dpRef';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
@@ -770,7 +771,15 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // `entries` is the datapoints only. Everything value-related — subscriptions, filters,
     // sorting, statistics, counts, group actions — reads `entries`, so a separator can
     // never leak into a value calculation.
-    const rows = useMemo<StaticListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
+    // A value inside a JSON datapoint (`id?path`, issue #794) cannot be written back on
+    // its own, so such a row is read-only.
+    const rows = useMemo<StaticListEntry[]>(
+        () =>
+            (opts.entries ?? [])
+                .filter((e) => !!e?.id)
+                .map((e) => (splitDpRef(e.id).path && e.writable !== false ? { ...e, writable: false } : e)),
+        [opts.entries],
+    );
     const entries = useMemo<StaticListEntry[]>(() => rows.filter((e) => !isDivider(e)), [rows]);
     // Row click -> detail popup for that datapoint (issue #524).
     const rowPopup = useRowPopup(config, opts, editMode);
@@ -876,16 +885,29 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     useEffect(() => {
         if (entries.length === 0) return;
         const subIds = [...entries.map((e) => e.id), ...statusIds];
-        subIds.forEach((id) => getState(id).then((s) => setStates((prev) => ({ ...prev, [id]: s }))));
-        const unsubs = subIds.map((id) =>
-            subscribe(id, (s) => {
-                setStates((prev) => ({ ...prev, [id]: s }));
-            }),
+        // A ref with a JSON path (`id?path`, issue #794) subscribes the bare state and
+        // stores the addressed value under the full ref, so every reader keeps looking
+        // up `states[e.id]`.
+        subIds.forEach((ref) => {
+            const { id, path } = splitDpRef(ref);
+            getState(id).then((s) =>
+                setStates((prev) => ({
+                    ...prev,
+                    [ref]: s && path ? { ...s, val: resolveDpValue(s.val, path) as ioBrokerState['val'] } : s,
+                })),
+            );
+        });
+        const unsubs = subIds.map((ref) =>
+            splitDpRef(ref).path
+                ? subscribeDpValue(ref, (val, s) => setStates((prev) => ({ ...prev, [ref]: { ...s, val } })))
+                : subscribe(ref, (s) => {
+                      setStates((prev) => ({ ...prev, [ref]: s }));
+                  }),
         );
         ensureDatapointCache().then((cache) => {
             const updates: Record<string, string> = {};
             for (const e of entries.filter((en) => !en.label)) {
-                const found = cache.find((c) => c.id === e.id);
+                const found = cache.find((c) => c.id === baseDpId(e.id));
                 if (found?.name) updates[e.id] = found.name;
             }
             if (Object.keys(updates).length > 0) setResolvedNames((prev) => ({ ...prev, ...updates }));
@@ -912,7 +934,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             }
             const map: Record<string, string[]> = {};
             for (const e of entries) {
-                const parts = e.id.split('.');
+                const parts = baseDpId(e.id).split('.');
                 const roomsSet = new Set<string>();
                 for (let i = parts.length; i >= 2; i--) {
                     memberRooms.get(parts.slice(0, i).join('.'))?.forEach((r) => roomsSet.add(r));

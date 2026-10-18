@@ -472,6 +472,8 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         factor={opts.valueFactor}
                         offset={opts.valueOffset}
                         presetId={opts.valueTransform}
+                        expr={opts.valueExpr}
+                        allowExpr
                         timeFormat={opts.valueTimeFormat}
                         timePattern={opts.valueTimePattern}
                         allowTimeFormat

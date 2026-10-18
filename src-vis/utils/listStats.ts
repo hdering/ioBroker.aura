@@ -1,5 +1,10 @@
 import { formatNum, type NumberFormat } from './formatValue';
 import { applyValueTransform, resolveValueTransform, type ValueTransformSettings } from './valueTransform';
+import { applyValueExpr } from './valueExpr';
+import type { OpsContext } from './exprOps';
+
+/** Only the number is wanted here — text operations format plainly. */
+const STATS_OPS: OpsContext = { formatNum: (n, d) => n.toFixed(d), decimals: 2, t: (key) => key };
 
 export type ListStat = 'sum' | 'avg' | 'min' | 'max';
 
@@ -33,7 +38,10 @@ export function computeListStats(
     let unit: string | undefined;
     for (const e of entries) {
         const tr = resolveValueTransform(e, listDefault);
-        const v = applyValueTransform(states[e.id]?.val, tr.factor, tr.offset);
+        const raw = states[e.id]?.val;
+        let v = tr.expr ? applyValueExpr(raw, tr.expr, STATS_OPS) : applyValueTransform(raw, tr.factor, tr.offset);
+        // `| fixed(2)` hands back text; the statistics still count it as the number it is.
+        if (tr.expr && typeof v === 'string' && v.trim() !== '') v = Number(v);
         if (typeof v !== 'number' || !isFinite(v)) continue;
         sum += v;
         count++;

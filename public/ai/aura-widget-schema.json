@@ -2877,13 +2877,17 @@
       "fields": {
         "valueTransform": {
           "type": "string",
-          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
+          "description": "Preset id, 'custom', 'expr', or 'none' — the latter switches a list-wide default off."
         },
         "valueFactor": {
           "type": "number"
         },
         "valueOffset": {
           "type": "number"
+        },
+        "valueExpr": {
+          "type": "string",
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -3705,13 +3709,17 @@
       "fields": {
         "valueTransform": {
           "type": "string",
-          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
+          "description": "Preset id, 'custom', 'expr', or 'none' — the latter switches a list-wide default off."
         },
         "valueFactor": {
           "type": "number"
         },
         "valueOffset": {
           "type": "number"
+        },
+        "valueExpr": {
+          "type": "string",
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -3949,13 +3957,17 @@
       "fields": {
         "valueTransform": {
           "type": "string",
-          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
+          "description": "Preset id, 'custom', 'expr', or 'none' — the latter switches a list-wide default off."
         },
         "valueFactor": {
           "type": "number"
         },
         "valueOffset": {
           "type": "number"
+        },
+        "valueExpr": {
+          "type": "string",
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -4614,13 +4626,17 @@
       "fields": {
         "valueTransform": {
           "type": "string",
-          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
+          "description": "Preset id, 'custom', 'expr', or 'none' — the latter switches a list-wide default off."
         },
         "valueFactor": {
           "type": "number"
         },
         "valueOffset": {
           "type": "number"
+        },
+        "valueExpr": {
+          "type": "string",
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -7745,6 +7761,10 @@
           "type": "string",
           "description": "Global default label for on/true/>0 state (fallback when entry has no trueLabel)."
         },
+        "valueExpr": {
+          "type": "string",
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+        },
         "valueFactor": {
           "type": "number",
           "description": "Rohwert wird mit diesem Faktor multipliziert, bevor er angezeigt wird."
@@ -7768,7 +7788,7 @@
         },
         "valueTransform": {
           "type": "string",
-          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
+          "description": "Preset id, 'custom', 'expr', or 'none' — the latter switches a list-wide default off."
         },
         "wrapText": {
           "type": "boolean",
@@ -15337,6 +15357,10 @@
           "type": "string",
           "description": "Global default label for on/true/>0 state (fallback when entry has no trueLabel)."
         },
+        "valueExpr": {
+          "type": "string",
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+        },
         "valueFactor": {
           "type": "number",
           "description": "Rohwert wird mit diesem Faktor multipliziert, bevor er angezeigt wird."
@@ -15360,7 +15384,7 @@
         },
         "valueTransform": {
           "type": "string",
-          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
+          "description": "Preset id, 'custom', 'expr', or 'none' — the latter switches a list-wide default off."
         },
         "wrapText": {
           "type": "boolean",

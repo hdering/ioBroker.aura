@@ -22,10 +22,12 @@ export interface ValueTransformPreset {
  * (Werte-Anzeige) and on a list entry, so both can be fed to the same editor.
  */
 export interface ValueTransformSettings {
-    /** Preset id, 'custom', or 'none' — the latter switches a list-wide default off. */
+    /** Preset id, 'custom', 'expr', or 'none' — the latter switches a list-wide default off. */
     valueTransform?: string;
     valueFactor?: number;
     valueOffset?: number;
+    /** Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). */
+    valueExpr?: string;
     /** Time output preset id (or 'custom'); undefined / 'none' = plain value. */
     valueTimeFormat?: string;
     /** Token pattern, only used when `valueTimeFormat` is 'custom'. */
@@ -35,6 +37,8 @@ export interface ValueTransformSettings {
 export interface ResolvedValueTransform {
     factor?: number;
     offset?: number;
+    /** Expression replacing factor/offset (preset 'expr'); apply with utils/valueExpr. */
+    expr?: string;
     timeFormat?: string;
     timePattern?: string;
     /** True when anything is configured at all — callers can keep their untouched path. */
@@ -125,7 +129,7 @@ export interface ValueTransformPatchCore {
  * MAGNITUDE — so a plain ×−1 reads as "Keine, negativ" instead of pushing the list to "Eigene…".
  */
 export function selectedTransformPreset(presetId?: string, factor?: number, offset?: number): string {
-    if (presetId === 'custom') return 'custom';
+    if (presetId === 'custom' || presetId === 'expr') return presetId;
     if (presetId && VALUE_TRANSFORM_PRESETS.some((p) => p.id === presetId)) return presetId;
     return matchValueTransformPreset(transformMagnitude(factor), offset);
 }
@@ -137,6 +141,8 @@ export function chooseTransformPreset(
     explicitNone = false,
 ): ValueTransformPatchCore {
     const sign = transformSign(current.factor);
+    // The expression carries its own arithmetic — a stale factor must not sit beside it.
+    if (id === 'expr') return { valueTransform: 'expr', valueFactor: undefined, valueOffset: undefined };
     if (id === 'custom') {
         return { valueTransform: 'custom', valueFactor: current.factor ?? sign, valueOffset: current.offset };
     }
@@ -184,7 +190,10 @@ export function resolveValueTransform(
     const ownsScale =
         own?.valueTransform !== undefined || own?.valueFactor !== undefined || own?.valueOffset !== undefined;
     const scale = ownsScale ? own! : (listDefault ?? {});
-    const scaleOff = scale.valueTransform === 'none';
+    // An expression replaces factor/offset as a whole — both are left over from an
+    // earlier "Eigene…" and must not apply on top of it.
+    const scaleOff = scale.valueTransform === 'none' || scale.valueTransform === 'expr';
+    const expr = scale.valueTransform === 'expr' ? scale.valueExpr?.trim() || undefined : undefined;
 
     const time = own?.valueTimeFormat !== undefined ? own : (listDefault ?? {});
     const timeFormat = hasTimeDisplay(time.valueTimeFormat) ? time.valueTimeFormat : undefined;
@@ -194,9 +203,10 @@ export function resolveValueTransform(
     return {
         factor,
         offset,
+        expr,
         timeFormat,
         timePattern: time.valueTimePattern,
-        active: factor !== undefined || offset !== undefined || timeFormat !== undefined,
+        active: factor !== undefined || offset !== undefined || expr !== undefined || timeFormat !== undefined,
     };
 }
 

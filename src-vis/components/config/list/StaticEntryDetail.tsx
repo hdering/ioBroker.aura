@@ -4,6 +4,8 @@ import type { WidgetConfig } from '../../../types';
 import type { StaticListEntry } from '../../widgets/ListWidget';
 import { ColorField, DetailSection, pinSwitchIconSize } from './listFieldUi';
 import { DatapointPicker } from '../DatapointPicker';
+import { JsonPathButton } from '../JsonPathButton';
+import { baseDpId } from '../../../utils/dpRef';
 import { ValueFormatRow } from '../ValueFormatRow';
 import { ValueTransformButton } from '../ValueTransformButton';
 import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConfig';
@@ -55,14 +57,18 @@ export function StaticEntryDetail({
     useEffect(() => {
         setIdDraft(entry.id ?? '');
     }, [entry.id]);
+    // Unit and role come from the bare state, also when the ref carries a JSON path.
+    const commitRef = (next: string) => {
+        const dp = lookupDatapointEntry(baseDpId(next));
+        onChangeId(next, dp?.unit, dp?.role, dp?.write !== false ? undefined : false);
+    };
     const commitId = () => {
         const next = idDraft.trim();
         if (!next || next === entry.id) {
             setIdDraft(entry.id ?? '');
             return;
         }
-        const dp = lookupDatapointEntry(next);
-        onChangeId(next, dp?.unit, dp?.role, dp?.write !== false ? undefined : false);
+        commitRef(next);
     };
     // AN/AUS styling (switch style, icon size, on/off colors) only applies when the
     // entry is explicitly rendered as a switch; all other types (incl. Auto) hide it.
@@ -121,10 +127,18 @@ export function StaticEntryDetail({
                     >
                         <Database size={13} />
                     </button>
+                    <JsonPathButton
+                        value={entry.id}
+                        onChange={(ref) => {
+                            if (ref && ref !== entry.id) commitRef(ref);
+                        }}
+                    />
                     <ValueTransformButton
                         factor={entry.valueFactor}
                         offset={entry.valueOffset}
                         presetId={entry.valueTransform}
+                        expr={entry.valueExpr}
+                        allowExpr
                         timeFormat={entry.valueTimeFormat}
                         timePattern={entry.valueTimePattern}
                         allowTimeFormat={allowTimeFormat}

@@ -50,6 +50,7 @@ import { useT } from '../../i18n';
 import { formatTimeDisplay, TIME_DASH } from '../../utils/timeDisplay';
 import { applyValueTransform, resolveValueTransform, type ValueTransformSettings } from '../../utils/valueTransform';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { applyValueExpr } from '../../utils/valueExpr';
 import { SliderScale } from './SliderScale';
 import { stepDecimals } from '../../utils/sliderScale';
 import { ConfirmOverlay } from './ConfirmOverlay';
@@ -445,7 +446,11 @@ export function entryValueText(
     t: ReturnType<typeof useT>,
 ): EntryValueText {
     const tr = resolveValueTransform(entry, listDefault);
-    const value = applyValueTransform(val, tr.factor, tr.offset) as ioBrokerState['val'];
+    const value = (
+        tr.expr
+            ? applyValueExpr(val, tr.expr, { formatNum: (n, d) => formatNum(n, d, numFmt), decimals, t })
+            : applyValueTransform(val, tr.factor, tr.offset)
+    ) as ioBrokerState['val'];
     if (value === null || value === undefined) return { value, text: null, isTime: false, active: tr.active };
     // A configured value→text table wins over formatting: it is what turns `true`
     // into "ONLINE" (issue #572). Sitting here means the main value and the second

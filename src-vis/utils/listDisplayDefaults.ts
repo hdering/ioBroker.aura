@@ -26,6 +26,7 @@ const NOT_INHERITED = new Set([
     'valueTransform',
     'valueFactor',
     'valueOffset',
+    'valueExpr',
     'valueTimeFormat',
     'valueTimePattern',
 ]);

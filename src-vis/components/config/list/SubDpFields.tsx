@@ -247,6 +247,8 @@ export function SubDpFields({
                                                 factor={sub.valueFactor}
                                                 offset={sub.valueOffset}
                                                 presetId={sub.valueTransform}
+                                                expr={sub.valueExpr}
+                                                allowExpr
                                                 timeFormat={sub.valueTimeFormat}
                                                 timePattern={sub.valueTimePattern}
                                                 allowTimeFormat

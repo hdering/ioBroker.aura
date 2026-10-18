@@ -103,6 +103,8 @@ export function AutoEntryDetail({
                         factor={entry.valueFactor}
                         offset={entry.valueOffset}
                         presetId={entry.valueTransform}
+                        expr={entry.valueExpr}
+                        allowExpr
                         timeFormat={entry.valueTimeFormat}
                         timePattern={entry.valueTimePattern}
                         allowTimeFormat={allowTimeFormat}

@@ -27,6 +27,10 @@ interface ValueTransformButtonProps {
     fillUnit?: boolean;
     /** Store "Keine" as 'none' so it switches off a list-wide default. */
     explicitNone?: boolean;
+    /** Stored expression (preset 'expr'). */
+    expr?: string;
+    /** Offer "Ausdruck…" — only where the renderer applies it (the lists, issue #794). */
+    allowExpr?: boolean;
     /** Icon size — match the sibling picker / JSON-path buttons. */
     size?: number;
     /** Extra classes on the button, e.g. a height when the sibling field can wrap. */
@@ -51,6 +55,8 @@ export function ValueTransformButton({
     onPatch,
     fillUnit = false,
     explicitNone = false,
+    expr,
+    allowExpr = false,
     size = 13,
     className = '',
 }: ValueTransformButtonProps) {
@@ -61,7 +67,11 @@ export function ValueTransformButton({
     const popRef = useRef<HTMLDivElement | null>(null);
     const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
 
-    const active = matchValueTransformPreset(factor, offset) !== 'none' || hasTimeDisplay(timeFormat);
+    const active =
+        (allowExpr && presetId === 'expr'
+            ? !!expr?.trim()
+            : presetId !== 'expr' && matchValueTransformPreset(factor, offset) !== 'none') ||
+        hasTimeDisplay(timeFormat);
 
     useLayoutEffect(() => {
         if (!open || !btnRef.current) return;
@@ -151,6 +161,8 @@ export function ValueTransformButton({
                             onPatch={onPatch}
                             fillUnit={fillUnit}
                             explicitNone={explicitNone}
+                            expr={expr}
+                            allowExpr={allowExpr}
                         />
                     </div>,
                     document.body,

@@ -4,7 +4,7 @@ Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. Jeder Eintra
 
 ## Datenpunkt
 
-Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `select` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
+Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Eine `id` mit JSON-Pfad (`0_userdata.0.akku?devices[0].soc`, Button `{}` neben dem Datenpunkt-Feld) zeigt ein Feld aus einem JSON-Datenpunkt — nur lesend. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `select` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
 
 ### Darstellung Schalter
 
@@ -332,12 +332,24 @@ Wert nur für die Anzeige um und/oder formatiert ihn als Uhrzeit/Datum — wie b
 
 | Feld                          | Standard  |                                                                                         |
 | ----------------------------- | --------- | --------------------------------------------------------------------------------------- |
-| `valueTransform`              | —         | Preset-Id, `custom` oder `none` (schaltet die globale Umrechnung für diesen Eintrag ab) |
+| `valueTransform`              | —         | Preset-Id, `custom`, `expr` oder `none` (schaltet die globale Umrechnung für diesen Eintrag ab) |
+| `valueExpr`                   | —         | Ausdruck bei `expr`, z. B. `dp.objektName * 0.4 | fixed(2)` — ersetzt Faktor/Offset   |
 | `valueFactor` / `valueOffset` | `1` / `0` | Anzeige = Wert × Faktor + Offset                                                        |
 | `valueTimeFormat`             | —         | `relative` · `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom`     |
 | `valueTimePattern`            | —         | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm`                                   |
 
 Presets: Sekunden → Minuten/Stunden · ms → s · Wh → kWh · W → kW · Bytes → KB/MB/GB · 0..1 → % · °C → °F.
+
+**Ausdruck…** (`expr`): `dp` ist der Wert des Eintrags. Grammatik und Filter wie bei den
+[Bindings](./bindings) — `+ - * / %`, `? :`, `round()`, `abs()`, Filter `| fixed(2)`, `| round(1)`,
+`| formatValue(2)`, `| upper` … JSON-Felder direkt: `dp.feld`, `dp.liste[0].feld`. Andere Datenpunkte
+liest der Ausdruck nicht.
+
+| Beispiel                          | Ergebnis                        |
+| --------------------------------- | ------------------------------- |
+| `dp.objektName * 0.4 | fixed(2)` | Feld aus JSON, umgerechnet, 2 Stellen |
+| `dp / 3600 | round(1)`           | Sekunden → Stunden, 1 Stelle    |
+| `dp >= 80 ? "voll" : "lädt"`      | Text je nach Wert               |
 
 Wirkt auf den angezeigten Werttext, die Farbschwellen und die Statistikzeile — nicht auf Schalter,
 Regler, +/− und Eingabefeld, die ihren Wert zurückschreiben. Bei aktiver Zeit-Formatierung entfällt die
