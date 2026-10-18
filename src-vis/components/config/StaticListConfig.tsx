@@ -10,7 +10,7 @@ import type { WidgetConfig } from '../../types';
 import { isDivider, type StaticListEntry, type StaticListOptions } from '../widgets/ListWidget';
 import type { ListStat } from '../../utils/listStats';
 import { ColorField } from './list/listFieldUi';
-import { ConfigSection } from './ConfigSection';
+import { ConfigSection, SubGroup } from './ConfigSection';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { useT } from '../../i18n';
 import { DatapointPicker } from './DatapointPicker';
@@ -164,393 +164,167 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 values={opts as unknown as Record<string, unknown>}
                 onChange={(p) => setOpts(p as Partial<StaticListOptions>)}
             />
-            <ConfigSection title="Einträge" sectionKey="entries">
-                {/* ── Datapoints (own dialog) ── */}
-                <DatapointManagerField
-                    title="Datenpunkte verwalten"
-                    storageKey="aura-staticlist-dp-modal"
-                    count={entries.length}
-                    hint="Datenpunkte hinzufügen, sortieren und im Detail konfigurieren."
-                    entries={entries}
-                    resolvedNames={resolvedNames}
-                    onRemove={removeEntry}
-                    onRemoveAll={() => setOpts({ entries: [] })}
-                    onAdd={() => setShowPicker(true)}
-                    onAddDivider={addDivider}
-                    onReorder={reorderEntries}
-                    sortHint={
-                        !sortText
-                            ? undefined
-                            : hasDividers
-                              ? `Sortierung „${sortText}“ ist aktiv — sie wirkt innerhalb eines Abschnitts. Die Reihenfolge der Trennlinien und Abschnitte bleibt manuell.`
-                              : `Sortierung „${sortText}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn kein Sortierkriterium gesetzt ist.`
-                    }
-                    keepDraggable={hasDividers}
-                    renderDetail={(id, api) => {
-                        const found = entries.find((e) => e.id === id)!;
-                        if (isDivider(found))
-                            return <DividerDetail entry={found} onUpdate={(patch) => updateEntry(id, patch)} />;
-                        return (
-                            <StaticEntryDetail
-                                entry={entries.find((e) => e.id === id)!}
-                                listConfig={config}
-                                onUpdate={(patch) => updateEntry(id, patch)}
-                                onChangeId={(newId, unit, role, writable) => {
-                                    changeEntryId(id, newId, unit, role, writable);
-                                    // The id is the selection key - follow it, or the detail
-                                    // pane would empty out mid-edit.
-                                    api.select(newId);
-                                }}
-                            />
-                        );
-                    }}
-                    tabs={[
-                        {
-                            key: 'rowconds',
-                            label: 'Bedingungen',
-                            node: (
-                                <RowConditionsPanel
-                                    rules={opts.rowConditions}
-                                    sampleDp={entries.find((e) => !!e.id)?.id}
-                                    onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
+            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                <>
+                    {/* ── Datapoints (own dialog) ── */}
+                    <DatapointManagerField
+                        title="Datenpunkte verwalten"
+                        storageKey="aura-staticlist-dp-modal"
+                        count={entries.length}
+                        hint="Datenpunkte hinzufügen, sortieren und im Detail konfigurieren."
+                        entries={entries}
+                        resolvedNames={resolvedNames}
+                        onRemove={removeEntry}
+                        onRemoveAll={() => setOpts({ entries: [] })}
+                        onAdd={() => setShowPicker(true)}
+                        onAddDivider={addDivider}
+                        onReorder={reorderEntries}
+                        sortHint={
+                            !sortText
+                                ? undefined
+                                : hasDividers
+                                  ? `Sortierung „${sortText}“ ist aktiv — sie wirkt innerhalb eines Abschnitts. Die Reihenfolge der Trennlinien und Abschnitte bleibt manuell.`
+                                  : `Sortierung „${sortText}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn kein Sortierkriterium gesetzt ist.`
+                        }
+                        keepDraggable={hasDividers}
+                        renderDetail={(id, api) => {
+                            const found = entries.find((e) => e.id === id)!;
+                            if (isDivider(found))
+                                return <DividerDetail entry={found} onUpdate={(patch) => updateEntry(id, patch)} />;
+                            return (
+                                <StaticEntryDetail
+                                    entry={entries.find((e) => e.id === id)!}
+                                    listConfig={config}
+                                    onUpdate={(patch) => updateEntry(id, patch)}
+                                    onChangeId={(newId, unit, role, writable) => {
+                                        changeEntryId(id, newId, unit, role, writable);
+                                        // The id is the selection key - follow it, or the detail
+                                        // pane would empty out mid-edit.
+                                        api.select(newId);
+                                    }}
                                 />
-                            ),
-                        },
-                        {
-                            key: 'rowclick',
-                            label: 'Klick auf Zeile',
-                            node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
-                        },
-                        {
-                            key: 'names',
-                            label: 'Namen',
-                            node: (
-                                <NameDisplayFields
-                                    pattern={opts.namePattern}
-                                    rules={opts.nameFilters}
-                                    samples={nameSamples}
-                                    sampleTotal={entries.length}
-                                    onChange={setOpts}
-                                    inline
-                                />
-                            ),
-                        },
-                    ]}
-                />
+                            );
+                        }}
+                        tabs={[
+                            {
+                                key: 'rowconds',
+                                label: 'Bedingungen',
+                                node: (
+                                    <RowConditionsPanel
+                                        rules={opts.rowConditions}
+                                        sampleDp={entries.find((e) => !!e.id)?.id}
+                                        onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
+                                    />
+                                ),
+                            },
+                            {
+                                key: 'rowclick',
+                                label: 'Klick auf Zeile',
+                                node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
+                            },
+                            {
+                                key: 'names',
+                                label: 'Namen',
+                                node: (
+                                    <NameDisplayFields
+                                        pattern={opts.namePattern}
+                                        rules={opts.nameFilters}
+                                        samples={nameSamples}
+                                        sampleTotal={entries.length}
+                                        onChange={setOpts}
+                                        inline
+                                    />
+                                ),
+                            },
+                        ]}
+                    />
+                </>
             </ConfigSection>
-
-            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
-                <div>
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Lange Texte umbrechen
+            <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                <SubGroup title="Werte">
+                    {/* ── Wert-Umrechnung / Zeit (global) ── */}
+                    <div>
+                        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+                            Wert-Umrechnung / Zeit (global)
                         </label>
-                        <button
-                            onClick={() => setOpts({ wrapText: !(opts.wrapText ?? false) })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: (opts.wrapText ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                style={{ left: (opts.wrapText ?? false) ? '18px' : '2px' }}
-                            />
-                        </button>
+                        <ValueTransformFields
+                            factor={opts.valueFactor}
+                            offset={opts.valueOffset}
+                            presetId={opts.valueTransform}
+                            expr={opts.valueExpr}
+                            allowExpr
+                            timeFormat={opts.valueTimeFormat}
+                            timePattern={opts.valueTimePattern}
+                            allowTimeFormat
+                            dpId={entries[0]?.id}
+                            onPatch={setOpts}
+                            inputClassName="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+                        />
+                        <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                            Gilt für jeden Datenpunkt ohne eigene Umrechnung (Datenpunkte verwalten → ƒx).
+                        </p>
                     </div>
-                    {opts.wrapText && (
-                        <div className="mt-1.5 flex items-center gap-2">
-                            <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                Label-Mindestbreite
+                </SubGroup>
+                <SubGroup title="Statistik">
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Statistik anzeigen
                             </label>
-                            <input
-                                type="range"
-                                min={10}
-                                max={90}
-                                step={5}
-                                value={Math.max(10, Math.min(90, opts.labelMinPercent ?? 50))}
-                                onChange={(e) => setOpts({ labelMinPercent: Number(e.target.value) })}
-                                className="flex-1 h-1"
-                                style={{ accentColor: 'var(--accent)' }}
-                            />
-                            <span
-                                className="text-[10px] tabular-nums w-9 text-right"
-                                style={{ color: 'var(--text-secondary)' }}
+                            <button
+                                onClick={() => setOpts({ showSum: !(opts.showSum ?? false) })}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: (opts.showSum ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
                             >
-                                {Math.max(10, Math.min(90, opts.labelMinPercent ?? 50))}%
-                            </span>
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                                    style={{ left: (opts.showSum ?? false) ? '18px' : '2px' }}
+                                />
+                            </button>
                         </div>
-                    )}
-                </div>
-            </ConfigSection>
-            <ConfigSection title="Werte & Farben" sectionKey="values">
-                {/* ── Wert-Umrechnung / Zeit (global) ── */}
-                <div>
-                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                        Wert-Umrechnung / Zeit (global)
-                    </label>
-                    <ValueTransformFields
-                        factor={opts.valueFactor}
-                        offset={opts.valueOffset}
-                        presetId={opts.valueTransform}
-                        expr={opts.valueExpr}
-                        allowExpr
-                        timeFormat={opts.valueTimeFormat}
-                        timePattern={opts.valueTimePattern}
-                        allowTimeFormat
-                        dpId={entries[0]?.id}
-                        onPatch={setOpts}
-                        inputClassName="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                    />
-                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                        Gilt für jeden Datenpunkt ohne eigene Umrechnung (Datenpunkte verwalten → ƒx).
-                    </p>
-                </div>
-                {/* ── Darstellung AN/AUS (global) ── */}
-                <div>
-                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                        Darstellung AN/AUS (global)
-                    </label>
-                    <div className="grid grid-cols-2 gap-1.5">
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Text AN
-                            </label>
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                placeholder="AN"
-                                value={opts.trueText ?? ''}
-                                onChange={(e) => setOpts({ trueText: e.target.value || undefined })}
-                            />
-                        </div>
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Text AUS
-                            </label>
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                placeholder="AUS"
-                                value={opts.falseText ?? ''}
-                                onChange={(e) => setOpts({ falseText: e.target.value || undefined })}
-                            />
-                        </div>
-                        <ColorField
-                            label="Textfarbe AN"
-                            value={opts.activeColor}
-                            fallback="#22c55e"
-                            onChange={(v) => setOpts({ activeColor: v })}
-                        />
-                        <ColorField
-                            label="Textfarbe AUS"
-                            value={opts.inactiveColor}
-                            fallback="#94a3b8"
-                            onChange={(v) => setOpts({ inactiveColor: v })}
-                        />
-                        <ColorField
-                            label="Hintergrund AN"
-                            value={opts.activeBg}
-                            fallback="#22c55e"
-                            onChange={(v) => setOpts({ activeBg: v })}
-                        />
-                        <ColorField
-                            label="Hintergrund AUS"
-                            value={opts.inactiveBg}
-                            fallback="#1f2937"
-                            onChange={(v) => setOpts({ inactiveBg: v })}
-                        />
-                    </div>
-                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                        Defaults pro Widget. Pro DP überschreibbar.
-                    </p>
-                </div>
-                {/* ── Farbschwellen (global) ── */}
-                <div>
-                    <ColorThresholdsEditor
-                        label="Farbschwellen (global)"
-                        thresholds={opts.colorThresholds ?? []}
-                        onChange={(next) => setOpts({ colorThresholds: next.length ? next : undefined })}
-                    />
-                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                        Färbt den Werttext jedes Datenpunkts ohne eigene Skala (Datenpunkte verwalten → Farbschwellen).
-                    </p>
-                </div>
-            </ConfigSection>
-            <ConfigSection title="Statistik" sectionKey="stats">
-                <div>
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Statistik anzeigen
-                        </label>
-                        <button
-                            onClick={() => setOpts({ showSum: !(opts.showSum ?? false) })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: (opts.showSum ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                style={{ left: (opts.showSum ?? false) ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                    {opts.showSum && (
-                        <div
-                            className="mt-1.5 ml-1 pl-2 space-y-1.5"
-                            style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
-                        >
-                            <div>
-                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    Werte
-                                </label>
-                                <div className="flex flex-wrap gap-1">
-                                    {(
-                                        [
-                                            ['sum', 'Summe'],
-                                            ['avg', 'Mittelwert'],
-                                            ['min', 'Minimum'],
-                                            ['max', 'Maximum'],
-                                        ] as const
-                                    ).map(([key, lbl]) => {
-                                        const sel = (opts.sumStats ?? ['sum']) as ('sum' | 'avg' | 'min' | 'max')[];
-                                        const active = sel.includes(key);
-                                        return (
-                                            <button
-                                                key={key}
-                                                onClick={() => {
-                                                    const cur = (opts.sumStats ?? ['sum']) as (
-                                                        | 'sum'
-                                                        | 'avg'
-                                                        | 'min'
-                                                        | 'max'
-                                                    )[];
-                                                    const next = cur.includes(key)
-                                                        ? cur.filter((s) => s !== key)
-                                                        : [...cur, key];
-                                                    setOpts({ sumStats: next.length ? next : undefined });
-                                                }}
-                                                className="text-[10px] px-2 py-1 rounded-full transition-colors"
-                                                style={{
-                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                    border: '1px solid var(--app-border)',
-                                                }}
-                                            >
-                                                {lbl}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                            <div>
-                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    Präfix / Icon / Text
-                                </label>
-                                <div className="grid grid-cols-2 gap-1.5">
-                                    {(
-                                        [
-                                            ['sum', 'Summe', 'Σ'],
-                                            ['avg', 'Mittelwert', 'ø'],
-                                            ['min', 'Minimum', '↓'],
-                                            ['max', 'Maximum', '↑'],
-                                        ] as const
-                                    )
-                                        .filter(([key]) =>
-                                            ((opts.sumStats ?? ['sum']) as ('sum' | 'avg' | 'min' | 'max')[]).includes(
-                                                key,
-                                            ),
-                                        )
-                                        .map(([key, lbl, sym]) => (
-                                            <div key={key}>
-                                                <label
-                                                    className="text-[9px] block mb-0.5"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {lbl}
-                                                </label>
-                                                <div className="flex items-center gap-1">
-                                                    <button
-                                                        onClick={() => setStatIconPicker(key)}
-                                                        title={opts.statIcons?.[key] || 'Icon wählen'}
-                                                        className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-primary)',
-                                                            border: '1px solid var(--app-border)',
-                                                            width: 26,
-                                                            height: 26,
-                                                        }}
-                                                    >
-                                                        {opts.statIcons?.[key] ? (
-                                                            <AuraIcon
-                                                                icon={toIconifyId(opts.statIcons[key]!)}
-                                                                width={14}
-                                                                height={14}
-                                                            />
-                                                        ) : (
-                                                            <Plus
-                                                                size={12}
-                                                                style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                            />
-                                                        )}
-                                                    </button>
-                                                    <input
-                                                        className="flex-1 min-w-0 text-[10px] rounded px-2 py-1 focus:outline-none"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-primary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                        placeholder={sym}
-                                                        value={
-                                                            opts.statLabels?.[key] ??
-                                                            (key === 'sum' ? (opts.sumLabel ?? '') : '')
-                                                        }
-                                                        onChange={(e) =>
-                                                            setOpts({
-                                                                statLabels: {
-                                                                    ...opts.statLabels,
-                                                                    [key]: e.target.value || undefined,
-                                                                },
-                                                            })
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-1.5">
+                        {opts.showSum && (
+                            <div
+                                className="mt-1.5 ml-1 pl-2 space-y-1.5"
+                                style={{ borderLeft: '2px solid color-mix(in srgb, var(--accent) 45%, transparent)' }}
+                            >
                                 <div>
                                     <label
                                         className="text-[9px] block mb-0.5"
                                         style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        Ausrichtung
+                                        Werte
                                     </label>
-                                    <div
-                                        className="flex rounded-lg overflow-hidden"
-                                        style={{ border: '1px solid var(--app-border)' }}
-                                    >
-                                        {(['left', 'center', 'right'] as const).map((v) => {
-                                            const lbl = v === 'left' ? 'Links' : v === 'center' ? 'Mitte' : 'Rechts';
-                                            const active = (opts.sumAlign ?? 'left') === v;
+                                    <div className="flex flex-wrap gap-1">
+                                        {(
+                                            [
+                                                ['sum', 'Summe'],
+                                                ['avg', 'Mittelwert'],
+                                                ['min', 'Minimum'],
+                                                ['max', 'Maximum'],
+                                            ] as const
+                                        ).map(([key, lbl]) => {
+                                            const sel = (opts.sumStats ?? ['sum']) as ('sum' | 'avg' | 'min' | 'max')[];
+                                            const active = sel.includes(key);
                                             return (
                                                 <button
-                                                    key={v}
-                                                    onClick={() => setOpts({ sumAlign: v === 'left' ? undefined : v })}
-                                                    className="flex-1 text-[10px] py-1 transition-colors"
+                                                    key={key}
+                                                    onClick={() => {
+                                                        const cur = (opts.sumStats ?? ['sum']) as (
+                                                            | 'sum'
+                                                            | 'avg'
+                                                            | 'min'
+                                                            | 'max'
+                                                        )[];
+                                                        const next = cur.includes(key)
+                                                            ? cur.filter((s) => s !== key)
+                                                            : [...cur, key];
+                                                        setOpts({ sumStats: next.length ? next : undefined });
+                                                    }}
+                                                    className="text-[10px] px-2 py-1 rounded-full transition-colors"
                                                     style={{
                                                         background: active ? 'var(--accent)' : 'var(--app-bg)',
                                                         color: active ? '#fff' : 'var(--text-secondary)',
-                                                        borderRight:
-                                                            v !== 'right' ? '1px solid var(--app-border)' : undefined,
+                                                        border: '1px solid var(--app-border)',
                                                     }}
                                                 >
                                                     {lbl}
@@ -564,96 +338,349 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                                         className="text-[9px] block mb-0.5"
                                         style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        Schriftgröße (px)
+                                        Präfix / Icon / Text
                                     </label>
-                                    <input
-                                        type="number"
-                                        min={8}
-                                        max={96}
-                                        className="w-full text-[10px] rounded px-2 py-1 focus:outline-none tabular-nums"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                        placeholder="10"
-                                        value={opts.sumFontSize ?? ''}
-                                        onChange={(e) => {
-                                            const n = parseInt(e.target.value, 10);
-                                            setOpts({ sumFontSize: isFinite(n) && n > 0 ? n : undefined });
-                                        }}
-                                    />
+                                    <div className="grid grid-cols-2 gap-1.5">
+                                        {(
+                                            [
+                                                ['sum', 'Summe', 'Σ'],
+                                                ['avg', 'Mittelwert', 'ø'],
+                                                ['min', 'Minimum', '↓'],
+                                                ['max', 'Maximum', '↑'],
+                                            ] as const
+                                        )
+                                            .filter(([key]) =>
+                                                (
+                                                    (opts.sumStats ?? ['sum']) as ('sum' | 'avg' | 'min' | 'max')[]
+                                                ).includes(key),
+                                            )
+                                            .map(([key, lbl, sym]) => (
+                                                <div key={key}>
+                                                    <label
+                                                        className="text-[9px] block mb-0.5"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {lbl}
+                                                    </label>
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={() => setStatIconPicker(key)}
+                                                            title={opts.statIcons?.[key] || 'Icon wählen'}
+                                                            className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-primary)',
+                                                                border: '1px solid var(--app-border)',
+                                                                width: 26,
+                                                                height: 26,
+                                                            }}
+                                                        >
+                                                            {opts.statIcons?.[key] ? (
+                                                                <AuraIcon
+                                                                    icon={toIconifyId(opts.statIcons[key]!)}
+                                                                    width={14}
+                                                                    height={14}
+                                                                />
+                                                            ) : (
+                                                                <Plus
+                                                                    size={12}
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.6,
+                                                                    }}
+                                                                />
+                                                            )}
+                                                        </button>
+                                                        <input
+                                                            className="flex-1 min-w-0 text-[10px] rounded px-2 py-1 focus:outline-none"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-primary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                            placeholder={sym}
+                                                            value={
+                                                                opts.statLabels?.[key] ??
+                                                                (key === 'sum' ? (opts.sumLabel ?? '') : '')
+                                                            }
+                                                            onChange={(e) =>
+                                                                setOpts({
+                                                                    statLabels: {
+                                                                        ...opts.statLabels,
+                                                                        [key]: e.target.value || undefined,
+                                                                    },
+                                                                })
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
                                 </div>
+                                <div className="grid grid-cols-2 gap-1.5">
+                                    <div>
+                                        <label
+                                            className="text-[9px] block mb-0.5"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Ausrichtung
+                                        </label>
+                                        <div
+                                            className="flex rounded-lg overflow-hidden"
+                                            style={{ border: '1px solid var(--app-border)' }}
+                                        >
+                                            {(['left', 'center', 'right'] as const).map((v) => {
+                                                const lbl =
+                                                    v === 'left' ? 'Links' : v === 'center' ? 'Mitte' : 'Rechts';
+                                                const active = (opts.sumAlign ?? 'left') === v;
+                                                return (
+                                                    <button
+                                                        key={v}
+                                                        onClick={() =>
+                                                            setOpts({ sumAlign: v === 'left' ? undefined : v })
+                                                        }
+                                                        className="flex-1 text-[10px] py-1 transition-colors"
+                                                        style={{
+                                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                                            borderRight:
+                                                                v !== 'right'
+                                                                    ? '1px solid var(--app-border)'
+                                                                    : undefined,
+                                                        }}
+                                                    >
+                                                        {lbl}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label
+                                            className="text-[9px] block mb-0.5"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Schriftgröße (px)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={8}
+                                            max={96}
+                                            className="w-full text-[10px] rounded px-2 py-1 focus:outline-none tabular-nums"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                            placeholder="10"
+                                            value={opts.sumFontSize ?? ''}
+                                            onChange={(e) => {
+                                                const n = parseInt(e.target.value, 10);
+                                                setOpts({ sumFontSize: isFinite(n) && n > 0 ? n : undefined });
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                {statIconPicker && (
+                                    <IconPickerModal
+                                        current={opts.statIcons?.[statIconPicker] ?? ''}
+                                        onSelect={(name) => {
+                                            setOpts({
+                                                statIcons: { ...opts.statIcons, [statIconPicker]: name || undefined },
+                                            });
+                                            setStatIconPicker(null);
+                                        }}
+                                        onClose={() => setStatIconPicker(null)}
+                                    />
+                                )}
                             </div>
-                            {statIconPicker && (
-                                <IconPickerModal
-                                    current={opts.statIcons?.[statIconPicker] ?? ''}
-                                    onSelect={(name) => {
-                                        setOpts({
-                                            statIcons: { ...opts.statIcons, [statIconPicker]: name || undefined },
-                                        });
-                                        setStatIconPicker(null);
-                                    }}
-                                    onClose={() => setStatIconPicker(null)}
-                                />
-                            )}
-                        </div>
-                    )}
-                </div>
-            </ConfigSection>
-            <ConfigSection title="Filter & Sortierung" sectionKey="filter">
-                <ListFilterSection
-                    opts={opts}
-                    setOpts={setOpts}
-                    rows={filterRows}
-                    storageKey="aura-staticlist-filter-modal"
-                />
-
-                {/* ── Sortierung (eigener Dialog) ── */}
-                <ListSortSection
-                    opts={opts}
-                    setOpts={setOpts}
-                    rows={filterRows}
-                    storageKey="aura-staticlist-sort-modal"
-                    hint={
-                        /* Only worth saying once a separator exists — otherwise it describes
-                           a case the user has not built. */
-                        hasDividers ? (
-                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                                Mit Trennlinien wird <strong>innerhalb</strong> eines Abschnitts sortiert — die
-                                Abschnitte selbst bleiben in ihrer Reihenfolge stehen.
-                            </p>
-                        ) : undefined
-                    }
-                />
-            </ConfigSection>
-            <ConfigSection title="Veröffentlichen" sectionKey="publish">
-                <div>
-                    <div className="flex items-center justify-between">
-                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Anzahl im Backend veröffentlichen
-                        </label>
-                        <button
-                            onClick={() => setOpts({ publishCount: !(opts.publishCount ?? false) })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{ background: (opts.publishCount ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                style={{ left: (opts.publishCount ?? false) ? '18px' : '2px' }}
-                            />
-                        </button>
+                        )}
                     </div>
-                    {opts.publishCount && (
-                        <p
-                            className="text-[9px] mt-1 font-mono truncate"
-                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                        >
-                            {NS}.lists.{config.id}.count
-                        </p>
-                    )}
-                </div>
+                </SubGroup>
+                <SubGroup title="Filter & Sortierung">
+                    <ListFilterSection
+                        opts={opts}
+                        setOpts={setOpts}
+                        rows={filterRows}
+                        storageKey="aura-staticlist-filter-modal"
+                    />
+
+                    {/* ── Sortierung (eigener Dialog) ── */}
+                    <ListSortSection
+                        opts={opts}
+                        setOpts={setOpts}
+                        rows={filterRows}
+                        storageKey="aura-staticlist-sort-modal"
+                        hint={
+                            /* Only worth saying once a separator exists — otherwise it describes
+                           a case the user has not built. */
+                            hasDividers ? (
+                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                    Mit Trennlinien wird <strong>innerhalb</strong> eines Abschnitts sortiert — die
+                                    Abschnitte selbst bleiben in ihrer Reihenfolge stehen.
+                                </p>
+                            ) : undefined
+                        }
+                    />
+                </SubGroup>
+                <SubGroup title="Veröffentlichen">
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Anzahl im Backend veröffentlichen
+                            </label>
+                            <button
+                                onClick={() => setOpts({ publishCount: !(opts.publishCount ?? false) })}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{
+                                    background: (opts.publishCount ?? false) ? 'var(--accent)' : 'var(--app-border)',
+                                }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                                    style={{ left: (opts.publishCount ?? false) ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {opts.publishCount && (
+                            <p
+                                className="text-[9px] mt-1 font-mono truncate"
+                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                            >
+                                {NS}.lists.{config.id}.count
+                            </p>
+                        )}
+                    </div>
+                </SubGroup>
             </ConfigSection>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                <SubGroup title="Darstellung">
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Lange Texte umbrechen
+                            </label>
+                            <button
+                                onClick={() => setOpts({ wrapText: !(opts.wrapText ?? false) })}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: (opts.wrapText ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                                    style={{ left: (opts.wrapText ?? false) ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {opts.wrapText && (
+                            <div className="mt-1.5 flex items-center gap-2">
+                                <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                    Label-Mindestbreite
+                                </label>
+                                <input
+                                    type="range"
+                                    min={10}
+                                    max={90}
+                                    step={5}
+                                    value={Math.max(10, Math.min(90, opts.labelMinPercent ?? 50))}
+                                    onChange={(e) => setOpts({ labelMinPercent: Number(e.target.value) })}
+                                    className="flex-1 h-1"
+                                    style={{ accentColor: 'var(--accent)' }}
+                                />
+                                <span
+                                    className="text-[10px] tabular-nums w-9 text-right"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {Math.max(10, Math.min(90, opts.labelMinPercent ?? 50))}%
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                </SubGroup>
+                <SubGroup title="AN/AUS">
+                    {/* ── Darstellung AN/AUS (global) ── */}
+                    <div>
+                        <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+                            Darstellung AN/AUS (global)
+                        </label>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            <div>
+                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Text AN
+                                </label>
+                                <input
+                                    className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    placeholder="AN"
+                                    value={opts.trueText ?? ''}
+                                    onChange={(e) => setOpts({ trueText: e.target.value || undefined })}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Text AUS
+                                </label>
+                                <input
+                                    className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    placeholder="AUS"
+                                    value={opts.falseText ?? ''}
+                                    onChange={(e) => setOpts({ falseText: e.target.value || undefined })}
+                                />
+                            </div>
+                            <ColorField
+                                label="Textfarbe AN"
+                                value={opts.activeColor}
+                                fallback="#22c55e"
+                                onChange={(v) => setOpts({ activeColor: v })}
+                            />
+                            <ColorField
+                                label="Textfarbe AUS"
+                                value={opts.inactiveColor}
+                                fallback="#94a3b8"
+                                onChange={(v) => setOpts({ inactiveColor: v })}
+                            />
+                            <ColorField
+                                label="Hintergrund AN"
+                                value={opts.activeBg}
+                                fallback="#22c55e"
+                                onChange={(v) => setOpts({ activeBg: v })}
+                            />
+                            <ColorField
+                                label="Hintergrund AUS"
+                                value={opts.inactiveBg}
+                                fallback="#1f2937"
+                                onChange={(v) => setOpts({ inactiveBg: v })}
+                            />
+                        </div>
+                        <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                            Defaults pro Widget. Pro DP überschreibbar.
+                        </p>
+                    </div>
+                </SubGroup>
+                <SubGroup title="Farbschwellen">
+                    {/* ── Farbschwellen (global) ── */}
+                    <div>
+                        <ColorThresholdsEditor
+                            label="Farbschwellen (global)"
+                            thresholds={opts.colorThresholds ?? []}
+                            onChange={(next) => setOpts({ colorThresholds: next.length ? next : undefined })}
+                        />
+                        <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                            Färbt den Werttext jedes Datenpunkts ohne eigene Skala (Datenpunkte verwalten →
+                            Farbschwellen).
+                        </p>
+                    </div>
+                </SubGroup>
+            </ConfigSection>
+
             {/* ── DatapointPicker (multi-select) ── */}
             {showPicker && (
                 <DatapointPicker

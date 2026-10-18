@@ -1,4 +1,5 @@
-import { ConfigSection } from './ConfigSection';
+import { ConfigSection, SubGroup } from './ConfigSection';
+import { useT } from '../../i18n';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import type { WidgetConfig } from '../../types';
@@ -136,6 +137,7 @@ function CatSection({
 }
 
 export function StatusOverviewConfig({ config, onConfigChange }: Props) {
+    const t = useT();
     const o = (config.options ?? {}) as StatusOverviewOptions;
     const set = (patch: Partial<StatusOverviewOptions>) =>
         onConfigChange({ ...config, options: { ...config.options, ...patch } });
@@ -385,535 +387,532 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
     return (
         <div className="space-y-2.5">
             <VisibleFieldsSection fields={visibleFields} values={o as Record<string, unknown>} onChange={setVisible} />
-            {/* ── Categories (each with its own settings, shown when enabled) ── */}
-            <ConfigSection title="Kategorien" sectionKey="categories">
-                <CatSection
-                    checked={o.catWindow !== false}
-                    onChange={(v) => set({ catWindow: v })}
-                    label="Offene Fenster & Türen"
-                >
-                    <CatColor cat="window" />
-                </CatSection>
-
-                <CatSection
-                    checked={o.catBattery !== false}
-                    onChange={(v) => set({ catBattery: v })}
-                    label="Schwache Batterien"
-                >
-                    <div className="flex gap-3 items-start">
-                        <div className="flex-1">
-                            <label className={labelCls} style={labelStyle}>
-                                Warnschwelle (%)
-                            </label>
-                            <input
-                                type="number"
-                                min={1}
-                                max={100}
-                                value={o.batteryThreshold ?? 20}
-                                onChange={(e) =>
-                                    set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
-                                }
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                        </div>
-                        <CatColor cat="battery" />
-                    </div>
-                    <Toggle
-                        checked={o.includeLowbatBoolean !== false}
-                        onChange={(v) => set({ includeLowbatBoolean: v })}
-                        label="Boolesche LOWBAT-Datenpunkte einbeziehen"
-                    />
-                    <Toggle
-                        checked={o.batteryTypeEnabled !== false}
-                        onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
-                        label="Batterietyp & Anzahl anzeigen"
-                    />
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
-                    </p>
-                    <button
-                        onClick={() => setShowBatteries(true)}
-                        className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
-                        style={{ background: 'var(--accent)', color: '#fff' }}
+            <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                <SubGroup title="Kategorien">
+                    <CatSection
+                        checked={o.catWindow !== false}
+                        onChange={(v) => set({ catWindow: v })}
+                        label="Offene Fenster & Türen"
                     >
-                        Batterietypen zuordnen →
-                    </button>
-                    {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
-                </CatSection>
+                        <CatColor cat="window" />
+                    </CatSection>
 
-                <CatSection
-                    checked={o.catLight !== false}
-                    onChange={(v) => set({ catLight: v })}
-                    label="Eingeschaltete Lichter"
-                >
-                    <div className="flex gap-3 items-start">
-                        <div className="flex-1">
-                            <label className={labelCls} style={labelStyle}>
-                                Welche Schalter zählen als Licht?
-                            </label>
-                            <select
-                                value={lightScope}
-                                onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
-                                className={inputCls}
-                                style={inputStyle}
-                            >
-                                <option value="light">Nur Lichter (Rolle switch.light)</option>
-                                <option value="all">Alle Schalter (switch, switch.power)</option>
-                            </select>
-                        </div>
-                        <CatColor cat="light" />
-                    </div>
-                    {lightScope === 'all' && (
-                        <Toggle
-                            checked={!!o.lightsOnlyFunction}
-                            onChange={(v) => set({ lightsOnlyFunction: v })}
-                            label={'Nur Schalter in Funktion „Licht“'}
-                        />
-                    )}
-                    <Toggle
-                        checked={o.lightIncludeDimmers !== false}
-                        onChange={(v) => set({ lightIncludeDimmers: v })}
-                        label={'Dimmer in Funktion „Licht“ mitzählen (an ab 1 %, mit Helligkeit)'}
-                    />
-                </CatSection>
-
-                <CatSection
-                    checked={o.catAlarm !== false}
-                    onChange={(v) => set({ catAlarm: v })}
-                    label="Rauch- & Wasser-Alarme"
-                >
-                    <CatColor cat="alarm" />
-                </CatSection>
-
-                <CatSection
-                    checked={o.catUnreach !== false}
-                    onChange={(v) => set({ catUnreach: v })}
-                    label="Nicht erreichbar / offline"
-                >
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird ignoriert).
-                        Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt global für alle Widgets.
-                    </p>
-                    <div className="flex gap-3 items-start">
-                        <div className="flex-1">
-                            <label className={labelCls} style={labelStyle}>
-                                Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
-                            </label>
-                            <input
-                                type="text"
-                                value={offlineExtraPatterns}
-                                onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
-                                placeholder=".UNREACHABLE, /\\.offline$/"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                        </div>
-                        <CatColor cat="unreach" />
-                    </div>
-                    <Toggle
-                        checked={offlineInvert}
-                        onChange={(v) => updateFrontend({ offlineInvert: v })}
-                        label="Bei diesen Mustern bedeutet FALSE = offline"
-                    />
-                </CatSection>
-            </ConfigSection>
-
-            {/* ── Scope (collapsed by default) ── */}
-            <ConfigSection title="Einschränkung (optional)" sectionKey="scope">
-                <div className="space-y-2 mt-2">
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Räume (Komma-getrennt, leer = alle)
-                        </label>
-                        <input
-                            type="text"
-                            value={o.filterRooms ?? ''}
-                            onChange={(e) => set({ filterRooms: e.target.value || undefined })}
-                            placeholder="z. B. Wohnzimmer, Küche"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Funktionen (Komma-getrennt)
-                        </label>
-                        <input
-                            type="text"
-                            value={o.filterFuncs ?? ''}
-                            onChange={(e) => set({ filterFuncs: e.target.value || undefined })}
-                            placeholder="z. B. Licht, Fenster"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Adapter (Komma-getrennt, z. B. zigbee.0)
-                        </label>
-                        <input
-                            type="text"
-                            value={o.filterAdapters ?? ''}
-                            onChange={(e) => set({ filterAdapters: e.target.value || undefined })}
-                            placeholder="zigbee.0, hm-rpc.0"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Ausschluss-Muster (Text oder /regex/)
-                        </label>
-                        <input
-                            type="text"
-                            value={o.excludeIdPatterns ?? ''}
-                            onChange={(e) => set({ excludeIdPatterns: e.target.value || undefined })}
-                            placeholder=".info., _REMOTE_"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
-                </div>
-            </ConfigSection>
-
-            {/* ── Display (collapsed by default) ── */}
-            <ConfigSection title="Anzeige" sectionKey="display">
-                <div className="space-y-2 mt-2">
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Textausrichtung
-                        </label>
-                        <select
-                            value={o.contentAlign ?? 'left'}
-                            onChange={(e) =>
-                                set({
-                                    contentAlign:
-                                        e.target.value === 'left' ? undefined : (e.target.value as 'center' | 'right'),
-                                })
-                            }
-                            className={inputCls}
-                            style={inputStyle}
-                        >
-                            <option value="left">Linksbündig</option>
-                            <option value="center">Mittig</option>
-                            <option value="right">Rechtsbündig</option>
-                        </select>
-                    </div>
-                    {config.layout === 'card' && (
-                        <div>
-                            <label className={labelCls} style={labelStyle}>
-                                Kartengröße (min. Breite in px)
-                            </label>
-                            <input
-                                type="number"
-                                min={60}
-                                max={400}
-                                step={10}
-                                value={o.cardMinWidth ?? 96}
-                                onChange={(e) =>
-                                    set({ cardMinWidth: e.target.value ? Number(e.target.value) : undefined })
-                                }
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                        </div>
-                    )}
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Welche Geräte anzeigen
-                        </label>
-                        <select
-                            value={o.valueFilter ?? 'alerts'}
-                            onChange={(e) => set({ valueFilter: e.target.value as 'alerts' | 'all' })}
-                            className={inputCls}
-                            style={inputStyle}
-                        >
-                            <option value="alerts">Nur Auffällige (z. B. schwache Batterie)</option>
-                            <option value="all">Alle gefundenen Geräte</option>
-                        </select>
-                    </div>
-                    <NameDisplayFields
-                        pattern={o.namePattern}
-                        rules={o.nameFilters}
-                        samples={samples}
-                        sampleTotal={sampleTotal}
-                        onChange={set}
-                    />
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Höchstzahl angezeigter Zeilen (0 = alle)
-                        </label>
-                        <input
-                            type="number"
-                            min={0}
-                            max={100}
-                            step={1}
-                            value={o.maxRows ?? 0}
-                            onChange={(e) => set({ maxRows: Number(e.target.value) || undefined })}
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                            Die Zeilen entstehen erst zur Laufzeit, die Höhe ist damit nicht planbar. Mit einer
-                            Obergrenze passt das Widget verlässlich auf den Bildschirm; die Sortierung entscheidet,
-                            welche Zeilen bleiben.
-                        </p>
-                    </div>
-                    {config.layout === 'history' && (
-                        <>
-                            <div>
+                    <CatSection
+                        checked={o.catBattery !== false}
+                        onChange={(v) => set({ catBattery: v })}
+                        label="Schwache Batterien"
+                    >
+                        <div className="flex gap-3 items-start">
+                            <div className="flex-1">
                                 <label className={labelCls} style={labelStyle}>
-                                    Nur Wechsel der letzten … Tage (0 = alle)
+                                    Warnschwelle (%)
                                 </label>
                                 <input
                                     type="number"
-                                    min={0}
-                                    max={3650}
-                                    step={1}
-                                    value={o.maxAgeDays ?? 0}
-                                    onChange={(e) => set({ maxAgeDays: Number(e.target.value) || undefined })}
+                                    min={1}
+                                    max={100}
+                                    value={o.batteryThreshold ?? 20}
+                                    onChange={(e) =>
+                                        set({ batteryThreshold: e.target.value ? Number(e.target.value) : undefined })
+                                    }
                                     className={inputCls}
                                     style={inputStyle}
                                 />
-                                <p
-                                    className="text-[11px] mt-1"
-                                    style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
-                                >
-                                    „Zuletzt gewechselt“ liest den Verlauf des Adapters (aura.0.status.battery.history).
-                                    Die Merkliste-Optionen gehören an die Live-Übersicht daneben, nicht hierher.
-                                </p>
                             </div>
-                        </>
-                    )}
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Sortierung
-                        </label>
-                        <select
-                            value={o.sortBy ?? 'severity'}
-                            onChange={(e) => set({ sortBy: e.target.value as 'severity' | 'room' })}
-                            className={inputCls}
-                            style={inputStyle}
-                        >
-                            <option value="severity">Nach Dringlichkeit</option>
-                            <option value="room">Nach Raum</option>
-                        </select>
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                            Dringlichkeit: kritisch zuerst (offene Fenster, Rauch/Wasser), dann Warnungen (schwache
-                            Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
+                            <CatColor cat="battery" />
+                        </div>
+                        <Toggle
+                            checked={o.includeLowbatBoolean !== false}
+                            onChange={(v) => set({ includeLowbatBoolean: v })}
+                            label="Boolesche LOWBAT-Datenpunkte einbeziehen"
+                        />
+                        <Toggle
+                            checked={o.batteryTypeEnabled !== false}
+                            onChange={(v) => set({ batteryTypeEnabled: v ? undefined : false })}
+                            label="Batterietyp & Anzahl anzeigen"
+                        />
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Typen werden automatisch erkannt (falls bekannt). Nicht erkannte Geräte manuell zuordnen:
                         </p>
+                        <button
+                            onClick={() => setShowBatteries(true)}
+                            className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                            style={{ background: 'var(--accent)', color: '#fff' }}
+                        >
+                            Batterietypen zuordnen →
+                        </button>
+                        {showBatteries && <BatteryAssignModal onClose={() => setShowBatteries(false)} />}
+                    </CatSection>
+
+                    <CatSection
+                        checked={o.catLight !== false}
+                        onChange={(v) => set({ catLight: v })}
+                        label="Eingeschaltete Lichter"
+                    >
+                        <div className="flex gap-3 items-start">
+                            <div className="flex-1">
+                                <label className={labelCls} style={labelStyle}>
+                                    Welche Schalter zählen als Licht?
+                                </label>
+                                <select
+                                    value={lightScope}
+                                    onChange={(e) => set({ lightRoleScope: e.target.value as 'light' | 'all' })}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                >
+                                    <option value="light">Nur Lichter (Rolle switch.light)</option>
+                                    <option value="all">Alle Schalter (switch, switch.power)</option>
+                                </select>
+                            </div>
+                            <CatColor cat="light" />
+                        </div>
+                        {lightScope === 'all' && (
+                            <Toggle
+                                checked={!!o.lightsOnlyFunction}
+                                onChange={(v) => set({ lightsOnlyFunction: v })}
+                                label={'Nur Schalter in Funktion „Licht“'}
+                            />
+                        )}
+                        <Toggle
+                            checked={o.lightIncludeDimmers !== false}
+                            onChange={(v) => set({ lightIncludeDimmers: v })}
+                            label={'Dimmer in Funktion „Licht“ mitzählen (an ab 1 %, mit Helligkeit)'}
+                        />
+                    </CatSection>
+
+                    <CatSection
+                        checked={o.catAlarm !== false}
+                        onChange={(v) => set({ catAlarm: v })}
+                        label="Rauch- & Wasser-Alarme"
+                    >
+                        <CatColor cat="alarm" />
+                    </CatSection>
+
+                    <CatSection
+                        checked={o.catUnreach !== false}
+                        onChange={(v) => set({ catUnreach: v })}
+                        label="Nicht erreichbar / offline"
+                    >
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            UNREACH/offline/reachable/connected werden automatisch erkannt (STICKY_UNREACH wird
+                            ignoriert). Nur für Sonderfälle: zusätzliche Offline-Datenpunkte. Gilt global für alle
+                            Widgets.
+                        </p>
+                        <div className="flex gap-3 items-start">
+                            <div className="flex-1">
+                                <label className={labelCls} style={labelStyle}>
+                                    Zusätzliche Offline-Datenpunkte (Muster, Text oder /regex/)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={offlineExtraPatterns}
+                                    onChange={(e) => updateFrontend({ offlineExtraPatterns: e.target.value })}
+                                    placeholder=".UNREACHABLE, /\\.offline$/"
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <CatColor cat="unreach" />
+                        </div>
+                        <Toggle
+                            checked={offlineInvert}
+                            onChange={(v) => updateFrontend({ offlineInvert: v })}
+                            label="Bei diesen Mustern bedeutet FALSE = offline"
+                        />
+                    </CatSection>
+                </SubGroup>
+                <SubGroup title="Einschränkung (optional)">
+                    <div className="space-y-2 mt-2">
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Räume (Komma-getrennt, leer = alle)
+                            </label>
+                            <input
+                                type="text"
+                                value={o.filterRooms ?? ''}
+                                onChange={(e) => set({ filterRooms: e.target.value || undefined })}
+                                placeholder="z. B. Wohnzimmer, Küche"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Funktionen (Komma-getrennt)
+                            </label>
+                            <input
+                                type="text"
+                                value={o.filterFuncs ?? ''}
+                                onChange={(e) => set({ filterFuncs: e.target.value || undefined })}
+                                placeholder="z. B. Licht, Fenster"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Adapter (Komma-getrennt, z. B. zigbee.0)
+                            </label>
+                            <input
+                                type="text"
+                                value={o.filterAdapters ?? ''}
+                                onChange={(e) => set({ filterAdapters: e.target.value || undefined })}
+                                placeholder="zigbee.0, hm-rpc.0"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Ausschluss-Muster (Text oder /regex/)
+                            </label>
+                            <input
+                                type="text"
+                                value={o.excludeIdPatterns ?? ''}
+                                onChange={(e) => set({ excludeIdPatterns: e.target.value || undefined })}
+                                placeholder=".info., _REMOTE_"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
                     </div>
-                </div>
+                </SubGroup>
+                {(o.catBattery !== false || o.catUnreach !== false || o.catAlarm !== false) && (
+                    <SubGroup title="Merkliste" count={latchSummary} className="aura-status-merkliste">
+                        <div className="space-y-2 mt-2">
+                            <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Ein Hinweis bleibt stehen, bis er erledigt ist – auch wenn das Gerät zwischendurch
+                                wieder
+                                {'„ok“'} meldet: eine Batterie, deren LOWBAT bei Kälte kurz auf true springt, ein Gerät,
+                                das nachts kurz weg war, ein Rauchmelder, der ausgelöst hat. Geschlossen wird mit{' '}
+                                {'„Gewechselt“'}
+                                bzw. {'„Quittieren“'} in der Zeile, {'„Später“'} stellt zurück. Der Adapter führt die
+                                Liste für alle Geräte.
+                            </p>
+                            {LATCH_TOGGLES.map(({ cat, label }) => {
+                                const enabled = catOn(cat);
+                                return (
+                                    <div
+                                        key={cat}
+                                        data-latch-toggle={cat}
+                                        title={enabled ? undefined : 'Kategorie ist ausgeschaltet'}
+                                        style={enabled ? undefined : { opacity: 0.4, pointerEvents: 'none' }}
+                                    >
+                                        <Toggle
+                                            checked={enabled && latchOn(cat)}
+                                            onChange={(v) => set({ [LATCH_KEY[cat]]: v || undefined })}
+                                            label={label}
+                                        />
+                                    </div>
+                                );
+                            })}
+                            {(o.latchBattery || o.latchUnreach || o.latchAlarm) && (
+                                <>
+                                    {o.latchBattery && (
+                                        <>
+                                            <Toggle
+                                                checked={!!o.latchAutoClose}
+                                                onChange={(v) => set({ latchAutoClose: v || undefined })}
+                                                label="Batterie automatisch schließen, wenn die Spannung deutlich steigt"
+                                            />
+                                            <p
+                                                className="text-[11px]"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                                            >
+                                                Mit OPERATING_VOLTAGE: mindestens 0,3 V und 25 % über dem tiefsten Wert.
+                                                Mit Prozentwert: mindestens 40 % und 30 Punkte darüber.
+                                            </p>
+                                        </>
+                                    )}
+                                    <div className="flex gap-3">
+                                        <div className="flex-1">
+                                            <label className={labelCls} style={labelStyle}>
+                                                {'„Später“'} stellt zurück um (Tage)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={60}
+                                                value={o.latchSnoozeDays ?? 2}
+                                                onChange={(e) =>
+                                                    set({
+                                                        latchSnoozeDays: e.target.value
+                                                            ? Number(e.target.value)
+                                                            : undefined,
+                                                    })
+                                                }
+                                                className={inputCls}
+                                                style={inputStyle}
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className={labelCls} style={labelStyle}>
+                                                Nachkontrolle nach Schließen (Tage)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={90}
+                                                value={o.latchRecheckDays ?? 7}
+                                                onChange={(e) =>
+                                                    set({
+                                                        latchRecheckDays:
+                                                            e.target.value === '' ? undefined : Number(e.target.value),
+                                                    })
+                                                }
+                                                className={inputCls}
+                                                style={inputStyle}
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                        Meldet ein Gerät in der Nachkontrolle erneut, öffnet sich der Eintrag wieder (
+                                        {'„trotz Wechsel am …“'}). Es zählt nur eine Meldung, die mindestens 10 Minuten
+                                        nach dem Schließen kommt.
+                                    </p>
+                                    <Toggle
+                                        checked={o.latchConfirm !== false}
+                                        onChange={(v) => set({ latchConfirm: v ? undefined : false })}
+                                        label="Vor „Gewechselt“/„Quittieren“ zweimal tippen"
+                                    />
+                                </>
+                            )}
+                            <div className="space-y-2 pt-1" data-ignore-settings>
+                                <Toggle
+                                    checked={!!o.latchIgnore}
+                                    onChange={(v) => set({ latchIgnore: v || undefined })}
+                                    label="Knopf „Ignorieren“ in der Zeile"
+                                />
+                                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                    Für Fehlalarme, die nie von selbst verschwinden (z. B. eine leere Wallbox mit 0 %).
+                                    Der Adapter merkt den Datenpunkt nie mehr, und keine Statusübersicht zeigt ihn –
+                                    fragt vorher nach. Wirkt auch ohne Merkliste.
+                                </p>
+                                <Toggle
+                                    checked={!!o.showIgnored}
+                                    onChange={(v) => set({ showIgnored: v || undefined })}
+                                    label="Ignorierte anzeigen (mit „Aufnehmen“)"
+                                />
+                            </div>
+                            <div className="space-y-1 pt-1" data-latch-action-colors>
+                                <label className={labelCls} style={labelStyle}>
+                                    Farbe der Knöpfe (Text und Rahmen)
+                                </label>
+                                <div className="flex flex-wrap gap-4">
+                                    {LATCH_ACTION_COLOR_FIELDS.map(({ key, label, fallback }) => {
+                                        const custom = o.latchActionColors?.[key];
+                                        return (
+                                            <div key={key}>
+                                                <span className="block text-[11px] mb-0.5" style={labelStyle}>
+                                                    {label}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <ColorPicker
+                                                        value={custom || fallback}
+                                                        onChange={(v) => setLatchActionColor(key, v)}
+                                                        className="w-8 h-7 rounded cursor-pointer p-0.5"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    />
+                                                    {custom ? (
+                                                        <button
+                                                            onClick={() => setLatchActionColor(key, null)}
+                                                            className="text-[11px] hover:opacity-80"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            ↩ Standard
+                                                        </button>
+                                                    ) : (
+                                                        <span
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        >
+                                                            Standard
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </SubGroup>
+                )}
+                <SubGroup
+                    title="Zeilen-Aktionen"
+                    count={rowActionCount ? `${rowActionCount} ${rowActionCount === 1 ? 'Knopf' : 'Knöpfe'}` : 'keine'}
+                    className="aura-status-row-actions"
+                >
+                    <div className="space-y-2 mt-2">
+                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Eigene Knöpfe am Zeilenende (Layouts Standard und Kompakt), die einen Wert in einen
+                            Datenpunkt schreiben – z. B. {'„Aus“'} bei einem eingeschalteten Licht oder eine Meldung an
+                            ein Skript. Unabhängig von der Merkliste. Vorlagen gibt es im Editor.
+                        </p>
+                        {(o.rowActions ?? []).map((a, i) => (
+                            <p key={i} className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
+                                <span className="font-semibold">{a.label || '(ohne Beschriftung)'}</span>
+                                <span style={{ color: 'var(--text-secondary)' }}>
+                                    {' '}
+                                    → {a.targetDp || '–'}
+                                    {a.categories?.length
+                                        ? ` · nur ${a.categories.map((c) => CAT_SHORT[c]).join(', ')}`
+                                        : ''}
+                                </span>
+                            </p>
+                        ))}
+                        <button
+                            onClick={() => setShowActions(true)}
+                            className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                            style={{ background: 'var(--accent)', color: '#fff' }}
+                        >
+                            Knöpfe bearbeiten →
+                        </button>
+                    </div>
+                    {/* Row click action: next to the row buttons */}
+                    <RowClickSection config={config} opts={o} onChange={set} />
+                </SubGroup>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                <>
+                    <div className="space-y-2 mt-2">
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Textausrichtung
+                            </label>
+                            <select
+                                value={o.contentAlign ?? 'left'}
+                                onChange={(e) =>
+                                    set({
+                                        contentAlign:
+                                            e.target.value === 'left'
+                                                ? undefined
+                                                : (e.target.value as 'center' | 'right'),
+                                    })
+                                }
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value="left">Linksbündig</option>
+                                <option value="center">Mittig</option>
+                                <option value="right">Rechtsbündig</option>
+                            </select>
+                        </div>
+                        {config.layout === 'card' && (
+                            <div>
+                                <label className={labelCls} style={labelStyle}>
+                                    Kartengröße (min. Breite in px)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={60}
+                                    max={400}
+                                    step={10}
+                                    value={o.cardMinWidth ?? 96}
+                                    onChange={(e) =>
+                                        set({ cardMinWidth: e.target.value ? Number(e.target.value) : undefined })
+                                    }
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                            </div>
+                        )}
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Welche Geräte anzeigen
+                            </label>
+                            <select
+                                value={o.valueFilter ?? 'alerts'}
+                                onChange={(e) => set({ valueFilter: e.target.value as 'alerts' | 'all' })}
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value="alerts">Nur Auffällige (z. B. schwache Batterie)</option>
+                                <option value="all">Alle gefundenen Geräte</option>
+                            </select>
+                        </div>
+                        <NameDisplayFields
+                            pattern={o.namePattern}
+                            rules={o.nameFilters}
+                            samples={samples}
+                            sampleTotal={sampleTotal}
+                            onChange={set}
+                        />
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Höchstzahl angezeigter Zeilen (0 = alle)
+                            </label>
+                            <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={1}
+                                value={o.maxRows ?? 0}
+                                onChange={(e) => set({ maxRows: Number(e.target.value) || undefined })}
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Die Zeilen entstehen erst zur Laufzeit, die Höhe ist damit nicht planbar. Mit einer
+                                Obergrenze passt das Widget verlässlich auf den Bildschirm; die Sortierung entscheidet,
+                                welche Zeilen bleiben.
+                            </p>
+                        </div>
+                        {config.layout === 'history' && (
+                            <>
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        Nur Wechsel der letzten … Tage (0 = alle)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={3650}
+                                        step={1}
+                                        value={o.maxAgeDays ?? 0}
+                                        onChange={(e) => set({ maxAgeDays: Number(e.target.value) || undefined })}
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    />
+                                    <p
+                                        className="text-[11px] mt-1"
+                                        style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+                                    >
+                                        „Zuletzt gewechselt“ liest den Verlauf des Adapters
+                                        (aura.0.status.battery.history). Die Merkliste-Optionen gehören an die
+                                        Live-Übersicht daneben, nicht hierher.
+                                    </p>
+                                </div>
+                            </>
+                        )}
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Sortierung
+                            </label>
+                            <select
+                                value={o.sortBy ?? 'severity'}
+                                onChange={(e) => set({ sortBy: e.target.value as 'severity' | 'room' })}
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value="severity">Nach Dringlichkeit</option>
+                                <option value="room">Nach Raum</option>
+                            </select>
+                            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                Dringlichkeit: kritisch zuerst (offene Fenster, Rauch/Wasser), dann Warnungen (schwache
+                                Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
+                            </p>
+                        </div>
+                    </div>
+                </>
             </ConfigSection>
 
             {/* ── Merkliste (collapsed by default) — its own section: it spans several
                 categories. The summary says what is on, so it reads closed too. ── */}
-            {(o.catBattery !== false || o.catUnreach !== false || o.catAlarm !== false) && (
-                <ConfigSection
-                    title="Merkliste"
-                    sectionKey="latch"
-                    count={latchSummary}
-                    className="aura-status-merkliste"
-                >
-                    <div className="space-y-2 mt-2">
-                        <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                            Ein Hinweis bleibt stehen, bis er erledigt ist – auch wenn das Gerät zwischendurch wieder
-                            {'„ok“'} meldet: eine Batterie, deren LOWBAT bei Kälte kurz auf true springt, ein Gerät, das
-                            nachts kurz weg war, ein Rauchmelder, der ausgelöst hat. Geschlossen wird mit{' '}
-                            {'„Gewechselt“'}
-                            bzw. {'„Quittieren“'} in der Zeile, {'„Später“'} stellt zurück. Der Adapter führt die Liste
-                            für alle Geräte.
-                        </p>
-                        {LATCH_TOGGLES.map(({ cat, label }) => {
-                            const enabled = catOn(cat);
-                            return (
-                                <div
-                                    key={cat}
-                                    data-latch-toggle={cat}
-                                    title={enabled ? undefined : 'Kategorie ist ausgeschaltet'}
-                                    style={enabled ? undefined : { opacity: 0.4, pointerEvents: 'none' }}
-                                >
-                                    <Toggle
-                                        checked={enabled && latchOn(cat)}
-                                        onChange={(v) => set({ [LATCH_KEY[cat]]: v || undefined })}
-                                        label={label}
-                                    />
-                                </div>
-                            );
-                        })}
-                        {(o.latchBattery || o.latchUnreach || o.latchAlarm) && (
-                            <>
-                                {o.latchBattery && (
-                                    <>
-                                        <Toggle
-                                            checked={!!o.latchAutoClose}
-                                            onChange={(v) => set({ latchAutoClose: v || undefined })}
-                                            label="Batterie automatisch schließen, wenn die Spannung deutlich steigt"
-                                        />
-                                        <p
-                                            className="text-[11px]"
-                                            style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
-                                        >
-                                            Mit OPERATING_VOLTAGE: mindestens 0,3 V und 25 % über dem tiefsten Wert. Mit
-                                            Prozentwert: mindestens 40 % und 30 Punkte darüber.
-                                        </p>
-                                    </>
-                                )}
-                                <div className="flex gap-3">
-                                    <div className="flex-1">
-                                        <label className={labelCls} style={labelStyle}>
-                                            {'„Später“'} stellt zurück um (Tage)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={1}
-                                            max={60}
-                                            value={o.latchSnoozeDays ?? 2}
-                                            onChange={(e) =>
-                                                set({
-                                                    latchSnoozeDays: e.target.value
-                                                        ? Number(e.target.value)
-                                                        : undefined,
-                                                })
-                                            }
-                                            className={inputCls}
-                                            style={inputStyle}
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className={labelCls} style={labelStyle}>
-                                            Nachkontrolle nach Schließen (Tage)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            max={90}
-                                            value={o.latchRecheckDays ?? 7}
-                                            onChange={(e) =>
-                                                set({
-                                                    latchRecheckDays:
-                                                        e.target.value === '' ? undefined : Number(e.target.value),
-                                                })
-                                            }
-                                            className={inputCls}
-                                            style={inputStyle}
-                                        />
-                                    </div>
-                                </div>
-                                <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                                    Meldet ein Gerät in der Nachkontrolle erneut, öffnet sich der Eintrag wieder (
-                                    {'„trotz Wechsel am …“'}). Es zählt nur eine Meldung, die mindestens 10 Minuten nach
-                                    dem Schließen kommt.
-                                </p>
-                                <Toggle
-                                    checked={o.latchConfirm !== false}
-                                    onChange={(v) => set({ latchConfirm: v ? undefined : false })}
-                                    label="Vor „Gewechselt“/„Quittieren“ zweimal tippen"
-                                />
-                            </>
-                        )}
-                        <div className="space-y-2 pt-1" data-ignore-settings>
-                            <Toggle
-                                checked={!!o.latchIgnore}
-                                onChange={(v) => set({ latchIgnore: v || undefined })}
-                                label="Knopf „Ignorieren“ in der Zeile"
-                            />
-                            <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                                Für Fehlalarme, die nie von selbst verschwinden (z. B. eine leere Wallbox mit 0 %). Der
-                                Adapter merkt den Datenpunkt nie mehr, und keine Statusübersicht zeigt ihn – fragt
-                                vorher nach. Wirkt auch ohne Merkliste.
-                            </p>
-                            <Toggle
-                                checked={!!o.showIgnored}
-                                onChange={(v) => set({ showIgnored: v || undefined })}
-                                label="Ignorierte anzeigen (mit „Aufnehmen“)"
-                            />
-                        </div>
-                        <div className="space-y-1 pt-1" data-latch-action-colors>
-                            <label className={labelCls} style={labelStyle}>
-                                Farbe der Knöpfe (Text und Rahmen)
-                            </label>
-                            <div className="flex flex-wrap gap-4">
-                                {LATCH_ACTION_COLOR_FIELDS.map(({ key, label, fallback }) => {
-                                    const custom = o.latchActionColors?.[key];
-                                    return (
-                                        <div key={key}>
-                                            <span className="block text-[11px] mb-0.5" style={labelStyle}>
-                                                {label}
-                                            </span>
-                                            <div className="flex items-center gap-2">
-                                                <ColorPicker
-                                                    value={custom || fallback}
-                                                    onChange={(v) => setLatchActionColor(key, v)}
-                                                    className="w-8 h-7 rounded cursor-pointer p-0.5"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                />
-                                                {custom ? (
-                                                    <button
-                                                        onClick={() => setLatchActionColor(key, null)}
-                                                        className="text-[11px] hover:opacity-80"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        ↩ Standard
-                                                    </button>
-                                                ) : (
-                                                    <span
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                    >
-                                                        Standard
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </ConfigSection>
-            )}
 
-            {/* ── Row buttons (collapsed by default, next to the row click) ── */}
-            <ConfigSection
-                title="Zeilen-Aktionen"
-                sectionKey="rowactions"
-                count={rowActionCount ? `${rowActionCount} ${rowActionCount === 1 ? 'Knopf' : 'Knöpfe'}` : 'keine'}
-                className="aura-status-row-actions"
-            >
-                <div className="space-y-2 mt-2">
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        Eigene Knöpfe am Zeilenende (Layouts Standard und Kompakt), die einen Wert in einen Datenpunkt
-                        schreiben – z. B. {'„Aus“'} bei einem eingeschalteten Licht oder eine Meldung an ein Skript.
-                        Unabhängig von der Merkliste. Vorlagen gibt es im Editor.
-                    </p>
-                    {(o.rowActions ?? []).map((a, i) => (
-                        <p key={i} className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
-                            <span className="font-semibold">{a.label || '(ohne Beschriftung)'}</span>
-                            <span style={{ color: 'var(--text-secondary)' }}>
-                                {' '}
-                                → {a.targetDp || '–'}
-                                {a.categories?.length
-                                    ? ` · nur ${a.categories.map((c) => CAT_SHORT[c]).join(', ')}`
-                                    : ''}
-                            </span>
-                        </p>
-                    ))}
-                    <button
-                        onClick={() => setShowActions(true)}
-                        className="inline-flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
-                        style={{ background: 'var(--accent)', color: '#fff' }}
-                    >
-                        Knöpfe bearbeiten →
-                    </button>
-                </div>
-                {/* Row click action: next to the row buttons */}
-                <RowClickSection config={config} opts={o} onChange={set} />
-            </ConfigSection>
             {showActions && (
                 <ConfigModal title="Zeilen-Aktionen" maxWidth={560} padded onClose={() => setShowActions(false)}>
                     <StatusRowActionsEditor actions={o.rowActions ?? []} onChange={(v) => set({ rowActions: v })} />

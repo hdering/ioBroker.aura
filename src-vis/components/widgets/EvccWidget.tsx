@@ -1,4 +1,4 @@
-import { ConfigSection } from '../config/ConfigSection';
+import { ConfigSection, SubGroup } from '../config/ConfigSection';
 import { VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
 import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame, Database } from 'lucide-react';
@@ -1968,208 +1968,219 @@ export function EvccConfig({
     return (
         <>
             <VisibleFieldsSection fields={visibleFields} values={o} onChange={set} />
-            <ConfigSection title={t('evcc.sourceSection')} sectionKey="source">
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.sourceLabel')}
-                </label>
-                {instances !== null && (
-                    <select
-                        value={
-                            onKnownInstance ? selectedSource : prefix || typingPrefix ? CUSTOM_PREFIX : MANUAL_SOURCE
-                        }
-                        onChange={(e) => void pickSource(e.target.value)}
-                        className={`aura-evcc-instance ${inputCls} mb-1`}
-                        style={inputSty}
-                    >
-                        {instances.map((inst) => (
-                            <option key={inst.instance} value={inst.instance}>
-                                {instanceLabel(inst.instance)}
-                                {inst.enabled ? '' : ` ${t('evcc.instanceDisabled')}`}
-                            </option>
-                        ))}
-                        {/* An evcc instance that was renamed, or one on another host. */}
-                        <option value={CUSTOM_PREFIX}>{t('evcc.instanceCustom')}</option>
-                        <option value={MANUAL_SOURCE}>{t('evcc.sourceManual')}</option>
-                    </select>
-                )}
-                {/* The prefix field appears only for the evcc-by-hand case; picking
+            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                <SubGroup title={t('evcc.sourceSection')}>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('evcc.sourceLabel')}
+                    </label>
+                    {instances !== null && (
+                        <select
+                            value={
+                                onKnownInstance
+                                    ? selectedSource
+                                    : prefix || typingPrefix
+                                      ? CUSTOM_PREFIX
+                                      : MANUAL_SOURCE
+                            }
+                            onChange={(e) => void pickSource(e.target.value)}
+                            className={`aura-evcc-instance ${inputCls} mb-1`}
+                            style={inputSty}
+                        >
+                            {instances.map((inst) => (
+                                <option key={inst.instance} value={inst.instance}>
+                                    {instanceLabel(inst.instance)}
+                                    {inst.enabled ? '' : ` ${t('evcc.instanceDisabled')}`}
+                                </option>
+                            ))}
+                            {/* An evcc instance that was renamed, or one on another host. */}
+                            <option value={CUSTOM_PREFIX}>{t('evcc.instanceCustom')}</option>
+                            <option value={MANUAL_SOURCE}>{t('evcc.sourceManual')}</option>
+                        </select>
+                    )}
+                    {/* The prefix field appears only for the evcc-by-hand case; picking
                     datapoints yourself is the "manual" entry, which needs no prefix. */}
-                {(instances === null || (!onKnownInstance && (prefix !== '' || typingPrefix))) && (
-                    <input
-                        type="text"
-                        value={prefix}
-                        // No `|| 'evcc.0'` here — that snapped the field back the moment
-                        // it was cleared, and the next keystrokes landed BEHIND the old
-                        // value ("evcc.0fronius.0"). The fallback belongs where the value
-                        // is read, not where it is typed.
-                        //
-                        // `setTypingPrefix` keeps the field on screen: an empty prefix
-                        // otherwise reads as "manual", and the field would unmount from
-                        // under the cursor at the moment it was cleared.
-                        onChange={(e) => {
-                            setTypingPrefix(true);
-                            set({ evccPrefix: e.target.value });
-                        }}
-                        placeholder="evcc.0"
-                        className={`aura-evcc-prefix ${inputCls} font-mono`}
-                        style={inputSty}
-                    />
-                )}
-                {instances !== null && instances.length === 0 && (
-                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        {t('evcc.sourceNone')}
-                    </p>
-                )}
-                {scanning && (
-                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        {t('evcc.scanning')}
-                    </p>
-                )}
-                {scanReport && !scanning && (
-                    <p className="aura-evcc-scan-report text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        {t('evcc.scanFound', {
-                            n: String(scanReport.found.length),
-                            total: String(ENERGY_SLOTS.length),
-                        })}
-                        {scanReport.missing.length > 0 &&
-                            ` ${t('evcc.scanMissing', {
-                                slots: scanReport.missing.map((slot) => t(`evcc.slot.${slot}` as never)).join(', '),
-                            })}`}
-                    </p>
-                )}
-                {(sourceAdapter || (onKnownInstance && isEvccInstance(prefix))) && !scanning && (
-                    <button
-                        onClick={() => void pickSource(sourceAdapter || prefix)}
-                        className="aura-evcc-rescan w-full text-[11px] px-2.5 py-1.5 mt-1 rounded-lg transition-colors hover:opacity-80 text-left"
-                        style={{
-                            background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-                            color: 'var(--accent)',
-                            border: '1px solid color-mix(in srgb, var(--accent) 27%, transparent)',
-                        }}
-                    >
-                        ✨ {t('evcc.scanAgain')}
-                    </button>
-                )}
-            </ConfigSection>
-            <ConfigSection title={t('evcc.dpSection')} sectionKey="datapoints">
-                {/* ── Free datapoints ──────────────────────────────────────────────
+                    {(instances === null || (!onKnownInstance && (prefix !== '' || typingPrefix))) && (
+                        <input
+                            type="text"
+                            value={prefix}
+                            // No `|| 'evcc.0'` here — that snapped the field back the moment
+                            // it was cleared, and the next keystrokes landed BEHIND the old
+                            // value ("evcc.0fronius.0"). The fallback belongs where the value
+                            // is read, not where it is typed.
+                            //
+                            // `setTypingPrefix` keeps the field on screen: an empty prefix
+                            // otherwise reads as "manual", and the field would unmount from
+                            // under the cursor at the moment it was cleared.
+                            onChange={(e) => {
+                                setTypingPrefix(true);
+                                set({ evccPrefix: e.target.value });
+                            }}
+                            placeholder="evcc.0"
+                            className={`aura-evcc-prefix ${inputCls} font-mono`}
+                            style={inputSty}
+                        />
+                    )}
+                    {instances !== null && instances.length === 0 && (
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                            {t('evcc.sourceNone')}
+                        </p>
+                    )}
+                    {scanning && (
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                            {t('evcc.scanning')}
+                        </p>
+                    )}
+                    {scanReport && !scanning && (
+                        <p
+                            className="aura-evcc-scan-report text-[10px] mt-1"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            {t('evcc.scanFound', {
+                                n: String(scanReport.found.length),
+                                total: String(ENERGY_SLOTS.length),
+                            })}
+                            {scanReport.missing.length > 0 &&
+                                ` ${t('evcc.scanMissing', {
+                                    slots: scanReport.missing.map((slot) => t(`evcc.slot.${slot}` as never)).join(', '),
+                                })}`}
+                        </p>
+                    )}
+                    {(sourceAdapter || (onKnownInstance && isEvccInstance(prefix))) && !scanning && (
+                        <button
+                            onClick={() => void pickSource(sourceAdapter || prefix)}
+                            className="aura-evcc-rescan w-full text-[11px] px-2.5 py-1.5 mt-1 rounded-lg transition-colors hover:opacity-80 text-left"
+                            style={{
+                                background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                color: 'var(--accent)',
+                                border: '1px solid color-mix(in srgb, var(--accent) 27%, transparent)',
+                            }}
+                        >
+                            ✨ {t('evcc.scanAgain')}
+                        </button>
+                    )}
+                </SubGroup>
+                <SubGroup title={t('evcc.dpSection')}>
+                    {/* ── Free datapoints ──────────────────────────────────────────────
                 Every value the flow diagram draws can come from a datapoint of the
                 user's choosing instead of the instance above. Filled in completely,
                 the widget runs without evcc — that is what makes it a PV widget
                 rather than an evcc widget (#629). */}
-                <p className="text-[10px] mb-2" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.dpSectionHint')}
-                </p>
-                <div className="space-y-2">
-                    <DpField
-                        label={t('evcc.pvPowerDp')}
-                        hint={t('evcc.unitWatt')}
-                        optionKey="pvPowerDatapoint"
-                        placeholder="z.B. sma.0.pv.power"
-                        value={(o.pvPowerDatapoint as string) ?? ''}
-                        onChange={(v) => set({ pvPowerDatapoint: v })}
-                        className={inputCls}
-                        style={inputSty}
-                    />
-                    <DpField
-                        label={t('evcc.homePowerDp')}
-                        hint={t('evcc.unitWatt')}
-                        optionKey="homePowerDatapoint"
-                        placeholder="z.B. shelly.0.em.power"
-                        value={(o.homePowerDatapoint as string) ?? ''}
-                        onChange={(v) => set({ homePowerDatapoint: v })}
-                        className={inputCls}
-                        style={inputSty}
-                    />
-                    <DpField
-                        label={t('evcc.gridPowerDp')}
-                        hint={t('evcc.gridPowerDpHint')}
-                        optionKey="gridPowerDatapoint"
-                        placeholder="z.B. sma.0.grid.power"
-                        value={(o.gridPowerDatapoint as string) ?? ''}
-                        onChange={(v) => set({ gridPowerDatapoint: v })}
-                        className={inputCls}
-                        style={inputSty}
-                    />
-                    {showBattery && (
-                        <>
-                            <DpField
-                                label={t('evcc.batterySocDp')}
-                                hint={t('evcc.batterySocDpHint')}
-                                optionKey="batterySocDatapoint"
-                                placeholder="z.B. sma.0.battery.soc"
-                                value={(o.batterySocDatapoint as string) ?? ''}
-                                onChange={(v) => set({ batterySocDatapoint: v })}
-                                className={inputCls}
-                                style={inputSty}
-                            />
-                            <DpField
-                                label={t('evcc.batteryPowerDp')}
-                                hint={t('evcc.batteryPowerDpHint')}
-                                optionKey="batteryPowerDatapoint"
-                                placeholder="z.B. sma.0.battery.power"
-                                value={(o.batteryPowerDatapoint as string) ?? ''}
-                                onChange={(v) => set({ batteryPowerDatapoint: v })}
-                                className={inputCls}
-                                style={inputSty}
-                            />
-                        </>
-                    )}
-                </div>
-            </ConfigSection>
-            <ConfigSection title={t('evcc.loadpointSection')} sectionKey="loadpoints">
-                {/* Loadpoints are the one part that is genuinely evcc-only: they are read
+                    <p className="text-[10px] mb-2" style={{ color: 'var(--text-secondary)' }}>
+                        {t('evcc.dpSectionHint')}
+                    </p>
+                    <div className="space-y-2">
+                        <DpField
+                            label={t('evcc.pvPowerDp')}
+                            hint={t('evcc.unitWatt')}
+                            optionKey="pvPowerDatapoint"
+                            placeholder="z.B. sma.0.pv.power"
+                            value={(o.pvPowerDatapoint as string) ?? ''}
+                            onChange={(v) => set({ pvPowerDatapoint: v })}
+                            className={inputCls}
+                            style={inputSty}
+                        />
+                        <DpField
+                            label={t('evcc.homePowerDp')}
+                            hint={t('evcc.unitWatt')}
+                            optionKey="homePowerDatapoint"
+                            placeholder="z.B. shelly.0.em.power"
+                            value={(o.homePowerDatapoint as string) ?? ''}
+                            onChange={(v) => set({ homePowerDatapoint: v })}
+                            className={inputCls}
+                            style={inputSty}
+                        />
+                        <DpField
+                            label={t('evcc.gridPowerDp')}
+                            hint={t('evcc.gridPowerDpHint')}
+                            optionKey="gridPowerDatapoint"
+                            placeholder="z.B. sma.0.grid.power"
+                            value={(o.gridPowerDatapoint as string) ?? ''}
+                            onChange={(v) => set({ gridPowerDatapoint: v })}
+                            className={inputCls}
+                            style={inputSty}
+                        />
+                        {showBattery && (
+                            <>
+                                <DpField
+                                    label={t('evcc.batterySocDp')}
+                                    hint={t('evcc.batterySocDpHint')}
+                                    optionKey="batterySocDatapoint"
+                                    placeholder="z.B. sma.0.battery.soc"
+                                    value={(o.batterySocDatapoint as string) ?? ''}
+                                    onChange={(v) => set({ batterySocDatapoint: v })}
+                                    className={inputCls}
+                                    style={inputSty}
+                                />
+                                <DpField
+                                    label={t('evcc.batteryPowerDp')}
+                                    hint={t('evcc.batteryPowerDpHint')}
+                                    optionKey="batteryPowerDatapoint"
+                                    placeholder="z.B. sma.0.battery.power"
+                                    value={(o.batteryPowerDatapoint as string) ?? ''}
+                                    onChange={(v) => set({ batteryPowerDatapoint: v })}
+                                    className={inputCls}
+                                    style={inputSty}
+                                />
+                            </>
+                        )}
+                    </div>
+                </SubGroup>
+                <SubGroup title={t('evcc.loadpointSection')}>
+                    {/* Loadpoints are the one part that is genuinely evcc-only: they are read
                 from `<prefix>.loadpoint.N.status.*` and written back to `control.*`,
                 paths no other adapter has. The heading says so. */}
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.loadpointsTotal')}
-                </label>
-                <div className="flex gap-1">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
-                        <button
-                            key={n}
-                            onClick={() => set({ loadpointCount: n, visibleLoadpoints: [] })}
-                            className="flex-1 text-xs py-1.5 rounded-lg transition-all"
-                            style={{
-                                background: lpCount === n ? 'var(--accent)' : 'var(--app-bg)',
-                                color: lpCount === n ? '#fff' : 'var(--text-secondary)',
-                                border: `1px solid ${lpCount === n ? 'var(--accent)' : 'var(--app-border)'}`,
-                            }}
-                        >
-                            {n}
-                        </button>
-                    ))}
-                </div>
-            </ConfigSection>
-            <ConfigSection title="Größe & Skalierung" sectionKey="size">
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Auto-Skalierung <span style={{ opacity: 0.6 }}>(schrumpft bei schmalem Widget)</span>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('evcc.loadpointsTotal')}
                     </label>
-                    <button
-                        onClick={() => set({ autoScale: !autoScale })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: autoScale ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: autoScale ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
+                    <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                            <button
+                                key={n}
+                                onClick={() => set({ loadpointCount: n, visibleLoadpoints: [] })}
+                                className="flex-1 text-xs py-1.5 rounded-lg transition-all"
+                                style={{
+                                    background: lpCount === n ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: lpCount === n ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${lpCount === n ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {n}
+                            </button>
+                        ))}
+                    </div>
+                </SubGroup>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                <>
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Auto-Skalierung <span style={{ opacity: 0.6 }}>(schrumpft bei schmalem Widget)</span>
+                        </label>
+                        <button
+                            onClick={() => set({ autoScale: !autoScale })}
+                            className="relative w-9 h-5 rounded-full transition-colors"
+                            style={{ background: autoScale ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: autoScale ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
 
-                <div className="space-y-2">
-                    <ScaleSlider label="Global" k="sizeScale" val={sizeScale} />
-                    <ScaleSlider label="Header" k="headerScale" val={headerScale} />
-                    <ScaleSlider label="Energiefluss" k="flowScale" val={flowScale} />
-                    <ScaleSlider label="Ladepunkte" k="loadpointScale" val={loadpointScale} />
-                    <ScaleSlider
-                        label="Haupt-Bereich (Akku/Erzeugung/Verbrauch/Kompakt)"
-                        k="mainScale"
-                        val={mainScale}
-                    />
-                    <ScaleSlider label="Tarif-Zeile" k="tariffScale" val={tariffScale} />
-                </div>
+                    <div className="space-y-2">
+                        <ScaleSlider label="Global" k="sizeScale" val={sizeScale} />
+                        <ScaleSlider label="Header" k="headerScale" val={headerScale} />
+                        <ScaleSlider label="Energiefluss" k="flowScale" val={flowScale} />
+                        <ScaleSlider label="Ladepunkte" k="loadpointScale" val={loadpointScale} />
+                        <ScaleSlider
+                            label="Haupt-Bereich (Akku/Erzeugung/Verbrauch/Kompakt)"
+                            k="mainScale"
+                            val={mainScale}
+                        />
+                        <ScaleSlider label="Tarif-Zeile" k="tariffScale" val={tariffScale} />
+                    </div>
+                </>
             </ConfigSection>
         </>
     );

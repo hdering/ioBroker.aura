@@ -163,6 +163,10 @@ const SECTIONED = [
     'httpRequest',
     'enum',
     'mediaplayer',
+    'value',
+    'binarysensor',
+    'datepicker',
+    'header',
     'list',
     'autolist',
     'carousel',
@@ -237,14 +241,24 @@ async function openDialog(type, options = {}, datapoint) {
     return widget.id;
 }
 
+/** The fixed frame: only these sections on the top level, in this order. */
+const FRAME = ['visible', 'datapoints', 'settings', 'look', 'behavior'];
+
 /** Same gap between all neighbouring sections, nothing loose between them. */
 function checkLayout(type, r) {
+    const idx = r.order.map((k) => FRAME.indexOf(k));
+    check(
+        `${type}: only the six fixed sections, in order`,
+        idx.every((i) => i >= 0) && idx.every((i, n) => n === 0 || i > idx[n - 1]),
+        JSON.stringify(r.order),
+    );
     check(
         `${type}: equal gaps between the sections`,
         r.gaps.length === 0 || Math.max(...r.gaps) - Math.min(...r.gaps) <= 1,
         JSON.stringify(r.gaps),
     );
     check(`${type}: nothing loose between the sections`, r.loose.length === 0, JSON.stringify(r.loose));
+    check(`${type}: no empty section`, r.empty.length === 0, JSON.stringify(r.empty));
 }
 
 /** Unfold a section of the open dialog. */
@@ -279,6 +293,10 @@ const inspect = () =>
                 .filter((s) => s.tagName === 'DETAILS' && s.open)
                 .map((s) => s.getAttribute('data-aura-config-section')),
             visibleFolds: vis?.tagName === 'DETAILS',
+            // Sections without any content (a body whose only child is conditional and off).
+            empty: sections
+                .filter((el) => el.tagName === 'DETAILS' && !el.querySelector(':scope > div')?.childElementCount)
+                .map((el) => el.getAttribute('data-aura-config-section')),
             // Gaps between neighbouring sections (status included) and anything loose between them.
             ...(() => {
                 const all = [...dlg.querySelectorAll('[data-aura-config-section], [data-aura-status-section]')].filter(
@@ -334,7 +352,13 @@ for (const [type, keys] of Object.entries(VISIBLE)) {
     );
     check(`${type}: the visible fields fold`, r.visibleFolds);
     if (!SECTIONED.includes(type)) {
-        check(`${type}: "Einstellungen" section`, r.order[1] === 'settings', JSON.stringify(r.order));
+        // A type without own sections: its main datapoint (if any) and one "Einstellungen".
+        const rest = r.order.filter((k) => k !== 'visible');
+        check(
+            `${type}: "Datenpunkte" and "Einstellungen" only`,
+            rest.includes('settings') && rest.every((k) => k === 'datapoints' || k === 'settings'),
+            JSON.stringify(r.order),
+        );
         check(`${type}: every section starts folded`, r.open.length === 0, JSON.stringify(r.open));
     } else {
         check(
@@ -359,8 +383,8 @@ for (const type of OWN_SECTIONS) {
     const r = await inspect();
     checkLayout(type, r);
     check(
-        `${type}: own sections, all folded, not wrapped in "Einstellungen"`,
-        !r.order.includes('settings') && r.nested.length === 0 && r.open.length === 0,
+        `${type}: own sections, all folded, none nested`,
+        r.nested.length === 0 && r.open.length === 0,
         JSON.stringify(r),
     );
     await closeDialog();

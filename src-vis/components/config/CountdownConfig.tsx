@@ -8,7 +8,7 @@ import { Database } from 'lucide-react';
 import type { WidgetConfig, CountdownDpKind, CountdownFormat } from '../../types';
 import { useT } from '../../i18n';
 import { DatapointPicker } from './DatapointPicker';
-import { ConfigSection } from './ConfigSection';
+import { ConfigSection, SubGroup } from './ConfigSection';
 import { VisibleFieldsSection } from './VisibleFieldsSection';
 import { formatPreset, parseDurationText, splitDuration } from '../../utils/countdownFormat';
 
@@ -166,70 +166,87 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                     ]}
                 />
 
-                {/* ── Quelle ─────────────────────────────────────────────────── */}
-                <ConfigSection title={t('countdown.cfg.source')} sectionKey="source">
-                    <div className="flex gap-1">
-                        {(
-                            [
-                                { id: 'aura', label: t('countdown.cfg.sourceAura') },
-                                { id: 'datapoint', label: t('countdown.cfg.sourceDp') },
-                            ] as const
-                        ).map((opt) => {
-                            const active = (isDp ? 'datapoint' : 'aura') === opt.id;
-                            return (
-                                <button
-                                    key={opt.id}
-                                    type="button"
-                                    onClick={() => setOpts({ source: opt.id })}
-                                    className="flex-1 text-[10px] leading-tight rounded-lg px-2 py-1.5"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-surface)',
-                                        color: active ? '#fff' : 'var(--text-primary)',
-                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    }}
-                                    data-source={opt.id}
-                                >
-                                    {opt.label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {isDp && (
-                        <>
+                <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                    <SubGroup title={t('countdown.cfg.source')}>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    { id: 'aura', label: t('countdown.cfg.sourceAura') },
+                                    { id: 'datapoint', label: t('countdown.cfg.sourceDp') },
+                                ] as const
+                            ).map((opt) => {
+                                const active = (isDp ? 'datapoint' : 'aura') === opt.id;
+                                return (
+                                    <button
+                                        key={opt.id}
+                                        type="button"
+                                        onClick={() => setOpts({ source: opt.id })}
+                                        className="flex-1 text-[10px] leading-tight rounded-lg px-2 py-1.5"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-surface)',
+                                            color: active ? '#fff' : 'var(--text-primary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                        data-source={opt.id}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {isDp && (
+                            <>
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        {t('countdown.cfg.dp')}
+                                    </label>
+                                    {dpField(
+                                        config.datapoint ?? '',
+                                        (v) => onConfigChange({ ...config, datapoint: v }),
+                                        'source',
+                                        'mytime.0.Countdowns.test.end',
+                                    )}
+                                </div>
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        {t('countdown.cfg.dpKind')}
+                                    </label>
+                                    <select
+                                        value={dpKind}
+                                        onChange={(e) => setOpts({ dpKind: e.target.value })}
+                                        className={inputCls}
+                                        style={inputStyle}
+                                    >
+                                        <option value="remaining-ms">{t('countdown.cfg.dpKind.remainingMs')}</option>
+                                        <option value="remaining-s">{t('countdown.cfg.dpKind.remainingS')}</option>
+                                        <option value="end-ts">{t('countdown.cfg.dpKind.endTs')}</option>
+                                    </select>
+                                </div>
+                            </>
+                        )}
+                    </SubGroup>
+                    {!isDp && (
+                        <SubGroup title={t('countdown.cfg.target')}>
+                            <p className={hintCls} style={hintStyle}>
+                                {t('countdown.cfg.targetHint')}
+                            </p>
                             <div>
                                 <label className={labelCls} style={labelStyle}>
-                                    {t('countdown.cfg.dp')}
+                                    {t('countdown.cfg.targetDp')}
                                 </label>
                                 {dpField(
-                                    config.datapoint ?? '',
-                                    (v) => onConfigChange({ ...config, datapoint: v }),
-                                    'source',
-                                    'mytime.0.Countdowns.test.end',
+                                    targetDp,
+                                    (v) => setOpts({ targetDp: v || undefined }),
+                                    'target',
+                                    'z.B. hue.0.light.1.on',
                                 )}
                             </div>
-                            <div>
-                                <label className={labelCls} style={labelStyle}>
-                                    {t('countdown.cfg.dpKind')}
-                                </label>
-                                <select
-                                    value={dpKind}
-                                    onChange={(e) => setOpts({ dpKind: e.target.value })}
-                                    className={inputCls}
-                                    style={inputStyle}
-                                >
-                                    <option value="remaining-ms">{t('countdown.cfg.dpKind.remainingMs')}</option>
-                                    <option value="remaining-s">{t('countdown.cfg.dpKind.remainingS')}</option>
-                                    <option value="end-ts">{t('countdown.cfg.dpKind.endTs')}</option>
-                                </select>
-                            </div>
-                        </>
+                        </SubGroup>
                     )}
                 </ConfigSection>
-
                 {!isDp && (
-                    <>
-                        {/* ── Dauer ──────────────────────────────────────────────── */}
-                        <ConfigSection title={t('countdown.cfg.duration')} sectionKey="duration">
+                    <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                        <SubGroup title={t('countdown.cfg.duration')}>
                             <div className="flex items-start gap-1.5">
                                 {durationField(t('countdown.hours'), dur.h, 999, (v) => setDuration(v, dur.m, dur.s))}
                                 {durationField(t('countdown.minutes'), dur.m, 59, (v) => setDuration(dur.h, v, dur.s))}
@@ -270,24 +287,8 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     {t('countdown.cfg.presetsHint')}
                                 </p>
                             </div>
-                        </ConfigSection>
-
-                        {/* ── Ziel-Aktion ────────────────────────────────────────── */}
-                        <ConfigSection title={t('countdown.cfg.target')} sectionKey="target">
-                            <p className={hintCls} style={hintStyle}>
-                                {t('countdown.cfg.targetHint')}
-                            </p>
-                            <div>
-                                <label className={labelCls} style={labelStyle}>
-                                    {t('countdown.cfg.targetDp')}
-                                </label>
-                                {dpField(
-                                    targetDp,
-                                    (v) => setOpts({ targetDp: v || undefined }),
-                                    'target',
-                                    'z.B. hue.0.light.1.on',
-                                )}
-                            </div>
+                        </SubGroup>
+                        <SubGroup title={t('countdown.cfg.target')}>
                             <div className="flex gap-1.5">
                                 <div className="flex-1 min-w-0">
                                     <label className={labelCls} style={labelStyle}>
@@ -349,10 +350,48 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     onToggle={() => setOpts({ publishRemaining: !publishRemaining })}
                                 />
                             </div>
-                        </ConfigSection>
-                    </>
-                )}
+                        </SubGroup>
+                        {stateBaseId && (
+                            <SubGroup title={t('countdown.cfg.states')}>
+                                <code
+                                    className="block text-[10px] font-mono break-all"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {stateBaseId}.cmd
+                                </code>
+                                <p className={hintCls} style={hintStyle}>
+                                    {t('countdown.cfg.statesHint')}
+                                </p>
+                                <p className="text-[11px] pt-1" style={{ color: 'var(--text-primary)' }}>
+                                    {t('countdown.cfg.examples')}
+                                </p>
+                                <pre
+                                    className="text-[10px] px-2 py-1.5 rounded-md font-mono whitespace-pre overflow-x-auto"
+                                    style={{
+                                        background: 'var(--app-surface)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    data-testid="countdown-cmd-examples"
+                                >{`// ${t('countdown.cfg.ex.js')}
+setState('${stateBaseId}.cmd', 'start');  // ${t('countdown.cfg.ex.start')}
+setState('${stateBaseId}.cmd', 'pause');  // ${t('countdown.cfg.ex.pause')}
+setState('${stateBaseId}.cmd', 'stop');   // ${t('countdown.cfg.ex.stop')}
+setState('${stateBaseId}.cmd', '+300');   // ${t('countdown.cfg.ex.add')}
+setState('${stateBaseId}.cmd', '=1800');  // ${t('countdown.cfg.ex.set')}
+setState('${stateBaseId}.cmd', 'toggle'); // ${t('countdown.cfg.ex.toggle')}
 
+// ${t('countdown.cfg.ex.read')}
+on({ id: '${stateBaseId}.state', change: 'ne' }, (obj) => {
+    // obj.state.val: idle | running | paused | ended
+});`}</pre>
+                                <p className={hintCls} style={hintStyle}>
+                                    {t('countdown.cfg.ex.blockly')}
+                                </p>
+                            </SubGroup>
+                        )}
+                    </ConfigSection>
+                )}
                 {/* ── Anzeige ────────────────────────────────────────────────── */}
                 <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                     <div>
@@ -411,46 +450,6 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                         </p>
                     </div>
                 </ConfigSection>
-
-                {!isDp && stateBaseId && (
-                    <ConfigSection title={t('countdown.cfg.states')} sectionKey="states">
-                        <code
-                            className="block text-[10px] font-mono break-all"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            {stateBaseId}.cmd
-                        </code>
-                        <p className={hintCls} style={hintStyle}>
-                            {t('countdown.cfg.statesHint')}
-                        </p>
-                        <p className="text-[11px] pt-1" style={{ color: 'var(--text-primary)' }}>
-                            {t('countdown.cfg.examples')}
-                        </p>
-                        <pre
-                            className="text-[10px] px-2 py-1.5 rounded-md font-mono whitespace-pre overflow-x-auto"
-                            style={{
-                                background: 'var(--app-surface)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                            data-testid="countdown-cmd-examples"
-                        >{`// ${t('countdown.cfg.ex.js')}
-setState('${stateBaseId}.cmd', 'start');  // ${t('countdown.cfg.ex.start')}
-setState('${stateBaseId}.cmd', 'pause');  // ${t('countdown.cfg.ex.pause')}
-setState('${stateBaseId}.cmd', 'stop');   // ${t('countdown.cfg.ex.stop')}
-setState('${stateBaseId}.cmd', '+300');   // ${t('countdown.cfg.ex.add')}
-setState('${stateBaseId}.cmd', '=1800');  // ${t('countdown.cfg.ex.set')}
-setState('${stateBaseId}.cmd', 'toggle'); // ${t('countdown.cfg.ex.toggle')}
-
-// ${t('countdown.cfg.ex.read')}
-on({ id: '${stateBaseId}.state', change: 'ne' }, (obj) => {
-    // obj.state.val: idle | running | paused | ended
-});`}</pre>
-                        <p className={hintCls} style={hintStyle}>
-                            {t('countdown.cfg.ex.blockly')}
-                        </p>
-                    </ConfigSection>
-                )}
             </div>
         </>
     );

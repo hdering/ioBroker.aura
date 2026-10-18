@@ -291,27 +291,26 @@ const ACTION = {
     const opts = () => page.evaluate(() => window.__auraShot.widgetOptions('w-latch'));
     await page.locator('.aura-edit-chrome button').first().click();
     await page.locator('button:text-is("Bearbeiten")').click();
-    // The Merkliste is its own section: after "Anzeige", right above "Zeilen-Aktionen".
+    // The Merkliste is a topic in "Einstellungen", right above "Zeilen-Aktionen"; the section starts folded.
+    const settings = page.locator('.aura-widget-edit-modal details[data-aura-config-section="settings"]');
+    await settings.waitFor({ timeout: 10000 });
+    check('Merkliste starts collapsed', !(await settings.evaluate((d) => d.open)));
+    await settings.locator(':scope > summary').click();
     const card = page.locator('.aura-status-merkliste');
     await card.waitFor({ timeout: 10000 });
     const order = await page.evaluate(() => {
-        const t = (txt) =>
-            [...document.querySelectorAll('span')].find((e) => e.textContent === txt)?.getBoundingClientRect().top ??
-            -1;
         const c = document.querySelector('.aura-status-merkliste')?.getBoundingClientRect().top ?? -1;
         const a = document.querySelector('.aura-status-row-actions')?.getBoundingClientRect().top ?? -1;
-        return { display: t('Anzeige'), card: c, actions: a };
+        return { card: c, actions: a };
     });
     check(
-        'Merkliste between "Anzeige" and "Zeilen-Aktionen"',
-        order.display > 0 && order.display < order.card && order.card < order.actions,
+        'Merkliste right above "Zeilen-Aktionen"',
+        order.card > 0 && order.card < order.actions,
         JSON.stringify(order),
     );
-    // Collapsed like "Einschränkung" and "Anzeige"; the summary says what is on.
-    const summary = card.locator('summary');
-    check('Merkliste starts collapsed', !(await card.evaluate((d) => d.open)));
+    // The topic heading says what is on.
+    const summary = card.locator(':scope > div').first();
     check('summary says "aus"', (await summary.textContent()).includes('aus'), await summary.textContent());
-    await summary.click();
     check('Merkliste settings hidden while off', (await card.locator('input[type=number]').count()) === 0);
     await card.locator('[data-latch-toggle="battery"] label > div').click();
     check('latch toggle writes latchBattery', (await opts())?.latchBattery === true, JSON.stringify(await opts()));
@@ -333,10 +332,9 @@ const ACTION = {
         'shared latch settings appear',
         (await page.locator('label:text-is("Nachkontrolle nach Schließen (Tage)")').count()) === 1,
     );
-    // Zeilen-Aktionen: collapsed like the other sections, the summary counts the buttons.
+    // Zeilen-Aktionen: a topic like the Merkliste, the heading counts the buttons.
     const actSec = page.locator('.aura-status-row-actions');
-    const actSummary = actSec.locator('summary');
-    check('Zeilen-Aktionen start collapsed', !(await actSec.evaluate((d) => d.open)));
+    const actSummary = actSec.locator(':scope > div').first();
     check('summary says "keine"', (await actSummary.textContent()).includes('keine'), await actSummary.textContent());
     const actOrder = await page.evaluate(() => {
         const sec = document.querySelector('.aura-status-row-actions')?.getBoundingClientRect().top ?? -1;
@@ -348,7 +346,6 @@ const ACTION = {
         actOrder.sec > 0 && actOrder.sec < actOrder.click,
         JSON.stringify(actOrder),
     );
-    await actSummary.click();
     await actSec.locator('button:has-text("Knöpfe bearbeiten")').click();
     const dlg = page.locator('.aura-config-modal');
     await dlg.locator('button:has-text("Knopf hinzufügen")').click();

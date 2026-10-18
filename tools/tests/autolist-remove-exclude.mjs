@@ -51,6 +51,8 @@ async function openDialog(options) {
     page.on('pageerror', (e) => pageErrors.push(e.message));
     await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    // The edit dialog folds every section; this test fills in settings, so open them all.
+    await page.evaluate(() => window.__auraShot.unfoldSections());
     await page.evaluate((w) => {
         window.__auraShot.showWidgets([w], { editMode: true });
         window.__auraShot.setEditMode(true);

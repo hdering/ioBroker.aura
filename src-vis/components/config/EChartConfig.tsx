@@ -20,7 +20,7 @@ import { ColorPicker } from '../common/ColorPicker';
 import { RangeChipsEditor } from './RangeChipsEditor';
 import { parseRangeChips, RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { DatapointManagerField } from './list/DatapointManagerField';
-import { ConfigSection } from './ConfigSection';
+import { ConfigSection, SubGroup } from './ConfigSection';
 import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import type { ManagedEntry } from './list/EntryListItem';
 import { ChartModePanel, type EChartMode } from './chart/ChartModePanel';
@@ -598,334 +598,340 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     return (
         <>
             <VisibleFieldsSection fields={visibleFields} values={o} onChange={setO} />
-            <ConfigSection title="Datenreihen" sectionKey="series">
-                {/* ── Mode + series ───────────────────────────────────────────────────
+            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                <>
+                    {/* ── Mode + series ───────────────────────────────────────────────────
                 Both live in the "Datenpunkte verwalten" dialog: the series editor alone had
                 grown past a thousand lines and pushed the global settings out of reach. */}
-                <div className="mb-3">
-                    <DatapointManagerField
-                        title={t('echart.manageSeries')}
-                        label={t('echart.manageSeries')}
-                        storageKey="aura-echart-dp-modal"
-                        hint={t('echart.manageSeriesHint')}
-                        count={series.length}
-                        entries={managedEntries}
-                        resolvedNames={{}}
-                        entriesTabLabel={t('echart.seriesTab')}
-                        selectHint={t('echart.pickSeries')}
-                        emptyState={t('echart.noSeriesYet')}
-                        addLabel={t('echart.addSeries')}
-                        /* Tab order follows the decisions: the mode decides what a series even is,
+                    <div className="mb-3">
+                        <DatapointManagerField
+                            title={t('echart.manageSeries')}
+                            label={t('echart.manageSeries')}
+                            storageKey="aura-echart-dp-modal"
+                            hint={t('echart.manageSeriesHint')}
+                            count={series.length}
+                            entries={managedEntries}
+                            resolvedNames={{}}
+                            entriesTabLabel={t('echart.seriesTab')}
+                            selectHint={t('echart.pickSeries')}
+                            emptyState={t('echart.noSeriesYet')}
+                            addLabel={t('echart.addSeries')}
+                            /* Tab order follows the decisions: the mode decides what a series even is,
                        the number format is the default every series inherits — both belong in
                        FRONT of the series, and each in its own tab so nothing pushes the series
                        list down the dialog (issue #600). */
-                        entriesTabIndex={2}
-                        tabs={[
-                            {
-                                key: 'mode',
-                                label: t('echart.modeTab'),
-                                node: <ChartModePanel mode={echartMode as EChartMode} onChange={setMode} />,
-                            },
-                            {
-                                key: 'format',
-                                label: t('echart.formatTab'),
-                                node: (
-                                    <ChartFormatPanel
-                                        decimals={o.decimals as number | undefined}
-                                        numberFormat={o.numberFormat as NumberFormat | undefined}
-                                        onChange={setO}
-                                    />
-                                ),
-                            },
-                            {
-                                key: 'values',
-                                label: t('echart.valuesTab'),
-                                node: (
-                                    <ChartValuesPanel
-                                        showValues={echartShowValues}
-                                        showStackPercent={echartShowStackPercent}
-                                        anyStack={anyStack}
-                                        anyPeriod={anyPeriod}
-                                        periodPlacement={
-                                            (o.echartPeriodPlacement as 'legend' | 'row' | undefined) ?? 'legend'
+                            entriesTabIndex={2}
+                            tabs={[
+                                {
+                                    key: 'mode',
+                                    label: t('echart.modeTab'),
+                                    node: <ChartModePanel mode={echartMode as EChartMode} onChange={setMode} />,
+                                },
+                                {
+                                    key: 'format',
+                                    label: t('echart.formatTab'),
+                                    node: (
+                                        <ChartFormatPanel
+                                            decimals={o.decimals as number | undefined}
+                                            numberFormat={o.numberFormat as NumberFormat | undefined}
+                                            onChange={setO}
+                                        />
+                                    ),
+                                },
+                                {
+                                    key: 'values',
+                                    label: t('echart.valuesTab'),
+                                    node: (
+                                        <ChartValuesPanel
+                                            showValues={echartShowValues}
+                                            showStackPercent={echartShowStackPercent}
+                                            anyStack={anyStack}
+                                            anyPeriod={anyPeriod}
+                                            periodPlacement={
+                                                (o.echartPeriodPlacement as 'legend' | 'row' | undefined) ?? 'legend'
+                                            }
+                                            onChange={setO}
+                                        />
+                                    ),
+                                },
+                            ]}
+                            onAdd={addSeries}
+                            onRemove={removeSeries}
+                            onRemoveAll={() => setO({ echartSeries: [] })}
+                            onReorder={reorderSeries}
+                            renderDetail={(id) => {
+                                const s = series.find((x) => x.id === id);
+                                if (!s) return null;
+                                return (
+                                    <ChartSeriesDetail
+                                        s={s}
+                                        isComparison={isComparison}
+                                        isJson={isJson}
+                                        allSeriesJson={
+                                            series.length > 0 && series.every((x) => isJson || x.source === 'json')
                                         }
-                                        onChange={setO}
+                                        echartShowValues={echartShowValues}
+                                        chartDecimals={chartDecimals}
+                                        chartNumberFormat={chartNumberFormat}
+                                        jsonTimeAxis={jsonTimeAxis}
+                                        jsonAxisBounds={jsonAxisBounds}
+                                        probe={jsonProbes[s.id]}
+                                        adState={adapterStates[s.id]}
+                                        update={(patch) => updateSeries(s.id, patch)}
+                                        onTransform={(patch) => setSeriesTransform(s.id, patch)}
+                                        onDatapointChange={(dpId) => changeSeriesDatapoint(s.id, dpId)}
+                                        onDetect={() => refreshAdapters(s.id, s.datapointId)}
+                                        onWidgetOption={setO}
+                                        onAddComparison={() => addComparisonSeries(s.id)}
                                     />
-                                ),
-                            },
-                        ]}
-                        onAdd={addSeries}
-                        onRemove={removeSeries}
-                        onRemoveAll={() => setO({ echartSeries: [] })}
-                        onReorder={reorderSeries}
-                        renderDetail={(id) => {
-                            const s = series.find((x) => x.id === id);
-                            if (!s) return null;
-                            return (
-                                <ChartSeriesDetail
-                                    s={s}
-                                    isComparison={isComparison}
-                                    isJson={isJson}
-                                    allSeriesJson={
-                                        series.length > 0 && series.every((x) => isJson || x.source === 'json')
-                                    }
-                                    echartShowValues={echartShowValues}
-                                    chartDecimals={chartDecimals}
-                                    chartNumberFormat={chartNumberFormat}
-                                    jsonTimeAxis={jsonTimeAxis}
-                                    jsonAxisBounds={jsonAxisBounds}
-                                    probe={jsonProbes[s.id]}
-                                    adState={adapterStates[s.id]}
-                                    update={(patch) => updateSeries(s.id, patch)}
-                                    onTransform={(patch) => setSeriesTransform(s.id, patch)}
-                                    onDatapointChange={(dpId) => changeSeriesDatapoint(s.id, dpId)}
-                                    onDetect={() => refreshAdapters(s.id, s.datapointId)}
-                                    onWidgetOption={setO}
-                                    onAddComparison={() => addComparisonSeries(s.id)}
-                                />
-                            );
-                        }}
-                    />
-                </div>
+                                );
+                            }}
+                        />
+                    </div>
+                </>
             </ConfigSection>
-            {anyHistory && (
-                <ConfigSection title="Zeitraum" sectionKey="range">
-                    <div className="mb-2">
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.timeRange')}
-                        </label>
-                        <div className="flex gap-1 flex-wrap">
-                            {CHART_RANGES.map((r) => (
-                                <button
-                                    key={r}
-                                    onClick={() => setO({ echartRange: r })}
-                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                    style={{
-                                        background: echartRange === r ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: echartRange === r ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${echartRange === r ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        minWidth: 36,
-                                    }}
-                                >
-                                    {RANGE_LABELS[r]}
-                                </button>
-                            ))}
-                        </div>
-                        {echartRange === 'custom' && (
-                            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                                <input
-                                    type="number"
-                                    min={1}
-                                    max={999}
-                                    value={echartRangeCustomValue}
-                                    onChange={(e) =>
-                                        setO({ echartRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })
-                                    }
-                                    className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
-                                    style={inputStyle}
-                                />
-                                {RANGE_UNITS.map((u) => (
+            <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                {anyHistory && (
+                    <SubGroup title="Zeitraum">
+                        <div className="mb-2">
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.timeRange')}
+                            </label>
+                            <div className="flex gap-1 flex-wrap">
+                                {CHART_RANGES.map((r) => (
                                     <button
-                                        key={u}
-                                        onClick={() => setO({ echartRangeCustomUnit: u })}
-                                        className="text-[11px] px-2 py-1 rounded-md transition-opacity hover:opacity-80"
+                                        key={r}
+                                        onClick={() => setO({ echartRange: r })}
+                                        className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
                                         style={{
-                                            background: echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: echartRangeCustomUnit === u ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            background: echartRange === r ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: echartRange === r ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${echartRange === r ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            minWidth: 36,
                                         }}
                                     >
-                                        {t(`rangeChips.unit.${u}`)}
+                                        {RANGE_LABELS[r]}
                                     </button>
                                 ))}
                             </div>
-                        )}
-                        {!lockRange && !hasOwnChips && (
-                            <div className="mt-2">
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('echart.visibleRanges')}
-                                </label>
-                                <div className="flex gap-1 flex-wrap">
-                                    {frontendPresets.map((r) => {
-                                        const active = visibleRanges.includes(r);
-                                        return (
-                                            <button
-                                                key={r}
-                                                onClick={() => toggleVisibleRange(r)}
-                                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                                style={{
-                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                    minWidth: 36,
-                                                }}
-                                            >
-                                                {RANGE_LABELS[r]}
-                                            </button>
-                                        );
-                                    })}
+                            {echartRange === 'custom' && (
+                                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={999}
+                                        value={echartRangeCustomValue}
+                                        onChange={(e) =>
+                                            setO({ echartRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })
+                                        }
+                                        className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
+                                        style={inputStyle}
+                                    />
+                                    {RANGE_UNITS.map((u) => (
+                                        <button
+                                            key={u}
+                                            onClick={() => setO({ echartRangeCustomUnit: u })}
+                                            className="text-[11px] px-2 py-1 rounded-md transition-opacity hover:opacity-80"
+                                            style={{
+                                                background:
+                                                    echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: echartRangeCustomUnit === u ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {t(`rangeChips.unit.${u}`)}
+                                        </button>
+                                    ))}
                                 </div>
-                            </div>
-                        )}
-                        {!lockRange && (
-                            <RangeChipsEditor
-                                value={o.rangeChips}
-                                defaults={[
-                                    ...visibleRanges,
-                                    ...(echartRange === 'custom'
-                                        ? [rangeKey('custom', echartRangeCustomValue, echartRangeCustomUnit)]
-                                        : []),
-                                ]}
-                                onChange={(next) => setO({ rangeChips: next })}
-                            />
-                        )}
-                        <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={lockRange}
-                                onChange={(e) => setO({ lockRange: e.target.checked })}
-                                className="rounded"
-                            />
-                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('echart.lockRangeToggle')}
-                            </span>
-                        </label>
-                        <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                            <input
-                                type="checkbox"
-                                checked={dayNav}
-                                onChange={(e) => setO({ echartDayNav: e.target.checked })}
-                                className="rounded"
-                            />
-                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('echart.dayNavToggle')}
-                            </span>
-                        </label>
-                        {dayNav && (
-                            <label className="flex items-center gap-2 mt-2 ml-5 cursor-pointer select-none">
+                            )}
+                            {!lockRange && !hasOwnChips && (
+                                <div className="mt-2">
+                                    <label
+                                        className="text-[11px] mb-1 block"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('echart.visibleRanges')}
+                                    </label>
+                                    <div className="flex gap-1 flex-wrap">
+                                        {frontendPresets.map((r) => {
+                                            const active = visibleRanges.includes(r);
+                                            return (
+                                                <button
+                                                    key={r}
+                                                    onClick={() => toggleVisibleRange(r)}
+                                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                    style={{
+                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        minWidth: 36,
+                                                    }}
+                                                >
+                                                    {RANGE_LABELS[r]}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                            {!lockRange && (
+                                <RangeChipsEditor
+                                    value={o.rangeChips}
+                                    defaults={[
+                                        ...visibleRanges,
+                                        ...(echartRange === 'custom'
+                                            ? [rangeKey('custom', echartRangeCustomValue, echartRangeCustomUnit)]
+                                            : []),
+                                    ]}
+                                    onChange={(next) => setO({ rangeChips: next })}
+                                />
+                            )}
+                            <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                                 <input
                                     type="checkbox"
-                                    checked={dayNavDefault}
-                                    onChange={(e) => setO({ echartDayNavDefault: e.target.checked })}
+                                    checked={lockRange}
+                                    onChange={(e) => setO({ lockRange: e.target.checked })}
                                     className="rounded"
                                 />
                                 <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('echart.dayNavDefaultToggle')}
+                                    {t('echart.lockRangeToggle')}
                                 </span>
                             </label>
-                        )}
+                            <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={dayNav}
+                                    onChange={(e) => setO({ echartDayNav: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('echart.dayNavToggle')}
+                                </span>
+                            </label>
+                            {dayNav && (
+                                <label className="flex items-center gap-2 mt-2 ml-5 cursor-pointer select-none">
+                                    <input
+                                        type="checkbox"
+                                        checked={dayNavDefault}
+                                        onChange={(e) => setO({ echartDayNavDefault: e.target.checked })}
+                                        className="rounded"
+                                    />
+                                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('echart.dayNavDefaultToggle')}
+                                    </span>
+                                </label>
+                            )}
+                        </div>
+                    </SubGroup>
+                )}
+                <SubGroup title="Achsen">
+                    {/* Left Y-Axis */}
+                    <div className="mb-2">
+                        <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.yAxisLeft')}
+                        </p>
+                        <div className="flex gap-1.5 mb-1">
+                            <input
+                                type="text"
+                                value={echartLeftUnit}
+                                onChange={(e) => setO({ echartLeftUnit: e.target.value || undefined })}
+                                placeholder={t('echart.unitLeft')}
+                                className={`${inputCls} flex-1`}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <AxisBoundRow
+                                valueKey="echartLeftMin"
+                                dpKey="echartLeftMinDp"
+                                autoToken="dataMin"
+                                placeholder={t('echart.min')}
+                                o={o}
+                                setO={setO}
+                                onPickDp={() => setPickerForBound('echartLeftMinDp')}
+                            />
+                            <AxisBoundRow
+                                valueKey="echartLeftMax"
+                                dpKey="echartLeftMaxDp"
+                                autoToken="dataMax"
+                                placeholder={t('echart.max')}
+                                o={o}
+                                setO={setO}
+                                onPickDp={() => setPickerForBound('echartLeftMaxDp')}
+                            />
+                        </div>
                     </div>
-                </ConfigSection>
-            )}
-            <ConfigSection title="Achsen" sectionKey="axes">
-                {/* Left Y-Axis */}
-                <div className="mb-2">
-                    <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.yAxisLeft')}
-                    </p>
-                    <div className="flex gap-1.5 mb-1">
-                        <input
-                            type="text"
-                            value={echartLeftUnit}
-                            onChange={(e) => setO({ echartLeftUnit: e.target.value || undefined })}
-                            placeholder={t('echart.unitLeft')}
-                            className={`${inputCls} flex-1`}
-                            style={inputStyle}
-                        />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <AxisBoundRow
-                            valueKey="echartLeftMin"
-                            dpKey="echartLeftMinDp"
-                            autoToken="dataMin"
-                            placeholder={t('echart.min')}
-                            o={o}
-                            setO={setO}
-                            onPickDp={() => setPickerForBound('echartLeftMinDp')}
-                        />
-                        <AxisBoundRow
-                            valueKey="echartLeftMax"
-                            dpKey="echartLeftMaxDp"
-                            autoToken="dataMax"
-                            placeholder={t('echart.max')}
-                            o={o}
-                            setO={setO}
-                            onPickDp={() => setPickerForBound('echartLeftMaxDp')}
-                        />
-                    </div>
-                </div>
 
-                {/* Right Y-Axis */}
-                <div className="mb-2">
-                    <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.yAxisRight')}
+                    {/* Right Y-Axis */}
+                    <div className="mb-2">
+                        <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.yAxisRight')}
+                        </p>
+                        <div className="flex gap-1.5 mb-1">
+                            <input
+                                type="text"
+                                value={echartRightUnit}
+                                onChange={(e) => setO({ echartRightUnit: e.target.value || undefined })}
+                                placeholder={t('echart.unitRight')}
+                                className={`${inputCls} flex-1`}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <AxisBoundRow
+                                valueKey="echartRightMin"
+                                dpKey="echartRightMinDp"
+                                autoToken="dataMin"
+                                placeholder={t('echart.min')}
+                                o={o}
+                                setO={setO}
+                                onPickDp={() => setPickerForBound('echartRightMinDp')}
+                            />
+                            <AxisBoundRow
+                                valueKey="echartRightMax"
+                                dpKey="echartRightMaxDp"
+                                autoToken="dataMax"
+                                placeholder={t('echart.max')}
+                                o={o}
+                                setO={setO}
+                                onPickDp={() => setPickerForBound('echartRightMaxDp')}
+                            />
+                        </div>
+                    </div>
+                </SubGroup>
+                <SubGroup title={t('echart.jsonOverride')} count={echartJsonExtra ? t('echart.active') : undefined}>
+                    <p className="text-[10px] mb-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.jsonOverrideHint')}
                     </p>
-                    <div className="flex gap-1.5 mb-1">
-                        <input
-                            type="text"
-                            value={echartRightUnit}
-                            onChange={(e) => setO({ echartRightUnit: e.target.value || undefined })}
-                            placeholder={t('echart.unitRight')}
-                            className={`${inputCls} flex-1`}
-                            style={inputStyle}
-                        />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                        <AxisBoundRow
-                            valueKey="echartRightMin"
-                            dpKey="echartRightMinDp"
-                            autoToken="dataMin"
-                            placeholder={t('echart.min')}
-                            o={o}
-                            setO={setO}
-                            onPickDp={() => setPickerForBound('echartRightMinDp')}
-                        />
-                        <AxisBoundRow
-                            valueKey="echartRightMax"
-                            dpKey="echartRightMaxDp"
-                            autoToken="dataMax"
-                            placeholder={t('echart.max')}
-                            o={o}
-                            setO={setO}
-                            onPickDp={() => setPickerForBound('echartRightMaxDp')}
-                        />
-                    </div>
-                </div>
+                    <textarea
+                        value={echartJsonExtra}
+                        onChange={(e) => setO({ echartJsonExtra: e.target.value || undefined })}
+                        placeholder={'{\n  "series": [...]\n}'}
+                        rows={6}
+                        className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none resize-y"
+                        style={inputStyle}
+                    />
+                </SubGroup>
             </ConfigSection>
             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
-                {/* Animation */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.animation')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartAnimation: !echartAnimation })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartAnimation ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartAnimation ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-            </ConfigSection>
-            <ConfigSection
-                title={t('echart.jsonOverride')}
-                sectionKey="json"
-                count={echartJsonExtra ? t('echart.active') : undefined}
-            >
-                <p className="text-[10px] mb-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
-                    {t('echart.jsonOverrideHint')}
-                </p>
-                <textarea
-                    value={echartJsonExtra}
-                    onChange={(e) => setO({ echartJsonExtra: e.target.value || undefined })}
-                    placeholder={'{\n  "series": [...]\n}'}
-                    rows={6}
-                    className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none resize-y"
-                    style={inputStyle}
-                />
+                <>
+                    {/* Animation */}
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.animation')}
+                        </label>
+                        <button
+                            onClick={() => setO({ echartAnimation: !echartAnimation })}
+                            className="relative w-9 h-5 rounded-full transition-colors"
+                            style={{ background: echartAnimation ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: echartAnimation ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                </>
             </ConfigSection>
 
             {/* Datapoint Picker Modal */}

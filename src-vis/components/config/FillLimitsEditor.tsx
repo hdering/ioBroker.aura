@@ -6,7 +6,7 @@
  * rows stay in configuration order while editing; the widget sorts them up the scale
  * at render time, so moving a limit past its neighbour needs no bookkeeping here.
  */
-import { ConfigSection } from './ConfigSection';
+import { SubGroup } from './ConfigSection';
 import { useState } from 'react';
 import { Database, Plus, Trash2 } from 'lucide-react';
 import { ConfigModal } from './ConfigModal';
@@ -414,7 +414,7 @@ export function FillLimitsSection({
         // configured would leave the author hunting for markers that never appear.
         if (!limits.length) return null;
         return (
-            <ConfigSection title="Grenzen" sectionKey="limits">
+            <SubGroup title="Grenzen">
                 <p
                     className="text-[10px] leading-snug rounded-lg px-2 py-1.5"
                     style={{
@@ -426,12 +426,12 @@ export function FillLimitsSection({
                     Layout zeigt sie aber nicht. Grenzen gibt es in Tank, Batterie und Balken. Die Einstellungen bleiben
                     erhalten.
                 </p>
-            </ConfigSection>
+            </SubGroup>
         );
     }
 
     return (
-        <ConfigSection title="Grenzen" sectionKey="limits">
+        <SubGroup title="Grenzen">
             <button
                 onClick={() => setOpen(true)}
                 className="w-full text-xs rounded-lg px-2.5 py-2 text-left hover:opacity-80"
@@ -464,6 +464,6 @@ export function FillLimitsSection({
                     onClose={() => setOpen(false)}
                 />
             )}
-        </ConfigSection>
+        </SubGroup>
     );
 }

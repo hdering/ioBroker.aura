@@ -407,20 +407,35 @@ const markers = [
     await page.locator('button:text-is("Bearbeiten")').first().click();
     // The widget editor is a CenteredModal without a class of its own; the hooks below are unique.
     const modal = page;
-    // Every section starts folded; marker cards start folded too.
-    const markerSection = modal.locator('details', { has: page.locator('summary:has-text("Marker (2)")') });
-    const lineSection = modal.locator('details', { has: page.locator('[data-aura-map-add-line]') });
-    const sectionState = await page.evaluate(() =>
-        [...document.querySelectorAll('details')]
-            .map((d) => ({ title: d.querySelector('summary')?.textContent ?? '', open: d.open }))
-            .filter((s) => /^(Kartentyp|Marker|Linien|Schnellzugriff|Ansicht)/.test(s.title)),
-    );
+    // Every section starts folded; marker cards start folded too. Markers, lines and chips are
+    // topics in "Datenpunkte", map type and view topics in "Einstellungen".
+    const dpSection = modal.locator('details[data-aura-config-section="datapoints"]');
+    const markerSection = dpSection
+        .locator('[data-aura-subgroup]')
+        .filter({ has: page.locator('span:text-is("Marker")') });
+    const sectionState = await page.evaluate(() => ({
+        open: [...document.querySelectorAll('.aura-widget-edit-modal details[data-aura-config-section]')]
+            .filter((d) => d.open)
+            .map((d) => d.getAttribute('data-aura-config-section')),
+        topics: [
+            ...document.querySelectorAll(
+                '.aura-widget-edit-modal [data-aura-subgroup] > div > span > span:first-child',
+            ),
+        ].map((s) => s.textContent),
+    }));
     check(
         'all map sections folded on open',
-        sectionState.length === 5 && sectionState.every((s) => !s.open),
+        sectionState.open.length === 0 &&
+            ['Marker', 'Linien', 'Schnellzugriff-Chips', 'Kartentyp', 'Ansicht'].every((t) =>
+                sectionState.topics.includes(t),
+            ),
         JSON.stringify(sectionState),
     );
-    await markerSection.locator('summary').click();
+    check(
+        'marker count in the topic heading',
+        (await markerSection.locator(':scope > div').first().textContent()).includes('2'),
+    );
+    await dpSection.locator(':scope > summary').click();
     check(
         'marker cards start folded',
         (await markerSection.locator('[data-aura-map-item-toggle][aria-expanded="false"]').count()) === 2 &&
@@ -431,7 +446,7 @@ const markers = [
     await markerSection.locator('[data-aura-map-item-toggle]').first().click();
     check('and folds again', (await markerSection.locator('select').count()) === 0);
     await modal.locator('[data-aura-map-add-line]').click();
-    check('"+ Linie" opens the folded section', (await lineSection.getAttribute('open')) !== null);
+    check('"+ Linie" keeps the datapoints section open', (await dpSection.getAttribute('open')) !== null);
     const opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
     const line = opts?.lines?.[0];
     check(
@@ -467,7 +482,7 @@ const markers = [
     await page.locator('.aura-edit-chrome button').first().click();
     await page.locator('button:text-is("Bearbeiten")').first().click();
     const legacy = page.locator('[data-aura-map-legacy-tiles]');
-    await page.locator('summary:has-text("Eigener Kachel-Server")').click();
+    await page.locator('.aura-widget-edit-modal details[data-aura-config-section="settings"] > summary').click();
     check('legacy tile server shown read-only', await legacy.locator('input').evaluate((el) => el.readOnly));
     await legacy.locator('button').click();
     const opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);

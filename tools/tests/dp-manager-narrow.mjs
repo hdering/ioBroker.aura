@@ -29,6 +29,8 @@ async function openDialog(width) {
     page.on('pageerror', (e) => console.log('  [pageerror]', e.message));
     await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    // The edit dialog folds every section; this test fills in settings, so open them all.
+    await page.evaluate(() => window.__auraShot.unfoldSections());
     await page.evaluate((entries) => {
         window.__auraShot.mock({});
         window.__auraShot.showWidgets(

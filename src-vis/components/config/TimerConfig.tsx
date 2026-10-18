@@ -12,7 +12,8 @@ import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { AuraIcon } from '../common/AuraIcon';
-import { ConfigSection } from './ConfigSection';
+import { ConfigSection, SubGroup } from './ConfigSection';
+import { useT } from '../../i18n';
 import { VisibleFieldsSection } from './VisibleFieldsSection';
 
 function toIconifyId(name: string): string {
@@ -162,6 +163,7 @@ function FrontendEditableToggle({
 }
 
 export function TimerConfig({ config, onConfigChange }: Props) {
+    const t = useT();
     const o = config.options ?? {};
     const targetDp = (o.targetDp as string | undefined) ?? '';
     const extraTargetDps = (o.extraTargetDps as string[] | undefined) ?? [];
@@ -301,60 +303,28 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                     ]}
                 />
 
-                {/* ── Ziel-Aktion (admin-only) ─────────────────────────────────── */}
-                <ConfigSection title="Ziel-Aktion" sectionKey="target">
-                    <p className={hintCls} style={hintStyle}>
-                        Was das Widget tut, wenn ein Ereignis auslöst. Nur hier (Admin) konfigurierbar — der Anwender
-                        legt nur Zeiten fest.
-                    </p>
-
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Ziel-Datenpunkt
-                        </label>
-                        <div className="flex gap-1">
-                            <input
-                                type="text"
-                                value={targetDp}
-                                onChange={(e) => setOpts({ targetDp: e.target.value || undefined })}
-                                placeholder="z.B. hue.0.light.1.on"
-                                className={`flex-1 font-mono min-w-0 ${inputCls}`}
-                                style={inputStyle}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setPickerTarget('target')}
-                                className="px-2 rounded-lg shrink-0"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                <Database size={13} />
-                            </button>
-                            {/* Same width as the remove button below, so all inputs line up. */}
-                            {extraTargetDps.length > 0 && (
-                                <span className="px-1.5 shrink-0 invisible" aria-hidden>
-                                    <X size={13} />
-                                </span>
-                            )}
-                        </div>
-                        {extraTargetDps.map((dp, i) => (
-                            <div key={i} className="flex gap-1 mt-1">
+                <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                    <SubGroup title="Ziel-Aktion">
+                        <p className={hintCls} style={hintStyle}>
+                            Was das Widget tut, wenn ein Ereignis auslöst. Nur hier (Admin) konfigurierbar — der
+                            Anwender legt nur Zeiten fest.
+                        </p>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Ziel-Datenpunkt
+                            </label>
+                            <div className="flex gap-1">
                                 <input
                                     type="text"
-                                    value={dp}
-                                    onChange={(e) =>
-                                        setExtra(extraTargetDps.map((v, j) => (j === i ? e.target.value : v)))
-                                    }
-                                    placeholder="weiterer Datenpunkt"
+                                    value={targetDp}
+                                    onChange={(e) => setOpts({ targetDp: e.target.value || undefined })}
+                                    placeholder="z.B. hue.0.light.1.on"
                                     className={`flex-1 font-mono min-w-0 ${inputCls}`}
                                     style={inputStyle}
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => setPickerTarget(i)}
+                                    onClick={() => setPickerTarget('target')}
                                     className="px-2 rounded-lg shrink-0"
                                     style={{
                                         background: 'var(--app-bg)',
@@ -364,49 +334,199 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                 >
                                     <Database size={13} />
                                 </button>
+                                {/* Same width as the remove button below, so all inputs line up. */}
+                                {extraTargetDps.length > 0 && (
+                                    <span className="px-1.5 shrink-0 invisible" aria-hidden>
+                                        <X size={13} />
+                                    </span>
+                                )}
+                            </div>
+                            {extraTargetDps.map((dp, i) => (
+                                <div key={i} className="flex gap-1 mt-1">
+                                    <input
+                                        type="text"
+                                        value={dp}
+                                        onChange={(e) =>
+                                            setExtra(extraTargetDps.map((v, j) => (j === i ? e.target.value : v)))
+                                        }
+                                        placeholder="weiterer Datenpunkt"
+                                        className={`flex-1 font-mono min-w-0 ${inputCls}`}
+                                        style={inputStyle}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setPickerTarget(i)}
+                                        className="px-2 rounded-lg shrink-0"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        <Database size={13} />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExtra(extraTargetDps.filter((_, j) => j !== i))}
+                                        className="px-1.5 rounded-lg shrink-0 hover:opacity-70"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                        title="Datenpunkt entfernen"
+                                    >
+                                        <X size={13} />
+                                    </button>
+                                </div>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={() => setExtra([...extraTargetDps, ''])}
+                                className="mt-1 flex items-center gap-1 text-[11px] hover:opacity-80"
+                                style={{ color: 'var(--accent)' }}
+                            >
+                                <Plus size={12} /> Weiterer Datenpunkt
+                            </button>
+                            <p className={hintCls} style={hintStyle}>
+                                Alle Datenpunkte bekommen beim Auslösen denselben Wert — z. B. mehrere Thermostate.
+                            </p>
+                        </div>
+                    </SubGroup>
+                    <SubGroup title="Sondertage">
+                        <div className={hintCls} style={hintStyle}>
+                            <p>
+                                Quell-DPs für die Filter {'„Feiertage“'} / {'„Urlaub“'} / {'„ohne Sondertage“'}. Der
+                                DP-Wert ist <b>entweder</b>:
+                            </p>
+                            <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
+                                <li>
+                                    <b>Boolean</b> – <code className="font-mono">true</code> = heute ist Sondertag,{' '}
+                                    <code className="font-mono">false</code> = nicht
+                                </li>
+                                <li>
+                                    <b>oder JSON-Array</b> – Tage <code className="font-mono">YYYY-MM-DD</code> und
+                                    Zeiträume <code className="font-mono">YYYY-MM-DD/YYYY-MM-DD</code> (beide Enden
+                                    inklusive), beliebig gemischt
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Feiertage-DP
+                            </label>
+                            <div className="flex gap-1">
+                                <input
+                                    type="text"
+                                    value={holidaysDp}
+                                    onChange={(e) => setOpts({ holidaysDp: e.target.value || undefined })}
+                                    placeholder="z.B. 0_userdata.0.feiertage"
+                                    className={`flex-1 font-mono min-w-0 ${inputCls}`}
+                                    style={inputStyle}
+                                />
                                 <button
                                     type="button"
-                                    onClick={() => setExtra(extraTargetDps.filter((_, j) => j !== i))}
-                                    className="px-1.5 rounded-lg shrink-0 hover:opacity-70"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                    title="Datenpunkt entfernen"
+                                    onClick={() => setPickerTarget('holidays')}
+                                    className="px-2 rounded-lg shrink-0"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
                                 >
-                                    <X size={13} />
+                                    <Database size={13} />
                                 </button>
                             </div>
-                        ))}
-                        <button
-                            type="button"
-                            onClick={() => setExtra([...extraTargetDps, ''])}
-                            className="mt-1 flex items-center gap-1 text-[11px] hover:opacity-80"
-                            style={{ color: 'var(--accent)' }}
-                        >
-                            <Plus size={12} /> Weiterer Datenpunkt
-                        </button>
+                            <SpecialDayExamples examples={HOLIDAY_EXAMPLES} />
+                        </div>
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Urlaub-DP
+                            </label>
+                            <div className="flex gap-1">
+                                <input
+                                    type="text"
+                                    value={vacationDp}
+                                    onChange={(e) => setOpts({ vacationDp: e.target.value || undefined })}
+                                    placeholder="z.B. 0_userdata.0.urlaub"
+                                    className={`flex-1 font-mono min-w-0 ${inputCls}`}
+                                    style={inputStyle}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setPickerTarget('vacation')}
+                                    className="px-2 rounded-lg shrink-0"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    <Database size={13} />
+                                </button>
+                            </div>
+                            <SpecialDayExamples examples={VACATION_EXAMPLES} />
+                        </div>
                         <p className={hintCls} style={hintStyle}>
-                            Alle Datenpunkte bekommen beim Auslösen denselben Wert — z. B. mehrere Thermostate.
+                            Tipp: Listen lassen sich im Frontend über die Kalender-Taste des Widgets pflegen — oder z.
+                            B. mit dem Adapter <code className="font-mono">iobroker.javascript</code> bzw. einer
+                            Blockly-Routine.
                         </p>
-                    </div>
-
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Wert beim Auslösen
-                        </label>
-                        <input
-                            type="text"
-                            value={value}
-                            onChange={(e) => setOpts({ value: e.target.value })}
-                            placeholder="true / false / 50 / Text"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                        <p className={hintCls} style={hintStyle}>
-                            {
-                                'Wird automatisch als Boolean / Zahl / Text geparst. Bei „Zeitraum“-Ereignissen wird am Ende der invertierte Wert geschrieben.'
-                            }
-                        </p>
-                    </div>
-
+                    </SubGroup>
+                </ConfigSection>
+                <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                    <SubGroup title="Ziel-Aktion">
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Wert beim Auslösen
+                            </label>
+                            <input
+                                type="text"
+                                value={value}
+                                onChange={(e) => setOpts({ value: e.target.value })}
+                                placeholder="true / false / 50 / Text"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                            <p className={hintCls} style={hintStyle}>
+                                {
+                                    'Wird automatisch als Boolean / Zahl / Text geparst. Bei „Zeitraum“-Ereignissen wird am Ende der invertierte Wert geschrieben.'
+                                }
+                            </p>
+                        </div>
+                    </SubGroup>
+                    <SubGroup title="Sondertage">
+                        <div>
+                            <p className={labelCls} style={labelStyle}>
+                                Feiertage
+                            </p>
+                            <ExceptionValueField
+                                value={holidaysValue}
+                                disabled={!holidaysDp}
+                                placeholder="z.B. 18"
+                                onChange={(v) => setOpts({ holidaysValue: v || undefined })}
+                            />
+                            <FrontendEditableToggle
+                                value={holidaysEditable}
+                                disabled={!holidaysDp}
+                                onChange={(v) => setOpts({ holidaysEditable: v ? undefined : false })}
+                            />
+                        </div>
+                        <div>
+                            <p className={labelCls} style={labelStyle}>
+                                Urlaub
+                            </p>
+                            <ExceptionValueField
+                                value={vacationValue}
+                                disabled={!vacationDp}
+                                placeholder="z.B. 16"
+                                onChange={(v) => setOpts({ vacationValue: v || undefined })}
+                            />
+                            <FrontendEditableToggle
+                                value={vacationEditable}
+                                disabled={!vacationDp}
+                                onChange={(v) => setOpts({ vacationEditable: v ? undefined : false })}
+                            />
+                        </div>
+                    </SubGroup>
+                </ConfigSection>
+                <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
                     <div className="flex items-center justify-between pt-1">
                         <div className="min-w-0 pr-2">
                             <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
@@ -427,113 +547,6 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                             />
                         </button>
                     </div>
-                </ConfigSection>
-
-                {/* ── Sondertage (optional) ────────────────────────────────────── */}
-                <ConfigSection title="Sondertage" sectionKey="specialdays">
-                    <div className={hintCls} style={hintStyle}>
-                        <p>
-                            Quell-DPs für die Filter {'„Feiertage“'} / {'„Urlaub“'} / {'„ohne Sondertage“'}. Der DP-Wert
-                            ist <b>entweder</b>:
-                        </p>
-                        <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
-                            <li>
-                                <b>Boolean</b> – <code className="font-mono">true</code> = heute ist Sondertag,{' '}
-                                <code className="font-mono">false</code> = nicht
-                            </li>
-                            <li>
-                                <b>oder JSON-Array</b> – Tage <code className="font-mono">YYYY-MM-DD</code> und
-                                Zeiträume <code className="font-mono">YYYY-MM-DD/YYYY-MM-DD</code> (beide Enden
-                                inklusive), beliebig gemischt
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Feiertage-DP
-                        </label>
-                        <div className="flex gap-1">
-                            <input
-                                type="text"
-                                value={holidaysDp}
-                                onChange={(e) => setOpts({ holidaysDp: e.target.value || undefined })}
-                                placeholder="z.B. 0_userdata.0.feiertage"
-                                className={`flex-1 font-mono min-w-0 ${inputCls}`}
-                                style={inputStyle}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setPickerTarget('holidays')}
-                                className="px-2 rounded-lg shrink-0"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                <Database size={13} />
-                            </button>
-                        </div>
-                        <SpecialDayExamples examples={HOLIDAY_EXAMPLES} />
-                        <ExceptionValueField
-                            value={holidaysValue}
-                            disabled={!holidaysDp}
-                            placeholder="z.B. 18"
-                            onChange={(v) => setOpts({ holidaysValue: v || undefined })}
-                        />
-                        <FrontendEditableToggle
-                            value={holidaysEditable}
-                            disabled={!holidaysDp}
-                            onChange={(v) => setOpts({ holidaysEditable: v ? undefined : false })}
-                        />
-                    </div>
-
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Urlaub-DP
-                        </label>
-                        <div className="flex gap-1">
-                            <input
-                                type="text"
-                                value={vacationDp}
-                                onChange={(e) => setOpts({ vacationDp: e.target.value || undefined })}
-                                placeholder="z.B. 0_userdata.0.urlaub"
-                                className={`flex-1 font-mono min-w-0 ${inputCls}`}
-                                style={inputStyle}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setPickerTarget('vacation')}
-                                className="px-2 rounded-lg shrink-0"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                <Database size={13} />
-                            </button>
-                        </div>
-                        <SpecialDayExamples examples={VACATION_EXAMPLES} />
-                        <ExceptionValueField
-                            value={vacationValue}
-                            disabled={!vacationDp}
-                            placeholder="z.B. 16"
-                            onChange={(v) => setOpts({ vacationValue: v || undefined })}
-                        />
-                        <FrontendEditableToggle
-                            value={vacationEditable}
-                            disabled={!vacationDp}
-                            onChange={(v) => setOpts({ vacationEditable: v ? undefined : false })}
-                        />
-                    </div>
-
-                    <p className={hintCls} style={hintStyle}>
-                        Tipp: Listen lassen sich im Frontend über die Kalender-Taste des Widgets pflegen — oder z. B.
-                        mit dem Adapter <code className="font-mono">iobroker.javascript</code> bzw. einer
-                        Blockly-Routine.
-                    </p>
                 </ConfigSection>
             </div>
         </>

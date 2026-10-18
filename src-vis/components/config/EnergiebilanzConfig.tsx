@@ -22,7 +22,7 @@ import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { AuraIcon } from '../common/AuraIcon';
 import { useT } from '../../i18n';
-import { ConfigSection } from './ConfigSection';
+import { ConfigSection, SubGroup } from './ConfigSection';
 import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 
 // Presets offered for the configured (default) time range.
@@ -802,192 +802,198 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                 values={o as unknown as Record<string, unknown>}
                 onChange={(patch) => setO(patch as Partial<EnergyBalanceOptions>)}
             />
-            <ConfigSection title="Balken" sectionKey="bars">
-                {/* ── Bars ── */}
-                {bars.map((b, idx) => (
-                    <BarSection
-                        key={b.id}
-                        bar={b}
-                        index={idx}
-                        total={bars.length}
-                        adapterStates={adapterStates}
-                        onUpdate={(patch) => updateBar(b.id, patch)}
-                        onRemove={() => removeBar(b.id)}
-                        onMove={(dir) => moveBar(idx, dir)}
-                        onRefreshAdapters={(entryId, dp) => detect(entryId, dp, true)}
-                    />
-                ))}
-                <button
-                    onClick={addBar}
-                    className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80"
-                    style={{ background: 'var(--accent)', color: '#fff' }}
-                >
-                    <Plus size={13} /> Gruppe hinzufügen
-                </button>
-            </ConfigSection>
-            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Diagrammtyp
-                    </label>
-                    <select
-                        value={o.chartStyle ?? 'bars'}
-                        onChange={(e) => setO({ chartStyle: e.target.value as EnergyBalanceOptions['chartStyle'] })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        <option value="bars">Balken</option>
-                        <option value="pie">Tortendiagramm</option>
-                        <option value="donut">Donut</option>
-                    </select>
-                </div>
-
-                {(o.chartStyle ?? 'bars') === 'bars' && (
-                    <div>
-                        <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Balken-Breite: {o.barWidth ?? 46} px
-                        </label>
-                        <input
-                            type="range"
-                            min={16}
-                            max={160}
-                            step={2}
-                            value={o.barWidth ?? 46}
-                            onChange={(e) => setO({ barWidth: Number(e.target.value) })}
-                            className="w-full"
-                            style={{ accentColor: 'var(--accent)' }}
+            <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
+                <>
+                    {/* ── Bars ── */}
+                    {bars.map((b, idx) => (
+                        <BarSection
+                            key={b.id}
+                            bar={b}
+                            index={idx}
+                            total={bars.length}
+                            adapterStates={adapterStates}
+                            onUpdate={(patch) => updateBar(b.id, patch)}
+                            onRemove={() => removeBar(b.id)}
+                            onMove={(dir) => moveBar(idx, dir)}
+                            onRefreshAdapters={(entryId, dp) => detect(entryId, dp, true)}
                         />
-                    </div>
-                )}
-
-                {(o.chartStyle ?? 'bars') === 'bars' && (
+                    ))}
+                    <button
+                        onClick={addBar}
+                        className="w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                    >
+                        <Plus size={13} /> Gruppe hinzufügen
+                    </button>
+                </>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                <SubGroup title="Zeitraum">
                     <div>
                         <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Stapelrichtung
+                            Zeitraum
                         </label>
                         <select
-                            value={o.barDirection ?? 'down'}
-                            onChange={(e) =>
-                                setO({ barDirection: e.target.value as EnergyBalanceOptions['barDirection'] })
-                            }
+                            value={range}
+                            onChange={(e) => setO({ range: e.target.value as EChartTimeRange })}
                             className={inputCls}
                             style={inputStyle}
                         >
-                            <option value="down">Erster Eintrag oben (Rest unten)</option>
-                            <option value="up">Erster Eintrag unten (Rest oben)</option>
+                            {DEFAULT_RANGES.map((r) => (
+                                <option key={r} value={r}>
+                                    {RANGE_LABELS[r]}
+                                </option>
+                            ))}
                         </select>
-                    </div>
-                )}
+                        {range === 'custom' && (
+                            <div className="flex items-center gap-1.5 mt-1.5">
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={o.rangeCustomValue ?? 24}
+                                    onChange={(e) => setO({ rangeCustomValue: Number(e.target.value) })}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                                <select
+                                    value={o.rangeCustomUnit ?? 'h'}
+                                    onChange={(e) => setO({ rangeCustomUnit: e.target.value as 'h' | 'd' })}
+                                    className="text-[11px] rounded px-2 py-1 focus:outline-none"
+                                    style={inputStyle}
+                                >
+                                    <option value="h">Stunden</option>
+                                    <option value="d">Tage</option>
+                                </select>
+                            </div>
+                        )}
 
-                {(o.chartStyle === 'pie' || o.chartStyle === 'donut') && (
+                        {/* Which ranges the frontend selector offers (hidden while locked) */}
+                        {!lockRange && (
+                            <div className="mt-2">
+                                <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Sichtbare Zeitbereiche im Frontend
+                                </label>
+                                <div className="flex gap-1 flex-wrap">
+                                    {FRONTEND_RANGES.map((r) => {
+                                        const active = visibleRanges.includes(r);
+                                        return (
+                                            <button
+                                                key={r}
+                                                onClick={() => toggleVisibleRange(r)}
+                                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    minWidth: 36,
+                                                }}
+                                            >
+                                                {RANGE_LABELS[r]}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={lockRange}
+                                onChange={(e) => setO({ lockRange: e.target.checked })}
+                                className="rounded"
+                            />
+                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Zeitraum im Frontend sperren
+                            </span>
+                        </label>
+                    </div>
+                </SubGroup>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                <>
                     <div>
                         <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Diagramm-Größe: {o.pieSize ?? 160} px
+                            Diagrammtyp
                         </label>
-                        <input
-                            type="range"
-                            min={80}
-                            max={400}
-                            step={10}
-                            value={o.pieSize ?? 160}
-                            onChange={(e) => setO({ pieSize: Number(e.target.value) })}
-                            className="w-full"
-                            style={{ accentColor: 'var(--accent)' }}
-                        />
+                        <select
+                            value={o.chartStyle ?? 'bars'}
+                            onChange={(e) => setO({ chartStyle: e.target.value as EnergyBalanceOptions['chartStyle'] })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="bars">Balken</option>
+                            <option value="pie">Tortendiagramm</option>
+                            <option value="donut">Donut</option>
+                        </select>
                     </div>
-                )}
 
-                <ValueFormatRow
-                    unit={o.unit}
-                    unitPlaceholder="kWh"
-                    onUnitChange={(v) => setO({ unit: v })}
-                    decimals={o.decimals}
-                    numberFormat={o.numberFormat}
-                    onChange={setO}
-                    inputClassName={inputCls}
-                    inputStyle={inputStyle}
-                />
-            </ConfigSection>
-            <ConfigSection title="Zeitraum" sectionKey="range">
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Zeitraum
-                    </label>
-                    <select
-                        value={range}
-                        onChange={(e) => setO({ range: e.target.value as EChartTimeRange })}
-                        className={inputCls}
-                        style={inputStyle}
-                    >
-                        {DEFAULT_RANGES.map((r) => (
-                            <option key={r} value={r}>
-                                {RANGE_LABELS[r]}
-                            </option>
-                        ))}
-                    </select>
-                    {range === 'custom' && (
-                        <div className="flex items-center gap-1.5 mt-1.5">
+                    {(o.chartStyle ?? 'bars') === 'bars' && (
+                        <div>
+                            <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Balken-Breite: {o.barWidth ?? 46} px
+                            </label>
                             <input
-                                type="number"
-                                min={1}
-                                value={o.rangeCustomValue ?? 24}
-                                onChange={(e) => setO({ rangeCustomValue: Number(e.target.value) })}
+                                type="range"
+                                min={16}
+                                max={160}
+                                step={2}
+                                value={o.barWidth ?? 46}
+                                onChange={(e) => setO({ barWidth: Number(e.target.value) })}
+                                className="w-full"
+                                style={{ accentColor: 'var(--accent)' }}
+                            />
+                        </div>
+                    )}
+
+                    {(o.chartStyle ?? 'bars') === 'bars' && (
+                        <div>
+                            <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Stapelrichtung
+                            </label>
+                            <select
+                                value={o.barDirection ?? 'down'}
+                                onChange={(e) =>
+                                    setO({ barDirection: e.target.value as EnergyBalanceOptions['barDirection'] })
+                                }
                                 className={inputCls}
                                 style={inputStyle}
-                            />
-                            <select
-                                value={o.rangeCustomUnit ?? 'h'}
-                                onChange={(e) => setO({ rangeCustomUnit: e.target.value as 'h' | 'd' })}
-                                className="text-[11px] rounded px-2 py-1 focus:outline-none"
-                                style={inputStyle}
                             >
-                                <option value="h">Stunden</option>
-                                <option value="d">Tage</option>
+                                <option value="down">Erster Eintrag oben (Rest unten)</option>
+                                <option value="up">Erster Eintrag unten (Rest oben)</option>
                             </select>
                         </div>
                     )}
 
-                    {/* Which ranges the frontend selector offers (hidden while locked) */}
-                    {!lockRange && (
-                        <div className="mt-2">
+                    {(o.chartStyle === 'pie' || o.chartStyle === 'donut') && (
+                        <div>
                             <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Sichtbare Zeitbereiche im Frontend
+                                Diagramm-Größe: {o.pieSize ?? 160} px
                             </label>
-                            <div className="flex gap-1 flex-wrap">
-                                {FRONTEND_RANGES.map((r) => {
-                                    const active = visibleRanges.includes(r);
-                                    return (
-                                        <button
-                                            key={r}
-                                            onClick={() => toggleVisibleRange(r)}
-                                            className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                            style={{
-                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                color: active ? '#fff' : 'var(--text-secondary)',
-                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                minWidth: 36,
-                                            }}
-                                        >
-                                            {RANGE_LABELS[r]}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <input
+                                type="range"
+                                min={80}
+                                max={400}
+                                step={10}
+                                value={o.pieSize ?? 160}
+                                onChange={(e) => setO({ pieSize: Number(e.target.value) })}
+                                className="w-full"
+                                style={{ accentColor: 'var(--accent)' }}
+                            />
                         </div>
                     )}
 
-                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                        <input
-                            type="checkbox"
-                            checked={lockRange}
-                            onChange={(e) => setO({ lockRange: e.target.checked })}
-                            className="rounded"
-                        />
-                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Zeitraum im Frontend sperren
-                        </span>
-                    </label>
-                </div>
+                    <ValueFormatRow
+                        unit={o.unit}
+                        unitPlaceholder="kWh"
+                        onUnitChange={(v) => setO({ unit: v })}
+                        decimals={o.decimals}
+                        numberFormat={o.numberFormat}
+                        onChange={setO}
+                        inputClassName={inputCls}
+                        inputStyle={inputStyle}
+                    />
+                </>
             </ConfigSection>
         </>
     );

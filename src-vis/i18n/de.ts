@@ -2527,7 +2527,7 @@ export const de = {
     'evcc.slot.batterySoc': 'Batterie-Ladestand',
     'evcc.slot.batteryPower': 'Batterie-Leistung',
     'evcc.sourceSection': 'Datenquelle',
-    'evcc.dpSection': 'Datenpunkte',
+    'evcc.dpSection': 'Energiefluss',
     'evcc.dpSectionHint':
         'Überschreiben je Wert die Datenquelle. Vollständig gesetzt läuft das Widget ohne evcc – für jede PV-Anlage.',
     'evcc.pvPowerDp': 'Erzeugung (PV)',

@@ -108,3 +108,44 @@ export function SettingsSection({
         </ConfigSection>
     );
 }
+
+/**
+ * A topic inside one of the six sections (Skala, Schnellwahl, Zeitraum …): a heading,
+ * not foldable — the section around it folds. `count` and `action` work as on a section.
+ */
+export function SubGroup({
+    title,
+    count,
+    action,
+    className,
+    children,
+}: {
+    title: string;
+    count?: string;
+    action?: ReactNode;
+    /** Extra class, a hook for tests and custom CSS. */
+    className?: string;
+    children: ReactNode;
+}) {
+    return (
+        <div className={className ? `space-y-2.5 ${className}` : 'space-y-2.5'} data-aura-subgroup="">
+            <div className="flex items-center justify-between gap-2 pt-1">
+                <span className="flex items-baseline gap-1.5 min-w-0">
+                    <span className="text-[11px] font-semibold" style={{ color: 'var(--text-primary)' }}>
+                        {title}
+                    </span>
+                    {count && (
+                        <span
+                            className="text-[10px] tabular-nums"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                        >
+                            {count}
+                        </span>
+                    )}
+                </span>
+                {action}
+            </div>
+            {children}
+        </div>
+    );
+}

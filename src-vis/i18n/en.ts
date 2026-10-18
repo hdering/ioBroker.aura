@@ -2507,7 +2507,7 @@ export const en: Record<TranslationKey, string> = {
     'evcc.slot.batterySoc': 'Battery charge level',
     'evcc.slot.batteryPower': 'Battery power',
     'evcc.sourceSection': 'Data source',
-    'evcc.dpSection': 'Datapoints',
+    'evcc.dpSection': 'Energy flow',
     'evcc.dpSectionHint':
         'Override the data source per value. Filled in completely the widget runs without evcc – for any PV system.',
     'evcc.pvPowerDp': 'Production (PV)',

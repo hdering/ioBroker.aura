@@ -3,22 +3,27 @@
 Gilt für jeden Widget-Typ im Bearbeiten-Dialog (`src-vis/components/layout/WidgetFrame.tsx`) und damit auch für
 Popup-Ansichten (`PopupViewEditor` rendert denselben Dialog).
 
-## Reihenfolge
+## Reihenfolge – fester Rahmen
 
 ```
 Name · Widget-Typ · Layout
-▸ Darstellung              allgemein, eingeklappt
-▸ Erweitert                allgemein, eingeklappt
+▸ Darstellung              allgemein
+▸ Erweitert                allgemein
 [Gruppenaktion / Gruppe]
 ┃ TYP-LABEL
-┃ ▸ Sichtbare Felder       erster Abschnitt, sobald der Typ Ein-/Ausblenden-Schalter hat
-┃ ▸ Datenpunkte            bzw. Datenquelle
-┃ ▸ <Thema> …              Skala, Farbzonen, Schnellwahl, Lamellen, Vorhersage …
-┃ ▸ Optik                  Größen, Farben, Stil – nicht „Darstellung“ (Namenskollision)
-┃ ▸ Verhalten              Bestätigung, Schreibschutz, sendOnRelease, Rechte (allow*)
-┃ [Farbschwellen]
-┃ ▸ Status-Datenpunkte     immer letzter Abschnitt (test:status-items)
+┃ ▸ SICHTBARE FELDER       Ein-/Ausblenden-Schalter
+┃ ▸ DATENPUNKTE            alles, was Daten liefert (Datenpunkt, Quelle, Gerät, Instanz, Einträge, Reihen)
+┃ ▸ EINSTELLUNGEN          Widget-Eigenes; Themen als Unterüberschriften (SubGroup)
+┃ ▸ OPTIK                  Größen, Farben, Stil, Icons; Farbschwellen/Farbzonen als SubGroup
+┃ ▸ VERHALTEN              Bestätigung, Schreibschutz, Live-Vorschau, Rechte, Animation
+┃ ▸ STATUS-DATENPUNKTE     immer letzter Abschnitt
 ```
+
+Nur diese sechs Bereiche auf oberster Ebene (sectionKey visible/datapoints/settings/look/behavior,
+Status separat), in dieser Reihenfolge; ein Bereich ohne Inhalt entfällt. Alle eingeklappt.
+Ein Thema mit eigenem Datenpunkt (Licht-Helligkeit, Rollladen-Neigung, Gauge-Zeiger, Füllstand-Status):
+der Datenpunkt steht in „Datenpunkte“, der Rest in „Einstellungen“/„Optik“ – jeweils unter derselben
+Unterüberschrift. In „Einstellungen“ immer SubGroups, in den anderen Bereichen erst ab zwei Themen.
 
 ## Bausteine
 
@@ -26,10 +31,12 @@ Name · Widget-Typ · Layout
 |---|---|---|
 | `ConfigSection` | `config/ConfigSection.tsx` | einklappbarer Abschnitt, startet zu; `sectionKey` → `data-aura-config-section` |
 | `SettingsSection` | dto. | „Einstellungen“ für Typen ohne eigene Abschnitte (eingeklappt); reicht bei gegliederten Typen nur durch |
+| `SubGroup` | dto. | Unterüberschrift (Thema) in einem Bereich, nicht einklappbar; `count`, `action`, `className` |
+| `renderThresholds()` | `WidgetFrame.tsx` | Farbschwellen als SubGroup in „Optik“ |
 | `VisibleFieldsSection` | `config/VisibleFieldsSection.tsx` | „Sichtbare Felder“, eingeklappt mit Zähler `n/m` |
 | `ToggleRow` | dto. | die eine Schalter-Zeile; `visKey` → `data-aura-vis-key` |
 | `VIS_FIELDS_PER_TYPE` | `WidgetFrame.tsx` | Schalter ohne eigene Logik (`VisibleField`: auch `hint`, `invert`); der generische Block rendert sie |
-| `SECTIONED_EDIT_TYPES` | `WidgetFrame.tsx` | Typen mit eigenen Abschnitten; Farbschwellen werden dort ein eigener Abschnitt |
+| `SECTIONED_EDIT_TYPES` | `WidgetFrame.tsx` | Typen mit eigenen Abschnitten im festen Rahmen |
 | `NO_MAIN_DP_TYPES` | `WidgetFrame.tsx` | Typen ohne Haupt-Datenpunkt-Feld |
 | `renderMainDpField()` | `WidgetFrame.tsx` | Haupt-Datenpunkt; flache Typen bekommen ihn an der alten Stelle, gegliederte rufen ihn in ihrem Abschnitt „Datenpunkte“ auf – eigene Config-Komponenten (Slider, JSON-Tabelle) bekommen ihn als Prop `mainDpField` |
 | `SECTION_TITLE_CLS` | `config/ConfigSection.tsx` | eine Überschrift für alle Abschnitte, auch „Darstellung“, „Erweitert“, „Status-Datenpunkte“ |
