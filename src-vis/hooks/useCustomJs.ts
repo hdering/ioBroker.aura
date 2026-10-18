@@ -9,6 +9,7 @@ import {
 } from './useIoBroker';
 import { useEffectiveSettings } from './useEffectiveSettings';
 import { useConfigStore } from '../store/configStore';
+import { clearFns, registerFn, unregisterFn } from '../utils/fnRegistry';
 
 let auraInstalled = false;
 
@@ -27,6 +28,9 @@ function installAuraApi() {
         ) => getObjectViewDirect(type, startkey, endkey),
         sendTo: (target: string, command: string, payload: unknown, timeoutMs?: number) =>
             sendToDirect(target, command, payload, timeoutMs),
+        // Functions for `callback("name", dp)` in a list's value conversion (#794).
+        registerFn: (name: string, fn: (...args: unknown[]) => unknown) => registerFn(name, fn),
+        unregisterFn: (name: string) => unregisterFn(name),
     };
 }
 
@@ -124,6 +128,8 @@ export function useCustomJs(layoutId: string | undefined, sectionId: string | un
 
         return () => {
             cancelled = true;
+            // The next run registers its own callbacks; a switched-away layout's must not linger.
+            clearFns();
         };
     }, [code, enabled, inEditor, inEditorAllowed]);
 }

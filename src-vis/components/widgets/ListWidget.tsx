@@ -19,6 +19,7 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
+import { useFnsVersion } from '../../hooks/useFnsVersion';
 import { StatLine } from './StatLine';
 import { useDpTokenResolver } from './DynamicTitle';
 import { stripDpTokens } from '../../utils/dpTokens';
@@ -763,6 +764,8 @@ function EntryValue({
 
 export function ListWidget({ config, editMode }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as StaticListOptions, [config.options]);
+    // A `callback()` conversion re-runs once Custom JS registered its function (#794).
+    const fnsVersion = useFnsVersion();
     // Darstellung → "Höhe automatisch an Inhalt anpassen", or an auto-height popup-view:
     // render the full list without an inner scrollbar. measureRef publishes the height
     // so the Dashboard sizes the grid item to it (utils/autoHeight).
@@ -1082,7 +1085,8 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
     const sumInfo = useMemo(
         () => (opts.showSum ? computeListStats(visibleEntries, states, opts) : null),
-        [visibleEntries, states, opts],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [visibleEntries, states, opts, fnsVersion],
     );
 
     useEffect(() => {

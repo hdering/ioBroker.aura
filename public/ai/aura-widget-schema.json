@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.84.0",
+    "auraVersion": "0.85.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2887,7 +2887,7 @@
         },
         "valueExpr": {
           "type": "string",
-          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback(\"name\", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -3719,7 +3719,7 @@
         },
         "valueExpr": {
           "type": "string",
-          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback(\"name\", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -3967,7 +3967,7 @@
         },
         "valueExpr": {
           "type": "string",
-          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback(\"name\", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -4636,7 +4636,7 @@
         },
         "valueExpr": {
           "type": "string",
-          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback(\"name\", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value)."
         },
         "valueTimeFormat": {
           "type": "string",
@@ -7763,7 +7763,7 @@
         },
         "valueExpr": {
           "type": "string",
-          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback(\"name\", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value)."
         },
         "valueFactor": {
           "type": "number",
@@ -15359,7 +15359,7 @@
         },
         "valueExpr": {
           "type": "string",
-          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints)."
+          "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback(\"name\", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value)."
         },
         "valueFactor": {
           "type": "number",

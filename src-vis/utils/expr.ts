@@ -45,6 +45,12 @@ export interface ExprContext {
     /** Raw variable values: the reserved ones plus everything declared as `name:id`. */
     vars: Record<string, unknown>;
     ops: OpsContext;
+    /**
+     * Runs `callback("name", …)` — the functions Custom JS registered (issue #794).
+     * Only the value conversion passes it; without it `callback` yields `null`, so a
+     * binding whose text comes out of a datapoint cannot reach those functions.
+     */
+    callFn?: (name: string, args: unknown[]) => unknown;
 }
 
 /** Variables every binding knows without declaring them. */
@@ -121,13 +127,21 @@ const GLOBAL_FNS: Record<string, (...a: unknown[]) => unknown> = {
 
 const MATH_CONSTS: Record<string, number> = { PI: Math.PI, E: Math.E };
 
+/** Always parsed (the parse cache is shared), only callable where the context allows it. */
+const CALLBACK_FN = 'callback';
+
 function isCallable(name: string): boolean {
+    if (name === CALLBACK_FN) return true;
     if (name.startsWith('Math.')) return Object.prototype.hasOwnProperty.call(MATH_FNS, name.slice(5));
     if (Object.prototype.hasOwnProperty.call(GLOBAL_FNS, name)) return true;
     return BARE_MATH.has(name);
 }
 
-function callFn(name: string, args: unknown[]): unknown {
+function callFn(name: string, args: unknown[], ctx: ExprContext): unknown {
+    if (name === CALLBACK_FN) {
+        if (!ctx.callFn || typeof args[0] !== 'string') return null;
+        return ctx.callFn(args[0], args.slice(1));
+    }
     if (Object.prototype.hasOwnProperty.call(GLOBAL_FNS, name)) return GLOBAL_FNS[name](...args);
     const mathName = name.startsWith('Math.') ? name.slice(5) : name;
     const fn = MATH_FNS[mathName];
@@ -608,6 +622,7 @@ function evalNode(node: Node, ctx: ExprContext, varNames: ReadonlySet<string>): 
             return callFn(
                 node.fn,
                 node.args.map((a) => evalNode(a, ctx, varNames)),
+                ctx,
             );
 
         case 'index': {

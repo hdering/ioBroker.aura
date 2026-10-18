@@ -10,6 +10,7 @@ import {
 } from '../../utils/valueTransform';
 import { TIME_DISPLAY_PRESETS, formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { applyValueExpr } from '../../utils/valueExpr';
+import { useFnsVersion } from '../../hooks/useFnsVersion';
 import { exprToString } from '../../utils/expr';
 import { formatNum } from '../../utils/formatValue';
 
@@ -97,6 +98,8 @@ export function ValueTransformFields({
     const selected = rawSelected === 'expr' && !allowExpr ? 'none' : rawSelected;
     const isExpr = selected === 'expr';
     const ops = { formatNum: (n: number, d: number) => formatNum(n, d), decimals: 2, t };
+    // Re-render the preview once Custom JS registered a `callback()` function (#794).
+    useFnsVersion();
 
     const sty: React.CSSProperties = inputStyle ?? {
         background: 'var(--app-bg)',
@@ -176,6 +179,10 @@ export function ValueTransformFields({
                         <code>dp.liste[0].feld</code>. Rechnen mit + − × ÷, <code>? :</code>, <code>round()</code> u.
                         a.; Filter mit <code>|</code>: <code>fixed(2)</code>, <code>round(1)</code>,{' '}
                         <code>formatValue(2)</code>, <code>upper</code>…
+                    </p>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        Eigene Logik: Funktion in Custom JS mit <code>aura.registerFn('name', (dp) =&gt; …)</code>{' '}
+                        anmelden und hier mit <code>callback("name", dp)</code> aufrufen.
                     </p>
                     {dpId?.trim() && (
                         <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>

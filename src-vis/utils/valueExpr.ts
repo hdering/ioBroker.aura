@@ -7,9 +7,13 @@
  * (a JSON string is addressable directly, `dp.devices[0].soc`), the grammar is the
  * one of the datapoint bindings (utils/expr). No other datapoints are read, so the
  * expression needs no subscriptions of its own.
+ *
+ * Logic beyond the grammar lives in Custom JS: `aura.registerFn('name', fn)` there,
+ * `callback("name", dp)` here (utils/fnRegistry). Only this conversion may call them.
  */
 import { evalExpr, exprToString } from './expr';
 import type { OpsContext } from './exprOps';
+import { callRegisteredFn } from './fnRegistry';
 
 const NUMERIC_RE = /^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
 
@@ -23,7 +27,7 @@ export function applyValueExpr(value: unknown, expr: string | undefined, ops: Op
     // Some adapters store numbers as text (upnp & co.); `dp + 1` must add, not append.
     // Only a plain decimal counts — "0x004" stays the text it is (issue #494).
     const dp = typeof value === 'string' && NUMERIC_RE.test(value.trim()) ? Number(value) : value;
-    const out = evalExpr(src, { resolveRaw: () => null, vars: { dp }, ops });
+    const out = evalExpr(src, { resolveRaw: () => null, vars: { dp }, ops, callFn: callRegisteredFn });
     if (out === undefined) return value;
     // NaN/Infinity read as "no value", like a datapoint without one.
     if (typeof out === 'number' && !Number.isFinite(out)) return null;

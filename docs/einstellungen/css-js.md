@@ -34,11 +34,13 @@ JavaScript läuft mit den Frontend-Berechtigungen und kann ioBroker-Datenpunkte 
 | --- | --- |
 | `setState(id, val, ack?)` | Wert schreiben |
 | `getState(id)` | aktuellen Wert lesen |
-| `subscribeState(cb, id)` | Live-Updates abonnieren |
+| `subscribeState(id, cb)` | Live-Updates abonnieren |
 | `getObject(id)` | Objektdefinition lesen |
 | `sendTo(target, command, payload, timeoutMs?)` | Adapter-Nachricht senden |
+| `registerFn(name, fn)` | Funktion für `callback("name", dp)` in der [Wert-Umrechnung der Listen](../widgets/liste#eigene-funktionen) anmelden |
+| `unregisterFn(name)` | Funktion wieder abmelden |
 
-Dieselben Funktionen stehen ohne Custom JS im [HTML-Widget](../widgets/html#datenpunkte-schreiben) und im
+Bis auf `registerFn`/`unregisterFn` stehen dieselben Funktionen ohne Custom JS im [HTML-Widget](../widgets/html#datenpunkte-schreiben) und im
 `htmlTemplate` der [Wert-Anzeige](../widgets/wert-anzeige) bereit.
 
 Externe Skripte über `@import url('…');` am Anfang einbinden.

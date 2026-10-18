@@ -350,11 +350,42 @@ liest der Ausdruck nicht.
 | `dp.objektName * 0.4 | fixed(2)` | Feld aus JSON, umgerechnet, 2 Stellen |
 | `dp / 3600 | round(1)`           | Sekunden → Stunden, 1 Stelle    |
 | `dp >= 80 ? "voll" : "lädt"`      | Text je nach Wert               |
+| `callback("geraeteStatus", dp)`   | eigene Funktion aus Custom JS   |
 
 Wirkt auf den angezeigten Werttext, die Farbschwellen und die Statistikzeile — nicht auf Schalter,
 Regler, +/− und Eingabefeld, die ihren Wert zurückschreiben. Bei aktiver Zeit-Formatierung entfällt die
 Einheit. Ohne eigene Einstellung gilt die globale Umrechnung der Liste
 (**Widget bearbeiten** → **Werte & Farben**).
+
+#### Eigene Funktionen
+
+Logik, die über einen Ausdruck hinausgeht, kommt als Funktion in [Custom JS](../einstellungen/css-js#custom-js)
+und wird per `callback()` aufgerufen:
+
+```js
+aura.registerFn('geraeteStatus', (dp) => {
+    const data = typeof dp === 'string' ? JSON.parse(dp) : dp;
+    if (data.error === true) return 'FEHLER';
+    if (data.veState !== 'running') return 'AUS';
+    return Number(data.leistung) > 1000 ? 'HOCH' : 'AKTIV';
+});
+```
+
+| Ausdruck                              | Ergebnis                                       |
+| ------------------------------------- | ---------------------------------------------- |
+| `callback("geraeteStatus", dp)`       | Rückgabewert der Funktion                      |
+| `callback("f", dp.feld, 2)`           | weitere Argumente werden durchgereicht         |
+| `callback("f", dp) * 2 | fixed(1)`   | Ergebnis rechnet und filtert weiter            |
+
+| Fall                                   | Anzeige                                        |
+| -------------------------------------- | ---------------------------------------------- |
+| Funktion (noch) nicht angemeldet       | kein Wert; erscheint, sobald Custom JS sie anmeldet |
+| Funktion wirft einen Fehler            | kein Wert, Warnung in der Browser-Konsole      |
+| `async`-Funktion / Promise             | nicht unterstützt — kein Wert, Warnung         |
+
+Aufrufbar ist nur, was mit `registerFn` angemeldet wurde — keine anderen globalen Funktionen. `callback()`
+gibt es nur in der Wert-Umrechnung der Listen, nicht in [Bindings](./bindings) oder im HTML-Widget. Im
+Editor wirkt es nur, wenn in Custom JS **Auch im Dashboard-Editor ausführen** an ist.
 
 ## Layouts
 

@@ -26,7 +26,7 @@ export interface ValueTransformSettings {
     valueTransform?: string;
     valueFactor?: number;
     valueOffset?: number;
-    /** Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). */
+    /** Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback("name", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value). */
     valueExpr?: string;
     /** Time output preset id (or 'custom'); undefined / 'none' = plain value. */
     valueTimeFormat?: string;

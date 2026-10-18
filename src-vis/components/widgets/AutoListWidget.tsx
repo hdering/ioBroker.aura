@@ -28,6 +28,7 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
+import { useFnsVersion } from '../../hooks/useFnsVersion';
 import { StatLine } from './StatLine';
 import { useDpTokenResolver } from './DynamicTitle';
 import { stripDpTokens } from '../../utils/dpTokens';
@@ -1186,6 +1187,8 @@ function RoomHeader({ room, style }: { room: string; style?: React.CSSProperties
 
 export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as AutoListOptions, [config.options]);
+    // A `callback()` conversion re-runs once Custom JS registered its function (#794).
+    const fnsVersion = useFnsVersion();
     // The list-wide display block is folded in here, once: everything downstream —
     // rendering, the group master switch, the row conditions — then sees a row that
     // already carries the display it should get.
@@ -1615,7 +1618,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
     const sumInfo = useMemo(
         () => (opts.showSum ? computeListStats(matchedEntries, states, opts) : null),
-        [matchedEntries, states, opts],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [matchedEntries, states, opts, fnsVersion],
     );
 
     useEffect(() => {
