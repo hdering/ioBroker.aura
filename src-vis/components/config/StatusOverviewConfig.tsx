@@ -21,6 +21,7 @@ import { ConfigModal } from './ConfigModal';
 import { NameDisplayFields } from './NameDisplayFields';
 import { RowClickSection } from './RowClickSection';
 import { StatusRowActionsEditor } from './StatusRowActionsEditor';
+import { PublishSection } from './list/PublishSection';
 
 // Lazy so the ~battery admin page stays out of the config chunk until opened.
 const AdminBatteries = lazy(() =>
@@ -774,6 +775,9 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     </div>
                     {/* Row click action: next to the row buttons */}
                     <RowClickSection config={config} opts={o} onChange={set} />
+                </SubGroup>
+                <SubGroup title="Veröffentlichen">
+                    <PublishSection widgetId={config.id} opts={o} setOpts={set} kind="status" />
                 </SubGroup>
             </ConfigSection>
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">

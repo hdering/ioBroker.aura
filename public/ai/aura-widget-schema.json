@@ -7525,7 +7525,11 @@
         },
         "publishCount": {
           "type": "boolean",
-          "description": "Publish the filtered count to aura.0.lists.<widgetId>.count"
+          "description": "Inhalt in ioBroker veröffentlichen (#798): aura.0.lists.<widgetId>.count (Anzahl), .items (JSON-Array der angezeigten Zeilen: id, name, room, val, text, unit, lc; Statusübersicht zusätzlich category, severity, latched, since), .text (Zeilen „Raum: Name (Wert)“) und .ts (letzte Änderung). Der Adapter rechnet selbst, auch ohne offenen Browser — für Berichte per Skript (sendTo email/telegram). Freitextsuche und maxRows wirken nicht. Dynamische Liste: Mitglieder aus den gespeicherten entries. Statusübersicht: die Datenpunkte meldet das Widget beim ersten Öffnen nach dem Speichern."
+        },
+        "publishFilter": {
+          "type": "string",
+          "description": "Filter der veröffentlichten Zeilen (nur mit publishCount): \"all\", \"active\", \"inactive\" oder die id eines filterPresets-Eintrags. Leer = der gespeicherte valueFilter. Unabhängig davon, was ein Betrachter im Widget umschaltet."
         },
         "roomHeaderBg": {
           "type": "string",
@@ -15187,7 +15191,11 @@
         },
         "publishCount": {
           "type": "boolean",
-          "description": "Publish the filtered count to aura.0.lists.<widgetId>.count"
+          "description": "Inhalt in ioBroker veröffentlichen (#798): aura.0.lists.<widgetId>.count (Anzahl), .items (JSON-Array der angezeigten Zeilen: id, name, room, val, text, unit, lc; Statusübersicht zusätzlich category, severity, latched, since), .text (Zeilen „Raum: Name (Wert)“) und .ts (letzte Änderung). Der Adapter rechnet selbst, auch ohne offenen Browser — für Berichte per Skript (sendTo email/telegram). Freitextsuche und maxRows wirken nicht. Dynamische Liste: Mitglieder aus den gespeicherten entries. Statusübersicht: die Datenpunkte meldet das Widget beim ersten Öffnen nach dem Speichern."
+        },
+        "publishFilter": {
+          "type": "string",
+          "description": "Filter der veröffentlichten Zeilen (nur mit publishCount): \"all\", \"active\", \"inactive\" oder die id eines filterPresets-Eintrags. Leer = der gespeicherte valueFilter. Unabhängig davon, was ein Betrachter im Widget umschaltet."
         },
         "rowClickAction": {
           "type": [
@@ -18025,6 +18033,10 @@
         "offlineInvert": {
           "type": "boolean",
           "description": "for those extra DPs: true = value FALSE means offline (reachable semantics)"
+        },
+        "publishCount": {
+          "type": "boolean",
+          "description": "Inhalt in ioBroker veröffentlichen (#798): aura.0.lists.<widgetId>.count (Anzahl), .items (JSON-Array der angezeigten Zeilen: id, name, room, val, text, unit, lc; Statusübersicht zusätzlich category, severity, latched, since), .text (Zeilen „Raum: Name (Wert)“) und .ts (letzte Änderung). Der Adapter rechnet selbst, auch ohne offenen Browser — für Berichte per Skript (sendTo email/telegram). Freitextsuche und maxRows wirken nicht. Dynamische Liste: Mitglieder aus den gespeicherten entries. Statusübersicht: die Datenpunkte meldet das Widget beim ersten Öffnen nach dem Speichern."
         },
         "rowActions": {
           "type": "array",

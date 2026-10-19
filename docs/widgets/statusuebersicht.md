@@ -140,6 +140,40 @@ setState('aura.0.status.battery.cmd', JSON.stringify(
 ));
 ```
 
+## Inhalt veröffentlichen
+
+Die angezeigten Hinweise als Datenpunkte, z. B. für einen Tagesbericht. Der Adapter wertet die Werte selbst aus, auch ohne geöffneten Browser. Welche Datenpunkte dazugehören, meldet das Widget beim ersten Öffnen nach dem Speichern.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `publishCount` | `false` | Hinweise nach `aura.0.lists.<id>.*` schreiben |
+
+| Datenpunkt | Inhalt |
+| --- | --- |
+| `aura.0.lists.<id>.count` | Anzahl der Zeilen |
+| `aura.0.lists.<id>.items` | Zeilen als JSON-Array |
+| `aura.0.lists.<id>.text` | Zeilen als Text „Raum: Name (Wert)“, eine pro Zeile |
+| `aura.0.lists.<id>.ts` | letzte inhaltliche Änderung (ms) |
+
+| Feld in `items` | |
+| --- | --- |
+| `id`, `name`, `room` | Datenpunkt, angezeigter Name, Raum |
+| `category` | `window` · `battery` · `unreach` · `alarm` · `light` |
+| `severity`, `text` | `crit` · `warn` · `ok`, Statustext („Geöffnet“, „12 %“) |
+| `val`, `lc` | Rohwert, letzte Änderung (ms) |
+| `latched`, `since` | gemerkter Hinweis, gemeldet seit (ms) |
+
+```js
+// javascript-Adapter: jeden Abend um 22 Uhr
+schedule('0 22 * * *', () => {
+    const n = getState('aura.0.lists.<id>.count').val;
+    if (!n) return;
+    const text = getState('aura.0.lists.<id>.text').val;
+    sendTo('email.0', { subject: `${n} Hinweise`, text });
+    sendTo('telegram.0', { text: `${n} Hinweise\n${text}` });
+});
+```
+
 ## Zuletzt gewechselt
 
 Layout `history`: eine zweite Statusübersicht neben der Merkliste, die zeigt, was geschlossen wurde. Die Daten führt der Adapter (`aura.0.status.<cat>.history`), sie überstehen einen Neustart und sind auf allen Geräten gleich.

@@ -18,7 +18,13 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
-import { useIoBroker, setStateDirect, setStateDirectAsync, getStateDirect } from '../../hooks/useIoBroker';
+import {
+    useIoBroker,
+    setStateDirect,
+    setStateDirectAsync,
+    getStateDirect,
+    getObjectDirect,
+} from '../../hooks/useIoBroker';
 import { useConnectionLost } from '../../hooks/useConnectionLost';
 import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
@@ -604,6 +610,54 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         opts.batteryThreshold,
         opts.latchRecheckDays,
         opts.latchAutoClose,
+        config.id,
+    ]);
+
+    // Publish the content (#798): the adapter evaluates the values itself, open browser
+    // or not — but which datapoints belong here needs objects, enums and the battery
+    // gate, so that list comes from here. Sent when it changed; the adapter keeps it in
+    // the channel (native.statusHash), so a reload does not send it again.
+    useEffect(() => {
+        if (!opts.publishCount || !discovered || !batteryGateDone || !batteryInfoReady) return;
+        const source = config.id;
+        if (!source) return;
+        const items = candidates
+            .filter((c) => {
+                if (c.cat !== 'battery') return true;
+                const did = batteryInfo[c.dp.id]?.deviceId;
+                return !(did && hiddenSet.has(did));
+            })
+            .map((c) => ({
+                id: c.dp.id,
+                cat: c.cat,
+                name: c.dp.name,
+                ...(c.dp.rooms[0] ? { room: c.dp.rooms[0] } : {}),
+                ...(c.dp.role ? { role: c.dp.role } : {}),
+                ...(c.dp.type ? { type: c.dp.type } : {}),
+                ...(c.dp.unit ? { unit: c.dp.unit } : {}),
+                ...(Number.isFinite(c.dp.min) ? { min: c.dp.min } : {}),
+                ...(Number.isFinite(c.dp.max) ? { max: c.dp.max } : {}),
+                ...(c.dp.states && Object.keys(c.dp.states).length ? { states: c.dp.states } : {}),
+            }));
+        const hash = hashString(JSON.stringify(items));
+        const key = `${source}:publish`;
+        if (sentRegistrations.get(key) === hash) return;
+        sentRegistrations.set(key, hash);
+        getObjectDirect(`${NS}.lists.${source}`)
+            .then((obj) => {
+                if ((obj as { native?: { statusHash?: string } } | null)?.native?.statusHash === hash) return;
+                setStateDirect(`${NS}.status.register`, JSON.stringify({ source, publish: true, items, hash }), false);
+            })
+            .catch(() => sentRegistrations.delete(key));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        opts.publishCount,
+        discovered,
+        batteryGateDone,
+        batteryInfoReady,
+        candidateKey,
+        batteryInfo,
+        hiddenKey,
         config.id,
     ]);
 

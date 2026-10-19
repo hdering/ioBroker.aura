@@ -8,6 +8,7 @@ const path = require('node:path');
 const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS } = require('./lib/countdowns');
 const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
+const { WidgetPublishEngine, PUBLISH_STATE_DEFS, collectWidgets } = require('./lib/widgetPublish');
 /** Record of battery changes kept by the former battery script — imported once (status.battery.history). */
 const LEGACY_BATTERY_HISTORY_ID = '0_userdata.0.Batterien.Verlauf';
 
@@ -768,6 +769,12 @@ class Aura extends utils.Adapter {
             return;
         }
 
+        // A datapoint a published list reads (#798). First and not returned: a list
+        // may show aura's own states, and other features watch the same ids.
+        if (this._publish && this._publishSubscribed && this._publishSubscribed.has(id)) {
+            this._publish.update(id, state || null);
+        }
+
         // Timer widget config/enabled — frontend writes ack=false, ingest into schedule map
         if (id.startsWith(`${this.namespace}.timers.`) && state) {
             this._ingestTimerState(id, state.val);
@@ -953,6 +960,7 @@ class Aura extends utils.Adapter {
                 id === `${this.namespace}.config.popup-config`)
         ) {
             this._scheduleStatusWidgetOptions();
+            this._schedulePublishWidgets();
         }
         if (id.endsWith('.config.dashboard') && state) {
             // Server-side PIN gate: strip protected sections/tabs (their PINs and
@@ -3786,6 +3794,11 @@ class Aura extends utils.Adapter {
         // while no browser is open. Entries go out through status.<cat>.list.
         await this._initStatusLatch();
 
+        // ── Widget content as datapoints (#798, lib/widgetPublish.js) ───────────
+        // Lists and the Statusübersicht with publishCount write count/items/text/ts
+        // to lists.<widgetId>, computed here so a report is right with no browser open.
+        await this._initWidgetPublish();
+
         // ── Live log relay for AdapterLogsWidget ───────────────────────────────────
         // The iobroker.web socket exposed to the frontend cannot deliver `requireLog`
         // events to anonymous users, so we collect logs here. The widget polls
@@ -4528,7 +4541,13 @@ class Aura extends utils.Adapter {
         };
         this._statusLatch = new StatusLatchEngine({
             log: this.log,
-            writeList: (cat, list) => queue(() => this.setStateAsync(`status.${cat}.list`, JSON.stringify(list), true)),
+            writeList: (cat, list) => {
+                queue(() => this.setStateAsync(`status.${cat}.list`, JSON.stringify(list), true));
+                // A remembered hint is part of what a published Statusübersicht shows.
+                if (this._publish) {
+                    this._publish.latchChanged();
+                }
+            },
             writeEvent: (cat, evt) => {
                 this.log.info(`[status] ${cat} ${evt.type}${evt.reason ? ` (${evt.reason})` : ''}: ${evt.name}`);
                 queue(() => this.setStateAsync(`status.${cat}.event`, JSON.stringify(evt), true));
@@ -4537,8 +4556,12 @@ class Aura extends utils.Adapter {
                 queue(() => this.setStateAsync(`status.${cat}.sources`, JSON.stringify(sources), true)),
             writeHistory: (cat, history) =>
                 queue(() => this.setStateAsync(`status.${cat}.history`, JSON.stringify(history), true)),
-            writeIgnored: (cat, ignored) =>
-                queue(() => this.setStateAsync(`status.${cat}.ignored`, JSON.stringify(ignored), true)),
+            writeIgnored: (cat, ignored) => {
+                queue(() => this.setStateAsync(`status.${cat}.ignored`, JSON.stringify(ignored), true));
+                if (this._publish) {
+                    this._publish.latchChanged();
+                }
+            },
             historyMax: Number(this.config?.statusHistorySize) || undefined,
             historyDays: Number.isFinite(Number(this.config?.statusHistoryDays))
                 ? Number(this.config.statusHistoryDays)
@@ -4700,7 +4723,15 @@ class Aura extends utils.Adapter {
             } catch {
                 return;
             }
-            const list = Array.isArray(payload) ? payload : [payload];
+            const all = Array.isArray(payload) ? payload : [payload];
+            // A Statusübersicht that publishes its content (#798) registers what it
+            // shows — not a remembered-hint watch list.
+            const list = all.filter((p) => !(p && p.publish === true));
+            for (const p of all) {
+                if (p && p.publish === true) {
+                    await this._publishSerial(() => this._registerPublishStatus(p));
+                }
+            }
             await this._statusSerial(async () => {
                 let changed = false;
                 for (const p of list) {
@@ -4801,6 +4832,281 @@ class Aura extends utils.Adapter {
                 }
             });
         }, 1000);
+    }
+
+    // ── Widget content as datapoints (#798) ─────────────────────────────────────
+    // Glue between lists.<widgetId>.* and lib/widgetPublish.js: the engine decides
+    // what a widget shows, this section reads the dashboard and moves values.
+
+    async _initWidgetPublish() {
+        this._publishSubscribed = new Set();
+        this._publishMetaLoaded = new Set();
+        /** widget id → title its objects were last written with */
+        this._publishEnsured = new Map();
+        /** widget id → registration JSON last stored in the channel's native */
+        this._publishPersisted = new Map();
+        /** widget id → hash the widget sent with its registration */
+        this._publishHashes = new Map();
+        this._publishWriteChain = Promise.resolve();
+        this._publishOpChain = Promise.resolve();
+        const queue = (fn) => {
+            this._publishWriteChain = this._publishWriteChain.then(fn).catch((e) => {
+                this.log.warn(`[lists] write failed: ${e.message}`);
+            });
+        };
+        this._publish = new WidgetPublishEngine({
+            log: this.log,
+            defer: (fn) => this.setTimeout(fn, 500),
+            latch: this._statusLatch
+                ? {
+                      entries: (cat) => (this._statusLatch.has(cat) ? this._statusLatch.entries(cat) : []),
+                      isIgnored: (cat, id) => this._statusLatch.isIgnored(cat, id),
+                  }
+                : null,
+            writeList: (widgetId, data) => queue(() => this._writePublishedList(widgetId, data)),
+            removeList: (widgetId) =>
+                queue(async () => {
+                    this._publishEnsured.delete(widgetId);
+                    this._publishPersisted.delete(widgetId);
+                    await this.delObjectAsync(`lists.${widgetId}`, { recursive: true });
+                    this.log.info(`[lists] removed ${this.namespace}.lists.${widgetId}`);
+                }),
+        });
+        try {
+            // What the channels already hold: a Statusübersicht's registration (it
+            // must survive a restart with no browser open) and the last content (so
+            // a restart does not move `ts`).
+            const prefix = `${this.namespace}.lists.`;
+            const channels = (await this.getForeignObjectsAsync(`${prefix}*`, 'channel')) || {};
+            const existing = [];
+            for (const [fullId, obj] of Object.entries(channels)) {
+                const widgetId = fullId.slice(prefix.length);
+                if (!widgetId || widgetId.includes('.')) {
+                    continue;
+                }
+                existing.push(widgetId);
+                const reg = obj && obj.native && obj.native.statusItems;
+                if (Array.isArray(reg)) {
+                    this._publishHashes.set(widgetId, String(obj.native.statusHash || ''));
+                    this._publish.registerStatus(widgetId, reg);
+                    this._publishPersisted.set(widgetId, JSON.stringify(this._publish.statusItems(widgetId)));
+                }
+                const items = await this.getStateAsync(`lists.${widgetId}.items`);
+                if (items && typeof items.val === 'string') {
+                    this._publish.seedPublished(widgetId, items.val);
+                }
+            }
+            await this._publishSerial(() => this._readPublishWidgets(existing));
+        } catch (e) {
+            this.log.warn(`[lists] init failed: ${e.message}`);
+        }
+    }
+
+    /**
+     * Run publish work one piece at a time (dashboard reads, registrations).
+     *
+     * @param fn async work
+     */
+    _publishSerial(fn) {
+        this._publishOpChain = this._publishOpChain.then(fn).catch((e) => this.log.warn(`[lists] ${e.message}`));
+        return this._publishOpChain;
+    }
+
+    /**
+     * The publishing widgets of the stored dashboard → the engine; then names,
+     * rooms and subscriptions for what they read.
+     *
+     * @param {string[]} [orphans] channel ids found at start — the ones no widget claims are removed
+     * @returns {Promise<boolean>} false when the dashboard could not be read (nothing changed)
+     */
+    async _readPublishWidgets(orphans) {
+        const cfg = {};
+        for (const [key, stateId] of [
+            ['dashboard', 'config.dashboard'],
+            ['groupDefs', 'config.group-defs'],
+            ['popupConfig', 'config.popup-config'],
+        ]) {
+            const st = await this.getStateAsync(stateId);
+            cfg[key] = st ? st.val : null;
+        }
+        // An unreadable or empty dashboard is no reason to delete anybody's datapoints.
+        if (typeof cfg.dashboard !== 'string' || cfg.dashboard.length < 3) {
+            return false;
+        }
+        try {
+            JSON.parse(cfg.dashboard);
+        } catch {
+            return false;
+        }
+        // PIN-protected sections and tabs live in the vault, not in config.dashboard.
+        try {
+            cfg.extra = this.vault ? this.vault.load().sections : null;
+        } catch {
+            cfg.extra = null;
+        }
+        const widgets = collectWidgets(cfg);
+        this._publish.setWidgets(widgets);
+        for (const id of orphans || []) {
+            if (!widgets.has(id)) {
+                await this.delObjectAsync(`lists.${id}`, { recursive: true }).catch(() => {});
+                this.log.info(`[lists] removed ${this.namespace}.lists.${id} (no widget publishes there)`);
+            }
+        }
+        // A registration that came in before the dashboard was saved is stored now.
+        for (const [id, w] of widgets) {
+            if (w.type === 'statusoverview') {
+                await this._persistPublishStatus(id);
+            }
+        }
+        await this._loadPublishMeta();
+        await this._syncPublishSubscriptions();
+        return true;
+    }
+
+    /** Dashboard saved → read again, a little later (an editor saves in bursts). */
+    _schedulePublishWidgets() {
+        if (!this._publish) {
+            return;
+        }
+        if (this._publishWidgetsTimer) {
+            this.clearTimeout(this._publishWidgetsTimer);
+        }
+        this._publishWidgetsTimer = this.setTimeout(() => {
+            this._publishWidgetsTimer = null;
+            this._publishSerial(() => this._readPublishWidgets());
+        }, 1000);
+    }
+
+    /** Object names/units/states of the rows and the room enums. */
+    async _loadPublishMeta() {
+        try {
+            const enums = (await this.getForeignObjectsAsync('enum.rooms.*', 'enum')) || {};
+            const members = new Map();
+            for (const [id, obj] of Object.entries(enums)) {
+                const name = obj && obj.common && obj.common.name;
+                const label =
+                    (typeof name === 'string' ? name : name && (name.de || name.en || Object.values(name)[0])) ||
+                    id.split('.').pop();
+                for (const m of (obj && obj.common && obj.common.members) || []) {
+                    if (!members.has(m)) {
+                        members.set(m, []);
+                    }
+                    members.get(m).push(label);
+                }
+            }
+            this._publish.setRooms(members);
+        } catch (e) {
+            this.log.debug(`[lists] rooms not read: ${e.message}`);
+        }
+        for (const id of this._publish.metaIds()) {
+            if (this._publishMetaLoaded.has(id)) {
+                continue;
+            }
+            this._publishMetaLoaded.add(id);
+            try {
+                this._publish.setMeta(id, await this.getForeignObjectAsync(id));
+            } catch {
+                this._publish.setMeta(id, null);
+            }
+        }
+        this._publish.refresh();
+    }
+
+    /** Subscribe what the published widgets read, drop the rest, feed new ones once. */
+    async _syncPublishSubscriptions() {
+        const want = new Set(this._publish.watchedIds());
+        const fresh = [];
+        for (const id of want) {
+            if (!this._publishSubscribed.has(id)) {
+                this._publishSubscribed.add(id);
+                fresh.push(id);
+                await this._foreignSub(id, 'publish');
+            }
+        }
+        for (const id of [...this._publishSubscribed]) {
+            if (!want.has(id)) {
+                this._publishSubscribed.delete(id);
+                await this._foreignUnsub(id, 'publish');
+            }
+        }
+        for (const id of fresh) {
+            try {
+                this._publish.update(id, await this.getForeignStateAsync(id));
+            } catch (e) {
+                this.log.debug(`[lists] read ${id} failed: ${e.message}`);
+            }
+        }
+    }
+
+    /**
+     * A Statusübersicht announced what it shows (status.register, `publish: true`).
+     *
+     * @param payload {source, items: [{id, cat, name?, room?, role?, type?, states?, min?, max?, unit?}]}
+     */
+    async _registerPublishStatus(payload) {
+        if (!this._publish) {
+            return;
+        }
+        const widgetId = String(payload.source || '').trim();
+        if (!/^[A-Za-z0-9_-]+$/.test(widgetId)) {
+            return;
+        }
+        if (typeof payload.hash === 'string') {
+            this._publishHashes.set(widgetId, payload.hash);
+        }
+        if (!this._publish.registerStatus(widgetId, payload.items).changed) {
+            return;
+        }
+        await this._persistPublishStatus(widgetId);
+        await this._syncPublishSubscriptions();
+    }
+
+    /** Keep a known widget's registration in its channel, so a restart has it without a browser. */
+    async _persistPublishStatus(widgetId) {
+        const w = this._publish.widgets.get(widgetId);
+        const items = this._publish.statusItems(widgetId);
+        if (!w || !items) {
+            return;
+        }
+        const json = JSON.stringify(items);
+        if (this._publishPersisted.get(widgetId) === json) {
+            return;
+        }
+        await this._ensurePublishObjects(widgetId, w.title);
+        // statusHash lets the widget skip sending the same list again after a reload.
+        await this.extendObjectAsync(`lists.${widgetId}`, {
+            native: { statusItems: items, statusHash: this._publishHashes.get(widgetId) || '' },
+        });
+        this._publishPersisted.set(widgetId, json);
+    }
+
+    /** Channel + the four states, named after the widget (again when the title changed). */
+    async _ensurePublishObjects(widgetId, title) {
+        if (this._publishEnsured.get(widgetId) === title) {
+            return;
+        }
+        const base = `lists.${widgetId}`;
+        await this.extendObjectAsync(base, { type: 'channel', common: { name: title }, native: {} });
+        // extendObject, not setObjectNotExists: a count created by an older version
+        // (role level, writable — the browser wrote it) becomes read-only here.
+        for (const [sub, def] of Object.entries(PUBLISH_STATE_DEFS)) {
+            await this.extendObjectAsync(`${base}.${sub}`, {
+                type: 'state',
+                common: { name: `${title} — ${sub}`, ...def },
+                native: {},
+            });
+        }
+        this._publishEnsured.set(widgetId, title);
+    }
+
+    async _writePublishedList(widgetId, data) {
+        await this._ensurePublishObjects(widgetId, data.title);
+        const base = `lists.${widgetId}`;
+        await this.setStateAsync(`${base}.items`, data.items, true);
+        await this.setStateAsync(`${base}.text`, data.text, true);
+        await this.setStateAsync(`${base}.ts`, data.ts, true);
+        // count last: a script triggered by it finds items and text already there.
+        await this.setStateAsync(`${base}.count`, data.count, true);
     }
 
     /**
@@ -5105,11 +5411,13 @@ class Aura extends utils.Adapter {
                 }
                 const base = `lists.${widgetId}`;
                 const results = {};
-                try {
-                    await this.delObjectAsync(`${base}.count`);
-                    results.count = 'ok';
-                } catch (e) {
-                    results.count = e?.message || String(e);
+                for (const sub of Object.keys(PUBLISH_STATE_DEFS)) {
+                    try {
+                        await this.delObjectAsync(`${base}.${sub}`);
+                        results[sub] = 'ok';
+                    } catch (e) {
+                        results[sub] = e?.message || String(e);
+                    }
                 }
                 try {
                     await this.delObjectAsync(base);
@@ -5539,6 +5847,10 @@ class Aura extends utils.Adapter {
             if (this._statusLatchInterval) {
                 this.clearInterval(this._statusLatchInterval);
                 this._statusLatchInterval = null;
+            }
+            if (this._publishWidgetsTimer) {
+                this.clearTimeout(this._publishWidgetsTimer);
+                this._publishWidgetsTimer = null;
             }
             if (this._idleReturnInterval) {
                 this.clearInterval(this._idleReturnInterval);

@@ -226,6 +226,11 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     /** Also list the ignored datapoints of this widget, muted, with "Aufnehmen" to take the ignore back (default false). */
     showIgnored?: boolean;
     /**
+     * Publish the shown hints to aura.0.lists.<widgetId> (count, items, text, ts). The widget
+     * registers its datapoints with the adapter, which evaluates them without a browser (#798).
+     */
+    publishCount?: boolean;
+    /**
      * Layout "history" (Zuletzt gewechselt): only changes of the last N days
      * (0 / unset = everything the adapter keeps). maxRows caps the rows as usual.
      */

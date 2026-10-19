@@ -28,10 +28,10 @@ import { sortSummary } from '../../utils/listSort';
 import { DividerDetail } from './list/DividerDetail';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ListFilterSection } from './list/ListFilterSection';
+import { PublishSection } from './list/PublishSection';
 import type { EditorFilterRow } from './list/ListFilterEditor';
 import { RowClickSection } from './RowClickSection';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
-import { NS } from '../../utils/namespace';
 import { AuraIcon } from '../common/AuraIcon';
 
 function toIconifyId(name: string): string {
@@ -524,33 +524,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     />
                 </SubGroup>
                 <SubGroup title="Veröffentlichen">
-                    <div>
-                        <div className="flex items-center justify-between">
-                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                Anzahl im Backend veröffentlichen
-                            </label>
-                            <button
-                                onClick={() => setOpts({ publishCount: !(opts.publishCount ?? false) })}
-                                className="relative w-9 h-5 rounded-full transition-colors"
-                                style={{
-                                    background: (opts.publishCount ?? false) ? 'var(--accent)' : 'var(--app-border)',
-                                }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                    style={{ left: (opts.publishCount ?? false) ? '18px' : '2px' }}
-                                />
-                            </button>
-                        </div>
-                        {opts.publishCount && (
-                            <p
-                                className="text-[9px] mt-1 font-mono truncate"
-                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                            >
-                                {NS}.lists.{config.id}.count
-                            </p>
-                        )}
-                    </div>
+                    <PublishSection widgetId={config.id} opts={opts} setOpts={setOpts} kind="list" />
                 </SubGroup>
             </ConfigSection>
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">

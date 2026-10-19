@@ -359,7 +359,7 @@ heraus, während Bedingungen, Farbschwellen, Zweitzeilen und die Zeilen-
 Darstellungen der Listen ungenutzt im Schema lagen.
 
 `lib/mcp/recipes.js` hält deshalb fertige, gültige Widgets: Raumliste,
-gemischte Gerätliste, Wertkachel mit Schwellen und Bedingung, Verbrauchsbalken,
+gemischte Gerätliste, Tagesbericht per Datenpunkt (publishCount), Wertkachel mit Schwellen und Bedingung, Verbrauchsbalken,
 Zwei-Achsen-Verlauf, Statusübersicht (auch mit Batterie-Merkliste), Thermostat-Rundskala, Füllstand, Multiroom-
 Audio, bedienbares HTML und ein kompletter Raum-Tab. Jedes Rezept sagt dazu, **wofür** es gedacht ist und
 **welche billigere Bauweise** es ersetzt — das ist der Teil, der die Wahl

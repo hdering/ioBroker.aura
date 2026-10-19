@@ -36,6 +36,17 @@ export const KEY_DESCRIPTIONS = {
     valueFactor: 'Rohwert wird mit diesem Faktor multipliziert, bevor er angezeigt wird.',
     valueOffset: 'Dieser Wert wird nach dem Faktor addiert.',
     colorThresholds: 'Schwellenwerte, die den Wert je nach Höhe einfärben.',
+    publishCount:
+        'Inhalt in ioBroker veröffentlichen (#798): aura.0.lists.<widgetId>.count (Anzahl), .items (JSON-Array ' +
+        'der angezeigten Zeilen: id, name, room, val, text, unit, lc; Statusübersicht zusätzlich category, ' +
+        'severity, latched, since), .text (Zeilen „Raum: Name (Wert)“) und .ts (letzte Änderung). Der Adapter ' +
+        'rechnet selbst, auch ohne offenen Browser — für Berichte per Skript (sendTo email/telegram). ' +
+        'Freitextsuche und maxRows wirken nicht. Dynamische Liste: Mitglieder aus den gespeicherten entries. ' +
+        'Statusübersicht: die Datenpunkte meldet das Widget beim ersten Öffnen nach dem Speichern.',
+    publishFilter:
+        'Filter der veröffentlichten Zeilen (nur mit publishCount): "all", "active", "inactive" oder die id eines ' +
+        'filterPresets-Eintrags. Leer = der gespeicherte valueFilter. Unabhängig davon, was ein Betrachter im ' +
+        'Widget umschaltet.',
     autoHeight:
         'Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird ' +
         'dann ignoriert – auch als Kind einer Gruppe, die dann mitwächst. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count). Adapter-Logs: ' +

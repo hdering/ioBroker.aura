@@ -185,6 +185,55 @@
       ]
     },
     {
+      "id": "tagesbericht",
+      "title": "Tagesbericht per Mail/Telegram: Listeninhalt als Datenpunkt",
+      "when": "Der Nutzer will abends (oder zu einer festen Zeit) wissen, welche Fenster offen sind, welche Batterien schwach sind usw. — als Nachricht, ohne das Dashboard zu öffnen.",
+      "instead": "ein eigenes Skript, das alle Fensterkontakte selbst zusammensucht und die Filterlogik der Liste nachbaut",
+      "notes": [
+        "publishCount: true lässt den Adapter den Inhalt nach aura.0.lists.<widgetId> schreiben: .count, .items (JSON), .text (Zeilen „Raum: Name (Wert)“), .ts. Der Adapter rechnet selbst — auch wenn kein Browser offen ist.",
+        "publishFilter legt fest, welche Zeilen zählen (\"active\" = offen/an, oder die id eines filterPresets-Eintrags). Ohne publishFilter gilt valueFilter. Was ein Betrachter im Widget umschaltet, ändert den Bericht nicht.",
+        "Versand und Zeitplan macht ein Skript des Nutzers, z. B. im javascript-Adapter: schedule(\"0 22 * * *\", () => { const n = getState(\"aura.0.lists.w-fenster-offen.count\").val; if (n) sendTo(\"telegram.0\", { text: n + \" Fenster offen\\n\" + getState(\"aura.0.lists.w-fenster-offen.text\").val }); });",
+        "Funktioniert genauso mit autolist (Mitglieder aus den gespeicherten entries) und statusoverview (die Hinweise der Übersicht, inkl. gemerkter)."
+      ],
+      "widgets": [
+        {
+          "id": "w-fenster-offen",
+          "type": "list",
+          "title": "Offene Fenster",
+          "datapoint": "",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 6
+          },
+          "options": {
+            "valueFilter": "all",
+            "publishCount": true,
+            "publishFilter": "active",
+            "trueText": "offen",
+            "falseText": "zu",
+            "showRoom": true,
+            "entries": [
+              {
+                "id": "%dp.fenster.bad%",
+                "label": "Fenster Bad"
+              },
+              {
+                "id": "%dp.fenster.kueche%",
+                "label": "Fenster Küche"
+              },
+              {
+                "id": "%dp.fenster.schlafzimmer%",
+                "label": "Fenster Schlafzimmer"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "geraete-liste",
       "title": "Gepflegte Liste mit gemischten Bedienelementen",
       "when": "Eine feste Auswahl von Geräten, die jeweils anders bedient werden — Schalter, Dimmer, Rollladen.",

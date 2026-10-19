@@ -345,8 +345,37 @@ erste Änderung im Dialog ersetzt sie durch `sortRules[]`.
 | `groupDimmerOnValue` | `100` | Schreibwert bei „alle an" (Dimmer) |
 | `groupExcludeIds` | — | ausgenommene Einträge |
 
-### Zähler veröffentlichen
+### Inhalt veröffentlichen
+
+Der Adapter berechnet die Werte selbst, auch ohne geöffneten Browser. Die Freitextsuche und `maxRows` wirken dabei nicht.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `publishCount` | `false` | gefilterte Anzahl nach `aura.0.lists.<id>.count` schreiben |
+| `publishCount` | `false` | Inhalt nach `aura.0.lists.<id>.*` schreiben |
+| `publishFilter` | = `valueFilter` | welche Zeilen zählen: `all` · `active` · `inactive` · id eines eigenen Filters |
+
+Mitglieder kommen aus den gespeicherten Einträgen. Neue Geräte zählen erst nach dem nächsten Öffnen des Dashboards mit.
+
+| Datenpunkt | Inhalt |
+| --- | --- |
+| `aura.0.lists.<id>.count` | Anzahl der Zeilen |
+| `aura.0.lists.<id>.items` | Zeilen als JSON-Array |
+| `aura.0.lists.<id>.text` | Zeilen als Text „Raum: Name (Wert)“, eine pro Zeile |
+| `aura.0.lists.<id>.ts` | letzte inhaltliche Änderung (ms) |
+
+| Feld in `items` | |
+| --- | --- |
+| `id`, `name`, `room` | Datenpunkt, angezeigter Name, Raum |
+| `val`, `text`, `unit` | Rohwert, lesbarer Wert, Einheit |
+| `lc` | letzte Änderung des Werts (ms) |
+
+```js
+// javascript-Adapter: jeden Abend um 22 Uhr
+schedule('0 22 * * *', () => {
+    const n = getState('aura.0.lists.<id>.count').val;
+    if (!n) return;
+    const text = getState('aura.0.lists.<id>.text').val;
+    sendTo('email.0', { subject: `${n} Fenster offen`, text });
+    sendTo('telegram.0', { text: `${n} Fenster offen\n${text}` });
+});
+```

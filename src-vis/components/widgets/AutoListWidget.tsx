@@ -31,8 +31,6 @@ import { computeListStats, type ListStat } from '../../utils/listStats';
 import { useFnsVersion } from '../../hooks/useFnsVersion';
 import { StatLine } from './StatLine';
 import { useDpTokenResolver } from './DynamicTitle';
-import { stripDpTokens } from '../../utils/dpTokens';
-import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
 import {
     listEntryTarget,
     listDimmerIds,
@@ -207,8 +205,13 @@ export interface AutoListOptions
     activeBg?: string;
     /** Global entry background when off. Per-DP inactiveBg overrides. */
     inactiveBg?: string;
-    /** Publish the filtered count to aura.0.lists.<widgetId>.count */
+    /**
+     * Publish the rows to aura.0.lists.<widgetId> (count, items, text, ts) — computed
+     * by the adapter from the stored options, open browser or not (lib/widgetPublish.js).
+     */
     publishCount?: boolean;
+    /** Filter the published rows use; unset = the stored valueFilter. Never the viewer's own choice. */
+    publishFilter?: string;
     /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
     backendValueFilter?: string;
     /** Hide the frontend filter chip in the widget header. Default false. */
@@ -1596,38 +1599,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             .map((key) => ({ room: key === NO_ROOM ? noRoomLabel : key, entries: map.get(key)! }));
     }, [groupByRoom, visibleEntries, resolvedRooms, opts.noRoomLabel]);
 
-    // Count published to ioBroker state = view-mode count using the frontend valueFilter,
-    // independent from backendValueFilter (which only affects the editor preview) and
-    // from the free-text search (a per-viewer, transient narrowing).
-    const viewCount = useMemo(() => {
-        if (valueFilter === 'all') return entries.length;
-        return entries.filter((e) => matchesFilterMode(valueFilter, opts.filterPresets, filterRow(e))).length;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [entries, states, subValues, entrySubDps, valueFilter, opts.filterPresets]);
-
-    useEffect(() => {
-        if (!opts.publishCount) return;
-        // The published name is a plain string — [[dp]] tokens are a display feature.
-        // `config.title` is deliberately NOT a dependency: it only names the object on
-        // the first publish, and a title with a live token would otherwise re-fire this
-        // effect (and rewrite the unchanged count) on every value change.
-        publishListCount(config.id, stripDpTokens(config.title || '') || 'Dynamische Liste', viewCount);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [opts.publishCount, viewCount, config.id]);
-
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
     const sumInfo = useMemo(
         () => (opts.showSum ? computeListStats(matchedEntries, states, opts) : null),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [matchedEntries, states, opts, fnsVersion],
     );
-
-    useEffect(() => {
-        if (opts.publishCount) return;
-        unpublishList(config.id).catch(() => {
-            /* ignore */
-        });
-    }, [opts.publishCount, config.id]);
 
     // ── Group action control (switch / dimmer / shutter / momentary) ────────────
     const groupSwitchEnabled = !!opts.groupSwitch;
