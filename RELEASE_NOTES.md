@@ -6,6 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- List - value conversion can call your own functions from Custom JS: register them with aura.registerFn() and use callback("name", dp) in the expression (#794)
-- Admin overview - "Getting started" and "AI access (MCP)" cards can be shown and hidden again via two switches in the page header (#799)
-- Groups - group contents could be wiped when the admin page was opened while the adapter was still restarting (e.g. right after an update); failed config reads are now retried instead of being taken as an empty config, and empty group contents are never saved over existing groups (#800)
