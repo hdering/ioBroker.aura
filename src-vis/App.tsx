@@ -28,7 +28,7 @@ import { useNavigationStore } from './store/navigationStore';
 import { useThemeStore } from './store/themeStore';
 import { bumpThemeEpoch } from './store/themeEpoch';
 import { getTheme } from './themes';
-import { loadConfigFromIoBroker } from './utils/configLoader';
+import { loadConfigUntilComplete } from './utils/configLoader';
 import { Dashboard } from './components/layout/Dashboard';
 import { RenderProbe } from './components/layout/RenderProbe';
 import { FocusedWidgetContext } from './contexts/FocusedWidgetContext';
@@ -53,8 +53,6 @@ import { deriveHeaderItems } from './utils/menuItems';
 import type { Section, Tab } from './store/dashboardStore';
 
 import { discardPendingRam, isScreenshotMode, setFrontendReadOnly } from './store/persistManager';
-import { markGroupDefsHydrated } from './store/groupDefsStore';
-import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
 import { usePopupRuntimeStore } from './store/popupRuntimeStore';
 import { DpPopupTriggers } from './components/widgets/popup/DpPopupTriggers';
@@ -738,9 +736,9 @@ export default function App() {
         // shared localStorage). This tab shows the saved config regardless, but it
         // must neither overwrite that copy nor clear those flags.
         setFrontendReadOnly(true);
-        void loadConfigFromIoBroker(true, { ignoreDirty: true }).finally(() => {
-            markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
-            markWidgetPresetsHydrated();
+        // Retries while reads fail; group defs / presets count as loaded only once
+        // ioBroker actually answered (#800).
+        void loadConfigUntilComplete(true, { ignoreDirty: true }).finally(() => {
             discardPendingRam();
             setConfigSettled(true);
         });

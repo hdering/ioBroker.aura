@@ -211,6 +211,15 @@ export function registerExternalReader(key: string, reader: () => string | null)
     externalReaders.set(key, reader);
 }
 
+// Save vetoes: a store can refuse to have its current value written — returns
+// the reason, or null to let it through. The key is then left out of the save
+// (and its backup) instead of aborting the whole save. Guards against a value
+// that can only come from a loss, e.g. group defs emptied under live groups (#800).
+const saveVetoes = new Map<string, () => string | null>();
+export function registerSaveVeto(key: string, veto: () => string | null): void {
+    saveVetoes.set(key, veto);
+}
+
 // Pre-save hooks run at the very start of saveToIoBroker (after the hydration
 // guard, before any key is serialised) so they can mutate stores and have the
 // result land in this same save — e.g. GC orphaned group defs so they don't
@@ -525,6 +534,13 @@ function buildBackupEntry(): Record<string, unknown> {
         [BACKUP_VERSION_KEY]: appVersion,
     };
     SYNC_STORE_KEYS.forEach((key) => {
+        // A vetoed value is not what ioBroker holds — back up the stored one, so a
+        // backup never preserves the loss it was refused for (#800).
+        if (saveVetoes.get(key)?.()) {
+            const stored = getStateFromCache(IOBROKER_STATE_MAP[key])?.val;
+            if (typeof stored === 'string') entry[key] = stored;
+            return;
+        }
         const val = getRaw(key);
         if (val !== null) entry[key] = val;
     });
@@ -988,6 +1004,15 @@ export function saveToIoBroker({
     // write is confirmed, false when it timed out / the socket dropped.
     const acks: Array<Promise<boolean>> = [];
     targetKeys.forEach((key) => {
+        const veto = saveVetoes.get(key)?.();
+        if (veto) {
+            // Not written, and not left pending either: the value cannot become
+            // writable by retrying, and a key stuck dirty would keep the save bar up.
+            console.error(`[persistManager] ${key} not saved — ${veto}`);
+            pending.delete(key);
+            clearDirtyFlag(key);
+            return;
+        }
         const raw = getRaw(key);
         if (raw) {
             // Pre-save value for diffing. First choice is the RAM original captured

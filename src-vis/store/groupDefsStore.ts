@@ -1,5 +1,11 @@
 import { create } from 'zustand';
-import { registerExternalReader, markDirty, registerPreSaveHook, withSuppressedDirty } from './persistManager';
+import {
+    registerExternalReader,
+    markDirty,
+    registerPreSaveHook,
+    registerSaveVeto,
+    withSuppressedDirty,
+} from './persistManager';
 import { historyAttached } from './editHistory';
 import { useDashboardStore } from './dashboardStore';
 import { usePopupConfigStore } from './popupConfigStore';
@@ -141,3 +147,24 @@ function gcGroupDefsInner(): void {
 
 // Tidy orphaned defs right before every save so they don't pile up over time.
 registerPreSaveHook(gcGroupDefs);
+
+/** Reason to refuse saving the defs, or null. An empty store under group widgets
+ *  that point at defs is the signature of a loss, never of an edit: removing the
+ *  last child keeps its def as `[]`, and deleting a group lets the GC drop the
+ *  def together with the reference. Writing it would erase every group's
+ *  children in ioBroker (#800). A brand-new group without children is caught
+ *  too — skipping that write loses nothing. */
+export function groupDefsSaveVeto(): string | null {
+    const { defs, hydrated } = useGroupDefsStore.getState();
+    if (!hydrated || Object.keys(defs).length > 0) return null;
+    const referenced = new Set<string>();
+    for (const l of useDashboardStore.getState().layouts) {
+        for (const sec of l.sections) {
+            for (const tab of sec.tabs) collectDefIds(tab.widgets, defs, referenced);
+        }
+    }
+    for (const v of usePopupConfigStore.getState().views) collectDefIds(v.widgets, defs, referenced);
+    if (referenced.size === 0) return null;
+    return `${referenced.size} group widget(s) point at group defs, but the store holds none`;
+}
+registerSaveVeto('aura-group-defs', groupDefsSaveVeto);

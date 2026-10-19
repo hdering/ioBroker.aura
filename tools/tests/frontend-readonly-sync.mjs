@@ -49,6 +49,10 @@ const stubPlugin = {
                     const v = globalThis.__remote.get(id);
                     return v === undefined ? null : { val: v, ack: true };
                 };
+                export const getStateChecked = async (id) => {
+                    const v = globalThis.__remote.get(id);
+                    return { ok: true, state: v === undefined ? null : { val: v, ack: true } };
+                };
                 export const getStateFromCache = () => undefined;
                 export const writeFileDirect = async () => {};
                 export const readFileDirect = async () => null;
@@ -225,7 +229,7 @@ const SAVED = dashboard('Gespeichert');
         'aura-theme': theme('dark'),
     });
     mod.setFrontendReadOnly(true);
-    const changed = await mod.loadConfigFromIoBroker(true, { ignoreDirty: true });
+    const { changed } = await mod.loadConfigFromIoBroker(true, { ignoreDirty: true });
     check('load reports a change', changed);
     eq('load: store shows the saved dashboard', titleOf(mod), 'Gespeichert');
     eq("load: the admin's copy survives in storage", map.get('aura-dashboard'), ADMIN_COPY);

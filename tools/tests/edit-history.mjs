@@ -49,6 +49,7 @@ const stubPlugin = {
                 export const setStateDirectAsync = async () => {};
                 export const setStateDirect = () => {};
                 export const getStateDirect = async () => null;
+                export const getStateChecked = async () => ({ ok: true, state: null });
                 export const getStateFromCache = () => undefined;
                 export const writeFileDirect = async (ns, name, data) => {
                     (globalThis.__auraFiles ??= []).push({ name, data });

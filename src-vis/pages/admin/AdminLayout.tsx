@@ -53,9 +53,7 @@ import { EditHistoryControls } from './EditHistoryControls';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
-import { loadConfigFromIoBroker, applyRaw } from '../../utils/configLoader';
-import { markGroupDefsHydrated } from '../../store/groupDefsStore';
-import { markWidgetPresetsHydrated } from '../../store/widgetPresetsStore';
+import { loadConfigUntilComplete, applyRaw } from '../../utils/configLoader';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import {
     useIoBroker,
@@ -327,10 +325,10 @@ export function AdminLayout() {
     useEffect(() => {
         if (!connected || autoSyncedRef.current) return;
         autoSyncedRef.current = true;
-        loadConfigFromIoBroker(true).then((remoteHasData) => {
+        // Retries while reads fail (adapter still restarting after an update). Group
+        // defs / presets count as loaded only once ioBroker actually answered (#800).
+        void loadConfigUntilComplete(true).then((result) => {
             adminConfigLoadedRef.current = true;
-            markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
-            markWidgetPresetsHydrated();
             // The loaded config is the base — nothing before it can be undone …
             resetEditHistory();
             // … except the steps a reload interrupted: they come back from IndexedDB
@@ -349,7 +347,11 @@ export function AdminLayout() {
                 const v = localStorage.getItem(key);
                 return v !== null && v.length > 10;
             });
-            if (!remoteHasData && localHasData) {
+            // Only when ioBroker answered every read and holds nothing. A failed read
+            // looked exactly like "empty" and pushed this browser's copy — with the
+            // RAM-only group defs as `{}` — over the whole config (#800).
+            const remoteEmpty = result.complete && result.presentKeys.length === 0;
+            if (remoteEmpty && localHasData) {
                 // ioBroker is empty – push local config to ioBroker (bootstrap).
                 // Use { all: true } because pending may be empty (Zustand init
                 // suppresses dirty marking on first persist); we still need to

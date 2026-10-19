@@ -6,7 +6,7 @@
  *   { "aura-dashboard": "...", "aura-theme": "...", ... }
  * New format: each key has its own state (aura.0.config.theme etc.)
  */
-import { getStateDirect, setStateDirect } from '../hooks/useIoBroker';
+import { getStateChecked, setStateDirect } from '../hooks/useIoBroker';
 import {
     IOBROKER_STATE_MAP,
     type SyncStoreKey,
@@ -15,8 +15,8 @@ import {
     hydrateFromValue,
     isScreenshotMode,
 } from '../store/persistManager';
-import { hydrateGroupDefs } from '../store/groupDefsStore';
-import { hydrateWidgetPresets } from '../store/widgetPresetsStore';
+import { hydrateGroupDefs, markGroupDefsHydrated } from '../store/groupDefsStore';
+import { hydrateWidgetPresets, markWidgetPresetsHydrated } from '../store/widgetPresetsStore';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useThemeStore } from '../store/themeStore';
 import { useGroupStore } from '../store/groupStore';
@@ -102,22 +102,38 @@ export function rehydrateAll(includeGlobalSettings = true): void {
     if (includeGlobalSettings) useGlobalSettingsStore.persist.rehydrate();
 }
 
+export interface ConfigLoadResult {
+    /** Any store was updated. */
+    changed: boolean;
+    /** Every read was answered. False when one failed or timed out — the missing
+     *  keys are then unknown, not empty (#800). */
+    complete: boolean;
+    /** Keys whose read failed — their stores still hold whatever they held before. */
+    failedKeys: StoreKey[];
+    /** Keys ioBroker answered with a real value. */
+    presentKeys: StoreKey[];
+}
+
 /**
  * Load all config states from ioBroker in parallel.
- * Returns true if any store was updated.
  * Automatically migrates from old single-blob format.
  *
  * Honors per-key _dirty flags: keys with cross-session unsaved edits are
  * skipped (their localStorage value wins; saveToIoBroker will push it).
  * Pass `ignoreDirty: true` from the read-only frontend to always pull remote.
+ *
+ * A failed read lands in `failedKeys` and never counts as an empty state: an
+ * admin that booted while the adapter restarted took "no answer" for an empty
+ * config, marked the RAM-only group defs as loaded and pushed `{}` over every
+ * group child (#800).
  */
 export async function loadConfigFromIoBroker(
     includeGlobalSettings = false,
     { ignoreDirty = false }: { ignoreDirty?: boolean } = {},
-): Promise<boolean> {
+): Promise<ConfigLoadResult> {
     // Screenshot harness controls the layout entirely — never pull the real
     // instance config, otherwise it would race with / clobber the injected demo.
-    if (isScreenshotMode()) return false;
+    if (isScreenshotMode()) return { changed: false, complete: true, failedKeys: [], presentKeys: [] };
     const keys = Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[];
     const extraKeys: StoreKey[] = includeGlobalSettings ? [...keys, 'aura-global-settings'] : keys;
 
@@ -125,7 +141,13 @@ export async function loadConfigFromIoBroker(
     const stateIds = extraKeys.map((key) =>
         key === 'aura-global-settings' ? `${NS}.config.global-settings` : IOBROKER_STATE_MAP[key as SyncStoreKey],
     );
-    const results = await Promise.all(stateIds.map((id) => getStateDirect(id)));
+    const reads = await Promise.all(stateIds.map((id) => getStateChecked(id)));
+    const results = reads.map((r) => r.state);
+    const failedKeys = extraKeys.filter((_, i) => !reads[i].ok);
+    const presentKeys = extraKeys.filter((_, i) => {
+        const val = results[i]?.val;
+        return val != null && String(val).length >= 3;
+    });
 
     let changed = false;
 
@@ -195,5 +217,45 @@ export async function loadConfigFromIoBroker(
             rehydrateOne(key);
         }
     }
-    return changed;
+    return { changed, complete: failedKeys.length === 0, failedKeys, presentKeys };
+}
+
+/**
+ * The RAM-only stores (group defs, widget presets) refuse to save until they
+ * count as loaded. A value from ioBroker already did that in applyRaw; this
+ * flips the flag for the remaining case: ioBroker answered and holds nothing
+ * (first-time user). A failed read leaves the flag alone — "no answer" is not
+ * "empty", and taking it for empty let the next save write `{}` (#800). A
+ * malformed value also stays unloaded, so it is never saved over.
+ */
+export function settleRamStores(result: ConfigLoadResult): void {
+    const answeredEmpty = (key: StoreKey) => !result.failedKeys.includes(key) && !result.presentKeys.includes(key);
+    if (answeredEmpty('aura-group-defs')) markGroupDefsHydrated();
+    if (answeredEmpty('aura-widget-presets')) markWidgetPresetsHydrated();
+}
+
+/**
+ * loadConfigFromIoBroker + settleRamStores, repeated while reads fail (adapter
+ * restarting after an update, socket bouncing). Resolves with the first complete
+ * result, or with the last one once the attempts are used up — the keys that
+ * never answered then stay unloaded and block their saves.
+ */
+export async function loadConfigUntilComplete(
+    includeGlobalSettings = false,
+    opts: { ignoreDirty?: boolean } = {},
+    { attempts = 10, delayMs = 3000 }: { attempts?: number; delayMs?: number } = {},
+): Promise<ConfigLoadResult> {
+    for (let i = 1; ; i++) {
+        const result = await loadConfigFromIoBroker(includeGlobalSettings, opts);
+        settleRamStores(result);
+        if (result.complete) return result;
+        if (i >= attempts) {
+            console.error(
+                `[configLoader] config load still incomplete after ${i} attempts (${result.failedKeys.join(', ')}) — saves of these keys stay blocked`,
+            );
+            return result;
+        }
+        console.warn(`[configLoader] config load incomplete (${result.failedKeys.join(', ')}) — retrying`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
 }

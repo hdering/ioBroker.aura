@@ -56,6 +56,7 @@ const stubPlugin = {
                 export const setStateDirectAsync = async () => {};
                 export const setStateDirect = () => {};
                 export const getStateDirect = async () => null;
+                export const getStateChecked = async () => ({ ok: true, state: null });
                 export const getStateFromCache = () => undefined;
                 export const writeFileDirect = async () => {};
                 export const readFileDirect = async () => null;

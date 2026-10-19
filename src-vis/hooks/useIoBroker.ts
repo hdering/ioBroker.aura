@@ -969,6 +969,41 @@ export function getStateDirect(id: string): Promise<ioBrokerState | null> {
 }
 
 /**
+ * Like getStateDirect, but tells a failed read apart from a missing state:
+ * `ok: false` when the socket answered with an error or not at all within
+ * timeoutMs. The config load needs that distinction — a read that failed while
+ * the adapter restarted must not count as "this config is empty" (#800).
+ */
+export function getStateChecked(id: string, timeoutMs = 10000): Promise<{ ok: boolean; state: ioBrokerState | null }> {
+    if (devGetState) {
+        const handled = devGetState(id);
+        if (handled !== undefined) {
+            if (handled) cacheState(id, handled);
+            return Promise.resolve({ ok: true, state: handled });
+        }
+    }
+    return new Promise((resolve) => {
+        let settled = false;
+        const timer = globalThis.setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            resolve({ ok: false, state: null });
+        }, timeoutMs);
+        getSocket().emit('getState', id, (err: unknown, state: ioBrokerState | null) => {
+            if (settled) return;
+            settled = true;
+            globalThis.clearTimeout(timer);
+            if (err) {
+                resolve({ ok: false, state: null });
+                return;
+            }
+            if (state) cacheState(id, state);
+            resolve({ ok: true, state: state ?? null });
+        });
+    });
+}
+
+/**
  * Current value of a datapoint, prefetch cache first and a fetch only when the
  * cache holds nothing. For one-shot readers — freezing the `[[dp]]` tokens of a
  * condition's message, where a token pointing at the datapoint that just

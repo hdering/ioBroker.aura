@@ -44,6 +44,7 @@ const stubPlugin = {
                 export const setStateDirect = (id, val) => { globalThis.__writes.push([id, val]); };
                 export const subscribeStateDirect = () => () => {};
                 export const getStateDirect = async () => null;
+                export const getStateChecked = async () => ({ ok: true, state: null });
                 export const getStateFromCache = () => undefined;
                 export const writeFileDirect = async () => {};
                 export const readFileDirect = async () => null;
