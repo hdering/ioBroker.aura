@@ -498,19 +498,6 @@ export function AdminLayout() {
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     Aura
-                                    {/* Instance right next to the name (#801) — tells two admins apart. */}
-                                    <span
-                                        data-testid="admin-instance"
-                                        title={NS}
-                                        className="ml-1.5 px-1 rounded normal-case tracking-normal font-mono"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            border: '1px solid var(--app-border)',
-                                            color: 'var(--text-primary)',
-                                        }}
-                                    >
-                                        {NS}
-                                    </span>
                                 </p>
                                 <p className="font-bold text-lg leading-none" style={{ color: 'var(--text-primary)' }}>
                                     Admin
@@ -520,6 +507,10 @@ export function AdminLayout() {
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     <span>v{appVersion}</span>
+                                    {/* Instance in the version line (#801) — tells two admins apart. */}
+                                    <span data-testid="admin-instance" style={{ opacity: 0.7 }}>
+                                        · {NS}
+                                    </span>
                                     {installSource && (
                                         <span
                                             title={
