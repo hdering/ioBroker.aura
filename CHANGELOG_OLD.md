@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.81.4 (2026-10-11)
+- Click popups without a configured width now size to their content (e.g. the popup view's own width) instead of stopping at 600 px
+- Chart / Advanced chart - time ranges can now be set in minutes (custom range and own range chips like `15m`) for watching live values ([#766](https://github.com/hdering/ioBroker.aura/issues/766))
+
 ## 0.81.3 (2026-10-11)
 - Settings - web adapter extension: hint that the Visu App / ioBroker.pro remote access needs the same web instance as the cloud adapter (usually web.0) ([#688](https://github.com/hdering/ioBroker.aura/issues/688))
 - 🌟 **New feature:** Group / List - group switch: choose whether a click from the mixed state turns all devices on or off ([#764](https://github.com/hdering/ioBroker.aura/issues/764))
