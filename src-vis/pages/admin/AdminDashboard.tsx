@@ -507,6 +507,51 @@ function GettingStartedSection() {
     );
 }
 
+/** Header switches for the onboarding cards. The cards' own "Dismiss" only
+ *  hides them; these bring them back, so hiding is never a one-way street (#799). */
+function GuideToggles() {
+    const t = useT();
+    const startHidden = useAdminPrefsStore((s) => s.gettingStartedDismissed);
+    const mcpHidden = useAdminPrefsStore((s) => s.mcpCardDismissed);
+    const setStartHidden = useAdminPrefsStore((s) => s.setGettingStartedDismissed);
+    const setMcpHidden = useAdminPrefsStore((s) => s.setMcpCardDismissed);
+    const items = [
+        { key: 'start', icon: BookOpen, label: t('dashboard.toggle.start'), hidden: startHidden, set: setStartHidden },
+        { key: 'mcp', icon: Bot, label: t('dashboard.toggle.mcp'), hidden: mcpHidden, set: setMcpHidden },
+    ];
+    return (
+        <div className="flex items-center gap-2 flex-wrap" data-aura-guide-toggles>
+            {items.map(({ key, icon: Icon, label, hidden, set }) => (
+                <button
+                    key={key}
+                    type="button"
+                    onClick={() => set(!hidden)}
+                    aria-pressed={!hidden}
+                    title={hidden ? t('dashboard.toggle.show') : t('dashboard.toggle.hide')}
+                    data-aura-action={`toggle-${key}`}
+                    className="flex items-center gap-1.5 px-2.5 h-7 text-xs rounded-lg hover:opacity-80"
+                    style={
+                        hidden
+                            ? {
+                                  background: 'var(--app-bg)',
+                                  color: 'var(--text-secondary)',
+                                  border: '1px solid var(--app-border)',
+                              }
+                            : {
+                                  background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                                  color: 'var(--accent)',
+                                  border: '1px solid color-mix(in srgb, var(--accent) 40%, transparent)',
+                              }
+                    }
+                >
+                    <Icon size={12} />
+                    {label}
+                </button>
+            ))}
+        </div>
+    );
+}
+
 function McpSection() {
     const t = useT();
     const { enabled, mode } = useMcpStatus();
@@ -637,13 +682,18 @@ export function AdminDashboard() {
 
     return (
         <div className="p-8 space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {t('dashboard.title')}
-                </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    {t('dashboard.subtitle')}
-                </p>
+            <div className="flex items-start gap-4 flex-wrap">
+                <div>
+                    <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                        {t('dashboard.title')}
+                    </h1>
+                    <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {t('dashboard.subtitle')}
+                    </p>
+                </div>
+                <div className="ml-auto">
+                    <GuideToggles />
+                </div>
             </div>
 
             {/* Onboarding before status: the health cards below grow with the damage,

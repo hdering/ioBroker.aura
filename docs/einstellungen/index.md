@@ -25,7 +25,8 @@ Status und Statistiken zum Dashboard sowie zwei Diagnose-Bereiche.
 
 | Bereich | |
 | --- | --- |
-| Erste Schritte | Reihenfolge der Erstkonfiguration mit Sprung auf die jeweilige Seite und Link auf die [Anleitung](../start/); **Ausblenden** entfernt die Karte in diesem Browser |
+| Erste Schritte | Reihenfolge der Erstkonfiguration mit Sprung auf die jeweilige Seite und Link auf die [Anleitung](../start/); **Ausblenden** blendet die Karte in diesem Browser aus |
+| Schalter oben rechts | **Erste Schritte** / **KI-Zugriff (MCP)** blenden die jeweilige Karte ein und aus |
 | Verwaiste DPs | `aura.0.timers.*` / `aura.0.lists.*` ohne zugehöriges Widget — per Knopf bereinigbar |
 | Widget-DP-Referenzen | Widgets, die auf in ioBroker fehlende Datenpunkte zeigen |
 | Statistik | Anzahl Layouts, Tabs, Widgets und ioBroker-Verbindungsstatus |

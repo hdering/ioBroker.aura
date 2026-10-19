@@ -5,7 +5,8 @@
 //
 // The admin overview carries a dismissible getting-started card above the MCP
 // guide; the dismissal is a browser preference (aura-admin-prefs) and survives
-// a reload. The MCP card can be dismissed the same way. An empty tab in the
+// a reload. The MCP card can be dismissed the same way; two switches in the
+// page header bring either card back (#799). An empty tab in the
 // frontend links to the admin and to the guide.
 // Everything runs through the screenshot harness (`?shot=1`), no datapoint is
 // touched.
@@ -166,6 +167,29 @@ try {
     await card.waitFor({ state: 'visible', timeout: 20000 });
     await page.waitForTimeout(500);
     eq('the MCP dismissal survives a reload', await mcpCard.count(), 0);
+
+    // ── 3c. Header switches bring both cards back and hide them again (#799) ─
+    const startToggle = page.locator('[data-aura-action="toggle-start"]');
+    const mcpToggle = page.locator('[data-aura-action="toggle-mcp"]');
+    eq('the start switch shows the card as on', await startToggle.getAttribute('aria-pressed'), 'true');
+    eq('the MCP switch shows the dismissed card as off', await mcpToggle.getAttribute('aria-pressed'), 'false');
+    await mcpToggle.click();
+    await mcpCard.waitFor({ state: 'visible', timeout: 5000 });
+    check('the MCP switch brings the dismissed card back', await mcpCard.isVisible());
+    eq('and turns on', await mcpToggle.getAttribute('aria-pressed'), 'true');
+    await startToggle.click();
+    await card.waitFor({ state: 'detached', timeout: 5000 });
+    eq('the start switch hides the card', await card.count(), 0);
+    await startToggle.click();
+    await card.waitFor({ state: 'visible', timeout: 5000 });
+    check('and shows it again', await card.isVisible());
+    const toggleTop = await top('[data-aura-guide-toggles]');
+    check(
+        'the switches sit above the cards, next to each other',
+        toggleTop !== null &&
+            toggleTop < (await top('[data-aura-start-card]')) &&
+            (await top('[data-aura-action="toggle-start"]')) === (await top('[data-aura-action="toggle-mcp"]')),
+    );
 
     // ── 4. Frontend: the empty tab points at admin and guide ─────────────────
     await seedInstance();

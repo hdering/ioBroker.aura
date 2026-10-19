@@ -471,6 +471,10 @@ export const de = {
     'dashboard.mcp.showGuide': 'Anleitung',
     'dashboard.mcp.hideGuide': 'Anleitung ausblenden',
     'dashboard.mcp.dismiss': 'Ausblenden',
+    'dashboard.toggle.start': 'Erste Schritte',
+    'dashboard.toggle.mcp': 'KI-Zugriff (MCP)',
+    'dashboard.toggle.show': 'Einblenden',
+    'dashboard.toggle.hide': 'Ausblenden',
     'dashboard.start.title': 'Erste Schritte',
     'dashboard.start.description':
         'Aura in der richtigen Reihenfolge einrichten – vom Zielgerät bis zum ersten Widget. Die Anleitung in der Dokumentation führt durch jeden Schritt.',

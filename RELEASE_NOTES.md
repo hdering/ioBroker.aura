@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - List - value conversion can call your own functions from Custom JS: register them with aura.registerFn() and use callback("name", dp) in the expression (#794)
+- Admin overview - "Getting started" and "AI access (MCP)" cards can be shown and hidden again via two switches in the page header (#799)

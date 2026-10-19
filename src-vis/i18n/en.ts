@@ -470,6 +470,10 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.mcp.showGuide': 'Setup guide',
     'dashboard.mcp.hideGuide': 'Hide guide',
     'dashboard.mcp.dismiss': 'Dismiss',
+    'dashboard.toggle.start': 'Getting started',
+    'dashboard.toggle.mcp': 'AI access (MCP)',
+    'dashboard.toggle.show': 'Show',
+    'dashboard.toggle.hide': 'Hide',
     'dashboard.start.title': 'Getting started',
     'dashboard.start.description':
         'Set up Aura in the right order – from the target device to the first widget. The guide in the documentation walks through every step.',
