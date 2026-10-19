@@ -168,6 +168,46 @@ const write = (a, rel, val, ack = false) => a.onStateChange(`aura.0.${rel}`, { v
         assert.strictEqual(a._replies.pop().ok, false, 'invalid key rejected');
     }
 
+    // ── trigger datapoint (#796): subscribed, primed, edge starts the countdown ──
+    {
+        const a = makeAdapter();
+        const subs = [];
+        a.subscribeForeignStatesAsync = async (id) => void subs.push(`+${id}`);
+        a.unsubscribeForeignStatesAsync = async (id) => void subs.push(`-${id}`);
+        a.getForeignStateAsync = async (id) => (id === 'shelly.0.plug.on' ? { val: true, ack: true } : null);
+        const plug = 'shelly.0.plug.on';
+        const cfg = { durationSec: 1800, targetDp: plug, triggerDp: plug, valueOnEnd: 'false' };
+        await write(a, 'countdowns.t1.config', JSON.stringify(cfg));
+        assert.deepStrictEqual(subs, [`+${plug}`], 'trigger subscribed once');
+        // plug already on at subscribe time: no start
+        await a.onStateChange(plug, { val: true, ack: true });
+        assert.strictEqual(a._val('countdowns.t1.state'), 'idle');
+        await a.onStateChange(plug, { val: false, ack: true });
+        await a.onStateChange(plug, { val: true, ack: false });
+        assert.strictEqual(a._val('countdowns.t1.state'), 'running', 'switched on elsewhere → started');
+        await write(a, 'countdowns.t1.cmd', 'end');
+        assert.deepStrictEqual(a._foreign, [{ id: plug, val: false, ack: false }]);
+        await a.onStateChange(plug, { val: false, ack: false });
+        assert.strictEqual(a._val('countdowns.t1.state'), 'ended', 'own switch-off does not re-trigger');
+
+        // config republish with the same trigger: nothing re-subscribed
+        await write(a, 'countdowns.t1.config', JSON.stringify({ ...cfg, title: 'Steckdose' }));
+        assert.strictEqual(subs.length, 1);
+
+        // the remembered hints watch the same datapoint: removing the trigger keeps it
+        await a._foreignSub(plug, 'status');
+        await write(a, 'countdowns.t1.config', JSON.stringify({ ...cfg, triggerDp: '' }));
+        assert.deepStrictEqual(subs, [`+${plug}`], 'still subscribed for the hints');
+        await a._foreignUnsub(plug, 'status');
+        assert.deepStrictEqual(subs, [`+${plug}`, `-${plug}`], 'last owner gone → unsubscribed');
+
+        // deleting the countdown drops its trigger subscription
+        await write(a, 'countdowns.t1.config', JSON.stringify(cfg));
+        await a.onMessage({ command: 'deleteCountdown', message: { widgetId: 't1' }, from: 'test', callback: {} });
+        assert.deepStrictEqual(subs.slice(-2), [`+${plug}`, `-${plug}`]);
+        a._countdowns.dispose();
+    }
+
     console.log('countdown-adapter.test.js: all assertions passed');
 })().catch((e) => {
     console.error(e);

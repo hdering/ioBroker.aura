@@ -239,6 +239,10 @@ export interface CountdownWidgetOptions {
     valueOnStart?: string; // value written to targetDp at start; default "true" ("on for N minutes"), empty string = write nothing
     stopWritesEnd?: boolean; // Stop also writes valueOnEnd (default: on as long as valueOnStart is not empty)
     publishRemaining?: boolean; // adapter writes remainingMs once per second while running, for scripts
+    triggerDp?: string; // watched datapoint: switching to triggerValue starts the countdown in the adapter (usually = targetDp, #796)
+    triggerValue?: string; // value whose arrival starts the countdown, compared as boolean / number / text; default "true"
+    triggerStopOnRevert?: boolean; // trigger leaves triggerValue while running → back to idle without writing valueOnEnd
+    triggerRestart?: boolean; // triggerValue arrives again while running → the time starts over (motion sensor); default: keep running
     format?: CountdownFormat; // auto (mm:ss below one hour), hms, ms or hm
     showDays?: boolean; // show days as their own field from 24 h on
     digitSize?: number; // font size of the digits in px, 0 = fit the widget width

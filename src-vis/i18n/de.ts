@@ -2846,6 +2846,20 @@ export const de = {
     'countdown.cfg.stopWritesEnd': 'Stopp schreibt den Endwert',
     'countdown.cfg.stopWritesEndHint':
         'Ein abgebrochener Countdown schaltet zurück. Ohne Häkchen: Standard an, sobald ein Startwert gesetzt ist.',
+    'countdown.cfg.trigger': 'Auslöser',
+    'countdown.cfg.triggerHint':
+        'Startet den Countdown, wenn ein Datenpunkt anders geschaltet wird (Taster, App, Skript). Meist derselbe wie der Ziel-Datenpunkt — Steckdose an, nach Ablauf wieder aus.',
+    'countdown.cfg.triggerDp': 'Auslöse-Datenpunkt (optional)',
+    'countdown.cfg.triggerUseTarget': 'Ziel-Datenpunkt übernehmen',
+    'countdown.cfg.triggerValue': 'Auslösewert',
+    'countdown.cfg.triggerValueHint':
+        'Nur der Wechsel auf diesen Wert startet, nicht jede Aktualisierung. Leer = true.',
+    'countdown.cfg.triggerStopOnRevert': 'Bei Rückfall stoppen',
+    'countdown.cfg.triggerStopOnRevertHint':
+        'Fällt der Wert vorher zurück (z. B. von Hand ausgeschaltet), endet der Countdown ohne den Endwert zu schreiben.',
+    'countdown.cfg.triggerRestart': 'Bei erneutem Auslösen neu starten',
+    'countdown.cfg.triggerRestartHint':
+        'Kommt der Auslösewert erneut, während er läuft (z. B. Bewegungsmelder), beginnt die Zeit von vorn.',
     'countdown.cfg.publishRemaining': 'Restzeit sekündlich veröffentlichen',
     'countdown.cfg.publishRemainingHint':
         'Schreibt remainingMs jede Sekunde für Skripte und andere Vis. Erzeugt viele Werte in History-Adaptern.',

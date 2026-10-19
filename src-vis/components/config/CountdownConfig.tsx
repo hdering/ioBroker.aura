@@ -1,7 +1,8 @@
 /**
  * Configuration panel of the Countdown widget (#675) — shown in the widget edit
  * sidebar. Source (own countdown vs. foreign datapoint), duration, ± step and
- * presets, the target action the adapter performs, and the display switches.
+ * presets, the target action the adapter performs, the trigger datapoint that
+ * starts it from outside (#796), and the display switches.
  */
 import { useState } from 'react';
 import { Database } from 'lucide-react';
@@ -67,13 +68,17 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
     const valueOnStart = o.valueOnStart === undefined ? 'true' : String(o.valueOnStart);
     const stopWritesEnd = o.stopWritesEnd === undefined ? valueOnStart.trim() !== '' : o.stopWritesEnd === true;
     const publishRemaining = o.publishRemaining === true;
+    const triggerDp = (o.triggerDp as string | undefined) ?? '';
+    const triggerValue = (o.triggerValue as string | undefined) ?? '';
+    const triggerStopOnRevert = o.triggerStopOnRevert === true;
+    const triggerRestart = o.triggerRestart === true;
     const format = (o.format as CountdownFormat | undefined) ?? 'auto';
     const showDays = o.showDays === true;
     const digitSize = Number(o.digitSize) || 0;
     const endedText = (o.endedText as string | undefined) ?? '';
     const stateBaseId = o.stateBaseId as string | undefined;
 
-    const [picker, setPicker] = useState<'source' | 'target' | null>(null);
+    const [picker, setPicker] = useState<'source' | 'target' | 'trigger' | null>(null);
     const [presetText, setPresetText] = useState(() => presetsToText(o.presets));
     const [presetError, setPresetError] = useState(false);
 
@@ -114,7 +119,12 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
         </label>
     );
 
-    const dpField = (value: string, onChange: (v: string) => void, which: 'source' | 'target', placeholder: string) => (
+    const dpField = (
+        value: string,
+        onChange: (v: string) => void,
+        which: 'source' | 'target' | 'trigger',
+        placeholder: string,
+    ) => (
         <div className="flex gap-1">
             <input
                 type="text"
@@ -143,9 +153,10 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
         <>
             {picker && (
                 <DatapointPicker
-                    currentValue={picker === 'source' ? config.datapoint : targetDp}
+                    currentValue={picker === 'source' ? config.datapoint : picker === 'trigger' ? triggerDp : targetDp}
                     onSelect={(id) => {
                         if (picker === 'source') onConfigChange({ ...config, datapoint: id });
+                        else if (picker === 'trigger') setOpts({ triggerDp: id });
                         else setOpts({ targetDp: id });
                         setPicker(null);
                     }}
@@ -302,6 +313,84 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     onToggle={() => setOpts({ publishRemaining: !publishRemaining })}
                                 />
                             </div>
+                        </SubGroup>
+                    )}
+                    {!isDp && (
+                        <SubGroup title={t('countdown.cfg.trigger')}>
+                            <p className={hintCls} style={hintStyle}>
+                                {t('countdown.cfg.triggerHint')}
+                            </p>
+                            <div>
+                                <label className={labelCls} style={labelStyle}>
+                                    {t('countdown.cfg.triggerDp')}
+                                </label>
+                                {dpField(
+                                    triggerDp,
+                                    (v) => setOpts({ triggerDp: v || undefined }),
+                                    'trigger',
+                                    targetDp || 'z.B. shelly.0.plug.on',
+                                )}
+                                {targetDp.trim() !== '' && triggerDp.trim() !== targetDp.trim() && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setOpts({ triggerDp: targetDp.trim() })}
+                                        className="text-[10px] mt-1 underline"
+                                        style={{ color: 'var(--accent)' }}
+                                        data-action="trigger-from-target"
+                                    >
+                                        {t('countdown.cfg.triggerUseTarget')}
+                                    </button>
+                                )}
+                            </div>
+                            {triggerDp.trim() !== '' && (
+                                <>
+                                    <div>
+                                        <label className={labelCls} style={labelStyle}>
+                                            {t('countdown.cfg.triggerValue')}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={triggerValue}
+                                            onChange={(e) => setOpts({ triggerValue: e.target.value || undefined })}
+                                            placeholder="true"
+                                            className={inputCls}
+                                            style={inputStyle}
+                                            data-field="triggerValue"
+                                        />
+                                        <p className={hintCls} style={hintStyle}>
+                                            {t('countdown.cfg.triggerValueHint')}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2 pt-1">
+                                        <div className="min-w-0">
+                                            <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                                {t('countdown.cfg.triggerStopOnRevert')}
+                                            </p>
+                                            <p className={hintCls} style={hintStyle}>
+                                                {t('countdown.cfg.triggerStopOnRevertHint')}
+                                            </p>
+                                        </div>
+                                        <Toggle
+                                            on={triggerStopOnRevert}
+                                            onToggle={() => setOpts({ triggerStopOnRevert: !triggerStopOnRevert })}
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                                {t('countdown.cfg.triggerRestart')}
+                                            </p>
+                                            <p className={hintCls} style={hintStyle}>
+                                                {t('countdown.cfg.triggerRestartHint')}
+                                            </p>
+                                        </div>
+                                        <Toggle
+                                            on={triggerRestart}
+                                            onToggle={() => setOpts({ triggerRestart: !triggerRestart })}
+                                        />
+                                    </div>
+                                </>
+                            )}
                         </SubGroup>
                     )}
                 </ConfigSection>

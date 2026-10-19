@@ -2826,6 +2826,19 @@ export const en: Record<TranslationKey, string> = {
     'countdown.cfg.stopWritesEnd': 'Stop writes the end value',
     'countdown.cfg.stopWritesEndHint':
         'A cancelled countdown switches back. Unchecked: on by default as soon as a start value is set.',
+    'countdown.cfg.trigger': 'Trigger',
+    'countdown.cfg.triggerHint':
+        'Starts the countdown when a datapoint is switched elsewhere (button, app, script). Usually the same as the target datapoint — plug on, off again once the time is up.',
+    'countdown.cfg.triggerDp': 'Trigger datapoint (optional)',
+    'countdown.cfg.triggerUseTarget': 'Use the target datapoint',
+    'countdown.cfg.triggerValue': 'Trigger value',
+    'countdown.cfg.triggerValueHint': 'Only a change to this value starts it, not every update. Empty = true.',
+    'countdown.cfg.triggerStopOnRevert': 'Stop when it falls back',
+    'countdown.cfg.triggerStopOnRevertHint':
+        'If the value falls back early (e.g. switched off by hand), the countdown ends without writing the end value.',
+    'countdown.cfg.triggerRestart': 'Restart when triggered again',
+    'countdown.cfg.triggerRestartHint':
+        'If the trigger value arrives again while it runs (e.g. a motion sensor), the time starts over.',
     'countdown.cfg.publishRemaining': 'Publish remaining time every second',
     'countdown.cfg.publishRemainingHint':
         'Writes remainingMs once per second for scripts and other visualisations. Produces many values in history adapters.',

@@ -7,13 +7,20 @@
  * Covered: command parsing, start/pause/resume/stop/end, +/-/= in every state,
  * the target datapoint at start, end and stop, restart semantics, restore after
  * an adapter restart (still running → re-armed, elapsed → caught up), the
- * per-second remainingMs ticker, and the no-duration guard.
+ * per-second remainingMs ticker, the no-duration guard, and the trigger
+ * datapoint (#796): edges only, priming, stop on revert, restart, own echoes.
  *
  *   node test/countdowns.test.js
  */
 
 const assert = require('assert');
-const { CountdownEngine, parseCountdownCommand, parseSeconds, durationFromConfig } = require('../lib/countdowns');
+const {
+    CountdownEngine,
+    parseCountdownCommand,
+    parseSeconds,
+    durationFromConfig,
+    normalizeTriggerValue,
+} = require('../lib/countdowns');
 
 /**
  * Deterministic clock + timer queue.
@@ -424,6 +431,180 @@ const CONFIG = { durationSec: 3600, targetDp: 'hue.0.lamp.on', valueOnEnd: 'fals
         assert.strictEqual(engine.snapshot('a').state, 'running');
         await clock.advance(1);
         assert.strictEqual(engine.snapshot('a').state, 'ended');
+    }
+
+    // ── trigger (#796): normalizing values ───────────────────────────────────
+    {
+        assert.strictEqual(normalizeTriggerValue(true), 'true');
+        assert.strictEqual(normalizeTriggerValue(' TRUE '), 'true');
+        assert.strictEqual(normalizeTriggerValue(1), '1');
+        assert.strictEqual(normalizeTriggerValue('1.0'), '1');
+        assert.strictEqual(normalizeTriggerValue('14,5'), '14.5');
+        assert.strictEqual(normalizeTriggerValue(null), '');
+        assert.strictEqual(normalizeTriggerValue('on'), 'on');
+    }
+
+    // ── trigger: plug switched on elsewhere → off after the duration ─────────
+    {
+        const clock = makeClock();
+        const { engine, targetLog } = makeEngine(clock);
+        const plug = 'shelly.0.plug.on';
+        engine.ingestConfig('p', { durationSec: 1800, targetDp: plug, triggerDp: plug, valueOnEnd: 'false' });
+        assert.deepStrictEqual(engine.watchedTriggers(), [plug]);
+        assert.deepStrictEqual(engine.unprimedTriggers(), [plug]);
+        // The value read after subscribing is remembered, even when it is "on".
+        engine.primeTrigger(plug, true);
+        assert.deepStrictEqual(engine.unprimedTriggers(), []);
+        assert.strictEqual(engine.snapshot('p').state, 'idle', 'primed value never starts');
+        await engine.ingestTrigger(plug, true);
+        assert.strictEqual(engine.snapshot('p').state, 'idle', 'same value again is no edge');
+        await engine.ingestTrigger(plug, false);
+        await engine.ingestTrigger(plug, true);
+        assert.strictEqual(engine.snapshot('p').state, 'running', 'false → true starts');
+        assert.deepStrictEqual(targetLog, [], 'empty valueOnStart writes nothing');
+        // device ack with the same value: no edge
+        await engine.ingestTrigger(plug, true);
+        await clock.advance(1800 * 1000);
+        assert.strictEqual(engine.snapshot('p').state, 'ended');
+        assert.deepStrictEqual(
+            targetLog.map((t) => t.raw),
+            ['false'],
+        );
+        // the switch-off we wrote comes back: ended stays ended, nothing restarts
+        await engine.ingestTrigger(plug, false);
+        assert.strictEqual(engine.snapshot('p').state, 'ended');
+        // switched on again later: a new run
+        await engine.ingestTrigger(plug, true);
+        assert.strictEqual(engine.snapshot('p').state, 'running');
+        engine.dispose();
+    }
+
+    // ── trigger: not primed yet → the first value only primes ────────────────
+    {
+        const clock = makeClock();
+        const { engine } = makeEngine(clock);
+        engine.ingestConfig('p', { durationSec: 60, triggerDp: 'a.b' });
+        await engine.ingestTrigger('a.b', true);
+        assert.strictEqual(engine.snapshot('p').state, 'idle', 'first value after a restart is no edge');
+        await engine.ingestTrigger('x.y', false);
+        await engine.ingestTrigger('a.b', false);
+        await engine.ingestTrigger('a.b', true);
+        assert.strictEqual(engine.snapshot('p').state, 'running');
+        // switching the trigger datapoint forgets the remembered value
+        engine.ingestConfig('p', { durationSec: 60, triggerDp: 'c.d' });
+        assert.deepStrictEqual(engine.unprimedTriggers(), ['c.d']);
+        engine.ingestConfig('p', { durationSec: 60 });
+        assert.deepStrictEqual(engine.watchedTriggers(), []);
+        engine.dispose();
+    }
+
+    // ── trigger: stop on revert cancels without writing ──────────────────────
+    {
+        const clock = makeClock();
+        const { engine, targetLog } = makeEngine(clock);
+        const plug = 'p.on';
+        const cfg = { durationSec: 600, targetDp: plug, triggerDp: plug, valueOnEnd: 'false' };
+        engine.ingestConfig('p', { ...cfg, triggerStopOnRevert: true });
+        engine.primeTrigger(plug, false);
+        await engine.ingestTrigger(plug, true);
+        await clock.advance(60_000);
+        await engine.ingestTrigger(plug, false);
+        assert.strictEqual(engine.snapshot('p').state, 'idle', 'switched off by hand → cancelled');
+        assert.strictEqual(engine.snapshot('p').remainingMs, 600_000);
+        assert.deepStrictEqual(targetLog, [], 'cancel writes no valueOnEnd');
+        assert.strictEqual(clock.pending(), 0, 'timer disarmed');
+        // without the option a manual switch-off lets it run to the end
+        engine.ingestConfig('p', cfg);
+        await engine.ingestTrigger(plug, true);
+        await engine.ingestTrigger(plug, false);
+        assert.strictEqual(engine.snapshot('p').state, 'running');
+        await clock.advance(600_000);
+        assert.strictEqual(engine.snapshot('p').state, 'ended');
+        assert.deepStrictEqual(
+            targetLog.map((t) => t.raw),
+            ['false'],
+        );
+        engine.dispose();
+    }
+
+    // ── trigger: re-trigger restarts only with triggerRestart (motion sensor) ─
+    {
+        const clock = makeClock();
+        const { engine } = makeEngine(clock);
+        const motion = 'hm.0.motion';
+        const cfg = {
+            durationSec: 120,
+            targetDp: 'hue.0.stairs.on',
+            triggerDp: motion,
+            valueOnStart: 'true',
+            valueOnEnd: 'false',
+        };
+        engine.ingestConfig('m', cfg);
+        engine.primeTrigger(motion, false);
+        await engine.ingestTrigger(motion, true);
+        const firstEnd = engine.snapshot('m').endTs;
+        await clock.advance(60_000);
+        await engine.ingestTrigger(motion, false);
+        await engine.ingestTrigger(motion, true);
+        assert.strictEqual(engine.snapshot('m').endTs, firstEnd, 'without triggerRestart it keeps running');
+        engine.ingestConfig('m', { ...cfg, triggerRestart: true });
+        await clock.advance(30_000);
+        await engine.ingestTrigger(motion, false);
+        assert.strictEqual(engine.snapshot('m').state, 'running', 'motion ending does not stop it');
+        await engine.ingestTrigger(motion, true);
+        assert.strictEqual(engine.snapshot('m').endTs, clock.now() + 120_000, 'restarted from the full duration');
+        // paused + trigger again → restarted as well
+        await engine.command('m', 'pause');
+        await engine.ingestTrigger(motion, false);
+        await engine.ingestTrigger(motion, true);
+        assert.strictEqual(engine.snapshot('m').state, 'running');
+        engine.dispose();
+    }
+
+    // ── trigger: custom value and number formats ─────────────────────────────
+    {
+        const clock = makeClock();
+        const { engine } = makeEngine(clock);
+        engine.ingestConfig('n', { durationSec: 60, triggerDp: 'mode', triggerValue: '2' });
+        engine.primeTrigger('mode', 0);
+        await engine.ingestTrigger('mode', 1);
+        assert.strictEqual(engine.snapshot('n').state, 'idle');
+        await engine.ingestTrigger('mode', 2);
+        assert.strictEqual(engine.snapshot('n').state, 'running', 'number 2 matches "2"');
+        engine.dispose();
+    }
+
+    // ── trigger = target: our own valueOnStart write is not a trigger edge ───
+    {
+        const clock = makeClock();
+        const { engine, targetLog } = makeEngine(clock);
+        const plug = 'p.on';
+        const cfg = {
+            durationSec: 300,
+            targetDp: plug,
+            triggerDp: plug,
+            valueOnStart: 'true',
+            valueOnEnd: 'false',
+            triggerRestart: true,
+        };
+        engine.ingestConfig('s', cfg);
+        engine.primeTrigger(plug, false);
+        // started on the widget: writes true, whose echo must not restart it
+        await engine.command('s', 'start');
+        const endTs = engine.snapshot('s').endTs;
+        await clock.advance(5_000);
+        await engine.ingestTrigger(plug, true);
+        assert.strictEqual(engine.snapshot('s').endTs, endTs, 'echo of valueOnStart ignored');
+        // a real off → on afterwards does restart it
+        await engine.ingestTrigger(plug, false);
+        await engine.ingestTrigger(plug, true);
+        assert.strictEqual(engine.snapshot('s').endTs, clock.now() + 300_000);
+        assert.deepStrictEqual(
+            targetLog.map((t) => t.raw),
+            ['true', 'true'],
+            'a restart writes valueOnStart again',
+        );
+        engine.dispose();
     }
 
     console.log('countdowns.test.js: all assertions passed');

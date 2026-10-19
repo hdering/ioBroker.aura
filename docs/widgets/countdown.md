@@ -117,6 +117,24 @@ Bei `datapoint` sind Tasten, Chips und Balken ausgeblendet; die Restzeit tickt z
 
 Nach einem Adapter-Neustart läuft ein Countdown aus dem gespeicherten `endTs` weiter; war er in der Zwischenzeit abgelaufen, wird `valueOnEnd` nachgeholt.
 
+### Auslöser
+
+Startet den Countdown, wenn ein Datenpunkt anders geschaltet wird – Taster, App, Skript. Läuft im Adapter.
+
+| Option | Typ | Standard | |
+| --- | --- | --- | --- |
+| `triggerDp` | `string` | – | überwachter Datenpunkt, meist = `targetDp` |
+| `triggerValue` | `string` | `true` | Wechsel auf diesen Wert startet; Vergleich als `boolean` · `number` · `string` |
+| `triggerStopOnRevert` | `boolean` | `false` | Wert fällt vorher zurück → Countdown endet, `valueOnEnd` wird **nicht** geschrieben |
+| `triggerRestart` | `boolean` | `false` | Auslösewert erneut, während er läuft → Zeit beginnt von vorn |
+
+Nur der **Wechsel** zählt: gleiche Aktualisierungen und der Wert beim Adapter-Start lösen nicht aus. Ist Auslöser = Ziel, löst der eigene Schreibwert den Countdown nicht erneut aus.
+
+| Beispiel | `targetDp` | `triggerDp` | `valueOnStart` | `valueOnEnd` | Schalter |
+| --- | --- | --- | --- | --- | --- |
+| Steckdose nach 30 min aus | Steckdose | Steckdose | leer | `false` | Rückfall stoppen |
+| Treppenhauslicht | Licht | Bewegungsmelder | `true` | `false` | neu starten |
+
 ### Anzeige
 
 | Option | Werte / Typ | Standard | |

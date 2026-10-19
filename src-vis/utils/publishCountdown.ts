@@ -44,6 +44,10 @@ export interface CountdownConfigPayload {
     valueOnStart?: string;
     stopWritesEnd?: boolean;
     publishRemaining?: boolean;
+    triggerDp?: string;
+    triggerValue?: string;
+    triggerStopOnRevert?: boolean;
+    triggerRestart?: boolean;
     title?: string;
 }
 

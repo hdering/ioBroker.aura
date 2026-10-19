@@ -53,6 +53,7 @@
     "test:countdowns": "node test/countdowns.test.js && node test/countdown-adapter.test.js",
     "test:countdown-format": "node tools/tests/countdown-format.mjs",
     "test:countdown-ui": "node tools/tests/countdown-widget.mjs",
+    "test:countdown-trigger-ui": "node tools/tests/countdown-trigger-ui.mjs",
     "test:edit-history": "node tools/tests/edit-history.mjs",
     "test:edit-history-ui": "node tools/tests/edit-history-ui.mjs",
     "test:editor-drop-perf": "node tools/tests/editor-drop-perf.mjs",

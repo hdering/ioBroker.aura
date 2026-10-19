@@ -99,6 +99,10 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     const valueOnStart = o.valueOnStart === undefined ? 'true' : String(o.valueOnStart);
     const stopWritesEnd = o.stopWritesEnd as boolean | undefined;
     const publishRemaining = o.publishRemaining === true;
+    const triggerDp = (o.triggerDp as string | undefined)?.trim() || undefined;
+    const triggerValue = o.triggerValue as string | undefined;
+    const triggerStopOnRevert = o.triggerStopOnRevert === true;
+    const triggerRestart = o.triggerRestart === true;
     const format = (o.format as CountdownFormat | undefined) ?? 'auto';
     const showDays = o.showDays === true;
     const digitSize = Math.max(0, asNumber(o.digitSize));
@@ -135,8 +139,9 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     const sharedMode = useSharedTemplateMode();
     const baseKey = isDp ? null : (o.stateBaseId as string | undefined)?.split('.').pop() || null;
     const rawTarget = targetDp?.trim() ?? '';
-    const instanceKey = templateInstanceKey(rawTarget ? [rawTarget] : []);
-    const unresolved = rawTarget.includes('{{');
+    const rawTrigger = triggerDp ?? '';
+    const instanceKey = templateInstanceKey([rawTarget, rawTrigger].filter(Boolean));
+    const unresolved = rawTarget.includes('{{') || rawTrigger.includes('{{');
     const backendKey =
         !baseKey || sharedMode === 'template' || unresolved
             ? null
@@ -167,6 +172,10 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
             valueOnStart,
             stopWritesEnd,
             publishRemaining,
+            triggerDp,
+            triggerValue: triggerDp ? triggerValue : undefined,
+            triggerStopOnRevert: triggerDp ? triggerStopOnRevert : undefined,
+            triggerRestart: triggerDp ? triggerRestart : undefined,
             title: config.title,
         };
         const serialized = JSON.stringify(payload);
@@ -183,6 +192,10 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
         valueOnStart,
         stopWritesEnd,
         publishRemaining,
+        triggerDp,
+        triggerValue,
+        triggerStopOnRevert,
+        triggerRestart,
         config.title,
         publishTitle,
     ]);

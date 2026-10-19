@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Countdown - can start automatically when a watched datapoint switches on, e.g. turn a plug off 30 min after it was switched on elsewhere (#796)

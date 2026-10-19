@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.85.0",
+    "auraVersion": "0.86.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -10153,6 +10153,25 @@
           "type": "string",
           "description": "Datenpunkt, den der Adapter am Ende schreibt (und beim Start, wenn valueOnStart gesetzt ist). Läuft ohne offenen Browser weiter.",
           "datapoint": true
+        },
+        "triggerDp": {
+          "type": "string",
+          "description": "Überwachter Datenpunkt: Wechselt er auf triggerValue, startet der Adapter den Countdown — auch wenn das Gerät per Taster, App oder Skript geschaltet wurde. Meist = targetDp (Steckdose an → nach Ablauf wieder aus); eigene Schreibwerte lösen nicht erneut aus. Nur der Wechsel zählt, der erste Wert nach Adapter-Start nie. Leer = kein Auslöser.",
+          "datapoint": true
+        },
+        "triggerRestart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Kommt der Auslösewert erneut, während der Countdown läuft oder pausiert, beginnt die volle Dauer von vorn (Bewegungsmelder, Treppenhauslicht). Standard aus = läuft unverändert weiter."
+        },
+        "triggerStopOnRevert": {
+          "type": "boolean",
+          "default": false,
+          "description": "Verlässt triggerDp den Auslösewert, während der Countdown läuft (z. B. Steckdose von Hand aus), geht er auf idle zurück, ohne valueOnEnd zu schreiben. Standard aus = läuft bis zum Ende weiter."
+        },
+        "triggerValue": {
+          "type": "string",
+          "description": "Wert, auf den triggerDp wechseln muss, als Text; Vergleich als Boolean/Zahl/Text (\"true\" passt zu true, \"1\" zu 1). Standard \"true\"."
         },
         "valueOnEnd": {
           "description": "Wert für targetDp am Ende, als Text; wird zu Boolean/Zahl/Text geparst. Standard \"false\"; leerer Text \"\" = nichts schreiben."

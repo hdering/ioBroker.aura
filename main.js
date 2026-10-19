@@ -784,6 +784,10 @@ class Aura extends utils.Adapter {
         if (this._statusLatch && state && this._statusSubscribed.has(id)) {
             this._statusLatch.update(id, state);
         }
+        // A countdown's trigger datapoint (#796). Not returned either.
+        if (this._countdowns && state && this._countdownTriggerSubs?.has(id)) {
+            await this._countdowns.ingestTrigger(id, state.val);
+        }
 
         // Countdown widget config/cmd (#675)
         if (id.startsWith(`${this.namespace}.countdowns.`) && state) {
@@ -3770,6 +3774,7 @@ class Aura extends utils.Adapter {
             const existing = await this.getStatesAsync(`${this.namespace}.countdowns.*`);
             this._ingestCountdownScan(existing || {});
             await this._countdowns.restore();
+            await this._syncCountdownTriggers();
             this.log.debug(`[countdowns] loaded ${this._countdowns.size} countdown(s)`);
         } catch (e) {
             this.log.warn(`[countdowns] initial scan failed: ${e.message}`);
@@ -4339,6 +4344,7 @@ class Aura extends utils.Adapter {
             // Let the status writes land before the next state change is handled,
             // so a cmd that follows the config never overtakes its publish.
             await this._countdowns.settle();
+            await this._syncCountdownTriggers();
             return;
         }
         if (p.sub === 'cmd') {
@@ -4371,6 +4377,7 @@ class Aura extends utils.Adapter {
                 await this._ensureCountdownObjects(p.key);
                 this._countdowns.ingestConfig(p.key, st ? st.val : '');
                 await this._countdowns.settle();
+                await this._syncCountdownTriggers();
             } catch (e) {
                 this.log.warn(`[countdowns] objectChange ingest failed (${id}): ${e.message}`);
             }
@@ -4379,6 +4386,70 @@ class Aura extends utils.Adapter {
         if (!obj) {
             this._countdowns.remove(p.key);
             this._countdownObjectsEnsured.delete(p.key);
+            await this._syncCountdownTriggers();
+        }
+    }
+
+    /**
+     * Subscribe the trigger datapoints the countdowns watch, drop the ones no
+     * longer watched, and hand the current value of every new one to the engine
+     * once (remembered, never acted upon). Serialized: the editor republishes a
+     * config per keystroke.
+     */
+    _syncCountdownTriggers() {
+        const run = async () => {
+            if (!this._countdowns) return;
+            if (!this._countdownTriggerSubs) this._countdownTriggerSubs = new Set();
+            const want = new Set(this._countdowns.watchedTriggers());
+            for (const id of want) {
+                if (!this._countdownTriggerSubs.has(id)) {
+                    this._countdownTriggerSubs.add(id);
+                    await this._foreignSub(id, 'countdown');
+                }
+            }
+            for (const id of [...this._countdownTriggerSubs]) {
+                if (!want.has(id)) {
+                    this._countdownTriggerSubs.delete(id);
+                    await this._foreignUnsub(id, 'countdown');
+                }
+            }
+            for (const id of this._countdowns.unprimedTriggers()) {
+                try {
+                    const st = await this.getForeignStateAsync(id);
+                    this._countdowns.primeTrigger(id, st ? st.val : null);
+                } catch (e) {
+                    this.log.warn(`[countdowns] could not read trigger ${id}: ${e.message}`);
+                }
+            }
+        };
+        const next = (this._countdownSyncChain || Promise.resolve()).then(run, run);
+        this._countdownSyncChain = next.catch((e) => this.log.warn(`[countdowns] trigger sync failed: ${e.message}`));
+        return this._countdownSyncChain;
+    }
+
+    // ── Foreign subscriptions shared by several features ────────────────────────
+    // ioBroker does not count subscriptions: one unsubscribeForeignStates drops the
+    // id for everybody. The remembered hints and the countdown triggers may watch
+    // the same datapoint, so both go through this reference count.
+
+    async _foreignSub(id, owner) {
+        if (!this._foreignSubOwners) this._foreignSubOwners = new Map();
+        let owners = this._foreignSubOwners.get(id);
+        if (!owners) {
+            owners = new Set();
+            this._foreignSubOwners.set(id, owners);
+        }
+        const first = owners.size === 0;
+        owners.add(owner);
+        if (first) await this.subscribeForeignStatesAsync(id);
+    }
+
+    async _foreignUnsub(id, owner) {
+        const owners = this._foreignSubOwners?.get(id);
+        if (!owners || !owners.delete(owner)) return;
+        if (owners.size === 0) {
+            this._foreignSubOwners.delete(id);
+            await this.unsubscribeForeignStatesAsync(id);
         }
     }
 
@@ -4578,13 +4649,13 @@ class Aura extends utils.Adapter {
             if (!this._statusSubscribed.has(id)) {
                 this._statusSubscribed.add(id);
                 fresh.push(id);
-                await this.subscribeForeignStatesAsync(id);
+                await this._foreignSub(id, 'status');
             }
         }
         for (const id of [...this._statusSubscribed]) {
             if (!want.has(id)) {
                 this._statusSubscribed.delete(id);
-                await this.unsubscribeForeignStatesAsync(id);
+                await this._foreignUnsub(id, 'status');
             }
         }
         const read = all ? [...want] : fresh;
@@ -5148,6 +5219,7 @@ class Aura extends utils.Adapter {
                 const results = {};
                 if (this._countdowns) this._countdowns.remove(key);
                 if (this._countdownObjectsEnsured) this._countdownObjectsEnsured.delete(key);
+                await this._syncCountdownTriggers();
                 for (const sub of Object.keys(COUNTDOWN_STATE_DEFS)) {
                     try {
                         await this.delObjectAsync(`${localBase}.${sub}`);

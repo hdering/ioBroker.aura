@@ -1312,6 +1312,22 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Adapter schreibt remainingMs jede Sekunde, solange der Countdown läuft (für Skripte). Standard aus — die Anzeige braucht es nicht und History-Adapter füllen sich sonst.',
         },
+        triggerDp: {
+            description:
+                'Überwachter Datenpunkt: Wechselt er auf triggerValue, startet der Adapter den Countdown — auch wenn das Gerät per Taster, App oder Skript geschaltet wurde. Meist = targetDp (Steckdose an → nach Ablauf wieder aus); eigene Schreibwerte lösen nicht erneut aus. Nur der Wechsel zählt, der erste Wert nach Adapter-Start nie. Leer = kein Auslöser.',
+        },
+        triggerValue: {
+            description:
+                'Wert, auf den triggerDp wechseln muss, als Text; Vergleich als Boolean/Zahl/Text ("true" passt zu true, "1" zu 1). Standard "true".',
+        },
+        triggerStopOnRevert: {
+            description:
+                'Verlässt triggerDp den Auslösewert, während der Countdown läuft (z. B. Steckdose von Hand aus), geht er auf idle zurück, ohne valueOnEnd zu schreiben. Standard aus = läuft bis zum Ende weiter.',
+        },
+        triggerRestart: {
+            description:
+                'Kommt der Auslösewert erneut, während der Countdown läuft oder pausiert, beginnt die volle Dauer von vorn (Bewegungsmelder, Treppenhauslicht). Standard aus = läuft unverändert weiter.',
+        },
         format: {
             description:
                 'Ziffernformat: "auto" (mm:ss unter einer Stunde, sonst hh:mm:ss), "hms" (immer hh:mm:ss), "ms" (Minuten gesamt), "hm" (hh:mm, Sekunden aufgerundet).',
