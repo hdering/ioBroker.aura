@@ -9,3 +9,5 @@
 - Countdown - font size of the preset chips and the status text can now be set individually (#812)
 - Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"; both image modes take a URL, Base64, a file from the server or an upload from the PC
 - iFrame - the fullscreen button now sits under Appearance like on every other widget, with corner choice, the "Fill screen" option and permanent visibility on touch devices; the embedded page stays operable in fullscreen (#813)
+- Theme editor - every field now shows the name of its CSS variable (e.g. `--app-surface`); a click copies it as `var(...)` (#814)
+- Section menu - the slide-in drawer is no longer see-through on the glass themes, and "Navigation → background" now colours the drawer and the docked sidebar like the section and tab bars (#814)

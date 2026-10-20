@@ -915,6 +915,7 @@ export const de = {
     'theme.user.usedBoth': 'Aktiv (hell + dunkel)',
 
     'theme.vars.title': 'CSS-Variablen anpassen',
+    'theme.vars.copyName': 'Variablennamen kopieren',
     'theme.vars.app': 'App',
     'theme.vars.widget': 'Widget-Karte',
     'theme.vars.text': 'Text',

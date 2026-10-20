@@ -600,7 +600,9 @@ export function LayoutDrawer({
                 className="h-full flex flex-col shrink-0 overflow-hidden"
                 style={{
                     width,
-                    background: 'var(--app-surface)',
+                    // Same token as the section and tab bars, so "Navigation → background"
+                    // reaches the docked drawer too (#814).
+                    background: 'var(--nav-bg, var(--app-surface))',
                     borderRight: '1px solid var(--app-border)',
                 }}
             >
@@ -670,12 +672,22 @@ export function LayoutDrawer({
                       className="fixed top-0 left-0 z-[1001] h-full flex flex-col"
                       style={{
                           width: `min(${SECTION_DRAWER_OVERLAY_W}px, 85vw)`,
-                          background: 'var(--app-surface)',
+                          // The drawer lies over the dashboard, so it needs a closed ground:
+                          // glass themes paint --app-surface nearly transparent, and the
+                          // tabs and widgets behind showed straight through the entries
+                          // (#814). The page background goes underneath, the navigation
+                          // colour (same token as the section and tab bars) on top.
+                          background: 'var(--app-bg)',
                           borderRight: '1px solid var(--app-border)',
                           boxShadow: '0 0 30px rgba(0,0,0,0.3)',
                           animation: 'auraDrawerIn 220ms ease-out',
                       }}
                   >
+                      <div
+                          aria-hidden
+                          className="absolute inset-0 pointer-events-none"
+                          style={{ zIndex: -1, background: 'var(--nav-bg, var(--app-surface))' }}
+                      />
                       <div
                           className="flex items-center justify-between px-4 py-3 shrink-0"
                           style={{

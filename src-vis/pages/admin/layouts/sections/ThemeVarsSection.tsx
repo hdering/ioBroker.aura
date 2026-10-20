@@ -9,6 +9,7 @@ import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '.
 import { hasVars, VAR_SET_KEYS, type VarScope, type VarSets } from '../../../../utils/themeVars';
 import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
+import { copyToClipboard } from '../../../../utils/clipboard';
 
 /**
  * The editor's reading order (#640): first the palette everything else inherits
@@ -285,20 +286,36 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                                         style={isOv ? OVERRIDE_ROW_STYLE : undefined}
                                         data-overridden={isOv ? 'true' : undefined}
                                     >
-                                        <label
-                                            className="text-xs w-24 shrink-0 flex items-center gap-1"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {varLabelKey ? t(varLabelKey as never) : key}
-                                            {isOv && (
-                                                <span
-                                                    className="text-[9px] px-1 py-0.5 rounded font-medium"
-                                                    style={{ background: OVERRIDE_TINT, color: OVERRIDE_COLOR }}
+                                        <div className="w-24 shrink-0 min-w-0">
+                                            <label
+                                                className="text-xs flex items-center gap-1"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {varLabelKey ? t(varLabelKey as never) : key}
+                                                {isOv && (
+                                                    <span
+                                                        className="text-[9px] px-1 py-0.5 rounded font-medium"
+                                                        style={{ background: OVERRIDE_TINT, color: OVERRIDE_COLOR }}
+                                                    >
+                                                        L
+                                                    </span>
+                                                )}
+                                            </label>
+                                            {/* The variable's own name, for custom CSS and for finding out
+                                                which one paints an element (#814). A click copies var(...). */}
+                                            {varLabelKey && (
+                                                <button
+                                                    type="button"
+                                                    data-aura-theme-var-name={key}
+                                                    onClick={() => copyToClipboard(`var(${key})`)}
+                                                    title={t('theme.vars.copyName')}
+                                                    className="block max-w-full text-left font-mono text-[10px] leading-tight [overflow-wrap:anywhere] opacity-70 hover:opacity-100 cursor-copy"
+                                                    style={{ color: 'var(--text-secondary)' }}
                                                 >
-                                                    L
-                                                </span>
+                                                    {key}
+                                                </button>
                                             )}
-                                        </label>
+                                        </div>
                                         <div className="flex items-center gap-1.5 flex-1 min-w-0">
                                             {isColor(current) && (
                                                 <ColorPicker

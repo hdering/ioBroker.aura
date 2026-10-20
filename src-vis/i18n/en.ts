@@ -906,6 +906,7 @@ export const en: Record<TranslationKey, string> = {
     'theme.user.usedBoth': 'Active (light + dark)',
 
     'theme.vars.title': 'Customize CSS Variables',
+    'theme.vars.copyName': 'Copy variable name',
     'theme.vars.app': 'App',
     'theme.vars.widget': 'Widget Card',
     'theme.vars.text': 'Text',

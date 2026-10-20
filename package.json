@@ -298,6 +298,7 @@
     "test:theme-flicker": "node tools/tests/theme-mode-flicker.mjs",
     "test:theme-scope": "node tools/tests/theme-scope.mjs",
     "test:theme-vars": "node tools/tests/theme-vars.mjs",
+    "test:theme-var-names": "node tools/tests/theme-var-names.mjs",
     "test:theme-editor": "node tools/tests/theme-editor-ui.mjs",
     "test:nav-chip-theme": "node tools/tests/nav-chip-theme.mjs",
     "test:calendar-auto-height": "node tools/tests/calendar-auto-height.mjs",
