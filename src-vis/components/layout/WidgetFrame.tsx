@@ -6892,7 +6892,10 @@ function WidgetFrameInner({
     const widgetFramePortalTarget = usePortalTarget();
     // Which cell field the datapoint picker fills: the cell's own DP or the switch read-back DP (#567).
     const [customCellPickerOpen, setCustomCellPickerOpen] = useState<'dpId' | 'statusDpId' | null>(null);
-    const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
+    // Which image field of the selected cell the file picker fills (image cell, switch cell in image mode).
+    const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState<
+        'imageUrl' | 'trueImage' | 'falseImage' | null
+    >(null);
     const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(
         null,
     );
@@ -11705,6 +11708,7 @@ function WidgetFrameInner({
                                                                 ['checkbox', 'Checkbox'],
                                                                 ['icon', 'Icon'],
                                                                 ['image', 'Bild'],
+                                                                ['button', 'Button'],
                                                             ] as const
                                                         ).map(([val, lbl]) => (
                                                             <button
@@ -11975,6 +11979,120 @@ function WidgetFrameInner({
                                                         </div>
                                                     </>
                                                 )}
+                                                {controlMode === 'button' &&
+                                                    (() => {
+                                                        const fieldSty = {
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-primary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        };
+                                                        const btnPad = (o.buttonSize as number) ?? 4;
+                                                        return (
+                                                            <>
+                                                                {(['on', 'off'] as const).map((state) => {
+                                                                    const isOnState = state === 'on';
+                                                                    const stateLabel = isOnState ? 'AN' : 'AUS';
+                                                                    const textKey = isOnState ? 'onText' : 'offText';
+                                                                    const bgKey = isOnState
+                                                                        ? 'buttonOnColor'
+                                                                        : 'buttonOffColor';
+                                                                    const fgKey = isOnState
+                                                                        ? 'buttonOnTextColor'
+                                                                        : 'buttonOffTextColor';
+                                                                    return (
+                                                                        <div key={state} className="space-y-1.5">
+                                                                            <p
+                                                                                className="text-[11px] font-semibold"
+                                                                                style={{
+                                                                                    color: 'var(--text-secondary)',
+                                                                                }}
+                                                                            >
+                                                                                Button {stateLabel}
+                                                                            </p>
+                                                                            <div className="flex gap-1 items-center">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={(o[textKey] as string) ?? ''}
+                                                                                    onChange={(e) =>
+                                                                                        set({
+                                                                                            [textKey]:
+                                                                                                e.target.value ||
+                                                                                                undefined,
+                                                                                        })
+                                                                                    }
+                                                                                    placeholder={stateLabel}
+                                                                                    className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                                                    style={fieldSty}
+                                                                                />
+                                                                                <ColorPicker
+                                                                                    value={
+                                                                                        (o[bgKey] as string) ||
+                                                                                        'var(--accent)'
+                                                                                    }
+                                                                                    onChange={(v) =>
+                                                                                        set({ [bgKey]: v })
+                                                                                    }
+                                                                                    title={`Hintergrundfarbe ${stateLabel}`}
+                                                                                    className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                                                                                    style={fieldSty}
+                                                                                />
+                                                                                <ColorPicker
+                                                                                    value={
+                                                                                        (o[fgKey] as string) ||
+                                                                                        '#ffffff'
+                                                                                    }
+                                                                                    onChange={(v) =>
+                                                                                        set({ [fgKey]: v })
+                                                                                    }
+                                                                                    title={`Textfarbe ${stateLabel}`}
+                                                                                    className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                                                                                    style={fieldSty}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                                <p
+                                                                    className="text-[10px]"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
+                                                                >
+                                                                    Beschriftung · Hintergrund · Text. Leere
+                                                                    Beschriftung = AN/AUS.
+                                                                </p>
+                                                                <div>
+                                                                    <div className="flex items-center justify-between mb-1">
+                                                                        <label
+                                                                            className="text-[11px]"
+                                                                            style={{ color: 'var(--text-secondary)' }}
+                                                                        >
+                                                                            Buttongröße
+                                                                        </label>
+                                                                        <span
+                                                                            className="text-[11px] tabular-nums"
+                                                                            style={{ color: 'var(--text-primary)' }}
+                                                                        >
+                                                                            {btnPad} px
+                                                                        </span>
+                                                                    </div>
+                                                                    <input
+                                                                        type="range"
+                                                                        min={2}
+                                                                        max={40}
+                                                                        step={1}
+                                                                        value={btnPad}
+                                                                        onChange={(e) =>
+                                                                            set({ buttonSize: Number(e.target.value) })
+                                                                        }
+                                                                        className="w-full h-1"
+                                                                        style={{ accentColor: 'var(--accent)' }}
+                                                                    />
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    })()}
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
                                                 <div className="flex items-center justify-between">
@@ -20102,7 +20220,9 @@ function WidgetFrameInner({
                                                             onOpenDpPicker={(field) =>
                                                                 setCustomCellPickerOpen(field ?? 'dpId')
                                                             }
-                                                            onOpenImagePicker={() => setCustomCellImagePickerOpen(true)}
+                                                            onOpenImagePicker={(field) =>
+                                                                setCustomCellImagePickerOpen(field ?? 'imageUrl')
+                                                            }
                                                             onOpenConditions={() => setCustomCellCondOpen(true)}
                                                             onOpenClickAction={() => setCustomCellClickOpen(true)}
                                                             statusItems={
@@ -21563,7 +21683,7 @@ function WidgetFrameInner({
             )}
 
             {/* Custom-Grid image file picker */}
-            {customCellImagePickerOpen &&
+            {customCellImagePickerOpen !== null &&
                 selectedCustomCell !== null &&
                 (() => {
                     const fb =
@@ -21574,25 +21694,26 @@ function WidgetFrameInner({
                               : DEFAULT_CUSTOM_GRID;
                     const grid = normalizeGrid(config.options?.customGrid, fb);
                     const idx = selectedCustomCell;
+                    const field = customCellImagePickerOpen;
                     return (
                         <DatapointPicker
                             modes={['files']}
                             defaultMode="files"
                             acceptMime={['image/*']}
-                            currentValue={grid.cells[idx]?.imageUrl ?? ''}
+                            currentValue={grid.cells[idx]?.[field] ?? ''}
                             onPickResult={(r) => {
                                 if (r.kind === 'file') {
                                     const next: CustomGridDef = {
                                         ...grid,
                                         cells: grid.cells.map((c, i) =>
-                                            i === idx ? { ...c, imageUrl: `aura-file:${r.path}` } : c,
+                                            i === idx ? { ...c, [field]: `aura-file:${r.path}` } : c,
                                         ),
                                     };
                                     onConfigChange({ ...config, options: { ...config.options, customGrid: next } });
                                 }
-                                setCustomCellImagePickerOpen(false);
+                                setCustomCellImagePickerOpen(null);
                             }}
-                            onClose={() => setCustomCellImagePickerOpen(false)}
+                            onClose={() => setCustomCellImagePickerOpen(null)}
                         />
                     );
                 })()}

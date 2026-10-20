@@ -53,16 +53,20 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Steuerelement
 
-Schiebeschalter, Checkbox, Icon- oder Bild-Taster — bei `controlMode: icon` werden `onIcon`/`offIcon` und `onColor`/`offColor` ausgewertet, bei `checkbox` färbt `onColor` das Häkchen-Feld (leer = Theme-Farbe des Schalters).
+Schiebeschalter, Checkbox, Icon- oder Bild-Taster oder Button — bei `controlMode: icon` werden `onIcon`/`offIcon` und `onColor`/`offColor` ausgewertet, bei `checkbox` färbt `onColor` das Häkchen-Feld (leer = Theme-Farbe des Schalters).
 
 | Option | Standard | |
 | --- | --- | --- |
-| `controlMode` | `toggle` | `toggle` · `checkbox` · `icon` · `image` |
+| `controlMode` | `toggle` | `toggle` · `checkbox` · `icon` · `image` · `button` |
 | `onIcon` / `offIcon` | Widget-Icon | nur bei `icon` |
 | `onImage` / `offImage` | — | nur bei `image` |
 | `onColor` | `--accent-green` | CSS-Farbe oder Variable |
 | `offColor` | `--text-secondary` | CSS-Farbe oder Variable |
-| `controlIconSize` | `28` | px, nur bei `icon` |
+| `controlIconSize` | `28` | px, nur bei `icon` und `image` |
+| `onText` / `offText` | `AN` / `AUS` | Beschriftung, nur bei `button` |
+| `buttonOnColor` / `buttonOffColor` | `--accent` | Hintergrund, nur bei `button` |
+| `buttonOnTextColor` / `buttonOffTextColor` | `#fff` | Textfarbe, nur bei `button` |
+| `buttonSize` | `4` | Innenabstand in px, nur bei `button`; bei `4` so hoch wie der Schiebeschalter |
 
 ![](./assets/schalter/icon-modus.png)
 

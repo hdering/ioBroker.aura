@@ -624,7 +624,7 @@ export interface CustomCellEditorProps {
     onChange: (patch: Partial<CustomCell>) => void;
     onOpenIconPicker: (slot: 'iconName' | 'trueIcon' | 'falseIcon') => void;
     onOpenDpPicker: (field?: 'dpId' | 'statusDpId') => void;
-    onOpenImagePicker: () => void;
+    onOpenImagePicker: (field?: 'imageUrl' | 'trueImage' | 'falseImage') => void;
     onOpenConditions: () => void;
     /** Opens the cell's click-action popup (display cells only, issue #729). */
     onOpenClickAction?: () => void;
@@ -804,7 +804,7 @@ export function CustomCellEditor({
                                 style={inputSty}
                             />
                             <button
-                                onClick={onOpenImagePicker}
+                                onClick={() => onOpenImagePicker('imageUrl')}
                                 className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                 style={{
                                     background: 'var(--app-bg)',
@@ -1282,6 +1282,7 @@ export function CustomCellEditor({
                                             ['toggle', 'Schiebeschalter'],
                                             ['checkbox', 'Checkbox'],
                                             ['icon', 'Icon'],
+                                            ['image', 'Bild'],
                                             ['button', 'Button'],
                                         ] as const
                                     ).map(([val, lbl]) => (
@@ -1358,6 +1359,78 @@ export function CustomCellEditor({
                                         <div className="flex items-center justify-between mb-1">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                                 Icon-Größe
+                                            </label>
+                                            <span
+                                                className="text-[11px] tabular-nums"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {ctrlIconSize} px
+                                            </span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min={16}
+                                            max={192}
+                                            step={2}
+                                            value={ctrlIconSize}
+                                            onChange={(e) => onChange({ fontSize: Number(e.target.value) })}
+                                            className="w-full h-1"
+                                            style={{ accentColor: 'var(--accent)' }}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            {mode === 'image' && (
+                                <>
+                                    {(['trueImage', 'falseImage'] as const).map((slot) => (
+                                        <div key={slot}>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {slot === 'trueImage' ? 'Bild AN' : 'Bild AUS'}
+                                            </label>
+                                            <div className="flex gap-1">
+                                                <input
+                                                    type="text"
+                                                    value={cell[slot] ?? ''}
+                                                    onChange={(e) => onChange({ [slot]: e.target.value || undefined })}
+                                                    placeholder={
+                                                        slot === 'falseImage'
+                                                            ? 'leer = wie AN'
+                                                            : 'https://… · /adapter/… · data:image/…'
+                                                    }
+                                                    className={`flex-1 ${inputCls}`}
+                                                    style={inputSty}
+                                                />
+                                                <button
+                                                    onClick={() => onOpenImagePicker(slot)}
+                                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-secondary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                    title="Lokale Datei vom Server wählen"
+                                                >
+                                                    <FolderOpen size={13} />
+                                                </button>
+                                            </div>
+                                            {(cell[slot] ?? '').startsWith('aura-file:') && (
+                                                <p
+                                                    className="text-[10px] mt-1 truncate"
+                                                    style={{ color: 'var(--accent)' }}
+                                                >
+                                                    {(cell[slot] as string).slice('aura-file:'.length).split('/').pop()}
+                                                </p>
+                                            )}
+                                        </div>
+                                    ))}
+                                    <ImagePathHint />
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Bildgröße
                                             </label>
                                             <span
                                                 className="text-[11px] tabular-nums"

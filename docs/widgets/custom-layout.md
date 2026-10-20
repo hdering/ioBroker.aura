@@ -171,11 +171,13 @@ Das [Eingabefeld](./eingabefeld)-Widget als Zelle. `text` ist hier der Platzhalt
 
 | Feld | | |
 | --- | --- | --- |
-| `controlMode` | `toggle` · `checkbox` · `icon` · `button` | Schiebeschalter · Checkbox · Icon · Button |
+| `controlMode` | `toggle` · `checkbox` · `icon` · `image` · `button` | Schiebeschalter · Checkbox · Icon · Bild · Button |
 | `trueValue` / `falseValue` | z. B. `0`/`100`, `an`/`aus` | Schreibwerte; leer = `true`/`false` |
 | `statusDpId` | optional | Status-Datenpunkt: Zustand, Beschriftung und Farben kommen von hier, geschrieben wird auf den Datenpunkt oben |
 | `stateMode` | `boolean` · `condition` | Auswertung des Zustands: `true`/`1`/`on` · Vergleich mit `stateOperator` / `stateValue` |
 | `trueIcon` / `falseIcon`, `trueColor` / `falseColor` | nur `icon` | Icon und Farbe je Zustand |
+| `trueImage` / `falseImage` | nur `image` | Bild je Zustand (URL, `aura-file:`, Adapterpfad, `data:`); `falseImage` leer = `trueImage`, beide leer = Icon |
+| `fontSize` | `28` | Größe von Icon bzw. Bild in px (`icon`, `image`) |
 | `trueText` / `falseText` | nur `button` | Beschriftung je Zustand; leer = `AN`/`AUS` |
 | `buttonTrueColor` / `buttonFalseColor` | nur `button` | Hintergrundfarbe je Zustand |
 | `buttonTrueTextColor` / `buttonFalseTextColor` | nur `button` | Textfarbe je Zustand |

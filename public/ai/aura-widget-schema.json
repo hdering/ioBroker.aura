@@ -1751,9 +1751,18 @@
             "toggle",
             "checkbox",
             "icon",
-            "button"
+            "button",
+            "image"
           ],
-          "description": "'switch' cell: visual control style — 'toggle' slide switch (default), 'checkbox' tick box, 'icon' clickable icon, 'button' labelled button"
+          "description": "'switch' cell: visual control style — 'toggle' slide switch (default), 'checkbox' tick box, 'icon' clickable icon, 'button' labelled button, 'image' clickable image (trueImage/falseImage)"
+        },
+        "trueImage": {
+          "type": "string",
+          "description": "'switch' cell (image mode): image for the ON state — URL, aura-file: path, adapter path or data: URI"
+        },
+        "falseImage": {
+          "type": "string",
+          "description": "'switch' cell (image mode): image for the OFF state (empty = trueImage)"
         },
         "buttonTextColor": {
           "type": "string",
@@ -18483,9 +18492,27 @@
         "windowOpenValues"
       ],
       "options": {
+        "buttonOffColor": {
+          "description": "Button-Modus: Hintergrund im ausgeschalteten Zustand. Leer = Akzentfarbe."
+        },
+        "buttonOffTextColor": {
+          "description": "Button-Modus: Textfarbe im ausgeschalteten Zustand. Leer = weiß."
+        },
+        "buttonOnColor": {
+          "description": "Button-Modus: Hintergrund im eingeschalteten Zustand. Leer = Akzentfarbe."
+        },
+        "buttonOnTextColor": {
+          "description": "Button-Modus: Textfarbe im eingeschalteten Zustand. Leer = weiß."
+        },
+        "buttonSize": {
+          "type": "number",
+          "default": 4,
+          "description": "Button-Modus: Innenabstand in px (2–40, Standard 4); größer = höherer Button."
+        },
         "controlIconSize": {
           "type": "number",
-          "default": 28
+          "default": 28,
+          "description": "Größe des Icons bzw. Bilds im Icon-/Bild-Modus in px."
         },
         "controlMode": {
           "type": "string",
@@ -18494,9 +18521,10 @@
             "toggle",
             "checkbox",
             "icon",
-            "image"
+            "image",
+            "button"
           ],
-          "description": "\"toggle\" = Schiebeschalter, \"checkbox\" = Kontrollkästchen (Häkchen bei AN), \"icon\" = klickbares Icon (onIcon/offIcon), \"image\" = klickbares Bild (onImage/offImage). Checkbox und Schiebeschalter sind gleich hoch."
+          "description": "\"toggle\" = Schiebeschalter, \"checkbox\" = Kontrollkästchen (Häkchen bei AN), \"icon\" = klickbares Icon (onIcon/offIcon), \"image\" = klickbares Bild (onImage/offImage), \"button\" = beschrifteter Button (onText/offText, buttonOn…/buttonOff…-Farben). Checkbox, Schiebeschalter und Button (bei buttonSize 4) sind gleich hoch."
         },
         "momentary": {
           "type": "boolean",
@@ -18519,7 +18547,11 @@
           "description": "Icon im ausgeschalteten Zustand. Leer = wie icon."
         },
         "offImage": {
-          "type": "string"
+          "type": "string",
+          "description": "Bild-Modus: Bild im ausgeschalteten Zustand."
+        },
+        "offText": {
+          "description": "Button-Modus: Beschriftung im ausgeschalteten Zustand. Leer = AUS."
         },
         "offValue": {
           "type": "string",
@@ -18536,7 +18568,11 @@
           "description": "Icon im eingeschalteten Zustand. Leer = wie icon."
         },
         "onImage": {
-          "type": "string"
+          "type": "string",
+          "description": "Bild-Modus: Bild im eingeschalteten Zustand (URL, aura-file:, Adapterpfad oder data:)."
+        },
+        "onText": {
+          "description": "Button-Modus: Beschriftung im eingeschalteten Zustand. Leer = AN."
         },
         "onValue": {
           "type": "string",

@@ -80,6 +80,8 @@ export function SwitchWidget({ config }: WidgetProps) {
     const controlMode = (o.controlMode as string) ?? 'toggle';
     const isIconMode = controlMode === 'icon';
     const isImageMode = controlMode === 'image';
+    // Labelled button like the universal widget's switch cell. As tall as the toggle by default.
+    const isButtonMode = controlMode === 'button';
     // Checkbox instead of the slide toggle (issue #683). Sized like the toggle of each
     // layout so the card keeps its height; an explicit onColor paints the checked box.
     const isCheckboxMode = controlMode === 'checkbox';
@@ -128,10 +130,34 @@ export function SwitchWidget({ config }: WidgetProps) {
         />
     );
 
+    // Button mode: per-state caption and colours, falling back to the state text and the accent.
+    const buttonPad = (o.buttonSize as number) ?? 4;
+    const buttonCaption =
+        ((isOn ? o.onText : o.offText) as string | undefined) || valueTextOverride(config) || (isOn ? 'AN' : 'AUS');
+    const buttonControl = (extraClass = '') => (
+        <button
+            onClick={handleToggle}
+            className={`aura-widget-action nodrag shrink-0 rounded-lg text-xs font-medium hover:opacity-85 transition-opacity focus:outline-none ${extraClass}`}
+            style={{
+                background: ((isOn ? o.buttonOnColor : o.buttonOffColor) as string) || 'var(--accent)',
+                color: ((isOn ? o.buttonOnTextColor : o.buttonOffTextColor) as string) || '#fff',
+                border: 'none',
+                cursor: 'pointer',
+                padding: `${buttonPad}px ${buttonPad * 3}px`,
+                whiteSpace: 'nowrap',
+            }}
+            aria-label={buttonCaption}
+        >
+            {buttonCaption}
+        </button>
+    );
+
     // The control in the size of the default layout — 'toggle-lg' in the custom grid (#768).
     const largeToggle =
         isIconMode || isImageMode ? (
             iconControlButton()
+        ) : isButtonMode ? (
+            buttonControl()
         ) : isCheckboxMode ? (
             checkboxControl(24)
         ) : (
@@ -210,6 +236,8 @@ export function SwitchWidget({ config }: WidgetProps) {
                         toggle:
                             isIconMode || isImageMode ? (
                                 iconControlButton()
+                            ) : isButtonMode ? (
+                                buttonControl()
                             ) : isCheckboxMode ? (
                                 checkboxControl(20)
                             ) : (
@@ -317,6 +345,8 @@ export function SwitchWidget({ config }: WidgetProps) {
                 {!showTitle && <span className="flex-1" />}
                 {isIconMode || isImageMode ? (
                     iconControlButton()
+                ) : isButtonMode ? (
+                    buttonControl()
                 ) : isCheckboxMode ? (
                     checkboxControl(24)
                 ) : (
@@ -394,6 +424,8 @@ export function SwitchWidget({ config }: WidgetProps) {
                 )}
                 {isIconMode || isImageMode ? (
                     iconControlButton(!showLabel ? 'ml-auto' : '')
+                ) : isButtonMode ? (
+                    buttonControl(!showLabel ? 'ml-auto' : '')
                 ) : isCheckboxMode ? (
                     checkboxControl(24, !showLabel ? 'ml-auto' : '')
                 ) : (

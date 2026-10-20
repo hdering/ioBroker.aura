@@ -821,13 +821,15 @@ function SwitchCellView({
             </div>
         );
     }
-    if (cell.controlMode === 'icon') {
+    // Image mode shares the icon mode's button; without an image it falls back to the icon.
+    if (cell.controlMode === 'icon' || cell.controlMode === 'image') {
         const iconName = on ? cell.trueIcon || cell.iconName : cell.falseIcon || cell.iconName;
         const color =
             cond.color ||
             (on ? cell.trueColor || cell.color || 'var(--accent-green)' : cell.falseColor || 'var(--text-secondary)');
         const Icon = getWidgetIcon(cond.icon || iconName, HelpCircle);
         const size = cell.fontSize ?? 28;
+        const image = cell.controlMode === 'image' ? (on ? cell.trueImage : cell.falseImage || cell.trueImage) : '';
         return (
             <div className={`aura-custom-cell-${index}`} style={wrap}>
                 <button
@@ -837,7 +839,15 @@ function SwitchCellView({
                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
                     aria-label={switchButtonLabel(cell, on)}
                 >
-                    <Icon size={size} style={{ color }} />
+                    {image ? (
+                        <img
+                            src={resolveImageSource(image)}
+                            style={{ width: size, height: size, objectFit: 'contain' }}
+                            alt=""
+                        />
+                    ) : (
+                        <Icon size={size} style={{ color }} />
+                    )}
                 </button>
                 {pending && (
                     <ConfirmOverlay
