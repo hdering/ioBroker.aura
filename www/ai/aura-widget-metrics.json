@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-17",
+    "measured": "2026-10-20",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -2325,6 +2325,9 @@
     "countdown": {
       "minPx": 116,
       "minRowsDefaultGrid": 5,
+      "notIncluded": [
+        "gemessen mit den Standard-Schriftgrößen (presetFontSize/stateFontSize 10 px). Größere Werte machen die Chip-Zeile bzw. die Titelzeile höher - die Höhe dann am Ergebnis prüfen"
+      ],
       "fontScalePx": 6.7,
       "atWidthPx": 120,
       "modifiers": [
