@@ -338,7 +338,7 @@
     },
     "fullscreenWidget": {
       "type": "boolean",
-      "description": "Blendet einen Knopf in die Ecke der Karte ein, der das Widget bildschirmfüllend öffnet (Esc oder das Kreuz schließt wieder). Auf Touch-Geräten dauerhaft sichtbar, mit Maus erst beim Überfahren. Nicht bei \"iframe\", \"camera\" und \"echartsPreset\" — die bringen ihr eigenes Vollbild mit (iframe über die Option fullscreenButton)."
+      "description": "Blendet einen Knopf in die Ecke der Karte ein, der das Widget bildschirmfüllend öffnet (Esc oder das Kreuz schließt wieder). Auf Touch-Geräten dauerhaft sichtbar, mit Maus erst beim Überfahren. Nicht bei \"camera\" und \"echartsPreset\" — die bringen ihr eigenes Vollbild mit. Beim \"iframe\" ist die Seite im Vollbild immer bedienbar, auch mit interactionMode \"action\"."
     },
     "fullscreenPosition": {
       "type": "string",
@@ -13707,11 +13707,6 @@
         "transparent"
       ],
       "options": {
-        "fullscreenButton": {
-          "type": "boolean",
-          "default": false,
-          "description": "Taste für Vollbild anzeigen."
-        },
         "iframeColorScheme": {
           "type": "string",
           "enum": [
