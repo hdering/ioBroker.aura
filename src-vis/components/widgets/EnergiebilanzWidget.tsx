@@ -97,6 +97,14 @@ export interface EnergyBalanceOptions {
     /** Horizontal text alignment of the legend rows. Defaults to the side (below → center, right → right, else left). */
     legendAlign?: 'left' | 'center' | 'right';
     legendFormat?: LegendFormat;
+    /** Font size of the group title in px. Empty = 12. */
+    barTitleFontSize?: number;
+    /** Font size of the group total in px. Empty = 14. */
+    totalFontSize?: number;
+    /** Font size of the legend rows in px (icons scale along). Empty = 12. */
+    legendFontSize?: number;
+    /** Font size of the percentages in the segments/slices in px. Empty = 11. */
+    percentFontSize?: number;
     /** Shared "Darstellung" appearance controls (written by the general config section). */
     icon?: string;
     showIcon?: boolean;
@@ -179,6 +187,12 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const unit = o.unit ?? 'kWh';
     const decimals = o.decimals ?? defaultDecimals ?? 2;
     const numFmt = o.numberFormat ?? globalNumFmt;
+    // Per-element font sizes (#804); unset or 0 keeps the built-in size.
+    const fontPx = (v: number | undefined, def: number) => (typeof v === 'number' && v > 0 ? v : def);
+    const barTitleFontSize = fontPx(o.barTitleFontSize, 12);
+    const totalFontSize = fontPx(o.totalFontSize, 14);
+    const legendFontSize = fontPx(o.legendFontSize, 12);
+    const percentFontSize = fontPx(o.percentFontSize, 11);
 
     // ── Time range — configured window, frontend-switchable unless locked ──
     const cfgRange = o.range ?? '24h';
@@ -354,7 +368,14 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
 
                     const side = o.legendSide ?? bar.legendSide ?? 'below';
                     const legend = showLegend ? (
-                        <Legend items={computed} side={side} align={legendAlign} format={legendFormat} fmt={fmt} />
+                        <Legend
+                            items={computed}
+                            side={side}
+                            align={legendAlign}
+                            format={legendFormat}
+                            fmt={fmt}
+                            fontSize={legendFontSize}
+                        />
                     ) : null;
                     const chart =
                         chartStyle === 'bars' ? (
@@ -365,6 +386,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                 showIcon={showSegmentIcon}
                                 width={barWidth}
                                 direction={barDirection}
+                                fontSize={percentFontSize}
                             />
                         ) : (
                             <PieChart
@@ -375,6 +397,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                 showOutside={showOutsidePercent}
                                 donut={chartStyle === 'donut'}
                                 size={pieSize}
+                                fontSize={percentFontSize}
                                 center={
                                     chartStyle === 'donut' && showTotals
                                         ? target !== null
@@ -396,19 +419,28 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                             {showBarTitles && (bar.title || showTotals) && (
                                 <div className="mb-1.5 shrink-0 w-full" style={{ textAlign: barTitleAlign }}>
                                     {bar.title && (
-                                        <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)' }}>
+                                        <div
+                                            style={{
+                                                fontSize: barTitleFontSize,
+                                                fontWeight: 600,
+                                                color: 'var(--text-secondary)',
+                                            }}
+                                        >
                                             {bar.title}
                                         </div>
                                     )}
                                     {showTotals && (
-                                        <div style={{ fontSize: 14, fontWeight: 700 }} data-aura-energy-total={bar.id}>
+                                        <div
+                                            style={{ fontSize: totalFontSize, fontWeight: 700 }}
+                                            data-aura-energy-total={bar.id}
+                                        >
                                             {target !== null ? (
                                                 <>
                                                     {formatNum(sum, decimals, numFmt)} /{' '}
                                                     {formatNum(target, decimals, numFmt)} {unit}
                                                     <span
                                                         style={{
-                                                            fontSize: 11,
+                                                            fontSize: Math.round((totalFontSize * 11) / 14),
                                                             fontWeight: 600,
                                                             marginLeft: 4,
                                                             color: overLimit ? overColor : 'var(--text-secondary)',
@@ -450,6 +482,7 @@ function StackedBar({
     showIcon,
     width = 46,
     direction = 'down',
+    fontSize = 11,
 }: {
     items: Computed[];
     total: number;
@@ -457,6 +490,7 @@ function StackedBar({
     showIcon: boolean;
     width?: number;
     direction?: 'down' | 'up';
+    fontSize?: number;
 }) {
     if (total <= 0) {
         return (
@@ -498,7 +532,7 @@ function StackedBar({
                             flexBasis: 0,
                             background: c.color,
                             color: '#fff',
-                            fontSize: 11,
+                            fontSize,
                             fontWeight: 600,
                             overflow: 'hidden',
                             minHeight: 0,
@@ -549,6 +583,7 @@ function PieChart({
     donut,
     center,
     size = 160,
+    fontSize = 11,
 }: {
     items: Computed[];
     total: number;
@@ -558,11 +593,15 @@ function PieChart({
     donut: boolean;
     center: { value: string; unit: string } | null;
     size?: number;
+    fontSize?: number;
 }) {
     const R = 46;
     const cx = 50;
     const cy = 50;
     const rInner = donut ? 26 : 0;
+    // Percent labels live in viewBox units (7 ≈ the 11 px of the bars), so a configured
+    // px size scales them relative to that default rather than mapping 1:1.
+    const pctSize = (7 * fontSize) / 11;
 
     // Icon (foreignObject) + percentage (SVG text) at a slice centroid. Icon needs a bit
     // more room, so it's gated on a slightly larger share; when both show they stack.
@@ -596,7 +635,7 @@ function PieChart({
                         x={lx}
                         y={both ? ly + 5 : ly}
                         fill="#fff"
-                        fontSize={7}
+                        fontSize={pctSize}
                         fontWeight={600}
                         textAnchor="middle"
                         dominantBaseline="central"
@@ -731,7 +770,7 @@ function PieChart({
                                 x={textX + (right ? 0.5 : -0.5)}
                                 y={y}
                                 fill={c.color}
-                                fontSize={7}
+                                fontSize={pctSize}
                                 fontWeight={600}
                                 textAnchor={right ? 'start' : 'end'}
                                 dominantBaseline="central"
@@ -781,13 +820,17 @@ function Legend({
     align,
     format,
     fmt,
+    fontSize = 12,
 }: {
     items: Computed[];
     side: 'left' | 'right' | 'below' | 'top';
     align?: 'left' | 'center' | 'right';
     format: LegendFormat;
     fmt: (v: number, e: EnergyEntry) => string;
+    fontSize?: number;
 }) {
+    // The icon keeps its 16:12 ratio to the text.
+    const iconPx = Math.round((fontSize * 4) / 3);
     const isRight = side === 'right';
     // 'top'/'below' render a full-width, horizontally-stacked legend.
     const isStacked = side === 'below' || side === 'top';
@@ -807,8 +850,8 @@ function Legend({
                 const iconEl = wantIcon && c.entry.icon && (
                     <AuraIcon
                         icon={toIconifyId(c.entry.icon)}
-                        width={16}
-                        height={16}
+                        width={iconPx}
+                        height={iconPx}
                         style={{ color: c.color, flexShrink: 0 }}
                     />
                 );
@@ -817,7 +860,7 @@ function Legend({
                         className={isStacked ? 'truncate' : ''}
                         style={{
                             color: c.color,
-                            fontSize: 12,
+                            fontSize,
                             minWidth: 0,
                             textAlign: effAlign,
                             // Side legends wrap long labels (block below) instead of clipping.
@@ -830,7 +873,7 @@ function Legend({
                 const valueEl = wantValue && (
                     <span
                         className="truncate shrink-0"
-                        style={{ color: c.color, fontSize: 12, fontWeight: 600, textAlign: effAlign }}
+                        style={{ color: c.color, fontSize, fontWeight: 600, textAlign: effAlign }}
                     >
                         {fmt(c.value, c.entry)}
                     </span>

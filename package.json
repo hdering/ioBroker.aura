@@ -286,6 +286,7 @@
     "test:chart-legend": "node tools/tests/chart-legend-rows.mjs",
     "test:chart-label-headroom": "node tools/tests/chart-label-headroom.mjs",
     "test:energy-bar": "node tools/tests/energy-balance-bar.mjs",
+    "test:energy-font-sizes": "node tools/tests/energy-font-sizes.mjs",
     "test:energy-counter": "node tools/tests/energy-counter-increase.mjs",
     "test:chart-period": "node tools/tests/chart-period-value.mjs",
     "test:chart-period-ui": "node tools/tests/chart-period-value-ui.mjs",

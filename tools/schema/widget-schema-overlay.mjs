@@ -1044,6 +1044,13 @@ export const WIDGET_OPTION_NOTES = {
         showTotals: { description: 'Summe der Gruppe neben ihrem Titel anzeigen.' },
         showPercent: { description: 'Anteil in Prozent in den Segmenten anzeigen.' },
         legendFormat: { description: 'Inhalt jeder Legendenzeile: Symbol, Name und/oder Wert.' },
+        barTitleFontSize: { description: 'Schriftgröße des Gruppentitels in px. Leer = 12.' },
+        totalFontSize: { description: 'Schriftgröße der Gruppensumme in px. Leer = 14.' },
+        legendFontSize: { description: 'Schriftgröße der Legende in px; die Symbole wachsen mit. Leer = 12.' },
+        percentFontSize: {
+            description:
+                'Schriftgröße der Prozentwerte in Segmenten und Tortenstücken in px. Leer = 11 (bei Torte/Donut relativ zur Diagrammgröße).',
+        },
         unit: {
             description:
                 'Einheit hinter jedem Wert und der Summe; ein Eintrag kann sie mit eigener unit überschreiben.',

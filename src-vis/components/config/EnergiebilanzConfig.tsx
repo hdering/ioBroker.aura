@@ -39,6 +39,18 @@ const AGGREGATES: { id: EnergyAggregate; label: string }[] = [
     { id: 'min', label: 'Minimum' },
 ];
 const DEFAULT_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+/** Per-element font sizes (#804); the placeholder shows the built-in size used when empty. */
+const FONT_SIZE_FIELDS: {
+    key: 'barTitleFontSize' | 'totalFontSize' | 'legendFontSize' | 'percentFontSize';
+    label: string;
+    def: number;
+}[] = [
+    { key: 'barTitleFontSize', label: 'Gruppentitel', def: 12 },
+    { key: 'totalFontSize', label: 'Summe', def: 14 },
+    { key: 'legendFontSize', label: 'Legende', def: 12 },
+    { key: 'percentFontSize', label: 'Prozent-Labels', def: 11 },
+];
+
 const LEGEND_FORMATS: { id: LegendFormat; label: string }[] = [
     { id: 'icon-value', label: 'Icon + Wert' },
     { id: 'icon-label-value', label: 'Icon + Bezeichnung + Wert' },
@@ -982,6 +994,35 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                             />
                         </div>
                     )}
+
+                    <SubGroup title="Schriftgrößen">
+                        <div className="grid grid-cols-2 gap-1.5">
+                            {FONT_SIZE_FIELDS.map((f) => (
+                                <div key={f.key}>
+                                    <label
+                                        className="text-[11px] block mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {f.label} (px)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={6}
+                                        max={64}
+                                        placeholder={String(f.def)}
+                                        value={o[f.key] ?? ''}
+                                        onChange={(e) => {
+                                            const n = parseInt(e.target.value, 10);
+                                            setO({ [f.key]: isFinite(n) && n > 0 ? n : undefined });
+                                        }}
+                                        className={inputCls}
+                                        style={inputStyle}
+                                        data-testid={`energy-font-${f.key}`}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </SubGroup>
 
                     <ValueFormatRow
                         unit={o.unit}

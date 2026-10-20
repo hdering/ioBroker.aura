@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - iFrame - Energiefluss-erweitert pages now embed without the white box behind the diagram in dark themes (#642)
 - Energy flow (evcc) - new switch to invert the sign of a manual battery power datapoint that reports positive = charging (#803)
+- Chart (distribution) - font size of the group title, total, legend and percentage labels can now be set individually (#804)

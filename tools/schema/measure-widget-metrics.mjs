@@ -890,6 +890,8 @@ const MIN_NOTES = {
         'gemessen mit EINEM Balken aus zwei Einträgen. Die Balken werden in die Karte eingepasst, nicht ' +
             'gestapelt (gemessen 1→224, 2→288, 4→306 px) — für mehrere Balken die Höhe am Ergebnis prüfen',
         'Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf',
+        'gemessen mit den Standard-Schriftgrößen. Größere barTitleFontSize/totalFontSize/legendFontSize ' +
+            'machen Titel und Legende höher - die Höhe dann am Ergebnis prüfen',
     ],
     mediaplayer: [
         'gemessen mit Titel, Interpret, Abspielzustand, Lautstärke und den vier Tasten. Cover, Chips und ' +

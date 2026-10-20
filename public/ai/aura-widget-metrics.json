@@ -1585,7 +1585,8 @@
       "minRowsDefaultGrid": 8,
       "notIncluded": [
         "gemessen mit EINEM Balken aus zwei Einträgen. Die Balken werden in die Karte eingepasst, nicht gestapelt (gemessen 1→224, 2→288, 4→306 px) — für mehrere Balken die Höhe am Ergebnis prüfen",
-        "Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf"
+        "Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf",
+        "gemessen mit den Standard-Schriftgrößen. Größere barTitleFontSize/totalFontSize/legendFontSize machen Titel und Legende höher - die Höhe dann am Ergebnis prüfen"
       ],
       "fontScalePx": 20,
       "atWidthPx": 160,
