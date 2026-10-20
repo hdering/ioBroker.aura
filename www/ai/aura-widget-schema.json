@@ -1559,6 +1559,14 @@
           "type": "string",
           "description": "'dp' type: token pattern, only used when valueTimeFormat is 'custom'"
         },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "'dp' type: treat the suffix as unit and move value + unit along its prefix ladder (\" Wh\" → 850 Wh / 1.25 kWh / 3.4 MWh; also W, VA, V, A, Hz, g, m, l, B, bit/s)"
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "'dp' type, with valueAutoUnit: decimal places above the smallest unit of the ladder (kWh, MWh …); undefined = `decimals`"
+        },
         "fontSize": {
           "type": "number",
           "description": "px; undefined = auto"
@@ -2906,6 +2914,14 @@
           "type": "string",
           "description": "Token pattern, only used when `valueTimeFormat` is 'custom'."
         },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "Text displays only: move the converted value along its unit's prefix ladder (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, B, bit/s). Unknown units stay as they are. In a list entry `false` switches a list-wide setting off."
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "With `valueAutoUnit`: decimal places once the value sits above the smallest unit of its ladder (kWh, MWh …); unset = the normal decimals."
+        },
         "stateMode": {
           "type": "string",
           "enum": [
@@ -3738,6 +3754,14 @@
           "type": "string",
           "description": "Token pattern, only used when `valueTimeFormat` is 'custom'."
         },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "Text displays only: move the converted value along its unit's prefix ladder (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, B, bit/s). Unknown units stay as they are. In a list entry `false` switches a list-wide setting off."
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "With `valueAutoUnit`: decimal places once the value sits above the smallest unit of its ladder (kWh, MWh …); unset = the normal decimals."
+        },
         "id": {
           "type": "string",
           "required": true,
@@ -3985,6 +4009,14 @@
         "valueTimePattern": {
           "type": "string",
           "description": "Token pattern, only used when `valueTimeFormat` is 'custom'."
+        },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "Text displays only: move the converted value along its unit's prefix ladder (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, B, bit/s). Unknown units stay as they are. In a list entry `false` switches a list-wide setting off."
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "With `valueAutoUnit`: decimal places once the value sits above the smallest unit of its ladder (kWh, MWh …); unset = the normal decimals."
         },
         "stateMode": {
           "type": "string",
@@ -4654,6 +4686,14 @@
         "valueTimePattern": {
           "type": "string",
           "description": "Token pattern, only used when `valueTimeFormat` is 'custom'."
+        },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "Text displays only: move the converted value along its unit's prefix ladder (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, B, bit/s). Unknown units stay as they are. In a list entry `false` switches a list-wide setting off."
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "With `valueAutoUnit`: decimal places once the value sits above the smallest unit of its ladder (kWh, MWh …); unset = the normal decimals."
         },
         "stateMode": {
           "type": "string",
@@ -7773,6 +7813,14 @@
         "trueText": {
           "type": "string",
           "description": "Global default label for on/true/>0 state (fallback when entry has no trueLabel)."
+        },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "Einheit automatisch anpassen: Wert und Einheit wandern nach der Umrechnung auf der Vorsilben-Leiter (ab 1000 eine Stufe höher, unter 1 eine tiefer: 850 Wh, 1,25 kWh, 3,4 MWh). Ausgangspunkt ist unit; erkannt werden Wh, W, VA, var, V, A, Hz, g, m, l, B (Schritt 1024) und bit/s, sonst bleibt alles. Nur Textanzeigen (Wert-Widget, Listen). Für \"Wh unter 1000, sonst kWh\" ohne Faktor: unit \"Wh\" + true. In einem Listeneintrag schaltet false die listenweite Einstellung ab."
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "Nur mit valueAutoUnit: Nachkommastellen, sobald der Wert über der kleinsten Einheit der Leiter steht (kWh, MWh …). Ohne Angabe gilt decimals — z. B. decimals 0 + valueAutoUnitDecimals 2 → \"850 Wh\", \"1,25 kWh\"."
         },
         "valueExpr": {
           "type": "string",
@@ -15419,6 +15467,14 @@
           "type": "string",
           "description": "Global default label for on/true/>0 state (fallback when entry has no trueLabel)."
         },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "Einheit automatisch anpassen: Wert und Einheit wandern nach der Umrechnung auf der Vorsilben-Leiter (ab 1000 eine Stufe höher, unter 1 eine tiefer: 850 Wh, 1,25 kWh, 3,4 MWh). Ausgangspunkt ist unit; erkannt werden Wh, W, VA, var, V, A, Hz, g, m, l, B (Schritt 1024) und bit/s, sonst bleibt alles. Nur Textanzeigen (Wert-Widget, Listen). Für \"Wh unter 1000, sonst kWh\" ohne Faktor: unit \"Wh\" + true. In einem Listeneintrag schaltet false die listenweite Einstellung ab."
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "Nur mit valueAutoUnit: Nachkommastellen, sobald der Wert über der kleinsten Einheit der Leiter steht (kWh, MWh …). Ohne Angabe gilt decimals — z. B. decimals 0 + valueAutoUnitDecimals 2 → \"850 Wh\", \"1,25 kWh\"."
+        },
         "valueExpr": {
           "type": "string",
           "description": "Lists only, needs `valueTransform: 'expr'`: binding expression over the entry value `dp`, replaces factor/offset — e.g. `dp.objektName * 0.4 | fixed(2)` (JSON fields as `dp.a.b[0]`; no other datapoints). Logic beyond the grammar: `callback(\"name\", dp, …)` calls a function Custom JS registered with `aura.registerFn(name, fn)` (sync only; unknown/throwing/async → no value)."
@@ -19974,6 +20030,15 @@
         "titlePosition": {
           "type": "string",
           "description": "Position der Titelzeile im Widget."
+        },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "default": false,
+          "description": "Einheit automatisch anpassen: Wert und Einheit wandern nach der Umrechnung auf der Vorsilben-Leiter (ab 1000 eine Stufe höher, unter 1 eine tiefer: 850 Wh, 1,25 kWh, 3,4 MWh). Ausgangspunkt ist unit; erkannt werden Wh, W, VA, var, V, A, Hz, g, m, l, B (Schritt 1024) und bit/s, sonst bleibt alles. Nur Textanzeigen (Wert-Widget, Listen). Für \"Wh unter 1000, sonst kWh\" ohne Faktor: unit \"Wh\" + true. In einem Listeneintrag schaltet false die listenweite Einstellung ab."
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "Nur mit valueAutoUnit: Nachkommastellen, sobald der Wert über der kleinsten Einheit der Leiter steht (kWh, MWh …). Ohne Angabe gilt decimals — z. B. decimals 0 + valueAutoUnitDecimals 2 → \"850 Wh\", \"1,25 kWh\"."
         },
         "valueFontSize": {
           "type": "number",
