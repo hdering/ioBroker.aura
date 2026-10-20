@@ -122,6 +122,15 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.88.0 (2026-10-20)
+- 🌟 **New feature:** Countdown - font size of the preset chips and the status text can now be set individually ([#812](https://github.com/hdering/ioBroker.aura/issues/812))
+- 🌟 **New feature:** Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"; both image modes take a URL, Base64, a file from the server or an upload from the PC
+- iFrame - the fullscreen button now sits under Appearance like on every other widget, with corner choice, the "Fill screen" option and permanent visibility on touch devices; the embedded page stays operable in fullscreen ([#813](https://github.com/hdering/ioBroker.aura/issues/813))
+- Theme editor - every field now shows the name of its CSS variable (e.g. `--app-surface`); a click copies it as `var(...)` ([#814](https://github.com/hdering/ioBroker.aura/issues/814))
+- Section menu - the slide-in drawer is no longer see-through on the glass themes, and "Navigation → background" now colours the drawer and the docked sidebar like the section and tab bars ([#814](https://github.com/hdering/ioBroker.aura/issues/814))
+- 🌟 **New feature:** Value conversion - new option "Adjust unit automatically": the value moves to the next unit prefix from 1000 up and below 1 down (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, bytes), with separate decimal places for the larger unit; works in the value widget, both lists including the second line and the universal widget's datapoint cell
+
+
 ### 0.87.1 (2026-10-20)
 - iFrame - Energiefluss-erweitert pages now embed without the white box behind the diagram in dark themes ([#642](https://github.com/hdering/ioBroker.aura/issues/642))
 - Energy flow (evcc) - new switch to invert the sign of a manual battery power datapoint that reports positive = charging ([#803](https://github.com/hdering/ioBroker.aura/issues/803))
@@ -237,13 +246,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** iFrame / HTML - new "Height on phone" option: keep the desktop aspect ratio (default), use the grid row height (for responsive pages like Grafana) or a fixed pixel height ([#772](https://github.com/hdering/ioBroker.aura/issues/772))
 
 
-### 0.82.0 (2026-10-12)
-- 🌟 **New feature:** Switching a widget to the custom layout now asks how to start and can rebuild the previous layout (default, card, compact, minimal, dial) as an editable grid that looks the same — for value, binary sensor, window contact, state image, switch, thermostat, weather, knob, dimmer, shutter, slider, selection, button, HTTP request, text input, clock, time switch, countdown, media player, light, calendar and evcc ([#768](https://github.com/hdering/ioBroker.aura/issues/768))
-- Thermostat - setpoints written as text (e.g. a time switch exception value "14,5") are shown instead of a fallback 20 °C, and time switch values accept a decimal comma ([#769](https://github.com/hdering/ioBroker.aura/issues/769))
-- Waste collection - bins now sit at the top of the widget instead of being centered vertically when the widget is taller than its content
-- 🌟 **New feature:** PIN protection - a section or tab can now reuse the PIN of another section or tab instead of a new one; the PIN stays linked, so changing it at the source changes it everywhere
-
-
 ## License
 
 MIT License
@@ -255,6 +257,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.82.0 (2026-10-12)
+- 🌟 **New feature:** Switching a widget to the custom layout now asks how to start and can rebuild the previous layout (default, card, compact, minimal, dial) as an editable grid that looks the same — for value, binary sensor, window contact, state image, switch, thermostat, weather, knob, dimmer, shutter, slider, selection, button, HTTP request, text input, clock, time switch, countdown, media player, light, calendar and evcc ([#768](https://github.com/hdering/ioBroker.aura/issues/768))
+- Thermostat - setpoints written as text (e.g. a time switch exception value "14,5") are shown instead of a fallback 20 °C, and time switch values accept a decimal comma ([#769](https://github.com/hdering/ioBroker.aura/issues/769))
+- Waste collection - bins now sit at the top of the widget instead of being centered vertically when the widget is taller than its content
+- 🌟 **New feature:** PIN protection - a section or tab can now reuse the PIN of another section or tab instead of a new one; the PIN stays linked, so changing it at the source changes it everywhere
+
 ## 0.81.5 (2026-10-12)
 - Lost connection to ioBroker is now visible: after 5 s offline a banner shows since when, widgets are greyed out, and the status overview says "Status unknown" instead of "All clear"
 - Shutter - "Re-set after drive" detects the end of a drive by the actual position reaching the target, so slow-reporting KNX actuators no longer get the slat angle mid-drive ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
