@@ -886,6 +886,10 @@ const OPTIONS_FOR = {
  * configuration's minimum, and the shape of the configuration is what moves it.
  */
 const MIN_NOTES = {
+    countdown: [
+        'gemessen mit den Standard-Schriftgrößen (presetFontSize/stateFontSize 10 px). Größere Werte machen ' +
+            'die Chip-Zeile bzw. die Titelzeile höher - die Höhe dann am Ergebnis prüfen',
+    ],
     energiebilanz: [
         'gemessen mit EINEM Balken aus zwei Einträgen. Die Balken werden in die Karte eingepasst, nicht ' +
             'gestapelt (gemessen 1→224, 2→288, 4→306 px) — für mehrere Balken die Höhe am Ergebnis prüfen',

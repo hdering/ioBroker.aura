@@ -2873,6 +2873,8 @@ export const de = {
     'countdown.cfg.showDays': 'Tage ab 24 h getrennt zeigen',
     'countdown.cfg.digitSize': 'Ziffern-Größe',
     'countdown.cfg.digitAuto': 'auto',
+    'countdown.cfg.presetFontSize': 'Vorgaben-Chips (px)',
+    'countdown.cfg.stateFontSize': 'Status-Text (px)',
     'countdown.cfg.showProgress': 'Fortschrittsbalken',
     'countdown.cfg.showControls': 'Start / Pause / Stopp',
     'countdown.cfg.showStep': '±-Tasten',

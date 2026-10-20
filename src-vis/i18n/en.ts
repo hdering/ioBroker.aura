@@ -2852,6 +2852,8 @@ export const en: Record<TranslationKey, string> = {
     'countdown.cfg.showDays': 'Show days separately from 24 h on',
     'countdown.cfg.digitSize': 'Digit size',
     'countdown.cfg.digitAuto': 'auto',
+    'countdown.cfg.presetFontSize': 'Preset chips (px)',
+    'countdown.cfg.stateFontSize': 'Status text (px)',
     'countdown.cfg.showProgress': 'Progress bar',
     'countdown.cfg.showControls': 'Start / Pause / Stop',
     'countdown.cfg.showStep': '± buttons',

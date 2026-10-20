@@ -514,6 +514,29 @@ on({ id: '${stateBaseId}.state', change: 'ne' }, (obj) => {
                             {digitSize > 0 ? `${digitSize}px` : t('countdown.cfg.digitAuto')}
                         </span>
                     </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                        {(['presetFontSize', 'stateFontSize'] as const).map((key) => (
+                            <div key={key}>
+                                <label className={labelCls} style={labelStyle}>
+                                    {t(`countdown.cfg.${key}`)}
+                                </label>
+                                <input
+                                    type="number"
+                                    min={6}
+                                    max={48}
+                                    placeholder="10"
+                                    value={(o[key] as number | undefined) ?? ''}
+                                    onChange={(e) => {
+                                        const n = parseInt(e.target.value, 10);
+                                        setOpts({ [key]: isFinite(n) && n > 0 ? n : undefined });
+                                    }}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                    data-testid={`countdown-font-${key}`}
+                                />
+                            </div>
+                        ))}
+                    </div>
                     <div className="flex items-center justify-between">
                         <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
                             {t('countdown.cfg.showDays')}

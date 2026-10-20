@@ -1354,6 +1354,10 @@ export const WIDGET_OPTION_NOTES = {
             description: 'Ab 24 h die Tage vor die Ziffern stellen ("2d 03:04:05") statt die Stunden weiterzuzählen.',
         },
         digitSize: { description: 'Schriftgröße der Ziffern in px; 0 = passt sich der Kachelbreite an.' },
+        presetFontSize: {
+            description: 'Schriftgröße der Vorgaben-Chips in px; der Innenabstand wächst mit. Leer = 10.',
+        },
+        stateFontSize: { description: 'Schriftgröße des Status-Texts in der Titelzeile in px. Leer = 10.' },
         showProgress: { description: 'Fortschrittsbalken unter den Ziffern (Restanteil der eingestellten Dauer).' },
         showControls: { description: 'Tasten Start/Pause und Stopp anzeigen.' },
         showStep: { description: '±-Tasten anzeigen (Schritt = stepSec).' },

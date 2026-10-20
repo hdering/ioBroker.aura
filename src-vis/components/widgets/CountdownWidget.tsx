@@ -106,6 +106,10 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     const format = (o.format as CountdownFormat | undefined) ?? 'auto';
     const showDays = o.showDays === true;
     const digitSize = Math.max(0, asNumber(o.digitSize));
+    // Per-element font sizes (#812); unset or 0 keeps the built-in 10 px. Scaled by the
+    // frontend font scale like the text-[10px] they replace.
+    const presetFontSize = asNumber(o.presetFontSize) || 10;
+    const stateFontSize = asNumber(o.stateFontSize) || 10;
     const showProgress = o.showProgress !== false && !isDp;
     const showControls = o.showControls !== false && !isDp;
     const showStep = o.showStep !== false && !isDp;
@@ -457,8 +461,11 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
                             type="button"
                             onClick={() => send(`=${p}`)}
                             disabled={!canCommand}
-                            className="nodrag text-[10px] leading-none px-2 py-1 rounded-full transition-opacity disabled:opacity-40"
+                            className="aura-countdown-preset nodrag leading-none rounded-full transition-opacity disabled:opacity-40"
                             style={{
+                                fontSize: `calc(${presetFontSize}px * var(--font-scale, 1))`,
+                                // Padding grows with the text so bigger chips stay easy to hit on a tablet.
+                                padding: `${Math.round(presetFontSize * 0.4)}px ${Math.round(presetFontSize * 0.8)}px`,
                                 background: active ? 'var(--accent)' : 'var(--app-bg)',
                                 color: active ? '#fff' : 'var(--text-primary)',
                                 border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
@@ -566,8 +573,11 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
                         {iconNode}
                         {titleNode}
                         <span
-                            className="aura-countdown-state text-[10px] shrink-0"
-                            style={{ color: 'var(--text-secondary)' }}
+                            className="aura-countdown-state shrink-0"
+                            style={{
+                                color: 'var(--text-secondary)',
+                                fontSize: `calc(${stateFontSize}px * var(--font-scale, 1))`,
+                            }}
                         >
                             {stateLabel}
                         </span>

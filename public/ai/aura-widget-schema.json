@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.87.0",
+    "auraVersion": "0.87.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -10102,6 +10102,11 @@
           "default": 18,
           "description": "Icongröße in px."
         },
+        "presetFontSize": {
+          "type": "number",
+          "default": 10,
+          "description": "Schriftgröße der Vorgaben-Chips in px; der Innenabstand wächst mit. Leer = 10."
+        },
         "presets": {
           "type": "array",
           "items": {},
@@ -10143,6 +10148,11 @@
         "stateBaseId": {
           "type": "string",
           "description": "Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen. In Popup-Ansicht/Gerätekarte mit Platzhalter im targetDp (z. B. {{dp}}) läuft je Gerät ein eigener Countdown unter <key>_<hash>."
+        },
+        "stateFontSize": {
+          "type": "number",
+          "default": 10,
+          "description": "Schriftgröße des Status-Texts in der Titelzeile in px. Leer = 10."
         },
         "stepSec": {
           "type": "number",
