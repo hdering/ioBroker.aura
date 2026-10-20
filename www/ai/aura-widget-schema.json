@@ -11275,6 +11275,10 @@
           "description": "Horizontal alignment of the per-bar title + total. Default 'center'.",
           "default": "center"
         },
+        "barTitleFontSize": {
+          "type": "number",
+          "description": "Schriftgröße des Gruppentitels in px. Leer = 12."
+        },
         "barWidth": {
           "type": "number",
           "description": "Width of each stacked bar in px (only for chartStyle 'bars'). Default 46.",
@@ -11313,6 +11317,10 @@
           ],
           "description": "Horizontal text alignment of the legend rows. Defaults to the side (below → center, right → right, else left)."
         },
+        "legendFontSize": {
+          "type": "number",
+          "description": "Schriftgröße der Legende in px; die Symbole wachsen mit. Leer = 12."
+        },
         "legendFormat": {
           "type": "string",
           "ref": "LegendFormat",
@@ -11333,6 +11341,10 @@
           "type": "boolean",
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten.",
           "default": false
+        },
+        "percentFontSize": {
+          "type": "number",
+          "description": "Schriftgröße der Prozentwerte in Segmenten und Tortenstücken in px. Leer = 11 (bei Torte/Donut relativ zur Diagrammgröße)."
         },
         "pieSize": {
           "type": "number",
@@ -11398,6 +11410,10 @@
           ],
           "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
+        },
+        "totalFontSize": {
+          "type": "number",
+          "description": "Schriftgröße der Gruppensumme in px. Leer = 14."
         },
         "unit": {
           "type": "string",
