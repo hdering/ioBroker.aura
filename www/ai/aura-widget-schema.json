@@ -12132,8 +12132,13 @@
         "batteryPowerDatapoint": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt der Speicherleistung.",
+          "description": "Datenpunkt der Speicherleistung (Watt, negativ = laden).",
           "datapoint": true
+        },
+        "batteryPowerInvert": {
+          "type": "boolean",
+          "default": false,
+          "description": "Vorzeichen von batteryPowerDatapoint umkehren, fuer Datenpunkte mit positiv = laden."
         },
         "batterySocDatapoint": {
           "type": "string",
