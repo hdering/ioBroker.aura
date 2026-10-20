@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.81.5 (2026-10-12)
+- Lost connection to ioBroker is now visible: after 5 s offline a banner shows since when, widgets are greyed out, and the status overview says "Status unknown" instead of "All clear"
+- Shutter - "Re-set after drive" detects the end of a drive by the actual position reaching the target, so slow-reporting KNX actuators no longer get the slat angle mid-drive ([#745](https://github.com/hdering/ioBroker.aura/issues/745))
+
 ## 0.81.4 (2026-10-11)
 - Click popups without a configured width now size to their content (e.g. the popup view's own width) instead of stopping at 600 px
 - Chart / Advanced chart - time ranges can now be set in minutes (custom range and own range chips like `15m`) for watching live values ([#766](https://github.com/hdering/ioBroker.aura/issues/766))
