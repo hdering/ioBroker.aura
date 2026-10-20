@@ -304,6 +304,8 @@ export interface CustomCell {
     valueTransform?: string; // 'dp' / 'progress' type: selected transform preset id (editor only; disambiguates presets sharing factor/offset)
     valueTimeFormat?: string; // 'dp' type: render the value as time/date (see TIME_DISPLAY_PRESETS); undefined = plain value
     valueTimePattern?: string; // 'dp' type: token pattern, only used when valueTimeFormat is 'custom'
+    valueAutoUnit?: boolean; // 'dp' type: treat the suffix as unit and move value + unit along its prefix ladder (" Wh" → 850 Wh / 1.25 kWh / 3.4 MWh; also W, VA, V, A, Hz, g, m, l, B, bit/s)
+    valueAutoUnitDecimals?: number; // 'dp' type, with valueAutoUnit: decimal places above the smallest unit of the ladder (kWh, MWh …); undefined = `decimals`
     fontSize?: number; // px; undefined = auto
     bold?: boolean;
     italic?: boolean;

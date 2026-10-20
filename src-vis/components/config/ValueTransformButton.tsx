@@ -31,6 +31,14 @@ interface ValueTransformButtonProps {
     expr?: string;
     /** Offer "Ausdruck…" — only where the renderer applies it (the lists, issue #794). */
     allowExpr?: boolean;
+    /** Stored automatic unit switch (shown with the time format). */
+    autoUnit?: boolean;
+    /** Stored decimals above the smallest unit of the ladder. */
+    autoUnitDecimals?: number;
+    /** A list-wide automatic unit is in effect here. */
+    inheritedAutoUnit?: boolean;
+    /** The target's suffix is its unit (custom dp cell). */
+    autoUnitFromSuffix?: boolean;
     /** Icon size — match the sibling picker / JSON-path buttons. */
     size?: number;
     /** Extra classes on the button, e.g. a height when the sibling field can wrap. */
@@ -57,6 +65,10 @@ export function ValueTransformButton({
     explicitNone = false,
     expr,
     allowExpr = false,
+    autoUnit,
+    autoUnitDecimals,
+    inheritedAutoUnit = false,
+    autoUnitFromSuffix = false,
     size = 13,
     className = '',
 }: ValueTransformButtonProps) {
@@ -71,7 +83,8 @@ export function ValueTransformButton({
         (allowExpr && presetId === 'expr'
             ? !!expr?.trim()
             : presetId !== 'expr' && matchValueTransformPreset(factor, offset) !== 'none') ||
-        hasTimeDisplay(timeFormat);
+        hasTimeDisplay(timeFormat) ||
+        (allowTimeFormat && autoUnit === true);
 
     useLayoutEffect(() => {
         if (!open || !btnRef.current) return;
@@ -163,6 +176,10 @@ export function ValueTransformButton({
                             explicitNone={explicitNone}
                             expr={expr}
                             allowExpr={allowExpr}
+                            autoUnit={autoUnit}
+                            autoUnitDecimals={autoUnitDecimals}
+                            inheritedAutoUnit={inheritedAutoUnit}
+                            autoUnitFromSuffix={autoUnitFromSuffix}
                         />
                     </div>,
                     document.body,

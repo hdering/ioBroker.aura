@@ -553,7 +553,7 @@ function EntryValue({
                     color: condColor ?? thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
                 }}
             >
-                {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
+                {disp.text != null ? `${disp.text}${disp.unit && !disp.isTime ? ` ${disp.unit}` : ''}` : '–'}
             </span>
         );
     }
@@ -758,7 +758,7 @@ function EntryValue({
                 color: condColor ?? thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
             }}
         >
-            {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
+            {disp.text != null ? `${disp.text}${disp.unit && !disp.isTime ? ` ${disp.unit}` : ''}` : '–'}
         </span>
     );
 }
@@ -1648,7 +1648,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                               ? trueLabel || 'AN'
                                               : falseLabel || 'AUS'
                                           : plainText != null
-                                            ? `${plainText}${entry.unit && !disp.isTime ? `\u202f${entry.unit}` : ''}`
+                                            ? `${plainText}${disp.unit && !disp.isTime ? `\u202f${disp.unit}` : ''}`
                                             : '–');
                             const threshColor =
                                 !switchActive && !roleDisplay

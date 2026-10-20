@@ -33,6 +33,10 @@ export interface ValueTransformPatch {
     valueTimeFormat?: string;
     /** Token pattern, only used when `valueTimeFormat` is 'custom'. */
     valueTimePattern?: string;
+    /** Move value + unit along the prefix ladder (850 Wh / 1.25 kWh); `false` switches a list default off. */
+    valueAutoUnit?: boolean;
+    /** Decimals above the smallest unit of the ladder; undefined = the normal decimals. */
+    valueAutoUnitDecimals?: number;
 }
 
 /**
@@ -54,6 +58,10 @@ export function ValueTransformFields({
     explicitNone = false,
     expr,
     allowExpr = false,
+    autoUnit,
+    autoUnitDecimals,
+    inheritedAutoUnit = false,
+    autoUnitFromSuffix = false,
     inputStyle,
     inputClassName = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none',
 }: {
@@ -63,6 +71,14 @@ export function ValueTransformFields({
     expr?: string;
     /** Offer "Ausdruck…" — only where the renderer applies it (the lists, issue #794). */
     allowExpr?: boolean;
+    /** Stored automatic unit switch (offered together with the time format: text targets only). */
+    autoUnit?: boolean;
+    /** Stored decimals above the smallest unit of the ladder. */
+    autoUnitDecimals?: number;
+    /** A list-wide automatic unit is in effect — the entry inherits it until it says otherwise. */
+    inheritedAutoUnit?: boolean;
+    /** The target has no unit field, its suffix is the unit (custom dp cell). */
+    autoUnitFromSuffix?: boolean;
     /** Stored selection id; takes precedence over factor/offset matching. */
     presetId?: string;
     /** Stored time output preset id (or 'custom'). */
@@ -125,6 +141,16 @@ export function ValueTransformFields({
         onPatch({
             valueTimeFormat: id,
             valueTimePattern: id === 'custom' ? (timePattern ?? 'dd.MM.yyyy HH:mm') : undefined,
+        });
+    };
+
+    // Checked = in effect here, own setting or the list's. Only a deviation from the list is stored.
+    const autoOn = autoUnit ?? inheritedAutoUnit;
+    const toggleAutoUnit = () => {
+        const next = !autoOn;
+        onPatch({
+            valueAutoUnit: next === inheritedAutoUnit ? undefined : next,
+            valueAutoUnitDecimals: next ? autoUnitDecimals : undefined,
         });
     };
 
@@ -253,6 +279,50 @@ export function ValueTransformFields({
             )}
             {allowTimeFormat && (
                 <div className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>
+                    <label className="flex items-center gap-2 text-[11px] cursor-pointer" style={labelSty}>
+                        <input
+                            type="checkbox"
+                            checked={autoOn}
+                            onChange={toggleAutoUnit}
+                            className="cursor-pointer"
+                            data-testid="value-auto-unit"
+                        />
+                        Einheit automatisch anpassen (Wh → kWh → MWh)
+                    </label>
+                    {autoOn && (
+                        <>
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={labelSty}>
+                                    Nachkommastellen ab der größeren Einheit
+                                </label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={6}
+                                    step={1}
+                                    value={autoUnitDecimals ?? ''}
+                                    placeholder="wie Wert"
+                                    onChange={(e) =>
+                                        onPatch({
+                                            // Own decimals need an own switch, or the list's pair would win.
+                                            valueAutoUnit: true,
+                                            valueAutoUnitDecimals:
+                                                e.target.value === ''
+                                                    ? undefined
+                                                    : Math.max(0, Math.min(6, Math.round(Number(e.target.value)))),
+                                        })
+                                    }
+                                    className={inputClassName}
+                                    style={sty}
+                                />
+                            </div>
+                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                {autoUnitFromSuffix ? 'Das Suffix ist die Einheit.' : 'Ausgangspunkt ist die Einheit.'}{' '}
+                                Ab 1000 eine Stufe höher, unter 1 eine tiefer: 850 Wh, 1,25 kWh, 3,4 MWh. Erkannt werden
+                                Wh, W, VA, var, V, A, Hz, g, m, l, B und bit/s mit ihren Vorsilben.
+                            </p>
+                        </>
+                    )}
                     <div>
                         <label className="text-[11px] mb-1 block" style={labelSty}>
                             Zeit-Formatierung

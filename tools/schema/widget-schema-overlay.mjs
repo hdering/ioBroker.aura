@@ -35,6 +35,15 @@ export const KEY_DESCRIPTIONS = {
     unit: 'Einheit hinter dem Wert, z. B. "°C", "%", "kWh".',
     valueFactor: 'Rohwert wird mit diesem Faktor multipliziert, bevor er angezeigt wird.',
     valueOffset: 'Dieser Wert wird nach dem Faktor addiert.',
+    valueAutoUnit:
+        'Einheit automatisch anpassen: Wert und Einheit wandern nach der Umrechnung auf der Vorsilben-Leiter ' +
+        '(ab 1000 eine Stufe höher, unter 1 eine tiefer: 850 Wh, 1,25 kWh, 3,4 MWh). Ausgangspunkt ist unit; ' +
+        'erkannt werden Wh, W, VA, var, V, A, Hz, g, m, l, B (Schritt 1024) und bit/s, sonst bleibt alles. ' +
+        'Nur Textanzeigen (Wert-Widget, Listen). Für "Wh unter 1000, sonst kWh" ohne Faktor: unit "Wh" + true. ' +
+        'In einem Listeneintrag schaltet false die listenweite Einstellung ab.',
+    valueAutoUnitDecimals:
+        'Nur mit valueAutoUnit: Nachkommastellen, sobald der Wert über der kleinsten Einheit der Leiter steht ' +
+        '(kWh, MWh …). Ohne Angabe gilt decimals — z. B. decimals 0 + valueAutoUnitDecimals 2 → "850 Wh", "1,25 kWh".',
     colorThresholds: 'Schwellenwerte, die den Wert je nach Höhe einfärben.',
     publishCount:
         'Inhalt in ioBroker veröffentlichen (#798): aura.0.lists.<widgetId>.count (Anzahl), .items (JSON-Array ' +

@@ -117,7 +117,8 @@ function SubDpItem({
     // it, same rule the time format already follows.
     const raw = cond?.text ?? (stampMode ? stampText : disp?.text);
     const bare = cond?.text !== undefined || stampMode || !!disp?.isTime || !!disp?.state;
-    const text = raw != null ? `${raw}${sub.unit && !bare ? ` ${sub.unit}` : ''}` : '–';
+    const unit = disp ? disp.unit : sub.unit;
+    const text = raw != null ? `${raw}${unit && !bare ? ` ${unit}` : ''}` : '–';
     // "vor 5 Min" hides the actual moment — the tooltip keeps it.
     const exact = stampMode && ts > 0 ? new Date(ts).toLocaleString() : '';
     const title = `${sub.label ? `${sub.label} ` : ''}${text}${exact ? ` (${exact})` : ''}`;

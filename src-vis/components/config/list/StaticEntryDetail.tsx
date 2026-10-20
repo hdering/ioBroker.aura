@@ -142,6 +142,9 @@ export function StaticEntryDetail({
                         timeFormat={entry.valueTimeFormat}
                         timePattern={entry.valueTimePattern}
                         allowTimeFormat={allowTimeFormat}
+                        autoUnit={entry.valueAutoUnit}
+                        autoUnitDecimals={entry.valueAutoUnitDecimals}
+                        inheritedAutoUnit={listOpts.valueAutoUnit === true}
                         explicitNone={listHasTransform}
                         dpId={entry.id}
                         onPatch={onUpdate}
@@ -332,6 +335,7 @@ export function StaticEntryDetail({
                     subDps={entry.subDps ?? []}
                     mainDpId={entry.id}
                     listHasTransform={listHasTransform}
+                    listAutoUnit={listOpts.valueAutoUnit === true}
                     onChange={(next) => onUpdate({ subDps: next })}
                 />
             </DetailSection>

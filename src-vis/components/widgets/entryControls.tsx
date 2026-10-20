@@ -48,7 +48,13 @@ import { condTextStyle, type ElementCondResult } from '../../utils/rowConditions
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { useT } from '../../i18n';
 import { formatTimeDisplay, TIME_DASH } from '../../utils/timeDisplay';
-import { applyValueTransform, resolveValueTransform, type ValueTransformSettings } from '../../utils/valueTransform';
+import {
+    applyValueTransform,
+    autoScaleUnit,
+    autoUnitDecimals,
+    resolveValueTransform,
+    type ValueTransformSettings,
+} from '../../utils/valueTransform';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { applyValueExpr } from '../../utils/valueExpr';
 import { SliderScale } from './SliderScale';
@@ -429,6 +435,9 @@ export interface EntryValueText {
     text: string | null;
     /** A time format produced the text — the unit must not be appended to it. */
     isTime: boolean;
+    /** The unit to print behind the text — the entry's own, or the one the automatic
+     *  unit moved to (850 Wh → 1.25 kWh). */
+    unit: string | undefined;
     /** Nothing configured on either level → callers may keep their raw-value path. */
     active: boolean;
     /** The value→text mapping that produced the text, when one did. Carries the
@@ -438,7 +447,7 @@ export interface EntryValueText {
 
 /** Resolve an entry's value into what the list should print for it. */
 export function entryValueText(
-    entry: EntryControlConfig,
+    entry: EntryControlConfig & { unit?: string },
     listDefault: ValueTransformSettings | undefined,
     val: ioBrokerState['val'],
     decimals: number,
@@ -451,24 +460,31 @@ export function entryValueText(
             ? applyValueExpr(val, tr.expr, { formatNum: (n, d) => formatNum(n, d, numFmt), decimals, t })
             : applyValueTransform(val, tr.factor, tr.offset)
     ) as ioBrokerState['val'];
-    if (value === null || value === undefined) return { value, text: null, isTime: false, active: tr.active };
+    const unit = entry.unit;
+    if (value === null || value === undefined) return { value, text: null, isTime: false, unit, active: tr.active };
     // A configured value→text table wins over formatting: it is what turns `true`
     // into "ONLINE" (issue #572). Sitting here means the main value and the second
     // line share it — EntrySubLine goes through the same function.
     const mapped = matchStateMap(entry.states, value);
-    if (mapped?.label) return { value, text: mapped.label, isTime: false, active: tr.active, state: mapped };
+    if (mapped?.label) return { value, text: mapped.label, isTime: false, unit, active: tr.active, state: mapped };
     if (tr.timeFormat) {
         return {
             value,
             text: formatTimeDisplay(value, tr.timeFormat, t, tr.timePattern) ?? TIME_DASH,
             isTime: true,
+            unit,
             active: true,
         };
     }
+    // `value` stays unscaled: the colour thresholds are matched against it, in one unit.
+    const auto = tr.autoUnit ? autoScaleUnit(value, unit) : null;
+    const shown = auto ? auto.value : value;
+    const dec = auto ? autoUnitDecimals(auto.scaledUp, decimals, tr.autoUnitDecimals) : decimals;
     return {
         value,
-        text: typeof value === 'number' ? formatNum(value, decimals, numFmt) : String(value),
+        text: typeof shown === 'number' ? formatNum(shown, dec, numFmt) : String(shown),
         isTime: false,
+        unit: auto ? auto.unit : unit,
         active: tr.active,
     };
 }

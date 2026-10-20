@@ -256,6 +256,8 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                             timeFormat={opts.valueTimeFormat}
                             timePattern={opts.valueTimePattern}
                             allowTimeFormat
+                            autoUnit={opts.valueAutoUnit}
+                            autoUnitDecimals={opts.valueAutoUnitDecimals}
                             dpId={entries[0]?.id}
                             onPatch={setOpts}
                             inputClassName="w-full text-[10px] rounded px-2 py-1 focus:outline-none"

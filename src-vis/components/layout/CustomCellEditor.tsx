@@ -1125,6 +1125,9 @@ export function CustomCellEditor({
                                 timeFormat={cell.valueTimeFormat}
                                 timePattern={cell.valueTimePattern}
                                 allowTimeFormat={cell.type === 'dp'}
+                                autoUnit={cell.valueAutoUnit}
+                                autoUnitDecimals={cell.valueAutoUnitDecimals}
+                                autoUnitFromSuffix
                                 dpId={cell.dpId}
                                 onPatch={({ unit: _unit, ...cellPatch }) => onChange(cellPatch)}
                                 size={12}

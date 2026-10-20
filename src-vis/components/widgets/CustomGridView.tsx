@@ -13,7 +13,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { lastChangeTs } from '../../utils/subDpStamp';
 import { SliderScale } from './SliderScale';
 import { stepDecimals } from '../../utils/sliderScale';
-import { applyValueTransform } from '../../utils/valueTransform';
+import { applyValueTransform, autoScaleUnit, autoUnitDecimals } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { useT } from '../../i18n';
 import { baseDpId } from '../../utils/dpRef';
@@ -437,10 +437,18 @@ function DpCellView({
     const timeStr = hasTimeDisplay(cell.valueTimeFormat)
         ? (formatTimeDisplay(tValue, cell.valueTimeFormat, t, cell.valueTimePattern) ?? '–')
         : null;
+    // A dp cell has no unit field — its unit is the suffix (" Wh"), so that is what moves along
+    // the prefix ladder. The spacing in front of it stays as typed.
+    const suffix = cell.suffix ?? '';
+    const auto = cell.valueAutoUnit && !timeStr ? autoScaleUnit(tValue, suffix.trim()) : null;
+    const shown = auto ? auto.value : tValue;
+    const dec = auto ? autoUnitDecimals(auto.scaledUp, decimals, cell.valueAutoUnitDecimals) : decimals;
     const formatted =
-        timeStr ??
-        (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals, numFmt) : String(tValue));
-    const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
+        timeStr ?? (shown === null ? '–' : typeof shown === 'number' ? formatNum(shown, dec, numFmt) : String(shown));
+    const shownSuffix = auto?.unit
+        ? `${suffix.slice(0, suffix.length - suffix.trimStart().length)}${auto.unit}`
+        : suffix;
+    const content = `${cell.prefix ?? ''}${formatted}${shownSuffix}`;
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
     const labelBg = contentBgStyle(cell, cond);
     const textSty = cellTextStyle(cell, 'var(--text-primary)', cond);

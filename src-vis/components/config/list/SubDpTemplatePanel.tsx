@@ -117,6 +117,7 @@ export function SubDpTemplatePanel({
                         opts.valueFactor !== undefined ||
                         opts.valueTimeFormat !== undefined
                     }
+                    listAutoUnit={opts.valueAutoUnit === true}
                     templateMode
                     onChange={(next) => onOptsChange({ subDpTemplate: next })}
                 />

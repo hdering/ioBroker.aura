@@ -32,6 +32,10 @@ export interface ValueTransformSettings {
     valueTimeFormat?: string;
     /** Token pattern, only used when `valueTimeFormat` is 'custom'. */
     valueTimePattern?: string;
+    /** Text displays only: move the converted value along its unit's prefix ladder (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, B, bit/s). Unknown units stay as they are. In a list entry `false` switches a list-wide setting off. */
+    valueAutoUnit?: boolean;
+    /** With `valueAutoUnit`: decimal places once the value sits above the smallest unit of its ladder (kWh, MWh …); unset = the normal decimals. */
+    valueAutoUnitDecimals?: number;
 }
 
 export interface ResolvedValueTransform {
@@ -41,6 +45,10 @@ export interface ResolvedValueTransform {
     expr?: string;
     timeFormat?: string;
     timePattern?: string;
+    /** Move value and unit along the prefix ladder (see `autoScaleUnit`). */
+    autoUnit: boolean;
+    /** Decimals above the smallest rung, see `autoUnitDecimals`. */
+    autoUnitDecimals?: number;
     /** True when anything is configured at all — callers can keep their untouched path. */
     active: boolean;
 }
@@ -200,13 +208,20 @@ export function resolveValueTransform(
 
     const factor = scaleOff ? undefined : scale.valueFactor;
     const offset = scaleOff ? undefined : scale.valueOffset;
+    // Its own half again: an entry may set only the conversion and still inherit the list's
+    // automatic unit, or switch it off with an explicit `false`.
+    const auto = own?.valueAutoUnit !== undefined ? own : (listDefault ?? {});
+    const autoUnit = auto.valueAutoUnit === true;
     return {
         factor,
         offset,
         expr,
         timeFormat,
         timePattern: time.valueTimePattern,
-        active: factor !== undefined || offset !== undefined || expr !== undefined || timeFormat !== undefined,
+        autoUnit,
+        autoUnitDecimals: autoUnit ? auto.valueAutoUnitDecimals : undefined,
+        active:
+            factor !== undefined || offset !== undefined || expr !== undefined || timeFormat !== undefined || autoUnit,
     };
 }
 
@@ -308,3 +323,90 @@ export const TRANSFORMABLE_WIDGET_TYPES: readonly string[] = [
 
 /** Of those, the ones that also WRITE their datapoint — there the conversion runs both ways. */
 export const WRITABLE_TRANSFORM_WIDGET_TYPES: readonly string[] = ['slider', 'knob', 'dimmer', 'input'];
+
+// ── Automatic unit prefix ─────────────────────────────────────────────────────────────────────
+//
+// "Show 850 Wh, but 1.25 kWh once it passes 1000" — a fixed factor can only pick one of the two.
+// With `valueAutoUnit` the value (already converted) climbs or descends a ladder of prefixed units
+// until it is at least 1 and below the next step. The datapoint's own unit is the starting rung,
+// so a value stored in kWh works as well as one stored in Wh. Only text displays use it — charts,
+// gauges and controls need one fixed unit for their axis.
+
+const UNIT_LADDERS: { units: string[]; step: number }[] = [
+    { units: ['Wh', 'kWh', 'MWh', 'GWh', 'TWh'], step: 1000 },
+    { units: ['W', 'kW', 'MW', 'GW'], step: 1000 },
+    { units: ['VA', 'kVA', 'MVA'], step: 1000 },
+    { units: ['var', 'kvar', 'Mvar'], step: 1000 },
+    { units: ['VAh', 'kVAh', 'MVAh'], step: 1000 },
+    { units: ['varh', 'kvarh', 'Mvarh'], step: 1000 },
+    { units: ['mV', 'V', 'kV'], step: 1000 },
+    { units: ['mA', 'A', 'kA'], step: 1000 },
+    { units: ['Hz', 'kHz', 'MHz', 'GHz'], step: 1000 },
+    { units: ['g', 'kg', 't'], step: 1000 },
+    { units: ['mm', 'm', 'km'], step: 1000 },
+    { units: ['ml', 'l'], step: 1000 },
+    // Bytes follow the presets above (Bytes → KB = ÷1024).
+    { units: ['B', 'KB', 'MB', 'GB', 'TB'], step: 1024 },
+    { units: ['bit/s', 'kbit/s', 'Mbit/s', 'Gbit/s'], step: 1000 },
+];
+
+/**
+ * Finds the rung a unit sits on. Exact spelling first; then only the k/K mix-up is forgiven
+ * ("KWh", "kB") — a blanket case-insensitive match would read mW as MW.
+ */
+function findUnitRung(unit: string): { units: string[]; step: number; index: number } | null {
+    const u = unit.trim();
+    if (!u) return null;
+    const alt = u[0] === 'K' ? `k${u.slice(1)}` : u[0] === 'k' ? `K${u.slice(1)}` : null;
+    for (const name of alt ? [u, alt] : [u]) {
+        for (const ladder of UNIT_LADDERS) {
+            const index = ladder.units.indexOf(name);
+            if (index >= 0) return { ...ladder, index };
+        }
+    }
+    return null;
+}
+
+/** True when the unit can be scaled automatically — the editor uses it for its hint. */
+export function isAutoScalableUnit(unit?: string): boolean {
+    return !!unit && findUnitRung(unit) !== null;
+}
+
+export interface AutoUnitResult<T> {
+    value: T | number;
+    unit: string | undefined;
+    /** The value landed on a larger unit than the smallest one of its ladder. */
+    scaledUp: boolean;
+}
+
+/**
+ * Moves a number along its unit ladder (850 Wh stays, 1250 Wh → 1.25 kWh, 0.4 kWh → 400 Wh).
+ * Non-numbers, unknown units and 0 come back unchanged.
+ */
+export function autoScaleUnit<T>(value: T, unit: string | undefined): AutoUnitResult<T> {
+    const rung = unit ? findUnitRung(unit) : null;
+    if (!rung || typeof value !== 'number' || !Number.isFinite(value) || value === 0) {
+        return { value, unit, scaledUp: !!rung && rung.index > 0 };
+    }
+    let index = rung.index;
+    let v: number = value;
+    while (index < rung.units.length - 1 && Math.abs(v) >= rung.step) {
+        v /= rung.step;
+        index++;
+    }
+    while (index > 0 && Math.abs(v) < 1) {
+        v *= rung.step;
+        index--;
+    }
+    // Same rung as configured: hand the user's own spelling back ("KWh" stays "KWh").
+    if (index === rung.index) return { value, unit, scaledUp: index > 0 };
+    return { value: tidy(v, DISPLAY_DIGITS), unit: rung.units[index], scaledUp: index > 0 };
+}
+
+/**
+ * The decimals for an automatically scaled value: the configured ones on the smallest rung,
+ * `upperDecimals` (when set) on every larger one — 850 Wh without decimals, 1.25 kWh with two.
+ */
+export function autoUnitDecimals(scaledUp: boolean, decimals: number, upperDecimals?: number): number {
+    return scaledUp && typeof upperDecimals === 'number' && Number.isFinite(upperDecimals) ? upperDecimals : decimals;
+}

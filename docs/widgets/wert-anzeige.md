@@ -67,6 +67,25 @@ Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeiche
 | `valueFactor` | `1`      | Multiplikator |
 | `valueOffset` | `0`      | Summand       |
 
+### Einheit automatisch anpassen
+
+Häkchen **Einheit automatisch anpassen** im selben Dialog: ab 1000 eine Stufe höher, unter 1 eine tiefer.
+Ausgangspunkt ist die Einheit (`unit`). Farbschwellen gelten weiter in dieser Einheit.
+
+| Option                  | Standard |                                                         |
+| ----------------------- | -------- | ------------------------------------------------------- |
+| `valueAutoUnit`         | `false`  | Wert und Einheit wandern mit                            |
+| `valueAutoUnitDecimals` | —        | Nachkommastellen ab der größeren Einheit; leer = `decimals` |
+
+| Wert (`unit` = Wh, `decimals` 0, `valueAutoUnitDecimals` 2) | Anzeige   |
+| ------------------------------------------------------------ | --------- |
+| 850                                                          | 850 Wh    |
+| 1250                                                         | 1,25 kWh  |
+| 3400000                                                      | 3,40 MWh  |
+
+Erkannt: Wh · W · VA · var · V · A · Hz · g · m · l · B (Schritt 1024) · bit/s, jeweils mit Vorsilbe
+(`kWh`, `KWh`, `MW` …). Andere Einheiten bleiben unverändert.
+
 ### Zeit-Formatierung
 
 Zeigt einen Zeit-Datenpunkt als Uhrzeit und/oder Datum. Zeitstempel (Sekunden/Millisekunden),

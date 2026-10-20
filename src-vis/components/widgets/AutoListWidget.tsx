@@ -732,7 +732,7 @@ function EntryValue({
                         (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
                 }}
             >
-                {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
+                {disp.text != null ? `${disp.text}${disp.unit && !disp.isTime ? ` ${disp.unit}` : ''}` : '–'}
             </span>
         );
     }
@@ -883,7 +883,7 @@ function EntryValue({
             className={textValueCls}
             style={{ ...valueMaxStyle, ...condFont, color: condColor ?? thresholdColor ?? 'var(--text-primary)' }}
         >
-            {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
+            {disp.text != null ? `${disp.text}${disp.unit && !disp.isTime ? ` ${disp.unit}` : ''}` : '–'}
         </span>
     );
 }
@@ -1021,9 +1021,9 @@ function CardEntryValue({
                 }}
             >
                 {disp.text ?? '–'}
-                {entry.unit && !disp.isTime && (
+                {disp.unit && !disp.isTime && (
                     <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
-                        {entry.unit}
+                        {disp.unit}
                     </span>
                 )}
             </span>
@@ -1158,9 +1158,9 @@ function CardEntryValue({
             style={{ color: condColor ?? thresholdColor ?? 'var(--text-primary)', ...condFont }}
         >
             {disp.text ?? '–'}
-            {entry.unit && !disp.isTime && (
+            {disp.unit && !disp.isTime && (
                 <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
-                    {entry.unit}
+                    {disp.unit}
                 </span>
             )}
         </span>
@@ -2261,7 +2261,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                       ? trueLabel || 'AN'
                                                       : falseLabel || 'AUS'
                                                   : plainText != null
-                                                    ? `${plainText}${entry.unit && !disp.isTime ? `\u202f${entry.unit}` : ''}`
+                                                    ? `${plainText}${disp.unit && !disp.isTime ? `\u202f${disp.unit}` : ''}`
                                                     : '–');
                                     const entryActiveColor = entry.activeColor || globalActiveColor;
                                     const entryInactiveColor = entry.inactiveColor || globalInactiveColor;

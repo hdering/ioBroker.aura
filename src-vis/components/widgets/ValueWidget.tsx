@@ -11,7 +11,7 @@ import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
-import { applyValueTransform } from '../../utils/valueTransform';
+import { applyValueTransform, autoScaleUnit, autoUnitDecimals } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
 import { extractJsonPath } from '../../utils/dpRef';
@@ -25,7 +25,7 @@ import { AccentBar } from './AccentBar';
 export function ValueWidget({ config }: WidgetProps) {
     const t = useT();
     const { value } = useDatapoint(config.datapoint);
-    const unit = config.options?.unit as string | undefined;
+    const configUnit = config.options?.unit as string | undefined;
     const htmlTemplate = config.options?.htmlTemplate as string | undefined;
     const layout = config.layout ?? 'default';
     const CardIcon = getWidgetIcon(config.options?.icon as string | undefined, Activity);
@@ -63,10 +63,22 @@ export function ValueWidget({ config }: WidgetProps) {
     // A condition rule may replace the whole value text ("Anzeige überschreiben").
     // It wins over formatting and time display, but not over the threshold colour —
     // colours are a separate effect with their own field.
+    // Automatic unit (850 Wh, 1.25 kWh): value and unit move together. Thresholds below keep
+    // matching the unscaled `tValue`, so they stay configured in one unit.
+    const auto = o.valueAutoUnit === true && !timeStr ? autoScaleUnit(tValue, configUnit) : null;
+    const unit = auto ? auto.unit : configUnit;
+    const shownValue = auto ? auto.value : tValue;
+    const shownDecimals = auto
+        ? autoUnitDecimals(auto.scaledUp, decimals, o.valueAutoUnitDecimals as number | undefined)
+        : decimals;
     const displayValue =
         valueOverride ??
         timeStr ??
-        (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals, numFmt) : String(tValue));
+        (shownValue === null
+            ? '–'
+            : typeof shownValue === 'number'
+              ? formatNum(shownValue, shownDecimals, numFmt)
+              : String(shownValue));
 
     // The scale is matched against the transformed (displayed) value, so it is
     // configured in display units.

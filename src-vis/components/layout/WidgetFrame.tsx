@@ -7784,6 +7784,8 @@ function WidgetFrameInner({
                         timeFormat={config.options?.valueTimeFormat as string | undefined}
                         timePattern={config.options?.valueTimePattern as string | undefined}
                         allowTimeFormat={config.type === 'value'}
+                        autoUnit={config.options?.valueAutoUnit as boolean | undefined}
+                        autoUnitDecimals={config.options?.valueAutoUnitDecimals as number | undefined}
                         writable={WRITABLE_TRANSFORM_WIDGET_TYPES.includes(config.type)}
                         dpId={config.datapoint}
                         fillUnit={config.type !== 'dimmer'}

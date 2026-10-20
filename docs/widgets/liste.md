@@ -337,6 +337,8 @@ Wert nur für die Anzeige um und/oder formatiert ihn als Uhrzeit/Datum — wie b
 | `valueFactor` / `valueOffset` | `1` / `0` | Anzeige = Wert × Faktor + Offset                                                        |
 | `valueTimeFormat`             | —         | `relative` · `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom`     |
 | `valueTimePattern`            | —         | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm`                                   |
+| `valueAutoUnit`               | —         | Einheit automatisch anpassen (850 Wh, 1,25 kWh), siehe [Wert-Anzeige](./wert-anzeige#einheit-automatisch-anpassen); `false` schaltet die globale Einstellung für diesen Eintrag ab |
+| `valueAutoUnitDecimals`       | —         | Nachkommastellen ab der größeren Einheit                                                 |
 
 Presets: Sekunden → Minuten/Stunden · ms → s · Wh → kWh · W → kW · Bytes → KB/MB/GB · 0..1 → % · °C → °F.
 

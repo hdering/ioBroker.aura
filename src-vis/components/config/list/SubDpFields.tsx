@@ -69,6 +69,7 @@ export function SubDpFields({
     subDps,
     mainDpId,
     listHasTransform,
+    listAutoUnit = false,
     templateMode,
     onChange,
 }: {
@@ -78,6 +79,8 @@ export function SubDpFields({
     mainDpId: string;
     /** The list carries a conversion of its own, so "Keine" must mean "off here". */
     listHasTransform: boolean;
+    /** The list switches the automatic unit on — every line inherits it unless it opts out. */
+    listAutoUnit?: boolean;
     /** Store picked datapoints of the sample device as a `{{parent}}` pattern and preview
      *  what they resolve to for `mainDpId`. Used by the dynamic list's list-wide template. */
     templateMode?: boolean;
@@ -253,6 +256,9 @@ export function SubDpFields({
                                                 timePattern={sub.valueTimePattern}
                                                 allowTimeFormat
                                                 explicitNone={listHasTransform}
+                                                autoUnit={sub.valueAutoUnit}
+                                                autoUnitDecimals={sub.valueAutoUnitDecimals}
+                                                inheritedAutoUnit={listAutoUnit}
                                                 dpId={resolveId(sub.id)}
                                                 size={12}
                                                 onPatch={(p) => patch(i, p)}
