@@ -1391,6 +1391,9 @@ export function EvccWidget({ config }: WidgetProps) {
     const { value: extSoc } = useDatapoint(effectiveBattDp);
     const { value: extPower } = useDatapoint(batteryPowerDp);
     const battPowerFactor = usePowerFactor(batteryPowerDp);
+    // Inverters disagree on the sign of the battery power; the widget expects
+    // negative = charging, so a datapoint with positive = charging needs flipping (#803).
+    const battPowerSign = ((o.batteryPowerInvert as boolean) ?? false) ? -1 : 1;
 
     // Grid power fallback chain — the evcc adapter reshaped the grid states
     // several times:
@@ -1453,7 +1456,7 @@ export function EvccWidget({ config }: WidgetProps) {
             : {
                   ...(effectiveBattDp && extSoc != null ? { batterySoc: parseFloat(String(extSoc)) } : {}),
                   ...(batteryPowerDp && extPower != null
-                      ? { batteryPower: parseFloat(String(extPower)) * battPowerFactor }
+                      ? { batteryPower: parseFloat(String(extPower)) * battPowerFactor * battPowerSign }
                       : {}),
               }),
     };
@@ -2121,6 +2124,28 @@ export function EvccConfig({
                                     className={inputCls}
                                     style={inputSty}
                                 />
+                                {!!o.batteryPowerDatapoint && (
+                                    <div className="flex items-center justify-between gap-2">
+                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                            {t('evcc.batteryPowerInvert')}{' '}
+                                            <span style={{ opacity: 0.6 }}>{t('evcc.batteryPowerInvertHint')}</span>
+                                        </label>
+                                        <button
+                                            onClick={() => set({ batteryPowerInvert: !o.batteryPowerInvert })}
+                                            className="aura-evcc-battery-invert relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                            style={{
+                                                background: o.batteryPowerInvert
+                                                    ? 'var(--accent)'
+                                                    : 'var(--app-border)',
+                                            }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                style={{ left: o.batteryPowerInvert ? '18px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>

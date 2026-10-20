@@ -1396,7 +1396,10 @@ export const WIDGET_OPTION_NOTES = {
         gridPowerDatapoint: {
             description: 'Datenpunkt der Netzleistung; ueberschreibt die Datenquelle (Watt, positiv = Bezug).',
         },
-        batteryPowerDatapoint: { description: 'Datenpunkt der Speicherleistung.' },
+        batteryPowerDatapoint: { description: 'Datenpunkt der Speicherleistung (Watt, negativ = laden).' },
+        batteryPowerInvert: {
+            description: 'Vorzeichen von batteryPowerDatapoint umkehren, fuer Datenpunkte mit positiv = laden.',
+        },
         batterySocDatapoint: { description: 'Datenpunkt des Speicherladestands.' },
         sourceAdapter: { description: 'Instanz, aus der die Datenpunkte automatisch zugeordnet wurden (z.B. sma.0).' },
         autoScale: { description: 'Darstellung automatisch an die Kachelgröße anpassen.' },

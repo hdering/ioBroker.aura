@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - iFrame - Energiefluss-erweitert pages now embed without the white box behind the diagram in dark themes (#642)
+- Energy flow (evcc) - new switch to invert the sign of a manual battery power datapoint that reports positive = charging (#803)

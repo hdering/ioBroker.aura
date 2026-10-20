@@ -2521,6 +2521,8 @@ export const en: Record<TranslationKey, string> = {
     'evcc.batterySocDpHint': '(percent or JSON {soc,power})',
     'evcc.batteryPowerDp': 'Battery power',
     'evcc.batteryPowerDpHint': '(negative = charging)',
+    'evcc.batteryPowerInvert': 'Invert sign',
+    'evcc.batteryPowerInvertHint': '(datapoint reports positive = charging)',
     'evcc.loadpointSection': 'Loadpoints (evcc only)',
     'evcc.loadpointsTotal': 'Loadpoints (total)',
     'evcc.loadpointsShown': 'Loadpoints shown',

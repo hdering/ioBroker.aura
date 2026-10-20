@@ -2541,6 +2541,8 @@ export const de = {
     'evcc.batterySocDpHint': '(Prozent oder JSON {soc,power})',
     'evcc.batteryPowerDp': 'Batterie-Leistung',
     'evcc.batteryPowerDpHint': '(negativ = laden)',
+    'evcc.batteryPowerInvert': 'Vorzeichen umkehren',
+    'evcc.batteryPowerInvertHint': '(Datenpunkt liefert positiv = laden)',
     'evcc.loadpointSection': 'Ladepunkte (nur mit evcc)',
     'evcc.loadpointsTotal': 'Ladepunkte (gesamt)',
     'evcc.loadpointsShown': 'Angezeigte Ladepunkte',
