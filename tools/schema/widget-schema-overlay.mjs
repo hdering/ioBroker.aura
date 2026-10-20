@@ -327,7 +327,6 @@ export const WIDGET_OPTION_NOTES = {
                 'Seite beim Tab- und Bereichswechsel geladen lassen (Zustand bleibt). Aus: verborgen wird sie verworfen und beim Zurückkehren frisch geladen.',
         },
         sandbox: { description: 'Sandbox einschalten.' },
-        fullscreenButton: { description: 'Taste für Vollbild anzeigen.' },
         iframeZoom: {
             description:
                 'Zoomstufe der eingebetteten Seite in Prozent (25-400, Standard 100). Gilt auf allen Geräten. ' +
@@ -1834,8 +1833,8 @@ export const UNIVERSAL_OPTIONS = {
         description:
             'Blendet einen Knopf in die Ecke der Karte ein, der das Widget bildschirmfüllend öffnet ' +
             '(Esc oder das Kreuz schließt wieder). Auf Touch-Geräten dauerhaft sichtbar, mit Maus erst ' +
-            'beim Überfahren. Nicht bei "iframe", "camera" und "echartsPreset" — die bringen ihr eigenes ' +
-            'Vollbild mit (iframe über die Option fullscreenButton).',
+            'beim Überfahren. Nicht bei "camera" und "echartsPreset" — die bringen ihr eigenes Vollbild mit. ' +
+            'Beim "iframe" ist die Seite im Vollbild immer bedienbar, auch mit interactionMode "action".',
     },
     fullscreenPosition: {
         ts: "'tr' | 'tl' | 'br'",

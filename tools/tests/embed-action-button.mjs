@@ -121,7 +121,7 @@ for (const [label, chrome] of [
     await show('iframe', {
         iframeUrl: PAGE,
         interactionMode: 'content',
-        fullscreenButton: true,
+        fullscreenWidget: true,
         clickAction: CLICK_ACTION,
         ...chrome,
     });

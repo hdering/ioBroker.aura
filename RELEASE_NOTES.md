@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Countdown - font size of the preset chips and the status text can now be set individually (#812)
 - Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"; both image modes take a URL, Base64, a file from the server or an upload from the PC
+- iFrame - the fullscreen button now sits under Appearance like on every other widget, with corner choice, the "Fill screen" option and permanent visibility on touch devices; the embedded page stays operable in fullscreen (#813)

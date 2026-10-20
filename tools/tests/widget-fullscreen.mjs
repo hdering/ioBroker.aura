@@ -111,11 +111,39 @@ const overlay = '[data-widget-fullscreen]';
     await show(page, [widget('fs-edit', 'value', { fullscreenWidget: true })], { editMode: true });
     check('im Editor kein Knopf', (await page.locator(btn).count()) === 0);
 
+    await show(page, [widget('fs-cam', 'camera', { fullscreenWidget: true })]);
+    check('camera bekommt keinen Knopf', (await page.locator(btn).count()) === 0);
+
+    // ── 4b. iFrame nutzt den Rahmen-Knopf (#813) ─────────────────────────────────────
+    // Gespeichert mit dem alten Schlüssel, im Modus "action" (Sperrschicht über der Seite).
     await show(page, [
-        widget('fs-iframe', 'iframe', { fullscreenWidget: true, iframeUrl: 'about:blank' }),
-        widget('fs-cam', 'camera', { fullscreenWidget: true }),
+        widget('fs-iframe', 'iframe', {
+            fullscreenButton: true,
+            interactionMode: 'action',
+            iframeUrl: 'about:blank',
+        }),
     ]);
-    check('iframe und camera bekommen keinen Knopf', (await page.locator(btn).count()) === 0);
+    check('iframe: der alte Schlüssel ergibt den Rahmen-Knopf', (await page.locator(btn).count()) === 1);
+    check('iframe: in der Kachel liegt die Sperrschicht', (await page.locator('[data-iframe-blocker]').count()) === 1);
+    await page.hover('[data-aura-widget="fs-iframe"]');
+    await page.waitForTimeout(250);
+    await page.click(btn);
+    await page.waitForTimeout(400);
+    check('iframe: Klick öffnet das Overlay', (await page.locator(overlay).count()) === 1);
+    check('iframe: im Overlay steckt die Seite', (await page.locator(`${overlay} iframe`).count()) === 1);
+    check(
+        'iframe: im Overlay ist die Seite bedienbar (keine Sperrschicht)',
+        (await page.locator(`${overlay} [data-iframe-blocker]`).count()) === 0,
+    );
+    const ifBox = await page.locator(`${overlay} iframe`).boundingBox();
+    check(
+        'iframe: die Seite füllt das Overlay weitgehend',
+        ifBox && ifBox.height > DESKTOP.height * 0.75 && ifBox.width > DESKTOP.width * 0.9,
+        ifBox ? `${Math.round(ifBox.width)}x${Math.round(ifBox.height)}` : 'keine Box',
+    );
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    check('iframe: Esc schließt', (await page.locator(overlay).count()) === 0);
 
     // ── 5. Geteilte Ecke mit dem Aktions-Knopf aus #527 ──────────────────────────────
     await show(page, [
@@ -172,6 +200,37 @@ const overlay = '[data-widget-fullscreen]';
     await page.waitForTimeout(250);
     const afterScr = await page.evaluate(() => window.__auraShot.widgetOptions('fs-cfg'));
     check('der Schalter schreibt fullscreenScreen', afterScr?.fullscreenScreen === true, JSON.stringify(afterScr));
+
+    // ── 6a. iFrame: derselbe Schalter unter Darstellung, alter Schlüssel fällt weg (#813) ──
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    await show(page, [widget('fs-ifcfg', 'iframe', { fullscreenButton: true, iframeUrl: 'about:blank' })], {
+        editMode: true,
+    });
+    await page.click('[data-aura-widget="fs-ifcfg"] .aura-edit-chrome button:last-child');
+    await page.waitForTimeout(250);
+    await page
+        .getByRole('button', { name: /Bearbeiten/ })
+        .first()
+        .click();
+    await page.waitForTimeout(400);
+    await page.getByText('Darstellung', { exact: true }).first().click();
+    await page.waitForTimeout(250);
+    check('iframe: kein eigener "Vollbild-Button" mehr', (await page.getByText('Vollbild-Button').count()) === 0);
+    const ifLabel = page.getByText('Vollbild-Knopf', { exact: true });
+    check('iframe: der Vollbild-Knopf steht unter Darstellung', (await ifLabel.count()) === 1);
+    check(
+        'iframe: alter Schlüssel zeigt den Schalter als an (Bildschirmfüllend sichtbar)',
+        (await page.locator('[data-fullscreen-screen-toggle]').count()) === 1,
+    );
+    await ifLabel.locator('xpath=following-sibling::button[1]').click();
+    await page.waitForTimeout(250);
+    const ifAfter = await page.evaluate(() => window.__auraShot.widgetOptions('fs-ifcfg'));
+    check(
+        'iframe: Ausschalten schreibt fullscreenWidget und räumt fullscreenButton ab',
+        ifAfter?.fullscreenWidget === false && ifAfter?.fullscreenButton === undefined,
+        JSON.stringify(ifAfter),
+    );
 
     await ctx.close();
 }

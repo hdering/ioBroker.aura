@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
-import { X, Monitor } from 'lucide-react';
+import { Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { docsUrl } from '../../utils/docsUrl';
@@ -16,7 +16,6 @@ import {
     isCollapsedNow,
     COLLAPSED_HEADER_FALLBACK_PX,
 } from '../../utils/widgetCollapse';
-import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
 import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import { WidgetFullscreenOverlay } from './WidgetFullscreenOverlay';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
@@ -25,7 +24,6 @@ import { WidgetFrame } from './WidgetFrame';
 import { TouchScrollbar } from './TouchScrollbar';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
-import { useWakeReload } from '../../hooks/useWakeReload';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { ViewVisibleContext } from '../../contexts/ViewVisibleContext';
 import { ActiveSectionContext } from '../../contexts/ActiveSectionContext';
@@ -364,29 +362,11 @@ export function Dashboard({
     // Raw condition verdict (works in edit mode too) — drives group auto-shrink.
     const conditionReflowIds = useConditionReflowIds();
 
-    // ── iFrame fullscreen overlay ──────────────────────────────────────────
-    const iframeFullscreen = useIframeStore((s) => s.fullscreen);
-    const setIframeFullscreen = useIframeStore((s) => s.setFullscreen);
-
-    useEffect(() => {
-        if (!iframeFullscreen) return;
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setIframeFullscreen(null);
-        };
-        window.addEventListener('keydown', handler);
-        return () => window.removeEventListener('keydown', handler);
-    }, [iframeFullscreen, setIframeFullscreen]);
-
-    // Synchronous render-time check: only show fullscreen overlay when the widget
-    // that triggered it is on the currently active tab. This avoids async useEffect
-    // timing issues (all tabs stay mounted, so widget-unmount cleanup never fires).
-    const fullscreenTabId = iframeFullscreen
-        ? (tabs.find((t) => (t.widgets ?? []).some((w) => w.id === iframeFullscreen.widgetId))?.id ?? null)
-        : null;
-    const showIframeOverlay = iframeFullscreen !== null && fullscreenTabId === activeTabId;
-
     // ── Widget fullscreen overlay (issue #644) ─────────────────────────────
-    // Same synchronous active-tab check as above. A group child does not appear in
+    // Synchronous render-time check: only show the overlay when the widget that
+    // triggered it is on the currently active tab. This avoids async useEffect
+    // timing issues (all tabs stay mounted, so widget-unmount cleanup never fires).
+    // A group child does not appear in
     // tabs[].widgets (its config lives in useGroupDefsStore), so "owner tab not
     // found" means "shown anyway" — the trigger can only have been on screen, and
     // App.tsx clears the overlay on every tab change regardless.
@@ -652,9 +632,6 @@ export function Dashboard({
         <DashboardMobileContext.Provider value={!!flowMode}>
             <ActiveLayoutContext.Provider value={effectiveLayoutId}>
                 <ActiveSectionContext.Provider value={section?.id}>
-                    {showIframeOverlay && (
-                        <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
-                    )}
                     {showWidgetFullscreen && (
                         <WidgetFullscreenOverlay target={widgetFullscreen!} onClose={() => setWidgetFullscreen(null)} />
                     )}
@@ -1719,41 +1696,6 @@ function GuidelinesHint() {
                     {t('guidelines.hintKeep')}
                 </button>
             </div>
-        </div>
-    );
-}
-
-// ── iFrame fullscreen overlay ─────────────────────────────────────────────
-function IframeOverlay({ data, onClose }: { data: IframeFullscreenData; onClose: () => void }) {
-    // `data.iframeKey` is a snapshot taken when fullscreen was opened, so a wall
-    // tablet parked on a fullscreen stream would never reload it after standby.
-    // Reload unconditionally here — an overlay holds no state worth keeping. (#526)
-    const wakeNonce = useWakeReload(true);
-    return (
-        <div className="fixed inset-0 z-[900] flex flex-col" style={{ background: '#000' }}>
-            <iframe
-                key={`${data.iframeKey}#${wakeNonce}`}
-                src={data.url}
-                sandbox={data.sandboxAttr}
-                allow="autoplay; fullscreen; picture-in-picture; web-share"
-                title={data.title}
-                style={{
-                    width: '100%',
-                    flex: 1,
-                    border: 'none',
-                    display: 'block',
-                    height: '100%',
-                    colorScheme: data.colorScheme,
-                }}
-            />
-            <button
-                onClick={onClose}
-                className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full"
-                style={{ background: 'rgba(0,0,0,0.6)', color: '#fff', backdropFilter: 'blur(4px)', zIndex: 1 }}
-                title="Vollbild beenden (Esc)"
-            >
-                <X size={18} />
-            </button>
         </div>
     );
 }

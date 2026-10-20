@@ -106,6 +106,7 @@ import {
     fullscreenButtonInset,
     fullscreenPosition,
     fullscreenScreenEnabled,
+    fullscreenWidgetOn,
     enterScreenFullscreen,
     supportsFullscreenButton,
 } from '../../utils/fullscreenButton';
@@ -366,14 +367,6 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
     datepicker: [{ key: 'showCurrentValue', label: 'Gesetzter Wert' }],
     httpRequest: [{ key: 'showStatus', label: 'Letzter Status' }],
     camera: [{ key: 'showTimestamp', label: 'Zeitstempel' }],
-    iframe: [
-        {
-            key: 'fullscreenButton',
-            label: 'Vollbild-Button',
-            def: false,
-            hint: 'Erscheint beim Darüberfahren mit der Maus',
-        },
-    ],
     gauge: [
         { key: 'showValue', label: 'Wert im Bogen' },
         {
@@ -7484,15 +7477,7 @@ function WidgetFrameInner({
         !editMode && !isProbe && clickActionIconEnabled(config.options, { hasClickAction, embed: needsActionButton });
     const showCornerActionIconBase = actionIconOn && !isCollapsed;
     const actionIconPos = clickActionIconPosition(config.options);
-    // The iframe widget's own fullscreen button sits top-right of the frame BODY,
-    // i.e. below the title row — no collision while that row exists. With title and
-    // icon both off there is no row, so the two would stack: step aside then only.
-    const actionIconSlot = clickActionIconSlot(actionIconPos, {
-        iframeOwnFullscreen:
-            config.type === 'iframe' &&
-            !!config.options?.fullscreenButton &&
-            config.options?.showTitle === false &&
-            config.options?.showIcon === false,
+    const actionIconSlot = clickActionIconSlot({
         fullscreenSameCorner: showFullscreenButton && fsPos === actionIconPos,
         collapseSameCorner: frameCollapsible && collapsePos === actionIconPos,
     });
@@ -8843,7 +8828,8 @@ function WidgetFrameInner({
                             // icon, title) must look the same in the overlay.
                             snapshot: renderConfig,
                             // Inside the click: browsers grant fullscreen only here.
-                            ownsScreen: fullscreenScreenEnabled(config.options) && enterScreenFullscreen(document),
+                            ownsScreen:
+                                fullscreenScreenEnabled(config.type, config.options) && enterScreenFullscreen(document),
                         });
                     }}
                     className="nodrag aura-fullscreen-btn absolute w-7 h-7 flex items-center justify-center rounded-md transition-opacity"
@@ -9721,7 +9707,7 @@ function WidgetFrameInner({
                         const o = config.options ?? {};
                         const setO = (patch: Record<string, unknown>) =>
                             onConfigChange({ ...config, options: { ...o, ...patch } });
-                        const fsOn = o.fullscreenWidget === true;
+                        const fsOn = fullscreenWidgetOn(config.type, o);
                         const collapsedOn = o.defaultCollapsed === true;
                         const collapseEditorOn = o.collapseInEditor === true;
                         return (
@@ -10261,7 +10247,10 @@ function WidgetFrameInner({
                                                     {t('wf.edit.fullscreenWidget')}
                                                 </label>
                                                 <button
-                                                    onClick={() => setO({ fullscreenWidget: !fsOn })}
+                                                    // Drops the iframe's pre-#813 key with it.
+                                                    onClick={() =>
+                                                        setO({ fullscreenWidget: !fsOn, fullscreenButton: undefined })
+                                                    }
                                                     className="relative w-9 h-5 rounded-full transition-colors"
                                                     style={{ background: fsOn ? 'var(--accent)' : 'var(--app-border)' }}
                                                 >

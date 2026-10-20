@@ -24,9 +24,6 @@ interface WidgetFullscreenStore {
 }
 
 /**
- * Kept apart from `iframeStore`: that one carries a URL and its own sandbox/reload
- * rules for a foreign document, this one re-renders an Aura widget.
- *
  * Browser fullscreen is handed back here, when the target is cleared, and not when
  * the overlay unmounts: going fullscreen resizes the window, and when that crosses
  * a breakpoint the Dashboard swaps between grid and phone flow and remounts the

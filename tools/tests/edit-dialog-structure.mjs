@@ -109,7 +109,6 @@ const VISIBLE = {
         'showRainAmount',
     ],
     camera: ['showTimestamp'],
-    iframe: ['fullscreenButton'],
     input: ['showSubmit'],
     gauge: ['showValue', 'showValueBadge', 'showMinMax'],
     fill: ['showTicks', 'showValue'],

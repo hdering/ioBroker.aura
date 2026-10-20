@@ -47,16 +47,8 @@ export function clickActionIconPosition(options: Record<string, unknown> | undef
 /**
  * Slot of the icon in its corner (0 = outermost). It is always the innermost
  * occupant: it steps inwards once for the frame's fullscreen button and once for
- * the fold button when either shares its corner, and once more top-right for the
- * iframe widget's own fullscreen button.
+ * the fold button when either shares its corner.
  */
-export function clickActionIconSlot(
-    pos: ClickActionIconPosition,
-    occupants: { iframeOwnFullscreen: boolean; fullscreenSameCorner: boolean; collapseSameCorner: boolean },
-): number {
-    return (
-        (occupants.iframeOwnFullscreen && pos === 'tr' ? 1 : 0) +
-        (occupants.fullscreenSameCorner ? 1 : 0) +
-        (occupants.collapseSameCorner ? 1 : 0)
-    );
+export function clickActionIconSlot(occupants: { fullscreenSameCorner: boolean; collapseSameCorner: boolean }): number {
+    return (occupants.fullscreenSameCorner ? 1 : 0) + (occupants.collapseSameCorner ? 1 : 0);
 }

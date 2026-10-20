@@ -11,20 +11,30 @@ export type FullscreenPosition = (typeof FULLSCREEN_POSITIONS)[number];
 export const DEFAULT_FULLSCREEN_POSITION: FullscreenPosition = 'tr';
 
 /**
- * Widget types that already ship their own fullscreen control — iframe has the
- * `fullscreenButton` option, camera and echartsPreset open their own portal. A
- * second button beside those would only be confusing, and for the embedded
- * documents it would also start a second copy of the stream.
+ * Widget types that already ship their own fullscreen control — camera and
+ * echartsPreset open their own portal. A second button beside those would only be
+ * confusing, and for the camera it would also start a second copy of the stream.
+ * The iframe had its own `fullscreenButton` option until #813 and now uses this one.
  */
-export const FULLSCREEN_EXCLUDED_TYPES = new Set(['iframe', 'camera', 'echartsPreset']);
+export const FULLSCREEN_EXCLUDED_TYPES = new Set(['camera', 'echartsPreset']);
 
 export function supportsFullscreenButton(type: string): boolean {
     return !FULLSCREEN_EXCLUDED_TYPES.has(type);
 }
 
+/**
+ * The stored switch. An iframe saved before #813 carries the old `fullscreenButton`
+ * instead — honoured until the editor writes `fullscreenWidget` (and drops it).
+ */
+export function fullscreenWidgetOn(type: string, options: Record<string, unknown> | undefined): boolean {
+    const v = options?.fullscreenWidget;
+    if (v !== undefined) return v === true;
+    return type === 'iframe' && options?.fullscreenButton === true;
+}
+
 /** True when this widget should render the frame's fullscreen button. */
 export function fullscreenButtonEnabled(type: string, options: Record<string, unknown> | undefined): boolean {
-    return supportsFullscreenButton(type) && options?.fullscreenWidget === true;
+    return supportsFullscreenButton(type) && fullscreenWidgetOn(type, options);
 }
 
 export function fullscreenPosition(options: Record<string, unknown> | undefined): FullscreenPosition {
@@ -73,8 +83,8 @@ export function cornerRight(index: number): number {
  * Fullscreen API, hiding the address bar and the OS task bar (issue #711).
  * Only meaningful together with the button itself.
  */
-export function fullscreenScreenEnabled(options: Record<string, unknown> | undefined): boolean {
-    return options?.fullscreenWidget === true && options?.fullscreenScreen === true;
+export function fullscreenScreenEnabled(type: string, options: Record<string, unknown> | undefined): boolean {
+    return fullscreenWidgetOn(type, options) && options?.fullscreenScreen === true;
 }
 
 /** The slice of `document` the screen helpers touch — a stub in the unit test. */

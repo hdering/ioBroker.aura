@@ -35,7 +35,6 @@ import { FocusedWidgetContext } from './contexts/FocusedWidgetContext';
 import { TabBar } from './components/layout/TabBar';
 import { LayoutDrawer } from './components/layout/LayoutDrawer';
 import { MenuItemView } from './components/layout/MenuItemView';
-import { useIframeStore } from './store/iframeStore';
 import { useWidgetFullscreenStore } from './store/widgetFullscreenStore';
 import { resolveIdleReturn } from './utils/idleReturn';
 import {
@@ -509,11 +508,9 @@ export default function App() {
         if (next) setActiveTabId(next.id);
     }, [tabs, activeTabId]);
 
-    // Clear the iFrame and widget fullscreen overlays whenever the active tab changes.
-    const setIframeFullscreen = useIframeStore((s) => s.setFullscreen);
+    // Clear the widget fullscreen overlay whenever the active tab changes.
     const setWidgetFullscreen = useWidgetFullscreenStore((s) => s.setTarget);
     useEffect(() => {
-        setIframeFullscreen(null);
         setWidgetFullscreen(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTabId]);
@@ -537,7 +534,6 @@ export default function App() {
     const idleSnooze = useIdleReturnStore(effectiveSnooze);
     const idleDelayOverride = useIdleReturnStore(effectiveDelayOverride);
     const idleTabExempt = tabs.find((t) => t.id === activeTabId)?.idleReturnExempt ?? false;
-    const iframeFullscreen = useIframeStore((s) => s.fullscreen);
     const widgetFullscreen = useWidgetFullscreenStore((s) => s.target);
     const { armed: idleReturnEnabled, delaySec: idleReturnDelay } = resolveIdleReturn({
         configEnabled: !!effectiveSettings.idleReturnEnabled,
@@ -545,7 +541,7 @@ export default function App() {
         delayOverride: idleDelayOverride,
         snoozeMinutes: idleSnooze,
         tabExempt: idleTabExempt,
-        fullscreen: !!iframeFullscreen || !!widgetFullscreen,
+        fullscreen: !!widgetFullscreen,
     });
     // Jump back to the layout default via the URL (not setActiveTabId directly).
     // The default is layout-scoped: the layout's default section and, within it,

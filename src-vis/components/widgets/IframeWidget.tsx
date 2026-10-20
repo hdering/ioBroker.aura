@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MonitorDot, Maximize2, AlertTriangle, ExternalLink, X, Minus, Plus } from 'lucide-react';
-import { useIframeStore } from '../../store/iframeStore';
+import { MonitorDot, AlertTriangle, ExternalLink, X, Minus, Plus } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -20,6 +19,7 @@ import {
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { auraUrl } from '../../utils/basePath';
 import { useViewVisible } from '../../contexts/ViewVisibleContext';
+import { useInWidgetFullscreen } from '../../contexts/WidgetFullscreenContext';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -42,12 +42,15 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const viewVisible = useViewVisible();
     const unloaded = !keepAlive && !viewVisible;
     const reloadOnWake = (opts.reloadOnWake as boolean) ?? false;
-    const interactionMode = resolveIframeInteractionMode(opts);
+    // Opened fullscreen, the page is there to be used: the blocker that hands the
+    // tile's clicks to the click action would only lock it (#813).
+    const inFullscreen = useInWidgetFullscreen();
+    const storedMode = resolveIframeInteractionMode(opts);
+    const interactionMode = inFullscreen && storedMode === 'action' ? 'content' : storedMode;
     const refreshSeconds = (opts.refreshInterval as number) ?? 0;
     const sandboxEnabled = (opts.sandbox as boolean) ?? false;
     const sandboxPreset = opts.sandboxPreset as SandboxPreset | undefined;
     const sandboxCustom = opts.sandboxCustom as string | undefined;
-    const fullscreenButton = (opts.fullscreenButton as boolean) ?? false;
     const baseZoom = clampIframeZoom((opts.iframeZoom as number) ?? 100);
     const zoomControls = (opts.iframeZoomControls as boolean) ?? false;
     const showTitle = opts.showTitle !== false;
@@ -67,11 +70,12 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const frameBoxRef = useRef<HTMLDivElement | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const setFullscreen = useIframeStore((s) => s.setFullscreen);
     // An embedded player torn down while the display slept only restarts on a
     // fresh load (issue #526). Deliberately overrides keepAlive — a frame kept
     // alive across a standby is exactly the one that never recovers.
-    const wakeNonce = useWakeReload(reloadOnWake && !!url);
+    // Fullscreen reloads regardless: a wall tablet parked on a fullscreen stream is
+    // the case #526 was about, and an overlay holds no state worth keeping.
+    const wakeNonce = useWakeReload((reloadOnWake || inFullscreen) && !!url);
     // Brightness handed down to the embedded page (#663) — no-op in Blink.
     const colorSchemeStyle = useIframeColorScheme(frameBoxRef, opts, rawUrl);
 
@@ -123,14 +127,6 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     useEffect(() => {
         onNeedsActionButton?.(!!url && interactionMode === 'content');
     }, [onNeedsActionButton, url, interactionMode]);
-
-    // Clear fullscreen when widget unmounts (e.g. tab switch)
-    useEffect(
-        () => () => {
-            setFullscreen(null);
-        },
-        [setFullscreen],
-    );
 
     if (!url) {
         return (
@@ -234,27 +230,11 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                 )}
                 {/* Interaction blocker — also the click path for the frame's action */}
                 {interactionMode === 'action' && (
-                    <div className="absolute inset-0 z-[1]" style={{ pointerEvents: 'all', cursor: 'default' }} />
-                )}
-                {/* Fullscreen button – shown on hover */}
-                {fullscreenButton && (
-                    <button
-                        onClick={() =>
-                            setFullscreen({
-                                url,
-                                sandboxAttr,
-                                iframeKey: `fs-${iframeKey}`,
-                                title: config.title || 'iFrame',
-                                widgetId: config.id,
-                                colorScheme: colorSchemeStyle.colorScheme,
-                            })
-                        }
-                        className="nodrag absolute top-1.5 right-1.5 z-[2] w-7 h-7 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(4px)' }}
-                        title="Vollbild"
-                    >
-                        <Maximize2 size={13} />
-                    </button>
+                    <div
+                        className="absolute inset-0 z-[1]"
+                        style={{ pointerEvents: 'all', cursor: 'default' }}
+                        data-iframe-blocker=""
+                    />
                 )}
                 {/* Zoom controls (#667) – the level they set lives on this device only */}
                 {zoomControls && (

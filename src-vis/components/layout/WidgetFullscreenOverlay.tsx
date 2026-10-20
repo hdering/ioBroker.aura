@@ -7,6 +7,7 @@ import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import type { WidgetFullscreenTarget } from '../../store/widgetFullscreenStore';
 import { screenIsFullscreen } from '../../utils/fullscreenButton';
+import { WidgetFullscreenContext } from '../../contexts/WidgetFullscreenContext';
 import { WidgetFrame } from './WidgetFrame';
 import { useT } from '../../i18n';
 
@@ -127,13 +128,15 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
             data-widget-fullscreen={config.id}
         >
             <div className="flex-1 min-h-0">
-                <WidgetFrame
-                    config={config}
-                    editMode={false}
-                    fullscreen
-                    onRemove={() => {}}
-                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                />
+                <WidgetFullscreenContext.Provider value>
+                    <WidgetFrame
+                        config={config}
+                        editMode={false}
+                        fullscreen
+                        onRemove={() => {}}
+                        onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                    />
+                </WidgetFullscreenContext.Provider>
             </div>
             <button
                 onClick={onClose}

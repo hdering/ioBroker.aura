@@ -55,9 +55,11 @@ const ok = (name, cond, detail = '') => results.push({ name, ok: !!cond, detail 
 ok('a chart offers it', supportsFullscreenButton('chart'));
 ok('a list offers it', supportsFullscreenButton('list'));
 ok('a group offers it', supportsFullscreenButton('group'));
-for (const type of ['iframe', 'camera', 'echartsPreset']) {
+for (const type of ['camera', 'echartsPreset']) {
     ok(`${type} keeps its own fullscreen instead`, !supportsFullscreenButton(type));
 }
+// The iframe dropped its own button for the frame's (#813).
+ok('an iframe offers it', supportsFullscreenButton('iframe'));
 
 // ── 2. The option has to be set explicitly ──
 ok('off without options', !fullscreenButtonEnabled('chart', undefined));
@@ -66,7 +68,14 @@ ok('off when false', !fullscreenButtonEnabled('chart', { fullscreenWidget: false
 ok('on when true', fullscreenButtonEnabled('chart', { fullscreenWidget: true }));
 // A stored 'true' string must not turn it on silently - the editor writes booleans.
 ok('a string does not count as on', !fullscreenButtonEnabled('chart', { fullscreenWidget: 'true' }));
-ok('an excluded type stays off even when set', !fullscreenButtonEnabled('iframe', { fullscreenWidget: true }));
+ok('an excluded type stays off even when set', !fullscreenButtonEnabled('camera', { fullscreenWidget: true }));
+// An iframe saved with the old key keeps its button until the editor rewrites it.
+ok('iframe: the old key still counts', fullscreenButtonEnabled('iframe', { fullscreenButton: true }));
+ok(
+    'iframe: the new key wins over the old',
+    !fullscreenButtonEnabled('iframe', { fullscreenWidget: false, fullscreenButton: true }),
+);
+ok('the old key means nothing elsewhere', !fullscreenButtonEnabled('chart', { fullscreenButton: true }));
 
 // ── 3. Corner resolution ──
 eq('default corner is top right', fullscreenPosition({}), 'tr');
@@ -101,9 +110,13 @@ eq('the schema offers the same corners', schema.commonOptions?.fullscreenPositio
 ]);
 
 // ── 7. Browser fullscreen on top of the overlay (issue #711) ──
-ok('screen off by default', !fullscreenScreenEnabled({ fullscreenWidget: true }));
-ok('screen needs the button', !fullscreenScreenEnabled({ fullscreenScreen: true }));
-ok('screen on with both', fullscreenScreenEnabled({ fullscreenWidget: true, fullscreenScreen: true }));
+ok('screen off by default', !fullscreenScreenEnabled('chart', { fullscreenWidget: true }));
+ok('screen needs the button', !fullscreenScreenEnabled('chart', { fullscreenScreen: true }));
+ok('screen on with both', fullscreenScreenEnabled('chart', { fullscreenWidget: true, fullscreenScreen: true }));
+ok(
+    'screen works with the iframe old key',
+    fullscreenScreenEnabled('iframe', { fullscreenButton: true, fullscreenScreen: true }),
+);
 
 /** Minimal document stand-in that records calls. */
 const fakeDoc = ({ already = false, api = 'std', reject = false, throws = false } = {}) => {

@@ -27,7 +27,6 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 | `keepAlive` | `false` | Seite bleibt beim Tab-/Bereichswechsel geladen; aus: verborgen verworfen, beim Zurückkehren frisch geladen |
 | `refreshInterval` | `0` | automatisches Neuladen in Sekunden (`0` = aus; bei `keepAlive` ignoriert) |
 | `reloadOnWake` | `false` | nach Display-Standby neu laden (hebt `keepAlive` auf) |
-| `fullscreenButton` | `false` | Vollbild-Button beim Hover einblenden |
 | `iframeColorScheme` | `theme` | `theme` · `device` · `neutral` — siehe unten |
 | `iframeZoom` | `100` | Zoomstufe in % (25–400), gilt auf allen Geräten |
 | `iframeZoomControls` | `false` | Zoom-Tasten am Widget; Stufe gilt nur auf dem Gerät |

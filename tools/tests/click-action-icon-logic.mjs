@@ -69,18 +69,11 @@ eq('stored corner', clickActionIconPosition({ clickActionIconPosition: 'tl' }), 
 eq('unknown corner falls back', clickActionIconPosition({ clickActionIconPosition: 'bl' }), 'tr');
 
 // ── 4. Ladder: the icon is the innermost occupant ──
-const none = { iframeOwnFullscreen: false, fullscreenSameCorner: false, collapseSameCorner: false };
-eq('empty corner', clickActionIconSlot('tr', none), 0);
-eq('beside the fullscreen button', clickActionIconSlot('tr', { ...none, fullscreenSameCorner: true }), 1);
-eq('beside the fold button', clickActionIconSlot('br', { ...none, collapseSameCorner: true }), 1);
-eq('beside both', clickActionIconSlot('tl', { ...none, fullscreenSameCorner: true, collapseSameCorner: true }), 2);
-eq('beside the iframe fullscreen button', clickActionIconSlot('tr', { ...none, iframeOwnFullscreen: true }), 1);
-eq('iframe button is top right only', clickActionIconSlot('tl', { ...none, iframeOwnFullscreen: true }), 0);
-eq(
-    'everything top right',
-    clickActionIconSlot('tr', { iframeOwnFullscreen: true, fullscreenSameCorner: true, collapseSameCorner: true }),
-    3,
-);
+const none = { fullscreenSameCorner: false, collapseSameCorner: false };
+eq('empty corner', clickActionIconSlot(none), 0);
+eq('beside the fullscreen button', clickActionIconSlot({ ...none, fullscreenSameCorner: true }), 1);
+eq('beside the fold button', clickActionIconSlot({ ...none, collapseSameCorner: true }), 1);
+eq('beside both', clickActionIconSlot({ fullscreenSameCorner: true, collapseSameCorner: true }), 2);
 // Same arithmetic as before the icon became general (issue #527 ladder).
 eq('inset beside two buttons', cornerInset('tr', 2), { top: 6, right: 70 });
 
