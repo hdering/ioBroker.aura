@@ -1598,7 +1598,9 @@ export const EXTRA_OPTIONS = {
                 'Welche Helligkeit die eingebettete Seite bekommt: "theme" (Standard) gibt das Aura-Theme ' +
                 'weiter, "device" überlässt sie der Systemeinstellung des Geräts, "neutral" setzt gar keine - ' +
                 'dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst ' +
-                'bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht.',
+                'bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht. ' +
+                'Ohne Angabe gilt für Energiefluss-erweitert-URLs (/energiefluss-erweitert) "neutral", ' +
+                'sonst läge eine weiße Fläche hinter dem Diagramm.',
         },
         ...INTERACTION_MODE_OPTION,
         ...EMBED_MOBILE_HEIGHT_OPTIONS,

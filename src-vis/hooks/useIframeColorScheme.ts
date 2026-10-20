@@ -16,6 +16,9 @@ import {
  * inherited value computes the same and changes nothing (see
  * utils/iframeColorScheme).
  *
+ * `url` is the page actually loaded: a known transparent page defaults to
+ * `neutral` (#642, see utils/iframeColorScheme).
+ *
  * Re-read on every theme epoch: that subscription is what causes a commit when the
  * user switches theme, and the embedded page follows the new value without a
  * reload — which matters for a frame holding a running stream or a filled form.
@@ -23,9 +26,10 @@ import {
 export function useIframeColorScheme(
     ref: RefObject<HTMLElement | null>,
     opts: Record<string, unknown> | undefined,
+    url?: string,
 ): { colorScheme?: string } {
     const epoch = useThemeEpoch();
-    const mode = resolveIframeColorSchemeMode(opts);
+    const mode = resolveIframeColorSchemeMode(opts, url);
     const [brightness, setBrightness] = useState<'dark' | 'light' | undefined>(undefined);
 
     useEffect(() => {

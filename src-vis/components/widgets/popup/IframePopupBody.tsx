@@ -15,8 +15,9 @@ export function IframePopupBody({ action, width, height }: Props) {
     const [timedOut, setTimedOut] = useState(false);
     const boxRef = useRef<HTMLDivElement | null>(null);
     // The popup sits on Aura's surface, so the page inside follows Aura's
-    // brightness like an iframe widget does (#663).
-    const colorSchemeStyle = useIframeColorScheme(boxRef, undefined);
+    // brightness like an iframe widget does (#663) — a known transparent page
+    // stays neutral (#642).
+    const colorSchemeStyle = useIframeColorScheme(boxRef, undefined, action.url);
 
     if (!action.url) {
         return (

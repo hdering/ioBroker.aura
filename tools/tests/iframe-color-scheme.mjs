@@ -37,7 +37,8 @@ const BARE = `<!doctype html><html><head><style>html,body{margin:0;background:tr
 
 const server = http.createServer((req, res) => {
     res.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });
-    res.end(req.url.startsWith('/bare') ? BARE : ADAPTIVE);
+    // energiefluss-erweitert zeichnet ebenfalls ohne Hintergrund (#642).
+    res.end(req.url.startsWith('/bare') || req.url.startsWith('/energiefluss-erweitert') ? BARE : ADAPTIVE);
 });
 await new Promise((r) => server.listen(0, '127.0.0.1', r));
 const probeBase = `http://127.0.0.1:${server.address().port}`;
@@ -129,6 +130,18 @@ check('Modus "Neutral" laesst die dunkle Karte durchscheinen', !(await frameIsWh
 // Kasten - deshalb bleibt "Neutral" waehlbar und ist nicht nur Altlast.
 await show('dark', { iframeColorScheme: 'theme' }, '/bare');
 check('ohne "Neutral" waere derselbe Inhalt weiss', await frameIsWhite());
+
+// -- 4b. Energiefluss-erweitert ist ohne Angabe neutral (#642) ---------------------------
+// Die Seite zeichnet ihr Diagramm transparent - im Theme-Modus laege der weisse
+// Kasten dahinter. Eine ausdrueckliche Wahl bleibt aber unangetastet.
+await show('dark', {}, '/energiefluss-erweitert/index.html?instance=0');
+check('Energiefluss-URL ohne Angabe: kein weisser Kasten', !(await frameIsWhite()));
+
+await show('dark', {}, '/energiefluss-erweitert?instance=1');
+check('Energiefluss-URL ohne Pfad-Ende: ebenfalls neutral', !(await frameIsWhite()));
+
+await show('dark', { iframeColorScheme: 'theme' }, '/energiefluss-erweitert/index.html');
+check('ausdrueckliches "theme" gewinnt auch bei Energiefluss', await frameIsWhite());
 
 // -- 5. Auras eigene Frames bleiben neutral ----------------------------------------------
 // eCharts-Preset, HTML-Widget und Kamerabild haben keinen eigenen Hintergrund.

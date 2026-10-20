@@ -34,10 +34,32 @@ export const IFRAME_COLOR_SCHEME_MODES: { value: IframeColorSchemeMode; label: s
     { value: 'neutral', label: 'Neutral (transparenter Hintergrund)' },
 ];
 
-export function resolveIframeColorSchemeMode(opts: Record<string, unknown> | undefined): IframeColorSchemeMode {
+/**
+ * Pages known to draw no background of their own, so `theme` would put an opaque
+ * canvas behind them. energiefluss-erweitert renders its diagram transparent on a
+ * document without a color scheme: in a dark Aura that became the white box of
+ * #642, in Blink and WebKit alike.
+ */
+const TRANSPARENT_PAGES = [/\/energiefluss-erweitert(?:[/?#]|$)/i];
+
+/** True when `url` points at a page from TRANSPARENT_PAGES. */
+export function isKnownTransparentPage(url: unknown): boolean {
+    return typeof url === 'string' && TRANSPARENT_PAGES.some((re) => re.test(url));
+}
+
+/**
+ * The stored mode, or the default for this page: `neutral` for a known
+ * transparent page, `theme` otherwise. An explicit choice always wins. `url` is
+ * the address actually loaded (a datapoint-driven one included); without it the
+ * static `iframeUrl` decides.
+ */
+export function resolveIframeColorSchemeMode(
+    opts: Record<string, unknown> | undefined,
+    url?: string,
+): IframeColorSchemeMode {
     const stored = opts?.iframeColorScheme;
     if (stored === 'theme' || stored === 'device' || stored === 'neutral') return stored;
-    return 'theme';
+    return isKnownTransparentPage(url ?? opts?.iframeUrl) ? 'neutral' : 'theme';
 }
 
 /**

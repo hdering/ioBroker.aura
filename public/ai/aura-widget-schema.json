@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.86.0",
+    "auraVersion": "0.87.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -13680,7 +13680,7 @@
             "neutral"
           ],
           "default": "theme",
-          "description": "Welche Helligkeit die eingebettete Seite bekommt: \"theme\" (Standard) gibt das Aura-Theme weiter, \"device\" überlässt sie der Systemeinstellung des Geräts, \"neutral\" setzt gar keine - dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht."
+          "description": "Welche Helligkeit die eingebettete Seite bekommt: \"theme\" (Standard) gibt das Aura-Theme weiter, \"device\" überlässt sie der Systemeinstellung des Geräts, \"neutral\" setzt gar keine - dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht. Ohne Angabe gilt für Energiefluss-erweitert-URLs (/energiefluss-erweitert) \"neutral\", sonst läge eine weiße Fläche hinter dem Diagramm."
         },
         "iframeUrl": {
           "type": "string",

@@ -80,6 +80,16 @@ Helligkeit vorgeben; der Wechsel wirkt ohne Neuladen.
 `neutral` ist für Seiten ohne eigenen Hintergrund: ohne diese Einstellung malt der
 Browser dahinter eine weiße Fläche.
 
+#### Energiefluss-erweitert
+
+| | |
+| --- | --- |
+| URL | `https://<iobroker>:8082/energiefluss-erweitert/index.html?instance=0` |
+| Farbschema | automatisch `neutral`, solange nichts gewählt ist |
+| Diagramme | eines pro Adapter-Instanz — weiteres Diagramm = weitere Instanz, `?instance=1` |
+| Farben | im Energiefluss-Editor, Hintergrund dort transparent lassen |
+| Proxy | aus — die Seite braucht den Web-Adapter (Port 8082) |
+
 **Nur Safari und Firefox** geben die Helligkeit an eingebettete Seiten weiter. Chrome,
 Edge und die Android-WebView ignorieren sie — dort entscheidet immer das Gerät, in
 jedem der drei Werte.

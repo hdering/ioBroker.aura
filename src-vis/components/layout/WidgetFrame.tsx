@@ -81,7 +81,11 @@ import {
     resolveHtmlInteractionMode,
     resolveIframeInteractionMode,
 } from '../../utils/iframeInteraction';
-import { IFRAME_COLOR_SCHEME_MODES, resolveIframeColorSchemeMode } from '../../utils/iframeColorScheme';
+import {
+    IFRAME_COLOR_SCHEME_MODES,
+    isKnownTransparentPage,
+    resolveIframeColorSchemeMode,
+} from '../../utils/iframeColorScheme';
 import { IFRAME_ZOOM_STOPS, clampIframeZoom } from '../../utils/iframeZoom';
 import { EmbedMobileHeightField } from '../config/EmbedMobileHeightField';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -14432,6 +14436,18 @@ function WidgetFrameInner({
                                                             {'„Neutral“'} lässt die Widget-Karte durchscheinen, zeigt
                                                             die Seite aber hell.
                                                         </p>
+                                                        {o.iframeColorScheme == null &&
+                                                            isKnownTransparentPage(o.iframeUrl) && (
+                                                                <p
+                                                                    className="text-[10px] mt-1"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Energiefluss-erweitert: automatisch {'„Neutral“'},
+                                                                    sonst liegt eine weiße Fläche hinter dem Diagramm.
+                                                                    Farben im Energiefluss-Editor passend zum Theme
+                                                                    wählen.
+                                                                </p>
+                                                            )}
                                                     </div>
                                                     {(() => {
                                                         // A level set through the MCP need not sit on the ladder —

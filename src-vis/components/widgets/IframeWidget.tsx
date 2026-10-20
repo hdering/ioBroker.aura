@@ -73,7 +73,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     // alive across a standby is exactly the one that never recovers.
     const wakeNonce = useWakeReload(reloadOnWake && !!url);
     // Brightness handed down to the embedded page (#663) — no-op in Blink.
-    const colorSchemeStyle = useIframeColorScheme(frameBoxRef, opts);
+    const colorSchemeStyle = useIframeColorScheme(frameBoxRef, opts, rawUrl);
 
     const zoom = resolveIframeZoom(baseZoom, deviceZoom, zoomControls);
     const zoomRef = useRef(zoom);
