@@ -25,6 +25,7 @@ import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutp
 import { IconPickerModal } from '../config/IconPickerModal';
 import { EnumJsonSourceSection } from '../config/EnumJsonSourceSection';
 import { ImagePathHint } from '../config/ImagePathHint';
+import { ImageSourceField } from '../config/ImageSourceField';
 import { ValueTransformButton } from '../config/ValueTransformButton';
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import { getObjectDirect } from '../../hooks/useIoBroker';
@@ -624,7 +625,7 @@ export interface CustomCellEditorProps {
     onChange: (patch: Partial<CustomCell>) => void;
     onOpenIconPicker: (slot: 'iconName' | 'trueIcon' | 'falseIcon') => void;
     onOpenDpPicker: (field?: 'dpId' | 'statusDpId') => void;
-    onOpenImagePicker: (field?: 'imageUrl' | 'trueImage' | 'falseImage') => void;
+    onOpenImagePicker: () => void;
     onOpenConditions: () => void;
     /** Opens the cell's click-action popup (display cells only, issue #729). */
     onOpenClickAction?: () => void;
@@ -804,7 +805,7 @@ export function CustomCellEditor({
                                 style={inputSty}
                             />
                             <button
-                                onClick={() => onOpenImagePicker('imageUrl')}
+                                onClick={onOpenImagePicker}
                                 className="px-2 rounded-lg hover:opacity-80 shrink-0"
                                 style={{
                                     background: 'var(--app-bg)',
@@ -1383,48 +1384,13 @@ export function CustomCellEditor({
                             {mode === 'image' && (
                                 <>
                                     {(['trueImage', 'falseImage'] as const).map((slot) => (
-                                        <div key={slot}>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                {slot === 'trueImage' ? 'Bild AN' : 'Bild AUS'}
-                                            </label>
-                                            <div className="flex gap-1">
-                                                <input
-                                                    type="text"
-                                                    value={cell[slot] ?? ''}
-                                                    onChange={(e) => onChange({ [slot]: e.target.value || undefined })}
-                                                    placeholder={
-                                                        slot === 'falseImage'
-                                                            ? 'leer = wie AN'
-                                                            : 'https://… · /adapter/… · data:image/…'
-                                                    }
-                                                    className={`flex-1 ${inputCls}`}
-                                                    style={inputSty}
-                                                />
-                                                <button
-                                                    onClick={() => onOpenImagePicker(slot)}
-                                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        color: 'var(--text-secondary)',
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                    title="Lokale Datei vom Server wählen"
-                                                >
-                                                    <FolderOpen size={13} />
-                                                </button>
-                                            </div>
-                                            {(cell[slot] ?? '').startsWith('aura-file:') && (
-                                                <p
-                                                    className="text-[10px] mt-1 truncate"
-                                                    style={{ color: 'var(--accent)' }}
-                                                >
-                                                    {(cell[slot] as string).slice('aura-file:'.length).split('/').pop()}
-                                                </p>
-                                            )}
-                                        </div>
+                                        <ImageSourceField
+                                            key={slot}
+                                            label={slot === 'trueImage' ? 'Bild AN' : 'Bild AUS'}
+                                            value={cell[slot]}
+                                            onChange={(v) => onChange({ [slot]: v })}
+                                            placeholder={slot === 'falseImage' ? 'leer = wie AN' : undefined}
+                                        />
                                     ))}
                                     <ImagePathHint />
                                     <div>

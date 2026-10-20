@@ -59,7 +59,7 @@ Schiebeschalter, Checkbox, Icon- oder Bild-Taster oder Button — bei `controlMo
 | --- | --- | --- |
 | `controlMode` | `toggle` | `toggle` · `checkbox` · `icon` · `image` · `button` |
 | `onIcon` / `offIcon` | Widget-Icon | nur bei `icon` |
-| `onImage` / `offImage` | — | nur bei `image` |
+| `onImage` / `offImage` | — | nur bei `image`: URL, Pfad, Base64, Datei vom Server oder Upload vom PC |
 | `onColor` | `--accent-green` | CSS-Farbe oder Variable |
 | `offColor` | `--text-secondary` | CSS-Farbe oder Variable |
 | `controlIconSize` | `28` | px, nur bei `icon` und `image` |

@@ -7,4 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Countdown - font size of the preset chips and the status text can now be set individually (#812)
-- Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"
+- Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"; both image modes take a URL, Base64, a file from the server or an upload from the PC

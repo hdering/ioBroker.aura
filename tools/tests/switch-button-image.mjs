@@ -179,6 +179,41 @@ async function openEditor(widget) {
 }
 const optionsOf = (id) => page.evaluate((i) => window.__auraShot.widgetOptions(i), id);
 
+// A 1×1 PNG, uploaded through the field's hidden file input.
+const PNG = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64',
+);
+/** The shared image field: typed source, server file picker and PC upload, in both editors. */
+async function checkImageField(dlg, name, read) {
+    const field = dlg.locator('.aura-image-source-field').first();
+    eq(`${name}: two image fields (AN/AUS)`, await dlg.locator('.aura-image-source-field').count(), 2);
+    eq(
+        `${name}: server file picker offered`,
+        await field.locator('button[title="Datei vom Server wählen"]').count(),
+        1,
+    );
+    eq(`${name}: PC upload offered`, await field.locator('input[type=file]').count(), 1);
+    await field.locator('input[type=text]').fill('/vis.0/lamp-on.png');
+    await page.waitForTimeout(300);
+    eq(`${name}: a typed path lands in the ON image`, await read(), '/vis.0/lamp-on.png');
+    await field.locator('input[type=text]').fill('iVBORw0KGgo');
+    await page.waitForTimeout(300);
+    eq(`${name}: raw Base64 is taken as typed`, await read(), 'iVBORw0KGgo');
+    await field.locator('input[type=file]').setInputFiles({ name: 'lamp.png', mimeType: 'image/png', buffer: PNG });
+    await page.waitForTimeout(500);
+    eq(`${name}: an upload is stored as a data: URI`, (await read())?.startsWith('data:image/png;base64,'), true);
+    await field.locator('button[title="Datei vom Server wählen"]').click();
+    await page.waitForTimeout(500);
+    eq(
+        `${name}: the server file picker opens`,
+        (await page.getByText('Datei-Picker', { exact: true }).count()) > 0,
+        true,
+    );
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+}
+
 const sw = { ...switchWidget('default'), id: 'sbi-switch' };
 let dlg = await openEditor(sw);
 await dlg.locator('button:text-is("Button")').first().click();
@@ -187,6 +222,9 @@ eq('switch editor: "Button" sets controlMode', (await optionsOf('sbi-switch'))?.
 await dlg.locator('input[placeholder="AN"]').first().fill('Ein');
 await page.waitForTimeout(300);
 eq('switch editor: the ON caption lands in onText', (await optionsOf('sbi-switch'))?.onText, 'Ein');
+await dlg.locator('button:text-is("Bild")').first().click();
+await page.waitForTimeout(200);
+await checkImageField(dlg, 'switch editor', async () => (await optionsOf('sbi-switch'))?.onImage);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
 
@@ -204,10 +242,8 @@ await dlg.locator('button:text-is("Bild")').first().click();
 await page.waitForTimeout(200);
 const cell0 = async () => (await optionsOf('sbi-uni'))?.customGrid?.cells?.[0];
 eq('universal editor: "Bild" sets the cell controlMode', (await cell0())?.controlMode, 'image');
-await dlg.locator('input[placeholder="https://… · /adapter/… · data:image/…"]').first().fill('/vis.0/lamp-on.png');
-await page.waitForTimeout(300);
-eq('universal editor: Bild AN lands in trueImage', (await cell0())?.trueImage, '/vis.0/lamp-on.png');
-eq('universal editor: Bild AUS field is offered', await dlg.locator('input[placeholder="leer = wie AN"]').count(), 1);
+eq('universal editor: Bild AUS falls back to AN', await dlg.locator('input[placeholder="leer = wie AN"]').count(), 1);
+await checkImageField(dlg, 'universal editor', async () => (await cell0())?.trueImage);
 
 eq('no page errors', pageErrors, []);
 

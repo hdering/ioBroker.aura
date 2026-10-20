@@ -175,6 +175,7 @@ import { ConditionEditor, ColorField } from '../config/ConditionEditor';
 import { CellConditionEditor } from '../config/CellConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
 import { ImagePathHint } from '../config/ImagePathHint';
+import { ImageSourceField } from '../config/ImageSourceField';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
@@ -6892,10 +6893,7 @@ function WidgetFrameInner({
     const widgetFramePortalTarget = usePortalTarget();
     // Which cell field the datapoint picker fills: the cell's own DP or the switch read-back DP (#567).
     const [customCellPickerOpen, setCustomCellPickerOpen] = useState<'dpId' | 'statusDpId' | null>(null);
-    // Which image field of the selected cell the file picker fills (image cell, switch cell in image mode).
-    const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState<
-        'imageUrl' | 'trueImage' | 'falseImage' | null
-    >(null);
+    const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
     const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(
         null,
     );
@@ -11873,82 +11871,15 @@ function WidgetFrameInner({
                                                 )}
                                                 {controlMode === 'image' && (
                                                     <>
-                                                        {(['on', 'off'] as const).map((state) => {
-                                                            const isOnState = state === 'on';
-                                                            const stateLabel = isOnState ? 'AN' : 'AUS';
-                                                            const optKey = isOnState ? 'onImage' : 'offImage';
-                                                            const img = (o[optKey] as string | undefined) ?? '';
-                                                            return (
-                                                                <div key={state} className="space-y-1.5">
-                                                                    <p
-                                                                        className="text-[11px] font-semibold"
-                                                                        style={{ color: 'var(--text-secondary)' }}
-                                                                    >
-                                                                        Bild {stateLabel}
-                                                                    </p>
-                                                                    <input
-                                                                        type="file"
-                                                                        accept="image/*"
-                                                                        onChange={(e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (!file) return;
-                                                                            const reader = new FileReader();
-                                                                            reader.onload = () =>
-                                                                                set({
-                                                                                    [optKey]: reader.result as string,
-                                                                                });
-                                                                            reader.readAsDataURL(file);
-                                                                        }}
-                                                                        className="w-full text-[11px] cursor-pointer"
-                                                                        style={{ color: 'var(--text-secondary)' }}
-                                                                    />
-                                                                    <textarea
-                                                                        rows={2}
-                                                                        value={img}
-                                                                        onChange={(e) =>
-                                                                            set({
-                                                                                [optKey]:
-                                                                                    e.target.value.trim() || undefined,
-                                                                            })
-                                                                        }
-                                                                        placeholder="https://…/bild.png · /adapter/… · data:image/…"
-                                                                        className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
-                                                                        style={{
-                                                                            background: 'var(--app-bg)',
-                                                                            color: 'var(--text-secondary)',
-                                                                            border: '1px solid var(--app-border)',
-                                                                        }}
-                                                                    />
-                                                                    <ImagePathHint />
-                                                                    {img && (
-                                                                        <div className="flex items-center gap-2">
-                                                                            <img
-                                                                                src={img}
-                                                                                style={{
-                                                                                    width: 32,
-                                                                                    height: 32,
-                                                                                    objectFit: 'contain',
-                                                                                    border: '1px solid var(--app-border)',
-                                                                                    borderRadius: 4,
-                                                                                }}
-                                                                                alt=""
-                                                                            />
-                                                                            <button
-                                                                                onClick={() =>
-                                                                                    set({ [optKey]: undefined })
-                                                                                }
-                                                                                className="text-[10px] hover:opacity-70"
-                                                                                style={{
-                                                                                    color: 'var(--accent-red, #ef4444)',
-                                                                                }}
-                                                                            >
-                                                                                Entfernen
-                                                                            </button>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
+                                                        {(['onImage', 'offImage'] as const).map((optKey) => (
+                                                            <ImageSourceField
+                                                                key={optKey}
+                                                                label={optKey === 'onImage' ? 'Bild AN' : 'Bild AUS'}
+                                                                value={o[optKey] as string | undefined}
+                                                                onChange={(v) => set({ [optKey]: v })}
+                                                            />
+                                                        ))}
+                                                        <ImagePathHint />
                                                         <div>
                                                             <div className="flex items-center justify-between mb-1">
                                                                 <label
@@ -20220,9 +20151,7 @@ function WidgetFrameInner({
                                                             onOpenDpPicker={(field) =>
                                                                 setCustomCellPickerOpen(field ?? 'dpId')
                                                             }
-                                                            onOpenImagePicker={(field) =>
-                                                                setCustomCellImagePickerOpen(field ?? 'imageUrl')
-                                                            }
+                                                            onOpenImagePicker={() => setCustomCellImagePickerOpen(true)}
                                                             onOpenConditions={() => setCustomCellCondOpen(true)}
                                                             onOpenClickAction={() => setCustomCellClickOpen(true)}
                                                             statusItems={
@@ -21683,7 +21612,7 @@ function WidgetFrameInner({
             )}
 
             {/* Custom-Grid image file picker */}
-            {customCellImagePickerOpen !== null &&
+            {customCellImagePickerOpen &&
                 selectedCustomCell !== null &&
                 (() => {
                     const fb =
@@ -21694,26 +21623,25 @@ function WidgetFrameInner({
                               : DEFAULT_CUSTOM_GRID;
                     const grid = normalizeGrid(config.options?.customGrid, fb);
                     const idx = selectedCustomCell;
-                    const field = customCellImagePickerOpen;
                     return (
                         <DatapointPicker
                             modes={['files']}
                             defaultMode="files"
                             acceptMime={['image/*']}
-                            currentValue={grid.cells[idx]?.[field] ?? ''}
+                            currentValue={grid.cells[idx]?.imageUrl ?? ''}
                             onPickResult={(r) => {
                                 if (r.kind === 'file') {
                                     const next: CustomGridDef = {
                                         ...grid,
                                         cells: grid.cells.map((c, i) =>
-                                            i === idx ? { ...c, [field]: `aura-file:${r.path}` } : c,
+                                            i === idx ? { ...c, imageUrl: `aura-file:${r.path}` } : c,
                                         ),
                                     };
                                     onConfigChange({ ...config, options: { ...config.options, customGrid: next } });
                                 }
-                                setCustomCellImagePickerOpen(null);
+                                setCustomCellImagePickerOpen(false);
                             }}
-                            onClose={() => setCustomCellImagePickerOpen(null)}
+                            onClose={() => setCustomCellImagePickerOpen(false)}
                         />
                     );
                 })()}
