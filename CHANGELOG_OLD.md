@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.82.1 (2026-10-12)
+- 🌟 **New feature:** Status badges - optional window datapoint shows an open/closed window badge next to battery and reachability, e.g. on the thermostat; auto-detected from WINDOW_OPEN_REPORTING / WINDOW_STATE ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
+- 🌟 **New feature:** iFrame / HTML - new "Height on phone" option: keep the desktop aspect ratio (default), use the grid row height (for responsive pages like Grafana) or a fixed pixel height ([#772](https://github.com/hdering/ioBroker.aura/issues/772))
+
 ## 0.82.0 (2026-10-12)
 - 🌟 **New feature:** Switching a widget to the custom layout now asks how to start and can rebuild the previous layout (default, card, compact, minimal, dial) as an editable grid that looks the same — for value, binary sensor, window contact, state image, switch, thermostat, weather, knob, dimmer, shutter, slider, selection, button, HTTP request, text input, clock, time switch, countdown, media player, light, calendar and evcc ([#768](https://github.com/hdering/ioBroker.aura/issues/768))
 - Thermostat - setpoints written as text (e.g. a time switch exception value "14,5") are shown instead of a fallback 20 °C, and time switch values accept a decimal comma ([#769](https://github.com/hdering/ioBroker.aura/issues/769))

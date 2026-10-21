@@ -122,6 +122,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.89.0 (2026-10-21)
+- Settings - CSS/JS context chips mark the layouts where custom CSS or JS is switched on ([#818](https://github.com/hdering/ioBroker.aura/issues/818))
+- 🌟 **New feature:** Shutter - new "Circle menu" layout: a round button that fans out open, quick-select positions, close and stop in a circle, in an adjustable order ([#815](https://github.com/hdering/ioBroker.aura/issues/815))
+
+
 ### 0.88.0 (2026-10-20)
 - 🌟 **New feature:** Countdown - font size of the preset chips and the status text can now be set individually ([#812](https://github.com/hdering/ioBroker.aura/issues/812))
 - 🌟 **New feature:** Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"; both image modes take a URL, Base64, a file from the server or an upload from the PC
@@ -241,11 +246,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Status badges - slider, knob, light, select, date picker and media player get the status datapoints in their settings; the window datapoint is offered for thermostat, room climate and shutter; knob draws the badges and light/select/shutter offer the status icons in the custom layout ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
 
 
-### 0.82.1 (2026-10-12)
-- 🌟 **New feature:** Status badges - optional window datapoint shows an open/closed window badge next to battery and reachability, e.g. on the thermostat; auto-detected from WINDOW_OPEN_REPORTING / WINDOW_STATE ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
-- 🌟 **New feature:** iFrame / HTML - new "Height on phone" option: keep the desktop aspect ratio (default), use the grid row height (for responsive pages like Grafana) or a fixed pixel height ([#772](https://github.com/hdering/ioBroker.aura/issues/772))
-
-
 ## License
 
 MIT License
@@ -257,6 +257,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
