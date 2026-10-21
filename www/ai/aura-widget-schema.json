@@ -17043,6 +17043,10 @@
           ],
           "description": "Nur layout \"circle\" (#815): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
         },
+        "circleIcon": {
+          "type": "string",
+          "description": "Nur layout \"circle\": Icon im runden Knopf (Iconify-Name, z. B. \"mdi:window-shutter\"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik."
+        },
         "circleItemSize": {
           "type": "number",
           "default": 48,
