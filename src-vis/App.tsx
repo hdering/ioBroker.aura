@@ -865,7 +865,8 @@ export default function App() {
 
     // Shared popup.open handler (global + per-client). Accepts a popup-view id or
     // name, or a JSON payload {view, dp, title, width, height} where `dp` becomes the
-    // view's {{dp}} context and width/height (px) map to popupWidth/popupHeight (#762).
+    // view's {{dp}} context and width/height (px) map to popupWidth/popupHeight (#762);
+    // `fullscreen: true` covers the whole screen.
     // Clears the datapoint afterwards, like handleNavigate.
     const handlePopupOpen = useCallback((val: string, clearId: string) => {
         if (!val) return;
@@ -874,6 +875,7 @@ export default function App() {
         let title: string | undefined;
         let width: number | undefined;
         let height: number | undefined;
+        let fullscreen = false;
         if (val.startsWith('{')) {
             try {
                 const payload = JSON.parse(val) as {
@@ -882,6 +884,7 @@ export default function App() {
                     title?: string;
                     width?: number | string;
                     height?: number | string;
+                    fullscreen?: boolean | string;
                 };
                 viewRef = String(payload.view ?? '').trim();
                 dp = payload.dp ? String(payload.dp) : undefined;
@@ -894,6 +897,7 @@ export default function App() {
                 };
                 width = px(payload.width);
                 height = px(payload.height);
+                fullscreen = payload.fullscreen === true || payload.fullscreen === 'true';
             } catch {
                 console.warn('[aura] popup.open: invalid JSON payload', val);
                 setStateDirect(clearId, '');
@@ -915,7 +919,12 @@ export default function App() {
                 ...host,
                 title: title ?? view.name,
                 datapoint: dp ?? '',
-                options: { ...host.options, popupWidth: width, popupHeight: height },
+                options: {
+                    ...host.options,
+                    popupWidth: width,
+                    popupHeight: height,
+                    popupFullscreen: fullscreen || undefined,
+                },
             },
             action: { kind: 'popup-view', viewId: view.id, dp },
         });

@@ -178,6 +178,30 @@ for (const action of [
     check('{{clientId}} trigger opens on this device and closes on false', opened && !(await popupVisible()));
 }
 
+// ── 9. Fullscreen popup covers the whole viewport ───────────────────────────
+{
+    const rule = trigger();
+    rule.host = { ...rule.host, options: { ...rule.host.options, popupFullscreen: true } };
+    await page.evaluate(
+        ([dp, r]) => {
+            window.__auraShot.dpTriggers(false);
+            window.__auraShot.mock({ [dp]: false });
+            window.__auraShot.dpTriggers([r]);
+        },
+        [DP, rule],
+    );
+    await settle();
+    await page.evaluate((dp) => window.__auraShot.mock({ [dp]: true }), DP);
+    await settle();
+    const box = await page.locator('[data-aura-click-popup] > div').first().boundingBox();
+    const vp = page.viewportSize();
+    check(
+        'fullscreen popup fills the viewport',
+        !!box && box.x === 0 && box.y === 0 && box.width === vp.width && box.height === vp.height,
+        JSON.stringify(box),
+    );
+}
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

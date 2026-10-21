@@ -51,7 +51,7 @@ Der Trigger-Datenpunkt steht im Popup als `{{dp}}` bereit — eine Popup-View l�
 | 1 | **Frontend-Design → Navigation → Leerlauf des Geräts melden**: Zeit ohne Eingabe festlegen (Standard 120 s) |
 | 2 | Popup-View mit der Ruhe-Ansicht anlegen |
 | 3 | Trigger anlegen → Knopf **Bildschirmschoner** (setzt `aura.0.clients.{{clientId}}.idle.active == true` und „Popup schließen, wenn …“) |
-| 4 | Ziel: die Popup-View; Breite/Höhe groß wählen |
+| 4 | Ziel: die Popup-View; **Vollbild** einschalten |
 
 Die nächste Berührung, der nächste Klick oder Tastendruck setzt den Datenpunkt auf `false` und schließt das Popup.
 
@@ -77,6 +77,7 @@ Wert: Name oder ID einer Popup-View, oder JSON. Der Datenpunkt wird nach dem Öf
 | `title` | Popup-Titel; leer = Name der View |
 | `width` | Breite in px; leer = nach Inhalt (Breite der View) |
 | `height` | Höhe in px (höchstens `85 %` der Bildschirmhöhe); leer = nach Inhalt |
+| `fullscreen` | `true` = ganzer Bildschirm ohne Rand und Ecken; `width`/`height` entfallen |
 
 Breite und Höhe werden auf kleinen Bildschirmen automatisch begrenzt (volle Breite minus Rand, `85 %` der Höhe) — ein `900 px`-Popup bleibt auf dem Handy also bedienbar.
 
@@ -88,6 +89,7 @@ Breite und Höhe werden auf kleinen Bildschirmen automatisch begrenzt (volle Bre
 | Breit, Höhe nach Inhalt | `{"view":"Kamera","width":900}` |
 | Feste Größe | `{"view":"Kamera","width":900,"height":700}` |
 | Schmal und hoch | `{"view":"Einkaufsliste","width":360,"height":800}` |
+| Vollbild | `{"view":"Ruhe","fullscreen":true}` |
 
 ```js
 // Alle Geräte, nur per Name

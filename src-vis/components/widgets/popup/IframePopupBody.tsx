@@ -9,9 +9,11 @@ interface Props {
     /** Configured popup size in px; empty keeps the default box. */
     width?: number;
     height?: number;
+    /** Fill the parent (fullscreen popup) instead of sizing the box itself. */
+    fill?: boolean;
 }
 
-export function IframePopupBody({ action, width, height }: Props) {
+export function IframePopupBody({ action, width, height, fill }: Props) {
     const [timedOut, setTimedOut] = useState(false);
     const boxRef = useRef<HTMLDivElement | null>(null);
     // The popup sits on Aura's surface, so the page inside follows Aura's
@@ -41,8 +43,8 @@ export function IframePopupBody({ action, width, height }: Props) {
         <div
             ref={boxRef}
             style={{
-                width: width ? `min(calc(100vw - 48px), ${width}px)` : 'min(88vw, 860px)',
-                height: height ? `min(calc(100dvh - 120px), ${height}px)` : 'min(80vh, 680px)',
+                width: fill ? '100%' : width ? `min(calc(100vw - 48px), ${width}px)` : 'min(88vw, 860px)',
+                height: fill ? '100%' : height ? `min(calc(100dvh - 120px), ${height}px)` : 'min(80vh, 680px)',
                 position: 'relative',
             }}
         >

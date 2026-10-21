@@ -579,6 +579,7 @@ export type ClickAction =
 // options.clickAction?: ClickAction
 // options.popupTitle?: string      – override header title in popup
 // options.popupHideTitle?: boolean  – hide the title bar entirely
+// options.popupFullscreen?: boolean – popup covers the whole screen (no margin/corners); width/height are ignored
 // options.popupShowHistory?: boolean – show history icon in popup header
 // options.popupAutoCloseSec?: number – per-click-action auto-close override (0 = off, >0 = seconds; undefined = inherit view/global)
 // options.popupAutoCloseCountdown?: PopupCountdownPosition – per-click-action countdown corner for the auto-close ('off' = none; undefined = inherit view/global)

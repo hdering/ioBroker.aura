@@ -158,6 +158,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
     const popupHideTitle = !!o.popupHideTitle;
     const popupWidth = o.popupWidth as number | undefined;
     const popupHeight = o.popupHeight as number | undefined;
+    const popupFullscreen = !!o.popupFullscreen;
     const popupAutoCloseSec = o.popupAutoCloseSec as number | undefined;
     const popupAutoCloseCountdown = o.popupAutoCloseCountdown as PopupCountdownPosition | undefined;
     const popupTransparency = o.popupTransparency as number | undefined;
@@ -1027,44 +1028,51 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                             </p>
                         </div>
                     )}
-                    <div className="flex gap-2">
-                        <div className="flex-1">
-                            <label className={labelCls} style={labelStyle}>
-                                Breite (px, leer = auto)
-                            </label>
-                            <input
-                                type="number"
-                                min={200}
-                                max={1600}
-                                step={50}
-                                value={popupWidth ?? ''}
-                                onChange={(e) =>
-                                    setOpts({ popupWidth: e.target.value ? Number(e.target.value) : undefined })
-                                }
-                                placeholder="auto"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
+                    <Toggle
+                        checked={popupFullscreen}
+                        onChange={(v) => setOpts({ popupFullscreen: v || undefined })}
+                        label="Vollbild"
+                    />
+                    {!popupFullscreen && (
+                        <div className="flex gap-2">
+                            <div className="flex-1">
+                                <label className={labelCls} style={labelStyle}>
+                                    Breite (px, leer = auto)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={200}
+                                    max={1600}
+                                    step={50}
+                                    value={popupWidth ?? ''}
+                                    onChange={(e) =>
+                                        setOpts({ popupWidth: e.target.value ? Number(e.target.value) : undefined })
+                                    }
+                                    placeholder="auto"
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <label className={labelCls} style={labelStyle}>
+                                    Höhe (px, leer = auto)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={200}
+                                    max={1200}
+                                    step={50}
+                                    value={popupHeight ?? ''}
+                                    onChange={(e) =>
+                                        setOpts({ popupHeight: e.target.value ? Number(e.target.value) : undefined })
+                                    }
+                                    placeholder="auto"
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <label className={labelCls} style={labelStyle}>
-                                Höhe (px, leer = auto)
-                            </label>
-                            <input
-                                type="number"
-                                min={200}
-                                max={1200}
-                                step={50}
-                                value={popupHeight ?? ''}
-                                onChange={(e) =>
-                                    setOpts({ popupHeight: e.target.value ? Number(e.target.value) : undefined })
-                                }
-                                placeholder="auto"
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                        </div>
-                    </div>
+                    )}
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             Auto-Schließen nach (Sek., 0 = aus, leer = View/Global)

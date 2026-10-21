@@ -204,6 +204,11 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
     const title = subAll(getTitle(widget, action, titleOverride), buildPopupSubMap(widget, mainDp));
     const customWidth = widget.options?.popupWidth as number | undefined;
     const customHeight = widget.options?.popupHeight as number | undefined;
+    // Fullscreen: the dialog covers the whole viewport — no margin, corners or frame.
+    // Width/height are ignored then; the screensaver popup (#822) is the use case.
+    const fullscreen = !!widget.options?.popupFullscreen;
+    // A web page has no size of its own, so in fullscreen it has to be stretched.
+    const fillBody = fullscreen && isIframe;
     // Without a configured width the dialog sizes to its body: popup views and embedded
     // widgets report their designed grid width, the device/media bodies their own fixed
     // width. Only free-flowing HTML keeps a reading cap — its paragraphs would otherwise
@@ -242,7 +247,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
             case 'popup-image':
                 return <ImagePopupBody action={action} />;
             case 'popup-iframe':
-                return <IframePopupBody action={action} width={customWidth} height={customHeight} />;
+                return <IframePopupBody action={action} width={customWidth} height={customHeight} fill={fullscreen} />;
             case 'popup-json':
                 return <JsonPopupBody action={action} />;
             case 'popup-html':
@@ -268,23 +273,35 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
     return createPortal(
         <div
             data-aura-click-popup={action.kind}
-            className="fixed inset-0 flex items-center justify-center z-[300] p-4"
+            className={`fixed inset-0 flex items-center justify-center z-[300] ${fullscreen ? 'p-0' : 'p-4'}`}
             style={{ background: `rgba(0,0,0,${backdropDim / 100})` }}
             onClick={onClose}
         >
             <div
-                className="relative flex flex-col rounded-2xl shadow-2xl overflow-hidden"
+                className={`relative flex flex-col overflow-hidden ${fullscreen ? '' : 'rounded-2xl shadow-2xl'}`}
                 style={{
                     background,
                     ...(backgroundImage ? BG_IMAGE_HOST_STYLE : {}),
-                    border: `1px solid ${DEFAULT_POPUP_BORDER}`,
+                    border: fullscreen ? 'none' : `1px solid ${DEFAULT_POPUP_BORDER}`,
                     // Element opacity (not just a translucent surface) so the embedded
                     // widgets — which paint their own --widget-bg cards — turn see-through
                     // together with the dialog chrome instead of staying solid.
                     opacity: transparency > 0 ? 1 - transparency / 100 : undefined,
-                    width: isIframe ? undefined : customWidth ? `min(calc(100vw - 16px), ${customWidth}px)` : undefined,
-                    maxWidth: isIframe ? undefined : customWidth ? undefined : autoMaxWidth,
-                    maxHeight: isIframe ? undefined : customHeight ? `min(85dvh, ${customHeight}px)` : '85dvh',
+                    ...(fullscreen
+                        ? { width: '100vw', height: '100dvh' }
+                        : {
+                              width: isIframe
+                                  ? undefined
+                                  : customWidth
+                                    ? `min(calc(100vw - 16px), ${customWidth}px)`
+                                    : undefined,
+                              maxWidth: isIframe ? undefined : customWidth ? undefined : autoMaxWidth,
+                              maxHeight: isIframe
+                                  ? undefined
+                                  : customHeight
+                                    ? `min(85dvh, ${customHeight}px)`
+                                    : '85dvh',
+                          }),
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={armTimer}
@@ -331,11 +348,12 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                     ref={scrollRef}
                     className="overflow-auto flex"
                     style={{
-                        flex: isIframe ? 'none' : '1 1 auto',
+                        flex: isIframe && !fillBody ? 'none' : '1 1 auto',
+                        minHeight: 0,
                         scrollbarGutter: !isIframe && scrolls ? 'stable both-edges' : undefined,
                     }}
                 >
-                    <div className="m-auto">{body}</div>
+                    <div className={fillBody ? 'w-full h-full' : 'm-auto'}>{body}</div>
                 </div>
             </div>
         </div>,
