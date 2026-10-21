@@ -176,6 +176,10 @@ export const de = {
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':
         'Wechselt nach der angegebenen Inaktivitätszeit zum Standard-Bereich des Layouts und dessen Standard-Tab. Pro Gerät steuerbar über {ns}.clients.<id>.idleReturn.snoozeMinutes und .delay.',
+    'settings.frontend.idleState': 'Leerlauf des Geräts melden',
+    'settings.frontend.idleStateDelay': 'Leerlauf nach',
+    'settings.frontend.idleStateHint':
+        'Setzt {ns}.clients.<id>.idle.active nach dieser Zeit ohne Eingabe auf true und bei der nächsten Berührung, dem nächsten Klick oder Tastendruck wieder auf false. Ein Popup-Trigger auf diesen Datenpunkt macht daraus einen Bildschirmschoner. Pro Gerät überschreibbar über {ns}.clients.<id>.idle.delay (-1 = diese Einstellung, 0 = aus).',
     'settings.frontend.iconsOffline': 'Icons für Offline-Geräte vorladen',
     'settings.frontend.iconsOfflineHint':
         'Das Gerät lädt direkt nach dem Start alle Icons des Layouts und behält sie lokal — auch die anderer Tabs und Zustände. Es spricht nur noch mit Aura, nie mit den öffentlichen Iconify-Servern; vollständig wirksam ab dem zweiten Start eines Geräts. Für Handys im Mobilfunk aus lassen, die holen Icons bei Bedarf.',
@@ -712,7 +716,7 @@ export const de = {
     'design.menu.hint':
         'Linkes Navigations-Menü zum Wechseln zwischen den Bereichen eines Layouts (Hamburger-Button oder angedockte Sidebar). Global oder pro Layout konfigurierbar.',
     'design.nav.hint':
-        'Nach einer Zeit ohne Aktivität automatisch zum Layout-Standard zurückkehren. Global oder pro Layout konfigurierbar.',
+        'Nach einer Zeit ohne Aktivität automatisch zum Layout-Standard zurückkehren und den Leerlauf des Geräts melden. Global oder pro Layout konfigurierbar.',
 
     'layouts.subtab.theme': 'Theme & CSS-Vars',
     'layouts.subtab.typo': 'Typografie & Spacing',

@@ -3,7 +3,7 @@ import type { ClickAction, ConditionClause, WidgetConfig } from '../../../types'
 import { subscribeDpValue, setStateDirect } from '../../../hooks/useIoBroker';
 import { useConnectionStore } from '../../../store/connectionStore';
 import { useDashboardStore } from '../../../store/dashboardStore';
-import { usePopupConfigStore, type PopupTrigger } from '../../../store/popupConfigStore';
+import { usePopupConfigStore, CLIENT_ID_TOKEN, type PopupTrigger } from '../../../store/popupConfigStore';
 import { usePopupRuntimeStore } from '../../../store/popupRuntimeStore';
 import { isScreenshotMode } from '../../../store/persistManager';
 import { evaluateClause } from '../../../utils/conditionEval';
@@ -27,6 +27,17 @@ function clauseDps(clause: ConditionClause): string[] {
     const dps = clause.datapoint ? [clause.datapoint] : [];
     if (clause.valueType === 'datapoint' && clause.value) dps.push(clause.value);
     return dps;
+}
+
+function withClientId(trigger: PopupTrigger, clientId: string): PopupTrigger {
+    const sub = (v: string) => v.split(CLIENT_ID_TOKEN).join(clientId);
+    const c = trigger.clause;
+    if (!c.datapoint.includes(CLIENT_ID_TOKEN) && !(c.valueType === 'datapoint' && c.value.includes(CLIENT_ID_TOKEN)))
+        return trigger;
+    return {
+        ...trigger,
+        clause: { ...c, datapoint: sub(c.datapoint), value: c.valueType === 'datapoint' ? sub(c.value) : c.value },
+    };
 }
 
 function inScope(trigger: PopupTrigger, clientId: string, layoutId?: string, tabId?: string): boolean {
@@ -60,7 +71,10 @@ export function DpPopupTriggers({ layoutId, tabId }: Props) {
     const closePopup = usePopupRuntimeStore((s) => s.closePopup);
 
     const activeTriggers = useMemo(
-        () => (triggers ?? []).filter((t) => t.enabled && t.clause.datapoint && inScope(t, clientId, layoutId, tabId)),
+        () =>
+            (triggers ?? [])
+                .filter((t) => t.enabled && t.clause.datapoint && inScope(t, clientId, layoutId, tabId))
+                .map((t) => withClientId(t, clientId)),
         [triggers, clientId, layoutId, tabId],
     );
 

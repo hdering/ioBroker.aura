@@ -241,6 +241,9 @@ export interface LayoutSettings {
     // Navigation (idle-return)
     idleReturnEnabled?: boolean;
     idleReturnDelay?: number;
+    // Idle state of the device (#822)
+    idleStateEnabled?: boolean;
+    idleStateDelay?: number;
     // Icons for offline devices (#290) — layout level only: a device shows a
     // layout, so a section cannot sensibly switch its icon source.
     iconsOffline?: boolean;

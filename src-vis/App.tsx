@@ -45,6 +45,7 @@ import {
 } from './store/idleReturnStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
 import { useIconPreload } from './hooks/useIconPreload';
+import { useIdleStateDp } from './hooks/useIdleStateDp';
 import { useT } from './i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { tabletBandActive } from './utils/flowOrder';
@@ -1022,6 +1023,15 @@ export default function App() {
     // Mirror the idle-return control datapoints (global + this client) into the
     // store the timer and the header chip read (#638).
     useEffect(() => syncIdleReturnDps(clientId), [clientId]);
+
+    // Report this device's idle state — the datapoint a screensaver popup trigger watches (#822).
+    useIdleStateDp({
+        clientId,
+        clientReady: clientIdPinned,
+        connected,
+        enabled: effectiveSettings.idleStateEnabled !== false,
+        delaySec: effectiveSettings.idleStateDelay ?? 120,
+    });
 
     // Subscribe to per-client navigate datapoint
     useEffect(() => {

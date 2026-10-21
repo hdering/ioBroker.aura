@@ -42,6 +42,19 @@ Die Hintergrundfarbe gibt es zusätzlich als Theme-Token: `--popup-bg` (und `--p
 
 Der Trigger-Datenpunkt steht im Popup als `{{dp}}` bereit — eine Popup-View lässt sich so für mehrere Trigger wiederverwenden.
 
+`{{clientId}}` im Datenpunkt steht für das Gerät, auf dem das Dashboard läuft — eine Regel gilt so für jedes Gerät einzeln.
+
+### Bildschirmschoner
+
+| Schritt | |
+| --- | --- |
+| 1 | **Frontend-Design → Navigation → Leerlauf des Geräts melden**: Zeit ohne Eingabe festlegen (Standard 120 s) |
+| 2 | Popup-View mit der Ruhe-Ansicht anlegen |
+| 3 | Trigger anlegen → Knopf **Bildschirmschoner** (setzt `aura.0.clients.{{clientId}}.idle.active == true` und „Popup schließen, wenn …“) |
+| 4 | Ziel: die Popup-View; Breite/Höhe groß wählen |
+
+Die nächste Berührung, der nächste Klick oder Tastendruck setzt den Datenpunkt auf `false` und schließt das Popup.
+
 ::: tip Flanke statt Zustand
 Steht der Datenpunkt beim Laden der Seite schon auf dem Trigger-Wert, öffnet sich kein Popup. Bei mehreren Geräten schreibt das schnellste den Reset-Wert; die Flanke erreicht vorher alle Geräte.
 :::

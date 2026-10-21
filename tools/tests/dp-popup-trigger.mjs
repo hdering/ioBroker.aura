@@ -12,6 +12,7 @@ import { chromium } from 'playwright';
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
 const DP = 'demo.popupTrigger';
 const MARKER = 'TRIGGER-OK';
+const CLIENT = 'shot-trigger';
 
 const results = [];
 const check = (name, ok, detail = '') => {
@@ -46,7 +47,8 @@ const page = await ctx.newPage();
 const pageErrors = [];
 page.on('pageerror', (e) => pageErrors.push(e.message));
 
-await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
+// `client=` pins the device id, so the {{clientId}} placeholder (#822) has a known value.
+await page.goto(`${BASE}/?shot=1&client=${CLIENT}`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 });
 
 const popupVisible = () =>
@@ -146,6 +148,34 @@ for (const action of [
         `no overlay for an unusable action (${action.kind}${action.viewId === '' ? ', no view' : ''})`,
         backdrop === 0,
     );
+}
+
+// ── 8. {{clientId}} resolves to this device (#822) ───────────────────────────
+// One screensaver rule for every device: the placeholder in the trigger DP is
+// replaced by the id of the device the dashboard runs on.
+{
+    const own = `demo.clients.${CLIENT}.idle.active`;
+    await page.evaluate(
+        ([dp, rule]) => {
+            window.__auraShot.dpTriggers(false);
+            window.__auraShot.mock({ [dp]: false });
+            window.__auraShot.dpTriggers([rule]);
+        },
+        [
+            own,
+            trigger({
+                clause: { datapoint: 'demo.clients.{{clientId}}.idle.active', operator: '==', value: 'true' },
+                closeOnFalse: true,
+            }),
+        ],
+    );
+    await settle();
+    await page.evaluate((dp) => window.__auraShot.mock({ [dp]: true }), own);
+    await settle();
+    const opened = await popupVisible();
+    await page.evaluate((dp) => window.__auraShot.mock({ [dp]: false }), own);
+    await settle();
+    check('{{clientId}} trigger opens on this device and closes on false', opened && !(await popupVisible()));
 }
 
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));

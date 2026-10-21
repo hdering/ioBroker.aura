@@ -130,6 +130,10 @@ export interface FrontendSettings {
     idleReturnEnabled: boolean;
     /** Seconds of inactivity before returning to the default tab. */
     idleReturnDelay: number;
+    /** Idle state (#822): write clients.<id>.idle.active after `idleStateDelay` seconds without input. */
+    idleStateEnabled: boolean;
+    /** Seconds without input before the device counts as idle. */
+    idleStateDelay: number;
     /**
      * Icons for devices without internet (#290): load every icon the layout
      * uses right after boot instead of on first display, keep them on the
@@ -258,6 +262,8 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerItems: [],
     idleReturnEnabled: false,
     idleReturnDelay: 30,
+    idleStateEnabled: true,
+    idleStateDelay: 120,
     iconsOffline: false,
     optimisticUpdates: true,
     superAdminKey: '',

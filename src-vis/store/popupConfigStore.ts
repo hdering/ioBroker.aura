@@ -135,6 +135,13 @@ export interface PopupTrigger {
     createdAt?: number;
 }
 
+/**
+ * `{{clientId}}` in a trigger datapoint stands for the device the dashboard runs
+ * on, so ONE rule on `clients.{{clientId}}.idle.active` is a screensaver for
+ * every device instead of one rule per client (#822).
+ */
+export const CLIENT_ID_TOKEN = '{{clientId}}';
+
 export function newTriggerHost(): WidgetConfig {
     return {
         id: `ptw-${Date.now()}`,

@@ -177,6 +177,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':
         "Switches to the layout's default section and its default tab after the specified idle time. Per device controllable via {ns}.clients.<id>.idleReturn.snoozeMinutes and .delay.",
+    'settings.frontend.idleState': 'Report idle state of the device',
+    'settings.frontend.idleStateDelay': 'Idle after',
+    'settings.frontend.idleStateHint':
+        'Sets {ns}.clients.<id>.idle.active to true after this time without input and back to false on the next touch, click or key. A popup trigger on that datapoint turns it into a screensaver. Per device overridable via {ns}.clients.<id>.idle.delay (-1 = this setting, 0 = off).',
     'settings.frontend.iconsOffline': 'Preload icons for offline devices',
     'settings.frontend.iconsOfflineHint':
         'The device loads every icon of the layout right after start and keeps it locally, so icons of other tabs and states are already there. It only talks to Aura and never to the public Iconify hosts — fully in effect from the second start of a device. Leave this off for phones on mobile data; they fetch icons on demand.',
@@ -706,7 +710,7 @@ export const en: Record<TranslationKey, string> = {
     'design.menu.hint':
         'Left-hand navigation menu for switching between the sections of a layout (hamburger button or docked sidebar). Configurable globally or per layout.',
     'design.nav.hint':
-        'Automatically return to the layout default after a period of inactivity. Configurable globally or per layout.',
+        'Automatically return to the layout default after a period of inactivity and report the device idle state. Configurable globally or per layout.',
 
     'layouts.subtab.theme': 'Theme & CSS Vars',
     'layouts.subtab.typo': 'Typography & Spacing',

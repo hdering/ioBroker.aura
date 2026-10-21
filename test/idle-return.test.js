@@ -142,6 +142,30 @@ const CLIENT_DPS = [
         console.log('✓ control writes are normalised and acknowledged');
     }
 
+    // ── Idle state of a client (#822): objects + normalised delay ────────────
+    {
+        const a = makeAdapter();
+        await a._ensureIdleStateDps('tablet');
+        const active = a._objects.get('clients.tablet.idle.active');
+        assert.ok(active, 'idle.active exists');
+        assert.strictEqual(active.common.type, 'boolean');
+        assert.strictEqual(active.common.write, true, 'the client writes it');
+        const delay = a._objects.get('clients.tablet.idle.delay');
+        assert.strictEqual(delay.common.def, -1, 'unset = follow the dashboard setting');
+
+        const delayId = 'aura.0.clients.tablet.idle.delay';
+        await a.onStateChange(delayId, { val: 300, ack: false });
+        assert.deepStrictEqual(a._states.get(delayId), { val: 300, ack: true });
+        await a.onStateChange(delayId, { val: -4, ack: false });
+        assert.strictEqual(a._states.get(delayId).val, -1);
+
+        // The client's own write must pass through untouched (not acked, not clamped).
+        const activeId = 'aura.0.clients.tablet.idle.active';
+        await a.onStateChange(activeId, { val: true, ack: false });
+        assert.strictEqual(a._states.get(activeId), undefined, 'idle.active is not the adapter’s business');
+        console.log('✓ idle state datapoints (#822)');
+    }
+
     // ── An acknowledged write is not re-processed ────────────────────────────
     {
         const a = makeAdapter();

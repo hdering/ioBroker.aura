@@ -43,6 +43,9 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     // own, without a layout of its own (#638).
     'idleReturnEnabled',
     'idleReturnDelay',
+    // Idle state (#822): same scoping as auto-return.
+    'idleStateEnabled',
+    'idleStateDelay',
 ];
 
 // ── 2-level keys: frame settings that belong to a whole layout ───────────────

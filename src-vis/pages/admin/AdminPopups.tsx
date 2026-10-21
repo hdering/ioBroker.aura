@@ -14,6 +14,7 @@ import {
     DEFAULT_BACKDROP_DIM,
     DEFAULT_POPUP_PADDING,
     MAX_POPUP_PADDING,
+    CLIENT_ID_TOKEN,
     type PopupView,
     type PopupTrigger,
 } from '../../store/popupConfigStore';
@@ -1259,6 +1260,36 @@ function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose
                         {'„erfüllt“'} wechselt. Steht der Datenpunkt beim Laden der Seite schon auf dem Trigger-Wert,
                         passiert nichts.
                     </p>
+                    {/* Screensaver preset (#822): the idle DP of whichever device shows the dashboard. */}
+                    <div className="flex items-start gap-2 mt-2">
+                        <button
+                            type="button"
+                            onClick={() =>
+                                patch({
+                                    clause: {
+                                        datapoint: `${NS}.clients.${CLIENT_ID_TOKEN}.idle.active`,
+                                        operator: '==',
+                                        value: 'true',
+                                    },
+                                    closeOnFalse: true,
+                                    resetDp: false,
+                                })
+                            }
+                            className="shrink-0 text-[11px] px-2 py-1 rounded-lg hover:opacity-80"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--accent)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            Bildschirmschoner
+                        </button>
+                        <p className="text-[11px]" style={labelStyle}>
+                            Öffnet das Popup, sobald das Gerät im Leerlauf ist, und schließt es bei der nächsten
+                            Eingabe. <span className="font-mono">{CLIENT_ID_TOKEN}</span> steht im Datenpunkt für das
+                            jeweilige Gerät. Ab wann ein Gerät im Leerlauf ist, legt Design → Navigation fest.
+                        </p>
+                    </div>
                 </div>
 
                 <div>

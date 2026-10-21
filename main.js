@@ -919,7 +919,8 @@ class Aura extends utils.Adapter {
             await this.setForeignStateAsync(id, { val: minutes, ack: true });
             return;
         }
-        if (id.endsWith('.idleReturn.delay') && state && !state.ack) {
+        // The idle-state delay (#822) follows the same -1 / 0 / seconds rules.
+        if ((id.endsWith('.idleReturn.delay') || /\.clients\.[^.]+\.idle\.delay$/.test(id)) && state && !state.ack) {
             const delay = clampIdleDelay(state.val);
             await this.setForeignStateAsync(id, { val: delay, ack: true });
             return;
@@ -2257,6 +2258,7 @@ class Aura extends utils.Adapter {
         });
         await this._ensureClientMessageDps(cId);
         await this._ensureIdleReturnDps(cId);
+        await this._ensureIdleStateDps(cId);
         this.log.debug(`[clients] completed object tree for ${cId}`);
         return true;
     }
@@ -2299,7 +2301,13 @@ class Aura extends utils.Adapter {
         // object exists; delObject leaves that orphan value behind, and the stale name
         // would keep the frontend from ever re-registering (#532). Such values are
         // invisible to the object view, hence the explicit list.
-        for (const known of ['info.name', 'info.lastSeen', 'info.resolutionWidth', 'info.resolutionHeight']) {
+        for (const known of [
+            'info.name',
+            'info.lastSeen',
+            'info.resolutionWidth',
+            'info.resolutionHeight',
+            'idle.active',
+        ]) {
             ids.add(`${base}.${known}`);
         }
         // Deepest first, so clients.<id> is the last object to go.
@@ -2342,6 +2350,8 @@ class Aura extends utils.Adapter {
                     await this._ensureClientMessageDps(cId);
                     // Same story for the idle-return controls (#638).
                     await this._ensureIdleReturnDps(cId);
+                    // And for the idle state (#822).
+                    await this._ensureIdleStateDps(cId);
                     await this._setTargetStates(`clients.${cId}.navigate.target`, states);
                 } catch {
                     /* ignore a client object that vanished mid-sync */
@@ -2873,6 +2883,48 @@ class Aura extends utils.Adapter {
             type: 'state',
             common: {
                 name: 'Auto-return delay for this client (-1 = use dashboard setting, 0 = off)',
+                type: 'number',
+                role: 'value',
+                unit: 's',
+                min: -1,
+                max: IDLE_DELAY_MAX_SEC,
+                read: true,
+                write: true,
+                def: -1,
+            },
+            native: {},
+        });
+    }
+
+    /**
+     * The per-client idle state (issue #822): the frontend flips `active` once
+     * nobody has touched the device for the configured time and back on the next
+     * input, so a popup trigger (screensaver) or a script can react to it.
+     * `delay` overrides the dashboard setting for this one device.
+     */
+    async _ensureIdleStateDps(cId) {
+        const base = `clients.${cId}`;
+        await this.setObjectNotExistsAsync(`${base}.idle`, {
+            type: 'channel',
+            common: { name: 'Idle state of this client' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.idle.active`, {
+            type: 'state',
+            common: {
+                name: 'Nobody has used this client for the idle delay (written by the client)',
+                type: 'boolean',
+                role: 'indicator',
+                read: true,
+                write: true,
+                def: false,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.idle.delay`, {
+            type: 'state',
+            common: {
+                name: 'Idle after N seconds on this client (-1 = use dashboard setting, 0 = off)',
                 type: 'number',
                 role: 'value',
                 unit: 's',
@@ -3690,6 +3742,8 @@ class Aura extends utils.Adapter {
         // never comes back.
         this.subscribeStates('idleReturn.*');
         this.subscribeStates('clients.*.idleReturn.*');
+        // Idle state (#822): only the per-client delay needs normalising.
+        this.subscribeStates('clients.*.idle.delay');
         this._idleReturnInterval = this.setInterval(
             () => this._idleReturnTick().catch((e) => this.log.warn(`[idleReturn] tick error: ${e.message}`)),
             60000,
