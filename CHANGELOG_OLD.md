@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.82.2 (2026-10-13)
+- Status badges - an open window now shows in orange like low battery, and battery, reachability and window each get their own alarm color; with "alert only" each badge shows only while it is itself an alarm; the battery gets a free list of "low" values instead of the invert switch, and all value lists come prefilled with their defaults ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
+- Status badges - slider, knob, light, select, date picker and media player get the status datapoints in their settings; the window datapoint is offered for thermostat, room climate and shutter; knob draws the badges and light/select/shutter offer the status icons in the custom layout ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
+
 ## 0.82.1 (2026-10-12)
 - 🌟 **New feature:** Status badges - optional window datapoint shows an open/closed window badge next to battery and reachability, e.g. on the thermostat; auto-detected from WINDOW_OPEN_REPORTING / WINDOW_STATE ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
 - 🌟 **New feature:** iFrame / HTML - new "Height on phone" option: keep the desktop aspect ratio (default), use the grid row height (for responsive pages like Grafana) or a fixed pixel height ([#772](https://github.com/hdering/ioBroker.aura/issues/772))

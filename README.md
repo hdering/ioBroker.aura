@@ -122,6 +122,16 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.90.0 (2026-10-21)
+- Fill level - a narrow vertical battery now shows the limit value next to the battery instead of hiding it ([#819](https://github.com/hdering/ioBroker.aura/issues/819))
+- 🌟 **New feature:** Screensaver - each device reports its idle state in clients.<id>.idle.active after a configurable time without input; a popup trigger on it (with {{clientId}} for every device) opens a screensaver popup that closes on the next touch ([#822](https://github.com/hdering/ioBroker.aura/issues/822))
+- 🌟 **New feature:** Popups - new "Fullscreen" option makes a popup cover the whole screen without margin or frame; also available as "fullscreen": true in popup.open ([#822](https://github.com/hdering/ioBroker.aura/issues/822))
+- Tab bar - a menu element set to "Center" now stands in the middle of the bar even when the tabs are aligned left or right; it used to appear on the right ([#820](https://github.com/hdering/ioBroker.aura/issues/820))
+- Aura now ships a web app manifest with proper icons, so "Install" / "Add to Home Screen" in Chrome, Edge, Android and iOS creates an app named Aura with its own icon that opens without browser bars ([#823](https://github.com/hdering/ioBroker.aura/issues/823))
+- 🌟 **New feature:** Shutter - new control mode "Move DP (up/down)" for actuators with a single up/down object such as KNX (DPT 1.008): one datapoint gets false for up and true for down, the values are configurable; the shutter popup now also uses the up/down datapoints of push-button and move mode
+- Timer - astro events (sunrise/sunset) now reliably show their time in the frontend; on a slow connection the location was read before the connection was up, so only the sun symbol appeared until the next reload ([#498](https://github.com/hdering/ioBroker.aura/issues/498))
+
+
 ### 0.89.0 (2026-10-21)
 - Settings - CSS/JS context chips mark the layouts where custom CSS or JS is switched on ([#818](https://github.com/hdering/ioBroker.aura/issues/818))
 - 🌟 **New feature:** Shutter - new "Circle menu" layout: a round button that fans out open, quick-select positions, close and stop in a circle, in an adjustable order ([#815](https://github.com/hdering/ioBroker.aura/issues/815))
@@ -241,11 +251,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - HTML - the whole widget surface can now trigger the click action (e.g. open a popup), selectable via the new Interaction option like on the iFrame widget ([#773](https://github.com/hdering/ioBroker.aura/issues/773))
 
 
-### 0.82.2 (2026-10-13)
-- Status badges - an open window now shows in orange like low battery, and battery, reachability and window each get their own alarm color; with "alert only" each badge shows only while it is itself an alarm; the battery gets a free list of "low" values instead of the invert switch, and all value lists come prefilled with their defaults ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
-- Status badges - slider, knob, light, select, date picker and media player get the status datapoints in their settings; the window datapoint is offered for thermostat, room climate and shutter; knob draws the badges and light/select/shutter offer the status icons in the custom layout ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
-
-
 ## License
 
 MIT License
@@ -257,6 +262,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
