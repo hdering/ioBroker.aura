@@ -17053,6 +17053,9 @@
           "default": false,
           "description": "Nur layout \"circle\": Kreismenü bleibt nach einer Auswahl offen."
         },
+        "circleOrder": {
+          "description": "Nur layout \"circle\": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — \"up\", \"down\", \"stop\", \"tilt\" und \"preset-<i>\" (i = Index in positionPresets ab 0). Unbekannte Schlüssel fallen weg, nicht genannte Einträge folgen in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard."
+        },
         "circleShade": {
           "type": "boolean",
           "default": true,

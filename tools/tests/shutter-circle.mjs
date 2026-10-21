@@ -130,6 +130,19 @@ await page.waitForTimeout(200);
 check('keepOpen leaves the menu open', (await page.locator(ITEM).count()) > 0);
 await page.keyboard.press('Escape');
 
+// ── 5b. circleOrder ──────────────────────────────────────────────────────────
+await show({
+    positionPresets: [{ pos: 75 }, { pos: 25 }],
+    circleOrder: ['up', 'down', 'gone', 'preset-1', 'up'],
+});
+await open();
+check(
+    'circleOrder: named first, unknown/duplicate dropped, rest in default order',
+    JSON.stringify(await itemTitles()) === '["Öffnen","Schließen","25%","75%","Stopp"]',
+    JSON.stringify(await itemTitles()),
+);
+await page.keyboard.press('Escape');
+
 // ── 6. Near the window edge: still inside ────────────────────────────────────
 for (const [name, vp] of [
     ['top-left corner', { width: 1280, height: 900 }],

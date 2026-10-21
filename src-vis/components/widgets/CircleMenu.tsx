@@ -33,6 +33,19 @@ export interface CircleMenuItem {
     closes?: boolean;
 }
 
+/**
+ * The entries in the user's order (`circleOrder`, a list of entry keys). Keys
+ * that no longer exist drop out; entries the list does not name yet (a preset
+ * added later) keep their default order behind the named ones.
+ */
+export function applyCircleOrder<T extends { key: string }>(items: T[], order: unknown): T[] {
+    if (!Array.isArray(order) || order.length === 0) return items;
+    const byKey = new Map(items.map((it) => [it.key, it]));
+    const named = [...new Set(order.filter((k): k is string => typeof k === 'string' && byKey.has(k)))];
+    const seen = new Set(named);
+    return [...named.map((k) => byKey.get(k)!), ...items.filter((it) => !seen.has(it.key))];
+}
+
 const THEME_VAR_NAMES = [
     '--app-bg',
     '--app-surface',

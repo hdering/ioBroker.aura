@@ -178,6 +178,8 @@ import { BadgeEditor } from '../config/BadgeEditor';
 import { ImagePathHint } from '../config/ImagePathHint';
 import { ImageSourceField } from '../config/ImageSourceField';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
+import { shutterCircleEntries } from '../widgets/ShutterWidget';
+import { CircleOrderEditor } from '../config/CircleOrderEditor';
 import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry, ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
@@ -18024,6 +18026,13 @@ function WidgetFrameInner({
                                                                             </option>
                                                                         </select>
                                                                     </div>
+                                                                    <CircleOrderEditor
+                                                                        entries={shutterCircleEntries(o)}
+                                                                        order={o.circleOrder}
+                                                                        onChange={(circleOrder) =>
+                                                                            setO({ circleOrder })
+                                                                        }
+                                                                    />
                                                                     {sizeRow(
                                                                         'Größe der Einträge',
                                                                         'circleItemSize',

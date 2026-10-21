@@ -9,7 +9,7 @@ import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { ShutterViz } from './ShutterViz';
-import { CircleMenu, type CircleDirection, type CircleMenuItem } from './CircleMenu';
+import { applyCircleOrder, CircleMenu, type CircleDirection, type CircleMenuItem } from './CircleMenu';
 import { TILT_SLIDER_WIDTH, TiltButton, TiltPopover, TiltSlider, TiltStepButtons } from './TiltControls';
 import { clampPct, rawToTiltPct, tiltPctToRaw, tiltRange } from '../../utils/shutterTilt';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
@@ -120,6 +120,27 @@ function readPresets(raw: unknown): ShutterPreset[] {
         });
     }
     return out;
+}
+
+/**
+ * Entries of the circle menu in their default order — keys and labels only, so
+ * the editor's order list (`circleOrder`) names exactly what the widget draws.
+ */
+export function shutterCircleEntries(opts: Record<string, unknown>): { key: string; label: string }[] {
+    const tiltActive = !!opts.tiltDp;
+    const tiltLabel = (opts.tiltLabel as string) || 'Lamellen';
+    const presets = readPresets(opts.positionPresets).filter((p) => p.pos !== undefined || tiltActive);
+    return [
+        { key: 'up', label: 'Öffnen' },
+        ...presets.map((p, i) => ({
+            key: `preset-${i}`,
+            label:
+                p.label || (p.pos === undefined ? `${tiltLabel} ${Math.round(p.tilt ?? 0)}%` : `${Math.round(p.pos)}%`),
+        })),
+        { key: 'down', label: 'Schließen' },
+        ...(opts.showControls !== false ? [{ key: 'stop', label: 'Stopp' }] : []),
+        ...(tiltActive && opts.tiltPlacement !== 'off' ? [{ key: 'tilt', label: tiltLabel }] : []),
+    ];
 }
 
 export function ShutterWidget({ config }: WidgetProps) {
@@ -858,7 +879,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                     triggerRef={tiltBtnRef}
                     triggerTitle={`${config.title ? `${config.title}: ` : ''}${statusText}`}
                     triggerStyle={{ borderColor: accentColor }}
-                    items={items}
+                    items={applyCircleOrder(items, opts.circleOrder)}
                     direction={(opts.circleDirection as CircleDirection) || 'auto'}
                     itemSize={(opts.circleItemSize as number) || 48}
                     keepOpen={!!opts.circleKeepOpen}

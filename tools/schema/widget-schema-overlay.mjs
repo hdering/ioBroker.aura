@@ -635,6 +635,13 @@ export const WIDGET_OPTION_NOTES = {
             description: 'Nur layout "circle": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48).',
         },
         circleKeepOpen: { description: 'Nur layout "circle": Kreismenü bleibt nach einer Auswahl offen.' },
+        circleOrder: {
+            description:
+                'Nur layout "circle": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — "up", "down", "stop", "tilt" und ' +
+                '"preset-<i>" (i = Index in positionPresets ab 0). Unbekannte Schlüssel fallen weg, nicht genannte Einträge folgen ' +
+                'in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; ' +
+                'Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard.',
+        },
         circleShade: {
             description: 'Nur layout "circle": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an).',
         },
