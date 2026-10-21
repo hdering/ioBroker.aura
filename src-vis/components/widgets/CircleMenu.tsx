@@ -159,6 +159,7 @@ export function CircleMenu({
     itemSize = 48,
     keepOpen = false,
     shade = true,
+    triggerSize,
     below,
 }: {
     /** What the closed button shows (icon, value). */
@@ -175,25 +176,30 @@ export function CircleMenu({
     keepOpen?: boolean;
     /** Darken the page behind the open menu. */
     shade?: boolean;
+    /** Fixed diameter of the closed button in px; unset = as large as the widget allows. */
+    triggerSize?: number;
     /** Drawn under the circle in the widget (title). */
     below?: React.ReactNode;
 }) {
     const boxRef = useRef<HTMLDivElement>(null);
     const ownRef = useRef<HTMLButtonElement>(null);
     const btnRef = outerRef ?? ownRef;
-    const [diameter, setDiameter] = useState(0);
+    const [boxSize, setBoxSize] = useState(0);
     const [open, setOpen] = useState(false);
 
-    // The trigger is round: as large as the box allows in both directions.
+    // The trigger is round: as large as the box allows in both directions,
+    // capped by a fixed size if one is set.
     useLayoutEffect(() => {
         const el = boxRef.current;
         if (!el) return;
-        const update = () => setDiameter(Math.max(0, Math.floor(Math.min(el.clientWidth, el.clientHeight))));
+        const update = () => setBoxSize(Math.max(0, Math.floor(Math.min(el.clientWidth, el.clientHeight))));
         update();
         const ro = new ResizeObserver(update);
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
+
+    const diameter = triggerSize && triggerSize > 0 ? Math.min(boxSize, triggerSize) : boxSize;
 
     return (
         <div className="aura-circle-menu flex flex-col items-center h-full w-full min-h-0 gap-1">

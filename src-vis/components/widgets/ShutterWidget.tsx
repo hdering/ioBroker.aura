@@ -884,6 +884,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                     itemSize={(opts.circleItemSize as number) || 48}
                     keepOpen={!!opts.circleKeepOpen}
                     shade={opts.circleShade !== false}
+                    triggerSize={(opts.circleTriggerSize as number) || undefined}
                     trigger={
                         <>
                             {showIcon &&

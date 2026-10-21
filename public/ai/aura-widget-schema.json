@@ -17061,6 +17061,10 @@
           "default": true,
           "description": "Nur layout \"circle\": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
         },
+        "circleTriggerSize": {
+          "type": "number",
+          "description": "Nur layout \"circle\": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+        },
         "closeDp": {
           "type": "string",
           "description": "Datenpunkt für \"Zu\".",

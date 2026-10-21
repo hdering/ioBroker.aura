@@ -130,6 +130,18 @@ await page.waitForTimeout(200);
 check('keepOpen leaves the menu open', (await page.locator(ITEM).count()) > 0);
 await page.keyboard.press('Escape');
 
+// ── 5a. circleTriggerSize ────────────────────────────────────────────────────
+await show({ circleTriggerSize: 60 });
+const small = await page.locator(TRIGGER).boundingBox();
+check('circleTriggerSize fixes the diameter', !!small && Math.round(small.width) === 60, JSON.stringify(small));
+await show({ circleTriggerSize: 2000 });
+const capped = await page.locator(TRIGGER).boundingBox();
+check(
+    'circleTriggerSize never exceeds the widget',
+    !!capped && !!box && Math.abs(capped.width - box.width) < 1,
+    `${capped?.width} vs ${box?.width}`,
+);
+
 // ── 5b. circleOrder ──────────────────────────────────────────────────────────
 await show({
     positionPresets: [{ pos: 75 }, { pos: 25 }],

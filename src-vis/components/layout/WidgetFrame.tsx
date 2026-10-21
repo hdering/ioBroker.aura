@@ -18033,6 +18033,26 @@ function WidgetFrameInner({
                                                                             setO({ circleOrder })
                                                                         }
                                                                     />
+                                                                    {toggleRow(
+                                                                        'Knopf füllt das Widget',
+                                                                        'Aus: feste Größe des runden Knopfs, unabhängig von der Widget-Größe.',
+                                                                        !o.circleTriggerSize,
+                                                                        () =>
+                                                                            setO({
+                                                                                circleTriggerSize: o.circleTriggerSize
+                                                                                    ? undefined
+                                                                                    : 120,
+                                                                            }),
+                                                                    )}
+                                                                    {!!o.circleTriggerSize &&
+                                                                        sizeRow(
+                                                                            'Größe des Knopfs',
+                                                                            'circleTriggerSize',
+                                                                            120,
+                                                                            40,
+                                                                            400,
+                                                                            4,
+                                                                        )}
                                                                     {sizeRow(
                                                                         'Größe der Einträge',
                                                                         'circleItemSize',
