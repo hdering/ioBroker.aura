@@ -5,6 +5,7 @@ import { useIoBroker } from '../../../hooks/useIoBroker';
 import type { WidgetConfig } from '../../../types';
 import { ShutterViz } from '../ShutterViz';
 import { clampPct, rawToTiltPct, tiltPctToRaw, tiltRange } from '../../../utils/shutterTilt';
+import { shutterCommands } from '../../../utils/shutterCommand';
 
 interface Props {
     widget: WidgetConfig;
@@ -60,10 +61,15 @@ export function ShutterPopupBody({ widget }: Props) {
         setTiltDraft(null);
     };
 
+    // Taster/move mode: up/down go to the command DPs, position writes stay the fallback
+    const commands = shutterCommands(opts);
+    const openFully = () => (commands?.upDp ? setState(commands.upDp, commands.upValue) : writePos(100));
+    const closeFully = () => (commands?.downDp ? setState(commands.downDp, commands.downValue) : writePos(0));
+
     const stop = () => {
         const stopDp = opts.stopDp as string | undefined;
         if (stopDp) setState(stopDp, true);
-        else setState(widget.datapoint, rawPos);
+        else if ((opts.controlMode ?? 'position') === 'position') setState(widget.datapoint, rawPos);
     };
 
     const btnStyle: React.CSSProperties = {
@@ -112,7 +118,7 @@ export function ShutterPopupBody({ widget }: Props) {
                 {/* Vertical control column */}
                 <div className="flex flex-col items-center gap-3">
                     <button
-                        onClick={() => writePos(100)}
+                        onClick={openFully}
                         className="w-12 h-12 flex items-center justify-center rounded-xl hover:opacity-80 transition-opacity"
                         style={btnStyle}
                     >
@@ -126,7 +132,7 @@ export function ShutterPopupBody({ widget }: Props) {
                         <Square size={18} />
                     </button>
                     <button
-                        onClick={() => writePos(0)}
+                        onClick={closeFully}
                         className="w-12 h-12 flex items-center justify-center rounded-xl hover:opacity-80 transition-opacity"
                         style={btnStyle}
                     >

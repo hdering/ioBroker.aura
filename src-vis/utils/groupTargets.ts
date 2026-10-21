@@ -9,6 +9,7 @@
  */
 import type { ioBrokerState, WidgetConfig } from '../types';
 import { switchEntryActive, switchWriteValues, type SwitchEntryConfig } from './switchEntry';
+import { shutterCommands } from './shutterCommand';
 
 /** Config keys controlling how group actions write to different DP kinds.
  *  Stored on a list widget's options or a group widget's options. */
@@ -77,6 +78,9 @@ export interface ShutterTarget {
     positionDp?: string;
     invert?: boolean;
     writeValue?: string | number | boolean;
+    /** Value for upDp / downDp instead of writeValue (one move DP: false = up, true = down). */
+    upValue?: string | number | boolean;
+    downValue?: string | number | boolean;
 }
 
 export interface GroupTarget {
@@ -342,12 +346,10 @@ export function groupChildShutterTargets(children: WidgetConfig[], exclude?: Rea
     for (const c of children) {
         if (c.type !== 'shutter' || !notExcluded(c.id, exclude)) continue;
         const o = c.options ?? {};
-        const taster = o.controlMode === 'taster';
-        const openDp = o.openDp as string | undefined;
-        const closeDp = o.closeDp as string | undefined;
+        const commands = shutterCommands(o);
         const stopDp = o.stopDp as string | undefined;
-        if (taster && (openDp || closeDp)) {
-            out.push({ upDp: openDp, downDp: closeDp, stopDp, writeValue: true });
+        if (commands) {
+            out.push({ ...commands, stopDp, writeValue: true });
         } else if (c.datapoint) {
             out.push({ positionDp: c.datapoint, invert: !!o.invertPosition, stopDp, writeValue: true });
         }

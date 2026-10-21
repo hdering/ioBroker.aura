@@ -6528,6 +6528,7 @@ const PICKER_OPTION_KEYS = {
     shutter_stopDp: 'stopDp',
     shutter_openDp: 'openDp',
     shutter_closeDp: 'closeDp',
+    shutter_moveDp: 'moveDp',
     shutter_actualPositionDp: 'actualPositionDp',
     shutter_tiltDp: 'tiltDp',
     shutter_actualTiltDp: 'actualTiltDp',
@@ -17444,6 +17445,7 @@ function WidgetFrameInner({
                                                                 [
                                                                     { label: 'Position (Standard)', val: 'position' },
                                                                     { label: 'Taster (AUF/ZU/STOP)', val: 'taster' },
+                                                                    { label: 'Fahr-DP (Auf/Ab)', val: 'move' },
                                                                 ] as const
                                                             ).map(({ label, val }) => (
                                                                 <button
@@ -17469,9 +17471,66 @@ function WidgetFrameInner({
                                                         <p className="text-[10px]" style={hint}>
                                                             {controlMode === 'position'
                                                                 ? 'Schreibt 0–100 % direkt auf den Positions-DP (z.B. Homematic, Z-Wave).'
-                                                                : 'Schreibt true auf separate Boolean-Taster-DPs (z.B. Dooya, 433 MHz, Zigbee-Skript).'}
+                                                                : controlMode === 'move'
+                                                                  ? 'Ein DP für Auf und Ab mit zwei Werten (z.B. KNX-Fahrobjekt DPT 1.008: false = Auf, true = Ab).'
+                                                                  : 'Schreibt true auf separate Boolean-Taster-DPs (z.B. Dooya, 433 MHz, Zigbee-Skript).'}
                                                         </p>
                                                     </div>
+
+                                                    {/* Fahr-DP + Werte – nur im Fahr-DP-Modus */}
+                                                    {controlMode === 'move' && (
+                                                        <div>
+                                                            <label className="text-[11px] mb-1 block" style={hint}>
+                                                                Fahr-DP (Auf/Ab)
+                                                            </label>
+                                                            {dpRow('moveDp', 'shutter_moveDp', 'z.B. knx.0…Fahren')}
+                                                            <div className="flex gap-2 mt-1">
+                                                                {(
+                                                                    [
+                                                                        {
+                                                                            key: 'moveUpValue',
+                                                                            label: 'Wert Auf',
+                                                                            def: 'false',
+                                                                        },
+                                                                        {
+                                                                            key: 'moveDownValue',
+                                                                            label: 'Wert Ab',
+                                                                            def: 'true',
+                                                                        },
+                                                                    ] as const
+                                                                ).map(({ key, label, def }) => (
+                                                                    <div key={key} className="flex-1">
+                                                                        <label
+                                                                            className="text-[10px] block"
+                                                                            style={hint}
+                                                                        >
+                                                                            {label}
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={
+                                                                                o[key] === undefined
+                                                                                    ? ''
+                                                                                    : String(o[key])
+                                                                            }
+                                                                            onChange={(e) =>
+                                                                                setO({
+                                                                                    [key]: e.target.value || undefined,
+                                                                                })
+                                                                            }
+                                                                            placeholder={def}
+                                                                            className={sInputCls}
+                                                                            style={sInputStyle}
+                                                                        />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <p className="text-[10px] mt-1" style={hint}>
+                                                                true/false, Zahl oder Text. Leer = false (Auf) bzw. true
+                                                                (Ab), wie beim KNX-Fahrobjekt.
+                                                            </p>
+                                                        </div>
+                                                    )}
 
                                                     {/* AUF-Taster DP – nur im Taster-Modus */}
                                                     {controlMode === 'taster' && (
@@ -17529,11 +17588,13 @@ function WidgetFrameInner({
                                                         </label>
                                                         {dpRow('stopDp', 'shutter_stopDp', 'z.B. …STOP oder …stop')}
                                                         <p className="text-[10px] mt-1" style={hint}>
-                                                            {controlMode === 'taster'
-                                                                ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. …Schlafzimmer.stop).'
-                                                                : (o.stopDp as string)
-                                                                  ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. Homematic STOP).'
-                                                                  : 'Ohne Stop-DP wird die Position vor dem letzten Fahrbefehl als Ziel zurückgesendet.'}
+                                                            {controlMode === 'move'
+                                                                ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. KNX-Objekt Stopp/Lamellen, DPT 1.007).'
+                                                                : controlMode === 'taster'
+                                                                  ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. …Schlafzimmer.stop).'
+                                                                  : (o.stopDp as string)
+                                                                    ? 'Boolean-DP – ein true-Impuls stoppt die Fahrt (z.B. Homematic STOP).'
+                                                                    : 'Ohne Stop-DP wird die Position vor dem letzten Fahrbefehl als Ziel zurückgesendet.'}
                                                         </p>
                                                     </div>
 
@@ -17565,7 +17626,7 @@ function WidgetFrameInner({
                                                     </div>
 
                                                     {/* Bewegungs-Werte – nur Taster-Modus mit befülltem activityDp */}
-                                                    {controlMode === 'taster' && !!(o.activityDp as string) && (
+                                                    {controlMode !== 'position' && !!(o.activityDp as string) && (
                                                         <div>
                                                             <label className="text-[11px] mb-1 block" style={hint}>
                                                                 Bewegungs-Werte (kommagetrennt)

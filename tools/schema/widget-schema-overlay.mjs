@@ -583,11 +583,14 @@ export const WIDGET_OPTION_NOTES = {
     },
     shutter: {
         controlMode: {
-            enum: ['position', 'buttons'],
-            description: '"position" = Prozentwert über einen Schieberegler, "buttons" = Auf/Stopp/Zu.',
+            enum: ['position', 'taster', 'move'],
+            description:
+                '"position" = Auf/Zu schreiben 100/0 auf den Haupt-DP (Prozentwert). "taster" = Auf/Zu pulsen je einen eigenen ' +
+                'Boolean-DP (openDp/closeDp) mit true. "move" = ein Fahr-DP für beide Richtungen (moveDp, z. B. KNX DPT 1.008), ' +
+                'Auf schreibt moveUpValue, Zu moveDownValue. In taster/move hält Stopp nur über stopDp an.',
         },
-        openDp: { description: 'Datenpunkt für "Auf" (nur nötig, wenn der Antrieb keine Position kennt).' },
-        closeDp: { description: 'Datenpunkt für "Zu".' },
+        openDp: { description: 'Nur controlMode "taster": Datenpunkt für "Auf", bekommt true.' },
+        closeDp: { description: 'Nur controlMode "taster": Datenpunkt für "Zu", bekommt true.' },
         stopDp: { description: 'Datenpunkt für "Stopp".' },
         actualPositionDp: { description: 'Datenpunkt der Ist-Position, wenn er vom Soll-DP abweicht.' },
         invertPosition: { description: '0 % bedeutet offen statt geschlossen.' },
@@ -1645,6 +1648,23 @@ const STATUS_ROW_OPTIONS = {
 };
 
 export const EXTRA_OPTIONS = {
+    shutter: {
+        // Read in utils/shutterCommand, shared with the popup and group actions.
+        moveDp: {
+            type: 'string',
+            description: 'Nur controlMode "move": ein Fahr-DP für Auf und Ab (z. B. KNX-Objekt "Auf/Ab", DPT 1.008).',
+        },
+        moveUpValue: {
+            type: 'string',
+            description:
+                'Nur controlMode "move": Wert für "Auf" als Text; "true"/"false" und Zahlen werden umgewandelt. Leer = false.',
+        },
+        moveDownValue: {
+            type: 'string',
+            description:
+                'Nur controlMode "move": Wert für "Ab" als Text; "true"/"false" und Zahlen werden umgewandelt. Leer = true.',
+        },
+    },
     list: { ...AUTO_HEIGHT_OPTION },
     autolist: { ...AUTO_HEIGHT_OPTION },
     jsontable: { ...AUTO_HEIGHT_OPTION },

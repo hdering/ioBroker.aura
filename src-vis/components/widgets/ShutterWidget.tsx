@@ -12,6 +12,7 @@ import { ShutterViz } from './ShutterViz';
 import { applyCircleOrder, CircleMenu, type CircleDirection, type CircleMenuItem } from './CircleMenu';
 import { TILT_SLIDER_WIDTH, TiltButton, TiltPopover, TiltSlider, TiltStepButtons } from './TiltControls';
 import { clampPct, rawToTiltPct, tiltPctToRaw, tiltRange } from '../../utils/shutterTilt';
+import { shutterCommands } from '../../utils/shutterCommand';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 const BTN_GAP = 4; // gap-1
@@ -146,8 +147,7 @@ export function shutterCircleEntries(opts: Record<string, unknown>): { key: stri
 export function ShutterWidget({ config }: WidgetProps) {
     const opts = config.options ?? {};
     const controlMode = (opts.controlMode as string) ?? 'position';
-    const openDp = opts.openDp as string | undefined;
-    const closeDp = opts.closeDp as string | undefined;
+    const commands = shutterCommands(opts);
     const activityMovingRaw = opts.activityMovingValues as string | undefined;
     const actualPositionDp = opts.actualPositionDp as string | undefined;
     const tiltDp = opts.tiltDp as string | undefined;
@@ -304,19 +304,19 @@ export function ShutterWidget({ config }: WidgetProps) {
         setValue(raw);
     };
     const openFully = () => {
-        if (controlMode === 'taster' && openDp) {
+        if (commands?.upDp) {
             preMoveRawRef.current = rawPos;
             keepTiltAcrossMove();
-            setState(openDp, true);
+            setState(commands.upDp, commands.upValue);
         } else {
             writePos(100);
         }
     };
     const closeFully = () => {
-        if (controlMode === 'taster' && closeDp) {
+        if (commands?.downDp) {
             preMoveRawRef.current = rawPos;
             keepTiltAcrossMove();
-            setState(closeDp, true);
+            setState(commands.downDp, commands.downValue);
         } else {
             writePos(0);
         }
@@ -325,7 +325,7 @@ export function ShutterWidget({ config }: WidgetProps) {
         const stopDp = opts.stopDp as string | undefined;
         if (stopDp) {
             setState(stopDp, true);
-        } else if (controlMode !== 'taster') {
+        } else if (controlMode === 'position') {
             // Race-condition-safe fallback: use pre-move snapshot, not current rawPos
             const stopTarget = isMoving && rawPos !== preMoveRawRef.current ? rawPos : preMoveRawRef.current;
             setState(config.datapoint, stopTarget);

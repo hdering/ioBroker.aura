@@ -175,12 +175,12 @@ export function GroupActionControl({
             ) : null;
         const up = () =>
             active.forEach((t) => {
-                if (t.upDp) setState(t.upDp, coerce(t.writeValue, true));
+                if (t.upDp) setState(t.upDp, t.upValue ?? coerce(t.writeValue, true));
                 else if (t.positionDp) setState(t.positionDp, t.invert ? 0 : 100);
             });
         const down = () =>
             active.forEach((t) => {
-                if (t.downDp) setState(t.downDp, coerce(t.writeValue, true));
+                if (t.downDp) setState(t.downDp, t.downValue ?? coerce(t.writeValue, true));
                 else if (t.positionDp) setState(t.positionDp, t.invert ? 100 : 0);
             });
         const stop = () => active.forEach((t) => t.stopDp && setState(t.stopDp, coerce(t.writeValue, true)));
