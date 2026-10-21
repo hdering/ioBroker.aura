@@ -28,6 +28,7 @@ export default defineConfig({
       { text: 'Erste Schritte', link: '/start/' },
       { text: 'Widgets', link: '/widgets/' },
       { text: 'Einstellungen', link: '/einstellungen/' },
+      { text: 'Anleitungen', link: '/anleitungen/' },
     ],
 
     sidebar: {
@@ -51,6 +52,15 @@ export default defineConfig({
         },
       ],
       '/widgets/': widgetsSidebar,
+      '/anleitungen/': [
+        {
+          text: 'Anleitungen',
+          items: [
+            { text: 'Übersicht', link: '/anleitungen/' },
+            { text: 'Bildschirmschoner erstellen', link: '/anleitungen/bildschirmschoner' },
+          ],
+        },
+      ],
       '/einstellungen/': [
         {
           text: 'Adminbereich',

@@ -46,6 +46,9 @@ Der Trigger-Datenpunkt steht im Popup als `{{dp}}` bereit — eine Popup-View l�
 
 ### Bildschirmschoner
 
+Ausführlich mit Screenshots: [Anleitung Bildschirmschoner erstellen](../anleitungen/bildschirmschoner).
+
+
 | Schritt | |
 | --- | --- |
 | 1 | **Frontend-Design → Navigation → Leerlauf des Geräts melden**: Zeit ohne Eingabe festlegen (Standard 120 s) |

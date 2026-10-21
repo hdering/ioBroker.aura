@@ -15,6 +15,9 @@ hero:
     - theme: alt
       text: Einstellungen
       link: /einstellungen/
+    - theme: alt
+      text: Anleitungen
+      link: /anleitungen/
 
 features:
   - title: Erste Schritte
@@ -26,6 +29,9 @@ features:
   - title: Einstellungen
     details: Globale Konfiguration, Themes, Sicherheit und mehr.
     link: /einstellungen/
+  - title: Anleitungen
+    details: Schritt für Schritt zu typischen Aufgaben, z. B. Bildschirmschoner erstellen.
+    link: /anleitungen/
   - title: Mehrsprachig
     details: Doku zunächst auf Deutsch, später automatische Übersetzung.
 ---
