@@ -409,6 +409,31 @@ for (const [name, extra, wait] of [
     );
 }
 
+// ── 5b. A battery too thin for the pill (#819) ──────────────────────────────
+{
+    // The configuration from the issue: a narrow vertical battery. The pill does not fit
+    // across the track, so it moves beside it instead of disappearing.
+    const cfg = widget(
+        { limits: [lim({ step: 5, showValue: true, color: GREEN })], showTicks: false, barSize: 150 },
+        { layout: 'battery', gridPos: { x: 0, y: 0, w: 5, h: 8 } },
+    );
+    await show(cfg, { [SOC]: 57, [MAXDP]: 80 });
+    const g = await page.evaluate(() => {
+        const box = document.querySelector('[data-aura-fill-limits]')?.getBoundingClientRect();
+        const pill = document.querySelector('[data-aura-fill-limit-label]')?.getBoundingClientRect();
+        return box
+            ? { track: box.width, pill: pill ? { left: pill.left - box.left, w: pill.width } : null, bw: box.width }
+            : null;
+    });
+    check('the thin battery is really too thin for an inner pill', g && g.track < 42, `${g?.track?.toFixed(1)} px`);
+    check('the thin battery still shows the limit value', !!g?.pill, JSON.stringify(g?.pill));
+    check(
+        'and puts the pill beside the track, not over it',
+        !!g?.pill && (g.pill.left >= g.bw || g.pill.left + g.pill.w <= 0),
+        JSON.stringify(g),
+    );
+}
+
 // ── 6. Layouts without a bar ────────────────────────────────────────────────
 {
     // Segments are a stepped readout and the wave has no straight surface: a marker

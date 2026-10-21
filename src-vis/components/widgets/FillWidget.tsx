@@ -1591,7 +1591,7 @@ export function FillWidget({ config }: WidgetProps) {
 
     const layout = (config.layout ?? 'default') as string;
     /** The limits layer, mounted inside the (relative) bar wrapper of each layout. */
-    const limitsLayerFor = (ref: RefObject<Element>) =>
+    const limitsLayerFor = (ref: RefObject<Element>, pillOutside = false) =>
         resolvedLimits.length ? (
             <FillLimits
                 hostRef={hostRef}
@@ -1605,6 +1605,7 @@ export function FillWidget({ config }: WidgetProps) {
                 decimals={decimals}
                 numFmt={numFmt}
                 clampNeighbours={clampNeighbours}
+                pillOutside={pillOutside}
                 onDrag={onLimitDrag}
                 onCommit={onLimitCommit}
             />
@@ -1711,7 +1712,7 @@ export function FillWidget({ config }: WidgetProps) {
                             trackRef={trackRef}
                             solid={solid}
                         />
-                        {limitsLayer}
+                        {limitsLayerFor(trackRef, true)}
                         {statusLayerFor(trackRef)}
                     </div>
                 </div>

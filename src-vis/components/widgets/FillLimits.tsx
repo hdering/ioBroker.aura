@@ -36,12 +36,25 @@ const HIT_R = 13;
 /** Assumed size of a value pill. Only used to keep it off the handle and inside the bar. */
 const PILL_W = 34;
 const PILL_H = 13;
+/** Average glyph width of the 9px bold pill text, for the room check beside the track. */
+const PILL_CHAR_W = 6;
+/** Gap between the track and a pill placed beside it. */
+const PILL_GAP = 4;
+
+type PillSide = 'inside' | 'right' | 'left';
 
 export interface Box {
     left: number;
     top: number;
     width: number;
     height: number;
+    /**
+     * Free room beside the track, up to the edges of the widget's value area (the host
+     * itself is often no wider than the drawing). Lets a layer put a label next to a
+     * bar too thin to hold it.
+     */
+    roomLeft: number;
+    roomRight: number;
 }
 
 /**
@@ -61,13 +74,23 @@ export function useTrackBox(hostRef: RefObject<HTMLElement>, trackRef: RefObject
         if (!host || !track) return;
         const h = host.getBoundingClientRect();
         const t = track.getBoundingClientRect();
-        const next: Box = { left: t.left - h.left, top: t.top - h.top, width: t.width, height: t.height };
+        const area = (host.closest('.aura-widget-value') ?? host).getBoundingClientRect();
+        const next: Box = {
+            left: t.left - h.left,
+            top: t.top - h.top,
+            width: t.width,
+            height: t.height,
+            roomLeft: t.left - area.left,
+            roomRight: area.right - t.right,
+        };
         setBox((prev) =>
             prev &&
             Math.abs(prev.left - next.left) < 0.5 &&
             Math.abs(prev.top - next.top) < 0.5 &&
             Math.abs(prev.width - next.width) < 0.5 &&
-            Math.abs(prev.height - next.height) < 0.5
+            Math.abs(prev.height - next.height) < 0.5 &&
+            Math.abs(prev.roomLeft - next.roomLeft) < 0.5 &&
+            Math.abs(prev.roomRight - next.roomRight) < 0.5
                 ? prev
                 : next,
         );
@@ -115,6 +138,11 @@ export interface FillLimitsProps {
     decimals: number;
     numFmt?: NumberFormat;
     clampNeighbours: boolean;
+    /**
+     * A vertical bar too thin for a pill may put it beside the track instead (#819).
+     * Only for layouts whose outside is free - the tanks own it (ticks left, value right).
+     */
+    pillOutside?: boolean;
     /** Live display value while dragging; the widget mirrors it into the section edges. */
     onDrag: (id: string, at: number) => void;
     /** Pointer released — write the datapoint. */
@@ -133,6 +161,7 @@ export function FillLimits({
     decimals,
     numFmt,
     clampNeighbours,
+    pillOutside,
     onDrag,
     onCommit,
 }: FillLimitsProps) {
@@ -156,7 +185,22 @@ export function FillLimits({
     const roomForChrome = cross >= MIN_CROSS_PX;
     // A vertical pill is laid out ACROSS the bar, so a thin bar cannot hold one at all;
     // a horizontal one runs along the bar and only needs the thickness.
-    const roomForPill = vertical ? cross >= PILL_W + 8 : roomForChrome;
+    const pillInside = vertical ? cross >= PILL_W + 8 : roomForChrome;
+    const labelOf = (limit: ResolvedLimit) => `${formatNum(limit.at, decimals, numFmt)}${unit}`;
+    /**
+     * Where a limit's pill goes: in the bar, or - too thin there - beside the track,
+     * right first, where the value area has room for this very label. Measured on the
+     * text rather than PILL_W: a thin battery has some 35 px beside it, plenty for
+     * "80%" but not for the worst case PILL_W stands for.
+     */
+    const pillSide = (text: string): PillSide | null => {
+        if (pillInside) return 'inside';
+        if (!vertical || !pillOutside) return null;
+        const need = text.length * PILL_CHAR_W + 8 + PILL_GAP;
+        if (box.roomRight >= need) return 'right';
+        if (box.roomLeft >= need) return 'left';
+        return null;
+    };
 
     /** Offset along the track, in px from the box's own origin. */
     const alongPx = (frac: number) => (vertical ? (1 - frac) * box.height : frac * box.width);
@@ -169,9 +213,16 @@ export function FillLimits({
      * horizontal bar, flipped to the other side of the marker once the bar's end is in
      * the way — clamping it instead slid it straight back under the handle.
      */
-    const pillPos = (pos: number, draggable?: boolean): React.CSSProperties => {
+    const pillPos = (pos: number, side: PillSide, draggable?: boolean): React.CSSProperties => {
         const off = draggable ? HANDLE_R + 4 : 4;
-        if (vertical) return { left: 3, top: Math.max(0, Math.min(box.height - PILL_H, pos + off)) };
+        if (vertical) {
+            // Beside the track nothing shares the line, so the pill centres on it.
+            if (side !== 'inside') {
+                const top = Math.max(0, Math.min(box.height - PILL_H, pos - PILL_H / 2));
+                return side === 'right' ? { left: box.width + PILL_GAP, top } : { right: box.width + PILL_GAP, top };
+            }
+            return { left: 3, top: Math.max(0, Math.min(box.height - PILL_H, pos + off)) };
+        }
         const right = pos + off;
         const left = right + PILL_W <= box.width ? right : Math.max(0, pos - off - PILL_W);
         return { top: 3, left };
@@ -237,13 +288,14 @@ export function FillLimits({
 
     // Pills are dropped bottom-up when they would overlap: the lowest limit keeps its
     // label, a crowded neighbour loses it rather than printing mush.
-    const labelShown = new Map<string, boolean>();
+    const labelShown = new Map<string, PillSide>();
     let lastLabelPx = Number.NEGATIVE_INFINITY;
     for (const limit of [...limits].sort((a, b) => a.frac - b.frac)) {
         const px = vertical ? along - alongPx(limit.frac) : alongPx(limit.frac);
-        const show = limit.showValue !== false && roomForPill && px - lastLabelPx >= MIN_LABEL_GAP_PX;
-        labelShown.set(limit.id, show);
-        if (show) lastLabelPx = px;
+        const side = limit.showValue !== false ? pillSide(labelOf(limit)) : null;
+        if (!side || px - lastLabelPx < MIN_LABEL_GAP_PX) continue;
+        labelShown.set(limit.id, side);
+        lastLabelPx = px;
     }
 
     return (
@@ -310,7 +362,8 @@ export function FillLimits({
                     const color = limit.color || 'var(--accent)';
                     const pos = alongPx(limit.frac);
                     const isDragging = dragging === limit.id;
-                    const label = `${formatNum(limit.at, decimals, numFmt)}${unit}`;
+                    const label = labelOf(limit);
+                    const side = labelShown.get(limit.id);
                     return (
                         <div key={limit.id} data-aura-fill-limit={limit.id} data-aura-fill-limit-at={limit.at}>
                             {/* Halo under the line so it reads on any fill colour */}
@@ -333,7 +386,7 @@ export function FillLimits({
                                 }}
                             />
 
-                            {labelShown.get(limit.id) && (
+                            {side && (
                                 <div
                                     data-aura-fill-limit-label={limit.id}
                                     style={{
@@ -350,9 +403,9 @@ export function FillLimits({
                                         padding: '0 4px',
                                         borderRadius: 4,
                                         whiteSpace: 'nowrap',
-                                        // Inside the bar on purpose: the tank layouts already own
+                                        // Inside the bar unless pillOutside: the tank layouts own
                                         // the outside (tick labels left, value label right).
-                                        ...pillPos(pos, limit.draggable),
+                                        ...pillPos(pos, side, limit.draggable),
                                     }}
                                 >
                                     {label}
