@@ -12,3 +12,4 @@
 - Tab bar - a menu element set to "Center" now stands in the middle of the bar even when the tabs are aligned left or right; it used to appear on the right (#820)
 - Aura now ships a web app manifest with proper icons, so "Install" / "Add to Home Screen" in Chrome, Edge, Android and iOS creates an app named Aura with its own icon that opens without browser bars (#823)
 - Shutter - new control mode "Move DP (up/down)" for actuators with a single up/down object such as KNX (DPT 1.008): one datapoint gets false for up and true for down, the values are configurable; the shutter popup now also uses the up/down datapoints of push-button and move mode
+- Timer - astro events (sunrise/sunset) now reliably show their time in the frontend; on a slow connection the location was read before the connection was up, so only the sun symbol appeared until the next reload (#498)
