@@ -17069,19 +17069,15 @@
           "type": "number",
           "description": "Nur layout \"circle\": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
         },
-        "closeDp": {
-          "type": "string",
-          "description": "Datenpunkt für \"Zu\".",
-          "datapoint": true
-        },
         "controlMode": {
           "type": "string",
           "default": "position",
           "enum": [
             "position",
-            "buttons"
+            "taster",
+            "move"
           ],
-          "description": "\"position\" = Prozentwert über einen Schieberegler, \"buttons\" = Auf/Stopp/Zu."
+          "description": "\"position\" = Auf/Zu schreiben 100/0 auf den Haupt-DP (Prozentwert). \"taster\" = Auf/Zu pulsen je einen eigenen Boolean-DP (openDp/closeDp) mit true. \"move\" = ein Fahr-DP für beide Richtungen (moveDp, z. B. KNX DPT 1.008), Auf schreibt moveUpValue, Zu moveDownValue. In taster/move hält Stopp nur über stopDp an."
         },
         "directionDp": {
           "type": "string",
@@ -17093,10 +17089,18 @@
           "type": "boolean",
           "description": "0 % bedeutet offen statt geschlossen."
         },
-        "openDp": {
+        "moveDownValue": {
           "type": "string",
-          "description": "Datenpunkt für \"Auf\" (nur nötig, wenn der Antrieb keine Position kennt).",
+          "description": "Nur controlMode \"move\": Wert für \"Ab\" als Text; \"true\"/\"false\" und Zahlen werden umgewandelt. Leer = true."
+        },
+        "moveDp": {
+          "type": "string",
+          "description": "Nur controlMode \"move\": ein Fahr-DP für Auf und Ab (z. B. KNX-Objekt \"Auf/Ab\", DPT 1.008).",
           "datapoint": true
+        },
+        "moveUpValue": {
+          "type": "string",
+          "description": "Nur controlMode \"move\": Wert für \"Auf\" als Text; \"true\"/\"false\" und Zahlen werden umgewandelt. Leer = false."
         },
         "positionLivePreview": {
           "type": "boolean",
