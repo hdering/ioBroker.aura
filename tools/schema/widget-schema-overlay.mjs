@@ -602,7 +602,10 @@ export const WIDGET_OPTION_NOTES = {
         tiltStep: { description: 'Schrittweite der Lamellen.' },
         tiltLabel: { description: 'Beschriftung der Lamellensteuerung.' },
         tiltLivePreview: { description: 'Lamellenwert schon beim Ziehen übernehmen.' },
-        tiltPlacement: { description: '"inline" zeigt die Lamellensteuerung im Widget, "popup" hinter einer Taste.' },
+        tiltPlacement: {
+            description:
+                '"inline" zeigt die Lamellensteuerung im Widget, "popup" hinter einer Taste. Im layout "circle" gibt es nur Eintrag im Kreis (jeder Wert außer "off") oder "off".',
+        },
         tiltControl: { description: 'Art der Lamellensteuerung bei tiltPlacement "inline".' },
         tiltSliderSide: { description: 'Auf welcher Seite der Lamellenregler steht: left oder right.' },
         tiltSliderWidth: { description: 'Breite des Lamellenreglers in px.' },

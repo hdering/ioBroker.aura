@@ -10850,14 +10850,23 @@ function WidgetFrameInner({
                                     },
                                     { key: 'compact', label: 'Pfad-Zeile', invert: true },
                                 );
-                            if (config.type === 'shutter')
+                            if (config.type === 'shutter') {
+                                const circle = config.layout === 'circle';
                                 // Only with a tilt datapoint is there a tilt value to show.
                                 fields.push({
                                     key: 'showTiltValue',
                                     label: 'Neigungswert',
                                     hint: 'Prozentwert der Neigung neben dem Regler bzw. im Widget.',
-                                    hidden: !(o.tiltDp as string | undefined),
+                                    hidden: !(o.tiltDp as string | undefined) || circle,
                                 });
+                                // The circle menu has no slider; its only "control button" is the stop entry.
+                                if (circle)
+                                    for (let i = 0; i < fields.length; i++) {
+                                        if (fields[i].key === 'showSlider') fields[i] = { ...fields[i], hidden: true };
+                                        if (fields[i].key === 'showControls')
+                                            fields[i] = { ...fields[i], label: 'Stopp im Kreis' };
+                                    }
+                            }
                             if (config.type === 'datepicker')
                                 // The own input pattern decides the fields itself; "Nur Uhrzeit" always has one.
                                 fields.push({
@@ -17683,25 +17692,45 @@ function WidgetFrameInner({
                                                                 () => setO({ invertTilt: !o.invertTilt }),
                                                             )}
 
-                                                            {segRow(
-                                                                'Bedienung',
-                                                                tiltPlacement === 'inline'
-                                                                    ? 'Regler bzw. Tasten direkt im Widget.'
-                                                                    : tiltPlacement === 'popup'
-                                                                      ? 'Kleine Lamellen-Taste öffnet ein Popover mit Regler und Schnellwerten.'
-                                                                      : 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).',
-                                                                tiltPlacement,
-                                                                [
-                                                                    { label: 'Im Widget', val: 'inline' },
-                                                                    { label: 'Popover', val: 'popup' },
-                                                                    { label: 'Aus', val: 'off' },
-                                                                ],
-                                                                (val) => setO({ tiltPlacement: val }),
-                                                            )}
+                                                            {/* Circle menu: the slats are one entry of the circle — or none. */}
+                                                            {config.layout === 'circle' &&
+                                                                segRow(
+                                                                    'Bedienung',
+                                                                    tiltPlacement === 'off'
+                                                                        ? 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).'
+                                                                        : 'Eintrag „Lamellen“ im Kreis öffnet ein Popover mit Regler und Schnellwerten.',
+                                                                    tiltPlacement === 'off' ? 'off' : 'circle',
+                                                                    [
+                                                                        { label: 'Im Kreis', val: 'circle' },
+                                                                        { label: 'Aus', val: 'off' },
+                                                                    ],
+                                                                    (val) =>
+                                                                        setO({
+                                                                            tiltPlacement:
+                                                                                val === 'off' ? 'off' : undefined,
+                                                                        }),
+                                                                )}
+                                                            {config.layout !== 'circle' &&
+                                                                segRow(
+                                                                    'Bedienung',
+                                                                    tiltPlacement === 'inline'
+                                                                        ? 'Regler bzw. Tasten direkt im Widget.'
+                                                                        : tiltPlacement === 'popup'
+                                                                          ? 'Kleine Lamellen-Taste öffnet ein Popover mit Regler und Schnellwerten.'
+                                                                          : 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).',
+                                                                    tiltPlacement,
+                                                                    [
+                                                                        { label: 'Im Widget', val: 'inline' },
+                                                                        { label: 'Popover', val: 'popup' },
+                                                                        { label: 'Aus', val: 'off' },
+                                                                    ],
+                                                                    (val) => setO({ tiltPlacement: val }),
+                                                                )}
 
                                                             {tiltPlacement === 'inline' &&
                                                                 config.layout !== 'compact' &&
                                                                 config.layout !== 'minimal' &&
+                                                                config.layout !== 'circle' &&
                                                                 segRow(
                                                                     'Regler-Form',
                                                                     'Senkrecht neben der Lamellen-Grafik, waagerecht unter dem Positionsregler oder als Schrittasten.',
@@ -17717,12 +17746,14 @@ function WidgetFrameInner({
                                                             {((o.tiltControl as string) === 'buttons' ||
                                                                 config.layout === 'compact' ||
                                                                 config.layout === 'minimal') &&
+                                                                config.layout !== 'circle' &&
                                                                 numRow('Schrittweite (%)', 'tiltStep', 10)}
 
                                                             {((o.tiltControl as string) ?? 'slider-v') === 'slider-v' &&
                                                                 tiltPlacement === 'inline' &&
                                                                 config.layout !== 'compact' &&
-                                                                config.layout !== 'minimal' && (
+                                                                config.layout !== 'minimal' &&
+                                                                config.layout !== 'circle' && (
                                                                     <>
                                                                         {segRow(
                                                                             'Regler-Seite',
@@ -17891,203 +17922,152 @@ function WidgetFrameInner({
                                                 </SubGroup>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
-                                                {config.layout === 'circle' && (
-                                                    <SubGroup title="Kreismenü">
-                                                        <p className="text-[10px]" style={hint}>
-                                                            Im Kreis: Öffnen, die Schnellwahl-Werte, Schließen, Stopp
-                                                            und – mit Neigungs-DP – die Lamellen.
-                                                        </p>
-                                                        <div>
-                                                            <label className="text-[11px] mb-1 block" style={hint}>
-                                                                Richtung
-                                                            </label>
-                                                            <select
-                                                                value={(o.circleDirection as string) || 'auto'}
-                                                                onChange={(e) =>
-                                                                    setO({
-                                                                        circleDirection:
-                                                                            e.target.value === 'auto'
-                                                                                ? undefined
-                                                                                : e.target.value,
-                                                                    })
-                                                                }
-                                                                className={sInputCls}
-                                                                style={sInputStyle}
-                                                            >
-                                                                <option value="auto">Automatisch</option>
-                                                                <option value="full">Vollkreis</option>
-                                                                <option value="top">Halbkreis oben</option>
-                                                                <option value="right">Halbkreis rechts</option>
-                                                                <option value="bottom">Halbkreis unten</option>
-                                                                <option value="left">Halbkreis links</option>
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <label className="text-[11px]" style={hint}>
-                                                                    Größe der Einträge
-                                                                </label>
-                                                                <span
-                                                                    className="text-[11px] tabular-nums"
-                                                                    style={{ color: 'var(--text-primary)' }}
-                                                                >
-                                                                    {(o.circleItemSize as number) || 48} px
-                                                                </span>
-                                                            </div>
-                                                            <input
-                                                                type="range"
-                                                                min={32}
-                                                                max={96}
-                                                                step={2}
-                                                                value={(o.circleItemSize as number) || 48}
-                                                                onChange={(e) =>
-                                                                    setO({ circleItemSize: Number(e.target.value) })
-                                                                }
-                                                                className="w-full h-1"
-                                                                style={{ accentColor: 'var(--accent)' }}
-                                                            />
-                                                        </div>
-                                                        {toggleRow(
-                                                            'Offen lassen',
-                                                            'Das Menü bleibt nach einer Auswahl offen.',
-                                                            !!o.circleKeepOpen,
-                                                            () => setO({ circleKeepOpen: !o.circleKeepOpen }),
-                                                        )}
-                                                        {toggleRow(
-                                                            'Hintergrund abdunkeln',
-                                                            'Dunkelt die Seite hinter dem geöffneten Menü ab.',
-                                                            o.circleShade !== false,
-                                                            () =>
-                                                                setO({
-                                                                    circleShade:
-                                                                        o.circleShade === false ? undefined : false,
-                                                                }),
-                                                        )}
-                                                    </SubGroup>
-                                                )}
-                                                <>
-                                                    {/* % geschlossen anzeigen */}
-                                                    <div className="flex items-start justify-between gap-2">
-                                                        <div>
-                                                            <label className="text-[11px] block" style={hint}>
-                                                                % geschlossen anzeigen
-                                                            </label>
-                                                            <p className="text-[10px]" style={hint}>
-                                                                Ein: 0 % = ganz offen. Aus: 100 % = ganz offen.
-                                                            </p>
-                                                        </div>
-                                                        <button
-                                                            onClick={() =>
-                                                                setO({
-                                                                    showClosedPercent: !(o.showClosedPercent ?? false),
-                                                                })
-                                                            }
-                                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
-                                                            style={{
-                                                                background:
-                                                                    (o.showClosedPercent ?? false)
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--app-border)',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                                style={{
-                                                                    left:
-                                                                        (o.showClosedPercent ?? false) ? '18px' : '2px',
-                                                                }}
-                                                            />
-                                                        </button>
-                                                    </div>
-
-                                                    {/* Größen */}
-                                                    {(() => {
-                                                        const valueSize = (o.valueSize as number) || 20;
-                                                        const buttonSize = (o.buttonSize as number) || 14;
-                                                        const sliderHeight = (o.sliderHeight as number) || 6;
+                                                {(() => {
+                                                    // Size slider rows of this section.
+                                                    const sizeRow = (
+                                                        label: string,
+                                                        key: string,
+                                                        def: number,
+                                                        min: number,
+                                                        max: number,
+                                                        step = 1,
+                                                    ) => {
+                                                        const v = (o[key] as number) || def;
                                                         return (
-                                                            <>
-                                                                <div>
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <label className="text-[11px]" style={hint}>
-                                                                            Wertgröße (Position %)
-                                                                        </label>
-                                                                        <span
-                                                                            className="text-[11px] tabular-nums"
-                                                                            style={{ color: 'var(--text-primary)' }}
-                                                                        >
-                                                                            {valueSize} px
-                                                                        </span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min={10}
-                                                                        max={72}
-                                                                        step={1}
-                                                                        value={valueSize}
-                                                                        onChange={(e) =>
-                                                                            setO({ valueSize: Number(e.target.value) })
-                                                                        }
-                                                                        className="w-full h-1"
-                                                                        style={{ accentColor: 'var(--accent)' }}
-                                                                    />
+                                                            <div>
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <label className="text-[11px]" style={hint}>
+                                                                        {label}
+                                                                    </label>
+                                                                    <span
+                                                                        className="text-[11px] tabular-nums"
+                                                                        style={{ color: 'var(--text-primary)' }}
+                                                                    >
+                                                                        {v} px
+                                                                    </span>
                                                                 </div>
-                                                                <div>
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <label className="text-[11px]" style={hint}>
-                                                                            Knopfgröße
-                                                                        </label>
-                                                                        <span
-                                                                            className="text-[11px] tabular-nums"
-                                                                            style={{ color: 'var(--text-primary)' }}
-                                                                        >
-                                                                            {buttonSize} px
-                                                                        </span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min={10}
-                                                                        max={48}
-                                                                        step={1}
-                                                                        value={buttonSize}
-                                                                        onChange={(e) =>
-                                                                            setO({ buttonSize: Number(e.target.value) })
-                                                                        }
-                                                                        className="w-full h-1"
-                                                                        style={{ accentColor: 'var(--accent)' }}
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <div className="flex items-center justify-between mb-1">
-                                                                        <label className="text-[11px]" style={hint}>
-                                                                            Schieberegler-Höhe
-                                                                        </label>
-                                                                        <span
-                                                                            className="text-[11px] tabular-nums"
-                                                                            style={{ color: 'var(--text-primary)' }}
-                                                                        >
-                                                                            {sliderHeight} px
-                                                                        </span>
-                                                                    </div>
-                                                                    <input
-                                                                        type="range"
-                                                                        min={3}
-                                                                        max={32}
-                                                                        step={1}
-                                                                        value={sliderHeight}
-                                                                        onChange={(e) =>
-                                                                            setO({
-                                                                                sliderHeight: Number(e.target.value),
-                                                                            })
-                                                                        }
-                                                                        className="w-full h-1"
-                                                                        style={{ accentColor: 'var(--accent)' }}
-                                                                    />
-                                                                </div>
-                                                            </>
+                                                                <input
+                                                                    type="range"
+                                                                    min={min}
+                                                                    max={max}
+                                                                    step={step}
+                                                                    value={v}
+                                                                    onChange={(e) =>
+                                                                        setO({ [key]: Number(e.target.value) })
+                                                                    }
+                                                                    className="w-full h-1"
+                                                                    style={{ accentColor: 'var(--accent)' }}
+                                                                />
+                                                            </div>
                                                         );
-                                                    })()}
-                                                </>
+                                                    };
+                                                    const isCircle = config.layout === 'circle';
+                                                    // Compact and minimal draw no position slider.
+                                                    const hasSlider =
+                                                        !isCircle &&
+                                                        config.layout !== 'compact' &&
+                                                        config.layout !== 'minimal';
+                                                    return (
+                                                        <>
+                                                            <SubGroup title="Position">
+                                                                {toggleRow(
+                                                                    '% geschlossen anzeigen',
+                                                                    'Ein: 0 % = ganz offen. Aus: 100 % = ganz offen.',
+                                                                    !!o.showClosedPercent,
+                                                                    () =>
+                                                                        setO({
+                                                                            showClosedPercent: !o.showClosedPercent,
+                                                                        }),
+                                                                )}
+                                                                {sizeRow('Wertgröße', 'valueSize', 20, 10, 72)}
+                                                            </SubGroup>
+                                                            {isCircle ? (
+                                                                <SubGroup title="Kreismenü">
+                                                                    <p className="text-[10px]" style={hint}>
+                                                                        Im Kreis: Öffnen, die Schnellwahl-Werte,
+                                                                        Schließen, Stopp und – mit Neigungs-DP – die
+                                                                        Lamellen.
+                                                                    </p>
+                                                                    <div>
+                                                                        <label
+                                                                            className="text-[11px] mb-1 block"
+                                                                            style={hint}
+                                                                        >
+                                                                            Richtung
+                                                                        </label>
+                                                                        <select
+                                                                            value={
+                                                                                (o.circleDirection as string) || 'auto'
+                                                                            }
+                                                                            onChange={(e) =>
+                                                                                setO({
+                                                                                    circleDirection:
+                                                                                        e.target.value === 'auto'
+                                                                                            ? undefined
+                                                                                            : e.target.value,
+                                                                                })
+                                                                            }
+                                                                            className={sInputCls}
+                                                                            style={sInputStyle}
+                                                                        >
+                                                                            <option value="auto">Automatisch</option>
+                                                                            <option value="full">Vollkreis</option>
+                                                                            <option value="top">Halbkreis oben</option>
+                                                                            <option value="right">
+                                                                                Halbkreis rechts
+                                                                            </option>
+                                                                            <option value="bottom">
+                                                                                Halbkreis unten
+                                                                            </option>
+                                                                            <option value="left">
+                                                                                Halbkreis links
+                                                                            </option>
+                                                                        </select>
+                                                                    </div>
+                                                                    {sizeRow(
+                                                                        'Größe der Einträge',
+                                                                        'circleItemSize',
+                                                                        48,
+                                                                        32,
+                                                                        96,
+                                                                        2,
+                                                                    )}
+                                                                    {toggleRow(
+                                                                        'Offen lassen',
+                                                                        'Das Menü bleibt nach einer Auswahl offen.',
+                                                                        !!o.circleKeepOpen,
+                                                                        () =>
+                                                                            setO({ circleKeepOpen: !o.circleKeepOpen }),
+                                                                    )}
+                                                                    {toggleRow(
+                                                                        'Hintergrund abdunkeln',
+                                                                        'Dunkelt die Seite hinter dem geöffneten Menü ab.',
+                                                                        o.circleShade !== false,
+                                                                        () =>
+                                                                            setO({
+                                                                                circleShade:
+                                                                                    o.circleShade === false
+                                                                                        ? undefined
+                                                                                        : false,
+                                                                            }),
+                                                                    )}
+                                                                </SubGroup>
+                                                            ) : (
+                                                                <SubGroup title="Bedienelemente">
+                                                                    {sizeRow('Knopfgröße', 'buttonSize', 14, 10, 48)}
+                                                                    {hasSlider &&
+                                                                        sizeRow(
+                                                                            'Schieberegler-Höhe',
+                                                                            'sliderHeight',
+                                                                            6,
+                                                                            3,
+                                                                            32,
+                                                                        )}
+                                                                </SubGroup>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
                                                 {renderThresholds()}
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">

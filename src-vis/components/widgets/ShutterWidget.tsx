@@ -843,7 +843,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                 onSelect: stop,
                 style: dirItemStyle('stop'),
             });
-        if (tiltActive)
+        if (tiltActive && (opts.tiltPlacement as string) !== 'off')
             items.push({
                 key: 'tilt',
                 content: <Blinds size={itemIcon} />,

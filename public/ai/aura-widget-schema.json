@@ -17154,7 +17154,7 @@
         },
         "tiltPlacement": {
           "type": "string",
-          "description": "\"inline\" zeigt die Lamellensteuerung im Widget, \"popup\" hinter einer Taste."
+          "description": "\"inline\" zeigt die Lamellensteuerung im Widget, \"popup\" hinter einer Taste. Im layout \"circle\" gibt es nur Eintrag im Kreis (jeder Wert außer \"off\") oder \"off\"."
         },
         "tiltSliderSide": {
           "type": "string",
