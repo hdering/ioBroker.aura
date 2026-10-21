@@ -261,6 +261,7 @@
     "test:shutter-tilt": "node tools/tests/shutter-tilt.mjs",
     "test:shutter-presets": "node tools/tests/shutter-presets.mjs",
     "test:shutter-buttons": "node tools/tests/shutter-buttons-hit.mjs",
+    "test:shutter-circle": "node tools/tests/shutter-circle.mjs",
     "test:chart-delta": "node tools/tests/chart-delta-reset.mjs",
     "test:chart-time-shift": "node tools/tests/chart-time-shift.mjs",
     "test:chart-prev-year": "node tools/tests/chart-prev-year.mjs",

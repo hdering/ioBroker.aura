@@ -1318,6 +1318,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.layout.minimal': 'Minimal',
     'wf.edit.layout.agenda': 'Agenda',
     'wf.edit.layout.dial': 'Dial',
+    'wf.edit.layout.circle': 'Circle menu',
     'wf.edit.layout.customPrompt': 'How should the custom grid start?',
     'wf.edit.layout.customFrom': 'Start from layout “{layout}”',
     'wf.edit.layout.customKeep': 'Keep previous grid',

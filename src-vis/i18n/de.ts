@@ -1329,6 +1329,7 @@ export const de = {
     'wf.edit.layout.minimal': 'Minimal',
     'wf.edit.layout.agenda': 'Agenda',
     'wf.edit.layout.dial': 'Rundskala',
+    'wf.edit.layout.circle': 'Kreismenü',
     'wf.edit.layout.customPrompt': 'Womit soll das Custom-Raster starten?',
     'wf.edit.layout.customFrom': 'Layout „{layout}“ übernehmen',
     'wf.edit.layout.customKeep': 'Bisheriges Raster behalten',

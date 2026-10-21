@@ -620,7 +620,20 @@ export const WIDGET_OPTION_NOTES = {
                 'pos liest sich wie die Anzeige (bei showClosedPercent also % geschlossen); tilt nur mit tiltDp, ' +
                 'leer = Lamellen bleiben. Ohne pos (nur mit tiltDp) setzt die Taste nur die Lamellen; steht der Behang ' +
                 'schon auf pos (mit actualPositionDp ±2 Punkte), wird ebenfalls nur tilt geschrieben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im ' +
-                'custom-Layout als Baustein "presets"; compact/minimal zeigen sie nicht.',
+                'custom-Layout als Baustein "presets"; im Layout "circle" als Einträge des Kreismenüs; compact/minimal zeigen sie nicht.',
+        },
+        circleDirection: {
+            enum: ['auto', 'full', 'top', 'right', 'bottom', 'left'],
+            description:
+                'Nur layout "circle" (#815): wohin sich das Kreismenü auffächert. "auto" = Vollkreis, wenn er ins Fenster passt, ' +
+                'sonst der Halbkreis mit dem meisten Platz; "full" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung.',
+        },
+        circleItemSize: {
+            description: 'Nur layout "circle": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48).',
+        },
+        circleKeepOpen: { description: 'Nur layout "circle": Kreismenü bleibt nach einer Auswahl offen.' },
+        circleShade: {
+            description: 'Nur layout "circle": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an).',
         },
     },
     dimmer: {

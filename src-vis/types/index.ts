@@ -129,6 +129,7 @@ export type WidgetLayout =
     | 'knob-endless'
     | 'knob-scale'
     | 'dial'
+    | 'circle'
     | 'segments'
     | 'wave'
     | 'bar'

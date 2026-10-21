@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Settings - CSS/JS context chips mark the layouts where custom CSS or JS is switched on (#818)
+- Shutter - new "Circle menu" layout: a round button that fans out open, quick-select positions, close and stop in a circle (#815)

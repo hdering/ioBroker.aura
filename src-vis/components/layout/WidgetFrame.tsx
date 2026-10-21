@@ -17891,6 +17891,80 @@ function WidgetFrameInner({
                                                 </SubGroup>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                {config.layout === 'circle' && (
+                                                    <SubGroup title="Kreismenü">
+                                                        <p className="text-[10px]" style={hint}>
+                                                            Im Kreis: Öffnen, die Schnellwahl-Werte, Schließen, Stopp
+                                                            und – mit Neigungs-DP – die Lamellen.
+                                                        </p>
+                                                        <div>
+                                                            <label className="text-[11px] mb-1 block" style={hint}>
+                                                                Richtung
+                                                            </label>
+                                                            <select
+                                                                value={(o.circleDirection as string) || 'auto'}
+                                                                onChange={(e) =>
+                                                                    setO({
+                                                                        circleDirection:
+                                                                            e.target.value === 'auto'
+                                                                                ? undefined
+                                                                                : e.target.value,
+                                                                    })
+                                                                }
+                                                                className={sInputCls}
+                                                                style={sInputStyle}
+                                                            >
+                                                                <option value="auto">Automatisch</option>
+                                                                <option value="full">Vollkreis</option>
+                                                                <option value="top">Halbkreis oben</option>
+                                                                <option value="right">Halbkreis rechts</option>
+                                                                <option value="bottom">Halbkreis unten</option>
+                                                                <option value="left">Halbkreis links</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label className="text-[11px]" style={hint}>
+                                                                    Größe der Einträge
+                                                                </label>
+                                                                <span
+                                                                    className="text-[11px] tabular-nums"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    {(o.circleItemSize as number) || 48} px
+                                                                </span>
+                                                            </div>
+                                                            <input
+                                                                type="range"
+                                                                min={32}
+                                                                max={96}
+                                                                step={2}
+                                                                value={(o.circleItemSize as number) || 48}
+                                                                onChange={(e) =>
+                                                                    setO({ circleItemSize: Number(e.target.value) })
+                                                                }
+                                                                className="w-full h-1"
+                                                                style={{ accentColor: 'var(--accent)' }}
+                                                            />
+                                                        </div>
+                                                        {toggleRow(
+                                                            'Offen lassen',
+                                                            'Das Menü bleibt nach einer Auswahl offen.',
+                                                            !!o.circleKeepOpen,
+                                                            () => setO({ circleKeepOpen: !o.circleKeepOpen }),
+                                                        )}
+                                                        {toggleRow(
+                                                            'Hintergrund abdunkeln',
+                                                            'Dunkelt die Seite hinter dem geöffneten Menü ab.',
+                                                            o.circleShade !== false,
+                                                            () =>
+                                                                setO({
+                                                                    circleShade:
+                                                                        o.circleShade === false ? undefined : false,
+                                                                }),
+                                                        )}
+                                                    </SubGroup>
+                                                )}
                                                 <>
                                                     {/* % geschlossen anzeigen */}
                                                     <div className="flex items-start justify-between gap-2">

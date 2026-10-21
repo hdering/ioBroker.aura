@@ -119,6 +119,24 @@ Vor dem Commit, wenn `src-vis/` angefasst wurde:
 Was das MCP bewusst NICHT kennt: Menü-Elemente (Header/Tab-Leiste/Bereichs-Menü) und deren
 Widgets. Kommt das dazu, ist es eine eigene Aufgabe, kein Nebeneffekt.
 
+## Neue Widget-Anfragen: eigenes Widget, Layout oder Komponente? (PFLICHT-Prüfung)
+
+Bei jeder Anfrage nach einem neuen Widget bzw. einer neuen Darstellung (Issue oder Chat) **zuerst**
+diese Faustregel anwenden und das Ergebnis samt Begründung nennen, bevor etwas gebaut wird:
+
+| Anfrage betrifft …                                                         | Lösung                                                                    |
+| -------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| neue Geräteart / neues Datenmodell (andere DPs, andere Optionen)           | eigenes Widget                                                            |
+| gleiche DPs und Optionen, nur andere Darstellung                           | Layout-Variante (`src-vis/utils/widgetLayouts.ts`)                        |
+| Bedienmuster, das mehrere Geräte brauchen (Kreismenü, Popup, Wischen, …)   | gemeinsame Komponente + Layout-Variante in den betroffenen Widgets        |
+
+- Maßstab ist das **Datenmodell**, nicht das Aussehen: Auch ein völlig anderes Bild (z. B.
+  Thermostat `dial`) ist eine Layout-Variante, solange dieselben DPs/Optionen gelesen werden.
+- Der allgemeine Fall „beliebige Werteliste → ein DP" gehört ins Enum-Widget (als Layout),
+  nicht in ein neues generisches Widget.
+- Beispiel: Kreismenü (#815) → `CircleMenu`-Komponente + `layout: 'circle'` in Rollladen,
+  danach Thermostat und Enum.
+
 ## Pläne
 
 Implementierungs-, Doku- und Recherche-Pläne als Markdown (deutsch) unter

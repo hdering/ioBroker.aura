@@ -47,7 +47,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     light: ['light-all', 'light-brightness', 'light-color', 'light-temperature', 'custom'],
     switch: ['default', 'card', 'compact', 'custom'],
     dimmer: ['default', 'compact', 'minimal', 'custom'],
-    shutter: ['default', 'compact', 'minimal', 'custom'],
+    shutter: ['default', 'compact', 'minimal', 'circle', 'custom'],
     clock: ['default', 'card', 'minimal', 'custom'],
     weather: ['default', 'compact', 'minimal', 'custom'],
     timer: ['default', 'compact', 'custom'],
@@ -101,6 +101,7 @@ const LABEL_KEYS = {
     minimal: 'wf.edit.layout.minimal',
     agenda: 'wf.edit.layout.agenda',
     dial: 'wf.edit.layout.dial',
+    circle: 'wf.edit.layout.circle',
 } as const;
 
 /** Layouts that are named the same in every language. */

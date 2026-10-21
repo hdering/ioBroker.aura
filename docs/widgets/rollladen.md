@@ -28,6 +28,13 @@ Eine Zeile mit Icon, Titel, Prozentwert und Tastenreihe — für Listen mit viel
 ### Minimal
 Auf-Taste, Prozentwert und Stop/Ab-Tasten zentriert — für sehr kleine Zellen.
 
+### Kreismenü
+Runder Knopf mit Grafik und Prozentwert; ein Tipp fächert Öffnen, die Schnellwahl (`positionPresets`), Schließen, Stopp und – mit `tiltDp` – die Lamellen im Kreis auf (#815). Ohne Schnellwahl stehen nur Öffnen/Schließen/Stopp im Kreis.
+
+| Geschlossen | Geöffnet |
+| --- | --- |
+| ![](./assets/rollladen/layout-circle-closed.png) | ![](./assets/rollladen/layout-circle.png) |
+
 ### Custom
 Icon, Position, Status, Neigung und Auf-/Stop-/Ab-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Komponenten: `slider`, `tilt-slider-v`, `tilt-slider-h`, `btn-tilt`, `btn-tilt-open`, `btn-tilt-close`, `presets`; Feld `tilt`. Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `viz` (Grafik mit Lamellenspalte), `btn-col`, `btn-row`, `btn-up-min` · `btn-stop-min` · `btn-down-min`, `tilt-aside`, `tilt-aside-flat`, `tilt-row` und das Feld `movingArrow`.
 
@@ -81,6 +88,15 @@ Nur aktiv mit `tiltDp`. Feste Skala: **0 % = Lamellen geschlossen, 100 % = offen
 | `showTiltValue` | `true` | Prozentwert der Neigung anzeigen |
 | `tiltLabel` | `Lamellen` | Beschriftung |
 | `reapplyTiltAfterMove` | `false` | Winkel nach Fahrtende erneut schreiben (Aktoren, die die Lamellen bei einer Fahrt in die Endlage stellen). Fahrtende: Aktivitäts-DP · sonst Ist-Position am Ziel (±2) oder 8 s unverändert · sonst pauschal 3 s |
+
+### Kreismenü (Layout `circle`)
+
+| Option | Standard | |
+| --- | --- | --- |
+| `circleDirection` | `auto` | `auto` (Vollkreis, wenn er ins Fenster passt, sonst Halbkreis mit dem meisten Platz) · `full` · `top` · `right` · `bottom` · `left` |
+| `circleItemSize` | `48` | Durchmesser der Einträge in px (32–96) |
+| `circleKeepOpen` | `false` | Menü bleibt nach einer Auswahl offen |
+| `circleShade` | `true` | Seite hinter dem Menü abdunkeln |
 
 ### Schwellwerte
 
