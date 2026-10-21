@@ -596,6 +596,7 @@ const MIME_TYPES = {
     '.png': 'image/png',
     '.ico': 'image/x-icon',
     '.json': 'application/json',
+    '.webmanifest': 'application/manifest+json',
     '.woff': 'font/woff',
     '.woff2': 'font/woff2',
     '.ttf': 'font/ttf',
