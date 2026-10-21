@@ -635,6 +635,10 @@ export const WIDGET_OPTION_NOTES = {
             description: 'Nur layout "circle": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48).',
         },
         circleKeepOpen: { description: 'Nur layout "circle": Kreismenü bleibt nach einer Auswahl offen.' },
+        circleIcon: {
+            description:
+                'Nur layout "circle": Icon im runden Knopf (Iconify-Name, z. B. "mdi:window-shutter"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik.',
+        },
         circleTriggerSize: {
             description:
                 'Nur layout "circle": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget.',

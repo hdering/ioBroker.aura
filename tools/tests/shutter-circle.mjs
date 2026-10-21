@@ -142,6 +142,18 @@ check(
     `${capped?.width} vs ${box?.width}`,
 );
 
+// ── 5a'. circleIcon replaces the graphic ────────────────────────────────────
+await show({});
+const vizBefore = await page.locator(`${TRIGGER} .aura-widget-icon`).evaluate((e) => e.tagName.toLowerCase());
+await show({ circleIcon: 'mdi:window-shutter' });
+await page.waitForTimeout(400);
+const iconAfter = await page.locator(`${TRIGGER} .aura-widget-icon`).evaluate((e) => e.outerHTML.slice(0, 80));
+check(
+    'circleIcon replaces the shutter graphic',
+    vizBefore === 'div' && iconAfter.startsWith('<svg'),
+    `${vizBefore} → ${iconAfter}`,
+);
+
 // ── 5b. circleOrder ──────────────────────────────────────────────────────────
 await show({
     positionPresets: [{ pos: 75 }, { pos: 25 }],

@@ -172,7 +172,7 @@ import {
 } from '../widgets/FillWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ScaleBoundsRow } from '../config/ScaleBoundsRow';
-import { ConditionEditor, ColorField } from '../config/ConditionEditor';
+import { ConditionEditor, ColorField, IconButton } from '../config/ConditionEditor';
 import { CellConditionEditor } from '../config/CellConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
 import { ImagePathHint } from '../config/ImagePathHint';
@@ -18033,6 +18033,36 @@ function WidgetFrameInner({
                                                                             setO({ circleOrder })
                                                                         }
                                                                     />
+                                                                    <div>
+                                                                        <label
+                                                                            className="text-[11px] mb-1 block"
+                                                                            style={hint}
+                                                                        >
+                                                                            Icon im Knopf
+                                                                        </label>
+                                                                        <div
+                                                                            className="flex items-center gap-2"
+                                                                            data-aura-circle-icon=""
+                                                                        >
+                                                                            <IconButton
+                                                                                value={
+                                                                                    (o.circleIcon as string) ||
+                                                                                    undefined
+                                                                                }
+                                                                                fallback={
+                                                                                    (o.icon as string) || undefined
+                                                                                }
+                                                                                placeholder={
+                                                                                    o.icon
+                                                                                        ? 'Widget-Icon'
+                                                                                        : 'Rollladen-Grafik'
+                                                                                }
+                                                                                onChange={(circleIcon) =>
+                                                                                    setO({ circleIcon })
+                                                                                }
+                                                                            />
+                                                                        </div>
+                                                                    </div>
                                                                     {(() => {
                                                                         // Right end of the slider = no fixed size: the button fills the widget.
                                                                         const MAX = 400;

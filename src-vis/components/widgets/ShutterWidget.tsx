@@ -831,6 +831,9 @@ export function ShutterWidget({ config }: WidgetProps) {
             border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
         });
         const itemIcon = Math.round(((opts.circleItemSize as number) || 48) * 0.42);
+        // Own icon of the round button; without one the widget icon, else the shutter graphic.
+        const circleIconName = opts.circleIcon as string | undefined;
+        const TriggerIcon = circleIconName ? getWidgetIcon(circleIconName, Square) : CustomIcon;
         const items: CircleMenuItem[] = [
             {
                 key: 'up',
@@ -888,8 +891,8 @@ export function ShutterWidget({ config }: WidgetProps) {
                     trigger={
                         <>
                             {showIcon &&
-                                (CustomIcon ? (
-                                    <CustomIcon
+                                (TriggerIcon ? (
+                                    <TriggerIcon
                                         className="aura-widget-icon"
                                         style={{
                                             '--aura-icon-color': accentColor,
