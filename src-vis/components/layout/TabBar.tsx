@@ -895,11 +895,12 @@ export function TabBar({
         );
     }
 
-    // Only centred tabs need the symmetric 1fr/auto/1fr split — that keeps them in the true
-    // middle. Left/right tabs take the free width, the item zones only their own (#791):
-    // a lone button on the right used to claim half the bar on a phone.
+    // Centred tabs or centre items need the symmetric 1fr/auto/1fr split — that keeps zone 2
+    // in the true middle (#820: centre items with left tabs used to sit next to the right
+    // ones). Otherwise left/right tabs take the free width, the item zones only their own
+    // (#791): a lone button on the right used to claim half the bar on a phone.
     const gridColumns =
-        tabsAlignment === 'center'
+        tabsAlignment === 'center' || centerItems.length > 0
             ? 'minmax(0, 1fr) auto minmax(0, 1fr)'
             : tabsAlignment === 'right'
               ? 'minmax(0, max-content) minmax(0, max-content) minmax(0, 1fr)'

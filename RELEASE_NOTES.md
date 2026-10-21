@@ -9,3 +9,4 @@
 - Fill level - a narrow vertical battery now shows the limit value next to the battery instead of hiding it (#819)
 - Screensaver - each device reports its idle state in clients.<id>.idle.active after a configurable time without input; a popup trigger on it (with {{clientId}} for every device) opens a screensaver popup that closes on the next touch (#822)
 - Popups - new "Fullscreen" option makes a popup cover the whole screen without margin or frame; also available as "fullscreen": true in popup.open (#822)
+- Tab bar - a menu element set to "Center" now stands in the middle of the bar even when the tabs are aligned left or right; it used to appear on the right (#820)

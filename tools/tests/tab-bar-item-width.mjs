@@ -1,7 +1,8 @@
 // Menü-Element in der Tab-Leiste (#791): ein Element rechts (z. B. der Knopf der
 // Rückkehr-Pause) belegt nur seine eigene Breite — vorher bekam die rechte Zone
 // über das symmetrische 1fr/auto/1fr-Raster die halbe Leiste, auf dem Handy blieb
-// den Tabs nur die andere Hälfte. Bei zentrierten Tabs bleibt das Raster symmetrisch.
+// den Tabs nur die andere Hälfte. Bei zentrierten Tabs bleibt das Raster symmetrisch,
+// ebenso bei einem Element auf „Mitte“ (#820) — das stand sonst neben der rechten Zone.
 //
 //   npm run dev            (oder AURA_BASE setzen)
 //   node tools/tests/tab-bar-item-width.mjs
@@ -61,6 +62,8 @@ const LAYOUT = {
         section('left', 'links', 'left'),
         section('right', 'rechts', 'right', 'left'),
         section('center', 'mitte', 'center'),
+        section('cleft', 'element-mitte-links', 'left', 'center'),
+        section('cright', 'element-mitte-rechts', 'right', 'center'),
     ],
 };
 
@@ -89,8 +92,12 @@ const measure = () =>
         const zones = [...(bar?.children ?? [])].map((z) => Math.round(z.getBoundingClientRect().width));
         // Das innerste Element mit dem Text — die Zonen selbst enthalten ihn auch.
         const item = [...bar.querySelectorAll('div')].filter((d) => d.textContent?.trim() === text).at(-1);
+        const br = bar?.getBoundingClientRect();
+        const ir = item?.getBoundingClientRect();
         return {
-            bar: Math.round(bar?.getBoundingClientRect().width ?? 0),
+            bar: Math.round(br?.width ?? 0),
+            // Abstand der Element-Mitte zur Leisten-Mitte.
+            offCenter: ir && br ? Math.round(ir.left + ir.width / 2 - (br.left + br.width / 2)) : NaN,
             zones,
             item: item ? Math.round(item.getBoundingClientRect().width) : 0,
         };
@@ -115,6 +122,18 @@ console.log('\n── Tabs mittig: Raster bleibt symmetrisch ──');
 await goto('mitte');
 m = await measure();
 check('linke und rechte Zone gleich breit', Math.abs(m.zones[0] - m.zones[2]) <= 1, JSON.stringify(m));
+
+// #820: ein Element auf „Mitte“ stand bei Tabs links/rechts direkt neben der rechten Zone.
+for (const [slug, label] of [
+    ['element-mitte-links', 'Tabs links'],
+    ['element-mitte-rechts', 'Tabs rechts'],
+]) {
+    console.log(`\n── ${label}, Element mittig (#820) ──`);
+    await goto(slug);
+    m = await measure();
+    check('das Element ist sichtbar', m.item > 0, JSON.stringify(m));
+    check('das Element steht in der Mitte der Leiste', Math.abs(m.offCenter) <= 2, JSON.stringify(m));
+}
 
 check('keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
 
