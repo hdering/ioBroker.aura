@@ -95,7 +95,7 @@ Nur aktiv mit `tiltDp`. Feste Skala: **0 % = Lamellen geschlossen, 100 % = offen
 | --- | --- | --- |
 | `circleDirection` | `auto` | `auto` (Vollkreis, wenn er ins Fenster passt, sonst Halbkreis mit dem meisten Platz) · `full` · `top` · `right` · `bottom` · `left` |
 | `circleOrder` | — | Reihenfolge der Einträge: `up`, `down`, `stop`, `tilt`, `preset-<i>` (Index in `positionPresets`). Vollkreis ab oben im Uhrzeigersinn, Halbkreis von links bzw. oben. Nicht genannte Einträge folgen in Standardreihenfolge |
-| `circleTriggerSize` | — | fester Durchmesser des runden Knopfs in px (40–400), höchstens Widget-Größe; leer = füllt das Widget |
+| `circleTriggerSize` | — | fester Durchmesser des runden Knopfs in px (40–396), höchstens Widget-Größe; leer = füllt das Widget (Regler ganz rechts) |
 | `circleItemSize` | `48` | Durchmesser der Einträge in px (32–96) |
 | `circleKeepOpen` | `false` | Menü bleibt nach einer Auswahl offen |
 | `circleShade` | `true` | Seite hinter dem Menü abdunkeln |

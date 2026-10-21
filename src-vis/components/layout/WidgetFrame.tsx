@@ -18033,26 +18033,64 @@ function WidgetFrameInner({
                                                                             setO({ circleOrder })
                                                                         }
                                                                     />
-                                                                    {toggleRow(
-                                                                        'Knopf füllt das Widget',
-                                                                        'Aus: feste Größe des runden Knopfs, unabhängig von der Widget-Größe.',
-                                                                        !o.circleTriggerSize,
-                                                                        () =>
-                                                                            setO({
-                                                                                circleTriggerSize: o.circleTriggerSize
-                                                                                    ? undefined
-                                                                                    : 120,
-                                                                            }),
-                                                                    )}
-                                                                    {!!o.circleTriggerSize &&
-                                                                        sizeRow(
-                                                                            'Größe des Knopfs',
-                                                                            'circleTriggerSize',
-                                                                            120,
-                                                                            40,
-                                                                            400,
-                                                                            4,
-                                                                        )}
+                                                                    {(() => {
+                                                                        // Right end of the slider = no fixed size: the button fills the widget.
+                                                                        const MAX = 400;
+                                                                        const v =
+                                                                            (o.circleTriggerSize as number) || MAX;
+                                                                        return (
+                                                                            <div>
+                                                                                <div className="flex items-center justify-between mb-1">
+                                                                                    <label
+                                                                                        className="text-[11px]"
+                                                                                        style={hint}
+                                                                                    >
+                                                                                        Größe des Knopfs
+                                                                                    </label>
+                                                                                    <span
+                                                                                        className="text-[11px] tabular-nums"
+                                                                                        style={{
+                                                                                            color: 'var(--text-primary)',
+                                                                                        }}
+                                                                                    >
+                                                                                        {o.circleTriggerSize
+                                                                                            ? `${v} px`
+                                                                                            : 'Widget-Größe'}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <input
+                                                                                    type="range"
+                                                                                    min={40}
+                                                                                    max={MAX}
+                                                                                    step={4}
+                                                                                    value={v}
+                                                                                    onChange={(e) => {
+                                                                                        const n = Number(
+                                                                                            e.target.value,
+                                                                                        );
+                                                                                        setO({
+                                                                                            circleTriggerSize:
+                                                                                                n >= MAX
+                                                                                                    ? undefined
+                                                                                                    : n,
+                                                                                        });
+                                                                                    }}
+                                                                                    className="w-full h-1"
+                                                                                    style={{
+                                                                                        accentColor: 'var(--accent)',
+                                                                                    }}
+                                                                                />
+                                                                                <p
+                                                                                    className="text-[10px] mt-0.5"
+                                                                                    style={hint}
+                                                                                >
+                                                                                    Ganz rechts füllt der Knopf das
+                                                                                    Widget; höchstens so groß wie das
+                                                                                    Widget.
+                                                                                </p>
+                                                                            </div>
+                                                                        );
+                                                                    })()}
                                                                     {sizeRow(
                                                                         'Größe der Einträge',
                                                                         'circleItemSize',
