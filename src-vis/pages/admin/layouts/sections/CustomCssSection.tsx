@@ -1,5 +1,6 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { LayoutContextSwitcher } from '../shared/LayoutContextSwitcher';
+import { useDashboardStore } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 
 interface CustomCssSectionProps {
@@ -10,6 +11,9 @@ interface CustomCssSectionProps {
 export function CustomCssSection({ contextId, onContextChange }: CustomCssSectionProps) {
     const t = useT();
     const { ls, frontend, setPatch, clear } = useLayoutSetting(contextId);
+    const layouts = useDashboardStore((s) => s.layouts);
+    const isActiveIn = (id: string | null) =>
+        (layouts.find((l) => l.id === id)?.settings?.customCSSEnabled ?? frontend.customCSSEnabled ?? true) === true;
 
     const cssEnabled = ls?.customCSSEnabled ?? frontend.customCSSEnabled ?? true;
     const cssInEditor = ls?.customCSSInEditor ?? frontend.customCSSInEditor ?? false;
@@ -29,7 +33,12 @@ export function CustomCssSection({ contextId, onContextChange }: CustomCssSectio
                     {t('theme.css.title')}
                 </h2>
                 <div className="flex items-center gap-3 flex-wrap">
-                    <LayoutContextSwitcher selectedId={contextId} onChange={onContextChange} />
+                    <LayoutContextSwitcher
+                        selectedId={contextId}
+                        onChange={onContextChange}
+                        isActive={isActiveIn}
+                        activeHint={t('theme.css.enabled')}
+                    />
                     <label className="flex items-center gap-2 cursor-pointer select-none">
                         <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                             {t('theme.css.enabled')}
