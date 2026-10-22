@@ -8367,8 +8367,19 @@ function WidgetFrameInner({
             {flashCell !== null && (
                 <style key={flashCell.key}>{`
           .aura-widget-${config.id} .aura-custom-cell-${flashCell.idx} {
-            animation: auraCellFlash 800ms ease-out;
+            position: relative;
+            z-index: 5;
+          }
+          /* Own layer above the content: an inset shadow on the cell itself is painted
+             under its children (an image cell's img covers it) and under any spanning
+             cell lying on top of it. */
+          .aura-widget-${config.id} .aura-custom-cell-${flashCell.idx}::after {
+            content: '';
+            position: absolute;
+            inset: 0;
             border-radius: 4px;
+            pointer-events: none;
+            animation: auraCellFlash 800ms ease-out forwards;
           }
           @keyframes auraCellFlash {
             0%   { box-shadow: inset 0 0 0 2px var(--accent); }
