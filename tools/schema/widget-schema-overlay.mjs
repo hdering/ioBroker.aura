@@ -231,6 +231,27 @@ export const KEY_DESCRIPTIONS = {
     bins: 'Die Tonnen mit Name, Farbe und Datenpunkt.',
 };
 
+/** The circle-menu options every widget with `layout: 'circle'` shares (#815): shutter, thermostat, enum. */
+const CIRCLE_NOTES = {
+    circleDirection: {
+        enum: ['auto', 'full', 'top', 'right', 'bottom', 'left'],
+        description:
+            'Nur layout "circle" (#815): wohin sich das Kreismenü auffächert. "auto" = Vollkreis, wenn er ins Fenster passt, ' +
+            'sonst der Halbkreis mit dem meisten Platz; "full" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung.',
+    },
+    circleItemSize: {
+        description: 'Nur layout "circle": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48).',
+    },
+    circleKeepOpen: { description: 'Nur layout "circle": Kreismenü bleibt nach einer Auswahl offen.' },
+    circleTriggerSize: {
+        description:
+            'Nur layout "circle": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget.',
+    },
+    circleShade: {
+        description: 'Nur layout "circle": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an).',
+    },
+};
+
 /** Per-widget prose for a key the generator already found. */
 export const WIDGET_OPTION_NOTES = {
     group: {
@@ -289,6 +310,18 @@ export const WIDGET_OPTION_NOTES = {
         minTemp: { description: 'Untere Grenze der Soll-Temperatur.' },
         maxTemp: { description: 'Obere Grenze der Soll-Temperatur.' },
         step: { description: 'Schrittweite der Soll-Temperatur.' },
+        ...CIRCLE_NOTES,
+        circleIcon: {
+            description:
+                'Nur layout "circle": Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon (icon), ohne beides ein Thermometer. ' +
+                'Der Knopf zeigt darunter Soll- und Ist-Temperatur (showSetpoint/showActualTemp).',
+        },
+        circleOrder: {
+            description:
+                'Nur layout "circle": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — "minus", "plus" und ' +
+                '"preset-<Wert>" (z. B. "preset-21.5", Wert aus presets). Standard: minus, presets, plus. − und + nur mit showControls, ' +
+                'Presets nur mit showPresets. − und + lassen das Menü offen und zeigen den Sollwert in der Mitte. Leer = Standard.',
+        },
     },
     slider: {
         min: { description: 'Kleinster einstellbarer Wert.' },
@@ -628,23 +661,10 @@ export const WIDGET_OPTION_NOTES = {
                 'schon auf pos (mit actualPositionDp ±2 Punkte), wird ebenfalls nur tilt geschrieben. Sichtbar im Standard-Layout (eigene Zeile unter dem Regler) und im ' +
                 'custom-Layout als Baustein "presets"; im Layout "circle" als Einträge des Kreismenüs; compact/minimal zeigen sie nicht.',
         },
-        circleDirection: {
-            enum: ['auto', 'full', 'top', 'right', 'bottom', 'left'],
-            description:
-                'Nur layout "circle" (#815): wohin sich das Kreismenü auffächert. "auto" = Vollkreis, wenn er ins Fenster passt, ' +
-                'sonst der Halbkreis mit dem meisten Platz; "full" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung.',
-        },
-        circleItemSize: {
-            description: 'Nur layout "circle": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48).',
-        },
-        circleKeepOpen: { description: 'Nur layout "circle": Kreismenü bleibt nach einer Auswahl offen.' },
+        ...CIRCLE_NOTES,
         circleIcon: {
             description:
                 'Nur layout "circle": Icon im runden Knopf (Iconify-Name, z. B. "mdi:window-shutter"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik.',
-        },
-        circleTriggerSize: {
-            description:
-                'Nur layout "circle": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget.',
         },
         circleOrder: {
             description:
@@ -652,9 +672,6 @@ export const WIDGET_OPTION_NOTES = {
                 '"preset-<i>" (i = Index in positionPresets ab 0). Unbekannte Schlüssel fallen weg, nicht genannte Einträge folgen ' +
                 'in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; ' +
                 'Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard.',
-        },
-        circleShade: {
-            description: 'Nur layout "circle": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an).',
         },
     },
     dimmer: {
@@ -928,6 +945,18 @@ export const WIDGET_OPTION_NOTES = {
             type: 'number',
             description:
                 'Feste Breite des Dropdowns in px. Ohne Angabe ist es so breit wie der aktuelle Eintrag und springt mit ihm.',
+        },
+        entries: {
+            description:
+                'Die Werteliste: je Eintrag value (als Text, wird beim Schreiben zu Zahl/Boolean, wenn er so aussieht) und label, ' +
+                'optional color, render ("text" | "icon" | "image" | "html") mit icon (Iconify-Name) bzw. image und size. ' +
+                'Nur bei entriesSource "manual" (Standard); bei "json" kommen die Einträge aus entriesDp.',
+        },
+        ...CIRCLE_NOTES,
+        circleIcon: {
+            description:
+                'Nur layout "circle" (#815): Icon im runden Knopf (Iconify-Name). Leer = Icon bzw. Bild des aktiven Eintrags, ' +
+                'sonst das Widget-Icon. Die Einträge (entries) stehen in ihrer Listenreihenfolge im Kreis — mit icon/image als Bild, sonst als Text.',
         },
     },
     datepicker: {

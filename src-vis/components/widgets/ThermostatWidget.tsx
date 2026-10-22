@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Thermometer, Flame, Wind, Snowflake } from 'lucide-react';
+import { Thermometer, Flame, Wind, Snowflake, Minus, Plus } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { lookupDatapointName } from '../../hooks/useDatapointList';
@@ -13,8 +13,30 @@ import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { applyCircleOrder, CircleMenu, type CircleDirection, type CircleMenuItem } from './CircleMenu';
 
 // ── helpers ────────────────────────────────────────────────────────────────
+
+const DEFAULT_PRESETS = [18, 20, 22, 24];
+
+function presetText(v: number): string {
+    return `${String(v).replace('.', ',')}°`;
+}
+
+/**
+ * Entries of the circle menu (#815) in their default order — keys and labels
+ * only, so the editor's order list (`circleOrder`) names exactly what the widget
+ * draws: −, the quick-select temperatures, +.
+ */
+export function thermostatCircleEntries(opts: Record<string, unknown>): { key: string; label: string }[] {
+    const controls = opts.showControls !== false;
+    const presets = opts.showPresets !== false ? ((opts.presets as number[] | undefined) ?? DEFAULT_PRESETS) : [];
+    return [
+        ...(controls ? [{ key: 'minus', label: 'Kälter (−)' }] : []),
+        ...presets.map((v) => ({ key: `preset-${v}`, label: presetText(v) })),
+        ...(controls ? [{ key: 'plus', label: 'Wärmer (+)' }] : []),
+    ];
+}
 
 function resolveTitle(config: WidgetConfig): string {
     if (config.title?.trim()) return config.title;
@@ -115,7 +137,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const showActualTemp = o.showActualTemp !== false;
     const showControls = o.showControls !== false;
     const showPresets = o.showPresets !== false;
-    const presets = (o.presets as number[] | undefined) ?? [18, 20, 22, 24];
+    const presets = (o.presets as number[] | undefined) ?? DEFAULT_PRESETS;
     const showIcon = o.showIcon !== false;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const ThermoIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
@@ -206,7 +228,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
                             color: active ? '#fff' : 'var(--text-primary)',
                         }}
                     >
-                        {String(v).replace('.', ',')}°
+                        {presetText(v)}
                     </button>
                 );
             })}
@@ -664,6 +686,111 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     <StatusBadges config={config} />
                 </div>
             </>
+        );
+    }
+
+    // ── CIRCLE (#815) ─────────────────────────────────────────────────────────
+    if (layout === 'circle') {
+        const itemSize = (o.circleItemSize as number) || 48;
+        const itemIcon = Math.round(itemSize * 0.42);
+        const TriggerIcon = o.circleIcon ? getWidgetIcon(o.circleIcon as string, Thermometer) : ThermoIcon;
+        const items: CircleMenuItem[] = [];
+        if (showControls)
+            items.push({
+                key: 'minus',
+                content: <Minus size={itemIcon} />,
+                title: 'Kälter',
+                onSelect: () => setTemp(target - step),
+                stays: true,
+            });
+        if (showPresets)
+            for (const v of presets)
+                items.push({
+                    key: `preset-${v}`,
+                    content: presetText(v),
+                    title: presetText(v),
+                    active: Math.abs(target - v) < 0.1,
+                    onSelect: () => setTemp(v),
+                });
+        if (showControls)
+            items.push({
+                key: 'plus',
+                content: <Plus size={itemIcon} />,
+                title: 'Wärmer',
+                onSelect: () => setTemp(target + step),
+                stays: true,
+            });
+        return (
+            <div className="aura-widget-row h-full" style={{ position: 'relative' }}>
+                <CircleMenu
+                    triggerTitle={`${displayTitle}: ${setpointText}°C`}
+                    triggerStyle={{ borderColor: accentColor }}
+                    items={applyCircleOrder(items, o.circleOrder)}
+                    direction={(o.circleDirection as CircleDirection) || 'auto'}
+                    itemSize={itemSize}
+                    keepOpen={!!o.circleKeepOpen}
+                    shade={o.circleShade !== false}
+                    triggerSize={(o.circleTriggerSize as number) || undefined}
+                    // The setpoint stays visible in the middle while +/− step it.
+                    center={`${setpointText}°`}
+                    trigger={
+                        <>
+                            {showIcon && (
+                                <TriggerIcon
+                                    className="aura-widget-icon"
+                                    style={{
+                                        '--aura-icon-color': accentColor,
+                                        width: '30%',
+                                        height: '30%',
+                                        flexShrink: 0,
+                                    }}
+                                />
+                            )}
+                            {showSetpoint && (
+                                <span
+                                    className="aura-widget-value font-bold tabular-nums"
+                                    style={{
+                                        color: accentColor,
+                                        fontSize: '20cqw',
+                                        lineHeight: 1.1,
+                                        marginTop: '3cqw',
+                                    }}
+                                >
+                                    {setpointText}°
+                                </span>
+                            )}
+                            {showActualTemp && actual !== null && (
+                                <span
+                                    className="tabular-nums"
+                                    style={{
+                                        color: thresholdColor ?? 'var(--text-secondary)',
+                                        fontSize: '10cqw',
+                                        lineHeight: 1.2,
+                                    }}
+                                >
+                                    {t('thermo.actual')} {formatNum(actual, decimals, numFmt)}°
+                                </span>
+                            )}
+                        </>
+                    }
+                    below={
+                        showTitle ? (
+                            <p
+                                className="aura-widget-title text-xs truncate w-full shrink-0"
+                                style={{
+                                    '--aura-title-color': 'var(--text-secondary)',
+                                    textAlign: (titleAlign === 'left'
+                                        ? 'center'
+                                        : titleAlign) as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {displayTitle}
+                            </p>
+                        ) : null
+                    }
+                />
+                <StatusBadges config={config} />
+            </div>
         );
     }
 

@@ -3771,6 +3771,8 @@ check('a recipe carries no datapoint id that could pass for a real one', () => {
         walk(recipe.groupDefs ?? {}, recipe.id);
         // Entry ids of a static list ARE the datapoint, so they fall under the same rule.
         for (const widget of recipe.widgets) {
+            // An Auswahlfeld's entries are values of its own datapoint, not rows with ids.
+            if (widget.type === 'enum') continue;
             for (const entry of widget.options?.entries ?? []) {
                 assert.ok(ok(entry.id), `${recipe.id}: entry id "${entry.id}" is not a placeholder`);
             }

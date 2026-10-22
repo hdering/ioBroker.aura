@@ -117,6 +117,8 @@ export function buildThermostatGrid(layout: WidgetLayout, o: Opts): CustomGridDe
             addStatusBadges(b, o);
             return b.build();
         }
+        // The circle menu (#815) carries the same content as the minimal stack.
+        case 'circle':
         case 'minimal': {
             // Centred stack: icon, setpoint, reading, [−] [+], presets
             const b = new GridBuilder(['1fr', '1fr']);

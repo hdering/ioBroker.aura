@@ -81,6 +81,8 @@ export function buildEnumGrid(layout: WidgetLayout, o: Opts): CustomGridDef | nu
             addStatusBadges(b, o);
             return b.build();
         }
+        // The circle menu (#815) carries the same content as the minimal stack.
+        case 'circle':
         case 'minimal': {
             // Centred stack (gap-2): big label, dropdown, title
             const b = new GridBuilder(1);

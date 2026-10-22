@@ -132,6 +132,8 @@ export function buildShutterGrid(layout: WidgetLayout, o: Opts): CustomGridDef |
             addStatusBadges(b, o);
             return b.build();
         }
+        // The circle menu (#815) carries the same content as the minimal stack.
+        case 'circle':
         case 'minimal': {
             // Centred stack (gap-1.5): ▲, 42%, ■, ▼, slat control
             const b = new GridBuilder(1);

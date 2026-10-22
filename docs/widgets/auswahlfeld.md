@@ -26,6 +26,13 @@ Eine Zeile mit Icon, Titel, Label und Dropdown — für Listen mit vielen Auswah
 ### Minimal
 Label groß zentriert, Dropdown darunter — für sehr kleine Zellen.
 
+### Kreismenü
+Runder Knopf mit dem aktiven Eintrag; ein Tipp fächert alle Einträge im Kreis auf (#815) — mit Icon oder Bild als Bild, sonst als Text. Reihenfolge = Reihenfolge der Einträge. Alle Einträge schreiben in denselben Datenpunkt.
+
+| Geschlossen | Geöffnet |
+| --- | --- |
+| ![](./assets/auswahlfeld/layout-circle-closed.png) | ![](./assets/auswahlfeld/layout-circle.png) |
+
 ### Custom
 Icon, Label und Dropdown frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `label-lg` und `accent-bar`.
 
@@ -57,6 +64,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 ![](./assets/auswahlfeld/groessen.png)
 
 Die Stufen kommen zur Schriftskalierung des Dashboards hinzu, sie ersetzen sie nicht. Eine größere Stufe hebt die Mindesthöhe des Widgets um denselben Betrag (`md` +8 px, `lg` +16 px).
+
+### Kreismenü (Layout `circle`)
+
+| Option | Standard | |
+| --- | --- | --- |
+| `circleDirection` | `auto` | `auto` (Vollkreis, wenn er ins Fenster passt, sonst Halbkreis mit dem meisten Platz) · `full` · `top` · `right` · `bottom` · `left` |
+| `circleIcon` | — | Icon im runden Knopf; leer = Icon bzw. Bild des aktiven Eintrags, sonst Widget-Icon |
+| `circleTriggerSize` | — | fester Durchmesser des runden Knopfs in px (40–396), höchstens Widget-Größe; leer = füllt das Widget (Regler ganz rechts) |
+| `circleItemSize` | `48` | Durchmesser der Einträge in px (32–96) |
+| `circleKeepOpen` | `false` | Menü bleibt nach einer Auswahl offen |
+| `circleShade` | `true` | Seite hinter dem Menü abdunkeln |
 
 ### Sicherheitsabfrage
 

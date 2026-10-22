@@ -13,7 +13,16 @@ import { CustomGridView } from './CustomGridView';
 import { AccentBar } from './AccentBar';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { HtmlSelect, type HtmlSelectSize } from '../common/HtmlSelect';
-import { EnumCurrent, EnumOptionLabel, type EnumEntry, type EnumEntryDisplay } from './enumEntry';
+import {
+    EnumCurrent,
+    EnumEntryLabel,
+    EnumOptionLabel,
+    entryRenderMode,
+    type EnumEntry,
+    type EnumEntryDisplay,
+} from './enumEntry';
+import { CircleMenu, type CircleDirection, type CircleMenuItem } from './CircleMenu';
+import { resolveImageSource } from '../../utils/assetUrl';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function parseValue(raw: string): boolean | number | string {
@@ -27,6 +36,46 @@ function findEntry(entries: EnumEntry[], current: unknown): EnumEntry | undefine
     if (current === null || current === undefined) return undefined;
     const s = String(current);
     return entries.find((e) => e.value === s);
+}
+
+/**
+ * An entry as it fits into a round button: its image or icon filling a share of
+ * the circle, else the label. `iconPx` sizes icons (px, unset = `share`); images take `share` of
+ * the button. The colour is left to the caller (an active entry draws white).
+ */
+function EnumCircleContent({ entry, iconPx, share }: { entry: EnumEntry; iconPx?: number; share: string }) {
+    const mode = entryRenderMode(entry);
+    if (mode === 'image' && entry.image) {
+        return (
+            <img
+                src={resolveImageSource(entry.image)}
+                alt={entry.label}
+                style={{ width: share, height: share, objectFit: 'contain' }}
+            />
+        );
+    }
+    if (entry.icon && (mode === 'icon' || mode === 'text')) {
+        const Icon = getWidgetIcon(entry.icon, ListChecks);
+        return iconPx ? (
+            <Icon size={iconPx} style={{ flexShrink: 0 }} />
+        ) : (
+            <Icon style={{ width: share, height: share, flexShrink: 0 }} />
+        );
+    }
+    if (mode === 'html') return <EnumEntryLabel entry={entry} style={{ color: 'inherit' }} />;
+    return (
+        <span
+            style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                wordBreak: 'break-word',
+            }}
+        >
+            {entry.label || entry.value}
+        </span>
+    );
 }
 
 export function EnumWidget({ config }: WidgetProps) {
@@ -188,6 +237,101 @@ export function EnumWidget({ config }: WidgetProps) {
                         'accent-bar': <AccentBar color={currentColor ?? 'var(--accent)'} />,
                     }}
                 />
+                {confirmOverlay}
+            </div>
+        );
+    }
+
+    // --- CIRCLE (#815): the value list fanned out around a round button ---
+    if (layout === 'circle') {
+        const itemSize = (o.circleItemSize as number) || 48;
+        const accent = currentColor ?? 'var(--accent)';
+        const items: CircleMenuItem[] = entries.map((e) => {
+            const active = current?.value === e.value;
+            return {
+                key: `value-${e.value}`,
+                content: <EnumCircleContent entry={e} iconPx={Math.round(itemSize * 0.5)} share="70%" />,
+                title: e.label || e.value,
+                active,
+                onSelect: () => onPick(e.value),
+                // An entry's own colour tints it while it is not the active one.
+                style: !active && e.color ? { color: e.color } : undefined,
+            };
+        });
+        // Own button icon first, else the active entry's picture, else the widget icon.
+        const ownIcon = o.circleIcon ? getWidgetIcon(o.circleIcon as string, ListChecks) : null;
+        const entryPicture = !ownIcon && current && (current.icon || entryRenderMode(current) === 'image');
+        const pictureOnly = entryDisplay === 'icon' && !!entryPicture;
+        const iconStyle: React.CSSProperties = {
+            '--aura-icon-color': accent,
+            color: accent,
+            width: '34%',
+            height: '34%',
+            flexShrink: 0,
+        } as React.CSSProperties;
+        const TriggerIcon = ownIcon ?? (showIcon && !entryPicture ? WidgetIcon : null);
+        return (
+            <div className="aura-widget-row h-full" style={{ position: 'relative' }}>
+                <CircleMenu
+                    triggerTitle={`${config.title ? `${config.title}: ` : ''}${currentLabel}`}
+                    triggerStyle={{ borderColor: accent }}
+                    items={items}
+                    direction={(o.circleDirection as CircleDirection) || 'auto'}
+                    itemSize={itemSize}
+                    keepOpen={!!o.circleKeepOpen}
+                    shade={o.circleShade !== false}
+                    triggerSize={(o.circleTriggerSize as number) || undefined}
+                    trigger={
+                        <>
+                            {TriggerIcon && <TriggerIcon className="aura-widget-icon" style={iconStyle} />}
+                            {entryPicture && current && (
+                                <span
+                                    className="aura-widget-icon flex items-center justify-center"
+                                    style={{
+                                        color: accent,
+                                        width: pictureOnly ? '50%' : '34%',
+                                        height: pictureOnly ? '50%' : '34%',
+                                    }}
+                                >
+                                    <EnumCircleContent entry={current} share="100%" />
+                                </span>
+                            )}
+                            {showValue && !pictureOnly && (
+                                <span
+                                    className="aura-widget-value font-semibold text-center"
+                                    style={{
+                                        color: currentColor ?? 'var(--text-primary)',
+                                        fontSize: '13cqw',
+                                        lineHeight: 1.15,
+                                        marginTop: '3cqw',
+                                        maxWidth: '80%',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis',
+                                        whiteSpace: 'nowrap',
+                                    }}
+                                >
+                                    {currentLabel}
+                                </span>
+                            )}
+                        </>
+                    }
+                    below={
+                        showTitle ? (
+                            <p
+                                className="aura-widget-title text-xs truncate w-full shrink-0"
+                                style={{
+                                    '--aura-title-color': 'var(--text-secondary)',
+                                    textAlign: (titleAlign === 'left'
+                                        ? 'center'
+                                        : titleAlign) as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        ) : null
+                    }
+                />
+                <StatusBadges config={config} />
                 {confirmOverlay}
             </div>
         );

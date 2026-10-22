@@ -31,6 +31,8 @@ export interface CircleMenuItem {
     style?: React.CSSProperties;
     /** Close the menu even with keepOpen — the entry opens something of its own. */
     closes?: boolean;
+    /** Stay open even without keepOpen — a stepping entry (the thermostat's +/−) is pressed repeatedly. */
+    stays?: boolean;
 }
 
 /**
@@ -161,6 +163,7 @@ export function CircleMenu({
     shade = true,
     triggerSize,
     below,
+    center,
 }: {
     /** What the closed button shows (icon, value). */
     trigger: React.ReactNode;
@@ -180,6 +183,8 @@ export function CircleMenu({
     triggerSize?: number;
     /** Drawn under the circle in the widget (title). */
     below?: React.ReactNode;
+    /** Content of the centre button instead of the close cross, e.g. the live setpoint; a tap still closes. */
+    center?: React.ReactNode;
 }) {
     const boxRef = useRef<HTMLDivElement>(null);
     const ownRef = useRef<HTMLButtonElement>(null);
@@ -242,6 +247,7 @@ export function CircleMenu({
                     itemSize={itemSize}
                     keepOpen={keepOpen}
                     shade={shade}
+                    center={center}
                     onClose={() => setOpen(false)}
                 />
             )}
@@ -256,6 +262,7 @@ function CircleMenuPanel({
     itemSize,
     keepOpen,
     shade,
+    center,
     onClose,
 }: {
     anchorRef: React.RefObject<HTMLElement>;
@@ -264,6 +271,7 @@ function CircleMenuPanel({
     itemSize: number;
     keepOpen: boolean;
     shade: boolean;
+    center?: React.ReactNode;
     onClose: () => void;
 }) {
     const portalTarget = usePortalTarget();
@@ -347,7 +355,7 @@ function CircleMenuPanel({
                             onClick={(e) => {
                                 e.stopPropagation();
                                 it.onSelect();
-                                if (!keepOpen || it.closes) onClose();
+                                if (it.closes || (!keepOpen && !it.stays)) onClose();
                             }}
                             style={{
                                 left: layout.cx - itemSize / 2,
@@ -386,12 +394,14 @@ function CircleMenuPanel({
                         width: itemSize,
                         height: itemSize,
                         background: 'var(--app-surface)',
-                        color: 'var(--text-secondary)',
+                        color: center ? 'var(--text-primary)' : 'var(--text-secondary)',
                         border: '1px solid var(--app-border)',
+                        fontSize,
+                        fontWeight: 600,
                         cursor: 'pointer',
                     }}
                 >
-                    <X size={Math.round(itemSize * 0.4)} />
+                    {center ?? <X size={Math.round(itemSize * 0.4)} />}
                 </button>
             )}
         </div>,

@@ -33,6 +33,13 @@ Anatomie: offener 270°-Bogen (`minTemp` … `maxTemp`) mit Griff am Soll-Wert �
 
 ![](./assets/thermostat/layout-dial.png)
 
+### Kreismenü
+Runder Knopf mit Soll- und Ist-Temperatur; ein Tipp fächert −, die Schnellwahl (`presets`) und + im Kreis auf (#815). − und + lassen das Menü offen, der neue Sollwert steht in der Mitte.
+
+| Geschlossen | Geöffnet |
+| --- | --- |
+| ![](./assets/thermostat/layout-circle-closed.png) | ![](./assets/thermostat/layout-circle.png) |
+
 ### Custom
 Icon, Soll-Wert (`value`), Ist-Wert (`actual`), Status (`status`) und Tasten (`btn-plus`/`btn-minus`) frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); die Rundskala ist dafür die Komponente `dial`, die Schnellwahl `presets`.
 
@@ -90,6 +97,18 @@ Nur im Layout **Rundskala**.
 | `dialTrackColor` | — | Farbe der ungefüllten Skala |
 
 ![](./assets/thermostat/variant-dial-schwellen.png)
+
+### Kreismenü (Layout `circle`)
+
+| Option | Standard | |
+| --- | --- | --- |
+| `circleDirection` | `auto` | `auto` (Vollkreis, wenn er ins Fenster passt, sonst Halbkreis mit dem meisten Platz) · `full` · `top` · `right` · `bottom` · `left` |
+| `circleOrder` | — | Reihenfolge der Einträge: `minus`, `plus`, `preset-<Wert>` (z. B. `preset-21.5`). Vollkreis ab oben im Uhrzeigersinn, Halbkreis von links bzw. oben. Nicht genannte Einträge folgen in Standardreihenfolge |
+| `circleIcon` | — | Icon im runden Knopf; leer = Widget-Icon (`icon`), ohne beides ein Thermometer |
+| `circleTriggerSize` | — | fester Durchmesser des runden Knopfs in px (40–396), höchstens Widget-Größe; leer = füllt das Widget (Regler ganz rechts) |
+| `circleItemSize` | `48` | Durchmesser der Einträge in px (32–96) |
+| `circleKeepOpen` | `false` | Menü bleibt nach einer Auswahl offen |
+| `circleShade` | `true` | Seite hinter dem Menü abdunkeln |
 
 ### Status-Datenpunkte
 

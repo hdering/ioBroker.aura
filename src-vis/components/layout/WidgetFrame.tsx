@@ -172,14 +172,15 @@ import {
 } from '../widgets/FillWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ScaleBoundsRow } from '../config/ScaleBoundsRow';
-import { ConditionEditor, ColorField, IconButton } from '../config/ConditionEditor';
+import { ConditionEditor, ColorField } from '../config/ConditionEditor';
 import { CellConditionEditor } from '../config/CellConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
 import { ImagePathHint } from '../config/ImagePathHint';
 import { ImageSourceField } from '../config/ImageSourceField';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { shutterCircleEntries } from '../widgets/ShutterWidget';
-import { CircleOrderEditor } from '../config/CircleOrderEditor';
+import { CircleMenuSettings } from '../config/CircleMenuSettings';
+import { thermostatCircleEntries } from '../widgets/ThermostatWidget';
 import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry, ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
@@ -18056,171 +18057,13 @@ function WidgetFrameInner({
                                                                 {sizeRow('Wertgröße', 'valueSize', 20, 10, 72)}
                                                             </SubGroup>
                                                             {isCircle ? (
-                                                                <SubGroup title="Kreismenü">
-                                                                    <p className="text-[10px]" style={hint}>
-                                                                        Im Kreis: Öffnen, die Schnellwahl-Werte,
-                                                                        Schließen, Stopp und – mit Neigungs-DP – die
-                                                                        Lamellen.
-                                                                    </p>
-                                                                    <div>
-                                                                        <label
-                                                                            className="text-[11px] mb-1 block"
-                                                                            style={hint}
-                                                                        >
-                                                                            Richtung
-                                                                        </label>
-                                                                        <select
-                                                                            value={
-                                                                                (o.circleDirection as string) || 'auto'
-                                                                            }
-                                                                            onChange={(e) =>
-                                                                                setO({
-                                                                                    circleDirection:
-                                                                                        e.target.value === 'auto'
-                                                                                            ? undefined
-                                                                                            : e.target.value,
-                                                                                })
-                                                                            }
-                                                                            className={sInputCls}
-                                                                            style={sInputStyle}
-                                                                        >
-                                                                            <option value="auto">Automatisch</option>
-                                                                            <option value="full">Vollkreis</option>
-                                                                            <option value="top">Halbkreis oben</option>
-                                                                            <option value="right">
-                                                                                Halbkreis rechts
-                                                                            </option>
-                                                                            <option value="bottom">
-                                                                                Halbkreis unten
-                                                                            </option>
-                                                                            <option value="left">
-                                                                                Halbkreis links
-                                                                            </option>
-                                                                        </select>
-                                                                    </div>
-                                                                    <CircleOrderEditor
-                                                                        entries={shutterCircleEntries(o)}
-                                                                        order={o.circleOrder}
-                                                                        onChange={(circleOrder) =>
-                                                                            setO({ circleOrder })
-                                                                        }
-                                                                    />
-                                                                    <div>
-                                                                        <label
-                                                                            className="text-[11px] mb-1 block"
-                                                                            style={hint}
-                                                                        >
-                                                                            Icon im Knopf
-                                                                        </label>
-                                                                        <div
-                                                                            className="flex items-center gap-2"
-                                                                            data-aura-circle-icon=""
-                                                                        >
-                                                                            <IconButton
-                                                                                value={
-                                                                                    (o.circleIcon as string) ||
-                                                                                    undefined
-                                                                                }
-                                                                                fallback={
-                                                                                    (o.icon as string) || undefined
-                                                                                }
-                                                                                placeholder={
-                                                                                    o.icon
-                                                                                        ? 'Widget-Icon'
-                                                                                        : 'Rollladen-Grafik'
-                                                                                }
-                                                                                onChange={(circleIcon) =>
-                                                                                    setO({ circleIcon })
-                                                                                }
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                    {(() => {
-                                                                        // Right end of the slider = no fixed size: the button fills the widget.
-                                                                        const MAX = 400;
-                                                                        const v =
-                                                                            (o.circleTriggerSize as number) || MAX;
-                                                                        return (
-                                                                            <div>
-                                                                                <div className="flex items-center justify-between mb-1">
-                                                                                    <label
-                                                                                        className="text-[11px]"
-                                                                                        style={hint}
-                                                                                    >
-                                                                                        Größe des Knopfs
-                                                                                    </label>
-                                                                                    <span
-                                                                                        className="text-[11px] tabular-nums"
-                                                                                        style={{
-                                                                                            color: 'var(--text-primary)',
-                                                                                        }}
-                                                                                    >
-                                                                                        {o.circleTriggerSize
-                                                                                            ? `${v} px`
-                                                                                            : 'Widget-Größe'}
-                                                                                    </span>
-                                                                                </div>
-                                                                                <input
-                                                                                    type="range"
-                                                                                    min={40}
-                                                                                    max={MAX}
-                                                                                    step={4}
-                                                                                    value={v}
-                                                                                    onChange={(e) => {
-                                                                                        const n = Number(
-                                                                                            e.target.value,
-                                                                                        );
-                                                                                        setO({
-                                                                                            circleTriggerSize:
-                                                                                                n >= MAX
-                                                                                                    ? undefined
-                                                                                                    : n,
-                                                                                        });
-                                                                                    }}
-                                                                                    className="w-full h-1"
-                                                                                    style={{
-                                                                                        accentColor: 'var(--accent)',
-                                                                                    }}
-                                                                                />
-                                                                                <p
-                                                                                    className="text-[10px] mt-0.5"
-                                                                                    style={hint}
-                                                                                >
-                                                                                    Ganz rechts füllt der Knopf das
-                                                                                    Widget; höchstens so groß wie das
-                                                                                    Widget.
-                                                                                </p>
-                                                                            </div>
-                                                                        );
-                                                                    })()}
-                                                                    {sizeRow(
-                                                                        'Größe der Einträge',
-                                                                        'circleItemSize',
-                                                                        48,
-                                                                        32,
-                                                                        96,
-                                                                        2,
-                                                                    )}
-                                                                    {toggleRow(
-                                                                        'Offen lassen',
-                                                                        'Das Menü bleibt nach einer Auswahl offen.',
-                                                                        !!o.circleKeepOpen,
-                                                                        () =>
-                                                                            setO({ circleKeepOpen: !o.circleKeepOpen }),
-                                                                    )}
-                                                                    {toggleRow(
-                                                                        'Hintergrund abdunkeln',
-                                                                        'Dunkelt die Seite hinter dem geöffneten Menü ab.',
-                                                                        o.circleShade !== false,
-                                                                        () =>
-                                                                            setO({
-                                                                                circleShade:
-                                                                                    o.circleShade === false
-                                                                                        ? undefined
-                                                                                        : false,
-                                                                            }),
-                                                                    )}
-                                                                </SubGroup>
+                                                                <CircleMenuSettings
+                                                                    o={o}
+                                                                    setO={setO}
+                                                                    intro="Im Kreis: Öffnen, die Schnellwahl-Werte, Schließen, Stopp und – mit Neigungs-DP – die Lamellen."
+                                                                    entries={shutterCircleEntries(o)}
+                                                                    iconPlaceholder="Rollladen-Grafik"
+                                                                />
                                                             ) : (
                                                                 <SubGroup title="Bedienelemente">
                                                                     {sizeRow('Knopfgröße', 'buttonSize', 14, 10, 48)}
@@ -19409,6 +19252,15 @@ function WidgetFrameInner({
                                                 </SubGroup>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                {config.layout === 'circle' && (
+                                                    <CircleMenuSettings
+                                                        o={o}
+                                                        setO={setO}
+                                                        intro="Im Kreis: Kälter (−), die Schnellwahl-Temperaturen und Wärmer (+). − und + lassen das Menü offen; in der Mitte steht der Sollwert."
+                                                        entries={thermostatCircleEntries(o)}
+                                                        iconPlaceholder="Thermometer"
+                                                    />
+                                                )}
                                                 {config.layout === 'dial' && (
                                                     <SubGroup title="Rundskala">
                                                         <div className="flex items-center justify-between gap-2">

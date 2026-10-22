@@ -44,7 +44,6 @@ const BUILTIN_PROPS = new Set([
     'flatMap',
     'keys',
     'values',
-    'entries',
     'toString',
     'valueOf',
     'hasOwnProperty',

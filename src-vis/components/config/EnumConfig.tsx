@@ -24,6 +24,7 @@ import { ColorPicker } from '../common/ColorPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { EnumJsonSourceSection } from './EnumJsonSourceSection';
 import { ConfigSection, SubGroup } from './ConfigSection';
+import { CircleMenuSettings } from './CircleMenuSettings';
 import { useT } from '../../i18n';
 
 interface Props {
@@ -74,6 +75,7 @@ export function EnumConfig({ config, onConfigChange, mainDpField }: Props) {
     const [importing, setImporting] = useState(false);
     const [iconPickerIdx, setIconPickerIdx] = useState<number | null>(null);
     const fromJson = o.entriesSource === 'json';
+    const isCircle = config.layout === 'circle';
 
     const miniBtn = 'text-[10px] px-1 rounded shrink-0 hover:opacity-80';
 
@@ -348,6 +350,15 @@ export function EnumConfig({ config, onConfigChange, mainDpField }: Props) {
                 </SubGroup>
             </ConfigSection>
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                {isCircle && (
+                    <CircleMenuSettings
+                        o={o}
+                        setO={setO}
+                        intro="Im Kreis: die Einträge in der Reihenfolge der Liste oben – mit Icon oder Bild, sonst mit Text. Der Knopf zeigt den aktiven Eintrag."
+                        iconPlaceholder="Bild des aktiven Eintrags, sonst Widget-Icon"
+                        widgetIconFallback={false}
+                    />
+                )}
                 {/* ── Anzeige (die Schalter stehen in „Sichtbare Felder“) ── */}
                 <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between gap-2">
@@ -385,8 +396,8 @@ export function EnumConfig({ config, onConfigChange, mainDpField }: Props) {
                     </div>
                 </div>
 
-                {/* Größe und Breite des Dropdowns (#679) */}
-                <div className="space-y-1.5 pt-1">
+                {/* Größe und Breite des Dropdowns (#679) — das Kreismenü hat keins */}
+                <div className="space-y-1.5 pt-1" hidden={isCircle}>
                     <div className="flex items-center justify-between gap-2">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                             Größe Auswahlfeld
