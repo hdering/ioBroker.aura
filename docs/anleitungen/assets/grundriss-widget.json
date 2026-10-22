@@ -1,0 +1,1432 @@
+{
+  "id": "w-grundriss",
+  "type": "image",
+  "layout": "custom",
+  "title": "Erdgeschoss",
+  "datapoint": "",
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 19,
+    "h": 23
+  },
+  "options": {
+    "showTitle": false,
+    "showIcon": false,
+    "customGrid": {
+      "cols": 20,
+      "rows": 20,
+      "cells": [
+        {
+          "type": "image",
+          "imageUrl": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgMTAwMCIgd2lkdGg9IjgwMCIgaGVpZ2h0PSIxMDAwIiBmb250LWZhbWlseT0iU2Vnb2UgVUksIEhlbHZldGljYSwgQXJpYWwsIHNhbnMtc2VyaWYiPgogIDwhLS0gR3JvdW5kIGZsb29yIGV4YW1wbGUgZm9yIHRoZSBBdXJhIGZsb29yLXBsYW4gZ3VpZGUuIE9uZSBncmlkIGNlbGwgb2YgdGhlCiAgICAgICAyMHgyMCBjdXN0b20gZ3JpZCA9IDQwIHggNTAgdW5pdHMsIHNvIHgvNDAgPSBjb2x1bW4gYW5kIHkvNTAgPSByb3cuIC0tPgogIDxkZWZzPgogICAgPHBhdHRlcm4gaWQ9InRpbGVzIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNmMWY1ZjkiLz4KICAgICAgPHBhdGggZD0iTTQwIDBIMFY0MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZTJlOGYwIiBzdHJva2Utd2lkdGg9IjEuNSIvPgogICAgPC9wYXR0ZXJuPgogIDwvZGVmcz4KICA8cmVjdCB3aWR0aD0iODAwIiBoZWlnaHQ9IjEwMDAiIGZpbGw9IiNmZmZmZmYiLz4KCiAgPCEtLSBmbG9vcnMgLS0+CiAgPHJlY3QgeD0iMzYiIHk9IjM2IiB3aWR0aD0iNzI4IiBoZWlnaHQ9IjM5NSIgZmlsbD0iI2Y4ZmFmYyIvPgogIDxyZWN0IHg9IjM2IiB5PSI0MzEiIHdpZHRoPSI3MjgiIGhlaWdodD0iNTMzIiBmaWxsPSJ1cmwoI3RpbGVzKSIvPgoKICA8IS0tIGZ1cm5pdHVyZTogV29obmVuIC8gRXNzZW4gLS0+CiAgPGcgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjMiPgogICAgPHJlY3QgeD0iMjAwIiB5PSIxNzUiIHdpZHRoPSIxNzAiIGhlaWdodD0iMTAwIiByeD0iNiIvPgogICAgPHJlY3QgeD0iMjEyIiB5PSIxNDAiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyOCIgcng9IjgiLz4KICAgIDxyZWN0IHg9IjI2NSIgeT0iMTQwIiB3aWR0aD0iNDAiIGhlaWdodD0iMjgiIHJ4PSI4Ii8+CiAgICA8cmVjdCB4PSIzMTgiIHk9IjE0MCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjI4IiByeD0iOCIvPgogICAgPHJlY3QgeD0iMjEyIiB5PSIyODIiIHdpZHRoPSI0MCIgaGVpZ2h0PSIyOCIgcng9IjgiLz4KICAgIDxyZWN0IHg9IjI2NSIgeT0iMjgyIiB3aWR0aD0iNDAiIGhlaWdodD0iMjgiIHJ4PSI4Ii8+CiAgICA8cmVjdCB4PSIzMTgiIHk9IjI4MiIgd2lkdGg9IjQwIiBoZWlnaHQ9IjI4IiByeD0iOCIvPgogICAgPHJlY3QgeD0iNjkwIiB5PSIxMjAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIyMzAiIHJ4PSIxMCIvPgogICAgPHJlY3QgeD0iNjE4IiB5PSIxNzUiIHdpZHRoPSI1MCIgaGVpZ2h0PSIxMjAiIHJ4PSI2Ii8+CiAgICA8cmVjdCB4PSI0NzAiIHk9IjQwMCIgd2lkdGg9IjI1MCIgaGVpZ2h0PSIyNCIgcng9IjMiLz4KICA8L2c+CgogIDwhLS0gZnVybml0dXJlOiBLw7xjaGUgLS0+CiAgPGcgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjMiPgogICAgPHJlY3QgeD0iMzYiIHk9IjQ0MCIgd2lkdGg9IjU0IiBoZWlnaHQ9IjI1MCIvPgogICAgPHJlY3QgeD0iOTAiIHk9IjY0MiIgd2lkdGg9IjI5MCIgaGVpZ2h0PSI0OCIvPgogICAgPHJlY3QgeD0iNDYiIHk9IjQ3MCIgd2lkdGg9IjM0IiBoZWlnaHQ9IjUwIiByeD0iNCIvPgogICAgPHJlY3QgeD0iMTUwIiB5PSI2NTAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIzMiIgcng9IjMiLz4KICA8L2c+CiAgPGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjIuNSI+CiAgICA8Y2lyY2xlIGN4PSIxNjYiIGN5PSI2NjYiIHI9IjciLz4KICAgIDxjaXJjbGUgY3g9IjE5NCIgY3k9IjY2NiIgcj0iNyIvPgogIDwvZz4KCiAgPCEtLSBmdXJuaXR1cmU6IEhXUiAvIFRlY2huaWsgLS0+CiAgPGcgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjMiPgogICAgPHJlY3QgeD0iNDgiIHk9IjkwNSIgd2lkdGg9IjU4IiBoZWlnaHQ9IjUyIiByeD0iNiIvPgogICAgPHJlY3QgeD0iMTE0IiB5PSI5MDUiIHdpZHRoPSI1OCIgaGVpZ2h0PSI1MiIgcng9IjYiLz4KICAgIDxyZWN0IHg9IjI5MCIgeT0iNzE2IiB3aWR0aD0iODAiIGhlaWdodD0iOTAiIHJ4PSI0Ii8+CiAgPC9nPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk0YTNiOCIgc3Ryb2tlLXdpZHRoPSIyLjUiPgogICAgPGNpcmNsZSBjeD0iNzciIGN5PSI5MzEiIHI9IjE2Ii8+CiAgICA8Y2lyY2xlIGN4PSIxNDMiIGN5PSI5MzEiIHI9IjE2Ii8+CiAgPC9nPgoKICA8IS0tIHN0YWlycyAtLT4KICA8ZyBzdHJva2U9IiM5NGEzYjgiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIj4KICAgIDxyZWN0IHg9IjU2MCIgeT0iNDQ1IiB3aWR0aD0iMTk2IiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2ZmZmZmZiIvPgogICAgPHBhdGggZD0iTTU2MCA0NzBINzU2TTU2MCA0OTVINzU2TTU2MCA1MjBINzU2TTU2MCA1NDVINzU2TTU2MCA1NzBINzU2TTU2MCA1OTVINzU2TTU2MCA2MjBINzU2Ii8+CiAgICA8cGF0aCBkPSJNNjAwIDYzMFY0NzBMNTkwIDQ4Nk02MDAgNDcwTDYxMCA0ODYiIHN0cm9rZT0iIzY0NzQ4YiIgc3Ryb2tlLXdpZHRoPSIzIi8+CiAgPC9nPgoKICA8IS0tIGZ1cm5pdHVyZTogV0MgLS0+CiAgPGcgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjOTRhM2I4IiBzdHJva2Utd2lkdGg9IjMiPgogICAgPHJlY3QgeD0iNzEyIiB5PSI2NzYiIHdpZHRoPSI0MCIgaGVpZ2h0PSI1MCIgcng9IjE4Ii8+CiAgICA8cmVjdCB4PSI1NzIiIHk9IjY3NiIgd2lkdGg9IjQwIiBoZWlnaHQ9IjM0IiByeD0iMTAiLz4KICA8L2c+CgogIDwhLS0gd2FsbHMgLS0+CiAgPGcgZmlsbD0iIzMzNDE1NSI+CiAgICA8IS0tIG91dGVyIHdhbGxzIC0tPgogICAgPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBkPSJNMTAgMTBINzkwVjk5MEgxMFogTTM2IDM2Vjk2NEg3NjRWMzZaIi8+CiAgICA8IS0tIGtpdGNoZW4gLyBsaXZpbmc6IGhhbGYtaGVpZ2h0IGNvdW50ZXIgbGluZSwgd2FsbCBvbiB0aGUgc3RhaXJzIHNpZGUgLS0+CiAgICA8cmVjdCB4PSI1NTYiIHk9IjQyNSIgd2lkdGg9IjIwOCIgaGVpZ2h0PSIxMiIvPgogICAgPCEtLSBraXRjaGVuIHwgRGllbGUgc3R1YiAtLT4KICAgIDxyZWN0IHg9IjM4MCIgeT0iNDM3IiB3aWR0aD0iMTIiIGhlaWdodD0iODAiLz4KICAgIDwhLS0ga2l0Y2hlbiAvIEhXUiAtLT4KICAgIDxyZWN0IHg9IjM2IiB5PSI2OTUiIHdpZHRoPSIzNTYiIGhlaWdodD0iMTIiLz4KICAgIDwhLS0gSFdSIHwgRGllbGUgKGRvb3IgZ2FwIDgwMC4uODkwKSAtLT4KICAgIDxyZWN0IHg9IjM4MCIgeT0iNjk1IiB3aWR0aD0iMTIiIGhlaWdodD0iMTA1Ii8+CiAgICA8cmVjdCB4PSIzODAiIHk9Ijg5MCIgd2lkdGg9IjEyIiBoZWlnaHQ9Ijc0Ii8+CiAgICA8IS0tIHN0YWlycyAvIFdDIC0tPgogICAgPHJlY3QgeD0iNTQ1IiB5PSI2NTUiIHdpZHRoPSIyMTkiIGhlaWdodD0iMTIiLz4KICAgIDwhLS0gV0MgfCBEaWVsZSAoZG9vciBnYXAgNzM1Li44MTUpIC0tPgogICAgPHJlY3QgeD0iNTQ1IiB5PSI2NTUiIHdpZHRoPSIxMiIgaGVpZ2h0PSI4MCIvPgogICAgPHJlY3QgeD0iNTQ1IiB5PSI4MTUiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNDkiLz4KICAgIDwhLS0gV0MgLyBBYnN0ZWxscmF1bSAoZG9vciBnYXAgNjAwLi42NjApIC0tPgogICAgPHJlY3QgeD0iNTU3IiB5PSI4MjMiIHdpZHRoPSI0MyIgaGVpZ2h0PSIxMiIvPgogICAgPHJlY3QgeD0iNjYwIiB5PSI4MjMiIHdpZHRoPSIxMDQiIGhlaWdodD0iMTIiLz4KICA8L2c+CiAgPHBhdGggZD0iTTM2IDQzMUg1NTYiIHN0cm9rZT0iIzk0YTNiOCIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtZGFzaGFycmF5PSIxNCA4Ii8+CgogIDwhLS0gd2luZG93cyBhbmQgZG9vcnMgaW4gdGhlIG91dGVyIHdhbGxzIC0tPgogIDxnIGZpbGw9IiNiYWU2ZmQiIHN0cm9rZT0iIzMzNDE1NSIgc3Ryb2tlLXdpZHRoPSIyIj4KICAgIDxyZWN0IHg9IjE1MCIgeT0iMTAiIHdpZHRoPSIxMTAiIGhlaWdodD0iMjYiLz4KICAgIDxyZWN0IHg9IjUwMCIgeT0iMTAiIHdpZHRoPSIxMTAiIGhlaWdodD0iMjYiLz4KICAgIDxyZWN0IHg9IjEwIiB5PSIxODAiIHdpZHRoPSIyNiIgaGVpZ2h0PSIxNDAiLz4KICAgIDxyZWN0IHg9IjEwIiB5PSI1MDAiIHdpZHRoPSIyNiIgaGVpZ2h0PSIxMTAiLz4KICAgIDxyZWN0IHg9IjEwIiB5PSI3NzAiIHdpZHRoPSIyNiIgaGVpZ2h0PSI5MCIvPgogICAgPHJlY3QgeD0iNzY0IiB5PSIxNTAiIHdpZHRoPSIyNiIgaGVpZ2h0PSIxNjAiLz4KICAgIDxyZWN0IHg9Ijc2NCIgeT0iNzQwIiB3aWR0aD0iMjYiIGhlaWdodD0iNjAiLz4KICAgIDxyZWN0IHg9IjEyMCIgeT0iOTY0IiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjI2Ii8+CiAgPC9nPgogIDwhLS0gdGVycmFjZSBkb29ycyBhbmQgZnJvbnQgZG9vcjogc3dpbmcgYXJjcyAtLT4KICA8ZyBmaWxsPSJub25lIiBzdHJva2U9IiM2NDc0OGIiIHN0cm9rZS13aWR0aD0iMi41Ij4KICAgIDxwYXRoIGQ9Ik0xNTAgMzZWMTQ2QTExMCAxMTAgMCAwIDAgMjYwIDM2Ii8+CiAgICA8cGF0aCBkPSJNNjEwIDM2VjE0NkExMTAgMTEwIDAgMCAxIDUwMCAzNiIvPgogICAgPHBhdGggZD0iTTQwMCA5NjRWODg0QTgwIDgwIDAgMCAxIDQ4MCA5NjQiLz4KICAgIDxwYXRoIGQ9Ik0zOTIgODAwSDQ3MkE5MCA5MCAwIDAgMSAzOTIgODkwIi8+CiAgICA8cGF0aCBkPSJNNTU3IDczNUg2MTdBODAgODAgMCAwIDEgNTU3IDgxNSIvPgogIDwvZz4KICA8cmVjdCB4PSI0MDAiIHk9Ijk2NCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjI2IiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiMzMzQxNTUiIHN0cm9rZS13aWR0aD0iMiIvPgoKICA8IS0tIHJvb20gbGFiZWxzIC0tPgogIDxnIGZpbGw9IiM0NzU1NjkiPgogICAgPHRleHQgeD0iNzAiIHk9IjM3OCIgZm9udC1zaXplPSIyNCIgZm9udC13ZWlnaHQ9IjYwMCI+V29obmVuIC8gRXNzZW48L3RleHQ+CiAgICA8dGV4dCB4PSI3MCIgeT0iNDA0IiBmb250LXNpemU9IjE3Ij4yOSw0IG3CsjwvdGV4dD4KICAgIDx0ZXh0IHg9IjExMCIgeT0iNDgyIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iNjAwIj5Lw7xjaGU8L3RleHQ+CiAgICA8dGV4dCB4PSIxMTAiIHk9IjUwNSIgZm9udC1zaXplPSIxNiI+MTAsMSBtwrI8L3RleHQ+CiAgICA8dGV4dCB4PSI0MTAiIHk9IjcyMCIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjYwMCI+RGllbGU8L3RleHQ+CiAgICA8dGV4dCB4PSI0MTAiIHk9Ijc0MyIgZm9udC1zaXplPSIxNiI+MTYsMSBtwrI8L3RleHQ+CiAgICA8dGV4dCB4PSI2MzAiIHk9Ijc4NSIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjYwMCI+V0M8L3RleHQ+CiAgICA8dGV4dCB4PSI2MzAiIHk9IjgwOCIgZm9udC1zaXplPSIxNiI+Myw0IG3CsjwvdGV4dD4KICAgIDx0ZXh0IHg9IjcwIiB5PSI4MDAiIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSI2MDAiPkhXUiAvIFRlY2huaWs8L3RleHQ+CiAgICA8dGV4dCB4PSI3MCIgeT0iODIzIiBmb250LXNpemU9IjE2Ij44LDcgbcKyPC90ZXh0PgogICAgPHRleHQgeD0iMzAwIiB5PSI4MzAiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM2NDc0OGIiPkhlaXp1bmc8L3RleHQ+CiAgICA8dGV4dCB4PSI2MDAiIHk9IjkwNSIgZm9udC1zaXplPSIxNyIgZmlsbD0iIzY0NzQ4YiI+QWJzdGVsbHJhdW08L3RleHQ+CiAgPC9nPgo8L3N2Zz4K",
+          "objectFit": "fill",
+          "colSpan": 20,
+          "rowSpan": 20
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-icon",
+          "dpId": "demo.0.eg.wohnen.tuer_links",
+          "trueIcon": "DoorOpen",
+          "falseIcon": "DoorClosed",
+          "trueColor": "#dc2626",
+          "falseColor": "#16a34a",
+          "colSpan": 2
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-icon",
+          "dpId": "demo.0.eg.wohnen.tuer_rechts",
+          "trueIcon": "DoorOpen",
+          "falseIcon": "DoorClosed",
+          "trueColor": "#dc2626",
+          "falseColor": "#16a34a",
+          "colSpan": 2
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 12,
+          "align": "right",
+          "valign": "middle",
+          "type": "dp",
+          "dpId": "demo.0.eg.wohnen.rollladen",
+          "prefix": "▼ ",
+          "suffix": " %",
+          "decimals": 0,
+          "color": "#1e293b",
+          "bg": "#ffffffd9",
+          "bgMode": "content",
+          "colSpan": 3,
+          "clickAction": {
+            "kind": "popup-shutter"
+          },
+          "popup": {
+            "title": "Rollladen Wohnen"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-icon",
+          "dpId": "demo.0.eg.essen.licht",
+          "trueIcon": "Lightbulb",
+          "falseIcon": "Lightbulb",
+          "trueColor": "#f59e0b",
+          "falseColor": "#64748b",
+          "colSpan": 2,
+          "clickAction": {
+            "kind": "popup-dimmer"
+          },
+          "popup": {
+            "title": "Licht Essen"
+          },
+          "stateMode": "condition",
+          "stateOperator": ">",
+          "stateValue": "0"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-icon",
+          "dpId": "demo.0.eg.wohnen.stehlampe",
+          "trueIcon": "Lamp",
+          "falseIcon": "Lamp",
+          "trueColor": "#f59e0b",
+          "falseColor": "#64748b",
+          "colSpan": 2,
+          "clickAction": {
+            "kind": "popup-switch"
+          },
+          "popup": {
+            "title": "Stehlampe"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 12,
+          "align": "center",
+          "valign": "middle",
+          "type": "dp",
+          "dpId": "demo.0.eg.wohnen.temperatur",
+          "prefix": "🌡 ",
+          "suffix": " °C",
+          "decimals": 1,
+          "color": "#1e293b",
+          "bg": "#ffffffd9",
+          "bgMode": "content",
+          "bold": true,
+          "colSpan": 3,
+          "clickAction": {
+            "kind": "popup-thermostat",
+            "setpointDp": "demo.0.eg.wohnen.solltemperatur"
+          },
+          "popup": {
+            "title": "Heizung Wohnen"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 12,
+          "align": "center",
+          "valign": "middle",
+          "type": "dp",
+          "dpId": "demo.0.eg.wohnen.feuchte",
+          "prefix": "💧 ",
+          "suffix": " %",
+          "decimals": 0,
+          "color": "#1e293b",
+          "bg": "#ffffffd9",
+          "bgMode": "content",
+          "colSpan": 3
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-icon",
+          "dpId": "demo.0.eg.kueche.licht",
+          "trueIcon": "Lightbulb",
+          "falseIcon": "Lightbulb",
+          "trueColor": "#f59e0b",
+          "falseColor": "#64748b",
+          "colSpan": 2,
+          "clickAction": {
+            "kind": "popup-switch"
+          },
+          "popup": {
+            "title": "Licht Küche"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 11,
+          "align": "center",
+          "valign": "middle",
+          "type": "text",
+          "text": "▲ Obergeschoss",
+          "color": "#ffffff",
+          "bg": "#2563eb",
+          "bgMode": "content",
+          "bold": true,
+          "colSpan": 5,
+          "clickAction": {
+            "kind": "link-tab",
+            "layoutId": "",
+            "tabId": ""
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 12,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-text",
+          "dpId": "demo.0.eg.kueche.spuelmaschine",
+          "trueText": "Spülmaschine läuft",
+          "falseText": "Spülmaschine fertig",
+          "trueColor": "#2563eb",
+          "falseColor": "#16a34a",
+          "bg": "#ffffffd9",
+          "bgMode": "content",
+          "colSpan": 5
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-icon",
+          "dpId": "demo.0.eg.diele.licht",
+          "trueIcon": "Lightbulb",
+          "falseIcon": "Lightbulb",
+          "trueColor": "#f59e0b",
+          "falseColor": "#64748b",
+          "colSpan": 3,
+          "clickAction": {
+            "kind": "popup-switch"
+          },
+          "popup": {
+            "title": "Licht Diele"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 12,
+          "align": "left",
+          "valign": "middle",
+          "type": "dp",
+          "dpId": "demo.0.eg.hwr.warmwasser",
+          "prefix": "🔥 Warmwasser ",
+          "suffix": " °C",
+          "decimals": 0,
+          "color": "#1e293b",
+          "bg": "#ffffffd9",
+          "bgMode": "content",
+          "colSpan": 5
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "state-icon",
+          "dpId": "demo.0.eg.wc.licht",
+          "trueIcon": "Lightbulb",
+          "falseIcon": "Lightbulb",
+          "trueColor": "#f59e0b",
+          "falseColor": "#64748b",
+          "colSpan": 2,
+          "clickAction": {
+            "kind": "popup-switch"
+          },
+          "popup": {
+            "title": "Licht WC"
+          }
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 12,
+          "align": "center",
+          "valign": "middle",
+          "type": "progress",
+          "dpId": "demo.0.eg.hwr.waschmaschine",
+          "min": 0,
+          "max": 100,
+          "showValue": true,
+          "valueFilledColor": "#ffffff",
+          "valueEmptyColor": "#1e293b",
+          "decimals": 0,
+          "prefix": "Wäsche ",
+          "suffix": " %",
+          "color": "#2563eb",
+          "colSpan": 4
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "fontSize": 24,
+          "align": "center",
+          "valign": "middle",
+          "type": "switch",
+          "dpId": "demo.0.eg.haustuer.verriegelt",
+          "controlMode": "icon",
+          "trueIcon": "Lock",
+          "falseIcon": "LockOpen",
+          "trueColor": "#16a34a",
+          "falseColor": "#dc2626",
+          "confirmAction": true,
+          "confirmText": "Haustür umschalten?",
+          "colSpan": 3
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        },
+        {
+          "type": "empty"
+        }
+      ]
+    }
+  }
+}

@@ -1,3 +1,5 @@
+import { cpSync, readdirSync } from 'node:fs';
+import path from 'node:path';
 import { defineConfig } from 'vitepress';
 import widgetsSidebar from './widgetsSidebar.json';
 
@@ -11,6 +13,18 @@ export default defineConfig({
   base: '/ioBroker.aura/',
 
   cleanUrls: true,
+
+  // Download links in the pages ("[JSON herunterladen](./assets/…json)") are left as
+  // plain hrefs, the bundler copies only what it imports (images). Copy every
+  // .json/.svg of the assets folders to the same path in dist.
+  buildEnd(site) {
+    for (const rel of readdirSync(site.srcDir, { recursive: true }) as string[]) {
+      const parts = rel.split(path.sep);
+      if (parts[0].startsWith('.') || !parts.includes('assets') || !/\.(json|svg)$/i.test(rel)) continue;
+      cpSync(path.join(site.srcDir, rel), path.join(site.outDir, rel));
+    }
+  },
+
   lastUpdated: true,
 
   markdown: {
@@ -58,6 +72,7 @@ export default defineConfig({
           items: [
             { text: 'Übersicht', link: '/anleitungen/' },
             { text: 'Bildschirmschoner erstellen', link: '/anleitungen/bildschirmschoner' },
+            { text: 'Grundriss mit Bedienelementen', link: '/anleitungen/grundriss' },
           ],
         },
       ],

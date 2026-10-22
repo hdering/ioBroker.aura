@@ -62,6 +62,8 @@ Größe per Spinner. Zellen werden zeilenweise gelesen (oben links → unten rec
 | `colSizes` / `rowSizes` | `auto` · `1fr` · `60px` … | Track-Größe pro Spalte/Zeile |
 | `colSpan` / `rowSpan` | 1–n | Zelle über mehrere Spalten/Zeilen ziehen |
 
+Zellen, die auf einer gezogenen Zelle liegen, werden darüber gezeichnet — z. B. Lampen und Werte auf einem Bild über das ganze Raster: [Grundriss mit Bedienelementen](../anleitungen/grundriss).
+
 Verhältnis-Spalten wachsen mit der Widget-Breite: dasselbe Raster rückt in der mobilen Ansicht (Widget über
 die volle Breite) auseinander. `auto`-Spalten bleiben bei jeder Breite gleich — z. B. Spalte 1 (Icon) und
 Spalte 2 (Titel) auf `auto`, Spalte 3 (Wert) auf `1fr`: Icon + Titel links, Wert rechts, wie im Compact-Layout.

@@ -2,7 +2,7 @@
  * Shared custom-grid layout renderer used by all widgets that support layout='custom'.
  * Default 3×3 grid, but parameterized via CustomGridDef for arbitrary cols/rows (used by Universal Widget).
  */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
@@ -68,6 +68,16 @@ function slotOwners(cols: number, rows: number, cells: CustomCell[]): number[] {
             }
     });
     return owner;
+}
+
+/**
+ * Non-empty cells that lie on a slot of an earlier spanning cell — e.g. lamps and
+ * values placed on a floor-plan image that spans the whole grid. The span is lifted
+ * above its neighbours (z-index 1), so these get painted above the span.
+ */
+export function overlayCells(cols: number, rows: number, cells: CustomCell[]): number[] {
+    const owner = slotOwners(cols, rows, cells);
+    return cells.flatMap((cell, i) => (i < owner.length && owner[i] !== i && cell.type !== 'empty' ? [i] : []));
 }
 
 const GRID_GAP = 2; // the grid's own gap
@@ -2090,6 +2100,8 @@ export function CustomGridView({
     // Per-cell click actions reuse the list rows' popup machinery (issue #729).
     const editMode = useDashboardStore((s) => s.editMode);
     const cellPopup = useRowPopup(config, EMPTY_ROW_POPUP_OPTS, editMode);
+    const gridId = useId();
+    const overlays = useMemo(() => overlayCells(cols, rows, cells), [cols, rows, cells]);
     // minmax(0, 1fr) — ohne die 0-Untergrenze würde CSS-Grid die Spalten/Zeilen am min-content
     // der Zellinhalte ausrichten; ein langer Freitext in einer Außenzelle macht dann die Spalte
     // breiter und verschiebt z.B. den Drehregler in der Mittenzelle aus der Mitte.
@@ -2112,6 +2124,7 @@ export function CustomGridView({
     return (
         <div
             className="aura-custom-grid"
+            data-aura-grid={gridId}
             style={{
                 display: 'grid',
                 gridTemplateColumns,
@@ -2156,6 +2169,16 @@ export function CustomGridView({
                     </div>
                 );
             })}
+            {overlays.length > 0 && (
+                <style>
+                    {overlays
+                        .map((i) => {
+                            const g = `.aura-custom-grid[data-aura-grid="${gridId}"]`;
+                            return `${g} > .aura-custom-cell-${i}, ${g} > .aura-custom-cell-clickable > .aura-custom-cell-${i} { position: relative; z-index: 2; }`;
+                        })
+                        .join(' ')}
+                </style>
+            )}
             {(vLines || hLines) && (
                 <GridLines
                     cols={cols}
