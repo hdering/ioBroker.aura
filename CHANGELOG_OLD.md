@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.82.3 (2026-10-13)
+- HTML - the whole widget surface can now trigger the click action (e.g. open a popup), selectable via the new Interaction option like on the iFrame widget ([#773](https://github.com/hdering/ioBroker.aura/issues/773))
+
 ## 0.82.2 (2026-10-13)
 - Status badges - an open window now shows in orange like low battery, and battery, reachability and window each get their own alarm color; with "alert only" each badge shows only while it is itself an alarm; the battery gets a free list of "low" values instead of the invert switch, and all value lists come prefilled with their defaults ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
 - Status badges - slider, knob, light, select, date picker and media player get the status datapoints in their settings; the window datapoint is offered for thermostat, room climate and shutter; knob draws the badges and light/select/shutter offer the status icons in the custom layout ([#767](https://github.com/hdering/ioBroker.aura/issues/767))
