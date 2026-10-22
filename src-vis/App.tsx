@@ -239,7 +239,11 @@ function ConnectionLostBanner({ since }: { since: number }) {
             role="status"
             className="aura-offline-banner fixed top-3 left-1/2 -translate-x-1/2 z-50 pointer-events-none flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium shadow-lg max-w-[calc(100vw-2rem)]"
             style={{
-                background: 'var(--app-surface)',
+                // Glass themes give --app-surface an alpha of 0.05–0.38, so the
+                // banner alone would let the dashboard show through (#826). The
+                // surface is layered over the opaque system Canvas, which
+                // follows the theme's color-scheme (light/dark).
+                background: 'linear-gradient(var(--app-surface), var(--app-surface)), Canvas',
                 color: 'var(--text-primary)',
                 border: '1px solid var(--accent-red)',
             }}

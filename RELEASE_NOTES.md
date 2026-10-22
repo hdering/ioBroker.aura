@@ -10,3 +10,4 @@
 - Custom grid - clicking a cell in the edit dialog now highlights it in the preview even when an image or another spanning cell covers it
 - Thermostat and selection widgets - new circle menu layout: a round button fans out the preset temperatures with -/+ or all selection entries around it, like the shutter's circle menu (#815)
 - Universal widget: status icon and static icon cells now have an icon size slider in their content settings
+- Connection lost banner - now has an opaque background in glass themes so the message stays readable over the dashboard (#826)
