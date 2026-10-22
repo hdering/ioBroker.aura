@@ -2214,6 +2214,390 @@
           }
         }
       ]
+    },
+    {
+      "id": "grundriss",
+      "title": "Grundriss mit Bedienelementen",
+      "when": "Ein Grundriss- oder Raumbild, auf dem Lampen, Temperaturen und Türen an ihrer Stelle im Raum sitzen.",
+      "instead": "einem Bild-Widget mit lauter einzelnen Kacheln daneben",
+      "notes": [
+        "Bild-Widget (jedes Widget mit layout \"custom\" geht): Zelle 0 ist eine image-Zelle mit colSpan = cols und rowSpan = rows, sie liegt unter dem ganzen Raster.",
+        "Alle übrigen nicht leeren Zellen liegen auf dem Bild und werden darüber gezeichnet. Position = Index row * cols + col; auf 1×1-Zellen geht das genauso wie auf Zellen mit Spanne.",
+        "objectFit \"fill\" streckt das Bild genau auf das Raster: die Elemente bleiben bei jeder Widget-Größe auf ihrem Raum. Das Seitenverhältnis des Widgets dem Bild ungefähr angleichen, sonst wird es verzerrt.",
+        "Ein feineres Raster (z. B. 20×20) setzt die Elemente genauer; colSpan gibt Beschriftungen Platz.",
+        "Anzeigezellen bekommen clickAction: popup-switch / popup-dimmer / popup-shutter für das Gerät der Zelle, popup-thermostat mit setpointDp, link-tab für ein anderes Stockwerk.",
+        "Text auf dem Bild mit bg \"var(--widget-bg)\" und bgMode \"content\" als Etikett hinterlegen, sonst ist er auf Linien schlecht lesbar.",
+        "Ein schaltender Datenpunkt wie die Haustür als switch-Zelle mit controlMode \"icon\" und confirmAction."
+      ],
+      "widgets": [
+        {
+          "id": "w-grundriss",
+          "type": "image",
+          "title": "Erdgeschoss",
+          "datapoint": "",
+          "layout": "custom",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 10,
+            "h": 12
+          },
+          "options": {
+            "showTitle": false,
+            "showIcon": false,
+            "customGrid": {
+              "cols": 10,
+              "rows": 10,
+              "cells": [
+                {
+                  "type": "image",
+                  "imageUrl": "%bild.grundriss%",
+                  "objectFit": "fill",
+                  "colSpan": 10,
+                  "rowSpan": 10
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "state-icon",
+                  "dpId": "%dp.licht.essen%",
+                  "trueIcon": "Lightbulb",
+                  "falseIcon": "Lightbulb",
+                  "trueColor": "var(--accent-yellow)",
+                  "falseColor": "var(--text-secondary)",
+                  "fontSize": 24,
+                  "align": "center",
+                  "clickAction": {
+                    "kind": "popup-switch"
+                  },
+                  "popup": {
+                    "title": "Licht Essen"
+                  }
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "dp",
+                  "dpId": "%dp.temperatur.wohnen%",
+                  "prefix": "🌡 ",
+                  "suffix": " °C",
+                  "decimals": 1,
+                  "bold": true,
+                  "color": "var(--text-primary)",
+                  "bg": "var(--widget-bg)",
+                  "bgMode": "content",
+                  "align": "center",
+                  "colSpan": 2,
+                  "clickAction": {
+                    "kind": "popup-thermostat",
+                    "setpointDp": "%dp.solltemperatur.wohnen%"
+                  },
+                  "popup": {
+                    "title": "Heizung Wohnen"
+                  }
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "switch",
+                  "dpId": "%dp.haustuer.verriegelt%",
+                  "controlMode": "icon",
+                  "trueIcon": "Lock",
+                  "falseIcon": "LockOpen",
+                  "trueColor": "var(--accent-green)",
+                  "falseColor": "var(--accent-red)",
+                  "fontSize": 24,
+                  "align": "center",
+                  "confirmAction": true,
+                  "confirmText": "Haustür umschalten?"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                },
+                {
+                  "type": "empty"
+                }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
