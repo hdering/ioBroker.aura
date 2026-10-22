@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Gauge } from 'lucide-react';
-import { useDatapoint } from '../../hooks/useDatapoint';
+import { useReadBackDatapoint } from '../../hooks/useReadBackDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, CustomGrid, CustomGridDef } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -163,7 +163,8 @@ export function KnobWidget({ config }: WidgetProps) {
     // The dial's scale, step, unit and label are in the unit the user configured; the datapoint
     // keeps its own. Only reading and writing convert (issue #682).
     const tr = controlValueTransform(o);
-    const { value: dpVal } = useDatapoint(config.datapoint);
+    // An optional status DP supplies the shown position; turning still writes the main DP (#828).
+    const { value: dpVal } = useReadBackDatapoint(config.datapoint, o.statusDp);
     const rawVal = tr.toDisplay(dpVal);
     const numericVal = typeof rawVal === 'number' ? rawVal : Number.isFinite(Number(rawVal)) ? Number(rawVal) : min;
 

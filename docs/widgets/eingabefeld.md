@@ -9,6 +9,7 @@ Nimmt Text per Tastatur entgegen und schreibt ihn in einen Datenpunkt. Wahlweise
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `datapoint` | ja | `string` | Eingabewert wird als Text geschrieben |
+| `statusDp` | nein | `string` | Rückmelde-Datenpunkt (z. B. Tasmota `stat.*`): angezeigt wird dieser Wert, geschrieben wird weiter auf `datapoint` (#828) |
 
 ## Layouts
 

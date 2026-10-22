@@ -165,6 +165,7 @@
     "test:list-switch": "node tools/tests/list-switch.mjs",
     "test:list-icon-size": "node tools/tests/list-icon-size.mjs",
     "test:list-switch-ui": "node tools/tests/list-switch-ui.mjs",
+    "test:status-dp-readback": "node tools/tests/status-dp-readback.mjs",
     "test:dp-popup": "node tools/tests/dp-popup-trigger.mjs",
     "test:dp-cache": "node tools/tests/dp-cache-freshness.mjs",
     "test:wake-reload": "node tools/tests/wake-reload.mjs",

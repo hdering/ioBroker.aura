@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TextCursorInput, Send } from 'lucide-react';
-import { useDatapoint } from '../../hooks/useDatapoint';
+import { useReadBackDatapoint } from '../../hooks/useReadBackDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
@@ -56,7 +56,8 @@ export function InputWidget({ config }: WidgetProps) {
     // and the unit label are all in the converted unit, the write converts back (issue #682).
     // Text mode has nothing to convert.
     const tr = numericInput ? controlValueTransform(o) : controlValueTransform(undefined);
-    const { value: dpRaw } = useDatapoint(config.datapoint);
+    // An optional status DP supplies the shown value; writes still go to the main DP (#828).
+    const { value: dpRaw } = useReadBackDatapoint(config.datapoint, o.statusDp);
     const rawVal = tr.toDisplay(dpRaw);
     const dpString = rawVal == null ? '' : String(rawVal);
 

@@ -151,7 +151,8 @@ export const KEY_DESCRIPTIONS = {
     stateOperator: 'Vergleichsoperator für stateMode "condition".',
     stateValue: 'Vergleichswert für stateMode "condition".',
     switchDp: 'Separater Ein/Aus-Datenpunkt neben dem Hauptwert.',
-    statusDp: 'Datenpunkt für die Rückmeldung, wenn der Schalt-DP nicht liest.',
+    statusDp:
+        'Separater Rückmelde-Datenpunkt (Geräte mit getrenntem Befehl/Status, z. B. Tasmota cmnd/stat): angezeigt wird sein Wert, geschrieben wird weiter auf den Hauptdatenpunkt.',
 
     // ── Listen: Quelle, Filter, Sortierung ───────────────────────────────────
     entries: 'Die Zeilen der Liste.',

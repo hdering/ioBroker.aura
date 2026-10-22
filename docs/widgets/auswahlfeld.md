@@ -9,6 +9,7 @@ Dieselbe Auswahlliste gibt es als Zeilen-Darstellung in der [statischen](./liste
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `datapoint` | ja | `string` · `number` · `boolean` | aktueller Wert wird auf ein Label gemappt; die Auswahl schreibt den Wert zurück |
+| `statusDp` | nein | wie `datapoint` | Rückmelde-Datenpunkt (z. B. Tasmota `stat.*`): angezeigt wird dieser Wert, geschrieben wird weiter auf `datapoint` (#828) |
 
 Beim Schreiben wird der Wert typ-erkannt: `true`/`false` → Boolean, reine Zahlen → `number`, sonst Text.
 

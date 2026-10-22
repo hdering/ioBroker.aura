@@ -11,6 +11,7 @@ Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bi
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `datapoint` | ja | `boolean` | wird getoggelt, im Taster-Modus gepulst |
+| `statusDp` | nein | beliebig | Status-Datenpunkt: Zustand und Farben kommen von hier, geschrieben wird weiter auf `datapoint` |
 
 ## Layouts
 
@@ -78,7 +79,6 @@ Geräte, die Schalten und Rückmeldung trennen (Tasmota: `cmnd.POWER` nimmt nur 
 | Option | Standard | |
 | --- | --- | --- |
 | `onValue` / `offValue` | `true` / `false` | Schreibwerte, z. B. `1` / `0` |
-| `statusDp` | — | Status-Datenpunkt: Zustand und Farben kommen von hier, geschrieben wird weiter auf den Hauptdatenpunkt |
 | `stateMode` | `boolean` | `boolean` = an bei `true`, Zahlen ≠ 0 und Texten wie `ON`; `condition` = Vergleich |
 | `stateOperator` / `stateValue` | `>` / `0` | Vergleich bei `stateMode: condition`, z. B. `==` und `ON` |
 

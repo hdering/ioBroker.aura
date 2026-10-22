@@ -75,6 +75,7 @@ import { ConfigSection, SECTION_TITLE_CLS, SettingsSection, SubGroup } from '../
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { FillStatusSection } from '../config/FillStatusSection';
+import { StatusDpField } from '../config/StatusDpField';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import {
     interactionModeChoices,
@@ -6830,7 +6831,6 @@ function WidgetFrameInner({
     >(null);
     const [imageFilePicker, setImageFilePicker] = useState(false);
     // Switch widget: picker for the optional read-back datapoint (#567).
-    const [switchStatusDpPicker, setSwitchStatusDpPicker] = useState(false);
     const [pendingTypeChange, setPendingTypeChange] = useState<{
         suggestedType: WidgetType;
         currentType: WidgetType;
@@ -11333,6 +11333,14 @@ function WidgetFrameInner({
                             {config.type === 'switch' && (
                                 <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                                     {renderMainDpField()}
+                                    <StatusDpField
+                                        value={config.options?.statusDp as string | undefined}
+                                        onChange={(id) =>
+                                            onConfigChange({ ...config, options: { ...config.options, statusDp: id } })
+                                        }
+                                        placeholder="z.B. mqtt.1.plug1.stat.POWER"
+                                        hint="Separater Status-DP für Geräte, die Schalten und Rückmeldung trennen (z.B. Tasmota: cmnd.POWER schaltet, stat.POWER meldet ON/OFF). Zustand und Farben kommen dann von hier – geschrieben wird weiter auf den Hauptdatenpunkt. Leer = Hauptdatenpunkt."
+                                    />
                                     <div>
                                         <label
                                             className="text-[11px] mb-1 block"
@@ -11407,47 +11415,6 @@ function WidgetFrameInner({
                                         <>
                                             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                                                 <SubGroup title="Auswertung">
-                                                    <div>
-                                                        <label
-                                                            className="text-[11px] mb-1 block"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            Status-Datenpunkt (optional)
-                                                        </label>
-                                                        <div className="flex gap-1">
-                                                            <input
-                                                                type="text"
-                                                                value={(o.statusDp as string) ?? ''}
-                                                                onChange={(e) =>
-                                                                    set({ statusDp: e.target.value || undefined })
-                                                                }
-                                                                placeholder="z.B. mqtt.1.plug1.stat.POWER"
-                                                                className={`flex-1 min-w-0 ${fieldCls}`}
-                                                                style={fieldSty}
-                                                            />
-                                                            <button
-                                                                onClick={() => setSwitchStatusDpPicker(true)}
-                                                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                                style={{
-                                                                    background: 'var(--app-bg)',
-                                                                    color: 'var(--text-secondary)',
-                                                                    border: '1px solid var(--app-border)',
-                                                                }}
-                                                            >
-                                                                <Database size={13} />
-                                                            </button>
-                                                        </div>
-                                                        <p
-                                                            className="text-[10px] mt-1"
-                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                        >
-                                                            Separater Status-DP für Geräte, die Schalten und Rückmeldung
-                                                            trennen (z.B. Tasmota: cmnd.POWER schaltet, stat.POWER
-                                                            meldet ON/OFF). Zustand und Farben kommen dann von hier –
-                                                            geschrieben wird weiter auf den Hauptdatenpunkt. Leer =
-                                                            Hauptdatenpunkt.
-                                                        </p>
-                                                    </div>
                                                     <div>
                                                         <label
                                                             className="text-[11px] font-medium mb-1 block"
@@ -12860,6 +12827,10 @@ function WidgetFrameInner({
                                         <>
                                             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                                                 {renderMainDpField()}
+                                                <StatusDpField
+                                                    value={o.statusDp as string | undefined}
+                                                    onChange={(id) => set({ statusDp: id })}
+                                                />
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                                                 <SubGroup title="Skala">
@@ -20575,6 +20546,10 @@ function WidgetFrameInner({
                                         <>
                                             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                                                 {renderMainDpField()}
+                                                <StatusDpField
+                                                    value={o.statusDp as string | undefined}
+                                                    onChange={(id) => set({ statusDp: id })}
+                                                />
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                                                 <SubGroup title="Eingabe">
@@ -21349,18 +21324,6 @@ function WidgetFrameInner({
                         </CenteredModal>
                     );
                 })()}
-
-            {/* Switch widget: read-back datapoint picker */}
-            {switchStatusDpPicker && (
-                <DatapointPicker
-                    currentValue={(config.options?.statusDp as string) ?? ''}
-                    onSelect={(id) => {
-                        onConfigChange({ ...config, options: { ...config.options, statusDp: id } });
-                        setSwitchStatusDpPicker(false);
-                    }}
-                    onClose={() => setSwitchStatusDpPicker(false)}
-                />
-            )}
 
             {/* Image file picker */}
             {imageFilePicker && (

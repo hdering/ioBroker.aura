@@ -25,6 +25,7 @@ import { IconPickerModal } from './IconPickerModal';
 import { EnumJsonSourceSection } from './EnumJsonSourceSection';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { CircleMenuSettings } from './CircleMenuSettings';
+import { StatusDpField } from './StatusDpField';
 import { useT } from '../../i18n';
 
 interface Props {
@@ -147,6 +148,7 @@ export function EnumConfig({ config, onConfigChange, mainDpField }: Props) {
         <>
             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                 {mainDpField}
+                <StatusDpField value={o.statusDp as string | undefined} onChange={(id) => setO({ statusDp: id })} />
             </ConfigSection>
             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                 <SubGroup title="Einträge">

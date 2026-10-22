@@ -9,6 +9,7 @@ Stellt einen `number`-Datenpunkt per Drehknopf ein — Wert wird durch Ziehen au
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `datapoint` | ja | `number` | wird beim Loslassen geschrieben (auf Schritt gerundet) |
+| `statusDp` | nein | `number` | Rückmelde-Datenpunkt (z. B. Tasmota `stat.*`): angezeigt wird dieser Wert, geschrieben wird weiter auf `datapoint` (#828) |
 
 ## Layouts
 

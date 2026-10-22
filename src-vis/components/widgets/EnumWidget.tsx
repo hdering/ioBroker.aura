@@ -1,6 +1,7 @@
 import { useMemo, useRef } from 'react';
 import { ListChecks } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useReadBackDatapoint } from '../../hooks/useReadBackDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
@@ -79,10 +80,11 @@ function EnumCircleContent({ entry, iconPx, share }: { entry: EnumEntry; iconPx?
 }
 
 export function EnumWidget({ config }: WidgetProps) {
-    const { value } = useDatapoint(config.datapoint);
     const { setState } = useIoBroker();
 
     const o = config.options ?? {};
+    // An optional status DP supplies the current selection; picks still go to the main DP (#828).
+    const { value } = useReadBackDatapoint(config.datapoint, o.statusDp);
     const layout = config.layout ?? 'default';
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
