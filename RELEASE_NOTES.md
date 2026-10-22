@@ -9,3 +9,4 @@
 - Section menu - a popup opened by a widget inside the open section menu now appears on top of the menu instead of behind it
 - Custom grid - clicking a cell in the edit dialog now highlights it in the preview even when an image or another spanning cell covers it
 - Thermostat and selection widgets - new circle menu layout: a round button fans out the preset temperatures with -/+ or all selection entries around it, like the shutter's circle menu (#815)
+- Universal widget: status icon and static icon cells now have an icon size slider in their content settings

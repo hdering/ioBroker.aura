@@ -1569,7 +1569,7 @@
         },
         "fontSize": {
           "type": "number",
-          "description": "px; undefined = auto"
+          "description": "px; undefined = auto. 'icon' / 'state-icon' cells: icon size in px (default 28)"
         },
         "bold": {
           "type": "boolean"

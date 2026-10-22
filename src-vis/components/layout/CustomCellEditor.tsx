@@ -541,6 +541,33 @@ const SWITCH_TRUE_DEFAULT = 'var(--accent-green)';
 const STATE_ICON_TRUE_DEFAULT = 'var(--accent)';
 const STATE_FALSE_DEFAULT = 'var(--text-secondary)';
 
+/** Icon size slider for 'icon' / 'state-icon' cells — both render `fontSize` as the icon's px size (default 28). */
+function IconSizeRow({ cell, onChange }: { cell: CustomCell; onChange: (patch: Partial<CustomCell>) => void }) {
+    const size = cell.fontSize ?? 28;
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    Icon-Größe
+                </label>
+                <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                    {size} px
+                </span>
+            </div>
+            <input
+                type="range"
+                min={12}
+                max={192}
+                step={2}
+                value={size}
+                onChange={(e) => onChange({ fontSize: Number(e.target.value) })}
+                className="w-full h-1"
+                style={{ accentColor: 'var(--accent)' }}
+            />
+        </div>
+    );
+}
+
 /** Shared active-state detection editor: boolean coercion vs. an operator/value comparison.
  *  Used by 'state-icon' (#467) and by 'switch' / 'state-text' (#567). */
 function StateEvalRow({ cell, onChange }: { cell: CustomCell; onChange: (patch: Partial<CustomCell>) => void }) {
@@ -1974,6 +2001,9 @@ export function CustomCellEditor({
                                     {iconName ?? 'Icon wählen…'}
                                 </span>
                             </button>
+                            <div className="mt-2">
+                                <IconSizeRow cell={cell} onChange={onChange} />
+                            </div>
                         </div>
                     );
                 })()}
@@ -2071,6 +2101,7 @@ export function CustomCellEditor({
                                     />
                                 </div>
                             </div>
+                            <IconSizeRow cell={cell} onChange={onChange} />
                         </>
                     );
                 })()}
@@ -3219,28 +3250,30 @@ export function CustomCellEditor({
 
             {cell.type !== 'empty' && cell.type !== 'component' && (
                 <>
-                    {/* Font size */}
-                    <div className="flex items-center gap-2">
-                        <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                            Schriftgröße
-                        </label>
-                        <input
-                            type="number"
-                            min={8}
-                            max={192}
-                            step={1}
-                            value={cell.fontSize ?? ''}
-                            onChange={(e) =>
-                                onChange({ fontSize: e.target.value ? Number(e.target.value) : undefined })
-                            }
-                            placeholder="auto"
-                            className="w-16 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                            style={inputSty}
-                        />
-                        <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                            px
-                        </span>
-                    </div>
+                    {/* Font size — icon cells set it as "Icon-Größe" in their content block */}
+                    {cell.type !== 'icon' && cell.type !== 'state-icon' && (
+                        <div className="flex items-center gap-2">
+                            <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                Schriftgröße
+                            </label>
+                            <input
+                                type="number"
+                                min={8}
+                                max={192}
+                                step={1}
+                                value={cell.fontSize ?? ''}
+                                onChange={(e) =>
+                                    onChange({ fontSize: e.target.value ? Number(e.target.value) : undefined })
+                                }
+                                placeholder="auto"
+                                className="w-16 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputSty}
+                            />
+                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                px
+                            </span>
+                        </div>
+                    )}
 
                     {/* Bold / Italic */}
                     <div className="flex items-center gap-4">
