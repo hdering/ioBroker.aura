@@ -11,3 +11,4 @@
 - Thermostat and selection widgets - new circle menu layout: a round button fans out the preset temperatures with -/+ or all selection entries around it, like the shutter's circle menu (#815)
 - Universal widget: status icon and static icon cells now have an icon size slider in their content settings
 - Connection lost banner - now has an opaque background in glass themes so the message stays readable over the dashboard (#826)
+- List widgets - the -/+ stepper can show and read durations (mm:ss, hh:mm, hh:mm:ss) and write the value as number, text or time string, e.g. for Sprinkle Control running times (#827)

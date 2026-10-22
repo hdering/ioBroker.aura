@@ -3141,6 +3141,33 @@
         "stepStep": {
           "type": "number"
         },
+        "stepTimeFormat": {
+          "type": "string",
+          "enum": [
+            "mm:ss",
+            "hh:mm",
+            "hh:mm:ss"
+          ],
+          "description": "Show the value as a duration (05:00) and read time strings from the DP (\"05:00\", \"1:05:03\"). Min/max/step stay numbers in `stepUnit`. Unset = plain number."
+        },
+        "stepUnit": {
+          "type": "string",
+          "enum": [
+            "s",
+            "min",
+            "h"
+          ],
+          "description": "With `stepTimeFormat`: unit of min/max/step and of plain numbers read from or written to the DP. Default 's' (mm:ss, hh:mm:ss) or 'min' (hh:mm)."
+        },
+        "stepWrite": {
+          "type": "string",
+          "enum": [
+            "number",
+            "string",
+            "time"
+          ],
+          "description": "What the buttons write: 'number' (default), 'string' (the number as text) or 'time' (the `stepTimeFormat` string, e.g. \"05:00\"). Sprinkle Control's runningTime shows mm:ss but takes minutes → stepTimeFormat 'mm:ss', stepUnit 'min', stepWrite 'number'."
+        },
         "sliderMin": {
           "type": "number",
           "description": "Scale and granularity. Defaults 0 / 100 / 1."
@@ -4237,6 +4264,33 @@
         "stepStep": {
           "type": "number"
         },
+        "stepTimeFormat": {
+          "type": "string",
+          "enum": [
+            "mm:ss",
+            "hh:mm",
+            "hh:mm:ss"
+          ],
+          "description": "Show the value as a duration (05:00) and read time strings from the DP (\"05:00\", \"1:05:03\"). Min/max/step stay numbers in `stepUnit`. Unset = plain number."
+        },
+        "stepUnit": {
+          "type": "string",
+          "enum": [
+            "s",
+            "min",
+            "h"
+          ],
+          "description": "With `stepTimeFormat`: unit of min/max/step and of plain numbers read from or written to the DP. Default 's' (mm:ss, hh:mm:ss) or 'min' (hh:mm)."
+        },
+        "stepWrite": {
+          "type": "string",
+          "enum": [
+            "number",
+            "string",
+            "time"
+          ],
+          "description": "What the buttons write: 'number' (default), 'string' (the number as text) or 'time' (the `stepTimeFormat` string, e.g. \"05:00\"). Sprinkle Control's runningTime shows mm:ss but takes minutes → stepTimeFormat 'mm:ss', stepUnit 'min', stepWrite 'number'."
+        },
         "sliderMin": {
           "type": "number",
           "description": "Scale and granularity. Defaults 0 / 100 / 1."
@@ -4913,6 +4967,33 @@
         },
         "stepStep": {
           "type": "number"
+        },
+        "stepTimeFormat": {
+          "type": "string",
+          "enum": [
+            "mm:ss",
+            "hh:mm",
+            "hh:mm:ss"
+          ],
+          "description": "Show the value as a duration (05:00) and read time strings from the DP (\"05:00\", \"1:05:03\"). Min/max/step stay numbers in `stepUnit`. Unset = plain number."
+        },
+        "stepUnit": {
+          "type": "string",
+          "enum": [
+            "s",
+            "min",
+            "h"
+          ],
+          "description": "With `stepTimeFormat`: unit of min/max/step and of plain numbers read from or written to the DP. Default 's' (mm:ss, hh:mm:ss) or 'min' (hh:mm)."
+        },
+        "stepWrite": {
+          "type": "string",
+          "enum": [
+            "number",
+            "string",
+            "time"
+          ],
+          "description": "What the buttons write: 'number' (default), 'string' (the number as text) or 'time' (the `stepTimeFormat` string, e.g. \"05:00\"). Sprinkle Control's runningTime shows mm:ss but takes minutes → stepTimeFormat 'mm:ss', stepUnit 'min', stepWrite 'number'."
         },
         "sliderMin": {
           "type": "number",

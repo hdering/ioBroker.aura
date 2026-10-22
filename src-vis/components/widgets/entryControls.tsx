@@ -55,6 +55,7 @@ import {
     resolveValueTransform,
     type ValueTransformSettings,
 } from '../../utils/valueTransform';
+import { readStepperValue, showStepperValue, writeStepperValue } from '../../utils/stepperFormat';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { applyValueExpr } from '../../utils/valueExpr';
 import { SliderScale } from './SliderScale';
@@ -259,6 +260,12 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     stepMin?: number;
     stepMax?: number;
     stepStep?: number;
+    /** Show the value as a duration (05:00) and read time strings from the DP ("05:00", "1:05:03"). Min/max/step stay numbers in `stepUnit`. Unset = plain number. */
+    stepTimeFormat?: 'mm:ss' | 'hh:mm' | 'hh:mm:ss';
+    /** With `stepTimeFormat`: unit of min/max/step and of plain numbers read from or written to the DP. Default 's' (mm:ss, hh:mm:ss) or 'min' (hh:mm). */
+    stepUnit?: 's' | 'min' | 'h';
+    /** What the buttons write: 'number' (default), 'string' (the number as text) or 'time' (the `stepTimeFormat` string, e.g. "05:00"). Sprinkle Control's runningTime shows mm:ss but takes minutes → stepTimeFormat 'mm:ss', stepUnit 'min', stepWrite 'number'. */
+    stepWrite?: 'number' | 'string' | 'time';
     // ── slider ────────────────────────────────────────────────────────────────
     // The option set of the standalone Schieberegler widget, per list entry, so a
     // row can drive a 0…255 dimmer or a −20…40 setpoint instead of a fixed 0…100.
@@ -1010,7 +1017,10 @@ export function StepperControl({
     /** Row condition for this value — a rule beats the threshold colour. */
     cond?: ElementCondResult;
 }) {
-    const cur = typeof val === 'number' ? val : Number(val) || 0;
+    const read = readStepperValue(val, entry);
+    const cur = read ?? 0;
+    const shown = read === undefined ? undefined : showStepperValue(read, entry);
+    const write = (n: number) => setState(entry.id, writeStepperValue(n, entry));
     const step = entry.stepStep ?? 1;
     const min = entry.stepMin;
     const max = entry.stepMax;
@@ -1026,7 +1036,7 @@ export function StepperControl({
     return (
         <div className="shrink-0 flex items-center gap-1.5">
             <button
-                onClick={() => setState(entry.id, clamp(cur - step))}
+                onClick={() => write(clamp(cur - step))}
                 disabled={atMin}
                 className={`${btnCls} disabled:opacity-30`}
                 style={{ ...btnStyle, width: size, height: size, cursor: atMin ? 'default' : 'pointer' }}
@@ -1038,11 +1048,11 @@ export function StepperControl({
                 className="text-xs font-semibold tabular-nums min-w-[2.5ch] text-center"
                 style={{ color: cond?.color ?? valueColor, ...condTextStyle(cond) }}
             >
-                {typeof val === 'number' ? formatNum(cur, decimals, numFmt) : '–'}
+                {read === undefined ? '–' : (shown ?? formatNum(cur, decimals, numFmt))}
                 {entry.unit ? ` ${entry.unit}` : ''}
             </span>
             <button
-                onClick={() => setState(entry.id, clamp(cur + step))}
+                onClick={() => write(clamp(cur + step))}
                 disabled={atMax}
                 className={`${btnCls} disabled:opacity-30`}
                 style={{ ...btnStyle, width: size, height: size, cursor: atMax ? 'default' : 'pointer' }}

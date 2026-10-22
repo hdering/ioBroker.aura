@@ -94,6 +94,25 @@ Die Lamellen-Steuerung öffnet sich als Popover (Vorschau, Regler, Schnellwerte)
 für einen senkrechten Regler kein Platz. Nicht übernommen: Tastengrößen und der Platzierungs-Block des
 Widgets, die zum Widget-Rahmen gehören.
 
+### Darstellung Stepper {#darstellung-stepper}
+
+`displayType: 'stepper'` — −/+ Tasten um den Wert.
+
+| Feld                            | Standard          |                                                                                       |
+| ------------------------------- | ----------------- | ------------------------------------------------------------------------------------- |
+| `stepMin` / `stepMax`           | —                 | Grenzen                                                                               |
+| `stepStep`                      | `1`               | Schrittweite                                                                          |
+| `stepTimeFormat`                | —                 | `mm:ss` · `hh:mm` · `hh:mm:ss` — Anzeige als Dauer, liest Zeit-Strings (`05:00`) |
+| `stepUnit`                      | `s` (`hh:mm`: `min`) | Einheit von Min/Max/Schritt: `s` · `min` · `h`                                     |
+| `stepWrite`                     | `number`          | `number` · `string` (Zahl als Text) · `time` (Zeit-String, z. B. `05:00`)             |
+
+| Beispiel Sprinkle Control (`sprinkle.<kreis>.runningTime`) | |
+| --- | --- |
+| `stepTimeFormat` | `mm:ss` |
+| `stepUnit` | `min` |
+| `stepStep` / `stepMin` / `stepMax` | `5` / `0` / `60` |
+| `stepWrite` | `number` — der Adapter zeigt `05:00`, nimmt aber Minuten als Zahl |
+
 ### Darstellung Tasten
 
 `displayType: 'buttons'` legt feste Werte als Tasten in die Zeile — dieselben Möglichkeiten wie das

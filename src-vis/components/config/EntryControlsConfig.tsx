@@ -1326,6 +1326,70 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
             {/* ── Stepper ── */}
             {dt === 'stepper' && (
                 <div className="grid grid-cols-3 gap-1.5">
+                    {/* Zeit-Formate (#827): Anzeige/Lesen als Dauer, Schreiben getrennt wählbar —
+                        Sprinkle Control zeigt „05:00“, nimmt aber Minuten als Zahl an. */}
+                    <div>
+                        <Label>Format</Label>
+                        <select
+                            value={entry.stepTimeFormat ?? ''}
+                            onChange={(e) => {
+                                const f = (e.target.value || undefined) as EntryControlConfig['stepTimeFormat'];
+                                onUpdate(
+                                    f
+                                        ? { stepTimeFormat: f }
+                                        : {
+                                              stepTimeFormat: undefined,
+                                              stepUnit: undefined,
+                                              stepWrite: entry.stepWrite === 'time' ? undefined : entry.stepWrite,
+                                          },
+                                );
+                            }}
+                            className={iCls}
+                            style={iSty}
+                        >
+                            <option value="">Zahl</option>
+                            <option value="mm:ss">mm:ss</option>
+                            <option value="hh:mm">hh:mm</option>
+                            <option value="hh:mm:ss">hh:mm:ss</option>
+                        </select>
+                    </div>
+                    <div>
+                        <Label>Einheit</Label>
+                        <select
+                            value={entry.stepUnit ?? ''}
+                            disabled={!entry.stepTimeFormat}
+                            onChange={(e) =>
+                                onUpdate({ stepUnit: (e.target.value || undefined) as EntryControlConfig['stepUnit'] })
+                            }
+                            className={`${iCls} disabled:opacity-40`}
+                            style={iSty}
+                        >
+                            <option value="">{entry.stepTimeFormat === 'hh:mm' ? 'Minuten' : 'Sekunden'}</option>
+                            <option value="s">Sekunden</option>
+                            <option value="min">Minuten</option>
+                            <option value="h">Stunden</option>
+                        </select>
+                    </div>
+                    <div>
+                        <Label>Schreibt</Label>
+                        <select
+                            value={entry.stepWrite ?? 'number'}
+                            onChange={(e) =>
+                                onUpdate({
+                                    stepWrite:
+                                        e.target.value === 'number'
+                                            ? undefined
+                                            : (e.target.value as EntryControlConfig['stepWrite']),
+                                })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            <option value="number">Zahl</option>
+                            <option value="string">Zahl als Text</option>
+                            {entry.stepTimeFormat && <option value="time">{entry.stepTimeFormat}</option>}
+                        </select>
+                    </div>
                     <div>
                         <Label>Min</Label>
                         <input
