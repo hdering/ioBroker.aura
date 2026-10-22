@@ -660,16 +660,20 @@ export function LayoutDrawer({
         </button>
     );
 
+    // Stacking: above the page chrome (bars z-20, banners z-50) but BELOW the overlays a
+    // widget inside the drawer can open — click popup (z-300), confirm (z-400), fullscreen
+    // (z-900). Those overlays live in the widget, so closing the drawer would unmount them;
+    // they have to land on top of the still-open drawer instead.
     const drawer = open
         ? createPortal(
               <>
                   <div
-                      className="fixed inset-0 z-[1000]"
+                      className="fixed inset-0 z-[250]"
                       style={{ background: 'rgba(0,0,0,0.45)' }}
                       onClick={() => setOpen(false)}
                   />
                   <aside
-                      className="fixed top-0 left-0 z-[1001] h-full flex flex-col"
+                      className="fixed top-0 left-0 z-[251] h-full flex flex-col"
                       style={{
                           width: `min(${SECTION_DRAWER_OVERLAY_W}px, 85vw)`,
                           // The drawer lies over the dashboard, so it needs a closed ground:
