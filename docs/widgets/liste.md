@@ -96,22 +96,58 @@ Widgets, die zum Widget-Rahmen gehören.
 
 ### Darstellung Stepper {#darstellung-stepper}
 
-`displayType: 'stepper'` — −/+ Tasten um den Wert.
+`displayType: 'stepper'` — −/+ Tasten um den Wert. Gilt auch für die [dynamische Liste](./dynamische-liste).
 
-| Feld                            | Standard          |                                                                                       |
-| ------------------------------- | ----------------- | ------------------------------------------------------------------------------------- |
-| `stepMin` / `stepMax`           | —                 | Grenzen                                                                               |
-| `stepStep`                      | `1`               | Schrittweite                                                                          |
-| `stepTimeFormat`                | —                 | `mm:ss` · `hh:mm` · `hh:mm:ss` — Anzeige als Dauer, liest Zeit-Strings (`05:00`) |
-| `stepUnit`                      | `s` (`hh:mm`: `min`) | Einheit von Min/Max/Schritt: `s` · `min` · `h`                                     |
-| `stepWrite`                     | `number`          | `number` · `string` (Zahl als Text) · `time` (Zeit-String, z. B. `05:00`)             |
+| Feld                  | Editor   | Standard             |                                                                                         |
+| --------------------- | -------- | -------------------- | --------------------------------------------------------------------------------------- |
+| `stepMin` / `stepMax` | Min/Max  | —                    | Grenzen                                                                                 |
+| `stepStep`            | Schritt  | `1`                  | Schrittweite                                                                            |
+| `stepTimeFormat`      | Format   | Zahl                 | `mm:ss` · `hh:mm` · `hh:mm:ss` — Anzeige als Dauer, liest Zeit-Strings (`05:00`, `1:05:03`) |
+| `stepUnit`            | Einheit  | `s` (`hh:mm`: `min`) | Einheit von Min/Max/Schritt und von Zahlen im DP: `s` · `min` · `h`                     |
+| `stepWrite`           | Schreibt | `number`             | `number` (Zahl) · `string` (Zahl als Text) · `time` (Zeit-String im gewählten Format)   |
 
-| Beispiel Sprinkle Control (`sprinkle.<kreis>.runningTime`) | |
-| --- | --- |
-| `stepTimeFormat` | `mm:ss` |
-| `stepUnit` | `min` |
-| `stepStep` / `stepMin` / `stepMax` | `5` / `0` / `60` |
-| `stepWrite` | `number` — der Adapter zeigt `05:00`, nimmt aber Minuten als Zahl |
+Gerechnet wird immer mit einer Zahl in `stepUnit`; nur Lesen, Anzeige und Schreiben rechnen um.
+`mm:ss` zählt über eine Stunde weiter (`90:00`), `hh:mm:ss` zeigt `01:30:00`.
+
+#### Varianten
+
+| Fall                                    | Format     | Einheit  | Schreibt      | DP enthält → nach +                      |
+| --------------------------------------- | ---------- | -------- | ------------- | ---------------------------------------- |
+| normaler Zahlen-DP (Standard)           | Zahl       | —        | Zahl          | `5` → `6`                                |
+| String-DP, der eine Zahl will           | Zahl       | —        | Zahl als Text | `"5"` → `"6"`                            |
+| Adapter will `MM:SS`                    | `mm:ss`    | Minuten  | Zeit-String   | `"05:00"` → `"10:00"` (Schritt 5)        |
+| Sekunden als Zahl, Anzeige als Dauer    | `mm:ss`    | Sekunden | Zahl          | `300` (Anzeige `05:00`) → `360`          |
+| Stunden:Minuten als Text                | `hh:mm`    | Minuten  | Zeit-String   | `"01:30"` → `"01:45"` (Schritt 15)       |
+| zeigt `MM:SS`, nimmt Minuten als Zahl   | `mm:ss`    | Minuten  | Zahl          | `"05:00"` → `10`                         |
+
+#### Beispiel Sprinkle Control
+
+`sprinklecontrol.0.sprinkle.<kreis>.runningTime` zeigt die Laufzeit als `05:00`, nimmt aber nur Minuten als Zahl an —
+ein geschriebenes `"05:00"` ignoriert der Adapter.
+
+| Feld                | Wert             |
+| ------------------- | ---------------- |
+| Format              | `mm:ss`          |
+| Einheit             | Minuten          |
+| Schritt / Min / Max | `5` / `0` / `60` |
+| Schreibt            | Zahl             |
+
+| DP `runningTime`   | Anzeige | Bedeutung                                         |
+| ------------------ | ------- | ------------------------------------------------- |
+| `00:00`            | `00:00` | Kreis aus — + schreibt `5` und startet ihn        |
+| `5`                | `05:00` | gerade gestartet (vom Adapter bestätigt)          |
+| `10:00`            | `10:00` | Zeit bei laufendem Kreis geändert                 |
+| `0` (geschrieben)  | `00:00` | Kreis stoppt                                      |
+
+Ein Kreis als Liste:
+
+| Zeile        | DP                   | Darstellung                                                                                     |
+| ------------ | -------------------- | ----------------------------------------------------------------------------------------------- |
+| Status       | `sprinklerState`     | Wertzuordnung: 0 Aus · 1 Warten · 2 Läuft · 3 Pause · 4 Boost · 5 Aus (Boost) · 6 Zisterne leer · 7 externe Pause |
+| Laufzeit     | `runningTime`        | Stepper wie oben                                                                                |
+| Restzeit     | `countdown`          | Wert                                                                                            |
+| Automatik    | `autoOn`             | Schalter                                                                                        |
+| Bodenfeuchte | `actualSoilMoisture` | Wert                                                                                            |
 
 ### Darstellung Tasten
 
