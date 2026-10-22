@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { WidgetConfig, ClickAction, PopupCountdownPosition } from '../../../types';
@@ -29,6 +29,14 @@ import { TabEmbedBody } from './TabEmbedBody';
 import { PopupCountdown } from './PopupCountdown';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../common/BackgroundImageLayer';
 import { activeBgImage } from '../../../utils/backgroundImage';
+import { useEscapeLayer } from '../../../utils/escapeStack';
+import {
+    MAX_POPUP_DEPTH,
+    PopupLayerContext,
+    usePopupLayer,
+    type PopupContent,
+    type PopupLayer,
+} from '../../../contexts/PopupLayerContext';
 
 function normalizeAction(action: ClickAction): ClickAction {
     switch (action.kind) {
@@ -100,8 +108,40 @@ function getTitle(widget: WidgetConfig, action: ClickAction, titleOverride?: str
     }
 }
 
-export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidgets = [], titleOverride }: Props) {
+export function WidgetClickPopup(props: Props) {
+    const parent = usePopupLayer();
+    // Past the depth cap the topmost popup shows this one instead (issue #829).
+    if (parent && parent.depth >= MAX_POPUP_DEPTH) return <ReplaceTopPopup layer={parent} content={props} />;
+    return <PopupDialog {...props} />;
+}
+
+/** Hands its content to the topmost layer. That swap remounts the layer's body
+ *  and with it whoever rendered this, so it fires once and never draws. */
+function ReplaceTopPopup({ layer, content }: { layer: PopupLayer; content: PopupContent }) {
+    const done = useRef(false);
+    useEffect(() => {
+        if (done.current) return;
+        done.current = true;
+        layer.replace(content);
+    }, [layer, content]);
+    return null;
+}
+
+function PopupDialog({ onClose, ...initial }: Props) {
+    const parent = usePopupLayer();
+    // Content swapped in by a popup opened past the depth cap (see ReplaceTopPopup);
+    // `swaps` keys the body so the swapped-in view starts from a clean state.
+    const [swapped, setSwapped] = useState<{ content: PopupContent; n: number } | null>(null);
+    const { widget, action: rawAction, allWidgets = [], titleOverride } = swapped?.content ?? initial;
     const action = normalizeAction(rawAction);
+    const layer = useMemo<PopupLayer>(
+        () => ({
+            depth: (parent?.depth ?? 0) + 1,
+            closeAll: parent?.closeAll ?? onClose,
+            replace: (content) => setSwapped((cur) => ({ content, n: (cur?.n ?? 0) + 1 })),
+        }),
+        [parent, onClose],
+    );
     // Prefer the frontend container so the popup inherits per-layout scoped CSS vars.
     // Falls back to the portal target (admin context) or document.body.
     const adminTarget = usePortalTarget();
@@ -168,13 +208,8 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
         DEFAULT_POPUP_PADDING,
     );
 
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        document.addEventListener('keydown', handler);
-        return () => document.removeEventListener('keydown', handler);
-    }, [onClose]);
+    // Escape closes only the topmost popup of a stack, not every one at once.
+    useEscapeLayer(onClose);
 
     // Auto-close timer, reset on pointer activity inside the popup body.
     const timerRef = useRef<number | null>(null);
@@ -353,7 +388,9 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                         scrollbarGutter: !isIframe && scrolls ? 'stable both-edges' : undefined,
                     }}
                 >
-                    <div className={fillBody ? 'w-full h-full' : 'm-auto'}>{body}</div>
+                    <div key={swapped?.n ?? 0} className={fillBody ? 'w-full h-full' : 'm-auto'}>
+                        <PopupLayerContext.Provider value={layer}>{body}</PopupLayerContext.Provider>
+                    </div>
                 </div>
             </div>
         </div>,

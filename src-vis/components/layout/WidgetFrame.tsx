@@ -292,7 +292,7 @@ import { CLIMATE_METRIC_TEMPLATES, HUMIDITY_CHART_COLOR, metricFromTemplate } fr
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
 import { useResolvedTitle } from '../widgets/DynamicTitle';
-import { useNavigationStore } from '../../store/navigationStore';
+import { useRunNavigationAction } from '../../contexts/PopupLayerContext';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigStore';
 import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
 
@@ -7255,32 +7255,9 @@ function WidgetFrameInner({
 
     // Shared by the frame click and the action button that iframe-bodied widgets
     // need (a click inside a foreign document never reaches us — issue #527).
+    const runNavigation = useRunNavigationAction();
     const runClickAction = () => {
-        switch (clickAction.kind) {
-            case 'link-external':
-                if (clickAction.newTab) window.open(clickAction.url, '_blank', 'noopener');
-                else window.location.href = clickAction.url;
-                return;
-            case 'link-tab': {
-                const tab = useDashboardStore
-                    .getState()
-                    .layouts.find((l) => l.id === clickAction.layoutId)
-                    ?.sections.flatMap((s) => s.tabs)
-                    .find((t) => t.id === clickAction.tabId);
-                if (tab?.disabled) return;
-                useNavigationStore
-                    .getState()
-                    .navigateTo(clickAction.layoutId, clickAction.tabId, undefined, clickAction.sectionId);
-                return;
-            }
-            case 'link-widget':
-                useNavigationStore
-                    .getState()
-                    .navigateTo(clickAction.layoutId, clickAction.tabId, clickAction.widgetId, clickAction.sectionId);
-                return;
-            default:
-                setPopupOpen(true);
-        }
+        if (!runNavigation(clickAction)) setPopupOpen(true);
     };
 
     const handleWidgetClick = (e: React.MouseEvent) => {

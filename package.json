@@ -179,6 +179,7 @@
     "test:popup-pad": "node tools/tests/popup-padding.mjs",
     "test:popup-width": "node tools/tests/popup-auto-width.mjs",
     "test:popup-preview": "node tools/tests/popup-editor-preview.mjs",
+    "test:popup-click": "node tools/tests/popup-click-action.mjs",
     "test:mobile-header": "node tools/tests/mobile-header-clip.mjs",
     "test:tablet-flow": "node tools/tests/tablet-flow.mjs",
     "test:grid-fluid": "node tools/tests/grid-fluid.mjs",

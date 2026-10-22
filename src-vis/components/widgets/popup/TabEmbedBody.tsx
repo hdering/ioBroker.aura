@@ -1,4 +1,13 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import {
+    Suspense,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+    type CSSProperties,
+    type MouseEvent,
+} from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import { AlertTriangle } from 'lucide-react';
 import { DEFAULT_POPUP_PADDING, usePopupConfigStore } from '../../../store/popupConfigStore';
@@ -14,7 +23,11 @@ import { ContentAutoHeightBlockedContext } from '../../../hooks/useContentAutoHe
 import { supportsAutoHeight } from '../../../utils/autoHeight';
 import { buildPopupSubMap, popupMainDp, resolvePopupWidget } from '../../../utils/popupPlaceholders';
 import { useResolvedTitle } from '../DynamicTitle';
-import type { WidgetConfig, WidgetCondition } from '../../../types';
+import type { ClickAction, WidgetConfig, WidgetCondition } from '../../../types';
+import { useDashboardStore } from '../../../store/dashboardStore';
+import { useRunNavigationAction } from '../../../contexts/PopupLayerContext';
+import { isInteractiveTarget } from '../../../utils/interactiveTargets';
+import { WidgetClickPopup } from './WidgetClickPopup';
 import { SharedTemplateContext } from '../../../contexts/RenderTransformContext';
 
 const DEFAULT_MARGIN = 10;
@@ -180,6 +193,23 @@ function PopupWidgetCell({
     // Colours bound to a datapoint (#747) — after the pair, so a bound half works too.
     const { value: rendered, restore: restoreColorBindings } = useColorBindings(dualRendered);
 
+    // Click action (issue #829). The bare cell has no WidgetFrame, which is where
+    // a widget's action normally runs, so it is handled here. Only an action set on
+    // the widget itself counts: the admin's per-type defaults would turn every
+    // dimmer inside the built-in dimmer popup into a trigger for that same popup.
+    const stored = rendered.options?.clickAction as ClickAction | undefined;
+    const clickAction = stored && stored.kind !== 'none' ? stored : null;
+    const runNavigation = useRunNavigationAction();
+    const [popupOpen, setPopupOpen] = useState(false);
+    const onCellClick = (e: MouseEvent) => {
+        if (!clickAction || cond.disabled) return;
+        // A nested popup's backdrop click bubbles back here through the React tree.
+        if (popupOpen) return;
+        if (isInteractiveTarget(e.target, e.currentTarget as HTMLElement)) return;
+        e.stopPropagation();
+        if (!runNavigation(clickAction)) setPopupOpen(true);
+    };
+
     const effectClass =
         cond.effect === 'pulse'
             ? 'animate-pulse'
@@ -208,8 +238,11 @@ function PopupWidgetCell({
             style={{
                 ...cardStyleFor(w, widgetPadding),
                 ...cond.cssVars,
+                ...(clickAction && !cond.disabled ? { cursor: 'pointer' } : {}),
                 ...(cond.hidden ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
             }}
+            data-aura-popup-widget={w.id}
+            onClick={onCellClick}
         >
             {Widget ? (
                 <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
@@ -232,6 +265,16 @@ function PopupWidgetCell({
                     <AlertTriangle size={13} />
                     Unbekannter Typ: {w.type}
                 </div>
+            )}
+            {popupOpen && clickAction && (
+                <WidgetClickPopup
+                    widget={rendered}
+                    action={clickAction}
+                    onClose={() => setPopupOpen(false)}
+                    allWidgets={useDashboardStore
+                        .getState()
+                        .layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)))}
+                />
             )}
         </div>
     );
@@ -277,6 +320,7 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
                 cur &&
                 cur.hidden === r.hidden &&
                 cur.reflow === r.reflow &&
+                cur.disabled === r.disabled &&
                 cur.effect === r.effect &&
                 JSON.stringify(cur.cssVars) === JSON.stringify(r.cssVars)
             ) {

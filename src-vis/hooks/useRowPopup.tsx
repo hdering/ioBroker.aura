@@ -2,7 +2,7 @@ import { useMemo, useState, type MouseEvent, type ReactNode } from 'react';
 import type { ClickAction, WidgetConfig } from '../types';
 import { usePopupConfigStore } from '../store/popupConfigStore';
 import { useDashboardStore } from '../store/dashboardStore';
-import { useNavigationStore } from '../store/navigationStore';
+import { useRunNavigationAction } from '../contexts/PopupLayerContext';
 import { isInteractiveTarget } from '../utils/interactiveTargets';
 import {
     isExplicitRowAction,
@@ -45,6 +45,7 @@ interface OpenPopup {
 export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode: boolean) {
     const typeDefaults = usePopupConfigStore((s) => s.typeDefaults);
     const [open, setOpen] = useState<OpenPopup | null>(null);
+    const runNavigation = useRunNavigationAction();
 
     const ctx = useMemo(() => ({ typeDefaults }), [typeDefaults]);
 
@@ -81,31 +82,8 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                 e.stopPropagation();
                 // Navigation kinds have no popup body - they act immediately, exactly
                 // like WidgetFrame.runClickAction does for a widget-level click.
-                switch (action.kind) {
-                    case 'link-external':
-                        if (action.newTab) window.open(action.url, '_blank', 'noopener');
-                        else window.location.href = action.url;
-                        return;
-                    case 'link-tab': {
-                        const tab = useDashboardStore
-                            .getState()
-                            .layouts.find((l) => l.id === action.layoutId)
-                            ?.sections.flatMap((s) => s.tabs)
-                            .find((t) => t.id === action.tabId);
-                        if (tab?.disabled) return;
-                        useNavigationStore
-                            .getState()
-                            .navigateTo(action.layoutId, action.tabId, undefined, action.sectionId);
-                        return;
-                    }
-                    case 'link-widget':
-                        useNavigationStore
-                            .getState()
-                            .navigateTo(action.layoutId, action.tabId, action.widgetId, action.sectionId);
-                        return;
-                    default:
-                        setOpen({ dpId, label, action, title: popupTitle, hideTitle: popupHideTitle, popupOpts });
-                }
+                if (runNavigation(action)) return;
+                setOpen({ dpId, label, action, title: popupTitle, hideTitle: popupHideTitle, popupOpts });
             },
         };
     };

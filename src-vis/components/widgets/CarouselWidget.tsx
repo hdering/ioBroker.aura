@@ -15,7 +15,7 @@ import type { LucideIcon } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { useNavigationStore } from '../../store/navigationStore';
+import { useRunNavigationAction } from '../../contexts/PopupLayerContext';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
 import { formatLastChange } from '../../utils/formatLastChange';
@@ -95,6 +95,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     // Track the triggering item's label alongside the action so the popup heading
     // shows the element name rather than the shared carousel widget name.
     const [popup, setPopup] = useState<{ action: ClickAction; title: string } | null>(null);
+    const runNavigation = useRunNavigationAction();
 
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, GalleryHorizontal);
     const iconSize = (o.iconSize as number) || 20;
@@ -348,16 +349,7 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
             }
             return;
         }
-        if (a.kind === 'link-tab') {
-            const tab = useDashboardStore
-                .getState()
-                .layouts.find((l) => l.id === a.layoutId)
-                ?.sections.flatMap((s) => s.tabs)
-                .find((t) => t.id === a.tabId);
-            if (tab?.disabled) return;
-            useNavigationStore.getState().navigateTo(a.layoutId, a.tabId, undefined, a.sectionId);
-            return;
-        }
+        if (runNavigation(a)) return;
         setPopup({ action: a, title: item.label });
     };
 

@@ -1715,6 +1715,14 @@ nehmen — adressiert über ihren Namen. Vorher war die einzige Möglichkeit,
 Alles-oder-nichts-Falle, die Gruppen hatten. Ein Gruppen-Kind wird auch ohne
 `defId` gefunden; die Angabe bleibt erlaubt und ist schneller.
 
+**Klick-Aktionen in Popups (#829).** Ein Widget in einer Popup-Ansicht führt sein
+eigenes `options.clickAction` aus (Typ-Standards aus der Popup-Konfiguration
+nicht — sonst öffnete jeder Dimmer im Dimmer-Popup dasselbe Popup erneut). Ein
+Sprung (`link-tab`/`link-widget`/`link-external`) schließt den ganzen
+Popup-Stapel, eine Popup-Aktion legt ein Popup obendrauf; ab Tiefe 3 ersetzt sie
+den Inhalt des obersten (`MAX_POPUP_DEPTH`, `contexts/PopupLayerContext.ts`).
+Die Beschreibung von `aura_write_popup` sagt das dem Modell.
+
 **Verwaiste Gruppen-Definitionen werden eingesammelt.** Jedes Löschen von
 Widgets oder Knoten ruft danach `pruneGroupDefs`: was kein Widget in Tab oder
 Popup mehr referenziert, fliegt raus (`collectDefIds` folgt Verschachtelungen).
