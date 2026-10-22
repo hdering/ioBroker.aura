@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.89.0",
+    "auraVersion": "0.90.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -5716,6 +5716,42 @@
         "md",
         "lg"
       ]
+    },
+    "EnumEntry": {
+      "type": "object",
+      "fields": {
+        "value": {
+          "type": "string",
+          "required": true,
+          "description": "stored as string; parsed to number if numeric"
+        },
+        "label": {
+          "type": "string",
+          "required": true,
+          "description": "text/HTML content, and the name/alt for image+icon entries"
+        },
+        "color": {
+          "type": "string",
+          "color": true
+        },
+        "render": {
+          "type": "string",
+          "ref": "EnumRender",
+          "description": "How the entry is rendered. Defaults to text (or html for legacy HTML labels)."
+        },
+        "image": {
+          "type": "string",
+          "description": "image URL or aura-file: path (render === 'image')"
+        },
+        "icon": {
+          "type": "string",
+          "description": "iconify id (render === 'icon')"
+        },
+        "size": {
+          "type": "number",
+          "description": "px size for image/icon"
+        }
+      }
     },
     "LightColorMode": {
       "type": "string",
@@ -11522,6 +11558,7 @@
         "compact",
         "minimal",
         "card",
+        "circle",
         "custom"
       ],
       "customFromLayout": {
@@ -11772,6 +11809,49 @@
             "1fr",
             "30px"
           ]
+        },
+        "circle": {
+          "cols": 1,
+          "rows": 6,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "label-lg",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "select",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "2px",
+            "auto",
+            "1fr"
+          ]
         }
       },
       "conditionSlots": [
@@ -11837,6 +11917,51 @@
         "windowOpenValues"
       ],
       "options": {
+        "circleDirection": {
+          "type": "string",
+          "ref": "CircleDirection",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "full",
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ],
+          "description": "Nur layout \"circle\" (#815): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+        },
+        "circleIcon": {
+          "type": "string",
+          "description": "Nur layout \"circle\" (#815): Icon im runden Knopf (Iconify-Name). Leer = Icon bzw. Bild des aktiven Eintrags, sonst das Widget-Icon. Die Einträge (entries) stehen in ihrer Listenreihenfolge im Kreis — mit icon/image als Bild, sonst als Text."
+        },
+        "circleItemSize": {
+          "type": "number",
+          "default": 48,
+          "description": "Nur layout \"circle\": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
+        },
+        "circleKeepOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Nur layout \"circle\": Kreismenü bleibt nach einer Auswahl offen."
+        },
+        "circleShade": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur layout \"circle\": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
+        },
+        "circleTriggerSize": {
+          "type": "number",
+          "description": "Nur layout \"circle\": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "EnumEntry"
+          },
+          "description": "Die Werteliste: je Eintrag value (als Text, wird beim Schreiben zu Zahl/Boolean, wenn er so aussieht) und label, optional color, render (\"text\" | \"icon\" | \"image\" | \"html\") mit icon (Iconify-Name) bzw. image und size. Nur bei entriesSource \"manual\" (Standard); bei \"json\" kommen die Einträge aus entriesDp."
+        },
         "entriesColorKey": {
           "type": "string",
           "description": "Feldname im JSON, der die Farbe liefert."
@@ -16932,6 +17057,63 @@
             "auto",
             "1fr"
           ]
+        },
+        "circle": {
+          "cols": 1,
+          "rows": 7,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-up-min",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "field",
+              "fieldKey": "position",
+              "valign": "middle",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "align": "center",
+              "allowOverflow": true
+            },
+            {
+              "type": "field",
+              "fieldKey": "movingArrow",
+              "valign": "middle",
+              "fontSize": 10,
+              "color": "var(--accent-yellow)",
+              "align": "center"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-stop-min",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-down-min",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "20px",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
         }
       },
       "conditionSlots": [
@@ -18733,6 +18915,7 @@
         "compact",
         "minimal",
         "dial",
+        "circle",
         "custom"
       ],
       "customFromLayout": {
@@ -19001,6 +19184,99 @@
             "1fr",
             "auto"
           ]
+        },
+        "circle": {
+          "cols": 2,
+          "rows": 7,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "suffix": "°C",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-state-color, var(--accent))",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "field",
+              "fieldKey": "actualLine",
+              "fontSize": 12,
+              "color": "var(--aura-actual-color, var(--text-secondary))",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-minus-round",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-plus-round",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "presets",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "1fr"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
         }
       },
       "conditionSlots": [
@@ -19075,6 +19351,46 @@
           "default": "",
           "description": "Datenpunkt der Ist-Temperatur (der Haupt-DP ist die Soll-Temperatur).",
           "datapoint": true
+        },
+        "circleDirection": {
+          "type": "string",
+          "ref": "CircleDirection",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "full",
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ],
+          "description": "Nur layout \"circle\" (#815): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+        },
+        "circleIcon": {
+          "type": "string",
+          "description": "Nur layout \"circle\": Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon (icon), ohne beides ein Thermometer. Der Knopf zeigt darunter Soll- und Ist-Temperatur (showSetpoint/showActualTemp)."
+        },
+        "circleItemSize": {
+          "type": "number",
+          "default": 48,
+          "description": "Nur layout \"circle\": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
+        },
+        "circleKeepOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Nur layout \"circle\": Kreismenü bleibt nach einer Auswahl offen."
+        },
+        "circleOrder": {
+          "description": "Nur layout \"circle\": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — \"minus\", \"plus\" und \"preset-<Wert>\" (z. B. \"preset-21.5\", Wert aus presets). Standard: minus, presets, plus. − und + nur mit showControls, Presets nur mit showPresets. − und + lassen das Menü offen und zeigen den Sollwert in der Mitte. Leer = Standard."
+        },
+        "circleShade": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur layout \"circle\": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
+        },
+        "circleTriggerSize": {
+          "type": "number",
+          "description": "Nur layout \"circle\": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
         },
         "dialColor": {
           "type": "string",
