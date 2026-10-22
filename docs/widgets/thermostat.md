@@ -9,6 +9,7 @@ Stellt die Soll-Temperatur per Plus/Minus-Tasten ein und zeigt optional die Ist-
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `datapoint` | ja | `number` | Soll-Temperatur |
+| `statusDp` | nein | `number` | Rückmelde-Datenpunkt (z. B. Tasmota `stat.*`): angezeigt wird dieser Wert, geschrieben wird weiter auf `datapoint` (#828) |
 | `actualDatapoint` | nein | `number` | Ist-Temperatur |
 
 ## Layouts

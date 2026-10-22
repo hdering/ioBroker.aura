@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Thermometer, Flame, Wind, Snowflake, Minus, Plus } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useReadBackDatapoint } from '../../hooks/useReadBackDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { lookupDatapointName } from '../../hooks/useDatapointList';
 import type { WidgetProps, WidgetConfig } from '../../types';
@@ -125,7 +126,8 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const t = useT();
     const actualDpId = (config.options?.actualDatapoint as string) || '';
     const { value: rawActual } = useDatapoint(actualDpId);
-    const { value: rawTarget } = useDatapoint(config.datapoint);
+    // An optional status DP supplies the shown setpoint; writes still go to the main DP (#828).
+    const { value: rawTarget } = useReadBackDatapoint(config.datapoint, config.options?.statusDp);
     const { setState } = useIoBroker();
 
     const minTemp = (config.options?.minTemp as number) ?? 10;

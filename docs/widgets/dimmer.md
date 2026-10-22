@@ -9,6 +9,7 @@ Stellt einen Helligkeitswert (0–100 %) per Schieberegler ein und schaltet das 
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `datapoint` | ja | `number` | Helligkeit 0–100 % |
+| `statusDp` | nein | `number` | Rückmelde-Datenpunkt (z. B. Tasmota `stat.*`): angezeigt wird dieser Wert, geschrieben wird weiter auf `datapoint` (#828) |
 | `switchDp` | nein | `boolean` | separater An/Aus-DP; ohne ihn schaltet die Taste den Helligkeits-DP auf `0` / `100` |
 | `onValue` / `offValue` | nein | — | Schreibwerte für `switchDp` (Standard `true` / `false`) |
 

@@ -9,6 +9,7 @@ Stellt einen beliebigen Zahlenwert per Schieberegler ein. Frei wählbarer Werteb
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `datapoint` | ja | `number` | eingestellter Wert; nicht-numerische Werte fallen auf `min` zurück |
+| `statusDp` | nein | `number` | Rückmelde-Datenpunkt (z. B. Tasmota `stat.*`): angezeigt wird dieser Wert, geschrieben wird weiter auf `datapoint` (#828) |
 | `actions[].dp` | nein | — | DP einer Aktions-Taste; schreibt `value` (Standard `true`) |
 
 ## Layouts

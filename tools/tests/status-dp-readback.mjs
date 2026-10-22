@@ -1,5 +1,5 @@
 // Verifies the optional status datapoint (options.statusDp) of the writing widgets
-// input, enum and knob (issue #828): the widget shows the status DP's value, writes
+// input, enum, knob, slider, dimmer and thermostat (issue #828): the widget shows the status DP's value, writes
 // still go to the main datapoint, and without a status DP nothing changes.
 //
 //   npm run dev            (or set AURA_BASE)
@@ -93,6 +93,26 @@ const rootText = () => page.evaluate((sel) => document.querySelector(sel)?.textC
     await show('knob', { unit: '' }, { [DP]: 10, [STATUS_DP]: 73 });
     const t = await rootText();
     check('knob without status DP: shows the main value', t.includes('10') && !t.includes('73'), t);
+}
+
+// ── Slider, dimmer, thermostat: same rule for the shown value ──
+for (const [type, extra, main, status] of [
+    ['slider', { unit: '' }, 10, 73],
+    ['dimmer', {}, 10, 73],
+    ['thermostat', {}, 18.5, 23.5],
+]) {
+    const fmt = (v) => String(v).replace('.', '[.,]');
+    await show(type, { ...extra, statusDp: STATUS_DP }, { [DP]: main, [STATUS_DP]: status });
+    let t = await rootText();
+    check(`${type}: shows the status value`, new RegExp(fmt(status)).test(t), t);
+
+    await show(type, extra, { [DP]: main, [STATUS_DP]: status });
+    t = await rootText();
+    check(
+        `${type} without status DP: shows the main value`,
+        new RegExp(fmt(main)).test(t) && !new RegExp(fmt(status)).test(t),
+        t,
+    );
 }
 
 eq('no page errors', pageErrors.join(' | '), '');

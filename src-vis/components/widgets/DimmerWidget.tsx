@@ -1,6 +1,7 @@
 import React, { useMemo, useState, type CSSProperties } from 'react';
 import { Power, SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useReadBackDatapoint } from '../../hooks/useReadBackDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -23,8 +24,9 @@ function parseVal(raw: string | undefined, fallback: boolean): boolean | number 
 }
 
 export function DimmerWidget({ config }: WidgetProps) {
-    const { value } = useDatapoint(config.datapoint);
     const o = config.options ?? {};
+    // An optional status DP supplies the shown level; writes still go to the main DP (#828).
+    const { value } = useReadBackDatapoint(config.datapoint, o.statusDp);
     const switchDp = (o.switchDp as string | undefined) || '';
     const { value: switchValue } = useDatapoint(switchDp);
     const { setState } = useIoBroker();

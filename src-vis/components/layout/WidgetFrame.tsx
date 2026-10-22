@@ -3820,6 +3820,7 @@ function SliderEditPanel({
             <VisibleFieldsSection fields={visibleFields} values={o} onChange={setVisible} />
             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                 {mainDpField}
+                <StatusDpField value={o.statusDp as string | undefined} onChange={(id) => setO({ statusDp: id })} />
             </ConfigSection>
             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                 <SubGroup title="Wertebereich">
@@ -16751,6 +16752,10 @@ function WidgetFrameInner({
                                             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                                                 <>
                                                     {renderMainDpField()}
+                                                    <StatusDpField
+                                                        value={o.statusDp as string | undefined}
+                                                        onChange={(id) => setO({ statusDp: id })}
+                                                    />
                                                     <div>
                                                         <label
                                                             className="text-[11px] mb-1 block"
@@ -19086,6 +19091,10 @@ function WidgetFrameInner({
                                             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                                                 <>
                                                     {renderMainDpField()}
+                                                    <StatusDpField
+                                                        value={o.statusDp as string | undefined}
+                                                        onChange={(id) => setO({ statusDp: id })}
+                                                    />
                                                     <div>
                                                         <div className="flex items-center justify-between mb-1">
                                                             <label

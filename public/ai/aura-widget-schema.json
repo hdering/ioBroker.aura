@@ -125,6 +125,11 @@
       "default": "",
       "description": "Text der Rückfrage. Leer = Standardtext."
     },
+    "statusDp": {
+      "type": "string",
+      "datapoint": true,
+      "description": "Separater Rückmelde-Datenpunkt (Geräte mit getrenntem Befehl/Status, z. B. Tasmota cmnd/stat): angezeigt wird sein Wert, geschrieben wird weiter auf den Hauptdatenpunkt."
+    },
     "showTitle": {
       "type": "boolean",
       "default": true,
@@ -10937,6 +10942,7 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusDp",
         "statusItems",
         "statusOnEdge",
         "statusOrder",
@@ -11980,6 +11986,7 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusDp",
         "statusItems",
         "statusOnEdge",
         "statusOrder",
@@ -12097,11 +12104,6 @@
           "type": "boolean",
           "default": true,
           "description": "Auswahlfeld zum Umschalten der Einträge anzeigen."
-        },
-        "statusDp": {
-          "description": "Separater Rückmelde-Datenpunkt (Geräte mit getrenntem Befehl/Status, z. B. Tasmota cmnd/stat): angezeigt wird sein Wert, geschrieben wird weiter auf den Hauptdatenpunkt.",
-          "type": "string",
-          "datapoint": true
         },
         "titlePosition": {
           "type": "string",
@@ -14285,6 +14287,7 @@
         "showIcon",
         "showLastChange",
         "showTitle",
+        "statusDp",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -14341,11 +14344,6 @@
           "type": "boolean",
           "default": true,
           "description": "Absende-Taste anzeigen."
-        },
-        "statusDp": {
-          "description": "Separater Rückmelde-Datenpunkt (Geräte mit getrenntem Befehl/Status, z. B. Tasmota cmnd/stat): angezeigt wird sein Wert, geschrieben wird weiter auf den Hauptdatenpunkt.",
-          "type": "string",
-          "datapoint": true
         },
         "step": {
           "type": "number",
@@ -14693,6 +14691,7 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusDp",
         "statusItems",
         "statusOnEdge",
         "statusOrder",
@@ -14770,11 +14769,6 @@
         "startAngle": {
           "type": "number",
           "default": 135
-        },
-        "statusDp": {
-          "description": "Separater Rückmelde-Datenpunkt (Geräte mit getrenntem Befehl/Status, z. B. Tasmota cmnd/stat): angezeigt wird sein Wert, geschrieben wird weiter auf den Hauptdatenpunkt.",
-          "type": "string",
-          "datapoint": true
         },
         "step": {
           "type": "number",
@@ -17590,6 +17584,7 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "statusDp",
         "statusItems",
         "statusOnEdge",
         "statusOrder",
@@ -19424,6 +19419,7 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "statusDp",
         "statusItems",
         "statusOnEdge",
         "statusOrder",

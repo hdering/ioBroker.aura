@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
-import { useDatapoint } from '../../hooks/useDatapoint';
+import { useReadBackDatapoint } from '../../hooks/useReadBackDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, CustomGrid } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -68,7 +68,8 @@ export function SliderWidget({ config }: WidgetProps) {
     // user wants to work in. Only the two ends of the pipe convert, so a datapoint in seconds can
     // be driven in minutes without a helper script (issue #682).
     const tr = controlValueTransform(o);
-    const { value: dpVal } = useDatapoint(config.datapoint);
+    // An optional status DP supplies the shown position; dragging still writes the main DP (#828).
+    const { value: dpVal } = useReadBackDatapoint(config.datapoint, o.statusDp);
     const rawVal = tr.toDisplay(dpVal);
     const numericVal = typeof rawVal === 'number' ? rawVal : Number.isFinite(Number(rawVal)) ? Number(rawVal) : min;
 
