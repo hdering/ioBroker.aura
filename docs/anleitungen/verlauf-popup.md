@@ -4,9 +4,13 @@ Ein Klick auf eine Zeile der Liste öffnet den Verlauf genau dieses Datenpunkts 
 
 Das Popup bekommt den Datenpunkt der angeklickten Zeile als `{{dp}}` übergeben.
 
+![](./assets/verlauf-popup-ergebnis.png)
+
 ## 1. Popup-View mit Diagramm anlegen
 
 **Admin → Popups → Popup-Views → View hinzufügen**, Name z. B. „Verlauf“
+
+![](./assets/verlauf-popup-view.png)
 
 | Schritt | |
 | --- | --- |
@@ -19,6 +23,8 @@ Eine History-Instanz muss nicht eingestellt werden: Das Diagramm findet sie übe
 ## 2. Liste verknüpfen
 
 **Liste → Bearbeiten → Datenpunkte → Datenpunkte verwalten → Klick auf Zeile**
+
+![](./assets/verlauf-popup-klick.png)
 
 | Option | |
 | --- | --- |
