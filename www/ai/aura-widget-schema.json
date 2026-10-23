@@ -16043,7 +16043,7 @@
         },
         "zoom": {
           "type": "number",
-          "description": "Zoomstufe der Karte."
+          "description": "Zoomstufe der Karte, 1–22. Über der letzten Stufe des Kachel-Servers (19, Gelände 17) werden die Kacheln vergrößert. Bei followMarkers die Obergrenze des automatischen Zentrierens."
         }
       }
     },
