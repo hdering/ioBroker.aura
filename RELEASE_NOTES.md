@@ -9,3 +9,4 @@
 - Background image - also accepts CSS colours and gradients (e.g. linear-gradient(#e66465, #9198e5)), typed in or composed with the new gradient builder (#830)
 - Group - header items now sit in the group's own header bar (divider and spacing kept even with title and icon off, no more jumping row), and the title and icon colour can be set for the group header (#832)
 - Alarm - with "Disarm only with PIN" the Off button now opens the PIN entry while the system is merely armed (it did nothing before); the PIN field has a cancel button and brings up the numeric keypad on phones and tablets
+- Map - zoom in beyond level 19 (up to 22); past the tile server's last level the tiles are scaled up, handy for small plots like a mower's track (#837)

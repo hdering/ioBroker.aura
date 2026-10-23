@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Pane, Marker, Tooltip, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -8,6 +8,7 @@ import { getHistoryDirect, getObjectDirect, isHistoryStubbed, useIoBroker } from
 import { detectHistoryAdapters } from '../../hooks/useChartHistory';
 import { useT, type Language, type TranslationKey } from '../../i18n';
 import type { WidgetProps } from '../../types';
+import { MAX_MAP_ZOOM } from '../../utils/mapZoom';
 import {
     extractLatLon,
     geocodeAddress,
@@ -186,18 +187,25 @@ interface MapOptions {
     stayMinutes?: number;
 }
 
-/** Free tile presets (no API key required). */
+/** Last level a tile server delivers when nothing else is known (custom tile URL). */
+const DEFAULT_NATIVE_ZOOM = 19;
+
+/** Free tile presets (no API key required). `maxNativeZoom` is the last level the
+ *  server delivers; beyond it the tiles are scaled up. */
 export const TILE_PRESETS: Record<
     MapStyle,
-    { url: string; attribution: string; maxZoom?: number; labelsUrl?: string }
+    { url: string; attribution: string; maxNativeZoom: number; labelsUrl?: string }
 > = {
     standard: {
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         attribution: '&copy; OpenStreetMap',
+        maxNativeZoom: 19,
     },
     satellite: {
         url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+        // Deeper levels exist only in some regions; elsewhere Esri answers with "no data" tiles.
+        maxNativeZoom: 19,
         // Imagery carries no names; this transparent layer adds places and borders on top.
         labelsUrl:
             'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
@@ -205,7 +213,7 @@ export const TILE_PRESETS: Record<
     terrain: {
         url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
         attribution: '&copy; OpenStreetMap, SRTM &middot; OpenTopoMap',
-        maxZoom: 17,
+        maxNativeZoom: 17,
     },
 };
 
@@ -1273,6 +1281,16 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const tileUrl = customTiles ? (o.tileUrl as string) : preset.url;
     const attribution = customTiles ? (o.tileAttribution ?? '') : preset.attribution;
     const labelsUrl = !customTiles && o.satelliteLabels !== false ? preset.labelsUrl : undefined;
+    const nativeZoom = customTiles ? DEFAULT_NATIVE_ZOOM : preset.maxNativeZoom;
+    // react-leaflet ignores option changes on a mounted TileLayer and the base layer
+    // must not be remounted (see below), so a style switch patches the option in place.
+    const baseLayerRef = useRef<L.TileLayer | null>(null);
+    useEffect(() => {
+        const layer = baseLayerRef.current;
+        if (!layer || layer.options.maxNativeZoom === nativeZoom) return;
+        layer.options.maxNativeZoom = nativeZoom;
+        layer.redraw();
+    }, [nativeZoom]);
 
     const showStyleChips = o.showStyleChips === true;
     const styleCorner = normalizeCorner(o.styleChipsCorner, 'top-left');
@@ -1499,6 +1517,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 <MapContainer
                     center={center}
                     zoom={initialZoom}
+                    maxZoom={MAX_MAP_ZOOM}
                     style={{ width: '100%', height: '100%' }}
                     // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
                     dragging={!editMode}
@@ -1510,12 +1529,18 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                     {/* No key here on purpose: react-leaflet updates the url in place via
                         setUrl. Remounting the layer triggers Leaflet onAdd → _resetView,
                         which can throw "infinite number of tiles" and crash the tree. */}
-                    <TileLayer url={tileUrl} attribution={attribution} />
+                    <TileLayer
+                        ref={baseLayerRef}
+                        url={tileUrl}
+                        attribution={attribution}
+                        maxZoom={MAX_MAP_ZOOM}
+                        maxNativeZoom={nativeZoom}
+                    />
                     {/* Own pane above the tiles, below markers/lines; no pointer events so the
                         map underneath stays draggable. Adding/removing this extra layer is safe —
                         only remounting the base layer trips _resetView. */}
                     <Pane name="placeLabels" style={{ zIndex: 450, pointerEvents: 'none' }}>
-                        {labelsUrl && <TileLayer url={labelsUrl} />}
+                        {labelsUrl && <TileLayer url={labelsUrl} maxZoom={MAX_MAP_ZOOM} maxNativeZoom={nativeZoom} />}
                     </Pane>
                     <ResizeHandler />
                     <FollowMarkers positions={fitPositions} enabled={followMarkers} maxZoom={followMaxZoom} />

@@ -5,6 +5,7 @@ import { useT } from '../../i18n';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetConfig } from '../../types';
+import { MAX_MAP_ZOOM } from '../../utils/mapZoom';
 import type {
     MapMarker,
     MapMarkerMode,
@@ -1204,12 +1205,12 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
 
                                                     <div>
                                                         <label className={lblCls} style={lblSty}>
-                                                            Zoomstufe beim Springen (1–19, optional)
+                                                            Zoomstufe beim Springen (1–{MAX_MAP_ZOOM}, optional)
                                                         </label>
                                                         <input
                                                             type="number"
                                                             min={1}
-                                                            max={19}
+                                                            max={MAX_MAP_ZOOM}
                                                             value={v.zoom ?? ''}
                                                             onChange={(e) =>
                                                                 patchQuickView(idx, {
@@ -1309,12 +1310,12 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                     {/* ── Zoom level (fixed zoom when not following; max zoom cap when following) ── */}
                     <div>
                         <label className={lblCls} style={lblSty}>
-                            {followMarkers ? 'Maximale Zoomstufe (1–19)' : 'Zoomstufe (1–19)'}
+                            {followMarkers ? 'Maximale Zoomstufe' : 'Zoomstufe'} (1–{MAX_MAP_ZOOM})
                         </label>
                         <input
                             type="number"
                             min={1}
-                            max={19}
+                            max={MAX_MAP_ZOOM}
                             value={(o.zoom as number | undefined) ?? ''}
                             onChange={(e) => set({ zoom: e.target.value === '' ? undefined : Number(e.target.value) })}
                             placeholder={followMarkers ? 'automatisch' : '6'}
@@ -1324,7 +1325,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                             {followMarkers
                                 ? 'Begrenzt, wie weit beim automatischen Zentrieren hineingezoomt wird. Leer = automatisch.'
-                                : 'Feste Zoomstufe der Karte. Höher = näher.'}
+                                : 'Feste Zoomstufe der Karte. Höher = näher; ab etwa 19 werden die Kacheln vergrößert.'}
                         </p>
                     </div>
                 </SubGroup>

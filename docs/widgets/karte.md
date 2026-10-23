@@ -29,7 +29,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | --- | --- | --- |
 | `mapStyle` | `standard` | `standard` · `satellite` · `terrain` |
 | `center` | Deutschland | `[lat, lon]` Startmittelpunkt |
-| `zoom` | `6` | Start-Zoom; bei `followMarkers` = max. Zoom des Auto-Fit |
+| `zoom` | `6` | Start-Zoom (1–22, ab 19 bzw. 17 bei Gelände vergrößerte Kacheln); bei `followMarkers` = max. Zoom des Auto-Fit |
 | `followMarkers` | `false` | Ansicht automatisch an alle Marker anpassen |
 
 ### Kartentyp umschalten

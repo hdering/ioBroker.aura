@@ -1217,7 +1217,10 @@ export const WIDGET_OPTION_NOTES = {
     },
     map: {
         center: { description: 'Kartenmittelpunkt als [Breitengrad, Längengrad].' },
-        zoom: { description: 'Zoomstufe der Karte.' },
+        zoom: {
+            description:
+                'Zoomstufe der Karte, 1–22. Über der letzten Stufe des Kachel-Servers (19, Gelände 17) werden die Kacheln vergrößert. Bei followMarkers die Obergrenze des automatischen Zentrierens.',
+        },
         mapStyle: { description: 'Kartenstil.' },
         satelliteLabels: {
             description:
