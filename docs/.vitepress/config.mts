@@ -73,6 +73,7 @@ export default defineConfig({
             { text: 'Übersicht', link: '/anleitungen/' },
             { text: 'Bildschirmschoner erstellen', link: '/anleitungen/bildschirmschoner' },
             { text: 'Grundriss mit Bedienelementen', link: '/anleitungen/grundriss' },
+            { text: 'Verlauf per Klick auf Listenzeile', link: '/anleitungen/verlauf-popup' },
           ],
         },
       ],

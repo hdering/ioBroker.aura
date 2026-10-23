@@ -488,6 +488,8 @@ Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Besch
 
 Dialog **Datenpunkte verwalten** → Tab **Klick auf Zeile**. Ein Klick auf eine Listenzeile öffnet ein Detail-Popup zu genau diesem Datenpunkt. Klicks auf Schalter, Regler oder Buttons in der Zeile schalten weiterhin direkt.
 
+Verlauf jedes Datenpunkts als Diagramm: [Anleitung Verlauf per Klick auf eine Listenzeile](../anleitungen/verlauf-popup).
+
 | Option                             | Standard    |                                                                 |
 | ---------------------------------- | ----------- | --------------------------------------------------------------- |
 | `rowClickAction`                   | Aus         | `auto` · `{ "kind": "none" }` (aus) · vollständige Klick-Aktion |
