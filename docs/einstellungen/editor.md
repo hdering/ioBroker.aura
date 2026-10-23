@@ -153,6 +153,7 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 | Option | |
 | --- | --- |
 | Quelle | URL, Pfad (`/vis.0/…`), `aura-file:` per Datei-Picker oder Data-URI — wie beim [Bild-Widget](../widgets/bild) |
+| Farbe / Verlauf | statt eines Bildes CSS: `red`, `rgba(100,234,23,0.5)`, `linear-gradient(#e66465, #9198e5)`, `radial-gradient(…)` — eintippen oder per Paletten-Button zusammenstellen |
 | Anpassung | `Füllen (zuschneiden)` (Standard), `Ganz zeigen`, `Strecken`, `Kacheln` |
 | Ausrichtung | welcher Teil beim Zuschneiden sichtbar bleibt; Standard `Mitte` |
 | Abdunkeln | `0`–`90 %`, dunkelt nur das Bild ab — für lesbaren Text auf hellen Bildern |

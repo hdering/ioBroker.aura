@@ -78,6 +78,18 @@ await page.evaluate(
                 { bgImage: { src: GREEN, dp: 'demo.bgUnset' } },
                 { gridPos: { x: 0, y: 8, w: 4, h: 4 } },
             ),
+            // #830: CSS gradients and colours instead of an image.
+            widget(
+                'w-grad',
+                { bgImage: { src: 'linear-gradient(#ff0000, #0000ff)' } },
+                { gridPos: { x: 4, y: 8, w: 4, h: 4 } },
+            ),
+            widget('w-named', { bgImage: { src: 'lime' } }, { gridPos: { x: 8, y: 8, w: 4, h: 4 } }),
+            widget(
+                'w-rgba',
+                { transparent: true, bgImage: { src: 'rgba(0,0,255,1)' } },
+                { gridPos: { x: 0, y: 12, w: 4, h: 4 } },
+            ),
         ],
         BLUE,
     ],
@@ -171,6 +183,19 @@ check('datapoint value wins over src', db > 200 && dr < 60 && dg < 60, `${dr},${
 const [er, eg, eb] = await pixel('w-dp-empty', 0.5, 0.85);
 check('empty datapoint falls back to src', eg > 200 && er < 60 && eb < 60, `${er},${eg},${eb}`);
 
+// ── 4c. Gradient and colour sources (#830) ────────────────────────────────────
+const grad = await layerStyle('w-grad');
+check('gradient source is painted as is', !!grad.image?.startsWith('linear-gradient('), grad.image);
+const [g1r, , g1b] = await pixel('w-grad', 0.5, 0.04);
+const [g2r, , g2b] = await pixel('w-grad', 0.5, 0.96);
+check('gradient runs from red to blue', g1r > g1b && g2b > g2r, `top ${g1r}/${g1b}, bottom ${g2r}/${g2b}`);
+const named = await card('w-named').evaluate(
+    (el) => getComputedStyle(el.querySelector(':scope > .aura-bg-image')).backgroundColor,
+);
+check('named colour paints as background colour', named === 'rgb(0, 255, 0)', named);
+const [cr, cg, cb] = await pixel('w-rgba', 0.5, 0.85);
+check('rgba() colour paints', cb > 200 && cr < 60 && cg < 60, `${cr},${cg},${cb}`);
+
 // ── 5. Editor: Erweitert writes options.bgImage ───────────────────────────────
 await page.evaluate(() => window.__auraShot.setEditMode(true));
 await settle();
@@ -226,6 +251,45 @@ await field.locator('button:text-is("Entfernen")').click();
 await settle();
 opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-plain'));
 check('Entfernen clears bgImage', opts?.bgImage === undefined, JSON.stringify(opts?.bgImage));
+
+// Gradient builder (#830): writes the CSS into src, reads it back.
+await field.locator('.aura-bg-paint-toggle').click();
+const builder = field.locator('.aura-bg-paint-builder');
+check('palette button opens the gradient builder', (await builder.count()) === 1);
+await builder.locator('button:text-is("Radial")').click();
+await settle();
+opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-plain'));
+check(
+    'builder writes a radial gradient',
+    opts?.bgImage?.src === 'radial-gradient(#e66465, #9198e5)',
+    JSON.stringify(opts?.bgImage),
+);
+await builder.locator('button:text-is("Linear")').click();
+await builder.locator('button[title="90°"]').click();
+await builder.locator('.aura-bg-paint-stop input[type="text"]').nth(1).fill('blue');
+await builder.locator('button:has-text("Farbe hinzufügen")').click();
+await settle();
+opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-plain'));
+check(
+    'angle, stop colour and added stop land in the CSS',
+    opts?.bgImage?.src === 'linear-gradient(90deg, #e66465, blue, blue)',
+    JSON.stringify(opts?.bgImage),
+);
+await builder.locator('button:text-is("Farbe")').click();
+await settle();
+opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-plain'));
+check('colour mode stores a single colour', opts?.bgImage?.src === '#e66465', JSON.stringify(opts?.bgImage));
+check('colour hides fit and alignment', (await field.locator('select').count()) === 0);
+// Reopened, the builder reads the typed value back.
+await field.locator('.aura-bg-paint-toggle').click();
+await srcInput.fill('linear-gradient(to right, red 10%, rgba(0,0,255,0.5))');
+await field.locator('.aura-bg-paint-toggle').click();
+const stopVals = await builder
+    .locator('.aura-bg-paint-stop input[type="text"]')
+    .evaluateAll((els) => els.map((e) => e.value));
+check('builder parses a typed gradient', stopVals.join('|') === 'red|rgba(0,0,255,0.5)', stopVals.join('|'));
+await field.locator('button:text-is("Entfernen")').click();
+await settle();
 await page.keyboard.press('Escape');
 await page.evaluate(() => window.__auraShot.setEditMode(false));
 await settle();

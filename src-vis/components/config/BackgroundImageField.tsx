@@ -9,16 +9,18 @@
  * drops them with it, so nothing half-configured stays behind.
  */
 import { useState } from 'react';
-import { Database, FolderOpen } from 'lucide-react';
+import { Database, FolderOpen, Palette } from 'lucide-react';
 import type { BackgroundImage, BackgroundImageFit, BackgroundImagePosition } from '../../types';
 import { useT } from '../../i18n';
 import {
     activeBgImage,
+    bgPaint,
     bgImageStyle,
     BG_IMAGE_FITS,
     BG_IMAGE_POSITIONS,
     MAX_BG_IMAGE_DIM,
 } from '../../utils/backgroundImage';
+import { BgPaintBuilder } from './BgPaintBuilder';
 import { ConfigModal } from './ConfigModal';
 import { DatapointPicker } from './DatapointPicker';
 import { ImagePathHint } from './ImagePathHint';
@@ -45,9 +47,12 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
     const t = useT();
     const [picking, setPicking] = useState(false);
     const [pickingDp, setPickingDp] = useState(false);
+    const [building, setBuilding] = useState(false);
     const src = value?.src ?? '';
     const dp = value?.dp ?? '';
     const active = src.trim() !== '' || dp.trim() !== '';
+    // A plain colour fills the box — fit and alignment do nothing for it.
+    const solid = !dp.trim() && 'color' in (bgPaint(src) ?? {});
 
     const patch = (p: Partial<BackgroundImage>) => {
         const next = { ...(value ?? { src: '' }), ...p };
@@ -84,6 +89,19 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
                 >
                     <FolderOpen size={13} />
                 </button>
+                <button
+                    type="button"
+                    onClick={() => setBuilding((b) => !b)}
+                    className="aura-bg-paint-toggle px-2 rounded-lg hover:opacity-80 shrink-0"
+                    style={{
+                        ...inputStyle,
+                        color: building ? 'var(--accent)' : 'var(--text-secondary)',
+                        borderColor: building ? 'var(--accent)' : 'var(--app-border)',
+                    }}
+                    title={t('bgImage.paint.toggle')}
+                >
+                    <Palette size={13} />
+                </button>
                 {active && (
                     <button
                         type="button"
@@ -100,7 +118,15 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
                     {src.slice('aura-file:'.length).split('/').pop()}
                 </p>
             )}
-            {!active && <ImagePathHint />}
+            {building && <BgPaintBuilder value={src} onChange={(css) => patch({ src: css })} />}
+            {!active && !building && (
+                <>
+                    <ImagePathHint />
+                    <p className="text-[10px] leading-snug" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        {t('bgImage.cssHint')}
+                    </p>
+                </>
+            )}
             <label className={labelCls} style={labelStyle}>
                 {t('bgImage.dp')}
             </label>
@@ -130,40 +156,44 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
             )}
             {active && (
                 <div className="grid grid-cols-3 gap-2">
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            {t('bgImage.fit')}
-                        </label>
-                        <select
-                            value={value?.fit ?? 'cover'}
-                            onChange={(e) => patch({ fit: e.target.value as BackgroundImageFit })}
-                            className={inputCls}
-                            style={inputStyle}
-                        >
-                            {BG_IMAGE_FITS.map((f) => (
-                                <option key={f} value={f}>
-                                    {t(`bgImage.fit.${f}` as never)}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            {t('bgImage.position')}
-                        </label>
-                        <select
-                            value={value?.position ?? 'center'}
-                            onChange={(e) => patch({ position: e.target.value as BackgroundImagePosition })}
-                            className={inputCls}
-                            style={inputStyle}
-                        >
-                            {BG_IMAGE_POSITIONS.map((p) => (
-                                <option key={p} value={p}>
-                                    {t(`bgImage.pos.${p}` as never)}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    {!solid && (
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                {t('bgImage.fit')}
+                            </label>
+                            <select
+                                value={value?.fit ?? 'cover'}
+                                onChange={(e) => patch({ fit: e.target.value as BackgroundImageFit })}
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                {BG_IMAGE_FITS.map((f) => (
+                                    <option key={f} value={f}>
+                                        {t(`bgImage.fit.${f}` as never)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                    {!solid && (
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                {t('bgImage.position')}
+                            </label>
+                            <select
+                                value={value?.position ?? 'center'}
+                                onChange={(e) => patch({ position: e.target.value as BackgroundImagePosition })}
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                {BG_IMAGE_POSITIONS.map((p) => (
+                                    <option key={p} value={p}>
+                                        {t(`bgImage.pos.${p}` as never)}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <label className={labelCls} style={labelStyle}>
                             {t('bgImage.dim')}
@@ -213,6 +243,7 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
 /** Short label for a source: the file name of a path, else the start of the URL. */
 function sourceLabel(src: string): string {
     if (src.startsWith('data:')) return 'data:…';
+    if (bgPaint(src)) return src.trim();
     const clean = src.replace(/^aura-file:/, '').split(/[?#]/)[0];
     return clean.split('/').filter(Boolean).pop() ?? clean;
 }
@@ -269,7 +300,7 @@ export function BackgroundImageButton({ value, onChange, title, inheritLabel }: 
                 </button>
             </span>
             {open && (
-                <ConfigModal title={title} maxWidth={480} maxHeight={320} padded onClose={() => setOpen(false)}>
+                <ConfigModal title={title} maxWidth={480} maxHeight={560} padded onClose={() => setOpen(false)}>
                     <BackgroundImageField value={active} onChange={onChange} inheritLabel={inheritLabel} />
                 </ConfigModal>
             )}
