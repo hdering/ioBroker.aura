@@ -13,6 +13,7 @@ import {
     Ban,
     KeyRound,
     Send,
+    X,
 } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -314,6 +315,10 @@ export function AlarmWidget({ config }: WidgetProps) {
         else fire();
     };
     const doQuit = () => setState(`${prefix}.use.quit_changes`, true);
+    const cancelPin = () => {
+        setPin('');
+        setPinOpen(false);
+    };
     const submitPin = () => {
         if (!pin) return;
         setState(`${prefix}.use.disable_password`, pin);
@@ -464,10 +469,10 @@ export function AlarmWidget({ config }: WidgetProps) {
                 </div>
             )}
 
-            {/* Trigger state: PIN entry takes priority */}
-            {triggered && (pinOpen || requirePin) ? (
+            {/* PIN entry: after a PIN disarm request, and always while an alarm is triggered */}
+            {pinOpen || (triggered && requirePin) ? (
                 <div
-                    className="flex items-center rounded-xl shrink-0"
+                    className="flex flex-wrap items-center rounded-xl shrink-0"
                     style={{
                         padding: 8 * sizeScale,
                         background: 'var(--app-bg)',
@@ -475,13 +480,15 @@ export function AlarmWidget({ config }: WidgetProps) {
                         gap: 6 * sizeScale,
                     }}
                 >
-                    <KeyRound size={Math.round(14 * sizeScale)} color="#ef4444" />
+                    <KeyRound size={Math.round(14 * sizeScale)} color="#ef4444" className="shrink-0" />
                     <input
                         type="password"
+                        inputMode="numeric"
+                        autoComplete="off"
                         value={pin}
                         onChange={(e) => setPin(e.target.value)}
                         placeholder={t('alarm.pinPlaceholder') as string}
-                        className="flex-1 rounded-lg px-2 py-1 font-mono"
+                        className="flex-1 min-w-0 rounded-lg px-2 py-1 font-mono"
                         style={{
                             background: 'var(--app-surface)',
                             color: 'var(--text-primary)',
@@ -493,21 +500,42 @@ export function AlarmWidget({ config }: WidgetProps) {
                         }}
                         autoFocus
                     />
+                    {/* Icon only: with the label the PIN input got squeezed to nothing in narrow widgets */}
                     <button
                         onClick={submitPin}
-                        className="rounded-lg flex items-center gap-1"
+                        className="rounded-lg flex items-center justify-center shrink-0"
+                        title={t('alarm.send') as string}
+                        aria-label={t('alarm.send') as string}
                         style={{
-                            padding: `${4 * sizeScale}px ${10 * sizeScale}px`,
+                            padding: `${4 * sizeScale}px ${8 * sizeScale}px`,
                             background: '#ef4444',
                             color: '#fff',
                             border: '1px solid #ef4444',
-                            fontSize: fsSmall,
                         }}
                     >
-                        <Send size={Math.round(12 * sizeScale)} /> {t('alarm.send') as string}
+                        <Send size={Math.round(14 * sizeScale)} />
                     </button>
+                    {/* While an alarm is triggered the PIN field stays — no way back to the mode buttons */}
+                    {!(triggered && requirePin) && (
+                        <button
+                            onClick={cancelPin}
+                            className="rounded-lg flex items-center justify-center shrink-0"
+                            title={t('common.cancel') as string}
+                            aria-label={t('common.cancel') as string}
+                            style={{
+                                padding: 4 * sizeScale,
+                                background: 'var(--app-surface)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <X size={Math.round(14 * sizeScale)} />
+                        </button>
+                    )}
                     {data.wrongPassword && (
-                        <span style={{ color: '#ef4444', fontSize: fsTiny }}>{t('alarm.wrongPin') as string}</span>
+                        <span className="basis-full" style={{ color: '#ef4444', fontSize: fsTiny }}>
+                            {t('alarm.wrongPin') as string}
+                        </span>
                     )}
                 </div>
             ) : (
