@@ -130,7 +130,14 @@ import { useHeaderItems } from '../../hooks/useHeaderItems';
 import { HeaderRowOne, HeaderRowTwo } from './HeaderItemSlots';
 import { HeaderSlotsContext, type HeaderRow, type HeaderSlotsValue, type IconPlace } from './HeaderSlotsContext';
 import { HeaderItemsEditor } from '../config/HeaderItemsEditor';
-import { groupBySlot, hasSecondRow, headerItemVisible, headerItems, isRowTwoPlace } from '../../utils/headerItems';
+import {
+    groupBySlot,
+    hasExpandedHeaderItems,
+    hasSecondRow,
+    headerItemVisible,
+    headerItems,
+    isRowTwoPlace,
+} from '../../utils/headerItems';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -7156,8 +7163,8 @@ function WidgetFrameInner({
         )
         .join(' ');
     // The widget's own title / icon look (#725). Not on a group — its children sit inside
-    // the same box and would inherit it — nor on the section title, which draws these
-    // options itself.
+    // the same box and would inherit it; GroupWidget puts it on its header bar (#832) —
+    // nor on the section title, which draws these options itself.
     const ownLookOn = !isGroupType(config.type) && config.type !== 'header';
     const ownOpts = renderConfig.options ?? {};
     const ownTitleColor = ownLookOn ? (ownOpts.titleColor as string | undefined) || undefined : undefined;
@@ -7297,7 +7304,8 @@ function WidgetFrameInner({
             (config.options?.showTitle !== false && !!config.title) ||
             config.options?.showIcon !== false ||
             !!config.options?.groupSwitch ||
-            collapsibleWidget(config.type, config.options, { editMode })
+            collapsibleWidget(config.type, config.options, { editMode }) ||
+            hasExpandedHeaderItems(config.options)
         );
     // The menu widget has no title/icon header and its whole body is `nodrag`, so
     // there is no surface to grab for a grid move. Give it the same hover-reveal
@@ -9813,7 +9821,6 @@ function WidgetFrameInner({
                                                                         iconAllowed: config.type !== 'stateimage',
                                                                         titleAllowed: config.type !== 'mediaplayer',
                                                                         iconPickable: config.type !== 'windowcontact',
-                                                                        styleAllowed: !isGroupType(config.type),
                                                                         onChange: (patch) => setO(patch),
                                                                     }}
                                                                     onLayoutChange={(patch) => setO({ ...patch })}

@@ -37,6 +37,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
 import { copyWidget } from '../../utils/widgetCopy';
+import { hasExpandedHeaderItems } from '../../utils/headerItems';
+import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
     return [...children].sort((a, b) => {
@@ -254,8 +256,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // (title + icon off, no master switch, not collapsible) the bar exists only
     // in the editor — as a drag handle for the outer grid and as clearance so
     // the group's config buttons don't collide with the first child's — so it
-    // must not wear a divider that makes it look like a real header.
-    const hasHeaderContent = (showTitle && !!config.title) || showIcon || showMaster || collapsible;
+    // must not wear a divider that makes it look like a real header. Header items
+    // count as content: they are drawn in this bar, never over the children (#832).
+    const hasHeaderItems = hasExpandedHeaderItems(config.options);
+    const hasHeaderContent = (showTitle && !!config.title) || showIcon || showMaster || collapsible || hasHeaderItems;
 
     // Report the real header height so the outer box (sized in Dashboard via
     // groupRows) reserves exactly what the bar occupies — icon size, master control
@@ -461,13 +465,32 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     // ── Title bar (always shown in editMode as outer-grid drag handle) ─────────
     const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
+    // The head's own title / icon look (#725, #832). The frame leaves it out on a group
+    // — set on the whole box the children would inherit it — so it rides on the bar.
+    const ownTitleColor = (config.options?.titleColor as string | undefined) || undefined;
+    const ownTitleSize = Number(config.options?.titleSize) || undefined;
+    const ownIconColor = (config.options?.iconColor as string | undefined) || undefined;
+    const ownClasses = [
+        ownTitleColor ? 'aura-own-title-color' : '',
+        ownTitleSize ? 'aura-own-title-size' : '',
+        ownIconColor ? 'aura-own-icon-color' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+    const ownVars = {
+        '--own-title-color': ownTitleColor,
+        // Scaled by the global font scale like every other explicit px size.
+        '--own-title-size': ownTitleSize ? `calc(${ownTitleSize}px * var(--font-scale, 1))` : undefined,
+        '--own-icon-color': ownIconColor,
+    } as React.CSSProperties;
     const titleBar = hasHeaderContent ? (
         <div
             ref={headerRef}
             // aura-group-header: the hook for the group's head alone (#726) — its colour
             // comes from index.css, not inline, so custom CSS can restyle text and background.
-            className="aura-group-header shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
+            className={`aura-group-header shrink-0 flex flex-col justify-center gap-1 px-3 py-2.5 min-w-0 ${ownClasses}`}
             style={{
+                ...ownVars,
                 // When collapsed the body is gone, so drop the header's divider.
                 // Same when the bar is just an empty editor drag strip (no
                 // header content) — a divider would read as a real header.
@@ -487,49 +510,56 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     : undefined
             }
         >
-            {collapsible && (
-                <ChevronDown
-                    size={16}
-                    className="transition-transform shrink-0"
-                    style={{
-                        color: 'var(--text-secondary)',
-                        transform: isCollapsed ? 'rotate(-90deg)' : undefined,
-                    }}
-                />
-            )}
-            {showIcon && (
-                <WidgetIcon
-                    className="aura-widget-icon"
-                    size={iconSize}
-                    style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
-                />
-            )}
-            {showTitle && config.title && (
-                <span
-                    className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
-                    style={{ textAlign: titleAlign as React.CSSProperties['textAlign'] }}
-                >
-                    {config.title}
-                </span>
-            )}
-            {showMaster && (
-                // Wrapper stops master-control clicks from bubbling to the header's
-                // collapse toggle when the group is collapsible.
-                <div className="ml-auto flex min-w-0" onClick={collapsible ? (e) => e.stopPropagation() : undefined}>
-                    <GroupActionControl
-                        type={groupActionType}
-                        cfg={gaCfg}
-                        setState={setState}
-                        switchTargets={groupSwitchTargets}
-                        dimmerIds={groupDimmerIds}
-                        shutterTargets={groupShutterTargets}
-                        pulseIds={groupPulseIds}
-                        editing={editMode}
-                        placeholderHint={t('group.masterPlaceholder')}
-                        placeholderLabel={t('group.masterPlaceholderShort')}
+            <TitleRow align={titleAlign} className="relative flex items-center gap-1.5 min-w-0">
+                {collapsible && (
+                    <ChevronDown
+                        size={16}
+                        className="transition-transform shrink-0"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            transform: isCollapsed ? 'rotate(-90deg)' : undefined,
+                        }}
                     />
-                </div>
-            )}
+                )}
+                {showIcon && (
+                    <WidgetIcon
+                        className="aura-widget-icon"
+                        size={iconSize}
+                        style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                    />
+                )}
+                {showTitle && config.title && (
+                    <span
+                        className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
+                        style={{ textAlign: titleAlign as React.CSSProperties['textAlign'] }}
+                    >
+                        {config.title}
+                    </span>
+                )}
+                <HeaderSlotsInline />
+                {showMaster && (
+                    // Wrapper stops master-control clicks from bubbling to the header's
+                    // collapse toggle when the group is collapsible.
+                    <div
+                        className="ml-auto flex min-w-0"
+                        onClick={collapsible ? (e) => e.stopPropagation() : undefined}
+                    >
+                        <GroupActionControl
+                            type={groupActionType}
+                            cfg={gaCfg}
+                            setState={setState}
+                            switchTargets={groupSwitchTargets}
+                            dimmerIds={groupDimmerIds}
+                            shutterTargets={groupShutterTargets}
+                            pulseIds={groupPulseIds}
+                            editing={editMode}
+                            placeholderHint={t('group.masterPlaceholder')}
+                            placeholderLabel={t('group.masterPlaceholderShort')}
+                        />
+                    </div>
+                )}
+            </TitleRow>
+            <HeaderSlotsRow2 />
         </div>
     ) : null;
 

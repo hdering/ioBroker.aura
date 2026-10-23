@@ -61,6 +61,11 @@ export function headerItemVisible(item: WidgetHeaderItem, collapsed: boolean): b
     return (show === 'collapsed') === collapsed;
 }
 
+/** Whether the expanded widget shows header items — a group keeps its header bar for them (#832). */
+export function hasExpandedHeaderItems(options: Record<string, unknown> | undefined): boolean {
+    return headerItems(options).some((i) => headerItemVisible(i, false));
+}
+
 let seq = 0;
 export function newHeaderItem(
     slot: WidgetHeaderSlot = DEFAULT_HEADER_SLOT,

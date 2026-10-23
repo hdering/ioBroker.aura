@@ -34,6 +34,7 @@ import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
+import { hasExpandedHeaderItems } from '../../utils/headerItems';
 import { isGroupType } from '../../utils/groupTypes';
 import { runtimeId } from '../../contexts/RenderTransformContext';
 import { flowBands, flowModeFor } from '../../utils/flowOrder';
@@ -1023,7 +1024,8 @@ export function Dashboard({
                                                             (showTitle && !!gw.title) ||
                                                             showIcon ||
                                                             !!gw.options?.groupSwitch ||
-                                                            collapsibleWidget(gw.type, gw.options, { editMode });
+                                                            collapsibleWidget(gw.type, gw.options, { editMode }) ||
+                                                            hasExpandedHeaderItems(gw.options);
                                                         return groupRows(
                                                             maxBottom,
                                                             hasHeader,

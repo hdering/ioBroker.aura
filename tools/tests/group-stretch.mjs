@@ -88,7 +88,7 @@ const MEASURE = ([gid, img, kids]) => {
         return { w: Math.round(r.width), h: Math.round(r.height) };
     };
     const root = document.querySelector(`.aura-widget-${gid}`);
-    const header = root?.querySelector('[class*="shrink-0"][class*="items-center"]');
+    const header = root?.querySelector('.aura-group-header');
     return {
         group: box(gid),
         image: box(img),
@@ -218,7 +218,7 @@ check(
 );
 
 // 6. A plain click on the group's header (its drag handle) changes nothing.
-const hdr = await page.locator(`.aura-widget-${GID} [class*="shrink-0"][class*="items-center"]`).first().boundingBox();
+const hdr = await page.locator(`.aura-widget-${GID} .aura-group-header`).first().boundingBox();
 await page.mouse.click(hdr.x + hdr.width / 2, hdr.y + hdr.height / 2);
 const m5 = await settle();
 check(

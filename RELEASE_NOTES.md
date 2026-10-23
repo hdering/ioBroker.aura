@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Background image - also accepts CSS colours and gradients (e.g. linear-gradient(#e66465, #9198e5)), typed in or composed with the new gradient builder (#830)
+- Group - header items now sit in the group's own header bar (divider and spacing kept even with title and icon off, no more jumping row), and the title and icon colour can be set for the group header (#832)

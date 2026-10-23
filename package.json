@@ -127,6 +127,7 @@
     "test:group-fit": "node tools/tests/group-fit.mjs",
     "test:group-stretch": "node tools/tests/group-stretch.mjs",
     "test:group-pullout": "node tools/tests/group-pullout.mjs",
+    "test:group-header-items": "node tools/tests/group-header-items.mjs",
     "test:widget-copy": "node tools/tests/widget-copy.mjs",
     "test:pin-lock": "node tools/tests/pin-lock.mjs",
     "test:pin-lock-ui": "node tools/tests/pin-lock-ui.mjs",
