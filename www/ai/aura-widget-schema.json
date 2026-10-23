@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.90.0",
+    "auraVersion": "0.91.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -310,7 +310,7 @@
     "bgImage": {
       "type": "object",
       "ref": "BackgroundImage",
-      "description": "Hintergrundbild der Karte, liegt über der Hintergrundfarbe und unter dem Inhalt. Mit transparent: true zeigt die Karte nur das Bild. Quellen wie beim image-Widget (URL, /vis.0/…-Pfad, aura-file:, data:). Mit dp liefert ein Datenpunkt das Bild (URL, Pfad oder Base64, z. B. Kamera-Snapshot); src bleibt dann der Rückfall, solange der DP leer ist. Für Text auf hellen Bildern dim setzen (30–50). Nicht beim Abschnittstitel \"header\" ohne Layout \"framed\" — der hat keine Karte."
+      "description": "Hintergrundbild der Karte, liegt über der Hintergrundfarbe und unter dem Inhalt. Mit transparent: true zeigt die Karte nur das Bild. Quellen wie beim image-Widget (URL, /vis.0/…-Pfad, aura-file:, data:) oder statt eines Bildes eine CSS-Farbe (red, #e66465, rgba(…)) bzw. ein Verlauf (linear-gradient(#e66465, #9198e5), radial-gradient(…)). Mit dp liefert ein Datenpunkt das Bild (URL, Pfad oder Base64, z. B. Kamera-Snapshot); src bleibt dann der Rückfall, solange der DP leer ist. Für Text auf hellen Bildern dim setzen (30–50). Nicht beim Abschnittstitel \"header\" ohne Layout \"framed\" — der hat keine Karte."
     },
     "showLastChange": {
       "type": "boolean",
@@ -1271,11 +1271,11 @@
         "src": {
           "type": "string",
           "required": true,
-          "description": "image URL, aura-file: path, adapter path (/vis.0/…) or data: URI — same sources as the image widget"
+          "description": "image URL, aura-file: path, adapter path (/vis.0/…) or data: URI — same sources as the image widget; or a CSS colour (red, #e66465, rgba(…)) or gradient (linear-/radial-/conic-gradient(…)) painted instead of an image"
         },
         "dp": {
           "type": "string",
-          "description": "datapoint whose value supplies the image (URL, path or Base64); wins over src while it holds a value, src stays the fallback",
+          "description": "datapoint whose value supplies the image (URL, path, Base64, colour or gradient); wins over src while it holds a value, src stays the fallback",
           "datapoint": true
         },
         "fit": {
