@@ -2852,6 +2852,8 @@ export const en: Record<TranslationKey, string> = {
     'scenes.notRunning': 'The scenes adapter {instance} is not running – scenes do nothing.',
     'scenes.cfg.section': 'Manage scenes',
     'scenes.cfg.none': 'No scenes created in Aura yet.',
+    'scenes.cfg.noForeign':
+        'The scenes adapter has no other scenes – “Scenes from the admin” only shows something once scenes are created there.',
     'scenes.cfg.foreign':
         'From the scenes adapter: {n} – edit them there, trigger them here (option “Scenes from the admin”).',
     'scenes.cfg.devicesTab': 'Devices',

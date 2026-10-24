@@ -63,6 +63,7 @@ Wer im Dashboard Szenen ändern darf, regelt `allowEdit` zusammen mit dem PIN vo
 | --- | --- |
 | Szenen-Adapter nicht installiert | Adapter `scenes` fehlt |
 | Szenen-Adapter läuft nicht | Instanz gestoppt, Auslösen wirkt nicht |
+| keine weiteren Szenen (unter „Szenen verwalten“) | im Admin des Szenen-Adapters ist nichts angelegt; `showForeignScenes` zeigt dann nichts |
 | Ohne Wert (beim Auslösen „aus“) | Gerät hatte beim Speichern keinen Wert |
 | Nicht als Szenen-Gerät nutzbar | Datenpunkt nur lesbar, `system.*` oder `scene.*` |
 | nicht verfügbar (im Popup) | Datenpunkt existiert nicht mehr; Gerät entfernen |

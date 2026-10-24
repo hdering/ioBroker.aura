@@ -119,11 +119,13 @@ export function ScenesConfig() {
                             <Plus size={12} />
                             {t('scenes.new')}
                         </button>
-                        {foreign > 0 && (
-                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                                {t('scenes.cfg.foreign', { n: foreign })}
-                            </p>
-                        )}
+                        <p
+                            className="text-[10px]"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                            data-testid="scenes-cfg-foreign"
+                        >
+                            {foreign > 0 ? t('scenes.cfg.foreign', { n: foreign }) : t('scenes.cfg.noForeign')}
+                        </p>
                         {notice && warn(notice)}
                     </>
                 )}

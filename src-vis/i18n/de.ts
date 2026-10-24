@@ -2872,6 +2872,8 @@ export const de = {
     'scenes.notRunning': 'Der Szenen-Adapter {instance} läuft nicht – Szenen lösen nichts aus.',
     'scenes.cfg.section': 'Szenen verwalten',
     'scenes.cfg.none': 'Noch keine Szenen in Aura angelegt.',
+    'scenes.cfg.noForeign':
+        'Im Szenen-Adapter gibt es keine weiteren Szenen – „Szenen aus dem Admin“ zeigt erst etwas, wenn dort welche angelegt sind.',
     'scenes.cfg.foreign':
         'Aus dem Szenen-Adapter: {n} – dort bearbeiten, hier nur auslösen (Option „Szenen aus dem Admin“).',
     'scenes.cfg.devicesTab': 'Geräte',
