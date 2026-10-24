@@ -1252,28 +1252,42 @@
     },
     "scenes": {
       "item": "Szene",
-      "basePx": 94,
-      "perItemPx": 42,
+      "basePx": 56,
+      "perItemPx": 38,
       "fontScalePx": {
-        "basePx": 20,
-        "perItemPx": 6.7
+        "basePx": 6.7,
+        "perItemPx": 20
       },
       "atWidthPx": 160,
       "measured": [
         {
           "n": 1,
-          "px": 136
+          "px": 94
         },
         {
           "n": 3,
-          "px": 220
+          "px": 170
         },
         {
           "n": 6,
-          "px": 346
+          "px": 284
         }
       ],
       "modifiers": [
+        {
+          "key": "allowEdit",
+          "label": "Zeile „+ Neue Szene“ (allowEdit: true)",
+          "when": {
+            "path": "allowEdit",
+            "equals": true
+          },
+          "basePx": 38,
+          "perItemPx": 4,
+          "fontScalePx": {
+            "basePx": 13.3,
+            "perItemPx": -13.3
+          }
+        },
         {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
@@ -1296,7 +1310,7 @@
           "basePx": 20,
           "perItemPx": 0,
           "fontScalePx": {
-            "basePx": 20,
+            "basePx": 13.3,
             "perItemPx": 0
           }
         }
@@ -2454,9 +2468,9 @@
       ]
     },
     "scenes": {
-      "minPx": 220,
-      "minRowsDefaultGrid": 8,
-      "fontScalePx": 40,
+      "minPx": 170,
+      "minRowsDefaultGrid": 6,
+      "fontScalePx": 66.7,
       "atWidthPx": 160,
       "modifiers": [
         {
@@ -2480,7 +2494,7 @@
           },
           "basePx": 20,
           "fontScalePx": {
-            "basePx": 20
+            "basePx": 13.3
           }
         }
       ]
