@@ -1595,7 +1595,7 @@
         "Das Menü-Widget im Modus \"overview\" baut die Seite aus dem Layout selbst: je Bereich eine Gruppe (Icon + Name), darunter die Tabs als Chips. Umbenennen, Verschieben und neue Tabs sind sofort drin.",
         "showSearch blendet ein Suchfeld ein, das die Chips live nach Tab- oder Bereichsnamen filtert — bei über hundert Tabs der schnellste Weg.",
         "menuSource \"all\" listet zusätzlich die Bereiche der anderen Layouts mit dem Layout-Namen als Überschrift; Standard ist nur das aktuelle Layout.",
-        "hiddenItems nimmt hier Bereichs-Slugs auf und lässt ganze Gruppen weg. Als hidden markierte Bereiche und Tabs fehlen ohnehin.",
+        "hiddenItems nimmt hier Bereichs-IDs (oder -Slugs) auf und lässt ganze Gruppen weg. Als hidden markierte Bereiche und Tabs fehlen ohnehin.",
         "Die Höhe folgt der Zahl der Tabs — den Chip-Bereich großzügig ziehen, der Inhalt scrollt sonst im Widget."
       ],
       "widgets": [
