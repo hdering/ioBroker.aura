@@ -122,6 +122,17 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.92.0 (2026-10-24)
+- 🌟 **New feature:** Background image - also accepts CSS colours and gradients (e.g. linear-gradient(#e66465, e5)), typed in or composed with the new gradient builder ([#9198](https://github.com/hdering/ioBroker.aura/issues/9198), [#830](https://github.com/hdering/ioBroker.aura/issues/830))
+- Group - header items now sit in the group's own header bar (divider and spacing kept even with title and icon off, no more jumping row), and the title and icon colour can be set for the group header ([#832](https://github.com/hdering/ioBroker.aura/issues/832))
+- 🌟 **New feature:** Alarm - with "Disarm only with PIN" the Off button now opens the PIN entry while the system is merely armed (it did nothing before); the PIN field has a cancel button and brings up the numeric keypad on phones and tablets
+- Map - zoom in beyond level 19 (up to 22); past the tile server's last level the tiles are scaled up, handy for small plots like a mower's track ([#837](https://github.com/hdering/ioBroker.aura/issues/837))
+- 🌟 **New feature:** Scenes - new widget for the ioBroker scenes adapter: trigger scenes with a tap and create them in Aura - pick any writable datapoint, set its value by hand or take the current one, and order the devices; scenes are managed in the widget settings and, optionally, right in the dashboard ([#825](https://github.com/hdering/ioBroker.aura/issues/825))
+- 🌟 **New feature:** Mirror - can now show a whole tab: pick "Whole tab" as the source and the tab appears live inside the widget, scaled to its width, fitted entirely without scrolling, or at its original size; tabs behind a PIN and the mirror's own tab are not offered; the mirror editor is now translated
+- Menu - entries de-selected in the menu widget stay hidden when a tab is renamed (renaming used to change the tab's URL slug and bring them back) ([#840](https://github.com/hdering/ioBroker.aura/issues/840))
+- 🌟 **New feature:** Device card - new placeholders {{dpname}}, {{parentname}}, {{parent2name}} … show the object name (common.name) of the card's datapoint and of the channel/device above it, e.g. as card title; they work in popup views and popup titles as well ([#841](https://github.com/hdering/ioBroker.aura/issues/841))
+
+
 ### 0.91.0 (2026-10-22)
 - Section menu - a popup opened by a widget inside the open section menu now appears on top of the menu instead of behind it
 - Custom grid - clicking a cell in the edit dialog now highlights it in the preview even when an image or another spanning cell covers it
@@ -254,11 +265,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Widgets - the background image (Advanced) can come from a datapoint holding a URL, path or Base64 image; the fixed image stays the fallback ([#775](https://github.com/hdering/ioBroker.aura/issues/775))
 
 
-### 0.82.4 (2026-10-13)
-- Status overview - dimmers in the "Light" function now count as lights ("On · 60 %"), and the "Off" row action sets them to 0
-- Dynamic list - a list with filters but no entries searches right away instead of waiting for the sync interval; new option to drop entries the filters no longer find
-
-
 ## License
 
 MIT License
@@ -270,6 +276,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

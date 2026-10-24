@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.82.4 (2026-10-13)
+- Status overview - dimmers in the "Light" function now count as lights ("On · 60 %"), and the "Off" row action sets them to 0
+- Dynamic list - a list with filters but no entries searches right away instead of waiting for the sync interval; new option to drop entries the filters no longer find
+
 ## 0.82.3 (2026-10-13)
 - HTML - the whole widget surface can now trigger the click action (e.g. open a popup), selectable via the new Interaction option like on the iFrame widget ([#773](https://github.com/hdering/ioBroker.aura/issues/773))
 
