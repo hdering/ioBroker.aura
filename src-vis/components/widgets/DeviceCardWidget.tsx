@@ -11,12 +11,13 @@ import {
 import { deviceCardColor, deviceCardTransform, deviceCardVars } from '../../utils/deviceCard';
 import { subAll } from '../../utils/popupPlaceholders';
 import { useDeviceCardShareCount } from '../../hooks/useDeviceCardShareCount';
+import { useDpNameVars } from '../../hooks/useDpNameVars';
 import { useT } from '../../i18n';
 
 /**
  * "Gerätekarte" (#743) — a group whose children are built once and reused for any
- * number of identical devices. The children use `{{dp}}`, `{{parent}}`, `{{name}}` …
- * and resolve against this card's datapoint; every copy of the card shares them
+ * number of identical devices. The children use `{{dp}}`, `{{parent}}`, `{{name}}`,
+ * `{{dpname}}` … and resolve against this card's datapoint; every copy of the card shares them
  * (same `options.defId`), so a change to the layout applies to all cards.
  *
  * The group machinery is reused as is: this component only puts two contexts
@@ -27,7 +28,9 @@ import { useT } from '../../i18n';
 export function DeviceCardWidget(props: WidgetProps) {
     const { config, editMode, onConfigChange } = props;
     const t = useT();
-    const vars = useMemo(() => deviceCardVars(config), [config]);
+    // `{{dpname}}`, `{{parentname}}` … (#841) join once the objects are loaded.
+    const nameVars = useDpNameVars(config.datapoint ?? '');
+    const vars = useMemo(() => ({ ...nameVars, ...deviceCardVars(config) }), [config, nameVars]);
     // Stable while the resolved table is the same — a new transform remounts nothing,
     // but it re-derives every child's render config.
     const varsKey = JSON.stringify(vars);

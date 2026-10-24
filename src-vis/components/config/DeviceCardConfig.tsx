@@ -5,6 +5,7 @@ import { DatapointPicker } from './DatapointPicker';
 import { dpVarMap } from '../../utils/popupPlaceholders';
 import { detachDeviceCard, deviceCardColor } from '../../utils/deviceCard';
 import { useDeviceCardShareCount } from '../../hooks/useDeviceCardShareCount';
+import { useDpNameVars } from '../../hooks/useDpNameVars';
 import { useT } from '../../i18n';
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none font-mono';
@@ -32,7 +33,7 @@ export function DeviceCardConfig({ config, onConfigChange }: Props) {
     const [picker, setPicker] = useState(false);
     const [confirmDetach, setConfirmDetach] = useState(false);
     const dp = config.datapoint ?? '';
-    const tokens = Object.entries(dpVarMap(dp.trim()));
+    const tokens = Object.entries({ ...dpVarMap(dp.trim()), ...useDpNameVars(dp.trim()) });
     const shareCount = useDeviceCardShareCount(config.options?.defId as string | undefined);
 
     return (

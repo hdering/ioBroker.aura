@@ -28,6 +28,7 @@ import {
 } from '../../contexts/RenderTransformContext';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { buildPopupSubMap, resolvePopupWidget } from '../../utils/popupPlaceholders';
+import { useDpNameVars } from '../../hooks/useDpNameVars';
 import { findPopupPreviewTriggers } from '../../utils/popupPreviewTriggers';
 import { WIDGET_REGISTRY, ALL_POPUP_PLACEHOLDER_KEYS } from '../../widgetRegistry';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
@@ -169,11 +170,12 @@ export function PopupViewEditor() {
     const previewTrigger = effPreviewSel.startsWith('t') ? previewTriggers[Number(effPreviewSel.slice(1))] : undefined;
     const previewDp = previewTrigger?.dp ?? (effPreviewSel === 'custom' ? customPreviewDp.trim() : '');
     const previewTriggerWidget = previewTrigger?.widget;
+    const previewNameVars = useDpNameVars(previewDp);
     const renderTransform = useMemo<RenderTransform | null>(() => {
         if (!previewDp) return null;
-        const subMap = buildPopupSubMap(previewTriggerWidget, previewDp);
+        const subMap = { ...previewNameVars, ...buildPopupSubMap(previewTriggerWidget, previewDp) };
         return (w) => resolvePopupWidget(w, subMap, previewTriggerWidget);
-    }, [previewDp, previewTriggerWidget]);
+    }, [previewDp, previewTriggerWidget, previewNameVars]);
 
     if (!viewId || !view) {
         return (

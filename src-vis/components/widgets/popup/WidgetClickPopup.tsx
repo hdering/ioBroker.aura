@@ -14,6 +14,7 @@ import {
     MAX_POPUP_PADDING,
 } from '../../../store/popupConfigStore';
 import { buildPopupSubMap, popupMainDp, subAll } from '../../../utils/popupPlaceholders';
+import { useDpNameVars } from '../../../hooks/useDpNameVars';
 import { DynamicTitle } from '../DynamicTitle';
 import { DimmerPopupBody } from './DimmerPopupBody';
 import { SwitchPopupBody } from './SwitchPopupBody';
@@ -236,7 +237,11 @@ function PopupDialog({ onClose, ...initial }: Props) {
     // view: `{{parent}}` & co. resolved here against the popup's main datapoint (for a
     // list row that is the clicked row), `[[dp]]` resolved live by DynamicTitle below.
     const mainDp = popupMainDp(widget, action.kind === 'popup-view' ? action.dp : undefined);
-    const title = subAll(getTitle(widget, action, titleOverride), buildPopupSubMap(widget, mainDp));
+    const nameVars = useDpNameVars(mainDp);
+    const title = subAll(getTitle(widget, action, titleOverride), {
+        ...nameVars,
+        ...buildPopupSubMap(widget, mainDp),
+    });
     const customWidth = widget.options?.popupWidth as number | undefined;
     const customHeight = widget.options?.popupHeight as number | undefined;
     // Fullscreen: the dialog covers the whole viewport — no margin, corners or frame.

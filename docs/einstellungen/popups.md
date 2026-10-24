@@ -131,6 +131,8 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 | `{{parent}}` | `alias.0.Heizung.Bad` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{parent2}}`, `{{parent3}}`, … | `alias.0.Heizung`, `alias.0` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{name}}` | `TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
+| `{{dpname}}` | `common.name` des Datenpunkts, z. B. `Soll-Temperatur` | Texten der Popup-Widgets · Popup-Titel |
+| `{{parentname}}`, `{{parent2name}}`, … | `common.name` von `{{parent}}`, `{{parent2}}`, … | Texten der Popup-Widgets · Popup-Titel |
 | `[[<dp>]]` | Wert des Datenpunkts | Popup-Titel · Widget-Name (jedes Widget) |
 
 `{{…}}` ersetzt beim Öffnen einmalig Text, `[[…]]` liest laufend den Wert. Die Text-Ersetzung läuft zuerst, beides ist also kombinierbar:

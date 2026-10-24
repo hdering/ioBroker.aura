@@ -26,9 +26,13 @@ Aufgelöst gegen den Datenpunkt der jeweiligen Karte – die Tabelle steht auch 
 | `{{name}}` | `ACTUAL_TEMPERATURE` |
 | `{{parent}}` | `hm-rpc.0.kueche.1` |
 | `{{parent2}}` | `hm-rpc.0.kueche` |
+| `{{dpname}}` | `common.name` des Datenpunkts, z. B. `Ist-Temperatur` |
+| `{{parentname}}` · `{{parent2name}}` … | `common.name` von `{{parent}}` · `{{parent2}}` …, z. B. `Thermostat Küche` |
 | `{{<option>}}` | jede Text-Option der Karte |
 
 Gilt überall, wo ein Kind einen Datenpunkt hat: Hauptdatenpunkt, weitere Datenpunkt-Felder, Listenzeilen, Bedingungen, Badges, Diagramm-Serien. Auch der Kartentitel darf Platzhalter enthalten.
+
+Die `…name`-Platzhalter sind für Titel und Texte gedacht, nicht für Datenpunkt-IDs. Mehrsprachige Namen folgen der Oberflächensprache; fehlt ein Name, bleibt der Platzhalter stehen.
 
 ## Einstellungen
 

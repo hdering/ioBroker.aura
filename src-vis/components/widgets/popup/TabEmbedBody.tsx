@@ -22,6 +22,7 @@ import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext
 import { ContentAutoHeightBlockedContext } from '../../../hooks/useContentAutoHeight';
 import { supportsAutoHeight } from '../../../utils/autoHeight';
 import { buildPopupSubMap, popupMainDp, resolvePopupWidget } from '../../../utils/popupPlaceholders';
+import { useDpNameVars } from '../../../hooks/useDpNameVars';
 import { useResolvedTitle } from '../DynamicTitle';
 import type { ClickAction, WidgetConfig, WidgetCondition } from '../../../types';
 import { useDashboardStore } from '../../../store/dashboardStore';
@@ -306,6 +307,11 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
     // widgets grow the grid to fit their full content instead of scrolling in a fixed cell.
     const autoPopupHeight = !(triggerWidget?.options?.popupHeight as number | undefined);
 
+    // Main DP: explicit override (click action) wins over the trigger widget's own datapoint.
+    const mainDp = popupMainDp(triggerWidget, dpOverride);
+    // `{{dpname}}`, `{{parentname}}` … (#841) join once the objects are loaded.
+    const nameVars = useDpNameVars(mainDp);
+
     const roRef = useRef<ResizeObserver | null>(null);
     const [containerWidth, setContainerWidth] = useState(0);
 
@@ -376,9 +382,7 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
         );
     }
 
-    // Main DP: explicit override (click action) wins over the trigger widget's own datapoint.
-    const mainDp = popupMainDp(triggerWidget, dpOverride);
-    const subMap = buildPopupSubMap(triggerWidget, mainDp);
+    const subMap = { ...nameVars, ...buildPopupSubMap(triggerWidget, mainDp) };
 
     const widgets = view.widgets.map((w) => resolvePopupWidget(w, subMap, triggerWidget));
 

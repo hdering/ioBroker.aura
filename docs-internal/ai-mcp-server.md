@@ -2123,7 +2123,8 @@ die gespeicherte Höhe bleibt die des aufgeklappten Widgets.
 
 `devicecard` ist eine Gruppe, deren Kinder **geteilt** sind: alle Karten mit derselben
 `options.defId` zeigen dieselbe Kinderliste aus `aura-group-defs`. Platzhalter in den
-Kindern (`{{dp}}`, `{{parent}}`, `{{parent2}}`, `{{name}}`, eigene String-Optionen der
+Kindern (`{{dp}}`, `{{parent}}`, `{{parent2}}`, `{{name}}`, die Objektnamen `{{dpname}}`,
+`{{parentname}}`, `{{parent2name}}` … aus `common.name`, eigene String-Optionen der
 Karte als `{{key}}`) werden pro Karte gegen deren `datapoint` aufgelöst.
 
 | Fall | Was das Modell schreibt |
