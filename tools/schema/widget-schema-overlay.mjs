@@ -1572,7 +1572,7 @@ export const WIDGET_OPTION_NOTES = {
         },
         hiddenItems: {
             description:
-                'Abgewählte Einträge (Slugs): Bereiche bei "section" und "overview" (dort entfällt die ganze Gruppe), ' +
+                'Abgewählte Einträge (IDs, Slugs werden ebenfalls erkannt): Bereiche bei "section" und "overview" (dort entfällt die ganze Gruppe), ' +
                 'Tabs bei "tab". Als hidden markierte Bereiche/Tabs fehlen ohnehin.',
         },
         variant: {

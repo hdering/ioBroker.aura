@@ -131,6 +131,9 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
 
     // ── Active entry ──────────────────────────────────────────────────────────
     const keyOf = (it: Section | Tab) => it.slug ?? it.id;
+    // De-selection is stored by id: renaming a tab in the editor re-derives its slug,
+    // which used to bring de-selected entries back (#840). Older configs hold slugs.
+    const isDeselected = (it: Section | Tab) => hiddenItems.includes(it.id) || hiddenItems.includes(keyOf(it));
     const activeSectionKey = section ? keyOf(section) : '';
     // The tab on screen — in the editor the one being edited, in the frontend the
     // one the URL names (falling back to the section's default).
@@ -158,10 +161,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
         disabled: (it as Tab).disabled,
     });
     const rawItems: (Section | Tab)[] = menuMode === 'tab' ? (section?.tabs ?? []) : (layout?.sections ?? []);
-    const items: MenuItem[] = rawItems
-        .filter((it) => !it.hidden)
-        .map(toItem)
-        .filter((it) => !hiddenItems.includes(it.key));
+    const items: MenuItem[] = rawItems.filter((it) => !it.hidden && !isDeselected(it)).map(toItem);
 
     // ── Overview groups (#669) ────────────────────────────────────────────────
     // One group per visible section; `hiddenItems` de-selects whole sections here.
@@ -175,7 +175,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                   .filter((l) => !l.hidden)
                   .flatMap((l) =>
                       l.sections
-                          .filter((sec) => !sec.hidden && !hiddenItems.includes(keyOf(sec)))
+                          .filter((sec) => !sec.hidden && !isDeselected(sec))
                           .map((sec): OverviewGroup => {
                               const sectionHit = !needle || sec.name.toLowerCase().includes(needle);
                               return {

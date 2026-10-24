@@ -16460,7 +16460,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Abgewählte Einträge (Slugs): Bereiche bei \"section\" und \"overview\" (dort entfällt die ganze Gruppe), Tabs bei \"tab\". Als hidden markierte Bereiche/Tabs fehlen ohnehin."
+          "description": "Abgewählte Einträge (IDs, Slugs werden ebenfalls erkannt): Bereiche bei \"section\" und \"overview\" (dort entfällt die ganze Gruppe), Tabs bei \"tab\". Als hidden markierte Bereiche/Tabs fehlen ohnehin."
         },
         "iconSize": {
           "type": "number",

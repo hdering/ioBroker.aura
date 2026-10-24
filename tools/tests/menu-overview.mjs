@@ -163,6 +163,11 @@ check('hiddenItems drops a whole section group', JSON.stringify(g) === '["wohnen
 const titleCount = await page.$$eval(`${SEL} [data-menu-group] .uppercase`, (els) => els.length);
 check('groupTitle "none" renders no group title', titleCount === 0, String(titleCount));
 
+// De-selection is stored by id since #840 (a renamed tab re-derives its slug).
+await open({ hiddenItems: ['sec-technik'] });
+g = await groups();
+check('hiddenItems by id drops the section group', JSON.stringify(g) === '["wohnen"]', g.join(','));
+
 // ── search ───────────────────────────────────────────────────────────────────
 await open({ showSearch: true });
 const search = page.locator(`${SEL} [data-menu-search]`);

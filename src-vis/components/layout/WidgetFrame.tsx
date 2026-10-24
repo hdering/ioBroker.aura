@@ -4710,8 +4710,10 @@ function MenuEditPanel({
     const labelToKey = new Map<string, string>();
     const keyToLabel = new Map<string, string>();
     const seen = new Map<string, number>();
+    // Keyed by id — the slug follows a renamed tab (#840). Entries stored by slug in
+    // older configs still count as de-selected and are rewritten as ids on the next change.
     rawItems.forEach((it) => {
-        const key = it.slug ?? it.id;
+        const key = it.id;
         let label = it.name || key;
         const n = (seen.get(label) ?? 0) + 1;
         seen.set(label, n);
@@ -4721,7 +4723,12 @@ function MenuEditPanel({
         keyToLabel.set(key, label);
     });
     const optionLabels = allKeys.map((k) => keyToLabel.get(k) ?? k);
-    const selectedLabels = allKeys.filter((k) => !hiddenItems.includes(k)).map((k) => keyToLabel.get(k) ?? k);
+    const deselected = new Set(
+        rawItems
+            .filter((it) => hiddenItems.includes(it.id) || hiddenItems.includes(it.slug ?? it.id))
+            .map((it) => it.id),
+    );
+    const selectedLabels = allKeys.filter((k) => !deselected.has(k)).map((k) => keyToLabel.get(k) ?? k);
 
     return (
         <>
