@@ -55,12 +55,12 @@ Auf schmalen Bildschirmen richtet sich die automatische Höhe nach dem Typ der Q
 | --- | --- | --- |
 | `sourceKind` | — | `tab` = ganzer Tab |
 | `targetTabId` | — | ID des Quell-Tabs |
-| `tabFit` | Auf Breite skalieren | `none` = Originalgröße, schmaler Kasten zeigt die Handy-Ansicht |
+| `tabFit` | Auf Breite skalieren | `contain` = ganz einpassen, ohne Scrollen, mittig · `none` = Originalgröße, schmaler Kasten zeigt die Handy-Ansicht |
 | `tabWidth` | Breite der Widgets | Entwurfsbreite in px, auf die skaliert wird |
 
 | Fall | Anzeige |
 | --- | --- |
-| Inhalt höher als der Kasten | scrollt im Spiegel |
+| Inhalt höher als der Kasten | scrollt im Spiegel — bei `contain` wird stattdessen weiter verkleinert |
 | eigener Tab / Tabs, die sich gegenseitig spiegeln | „Der Tab enthält diesen Spiegel selbst" |
 | Tab oder Bereich mit PIN | nicht wählbar, „PIN-geschützte Tabs werden nicht gespiegelt" |
 | Quell-Tab gelöscht | „Quell-Tab existiert nicht mehr" |

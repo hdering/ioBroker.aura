@@ -16696,8 +16696,7 @@
           "description": "Was gespiegelt wird: leer = ein Widget (targetWidgetId), \"tab\" = ein ganzer Tab (targetTabId). Ein Tab-Spiegel zeigt den Tab live im eigenen Kasten; seine Höhe ist frei (h), Überhang scrollt."
         },
         "tabFit": {
-          "type": "string",
-          "description": "Tab-Spiegel: leer = auf die Kastenbreite skalieren (Entwurfsbreite tabWidth), \"none\" = unskaliert in Kastengröße — ein schmaler Kasten zeigt dann die Handy-Ansicht des Tabs."
+          "description": "Tab-Spiegel: leer = auf die Kastenbreite skalieren (Entwurfsbreite tabWidth, Überhang scrollt), \"contain\" = so weit verkleinern, dass der ganze Tab ohne Scrollen hineinpasst (mittig), \"none\" = unskaliert in Kastengröße — ein schmaler Kasten zeigt dann die Handy-Ansicht des Tabs."
         },
         "tabWidth": {
           "type": "number",

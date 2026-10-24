@@ -9,6 +9,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
 import { useResolvedTitle } from './DynamicTitle';
 import { TabMirror } from './TabMirror';
+import { useT } from '../../i18n';
 
 /** Small centered notice card used for the mirror's various "cannot render" states. */
 function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string; detail?: string }) {
@@ -45,6 +46,7 @@ export function MirrorWidget(props: WidgetProps) {
 function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
     const layouts = useDashboardStore((s) => s.layouts);
     const updateWidget = useDashboardStore((s) => s.updateWidget);
+    const t = useT();
 
     const targetId = config.options?.targetWidgetId as string | undefined;
 
@@ -69,11 +71,7 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
 
     if (!targetId) {
         return editMode ? (
-            <Notice
-                icon={<CopyPlus size={22} />}
-                title="Quell-Widget im Editor wählen"
-                detail="Optionen → Gespiegeltes Widget"
-            />
+            <Notice icon={<CopyPlus size={22} />} title={t('mirror.pickWidget')} detail={t('mirror.pickWidgetHint')} />
         ) : (
             <div className="h-full w-full" />
         );
@@ -84,7 +82,7 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
         return (
             <Notice
                 icon={<AlertTriangle size={22} style={{ color: 'var(--accent-red, #ef4444)' }} />}
-                title="Spiegel kann sich nicht selbst spiegeln"
+                title={t('mirror.self')}
             />
         );
     }
@@ -93,7 +91,7 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
         return (
             <Notice
                 icon={<AlertTriangle size={22} style={{ color: 'var(--accent-red, #ef4444)' }} />}
-                title="Quell-Widget existiert nicht mehr"
+                title={t('mirror.widgetGone')}
                 detail={targetId}
             />
         );
@@ -104,7 +102,7 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
         return (
             <Notice
                 icon={<AlertTriangle size={22} style={{ color: 'var(--accent-red, #ef4444)' }} />}
-                title="Ein Spiegel kann keinen Spiegel spiegeln"
+                title={t('mirror.chain')}
             />
         );
     }
@@ -113,7 +111,7 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
     const Widget = wm[target.type as keyof typeof wm];
 
     if (!Widget) {
-        return <Notice icon={<AlertTriangle size={22} />} title={`Unbekannter Widget-Typ: ${target.type}`} />;
+        return <Notice icon={<AlertTriangle size={22} />} title={t('mirror.unknownType', { type: target.type })} />;
     }
 
     // Take the source's content but keep the mirror's own placement.

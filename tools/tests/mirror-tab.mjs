@@ -182,6 +182,46 @@ check(
     `${before} → ${after}`,
 );
 
+// ── 4b. Contain: a tall tab fits the box completely, nothing scrolls ───────
+const tall = layoutWith([
+    mirror('m-contain', { targetTabId: 'tab-src', tabFit: 'contain' }, { x: 0, y: 0, w: 30, h: 8 }),
+]);
+for (let i = 0; i < 6; i++) tall.sections[0].tabs[1].widgets.push(value(`v-row${i}`, 0, 4 + i * 4, `ZEILE-${i}`));
+await open(tall, '#/view/front/s/eins/tab/tab-home');
+const contain = await page.evaluate(() => {
+    const box = document.querySelector('[data-aura-tab-mirror="tab-src"]');
+    const scroller = box?.querySelector('.aura-scroll');
+    const last = box?.querySelector('.aura-widget-v-row5');
+    if (!box || !scroller || !last) return null;
+    const b = box.getBoundingClientRect();
+    const l = last.getBoundingClientRect();
+    return {
+        overflow: scroller.scrollHeight - scroller.clientHeight,
+        lastBottom: Math.round(l.bottom - b.top),
+        boxH: Math.round(b.height),
+        lastRight: Math.round(l.right - b.left),
+        boxW: Math.round(b.width),
+    };
+});
+check(
+    'contain: the whole tab fits the box height',
+    !!contain && contain.overflow <= 1 && contain.lastBottom <= contain.boxH,
+    JSON.stringify(contain),
+);
+check(
+    'contain: centred, narrower than the box',
+    !!contain && contain.lastRight < contain.boxW,
+    JSON.stringify(contain),
+);
+
+// ── 4c. English UI ─────────────────────────────────────────────────────────
+await open(layoutWith([mirror('m-en', { targetTabId: 'tab-home' })]), '#/view/front/s/eins/tab/tab-home');
+await page.evaluate(() => window.__auraShot.setFrontend({ language: 'en' }));
+await page.waitForTimeout(500);
+const enText = await mirrorText('m-en');
+check('english: notice translated', enText.includes('The tab contains this mirror itself'), enText.trim());
+await page.evaluate(() => window.__auraShot.setFrontend({ language: 'de' }));
+
 // ── 5. Editor: badge names the tab, the copy takes no clicks ──────────────
 await page.evaluate(() =>
     localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })),

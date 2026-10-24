@@ -81,6 +81,9 @@ interface DashboardProps {
     /** Embedded only: always the desktop grid, never the phone/tablet flow — the
      *  mirror scales the grid to its box instead. */
     forceGrid?: boolean;
+    /** Embedded only: never stretch the rows to the visible height ('fill') — a mirror
+     *  that fits the tab's height into its box would chase its own stretch. */
+    noFillRows?: boolean;
 }
 
 export function Dashboard({
@@ -94,6 +97,7 @@ export function Dashboard({
     inactive = false,
     embedded = false,
     forceGrid = false,
+    noFillRows = false,
 }: DashboardProps) {
     const activeLayout = useActiveLayout();
     const { updateWidget, updateWidgetById, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
@@ -549,7 +553,11 @@ export function Dashboard({
     const effectiveCols = gridCols.cols;
     const effectiveRglWidth = gridCols.rglWidth;
     // Vertical counterpart (#413): only together with the fluid width, frontend only.
-    const heightMode = gridCols.fluid ? (settings.gridHeightMode ?? 'fixed') : 'fixed';
+    const heightMode = gridCols.fluid
+        ? noFillRows && settings.gridHeightMode === 'fill'
+            ? 'fixed'
+            : (settings.gridHeightMode ?? 'fixed')
+        : 'fixed';
     const rowsFor = (usedRows: number) =>
         gridRows({
             mode: heightMode,

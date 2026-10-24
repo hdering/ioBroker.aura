@@ -428,7 +428,8 @@ export const WIDGET_OPTION_NOTES = {
         },
         tabFit: {
             description:
-                'Tab-Spiegel: leer = auf die Kastenbreite skalieren (Entwurfsbreite tabWidth), ' +
+                'Tab-Spiegel: leer = auf die Kastenbreite skalieren (Entwurfsbreite tabWidth, Überhang scrollt), ' +
+                '"contain" = so weit verkleinern, dass der ganze Tab ohne Scrollen hineinpasst (mittig), ' +
                 '"none" = unskaliert in Kastengröße — ein schmaler Kasten zeigt dann die Handy-Ansicht des Tabs.',
         },
         tabWidth: {

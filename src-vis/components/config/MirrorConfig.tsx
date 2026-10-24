@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { WidgetConfig } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { tabSourceLocked } from '../widgets/TabMirror';
+import { tabFitOf, tabSourceLocked } from '../widgets/TabMirror';
+import { useT } from '../../i18n';
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -19,11 +20,12 @@ interface Props {
 
 /**
  * Editor for the "Spiegel" (mirror) widget: a whole tab (TabSourcePicker) or, by
- * default, the source widget whose content should be shown here. Reuses the whole-dashboard widget-picker UX from
- * ClickActionEditor's popup-widget branch; the mirror only stores the source's id
+ * default, the source widget whose content should be shown here. The widget list
+ * reuses the whole-dashboard picker UX from ClickActionEditor's popup-widget branch; the mirror only stores the source's id
  * in `options.targetWidgetId`.
  */
 export function MirrorConfig({ config, onConfigChange }: Props) {
+    const t = useT();
     const kind = config.options?.sourceKind === 'tab' ? 'tab' : 'widget';
     const setKind = (next: 'widget' | 'tab') =>
         onConfigChange({ ...config, options: { ...config.options, sourceKind: next === 'tab' ? 'tab' : undefined } });
@@ -32,13 +34,13 @@ export function MirrorConfig({ config, onConfigChange }: Props) {
         <div className="space-y-3">
             <div>
                 <label className={labelCls} style={labelStyle}>
-                    Quelle
+                    {t('mirror.source')}
                 </label>
                 <div className="flex gap-1">
                     {(
                         [
-                            ['widget', 'Widget'],
-                            ['tab', 'Ganzer Tab'],
+                            ['widget', t('mirror.kindWidget')],
+                            ['tab', t('mirror.kindTab')],
                         ] as const
                     ).map(([k, label]) => (
                         <button
@@ -73,10 +75,11 @@ export function MirrorConfig({ config, onConfigChange }: Props) {
  * tab this mirror sits on is left out (it would contain itself).
  */
 function TabSourcePicker({ config, onConfigChange }: Props) {
+    const t = useT();
     const layouts = useDashboardStore((s) => s.layouts);
     const [search, setSearch] = useState('');
     const selectedId = (config.options?.targetTabId as string | undefined) ?? '';
-    const fit = (config.options?.tabFit as string | undefined) === 'none' ? 'none' : 'width';
+    const fit = tabFitOf(config.options?.tabFit);
     const tabWidth = Number(config.options?.tabWidth) || 0;
 
     const rows = layouts.flatMap((layout) =>
@@ -124,13 +127,13 @@ function TabSourcePicker({ config, onConfigChange }: Props) {
         <div className="space-y-3">
             <div className="space-y-1.5">
                 <label className={labelCls} style={labelStyle}>
-                    Gespiegelter Tab
+                    {t('mirror.tab')}
                 </label>
                 <input
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Suchen nach Tab, Layout oder Bereich…"
+                    placeholder={t('mirror.tabSearch')}
                     className={inputCls}
                     style={inputStyle}
                 />
@@ -143,7 +146,7 @@ function TabSourcePicker({ config, onConfigChange }: Props) {
                         style={{ ...rowStyle(''), gridTemplateColumns: '1fr 1fr 40px' }}
                         onClick={() => select(undefined)}
                     >
-                        <span className="truncate italic">— Kein Tab —</span>
+                        <span className="truncate italic">{t('mirror.noTab')}</span>
                         <span />
                         <span />
                     </div>
@@ -153,7 +156,7 @@ function TabSourcePicker({ config, onConfigChange }: Props) {
                             data-aura-mirror-tab={r.id}
                             className="grid gap-x-2 px-2 rounded text-xs"
                             style={{ ...rowStyle(r.id, r.locked), gridTemplateColumns: '1fr 1fr 40px' }}
-                            title={r.locked ? 'PIN-geschützt — wird nicht gespiegelt' : undefined}
+                            title={r.locked ? t('mirror.tabLocked') : undefined}
                             onClick={() => !r.locked && select(r.id)}
                         >
                             <span className="truncate">
@@ -170,37 +173,41 @@ function TabSourcePicker({ config, onConfigChange }: Props) {
                     ))}
                     {shown.length === 0 && (
                         <div className="px-2 py-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                            Keine Tabs gefunden
+                            {t('mirror.noTabs')}
                         </div>
                     )}
                 </div>
             </div>
             <div>
                 <label className={labelCls} style={labelStyle}>
-                    Darstellung
+                    {t('mirror.fit')}
                 </label>
                 <select
                     value={fit}
-                    onChange={(e) => setO({ tabFit: e.target.value === 'none' ? 'none' : undefined })}
+                    onChange={(e) => {
+                        const next = tabFitOf(e.target.value);
+                        setO({ tabFit: next === 'width' ? undefined : next });
+                    }}
                     className={inputCls}
                     style={inputStyle}
                     data-aura-mirror-fit
                 >
-                    <option value="width">Auf Breite skalieren</option>
-                    <option value="none">Originalgröße (schmal = Handy-Ansicht)</option>
+                    <option value="width">{t('mirror.fitWidth')}</option>
+                    <option value="contain">{t('mirror.fitContain')}</option>
+                    <option value="none">{t('mirror.fitNone')}</option>
                 </select>
             </div>
-            {fit === 'width' && (
+            {fit !== 'none' && (
                 <div>
                     <label className={labelCls} style={labelStyle}>
-                        Entwurfsbreite (px, leer = Breite der Widgets)
+                        {t('mirror.tabWidth')}
                     </label>
                     <input
                         type="number"
                         min={0}
                         step={10}
                         value={tabWidth || ''}
-                        placeholder="automatisch"
+                        placeholder={t('mirror.tabWidthAuto')}
                         onChange={(e) => {
                             const n = Math.max(0, Math.round(Number(e.target.value) || 0));
                             setO({ tabWidth: n > 0 ? n : undefined });
@@ -215,6 +222,7 @@ function TabSourcePicker({ config, onConfigChange }: Props) {
 }
 
 function WidgetSourcePicker({ config, onConfigChange }: Props) {
+    const t = useT();
     const layouts = useDashboardStore((s) => s.layouts);
     const [search, setSearch] = useState('');
 
@@ -274,13 +282,13 @@ function WidgetSourcePicker({ config, onConfigChange }: Props) {
     return (
         <div className="space-y-1.5">
             <label className={labelCls} style={labelStyle}>
-                Gespiegeltes Widget
+                {t('mirror.widget')}
             </label>
             <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Suchen nach Name, Typ oder ID…"
+                placeholder={t('mirror.widgetSearch')}
                 className={inputCls}
                 style={inputStyle}
             />
@@ -294,9 +302,9 @@ function WidgetSourcePicker({ config, onConfigChange }: Props) {
                         borderBottom: '1px solid var(--app-border)',
                     }}
                 >
-                    <span>Titel</span>
-                    <span>Typ</span>
-                    <span>ID</span>
+                    <span>{t('mirror.colTitle')}</span>
+                    <span>{t('mirror.colType')}</span>
+                    <span>{t('mirror.colId')}</span>
                 </div>
                 {/* "none" row */}
                 <div
@@ -304,7 +312,7 @@ function WidgetSourcePicker({ config, onConfigChange }: Props) {
                     style={{ ...rowStyle(''), gridTemplateColumns: '1fr 90px 1fr' }}
                     onClick={() => select(undefined)}
                 >
-                    <span className="truncate italic">— Kein Widget —</span>
+                    <span className="truncate italic">{t('mirror.noWidget')}</span>
                     <span />
                     <span />
                 </div>
@@ -326,7 +334,7 @@ function WidgetSourcePicker({ config, onConfigChange }: Props) {
                 ))}
                 {candidates.length === 0 && (
                     <div className="px-2 py-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        Keine Widgets gefunden
+                        {t('mirror.noWidgets')}
                     </div>
                 )}
             </div>
