@@ -2,7 +2,7 @@
 
 Löst Szenen des ioBroker-Szenen-Adapters (`scenes`) aus. Neue Szenen legst du direkt in Aura an: Geräte wählen, Werte festlegen, fertig. Aura speichert keine eigenen Szenen. Alle liegen als `scene.0.*` im Szenen-Adapter und funktionieren auch in Skripten, Blockly und Alexa.
 
-| Liste | Kacheln | Szene bearbeiten |
+| Liste | Kacheln | Bearbeiten im Dashboard (`allowEdit`) |
 | --- | --- | --- |
 | ![](./assets/szenen/runtime.png) | ![](./assets/szenen/kacheln.png) | ![](./assets/szenen/popup.png) |
 
@@ -14,18 +14,22 @@ Löst Szenen des ioBroker-Szenen-Adapters (`scenes`) aus. Neue Szenen legst du d
 
 ## Szenen verwalten
 
-Im Bearbeiten-Dialog des Widgets, Abschnitt **Szenen verwalten**. Mit der Option `allowEdit` geht das auch direkt im Dashboard (**+ Neue Szene**, **⋯**).
+Im Bearbeiten-Dialog des Widgets, Abschnitt **Szenen verwalten**; **+ Neue Szene** bzw. **⋯** öffnet den Editor. Mit der Option `allowEdit` geht das in vereinfachter Form auch direkt im Dashboard (Bild oben rechts).
 
-![](./assets/szenen/verwalten.png)
-
-| Im Popup | |
+| Szenen verwalten | Szene bearbeiten |
 | --- | --- |
-| **Geräte und Werte** | Wert je Gerät: an/aus, Zahl, Auswahlliste (bei `common.states`) oder Text |
-| **Geräte in diesem Bereich** | Datenpunkte der Widgets im selben Bereich, ein Tipp fügt hinzu |
-| **Weitere Geräte …** | beliebiger Datenpunkt über die Datenpunkt-Suche |
+| ![](./assets/szenen/verwalten.png) | ![](./assets/szenen/editor.png) |
+
+| Im Editor | |
+| --- | --- |
+| Liste links | Geräte der Szene; ziehen = Reihenfolge, in der sie geschaltet werden |
+| **Gerät hinzufügen** | Datenpunkt-Suche, mehrere auf einmal |
+| **Datenpunkt** | Datenpunkt des Geräts ändern (Eingabe oder Suche) |
+| **Wert beim Auslösen** | an/aus, Zahl, Auswahlliste (bei `common.states`) oder Text; **Aktuell: …** übernimmt den momentanen Wert |
 | neues Gerät | startet mit seinem aktuellen Wert |
 | **Aktuelle Werte** | alle Werte auf den momentanen Zustand der Geräte setzen |
 | **🗑** | Szene löschen (mit Rückfrage) |
+| **Speichern** | schreibt die Szene in den Szenen-Adapter |
 
 Erlaubt ist jeder beschreibbare Datenpunkt außer `system.*` und `scene.*`.
 

@@ -5,13 +5,13 @@
 //
 // Checked: own scenes listed, foreign scenes only with showForeignScenes and without "⋯";
 // the active scene (state true) highlighted; a tap writes true to the scene; the tiles layout;
-// the popup suggests the datapoints of the section's widgets, a suggestion joins with its
-// current value, values are edited per type (on/off, number, states list) and sent with
+// devices are added through the datapoint picker and join with their current value,
+// values are edited per type (on/off, number, states list) and sent with
 // saveScene; "Current values" refreshes them; removing a device; editing sends the scene id;
-// delete asks first, then sends deleteScene; the datapoint picker opens above the popup and
-// Escape closes only the picker; the notices for a missing / stopped scenes adapter;
+// delete asks first, then sends deleteScene; Escape closes only the picker; the notices for a missing / stopped scenes adapter;
 // editing in the frontend only with allowEdit; the edit dialog's "Manage scenes" section
-// lists the own scenes and opens the same popup.
+// lists the own scenes and opens the master-detail editor: datapoint of a row changed,
+// rows reordered by drag, a device added, all of it saved in that order.
 // Backend replies come from the harness (mockSendTo), writes are captured (captureWrites).
 import { chromium } from 'playwright';
 
@@ -71,11 +71,39 @@ const SCENES = [
     },
     { id: 'scene.0.Nacht', name: 'Nacht', own: false, enabled: true, memberCount: 5 },
 ];
+// The picker's datapoint list (getObjectView). demo.sc counts as an enabled instance,
+// otherwise the picker hides the rows as inactive.
+await page.evaluate((dev) => {
+    window.__auraShot.mockObjectView({
+        state: dev.map((d) => ({
+            id: d.id,
+            value: {
+                _id: d.id,
+                type: 'state',
+                common: { name: d.name, type: d.type, role: 'state', unit: d.unit, write: d.problem !== 'read-only' },
+            },
+        })),
+        instance: [{ id: 'system.adapter.demo.sc', value: { common: { enabled: true } } }],
+    });
+}, DEV);
+const PICKER = '.z-\\[10050\\]';
+/** Opens the picker with `opener`, ticks the named datapoints and confirms. */
+async function pickDevices(opener, names) {
+    await opener.click();
+    const picker = page.locator(PICKER).last();
+    await picker.waitFor({ timeout: 10000 });
+    for (const name of names) {
+        await picker.getByText(name, { exact: true }).first().click();
+    }
+    await picker.locator('button', { hasText: 'hinzufügen' }).last().click();
+    await page.waitForTimeout(300);
+}
+
 const status = (patch = {}) => ({ ok: true, instance: 'scenes.0', installed: true, running: true, ...patch });
 const OK = { ok: true, id: 'scene.0.aura.Neu', missing: [] };
 
 let n = 0;
-/** Mounts one scenes widget (plus widgets whose datapoints are the suggestions); returns its locator. */
+/** Mounts one scenes widget (next to two ordinary widgets); returns its locator. */
 async function mount(options = {}, replies = {}, layout = 'default') {
     n++;
     const id = `w-scenes-${n}`;
@@ -169,31 +197,12 @@ const row = (name) => modal.locator('[data-testid="scene-device"]', { hasText: n
     const save = modal.locator('[data-testid="scene-save"]');
     check('save disabled without name and devices', await save.isDisabled());
 
-    const lookup = await lastCall('sceneDevices');
-    const asked = JSON.stringify(lookup?.payload?.ids ?? []);
-    check(
-        'popup looks up the datapoints of the section',
-        /demo\.sc\.desk/.test(asked) && /demo\.sc\.mode/.test(asked),
-        asked,
-    );
-    const sugg = await modal.locator('[data-testid="scene-suggestion"]').allInnerTexts();
-    check(
-        'suggestions: section devices only',
-        sugg.length === 2 && sugg.includes('Schreibtisch') && sugg.includes('Modus'),
-        sugg.join('|'),
-    );
-
-    await modal.locator('[data-testid="scene-suggestion"]', { hasText: 'Schreibtisch' }).click();
+    await pickDevices(modal.locator('[data-testid="scene-pick"]'), ['Schreibtisch', 'Modus']);
     const toggle = row('Schreibtisch').locator('[data-testid="scene-value"]');
-    check('suggestion joins with its current value', (await toggle.innerText()) === 'an', await toggle.innerText());
-    check(
-        'joined device leaves the suggestions',
-        (await modal.locator('[data-testid="scene-suggestion"]', { hasText: 'Schreibtisch' }).count()) === 0,
-    );
+    check('picked device joins with its current value', (await toggle.innerText()) === 'an', await toggle.innerText());
     await toggle.click();
     check('on/off toggles', (await toggle.innerText()) === 'aus');
 
-    await modal.locator('[data-testid="scene-suggestion"]', { hasText: 'Modus' }).click();
     const select = row('Modus').locator('select[data-testid="scene-value"]');
     check('states datapoint gets a list', (await select.count()) === 1);
     await select.selectOption('2');
@@ -276,7 +285,7 @@ const row = (name) => modal.locator('[data-testid="scene-device"]', { hasText: n
         .first()
         .waitFor({ timeout: 5000 })
         .catch(() => {});
-    check('"More devices" opens the datapoint picker', (await picker.count()) > 0);
+    check('"Add device" opens the datapoint picker', (await picker.count()) > 0);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(200);
     check(
@@ -347,22 +356,74 @@ const row = (name) => modal.locator('[data-testid="scene-device"]', { hasText: n
         .locator('[data-testid="scenes-cfg-scene"]', { hasText: 'Kino' })
         .locator('[data-testid="scenes-cfg-edit"]')
         .click();
-    await modal.waitFor();
-    const visible = await modal.evaluate((el) => {
+    const mgr = page.locator('.aura-config-modal').filter({ has: page.locator('[data-testid="scene-mgr-header"]') });
+    await mgr.waitFor();
+    await page.waitForTimeout(300);
+    const onTop = await mgr.evaluate((el) => {
         const r = el.getBoundingClientRect();
-        const top = document.elementFromPoint(r.left + r.width / 2, r.top + 20);
+        const top = document.elementFromPoint(r.left + r.width / 2, r.top + 12);
         return !!top && el.contains(top);
     });
-    check('popup opens above the edit dialog', visible);
-    await row('Stehlampe').locator('input[data-testid="scene-value"]').fill('55');
-    await modal.locator('[data-testid="scene-save"]').click();
-    await modal.waitFor({ state: 'detached' });
+    check('scene editor opens above the edit dialog', onTop);
+    const text = await mgr.innerText();
+    check(
+        'editor lists the devices with their values',
+        /Stehlampe/.test(text) && /20 %/.test(text) && /Fernseher/.test(text),
+        text.replace(/s+/g, ' ').slice(0, 200),
+    );
+    const detail = mgr.locator('[data-testid="scene-member-detail"]');
+    const dp = detail.locator('[data-testid="scene-member-dp"]');
+    check('first device selected: datapoint shown', (await dp.inputValue()) === 'demo.sc.lamp', await dp.inputValue());
+    check('… and its value', (await detail.locator('input[data-testid="scene-value"]').inputValue()) === '20');
+
+    // change the datapoint of an existing row
+    await dp.fill('demo.sc.desk');
+    await dp.press('Enter');
+    await page.waitForTimeout(300);
+    check(
+        'datapoint changed: row renamed, value from the new device',
+        /Schreibtisch/.test(await mgr.innerText()) &&
+            (await detail.locator('[data-testid="scene-value"]').innerText()) === 'an',
+        await detail.locator('[data-testid="scene-value"]').innerText(),
+    );
+
+    // reorder: drag the second row (Fernseher) onto the first
+    await page.evaluate(() => {
+        const m = [...document.querySelectorAll('.aura-config-modal')].find((x) =>
+            x.querySelector('[data-testid="scene-mgr-header"]'),
+        );
+        window.__sceneGrips = [...m.querySelectorAll('[draggable="true"]')];
+        window.__sceneDt = new DataTransfer();
+        window.__sceneGrips[1].dispatchEvent(
+            new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: window.__sceneDt }),
+        );
+    });
+    await page.waitForTimeout(100);
+    for (const type of ['dragover', 'drop']) {
+        await page.evaluate((t) => {
+            const row = window.__sceneGrips[0].closest('.cursor-pointer');
+            row.dispatchEvent(new DragEvent(t, { bubbles: true, cancelable: true, dataTransfer: window.__sceneDt }));
+        }, type);
+        await page.waitForTimeout(100);
+    }
+
+    // add through the picker
+    await pickDevices(mgr.locator('button', { hasText: 'Gerät hinzufügen' }), ['Modus']);
+    check('no suggestions tab', (await mgr.locator('button:text-is("Geräte in diesem Bereich")').count()) === 0);
+
+    await mgr.locator('[data-testid="scene-save"]').click();
+    await mgr.waitFor({ state: 'detached' });
     const save = await lastCall('saveScene');
     check(
-        'edit dialog saves through the same popup',
+        'save: new order, changed datapoint, added device',
         save?.payload?.id === 'scene.0.aura.Kino' &&
-            JSON.stringify(save?.payload?.members?.[0]) === JSON.stringify({ id: 'demo.sc.lamp', value: '55' }),
-        JSON.stringify(save?.payload),
+            JSON.stringify(save?.payload?.members) ===
+                JSON.stringify([
+                    { id: 'demo.sc.tv', value: true },
+                    { id: 'demo.sc.desk', value: true },
+                    { id: 'demo.sc.mode', value: 1 },
+                ]),
+        JSON.stringify(save?.payload?.members),
     );
     check('edit dialog stays open', (await cfg.count()) === 1);
 }

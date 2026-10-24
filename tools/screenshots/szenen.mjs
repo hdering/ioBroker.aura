@@ -3,6 +3,7 @@
 //         docs/widgets/assets/szenen/kacheln.png  (Layout Kacheln)
 //         docs/widgets/assets/szenen/popup.png    (Szene bearbeiten)
 //         docs/widgets/assets/szenen/verwalten.png (Bearbeiten-Dialog, „Szenen verwalten“)
+//         docs/widgets/assets/szenen/editor.png   (Bearbeiten-Dialog, Szene bearbeiten)
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/screenshots/szenen.mjs
@@ -85,15 +86,6 @@ const LIST = {
     gridPos: { x: 0, y: 0, w: 9, h: 9 },
     options: { showForeignScenes: true, allowEdit: true },
 };
-// Widgets of the same section: their datapoints are the popup's suggestions.
-const AROUND = [5, 6].map((i) => ({
-    id: `w-sc-dev-${i}`,
-    type: 'switch',
-    title: DEVICES[i].name,
-    datapoint: DEVICES[i].id,
-    gridPos: { x: 20, y: (i - 5) * 5, w: 5, h: 4 },
-    options: {},
-}));
 const TILES = {
     id: 'w-sc-tiles',
     type: 'scenes',
@@ -112,7 +104,7 @@ await page.evaluate(
         a.mockServerState(vals);
         a.showWidgets(widgets);
     },
-    [REPLIES, [LIST, TILES, ...AROUND]],
+    [REPLIES, [LIST, TILES]],
 );
 await page.waitForFunction(
     () => document.querySelectorAll('.aura-widget-w-sc-tiles [data-testid="scene"]').length > 3,
@@ -158,5 +150,15 @@ await cfg.locator('[data-testid="scenes-cfg-scene"]').first().waitFor({ timeout:
 await page.waitForTimeout(300);
 await cfg.screenshot({ path: `${OUT}/verwalten.png` });
 console.log('✓ verwalten.png');
+
+await cfg
+    .locator('[data-testid="scenes-cfg-scene"]', { hasText: 'Fernsehabend' })
+    .locator('[data-testid="scenes-cfg-edit"]')
+    .click();
+const mgr = page.locator('.aura-config-modal').filter({ has: page.locator('[data-testid="scene-mgr-header"]') });
+await mgr.locator('[data-testid="scene-member-detail"]').waitFor({ timeout: 10000 });
+await page.waitForTimeout(400);
+await mgr.screenshot({ path: `${OUT}/editor.png` });
+console.log('✓ editor.png');
 
 await browser.close();

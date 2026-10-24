@@ -2,17 +2,16 @@
  * Create / edit popup of the Scenes widget (#825).
  *
  * Name, the devices of the scene and the value each one gets when the scene runs.
- * Devices come from the widgets of the surrounding section (suggestions) or from
- * the datapoint picker; the backend checks every one (existing, writable, not
- * system.* / scene.*). A newly added device starts with its current value,
+ * Devices are added through the datapoint picker; the backend checks every one
+ * (existing, writable, not system.* / scene.*). A newly added device starts with its current value,
  * "Current values" refreshes all of them — what learning used to be.
  *
- * Self-contained (talks to the backend itself), so the widget and its edit-dialog
- * section (ScenesConfig) open the same popup.
+ * The widget's runtime editor (option `allowEdit`); the edit dialog uses the larger
+ * SceneManagerModal. Self-contained — it talks to the backend itself.
  */
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, RefreshCw, Trash2, Plus, Search } from 'lucide-react';
+import { X, RefreshCw, Trash2, Plus } from 'lucide-react';
 import { usePortalTarget, usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { useT } from '../../i18n';
 import { useEscapeLayer } from '../../utils/escapeStack';
@@ -21,7 +20,6 @@ import { ConfirmOverlay } from './ConfirmOverlay';
 import {
     callSceneBackend,
     loadSceneDevices as loadDevices,
-    useSectionDatapoints,
     type SceneDevice,
     type SceneInfo,
     type SceneReply,
@@ -62,7 +60,7 @@ export function formatSceneValue(v: unknown, unit: string, t: (k: 'scenes.on' | 
 }
 
 /** Input matching the datapoint: states → select, boolean → on/off, number → number field, else text. */
-function ValueInput({
+export function ValueInput({
     device,
     value,
     onChange,
@@ -134,8 +132,6 @@ function ValueInput({
 
 export function SceneEditModal({ scene, onDone, onClose }: Props) {
     const t = useT();
-    // Datapoints of the widgets around (suggestions); the backend drops unusable ones.
-    const candidates = useSectionDatapoints(true);
     const portal = usePortalTarget();
     const themeVars = usePortalThemeVars();
     const [name, setName] = useState(scene?.name ?? '');
@@ -155,14 +151,13 @@ export function SceneEditModal({ scene, onDone, onClose }: Props) {
     const merge = (list: SceneDevice[]) =>
         setDevices((prev) => ({ ...prev, ...Object.fromEntries(list.map((d) => [d.id, d])) }));
 
-    // Names, types and current values of the members and the suggestions, in one round trip.
+    // Names, types and current values of the members.
     useEffect(() => {
-        const ids = [...new Set([...(scene?.members ?? []).map((m) => m.id), ...candidates])];
+        const ids = (scene?.members ?? []).map((m) => m.id);
         if (ids.length) void loadDevices(ids).then(merge);
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const nameOf = (id: string) => devices[id]?.name ?? id;
-    const suggestions = candidates.filter((id) => devices[id] && !devices[id].problem && !selected.includes(id));
 
     // Runs after an async lookup too, so everything goes through functional updates.
     const add = (list: SceneDevice[]) => {
@@ -314,37 +309,14 @@ export function SceneEditModal({ scene, onDone, onClose }: Props) {
                         </p>
                     </div>
 
-                    {suggestions.length > 0 && (
-                        <div>
-                            <span className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                {t('scenes.suggested')}
-                            </span>
-                            <div className="flex flex-wrap gap-1">
-                                {suggestions.map((id) => (
-                                    <button
-                                        key={id}
-                                        onClick={() => add([devices[id]])}
-                                        className="flex items-center gap-1 text-xs rounded-full pl-1.5 pr-2.5 py-1 hover:opacity-80 max-w-full"
-                                        style={secondaryBtn}
-                                        title={id}
-                                        data-testid="scene-suggestion"
-                                    >
-                                        <Plus size={12} className="shrink-0" />
-                                        <span className="truncate">{nameOf(id)}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     <button
                         onClick={() => setPicker(true)}
                         className="flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-1.5 hover:opacity-80"
                         style={secondaryBtn}
                         data-testid="scene-pick"
                     >
-                        <Search size={12} />
-                        {t('scenes.addDevices')}
+                        <Plus size={12} />
+                        {t('scenes.cfg.addDevice')}
                     </button>
 
                     {msg && (

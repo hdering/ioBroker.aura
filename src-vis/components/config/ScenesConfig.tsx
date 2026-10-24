@@ -1,14 +1,15 @@
 /**
  * Edit-dialog section of the Scenes widget (#825): the place to manage scenes. Lists the
- * scenes made in Aura (`scene.0.aura.*`), "+ New scene" and "⋯" open the same popup the
- * widget opens at runtime with `allowEdit`. Scenes of the scenes adapter's own admin are
- * only counted — they are edited there.
+ * scenes made in Aura (`scene.0.aura.*`); "+ New scene" and "⋯" open SceneManagerModal,
+ * the "Datenpunkte verwalten"-style editor (order, datapoint and value per device). The
+ * widget's runtime popup with `allowEdit` is the smaller SceneEditModal. Scenes of the
+ * scenes adapter's own admin are only counted — they are edited there.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, MoreHorizontal, Plus } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
-import { SceneEditModal } from '../widgets/SceneEditModal';
+import { SceneManagerModal } from './SceneManagerModal';
 import { loadScenes, sceneDeviceName, type SceneInfo, type SceneReply, type SceneStatus } from '../widgets/scenesApi';
 import { ConfigSection } from './ConfigSection';
 
@@ -128,7 +129,7 @@ export function ScenesConfig() {
                 )}
             </div>
             {editing && (
-                <SceneEditModal
+                <SceneManagerModal
                     scene={editing === 'new' ? null : editing}
                     onClose={() => setEditing(null)}
                     onDone={afterWrite}
