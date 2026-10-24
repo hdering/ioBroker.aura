@@ -16795,6 +16795,89 @@
         }
       }
     },
+    "scenes": {
+      "label": "Szenen",
+      "group": "control",
+      "addMode": "free",
+      "hint": "Szenen des ioBroker-Szenen-Adapters auslösen – und direkt im Dashboard anlegen, Werte lernen, löschen",
+      "defaultSize": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default",
+        "card"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "autoHeight",
+        "badges",
+        "bgImage",
+        "clickAction",
+        "clickActionIcon",
+        "clickActionIconName",
+        "clickActionIconPosition",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenScreen",
+        "fullscreenWidget",
+        "headerItems",
+        "iconColor",
+        "iconPlace",
+        "iconSize",
+        "lastChangeDatapoint",
+        "lastChangePosition",
+        "lastChangeSource",
+        "showIcon",
+        "showLastChange",
+        "showTitle",
+        "styleOverride",
+        "textLines",
+        "titleColor",
+        "titleRow",
+        "titleSize",
+        "transparency",
+        "transparent"
+      ],
+      "options": {
+        "allowEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Taste „+ Neue Szene“ und ⋯ an den im Dashboard angelegten Szenen (Name, Geräte, neu lernen, löschen). Die erlaubten Geräte und ein optionaler PIN stehen in der Aura-Instanzkonfiguration, nicht im Widget."
+        },
+        "icon": {
+          "type": "string",
+          "default": "Clapperboard",
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, \"#tint\" färbt ein einfarbiges PNG in der Icon-Farbe ein; sonst hat ein PNG seine eigenen Farben). Leer = Standard-Icon des Typs."
+        },
+        "showDeviceCount": {
+          "type": "boolean",
+          "default": true,
+          "description": "Anzahl der Geräte je Szene rechts in der Zeile (nur Layout \"default\")."
+        },
+        "showForeignScenes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auch Szenen zeigen, die im Admin des Szenen-Adapters angelegt wurden — die lassen sich nur auslösen, nicht bearbeiten. Aus = nur die im Dashboard angelegten (scene.0.aura.*)."
+        },
+        "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
+          "description": "Ausrichtung des Titels: left, center oder right."
+        }
+      }
+    },
     "scriptstatus": {
       "label": "Skript-Status",
       "group": "special",
