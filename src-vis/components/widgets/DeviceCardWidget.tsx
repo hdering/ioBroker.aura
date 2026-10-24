@@ -5,6 +5,8 @@ import {
     RenderTransformContext,
     RuntimeScopeContext,
     SharedTemplateContext,
+    runtimeId,
+    useRuntimeScope,
 } from '../../contexts/RenderTransformContext';
 import { deviceCardColor, deviceCardTransform, deviceCardVars } from '../../utils/deviceCard';
 import { subAll } from '../../utils/popupPlaceholders';
@@ -29,8 +31,11 @@ export function DeviceCardWidget(props: WidgetProps) {
     // Stable while the resolved table is the same — a new transform remounts nothing,
     // but it re-derives every child's render config.
     const varsKey = JSON.stringify(vars);
+    // The card's runtime scope sits below any outer one (a tab mirror), so a mirrored
+    // card does not share its children's registries with the original.
+    const scope = runtimeId(config.id, useRuntimeScope());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const transform = useMemo(() => deviceCardTransform(vars, config.id), [varsKey, config.id]);
+    const transform = useMemo(() => deviceCardTransform(vars, scope), [varsKey, scope]);
 
     // The card's own title may carry tokens as well ("{{name}}"). Only the rendered
     // copy is resolved; a write that hands it back unchanged keeps the raw one.
@@ -56,7 +61,7 @@ export function DeviceCardWidget(props: WidgetProps) {
 
     return (
         <div className="relative h-full w-full">
-            <RuntimeScopeContext.Provider value={config.id}>
+            <RuntimeScopeContext.Provider value={scope}>
                 <RenderTransformContext.Provider value={transform}>
                     <SharedTemplateContext.Provider value="instance">
                         <GroupWidget {...props} config={shown} onConfigChange={onShownChange} />

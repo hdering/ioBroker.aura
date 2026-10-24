@@ -416,7 +416,25 @@ export const WIDGET_OPTION_NOTES = {
         method: { description: 'HTTP-Methode.' },
     },
     mirror: {
-        targetWidgetId: { description: 'Id des Widgets, das hier gespiegelt wird.' },
+        sourceKind: {
+            description:
+                'Was gespiegelt wird: leer = ein Widget (targetWidgetId), "tab" = ein ganzer Tab (targetTabId). ' +
+                'Ein Tab-Spiegel zeigt den Tab live im eigenen Kasten; seine Höhe ist frei (h), Überhang scrollt.',
+        },
+        targetWidgetId: { description: 'Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind "tab").' },
+        targetTabId: {
+            description:
+                'Id des Tabs, der hier gespiegelt wird (sourceKind "tab"). Nicht der eigene Tab, keine PIN-geschützten Tabs.',
+        },
+        tabFit: {
+            description:
+                'Tab-Spiegel: leer = auf die Kastenbreite skalieren (Entwurfsbreite tabWidth), ' +
+                '"none" = unskaliert in Kastengröße — ein schmaler Kasten zeigt dann die Handy-Ansicht des Tabs.',
+        },
+        tabWidth: {
+            description:
+                'Tab-Spiegel: Entwurfsbreite in px, auf die der Tab skaliert wird. Leer/0 = Breite, die seine Widgets belegen.',
+        },
     },
     light: {
         colorMode: {

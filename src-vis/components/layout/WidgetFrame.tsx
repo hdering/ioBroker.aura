@@ -246,6 +246,8 @@ import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
 import { useColorBindings } from '../../hooks/useColorBindings';
 import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import { runtimeId, useRenderTransform, useRuntimeScope } from '../../contexts/RenderTransformContext';
+import { isTabMirror, mirrorTargetWidgetId } from '../../utils/mirrorSource';
+import { findTabSource } from '../widgets/TabMirror';
 import { isGroupType } from '../../utils/groupTypes';
 import {
     getSources,
@@ -7117,8 +7119,7 @@ function WidgetFrameInner({
     // by the mirrored inner component; last-change is a frame overlay) from its
     // source. Resolve that source so the last-change overlay below reflects it.
     const mirrorLcSource = useDashboardStore((s) => {
-        if (config.type !== 'mirror') return undefined;
-        const tid = config.options?.targetWidgetId as string | undefined;
+        const tid = mirrorTargetWidgetId(config);
         if (!tid) return undefined;
         for (const l of s.layouts)
             for (const sec of l.sections)
@@ -7128,6 +7129,17 @@ function WidgetFrameInner({
                 }
         return undefined;
     });
+    // A mirror of a whole tab: its name for the editor badge.
+    const mirrorTabName = useDashboardStore((s) =>
+        isTabMirror(config)
+            ? findTabSource(s.layouts, config.options?.targetTabId as string | undefined)?.tab.name
+            : undefined,
+    );
+    const mirrorBadgeText = mirrorLcSource
+        ? t('wf.mirrorBadgeOf', { title: mirrorLcSource.title || mirrorLcSource.type })
+        : mirrorTabName !== undefined
+          ? t('wf.mirrorBadgeOf', { title: `Tab ${mirrorTabName}` })
+          : t('wf.mirrorBadge');
 
     // Last-change timestamp overlay (sourced from the mirror's target when applicable)
     const lcConfig = mirrorLcSource ?? config;
@@ -7645,6 +7657,8 @@ function WidgetFrameInner({
         !isCollapsed &&
         (isBareHeader ||
             isGroupType(framingType) ||
+            // A tab mirror draws the tab's own scroller inset, like the tab itself.
+            isTabMirror(config) ||
             framingType === 'panels' ||
             framingType === 'iframe' ||
             framingType === 'map' ||
@@ -8554,18 +8568,10 @@ function WidgetFrameInner({
                         border: '1px solid color-mix(in srgb, var(--accent) 45%, transparent)',
                         opacity: 0.6,
                     }}
-                    title={
-                        mirrorLcSource
-                            ? t('wf.mirrorBadgeOf', { title: mirrorLcSource.title || mirrorLcSource.type })
-                            : t('wf.mirrorBadge')
-                    }
+                    title={mirrorBadgeText}
                 >
                     <CopyPlus size={11} className="shrink-0" />
-                    <span className="truncate">
-                        {mirrorLcSource
-                            ? t('wf.mirrorBadgeOf', { title: mirrorLcSource.title || mirrorLcSource.type })
-                            : t('wf.mirrorBadge')}
-                    </span>
+                    <span className="truncate">{mirrorBadgeText}</span>
                 </div>
             )}
 

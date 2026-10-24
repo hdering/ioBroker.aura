@@ -36,7 +36,9 @@ import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
 import { hasExpandedHeaderItems } from '../../utils/headerItems';
 import { isGroupType } from '../../utils/groupTypes';
-import { runtimeId } from '../../contexts/RenderTransformContext';
+import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
+import { TabChainProvider } from '../../contexts/TabChainContext';
+import { mirrorTargetWidgetId } from '../../utils/mirrorSource';
 import { flowBands, flowModeFor } from '../../utils/flowOrder';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScaleContext';
@@ -73,6 +75,12 @@ interface DashboardProps {
     /** A visited section kept mounted but hidden while another one shows (#65):
      *  renders as usual, reports nothing. */
     inactive?: boolean;
+    /** Rendered inside a tab mirror (MirrorWidget): no fullscreen overlay, guidelines,
+     *  resolution badge, touch scrollbar or render report — those belong to the page. */
+    embedded?: boolean;
+    /** Embedded only: always the desktop grid, never the phone/tablet flow — the
+     *  mirror scales the grid to its box instead. */
+    forceGrid?: boolean;
 }
 
 export function Dashboard({
@@ -84,6 +92,8 @@ export function Dashboard({
     layoutId,
     sectionId,
     inactive = false,
+    embedded = false,
+    forceGrid = false,
 }: DashboardProps) {
     const activeLayout = useActiveLayout();
     const { updateWidget, updateWidgetById, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
@@ -116,6 +126,10 @@ export function Dashboard({
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
     const groupCollapsed = useWidgetCollapseStore((s) => s.collapsed);
+    // Inside a tab mirror the widgets register under a per-mirror runtime id, so the
+    // copy and the original tab measure, fold and hide apart (see RuntimeScopeContext).
+    const scope = useRuntimeScope();
+    const rid = useCallback((id: string) => runtimeId(id, scope), [scope]);
     /** A folded widget (issue #676): only its header row shows, so the box shrinks
      *  to that row and the widgets below move up. Two paths draw the header — the
      *  GroupWidget for a group (measured into groupHeaders), the WidgetFrame for
@@ -128,10 +142,11 @@ export function Dashboard({
             const cfg = isGroupType(source.type) ? source : w;
             return (
                 collapsibleWidget(cfg.type, cfg.options as Record<string, unknown> | undefined, { editMode }) &&
-                isCollapsedNow(groupCollapsed, cfg.id)
+                // GroupWidget folds under the group's own id, the frame under its runtime id.
+                isCollapsedNow(groupCollapsed, isGroupType(source.type) ? cfg.id : rid(cfg.id))
             );
         },
-        [editMode, groupCollapsed],
+        [editMode, groupCollapsed, rid],
     );
     /** Same, for a non-group frame only (the group has its own height path). */
     const frameCollapsedNow = useCallback(
@@ -218,10 +233,10 @@ export function Dashboard({
     });
     const guidelinesInsetKey = insetKeyFor(effectiveLayoutId, section?.id);
 
-    const showGuidelines = guidelinesEnabled && (editMode || guidelinesShowInFrontend);
+    const showGuidelines = !embedded && guidelinesEnabled && (editMode || guidelinesShowInFrontend);
     // The resolution badge is independent of the guideline lines: it follows its
     // own toggle and shows in both the editor and the frontend when enabled.
-    const showResolution = guidelinesShowResolution;
+    const showResolution = !embedded && guidelinesShowResolution;
 
     // Fixed-position overlay (badge + first-run hint). Rendered in BOTH the desktop
     // and the mobile branch so the resolution shows in every view, not only above the
@@ -265,7 +280,7 @@ export function Dashboard({
     // tab and the admin editor). Two rAFs → after the switched-in tab has painted.
     const tabSwitchFirstRef = useRef(true);
     useEffect(() => {
-        if (editMode || inactive || !activeTabId) return;
+        if (editMode || inactive || embedded || !activeTabId) return;
         if (tabSwitchFirstRef.current) {
             tabSwitchFirstRef.current = false;
             return;
@@ -280,7 +295,7 @@ export function Dashboard({
             cancelAnimationFrame(raf1);
             if (raf2.id) cancelAnimationFrame(raf2.id);
         };
-    }, [activeTabId, editMode, inactive]);
+    }, [activeTabId, editMode, inactive, embedded]);
 
     const reflowHiddenIds = useReflowHiddenIds();
     // An off-screen probe render measures the same way and says so in its report
@@ -296,7 +311,8 @@ export function Dashboard({
     // a report per render would be a socket message per condition update.
     const lastReportRef = useRef('');
     useEffect(() => {
-        if (editMode || inactive || !viewTabs || !activeTabId) return;
+        // A tab mirror is a copy at another size — the original tab reports itself.
+        if (editMode || inactive || embedded || !viewTabs || !activeTabId) return;
         const tab = tabs.find((t) => t.id === activeTabId);
         if (!tab) return;
         let timer = 0;
@@ -323,7 +339,7 @@ export function Dashboard({
                 // (it stays mounted off-screen). Without this list the server sees a
                 // widget it knows from the configuration simply not reported and
                 // cannot tell "hidden on purpose" from "drew nothing".
-                hidden: (tab.widgets ?? []).filter((w) => reflowHiddenIds.has(w.id)).map((w) => w.id),
+                hidden: (tab.widgets ?? []).filter((w) => reflowHiddenIds.has(rid(w.id))).map((w) => w.id),
             };
             const signature = reportSignature(report);
             if (signature === lastReportRef.current) return;
@@ -346,6 +362,8 @@ export function Dashboard({
         activeTabId,
         editMode,
         inactive,
+        embedded,
+        rid,
         viewTabs,
         tabs,
         activeLayout.name,
@@ -376,8 +394,12 @@ export function Dashboard({
     const widgetFullscreenTabId = widgetFullscreen
         ? (tabs.find((t) => (t.widgets ?? []).some((w) => w.id === widgetFullscreen.widgetId))?.id ?? null)
         : null;
+    // A tab mirror leaves it to the page's own dashboard, which shows the overlay
+    // for a widget it cannot find on its tabs anyway.
     const showWidgetFullscreen =
-        widgetFullscreen !== null && (widgetFullscreenTabId === null || widgetFullscreenTabId === activeTabId);
+        !embedded &&
+        widgetFullscreen !== null &&
+        (widgetFullscreenTabId === null || widgetFullscreenTabId === activeTabId);
 
     // ── container width measurement ────────────────────────────────────────
     // Use a callback ref instead of useRef + useEffect so that the ResizeObserver
@@ -551,24 +573,26 @@ export function Dashboard({
     const fillTabOverlays = tabs.flatMap((tab) => {
         if (tab.id !== activeTabId && !mountedTabIds.has(tab.id)) return [];
         const w = tab.widgets?.find((x) => (x.options as Record<string, unknown>)?.fillTab);
-        return w ? [{ widget: w, isActive: tab.id === activeTabId }] : [];
+        return w ? [{ widget: w, tabId: tab.id, isActive: tab.id === activeTabId }] : [];
     });
     const fillTabIds = new Set(fillTabOverlays.map((o) => o.widget.id));
     const renderFillTabOverlays = () =>
-        fillTabOverlays.map(({ widget, isActive }) => (
+        fillTabOverlays.map(({ widget, tabId, isActive }) => (
             <div
                 key={widget.id}
                 className="absolute inset-0"
                 style={{ zIndex: 10, display: isActive ? undefined : 'none' }}
             >
-                <ViewVisibleContext.Provider value={!inactive && isActive}>
-                    <WidgetFrame
-                        config={widget}
-                        editMode={editMode}
-                        onRemove={removeWidget}
-                        onConfigChange={handleConfigChange}
-                    />
-                </ViewVisibleContext.Provider>
+                <TabChainProvider tabId={tabId}>
+                    <ViewVisibleContext.Provider value={!inactive && isActive}>
+                        <WidgetFrame
+                            config={widget}
+                            editMode={editMode}
+                            onRemove={removeWidget}
+                            onConfigChange={handleConfigChange}
+                        />
+                    </ViewVisibleContext.Provider>
+                </TabChainProvider>
             </div>
         ));
 
@@ -619,10 +643,17 @@ export function Dashboard({
     // RGL in either — a stray drag can never touch the desktop gridPos. Groups
     // and media players see the mobile context in both: a tablet column is a
     // phone-width column, and their stacked form already knows how to size itself.
-    const flowMode = flowModeFor(
-        { container: containerWidth, viewport: viewportWidth },
-        { mobileBreakpoint, tabletBreakpoint, editMode },
-    );
+    const flowMode = forceGrid
+        ? null
+        : flowModeFor(
+              { container: containerWidth, viewport: viewportWidth },
+              { mobileBreakpoint, tabletBreakpoint, editMode },
+          );
+    // Embedded in a mirror: no scrollbar gutters (the mirror computes the grid's
+    // width without them) and a slim scrollbar-free scroller — wheel and touch still scroll.
+    const scrollerStyle: React.CSSProperties = embedded
+        ? { scrollbarGutter: 'auto', scrollbarWidth: 'none' }
+        : { scrollbarGutter: 'stable both-edges' };
     // The fullscreen overlays sit NEXT to the layout branch, never inside it (#728).
     // Flow and grid are different trees, so a flip between them remounts all they
     // hold — an overlay inside would start over empty each time. A phone in
@@ -652,7 +683,7 @@ export function Dashboard({
                                 <div
                                     ref={containerRefCallback}
                                     className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2"
-                                    style={{ scrollbarGutter: 'stable both-edges' }}
+                                    style={scrollerStyle}
                                 >
                                     {/* Reflow-hidden widgets from all tabs rendered off-screen */}
                                     <div
@@ -669,7 +700,7 @@ export function Dashboard({
                                     >
                                         {tabs.flatMap((tab) =>
                                             (tab.widgets ?? [])
-                                                .filter((w) => reflowHiddenIds.has(w.id))
+                                                .filter((w) => reflowHiddenIds.has(rid(w.id)))
                                                 .map((w) => (
                                                     <WidgetFrame
                                                         key={w.id}
@@ -690,7 +721,7 @@ export function Dashboard({
                                         .map((tab) => {
                                             const isActive = tab.id === activeTabId;
                                             const tabWidgets = (tab.widgets ?? []).filter(
-                                                (w) => !reflowHiddenIds.has(w.id) && !fillTabIds.has(w.id),
+                                                (w) => !reflowHiddenIds.has(rid(w.id)) && !fillTabIds.has(w.id),
                                             );
                                             const bands = flowBands(tabWidgets, flowMode, flowCols);
                                             // One box per widget — the same height rules whether it sits in the phone
@@ -701,12 +732,7 @@ export function Dashboard({
                                                 // mirror of a group gets a fixed gridPos.h box on mobile and
                                                 // its stacked children only scroll instead of showing in full
                                                 // (issue #513). Same source resolution as the desktop branch.
-                                                const mirrorSrc =
-                                                    w.type === 'mirror'
-                                                        ? widgetById.get(
-                                                              (w.options?.targetWidgetId as string | undefined) ?? '',
-                                                          )
-                                                        : undefined;
+                                                const mirrorSrc = widgetById.get(mirrorTargetWidgetId(w) ?? '');
                                                 const ew = mirrorSrc ?? w;
                                                 const wl = ew.layout ?? 'default';
                                                 // Weather's stacking layouts (default/card) top-align their
@@ -813,55 +839,59 @@ export function Dashboard({
                                                     className={`aura-tab aura-tab-${tab.slug}`}
                                                     style={{ display: isActive ? undefined : 'none' }}
                                                 >
-                                                    <ViewVisibleContext.Provider value={!inactive && isActive}>
-                                                        {isActive && tabWidgets.length === 0 ? (
-                                                            <div
-                                                                className="flex flex-col items-center justify-center flex-1 h-64 space-y-2"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                <EmptyTabNotice readonly={readonly} />
-                                                            </div>
-                                                        ) : (
-                                                            <div
-                                                                data-aura-flow-cols={flowCols}
-                                                                className="flex flex-col"
-                                                                style={{ gap: MARGIN }}
-                                                            >
-                                                                {bands.map((band, bi) =>
-                                                                    band.kind === 'full' ? (
-                                                                        renderBox(band.widget, flowCols)
-                                                                    ) : (
-                                                                        <div
-                                                                            key={`band-${bi}`}
-                                                                            data-aura-flow-band={bi}
-                                                                            style={{
-                                                                                display: 'grid',
-                                                                                gridTemplateColumns: `repeat(${flowCols}, minmax(0, 1fr))`,
-                                                                                gap: MARGIN,
-                                                                                alignItems: 'start',
-                                                                            }}
-                                                                        >
-                                                                            {band.columns.map((col, ci) => (
-                                                                                <div
-                                                                                    key={ci}
-                                                                                    data-aura-flow-col={ci}
-                                                                                    className="flex flex-col min-w-0"
-                                                                                    style={{ gap: MARGIN }}
-                                                                                >
-                                                                                    {col.map((w) => renderBox(w, 1))}
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    ),
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </ViewVisibleContext.Provider>
+                                                    <TabChainProvider tabId={tab.id}>
+                                                        <ViewVisibleContext.Provider value={!inactive && isActive}>
+                                                            {isActive && tabWidgets.length === 0 ? (
+                                                                <div
+                                                                    className="flex flex-col items-center justify-center flex-1 h-64 space-y-2"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    <EmptyTabNotice readonly={readonly} />
+                                                                </div>
+                                                            ) : (
+                                                                <div
+                                                                    data-aura-flow-cols={flowCols}
+                                                                    className="flex flex-col"
+                                                                    style={{ gap: MARGIN }}
+                                                                >
+                                                                    {bands.map((band, bi) =>
+                                                                        band.kind === 'full' ? (
+                                                                            renderBox(band.widget, flowCols)
+                                                                        ) : (
+                                                                            <div
+                                                                                key={`band-${bi}`}
+                                                                                data-aura-flow-band={bi}
+                                                                                style={{
+                                                                                    display: 'grid',
+                                                                                    gridTemplateColumns: `repeat(${flowCols}, minmax(0, 1fr))`,
+                                                                                    gap: MARGIN,
+                                                                                    alignItems: 'start',
+                                                                                }}
+                                                                            >
+                                                                                {band.columns.map((col, ci) => (
+                                                                                    <div
+                                                                                        key={ci}
+                                                                                        data-aura-flow-col={ci}
+                                                                                        className="flex flex-col min-w-0"
+                                                                                        style={{ gap: MARGIN }}
+                                                                                    >
+                                                                                        {col.map((w) =>
+                                                                                            renderBox(w, 1),
+                                                                                        )}
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        ),
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </ViewVisibleContext.Provider>
+                                                    </TabChainProvider>
                                                 </div>
                                             );
                                         })}
                                 </div>
-                                {coarsePointer && !hideGridScrollbar && (
+                                {!embedded && coarsePointer && !hideGridScrollbar && (
                                     <TouchScrollbar target={scrollEl} revision={`${activeTabId}|${containerWidth}`} />
                                 )}
                                 {resolutionOverlay}
@@ -882,11 +912,11 @@ export function Dashboard({
                         {renderFillTabOverlays()}
                         <div
                             ref={containerRefCallback}
-                            className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2 sm:p-4"
+                            className={`aura-scroll aura-scroll-touch absolute inset-0 overflow-auto ${embedded ? 'p-2' : 'p-2 sm:p-4'}`}
                             data-aura-grid-mode={gridCols.fluid ? 'fluid' : 'fixed'}
                             data-aura-grid-height-mode={heightMode}
                             style={{
-                                scrollbarGutter: 'stable both-edges',
+                                ...scrollerStyle,
                                 ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
                             }}
                             {...tabDropHandlers}
@@ -921,7 +951,7 @@ export function Dashboard({
                                     >
                                         {tabs.flatMap((tab) =>
                                             (tab.widgets ?? [])
-                                                .filter((w) => reflowHiddenIds.has(w.id))
+                                                .filter((w) => reflowHiddenIds.has(rid(w.id)))
                                                 .map((w) => (
                                                     <WidgetFrame
                                                         key={w.id}
@@ -942,7 +972,7 @@ export function Dashboard({
                                             const tabWidgets = tab.widgets ?? [];
                                             // Exclude the fillTab widget from the grid — it is rendered as an absolute overlay above
                                             const tabGridWidgets = tabWidgets.filter(
-                                                (w) => !reflowHiddenIds.has(w.id) && !fillTabIds.has(w.id),
+                                                (w) => !reflowHiddenIds.has(rid(w.id)) && !fillTabIds.has(w.id),
                                             );
                                             // `rowPx` is the row height the grid really draws. Heights derived from
                                             // px (auto-height, group hug, folded header) are counted on it, so a
@@ -954,18 +984,13 @@ export function Dashboard({
                                                     // exactly like the source group would, so resolve the source and use
                                                     // it (`gw`) for all group-hug math while keeping the mirror's own
                                                     // identity/position (i/x/y/w) below.
-                                                    const mirrorTarget =
-                                                        w.type === 'mirror'
-                                                            ? widgetById.get(
-                                                                  (w.options?.targetWidgetId as string | undefined) ??
-                                                                      '',
-                                                              )
-                                                            : undefined;
+                                                    const mirrorTarget = widgetById.get(mirrorTargetWidgetId(w) ?? '');
                                                     const gw = mirrorTarget ?? w;
                                                     const isGroup = isGroupType(gw.type);
                                                     // A device card's children measure and hide under a per-card
                                                     // runtime id (#743) — the card renders them under its own id.
-                                                    const childScope = gw.type === 'devicecard' ? gw.id : null;
+                                                    // Inside a tab mirror every scope sits below the mirror's own.
+                                                    const childScope = gw.type === 'devicecard' ? rid(gw.id) : scope;
                                                     const autoShrink = isGroup && !!gw.options?.autoShrink;
                                                     const defId = isGroup
                                                         ? (gw.options?.defId as string | undefined)
@@ -1138,7 +1163,7 @@ export function Dashboard({
                                                     // the widget's measured content instead of the stored height. The widget
                                                     // reports its content px; add the frame chrome (padding top+bottom + border).
                                                     if (usesContentAutoHeight(w)) {
-                                                        const px = autoHeights[w.id];
+                                                        const px = autoHeights[rid(w.id)];
                                                         if (px && px > 0) {
                                                             const total = px + widgetPadding * 2 + 2;
                                                             const rows = Math.max(
@@ -1154,7 +1179,7 @@ export function Dashboard({
                                                     // every content-derived height above.
                                                     if (frameCollapsedNow(w, gw)) {
                                                         h = collapsedRows(
-                                                            collapsedHeaderHeights[w.id] ??
+                                                            collapsedHeaderHeights[rid(w.id)] ??
                                                                 COLLAPSED_HEADER_FALLBACK_PX,
                                                             collapsedPadY(),
                                                             rowPx,
@@ -1217,7 +1242,7 @@ export function Dashboard({
                                                 }[],
                                             ) =>
                                                 tabWidgets.map((w) => {
-                                                    if (reflowHiddenIds.has(w.id)) return w;
+                                                    if (reflowHiddenIds.has(rid(w.id))) return w;
                                                     const pos = newLayout.find((l) => l.i === w.id);
                                                     if (!pos) return w;
                                                     // Content auto-height widgets size to their content and a mirror follows
@@ -1225,13 +1250,7 @@ export function Dashboard({
                                                     // canonical gridPos.h and never let a transient value get persisted on an
                                                     // unrelated drag/resize. An empty group derives nothing, so its height
                                                     // stays user-settable.
-                                                    const mirrorSrc =
-                                                        w.type === 'mirror'
-                                                            ? widgetById.get(
-                                                                  (w.options?.targetWidgetId as string | undefined) ??
-                                                                      '',
-                                                              )
-                                                            : undefined;
+                                                    const mirrorSrc = widgetById.get(mirrorTargetWidgetId(w) ?? '');
                                                     // A widget folded in the editor (issue #676) renders at its header
                                                     // height; the stored one is what it opens back to.
                                                     const derivedH =
@@ -1289,96 +1308,101 @@ export function Dashboard({
                                                     className={`aura-tab aura-tab-${tab.slug}`}
                                                     style={{ display: isActive ? undefined : 'none' }}
                                                 >
-                                                    <ViewVisibleContext.Provider value={!inactive && isActive}>
-                                                        <GridRowHeightContext.Provider value={stretchedRowPx}>
-                                                            <ReactGridLayout
-                                                                className="layout"
-                                                                layout={tabLayout}
-                                                                cols={effectiveCols}
-                                                                rowHeight={tabRows.rowHeight}
-                                                                width={effectiveRglWidth}
-                                                                isDraggable={isActive && gridEditable}
-                                                                isResizable={isActive && gridEditable}
-                                                                draggableCancel=".nodrag"
-                                                                onLayoutChange={(nl) => {
-                                                                    if (isActive) onLayoutChange?.(buildTabUpdated(nl));
-                                                                }}
-                                                                onDragStop={(nl, oldItem, newItem) => {
-                                                                    if (!isActive || readonly || coarsePointer) return;
-                                                                    if (!itemMoved(oldItem, newItem)) return;
-                                                                    // Skip if nothing moved (a click without drag fires onDragStop
-                                                                    // too). buildTabUpdated hands back the very same object for an
-                                                                    // untouched widget, so identity is the exact test — comparing
-                                                                    // RGL's h against the stored one would flag every derived-height
-                                                                    // item (group, auto-height card) on every click.
-                                                                    const updated = buildTabUpdated(nl);
-                                                                    if (
-                                                                        updated.some(
-                                                                            (uw, idx) => uw !== tabWidgets[idx],
+                                                    <TabChainProvider tabId={tab.id}>
+                                                        <ViewVisibleContext.Provider value={!inactive && isActive}>
+                                                            <GridRowHeightContext.Provider value={stretchedRowPx}>
+                                                                <ReactGridLayout
+                                                                    className="layout"
+                                                                    layout={tabLayout}
+                                                                    cols={effectiveCols}
+                                                                    rowHeight={tabRows.rowHeight}
+                                                                    width={effectiveRglWidth}
+                                                                    isDraggable={isActive && gridEditable}
+                                                                    isResizable={isActive && gridEditable}
+                                                                    draggableCancel=".nodrag"
+                                                                    onLayoutChange={(nl) => {
+                                                                        if (isActive)
+                                                                            onLayoutChange?.(buildTabUpdated(nl));
+                                                                    }}
+                                                                    onDragStop={(nl, oldItem, newItem) => {
+                                                                        if (!isActive || readonly || coarsePointer)
+                                                                            return;
+                                                                        if (!itemMoved(oldItem, newItem)) return;
+                                                                        // Skip if nothing moved (a click without drag fires onDragStop
+                                                                        // too). buildTabUpdated hands back the very same object for an
+                                                                        // untouched widget, so identity is the exact test — comparing
+                                                                        // RGL's h against the stored one would flag every derived-height
+                                                                        // item (group, auto-height card) on every click.
+                                                                        const updated = buildTabUpdated(nl);
+                                                                        if (
+                                                                            updated.some(
+                                                                                (uw, idx) => uw !== tabWidgets[idx],
+                                                                            )
                                                                         )
-                                                                    )
-                                                                        updateLayouts(updated);
-                                                                }}
-                                                                onResizeStart={(_nl, oldItem) => {
-                                                                    if (!oldItem) return;
-                                                                    const rw = tabGridWidgets.find(
-                                                                        (x) => x.id === oldItem.i,
-                                                                    );
-                                                                    if (!usesContentAutoHeight(rw)) return;
-                                                                    if (heightLockTimer.current)
-                                                                        clearTimeout(heightLockTimer.current);
-                                                                    setHeightLockHintId(oldItem.i);
-                                                                }}
-                                                                onResizeStop={(nl, oldItem, newItem) => {
-                                                                    if (oldItem && heightLockHintId === oldItem.i) {
+                                                                            updateLayouts(updated);
+                                                                    }}
+                                                                    onResizeStart={(_nl, oldItem) => {
+                                                                        if (!oldItem) return;
+                                                                        const rw = tabGridWidgets.find(
+                                                                            (x) => x.id === oldItem.i,
+                                                                        );
+                                                                        if (!usesContentAutoHeight(rw)) return;
                                                                         if (heightLockTimer.current)
                                                                             clearTimeout(heightLockTimer.current);
-                                                                        heightLockTimer.current = setTimeout(
-                                                                            () => setHeightLockHintId(null),
-                                                                            2500,
-                                                                        );
-                                                                    }
-                                                                    if (!isActive || readonly || coarsePointer) return;
-                                                                    if (!itemMoved(oldItem, newItem)) return;
-                                                                    const updated = buildTabUpdated(nl);
-                                                                    if (
-                                                                        updated.some(
-                                                                            (uw, idx) => uw !== tabWidgets[idx],
+                                                                        setHeightLockHintId(oldItem.i);
+                                                                    }}
+                                                                    onResizeStop={(nl, oldItem, newItem) => {
+                                                                        if (oldItem && heightLockHintId === oldItem.i) {
+                                                                            if (heightLockTimer.current)
+                                                                                clearTimeout(heightLockTimer.current);
+                                                                            heightLockTimer.current = setTimeout(
+                                                                                () => setHeightLockHintId(null),
+                                                                                2500,
+                                                                            );
+                                                                        }
+                                                                        if (!isActive || readonly || coarsePointer)
+                                                                            return;
+                                                                        if (!itemMoved(oldItem, newItem)) return;
+                                                                        const updated = buildTabUpdated(nl);
+                                                                        if (
+                                                                            updated.some(
+                                                                                (uw, idx) => uw !== tabWidgets[idx],
+                                                                            )
                                                                         )
-                                                                    )
-                                                                        updateLayouts(updated);
-                                                                }}
-                                                                margin={[MARGIN, MARGIN]}
-                                                                containerPadding={[0, 0]}
-                                                            >
-                                                                {tabGridWidgets.map((w) => (
-                                                                    <div
-                                                                        key={w.id}
-                                                                        data-aura-widget={w.id}
-                                                                        data-aura-widget-type={w.type}
-                                                                        data-aura-widget-rows={w.gridPos.h}
-                                                                    >
-                                                                        <WidgetFrame
-                                                                            config={w}
-                                                                            editMode={isActive && editMode}
-                                                                            onRemove={removeWidget}
-                                                                            onConfigChange={handleConfigChange}
-                                                                        />
-                                                                        {heightLockHintId === w.id && (
-                                                                            <AutoHeightLockHint />
-                                                                        )}
-                                                                    </div>
-                                                                ))}
-                                                            </ReactGridLayout>
-                                                        </GridRowHeightContext.Provider>
-                                                    </ViewVisibleContext.Provider>
+                                                                            updateLayouts(updated);
+                                                                    }}
+                                                                    margin={[MARGIN, MARGIN]}
+                                                                    containerPadding={[0, 0]}
+                                                                >
+                                                                    {tabGridWidgets.map((w) => (
+                                                                        <div
+                                                                            key={w.id}
+                                                                            data-aura-widget={w.id}
+                                                                            data-aura-widget-type={w.type}
+                                                                            data-aura-widget-rows={w.gridPos.h}
+                                                                        >
+                                                                            <WidgetFrame
+                                                                                config={w}
+                                                                                editMode={isActive && editMode}
+                                                                                onRemove={removeWidget}
+                                                                                onConfigChange={handleConfigChange}
+                                                                            />
+                                                                            {heightLockHintId === w.id && (
+                                                                                <AutoHeightLockHint />
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </ReactGridLayout>
+                                                            </GridRowHeightContext.Provider>
+                                                        </ViewVisibleContext.Provider>
+                                                    </TabChainProvider>
                                                 </div>
                                             );
                                         })}
                                 </GridScaleContext.Provider>
                             )}
                         </div>
-                        {coarsePointer && !hideGridScrollbar && (
+                        {!embedded && coarsePointer && !hideGridScrollbar && (
                             <TouchScrollbar
                                 target={scrollEl}
                                 revision={`${activeTabId}|${effectiveRglWidth}|${containerWidth}`}

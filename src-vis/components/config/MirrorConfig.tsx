@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { WidgetConfig } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
+import { tabSourceLocked } from '../widgets/TabMirror';
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -17,12 +18,203 @@ interface Props {
 }
 
 /**
- * Editor for the "Spiegel" (mirror) widget: pick the source widget whose content
- * should be shown here. Reuses the whole-dashboard widget-picker UX from
+ * Editor for the "Spiegel" (mirror) widget: a whole tab (TabSourcePicker) or, by
+ * default, the source widget whose content should be shown here. Reuses the whole-dashboard widget-picker UX from
  * ClickActionEditor's popup-widget branch; the mirror only stores the source's id
  * in `options.targetWidgetId`.
  */
 export function MirrorConfig({ config, onConfigChange }: Props) {
+    const kind = config.options?.sourceKind === 'tab' ? 'tab' : 'widget';
+    const setKind = (next: 'widget' | 'tab') =>
+        onConfigChange({ ...config, options: { ...config.options, sourceKind: next === 'tab' ? 'tab' : undefined } });
+
+    return (
+        <div className="space-y-3">
+            <div>
+                <label className={labelCls} style={labelStyle}>
+                    Quelle
+                </label>
+                <div className="flex gap-1">
+                    {(
+                        [
+                            ['widget', 'Widget'],
+                            ['tab', 'Ganzer Tab'],
+                        ] as const
+                    ).map(([k, label]) => (
+                        <button
+                            key={k}
+                            type="button"
+                            data-aura-mirror-kind={k}
+                            onClick={() => setKind(k)}
+                            className="flex-1 text-xs rounded-lg px-2.5 py-1.5"
+                            style={{
+                                background: kind === k ? 'var(--accent)' : 'var(--app-bg)',
+                                color: kind === k ? '#fff' : 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            {kind === 'tab' ? (
+                <TabSourcePicker config={config} onConfigChange={onConfigChange} />
+            ) : (
+                <WidgetSourcePicker config={config} onConfigChange={onConfigChange} />
+            )}
+        </div>
+    );
+}
+
+/**
+ * Tab mode: pick the tab to show, and how it fits the box. Tabs behind a PIN are
+ * listed but not selectable (the mirror would show them without the code); the
+ * tab this mirror sits on is left out (it would contain itself).
+ */
+function TabSourcePicker({ config, onConfigChange }: Props) {
+    const layouts = useDashboardStore((s) => s.layouts);
+    const [search, setSearch] = useState('');
+    const selectedId = (config.options?.targetTabId as string | undefined) ?? '';
+    const fit = (config.options?.tabFit as string | undefined) === 'none' ? 'none' : 'width';
+    const tabWidth = Number(config.options?.tabWidth) || 0;
+
+    const rows = layouts.flatMap((layout) =>
+        layout.sections.flatMap((section) =>
+            section.tabs
+                .filter((tab) => !(tab.widgets ?? []).some((w) => w.id === config.id))
+                .map((tab) => {
+                    const source = { layout, section, tab };
+                    return {
+                        id: tab.id,
+                        tab: tab.name,
+                        where: `${layout.name} / ${section.name}`,
+                        count: (tab.widgets ?? []).length,
+                        locked: tabSourceLocked(source),
+                    };
+                }),
+        ),
+    );
+    const q = search.toLowerCase();
+    const shown = q
+        ? rows.filter((r) => r.tab.toLowerCase().includes(q) || r.where.toLowerCase().includes(q) || r.id.includes(q))
+        : rows;
+
+    const setO = (patch: Record<string, unknown>) =>
+        onConfigChange({ ...config, options: { ...config.options, ...patch } });
+    const select = (id: string | undefined) =>
+        // The tab's widgets bring their own cards — a card around them would frame
+        // the copy twice, so the first pick makes the mirror transparent.
+        setO(
+            id && !config.options?.targetTabId
+                ? { targetTabId: id, transparent: config.options?.transparent ?? true }
+                : { targetTabId: id },
+        );
+
+    const rowStyle = (id: string, locked = false): React.CSSProperties => ({
+        padding: '4px 8px',
+        cursor: locked ? 'not-allowed' : 'pointer',
+        opacity: locked ? 0.45 : 1,
+        background: selectedId === id ? 'var(--accent)' : 'transparent',
+        color: selectedId === id ? '#fff' : 'var(--text-primary)',
+        borderRadius: 4,
+    });
+
+    return (
+        <div className="space-y-3">
+            <div className="space-y-1.5">
+                <label className={labelCls} style={labelStyle}>
+                    Gespiegelter Tab
+                </label>
+                <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Suchen nach Tab, Layout oder Bereich…"
+                    className={inputCls}
+                    style={inputStyle}
+                />
+                <div
+                    style={{ ...inputStyle, padding: '4px', maxHeight: 220, overflowY: 'auto', borderRadius: 8 }}
+                    data-aura-mirror-tab-list
+                >
+                    <div
+                        className="grid gap-x-2 px-2 rounded text-xs"
+                        style={{ ...rowStyle(''), gridTemplateColumns: '1fr 1fr 40px' }}
+                        onClick={() => select(undefined)}
+                    >
+                        <span className="truncate italic">— Kein Tab —</span>
+                        <span />
+                        <span />
+                    </div>
+                    {shown.map((r) => (
+                        <div
+                            key={r.id}
+                            data-aura-mirror-tab={r.id}
+                            className="grid gap-x-2 px-2 rounded text-xs"
+                            style={{ ...rowStyle(r.id, r.locked), gridTemplateColumns: '1fr 1fr 40px' }}
+                            title={r.locked ? 'PIN-geschützt — wird nicht gespiegelt' : undefined}
+                            onClick={() => !r.locked && select(r.id)}
+                        >
+                            <span className="truncate">
+                                {r.locked ? '🔒 ' : ''}
+                                {r.tab || '–'}
+                            </span>
+                            <span className="truncate" style={{ opacity: 0.7 }}>
+                                {r.where}
+                            </span>
+                            <span className="text-right" style={{ opacity: 0.6 }}>
+                                {r.count}
+                            </span>
+                        </div>
+                    ))}
+                    {shown.length === 0 && (
+                        <div className="px-2 py-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                            Keine Tabs gefunden
+                        </div>
+                    )}
+                </div>
+            </div>
+            <div>
+                <label className={labelCls} style={labelStyle}>
+                    Darstellung
+                </label>
+                <select
+                    value={fit}
+                    onChange={(e) => setO({ tabFit: e.target.value === 'none' ? 'none' : undefined })}
+                    className={inputCls}
+                    style={inputStyle}
+                    data-aura-mirror-fit
+                >
+                    <option value="width">Auf Breite skalieren</option>
+                    <option value="none">Originalgröße (schmal = Handy-Ansicht)</option>
+                </select>
+            </div>
+            {fit === 'width' && (
+                <div>
+                    <label className={labelCls} style={labelStyle}>
+                        Entwurfsbreite (px, leer = Breite der Widgets)
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        step={10}
+                        value={tabWidth || ''}
+                        placeholder="automatisch"
+                        onChange={(e) => {
+                            const n = Math.max(0, Math.round(Number(e.target.value) || 0));
+                            setO({ tabWidth: n > 0 ? n : undefined });
+                        }}
+                        className={inputCls}
+                        style={inputStyle}
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
+function WidgetSourcePicker({ config, onConfigChange }: Props) {
     const layouts = useDashboardStore((s) => s.layouts);
     const [search, setSearch] = useState('');
 

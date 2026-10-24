@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useRef } from 'react';
 import type { WidgetConfig } from '../types';
 import { usePopupAutoHeight } from '../contexts/PopupAutoHeightContext';
+import { runtimeId, useRuntimeScope } from '../contexts/RenderTransformContext';
 import { useAutoHeightStore } from '../store/autoHeightStore';
 import { usesContentAutoHeight } from '../utils/autoHeight';
 
@@ -27,7 +28,11 @@ export function useContentAutoHeight(config: WidgetConfig): {
     // Inside an auto-height popup the dialog measures the embedded copy itself, and
     // reporting there would resize the dashboard item too.
     const measureOn = on && !popupAuto;
-    const widgetId = config.id;
+    // Report under the runtime id, so a tab mirror's copy and the original tab do not
+    // overwrite each other's height. A device card already hands its children the
+    // scoped id (deviceCardTransform) — that one is kept as is.
+    const scope = useRuntimeScope();
+    const widgetId = scope && !config.id.startsWith(`${scope}~`) ? runtimeId(config.id, scope) : config.id;
     const roRef = useRef<ResizeObserver | null>(null);
     const measureRef = useCallback(
         (el: HTMLElement | null) => {

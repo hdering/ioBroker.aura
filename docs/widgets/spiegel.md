@@ -1,6 +1,6 @@
 # Spiegel
 
-Zeigt ein vorhandenes Widget live an einer zweiten Stelle an — kein Duplikat: Änderungen an der Quelle wirken sofort mit.
+Zeigt ein vorhandenes Widget — oder einen [ganzen Tab](#ganzer-tab) — live an einer zweiten Stelle an. Kein Duplikat: Änderungen an der Quelle wirken sofort mit.
 
 ![](./assets/spiegel/runtime.png)
 
@@ -46,3 +46,24 @@ Auf schmalen Bildschirmen richtet sich die automatische Höhe nach dem Typ der Q
 | Spiegel auf sich selbst | „Spiegel kann sich nicht selbst spiegeln" |
 | Quelle gelöscht | „Quell-Widget existiert nicht mehr" mit der gesuchten ID |
 | Keine Quelle gewählt | im Editor Hinweis, im Frontend leer |
+
+## Ganzer Tab
+
+**Widget bearbeiten → Spiegel → Quelle: Ganzer Tab**. Der Tab erscheint live im Kasten des Spiegels — alle Widgets bedienbar, Werte und Bedingungen wie im Original.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `sourceKind` | — | `tab` = ganzer Tab |
+| `targetTabId` | — | ID des Quell-Tabs |
+| `tabFit` | Auf Breite skalieren | `none` = Originalgröße, schmaler Kasten zeigt die Handy-Ansicht |
+| `tabWidth` | Breite der Widgets | Entwurfsbreite in px, auf die skaliert wird |
+
+| Fall | Anzeige |
+| --- | --- |
+| Inhalt höher als der Kasten | scrollt im Spiegel |
+| eigener Tab / Tabs, die sich gegenseitig spiegeln | „Der Tab enthält diesen Spiegel selbst" |
+| Tab oder Bereich mit PIN | nicht wählbar, „PIN-geschützte Tabs werden nicht gespiegelt" |
+| Quell-Tab gelöscht | „Quell-Tab existiert nicht mehr" |
+| Editor | Kasten verschieb- und skalierbar, Inhalt nicht klickbar |
+
+Tipp: Quell-Tab im Tab-Editor **ausblenden** — er bleibt als Spiegel-Quelle nutzbar, erscheint aber nicht in der Tab-Leiste. Beim ersten Auswählen wird der Spiegel transparent, die Widgets bringen ihre eigenen Karten mit.

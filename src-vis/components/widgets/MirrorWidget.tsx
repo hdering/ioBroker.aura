@@ -8,6 +8,7 @@ import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
 import { useResolvedTitle } from './DynamicTitle';
+import { TabMirror } from './TabMirror';
 
 /** Small centered notice card used for the mirror's various "cannot render" states. */
 function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string; detail?: string }) {
@@ -24,7 +25,8 @@ function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string;
 }
 
 /**
- * "Spiegel" widget — renders an existing widget (the source) a second time at
+ * "Spiegel" widget — `options.sourceKind: 'tab'` shows a whole tab (TabMirror);
+ * otherwise (below) it renders an existing widget (the source) a second time at
  * another position. It stores only the source's id in `options.targetWidgetId`
  * and resolves it live from the store on every render, so the mirror always
  * reflects the current state/config of the source (no copy, no drift).
@@ -34,7 +36,13 @@ function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string;
  * persist option edits back to the *source* id so the mirror never clobbers the
  * source's real dashboard position.
  */
-export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
+export function MirrorWidget(props: WidgetProps) {
+    // Two components, not one with a branch: switching the source kind must not
+    // change the hook order.
+    return props.config.options?.sourceKind === 'tab' ? <TabMirror {...props} /> : <WidgetMirror {...props} />;
+}
+
+function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
     const layouts = useDashboardStore((s) => s.layouts);
     const updateWidget = useDashboardStore((s) => s.updateWidget);
 

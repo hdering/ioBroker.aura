@@ -112,6 +112,7 @@
     "test:widget-style-ui": "node tools/tests/widget-style-copy-ui.mjs",
     "test:slider-scale-ui": "node tools/tests/slider-scale-ui.mjs",
     "test:mirror-types": "node tools/tests/mirror-all-types.mjs",
+    "test:mirror-tab": "node tools/tests/mirror-tab.mjs",
     "test:menu-overview": "node tools/tests/menu-overview.mjs",
     "test:timer-extra-targets": "node tools/tests/timer-extra-targets.mjs",
     "test:timer-shared-template": "node tools/tests/timer-shared-template.mjs",
