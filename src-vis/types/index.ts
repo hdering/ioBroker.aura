@@ -96,7 +96,8 @@ export type WidgetType =
     | 'menu'
     | 'messages'
     | 'devicecard'
-    | 'historytable';
+    | 'historytable'
+    | 'scenes';
 
 /**
  * Every layout any widget offers. `segments` / `wave` / `bar` belong to the fill

@@ -112,6 +112,10 @@
         "link": "/widgets/liste"
       },
       {
+        "text": "Szenen",
+        "link": "/widgets/szenen"
+      },
+      {
         "text": "Thermostat",
         "link": "/widgets/thermostat"
       },

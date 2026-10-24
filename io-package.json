@@ -221,6 +221,9 @@
       }
     ],
     "fsAllowWrite": false,
+    "scenesInstance": "scenes.0",
+    "scenesPin": "",
+    "sceneDevices": [],
     "timerTickSeconds": 30,
     "perfTracking": true,
     "perfWidgetTracking": false,
@@ -526,9 +529,11 @@
   "protectedNative": [
     "mcpToken",
     "mcpClientConfig",
-    "mcpDesktopConfig"
+    "mcpDesktopConfig",
+    "scenesPin"
   ],
   "encryptedNative": [
-    "mcpToken"
+    "mcpToken",
+    "scenesPin"
   ]
 }

@@ -510,6 +510,14 @@ const COUNTED = [
         build: () => ({ options: {} }),
     },
     {
+        // Szenen (#825): one row per scene the backend lists, plus the "+ Neue Szene" row.
+        type: 'scenes',
+        item: 'Szene',
+        counts: [1, 3, 6],
+        sendTo: (n) => sceneReplies(n),
+        build: () => ({ options: {} }),
+    },
+    {
         // Verlaufstabelle (#760): the fabricated history behind DP_HIST has more rows
         // than any count here, so historyCount alone decides how many are drawn.
         type: 'historytable',
@@ -786,6 +794,36 @@ function historyRows(n) {
 }
 
 /** Datapoint per type where the default demo value would not do. */
+/** sendTo replies of the scenes widget: n own scenes, one allowed device. */
+function sceneReplies(n) {
+    return {
+        sceneStatus: {
+            ok: true,
+            instance: 'scenes.0',
+            installed: true,
+            running: true,
+            pinRequired: false,
+            devices: [{ id: DP, name: 'Licht', label: '', type: 'boolean', unit: '' }],
+        },
+        listScenes: {
+            ok: true,
+            scenes: Array.from({ length: n }, (_, i) => ({
+                id: `scene.0.aura.s${i}`,
+                name: `Szene ${i + 1}`,
+                own: true,
+                enabled: true,
+                memberCount: 1,
+                members: [{ id: DP, value: true }],
+            })),
+        },
+    };
+}
+
+/** Backend replies for the single-render measurements (minimum, layouts). */
+const SENDTO_FOR = {
+    scenes: sceneReplies(3),
+};
+
 const DP_FOR = {
     switch: DP_BOOL,
     dimmer: DP_DIM,
@@ -1229,7 +1267,7 @@ await page.evaluate(
     { rows: contactRows(), states: contactStates() },
 );
 
-async function render(type, { rows, cols, datapoint, options, mock, layout, fontScale }) {
+async function render(type, { rows, cols, datapoint, options, mock, sendTo, layout, fontScale }) {
     const wid = `m${++widSeq}`;
     const cfg = {
         id: wid,
@@ -1241,7 +1279,9 @@ async function render(type, { rows, cols, datapoint, options, mock, layout, font
         ...(layout ? { layout } : {}),
     };
     await page.evaluate(
-        ({ cfg, grid, mock }) => {
+        ({ cfg, grid, mock, sendTo }) => {
+            // Types that load their rows from the aura backend (scenes) get the reply here.
+            if (sendTo) window.__auraShot.mockSendTo(sendTo);
             window.__auraShot.mock(mock);
             // What the SERVER holds too: a fresh mount asks getState, and without
             // this it falls through to a socket that may not be there.
@@ -1252,6 +1292,7 @@ async function render(type, { rows, cols, datapoint, options, mock, layout, font
             cfg,
             grid: { ...PROBE_GRID, fontScale: fontScale ?? REFERENCE.fontScale },
             mock: { ...MOCK, ...(mock || {}) },
+            sendTo: sendTo ?? SENDTO_FOR[type],
         },
     );
     // Two identical readings instead of a guessed timeout: fonts, charts and the
@@ -1686,6 +1727,7 @@ async function line(spec, { cols, counts, build, layout, fontScale, mock }) {
             fontScale,
             ...build(n),
             mock: mockOf ? mockOf(n) : undefined,
+            sendTo: spec.sendTo ? spec.sendTo(n) : undefined,
         });
         if (r.error) {
             return { error: r.error };

@@ -982,6 +982,19 @@ export const WIDGET_OPTION_NOTES = {
         allowClear: { description: 'Taste zum Leeren des Archivs anzeigen.' },
         layoutFilter: { description: 'Nur Meldungen dieses Layouts zeigen. Leer = alle.' },
     },
+    scenes: {
+        allowEdit: {
+            description:
+                'Taste „+ Neue Szene“ und ⋯ an den im Dashboard angelegten Szenen (Name, Geräte, neu lernen, löschen). ' +
+                'Die erlaubten Geräte und ein optionaler PIN stehen in der Aura-Instanzkonfiguration, nicht im Widget.',
+        },
+        showDeviceCount: { description: 'Anzahl der Geräte je Szene rechts in der Zeile (nur Layout "default").' },
+        showForeignScenes: {
+            description:
+                'Auch Szenen zeigen, die im Admin des Szenen-Adapters angelegt wurden — die lassen sich nur auslösen, ' +
+                'nicht bearbeiten. Aus = nur die im Dashboard angelegten (scene.0.aura.*).',
+        },
+    },
     historytable: {
         historyInstance: {
             description:
@@ -1705,6 +1718,7 @@ export const EXTRA_OPTIONS = {
     messages: { ...AUTO_HEIGHT_OPTION },
     adapterlogs: { ...AUTO_HEIGHT_OPTION },
     historytable: { ...AUTO_HEIGHT_OPTION },
+    scenes: { ...AUTO_HEIGHT_OPTION },
     iframe: {
         // Read in hooks/useIframeColorScheme, not through the widget's own
         // options binding.

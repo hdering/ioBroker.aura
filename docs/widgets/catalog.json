@@ -831,6 +831,29 @@
       }
     },
     {
+      "type": "scenes",
+      "slug": "szenen",
+      "label": "Szenen",
+      "group": "control",
+      "hint": "Szenen des ioBroker-Szenen-Adapters auslösen – und direkt im Dashboard anlegen, Werte lernen, löschen.",
+      "defaultGrid": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default",
+        "card"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/szenen/runtime.png",
+        "config": null,
+        "shots": {}
+      }
+    },
+    {
       "type": "echart",
       "slug": "diagramm-erweitert",
       "label": "Diagramm (erweitert)",

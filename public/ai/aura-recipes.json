@@ -2115,6 +2115,38 @@
       ]
     },
     {
+      "id": "szenen",
+      "title": "Szenen auslösen und im Dashboard anlegen",
+      "when": "Der Nutzer will Lichtstimmungen/Szenen („Fernsehabend“, „Alles aus“) per Tipp auslösen oder selbst im Dashboard anlegen und lernen (#825).",
+      "instead": "eine eigene Szenen-Logik aus Tasten, Skripten oder einer Liste mit festen Werten nachbauen — die Szenen gehören dem ioBroker-Szenen-Adapter",
+      "notes": [
+        "Voraussetzung: ioBroker-Adapter \"scenes\" installiert. Aura speichert keine Szenen selbst; sie liegen als scene.0.* im Szenen-Adapter und funktionieren auch in Skripten, Blockly und Alexa.",
+        "Ein Tipp schreibt true auf die Szene. Hervorgehoben ist die Szene, deren State true ist — der Adapter setzt ihn, solange alle Geräte auf ihren Werten stehen.",
+        "Welche Geräte eine Szene bekommen darf und der optionale PIN stehen in der Aura-Instanzkonfiguration (Abschnitt „Szenen-Widget“), nicht im Widget — über das MCP nicht einstellbar.",
+        "Im Dashboard angelegte Szenen liegen unter scene.0.aura.*; „Speichern“ und „Neu lernen“ übernehmen die aktuellen Werte der Geräte. Im Admin des Szenen-Adapters gebaute Szenen zeigt showForeignScenes (nur auslösen).",
+        "Höhe: eine Zeile je Szene, die Zahl kennt erst der Adapter zur Laufzeit. Für eine feste Wandtafel autoHeight einschalten oder großzügig planen; layout \"card\" stellt die Szenen als Kacheln dar."
+      ],
+      "widgets": [
+        {
+          "id": "w-szenen",
+          "type": "scenes",
+          "title": "%Titel%",
+          "datapoint": "",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 8,
+            "h": 9
+          },
+          "options": {
+            "showForeignScenes": true,
+            "allowEdit": true
+          }
+        }
+      ]
+    },
+    {
       "id": "energiefluss",
       "title": "Energiefluss-erweitert-Diagramm einbetten",
       "when": "Der Nutzer hat den Adapter energiefluss-erweitert und will dessen animiertes Energiefluss-Diagramm im Dashboard (#642).",

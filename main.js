@@ -41,6 +41,7 @@ const { createIconCache } = require('./lib/iconCache');
 const { createAdapterIcons, ioBrokerIconSource } = require('./lib/adapterIcons');
 const { createConfigGuard, CONFIG_KEYS } = require('./lib/configGuard');
 const { runBackendCheck: buildBackendReport, resolveTarget, listBackends } = require('./lib/backendCheck');
+const { createSceneService, SCENE_COMMANDS } = require('./lib/scenes');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -5765,6 +5766,15 @@ class Aura extends utils.Adapter {
                     entries: v.entries || [],
                 }));
                 reply({ ok: true, clients });
+                return;
+            }
+
+            // ── Scenes widget (#825): surface for the ioBroker scenes adapter ──
+            if (SCENE_COMMANDS.has(msg.command)) {
+                if (!this._scenes) {
+                    this._scenes = createSceneService(this, { lang: () => this._sysLanguage });
+                }
+                reply(await this._scenes.handle(msg.command, msg.message));
                 return;
             }
 

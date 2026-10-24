@@ -177,6 +177,7 @@ function aggregateRaw(
 }
 
 let uninstallShortcuts: (() => void) | null = null;
+const sendToLog: { target: string; command: string; payload: unknown }[] = [];
 
 function installScreenshotApi(): void {
     setScreenshotMode(true);
@@ -419,9 +420,19 @@ function installScreenshotApi(): void {
         },
 
         /** Stub sendTo responses keyed by command, e.g. { getRecentLogs: {...} }.
-         *  Unlisted commands fall through to the real socket. */
+         *  Unlisted commands fall through to the real socket. Answered calls are
+         *  logged for sendToCalls(). */
         mockSendTo(byCommand: Record<string, unknown>): void {
-            __devSetSendTo((_t, command) => (command in byCommand ? byCommand[command] : undefined));
+            __devSetSendTo((target, command, payload) => {
+                if (!(command in byCommand)) return undefined;
+                sendToLog.push({ target, command, payload });
+                return byCommand[command];
+            });
+        },
+
+        /** The sendTo calls mockSendTo answered, oldest first. */
+        sendToCalls(): { target: string; command: string; payload: unknown }[] {
+            return [...sendToLog];
         },
 
         /** Define what `getState` returns, i.e. the value the SERVER holds, without

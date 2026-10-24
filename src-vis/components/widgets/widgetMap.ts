@@ -70,6 +70,7 @@ const MapWidget = lazyWithReload(() => import('./MapWidget').then((m) => ({ defa
 const HistoryTableWidget = lazyWithReload(() =>
     import('./HistoryTableWidget').then((m) => ({ default: m.HistoryTableWidget })),
 );
+const ScenesWidget = lazyWithReload(() => import('./ScenesWidget').then((m) => ({ default: m.ScenesWidget })));
 const LoadTimesWidget = lazyWithReload(() => import('./LoadTimesWidget').then((m) => ({ default: m.LoadTimesWidget })));
 
 export function getWidgetMap() {
@@ -132,6 +133,7 @@ export function getWidgetMap() {
         menu: MenuWidget,
         devicecard: DeviceCardWidget,
         historytable: HistoryTableWidget,
+        scenes: ScenesWidget,
         // `satisfies` makes a missing widget type a build error instead of a
         // "Unbekannter Widget-Typ" notice in mirrors, popups and tab embeds.
     } as const satisfies Record<WidgetType, unknown>;

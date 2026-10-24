@@ -404,6 +404,20 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
         { key: 'showControls', label: 'Steuerleiste', hint: 'Pause / Auto-Scroll / Puffer leeren' },
     ],
     messages: [{ key: 'showFilter', label: 'Filter-Buttons', hint: 'Schweregrad-Pillen zum Umschalten' }],
+    scenes: [
+        {
+            key: 'allowEdit',
+            label: 'Anlegen & Bearbeiten',
+            hint: '„+ Neue Szene“ und ⋯ an den im Dashboard angelegten Szenen',
+        },
+        { key: 'showDeviceCount', label: 'Anzahl Geräte', hint: 'Nur in der Liste' },
+        {
+            key: 'showForeignScenes',
+            label: 'Szenen aus dem Admin',
+            hint: 'Im Szenen-Adapter angelegte Szenen mit anzeigen (nur auslösen)',
+            def: false,
+        },
+    ],
     loadtimes: [
         { key: 'showLegend', label: 'Legende' },
         { key: 'showThresholds', label: 'Schwellwerte (gut/ok/langsam)' },
@@ -465,6 +479,7 @@ const SECTIONED_EDIT_TYPES = new Set<WidgetType>([
     'energiebilanz',
     'evcc',
     'historytable',
+    'scenes',
     'switch',
     'windowcontact',
     'gauge',
@@ -526,6 +541,7 @@ const NO_MAIN_DP_TYPES = new Set<WidgetType>([
     'loadtimes',
     'aircontrol',
     'energiebilanz',
+    'scenes',
 ]);
 
 // ── Custom grid: row height control, leading column of the cell picker (#737) ──

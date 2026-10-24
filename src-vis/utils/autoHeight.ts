@@ -15,6 +15,7 @@ export const AUTO_HEIGHT_TYPES: ReadonlySet<string> = new Set([
     'messages',
     'adapterlogs',
     'historytable',
+    'scenes',
 ]);
 
 /** Types whose 'count' layout just centres one number in the box. The status

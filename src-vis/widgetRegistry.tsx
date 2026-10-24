@@ -63,6 +63,7 @@ import {
     BellRing,
     IdCard,
     History,
+    Clapperboard,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType, ConditionSlot } from './types';
@@ -966,6 +967,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'control',
         mock: { t: 'Verlauf', v: '21.4', u: '°C' },
         hint: 'Aufgezeichnete Werte eines Datenpunkts aus dem History-Adapter als Tabelle – die letzten N Werte oder ein Zeitraum',
+    },
+    {
+        type: 'scenes',
+        label: 'Szenen',
+        shortLabel: 'Szenen',
+        Icon: Clapperboard,
+        iconName: 'Clapperboard',
+        color: '#f59e0b',
+        defaultW: 8,
+        defaultH: 8,
+        addMode: 'free',
+        widgetGroup: 'control',
+        mock: { t: 'Szenen', v: '' },
+        hint: 'Szenen des ioBroker-Szenen-Adapters auslösen – und direkt im Dashboard anlegen, Werte lernen, löschen',
     },
 ];
 
