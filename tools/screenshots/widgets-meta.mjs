@@ -113,7 +113,7 @@ export const WIDGETS = [
       runtime: null },
     // Screenshots come from tools/screenshots/szenen.mjs (backend replies mocked via mockSendTo).
     { type: 'scenes', slug: 'szenen', label: 'Szenen', group: 'control',
-      hint: 'Szenen des ioBroker-Szenen-Adapters auslösen – und direkt im Dashboard anlegen, Werte lernen, löschen.',
+      hint: 'Szenen des ioBroker-Szenen-Adapters auslösen – und in Aura anlegen: Geräte wählen, Werte festlegen.',
       runtime: null },
     { type: 'echart', slug: 'diagramm-erweitert', label: 'Diagramm (erweitert)', group: 'control',
       hint: 'Erweitertes Diagramm mit mehreren Datenpunkten und Optionen.', runtime: null },

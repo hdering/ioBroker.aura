@@ -985,8 +985,9 @@ export const WIDGET_OPTION_NOTES = {
     scenes: {
         allowEdit: {
             description:
-                'Taste „+ Neue Szene“ und ⋯ an den im Dashboard angelegten Szenen (Name, Geräte, neu lernen, löschen). ' +
-                'Die erlaubten Geräte und ein optionaler PIN stehen in der Aura-Instanzkonfiguration, nicht im Widget.',
+                'Szenen auch zur Laufzeit im Dashboard anlegen und bearbeiten: Zeile „+ Neue Szene“ und ⋯ an den in Aura angelegten Szenen ' +
+                '(Name, Geräte, Werte, löschen). Aus: Szenen werden nur im Bearbeiten-Dialog des Widgets („Szenen verwalten“) gepflegt. ' +
+                'Schutz vor fremdem Zugriff über den PIN von Bereich/Tab.',
         },
         showDeviceCount: { description: 'Anzahl der Geräte je Szene rechts in der Zeile (nur Layout "default").' },
         showForeignScenes: {

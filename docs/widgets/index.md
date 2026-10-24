@@ -30,7 +30,7 @@
 | [Schieberegler](./schieberegler) | Beliebigen Zahlenwert per Schieberegler einstellen. |
 | [Schnellzugriff-Chips](./chips) | Kompakte Schaltflächen-Leiste für Szenen und häufige Aktionen. |
 | [Statische Liste](./liste) | Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. |
-| [Szenen](./szenen) | Szenen des ioBroker-Szenen-Adapters auslösen – und direkt im Dashboard anlegen, Werte lernen, löschen. |
+| [Szenen](./szenen) | Szenen des ioBroker-Szenen-Adapters auslösen – und in Aura anlegen: Geräte wählen, Werte festlegen. |
 | [Thermostat](./thermostat) | Soll-Temperatur einstellen und Ist-Temperatur anzeigen. |
 | [Universal-Widget](./universal-widget) | Freies Raster – Zellen einzeln mit Schaltern, Reglern, Werten und Bildern belegen. |
 | [Verlaufstabelle](./verlaufstabelle) | Aufgezeichnete Werte eines Datenpunkts aus dem History-Adapter als Tabelle – die letzten N Werte oder ein Zeitraum. |

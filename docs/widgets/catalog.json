@@ -835,7 +835,7 @@
       "slug": "szenen",
       "label": "Szenen",
       "group": "control",
-      "hint": "Szenen des ioBroker-Szenen-Adapters auslösen – und direkt im Dashboard anlegen, Werte lernen, löschen.",
+      "hint": "Szenen des ioBroker-Szenen-Adapters auslösen – und in Aura anlegen: Geräte wählen, Werte festlegen.",
       "defaultGrid": {
         "w": 8,
         "h": 8

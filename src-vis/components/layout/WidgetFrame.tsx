@@ -291,6 +291,7 @@ import { MultiSelect } from '../config/MultiSelect';
 import { AlarmConfig } from '../widgets/AlarmWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { CountdownConfig } from '../config/CountdownConfig';
+import { ScenesConfig } from '../config/ScenesConfig';
 import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ConfigModal } from '../config/ConfigModal';
@@ -407,8 +408,9 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
     scenes: [
         {
             key: 'allowEdit',
-            label: 'Anlegen & Bearbeiten',
-            hint: '„+ Neue Szene“ und ⋯ an den im Dashboard angelegten Szenen',
+            label: 'Im Frontend bearbeiten',
+            hint: '„+ Neue Szene“ und ⋯ direkt im Dashboard – sonst nur hier unter „Szenen verwalten“',
+            def: false,
         },
         { key: 'showDeviceCount', label: 'Anzahl Geräte', hint: 'Nur in der Liste' },
         {
@@ -15262,6 +15264,9 @@ function WidgetFrameInner({
 
                             {/* ── Timer / Zeitschaltuhr config ── */}
                             {config.type === 'timer' && <TimerConfig config={config} onConfigChange={onConfigChange} />}
+
+                            {/* ── Scenes: manage the scenes (#825) ── */}
+                            {config.type === 'scenes' && <ScenesConfig />}
 
                             {/* ── Countdown config (#675) ── */}
                             {config.type === 'countdown' && (

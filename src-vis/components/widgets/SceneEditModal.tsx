@@ -1,39 +1,47 @@
 /**
  * Create / edit popup of the Scenes widget (#825).
  *
- * Name, the devices of the scene (only those the Aura instance config allows),
- * "learn again" and delete. Saving learns the current value of every newly added
- * device on the adapter side — the scene stores what the room looks like right now.
- * With a scenes PIN configured, the PIN field appears and travels with every write.
+ * Name, the devices of the scene and the value each one gets when the scene runs.
+ * Devices come from the widgets of the surrounding section (suggestions) or from
+ * the datapoint picker; the backend checks every one (existing, writable, not
+ * system.* / scene.*). A newly added device starts with its current value,
+ * "Current values" refreshes all of them — what learning used to be.
+ *
+ * Self-contained (talks to the backend itself), so the widget and its edit-dialog
+ * section (ScenesConfig) open the same popup.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, RefreshCw, Trash2 } from 'lucide-react';
+import { X, RefreshCw, Trash2, Plus, Search } from 'lucide-react';
 import { usePortalTarget, usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { useT } from '../../i18n';
 import { useEscapeLayer } from '../../utils/escapeStack';
+import { DatapointPicker } from '../config/DatapointPicker';
 import { ConfirmOverlay } from './ConfirmOverlay';
-import type { SceneDevice, SceneInfo } from './ScenesWidget';
+import {
+    callSceneBackend,
+    loadSceneDevices as loadDevices,
+    useSectionDatapoints,
+    type SceneDevice,
+    type SceneInfo,
+    type SceneReply,
+} from './scenesApi';
 
 export interface SceneEditResult {
     ok: boolean;
     error?: string;
-    retryAfter?: number;
     missing?: string[];
 }
 
 interface Props {
     /** null = new scene */
     scene: SceneInfo | null;
-    devices: SceneDevice[];
-    pinRequired: boolean;
-    onSave: (name: string, members: string[], pin: string) => Promise<SceneEditResult>;
-    onLearn: (pin: string) => Promise<SceneEditResult>;
-    onDelete: (pin: string) => Promise<SceneEditResult>;
+    /** After a successful save or delete (reply incl. `missing`), before closing. */
+    onDone: (r: SceneReply) => void;
     onClose: () => void;
 }
 
-const inputCls = 'w-full text-sm rounded-lg px-2.5 py-2 focus:outline-none';
+const inputCls = 'text-sm rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
     color: 'var(--text-primary)',
@@ -44,6 +52,7 @@ const secondaryBtn: React.CSSProperties = {
     color: 'var(--text-secondary)',
     border: '1px solid var(--app-border)',
 };
+const smallInput = 'text-xs rounded-md px-2 py-1 focus:outline-none';
 
 /** Stored "on" value of a member, readable: an/aus, 60 %, text. */
 export function formatSceneValue(v: unknown, unit: string, t: (k: 'scenes.on' | 'scenes.off') => string): string {
@@ -52,76 +61,172 @@ export function formatSceneValue(v: unknown, unit: string, t: (k: 'scenes.on' | 
     return unit ? `${String(v)} ${unit}` : String(v);
 }
 
-export function SceneEditModal({ scene, devices, pinRequired, onSave, onLearn, onDelete, onClose }: Props) {
+/** Input matching the datapoint: states → select, boolean → on/off, number → number field, else text. */
+function ValueInput({
+    device,
+    value,
+    onChange,
+}: {
+    device: SceneDevice;
+    value: unknown;
+    onChange: (v: unknown) => void;
+}) {
     const t = useT();
+    if (device.states && Object.keys(device.states).length) {
+        return (
+            <select
+                value={value === undefined || value === null ? '' : String(value)}
+                onChange={(e) => onChange(e.target.value)}
+                className={`${smallInput} max-w-[9rem]`}
+                style={inputStyle}
+                data-testid="scene-value"
+            >
+                {(value === undefined || value === null) && <option value="">–</option>}
+                {Object.entries(device.states).map(([k, label]) => (
+                    <option key={k} value={k}>
+                        {String(label)}
+                    </option>
+                ))}
+            </select>
+        );
+    }
+    if (device.type === 'boolean') {
+        const on = value === true || value === 'true';
+        return (
+            <button
+                type="button"
+                onClick={() => onChange(!on)}
+                className="text-xs rounded-md px-2.5 py-1 min-w-[3.5rem]"
+                style={
+                    on
+                        ? { background: 'var(--accent)', color: '#fff', border: '1px solid var(--accent)' }
+                        : secondaryBtn
+                }
+                data-testid="scene-value"
+                data-on={on || undefined}
+            >
+                {on ? t('scenes.on') : t('scenes.off')}
+            </button>
+        );
+    }
+    const number = device.type === 'number';
+    return (
+        <span className="flex items-center gap-1 shrink-0">
+            <input
+                type={number ? 'number' : 'text'}
+                value={value === undefined || value === null ? '' : String(value)}
+                onChange={(e) => onChange(e.target.value)}
+                min={device.min}
+                max={device.max}
+                step={device.step ?? 'any'}
+                className={`${smallInput} ${number ? 'w-16 text-right tabular-nums' : 'w-24'}`}
+                style={inputStyle}
+                data-testid="scene-value"
+            />
+            {device.unit && (
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {device.unit}
+                </span>
+            )}
+        </span>
+    );
+}
+
+export function SceneEditModal({ scene, onDone, onClose }: Props) {
+    const t = useT();
+    // Datapoints of the widgets around (suggestions); the backend drops unusable ones.
+    const candidates = useSectionDatapoints(true);
     const portal = usePortalTarget();
     const themeVars = usePortalThemeVars();
     const [name, setName] = useState(scene?.name ?? '');
     const [selected, setSelected] = useState<string[]>(() => scene?.members?.map((m) => m.id) ?? []);
-    const [pin, setPin] = useState('');
+    const [values, setValues] = useState<Record<string, unknown>>(() =>
+        Object.fromEntries((scene?.members ?? []).map((m) => [m.id, m.value])),
+    );
+    const [devices, setDevices] = useState<Record<string, SceneDevice>>({});
     const [busy, setBusy] = useState(false);
     const [msg, setMsg] = useState<{ kind: 'error' | 'info'; text: string } | null>(null);
     const [confirmDelete, setConfirmDelete] = useState(false);
-    useEscapeLayer(onClose);
+    const [picker, setPicker] = useState(false);
+    useEscapeLayer(() => {
+        if (!picker) onClose();
+    });
 
-    const stored = new Map((scene?.members ?? []).map((m) => [m.id, m.value]));
-    // Members of the scene that are no longer in the allowed list stay visible (and selected),
-    // so saving never drops them silently.
-    const known = new Set(devices.map((d) => d.id));
-    const rows: SceneDevice[] = [
-        ...devices,
-        ...(scene?.members ?? [])
-            .filter((m) => !known.has(m.id))
-            .map((m) => ({ id: m.id, name: m.id, label: '', type: '', unit: '', missing: true })),
-    ];
+    const merge = (list: SceneDevice[]) =>
+        setDevices((prev) => ({ ...prev, ...Object.fromEntries(list.map((d) => [d.id, d])) }));
 
-    const errorText = (r: SceneEditResult): string => {
-        if (r.error === 'pin') return t('scenes.err.pin');
-        if (r.error === 'locked') return t('scenes.err.locked', { s: r.retryAfter ?? 0 });
-        if (r.error === 'timeout') return t('scenes.err.timeout');
-        return r.error || t('scenes.err.generic');
+    // Names, types and current values of the members and the suggestions, in one round trip.
+    useEffect(() => {
+        const ids = [...new Set([...(scene?.members ?? []).map((m) => m.id), ...candidates])];
+        if (ids.length) void loadDevices(ids).then(merge);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const nameOf = (id: string) => devices[id]?.name ?? id;
+    const suggestions = candidates.filter((id) => devices[id] && !devices[id].problem && !selected.includes(id));
+
+    // Runs after an async lookup too, so everything goes through functional updates.
+    const add = (list: SceneDevice[]) => {
+        const rejected = list.filter((d) => d.problem);
+        setMsg(
+            rejected.length
+                ? { kind: 'info', text: t('scenes.rejected', { list: rejected.map((d) => d.name).join(', ') }) }
+                : null,
+        );
+        const usable = list.filter((d) => !d.problem);
+        if (!usable.length) return;
+        merge(usable);
+        setSelected((prev) => [...prev, ...usable.map((d) => d.id).filter((id) => !prev.includes(id))]);
+        // A stored value of a device that was removed and added again wins over the current one.
+        setValues((prev) => ({ ...Object.fromEntries(usable.map((d) => [d.id, d.value])), ...prev }));
     };
-    const missingText = (r: SceneEditResult): string | null => {
-        if (!r.missing?.length) return null;
-        const names = r.missing.map((id) => rows.find((d) => d.id === id)?.name ?? id);
-        return t('scenes.learnMissing', { list: names.join(', ') });
-    };
+    const remove = (id: string) => setSelected((prev) => prev.filter((x) => x !== id));
 
-    const run = async (fn: () => Promise<SceneEditResult>, closeOnOk: boolean, okText?: string) => {
-        if (busy) return;
+    const takeCurrent = async () => {
+        if (!selected.length || busy) return;
         setBusy(true);
-        setMsg(null);
         try {
-            const r = await fn();
-            if (!r.ok) {
-                setMsg({ kind: 'error', text: errorText(r) });
-                return;
-            }
-            // Save/delete close; devices without a value are reported by the widget then.
-            if (closeOnOk) {
-                onClose();
-                return;
-            }
-            const missing = missingText(r);
-            if (missing || okText) setMsg({ kind: 'info', text: missing ?? okText ?? '' });
+            const fresh = await loadDevices(selected);
+            merge(fresh);
+            setValues((prev) => ({
+                ...prev,
+                ...Object.fromEntries(fresh.filter((d) => !d.problem).map((d) => [d.id, d.value])),
+            }));
         } finally {
             setBusy(false);
         }
     };
 
-    const toggle = (id: string) =>
-        setSelected((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-    const canSave = !!name.trim() && selected.length > 0 && !busy && (!pinRequired || !!pin);
+    const errorText = (r: SceneEditResult): string => {
+        if (r.error === 'timeout') return t('scenes.err.timeout');
+        return r.error || t('scenes.err.generic');
+    };
+
+    const run = async (command: 'saveScene' | 'deleteScene', payload: Record<string, unknown>) => {
+        if (busy) return;
+        setBusy(true);
+        setMsg(null);
+        try {
+            const r = await callSceneBackend(command, payload);
+            if (r.ok) {
+                onDone(r);
+                onClose();
+            } else setMsg({ kind: 'error', text: errorText(r as SceneEditResult) });
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const canSave = !!name.trim() && selected.length > 0 && !busy;
 
     return createPortal(
         <div
             data-aura-app="frontend"
-            className="aura-scene-modal fixed inset-0 z-[9000] flex items-center justify-center p-4"
+            className="aura-scene-modal fixed inset-0 z-[10010] flex items-center justify-center p-4"
             style={{ background: 'rgba(0,0,0,0.5)', color: 'var(--text-primary)', ...themeVars }}
             onClick={onClose}
         >
             <div
-                className="relative rounded-2xl shadow-2xl w-full max-w-sm flex flex-col max-h-full"
+                className="relative rounded-2xl shadow-2xl w-full max-w-md flex flex-col max-h-full"
                 style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
                 onClick={(e) => e.stopPropagation()}
                 data-testid="scene-modal"
@@ -146,7 +251,7 @@ export function SceneEditModal({ scene, devices, pinRequired, onSave, onLearn, o
                             onChange={(e) => setName(e.target.value)}
                             maxLength={80}
                             placeholder={t('scenes.namePlaceholder')}
-                            className={inputCls}
+                            className={`w-full ${inputCls}`}
                             style={inputStyle}
                             data-testid="scene-name"
                             autoFocus={!scene}
@@ -157,72 +262,90 @@ export function SceneEditModal({ scene, devices, pinRequired, onSave, onLearn, o
                         <span className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             {t('scenes.devices')}
                         </span>
-                        {rows.length === 0 ? (
+                        {selected.length === 0 ? (
                             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                                 {t('scenes.noDevices')}
                             </p>
                         ) : (
                             <div className="flex flex-col gap-1">
-                                {rows.map((d) => {
-                                    const on = selected.includes(d.id);
-                                    const value = stored.get(d.id);
+                                {selected.map((id) => {
+                                    const d = devices[id];
                                     return (
-                                        <label
-                                            key={d.id}
-                                            className="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer text-sm"
+                                        <div
+                                            key={id}
+                                            className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-lg text-sm"
                                             style={{
-                                                background: on
-                                                    ? 'color-mix(in srgb, var(--accent) 12%, var(--app-bg))'
-                                                    : 'var(--app-bg)',
-                                                border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                background: 'var(--app-bg)',
+                                                border: '1px solid var(--app-border)',
                                             }}
                                             data-testid="scene-device"
+                                            data-id={id}
                                         >
-                                            <input
-                                                type="checkbox"
-                                                checked={on}
-                                                onChange={() => toggle(d.id)}
-                                                className="shrink-0"
-                                                style={{ accentColor: 'var(--accent)' }}
-                                            />
-                                            <span className="flex-1 min-w-0 truncate" title={d.id}>
-                                                {d.name}
+                                            <span className="flex-1 min-w-0 truncate" title={id}>
+                                                {nameOf(id)}
                                             </span>
-                                            {stored.has(d.id) && (
-                                                <span
-                                                    className="shrink-0 text-xs tabular-nums"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {formatSceneValue(value, d.unit, t)}
+                                            {d && !d.problem ? (
+                                                <ValueInput
+                                                    device={d}
+                                                    value={values[id]}
+                                                    onChange={(v) => setValues((p) => ({ ...p, [id]: v }))}
+                                                />
+                                            ) : (
+                                                <span className="text-xs" style={{ color: '#ef4444' }}>
+                                                    {d ? t('scenes.unavailable') : '…'}
                                                 </span>
                                             )}
-                                        </label>
+                                            <button
+                                                onClick={() => remove(id)}
+                                                className="shrink-0 p-1 rounded-md hover:opacity-70"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                title={t('scenes.remove')}
+                                                data-testid="scene-remove"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
                                     );
                                 })}
                             </div>
                         )}
                         <p className="text-xs mt-1.5" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                            {t('scenes.learnHint')}
+                            {t('scenes.valueHint')}
                         </p>
                     </div>
 
-                    {pinRequired && (
-                        <label className="block">
+                    {suggestions.length > 0 && (
+                        <div>
                             <span className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                {t('scenes.pin')}
+                                {t('scenes.suggested')}
                             </span>
-                            <input
-                                type="password"
-                                inputMode="numeric"
-                                autoComplete="off"
-                                value={pin}
-                                onChange={(e) => setPin(e.target.value)}
-                                className={inputCls}
-                                style={inputStyle}
-                                data-testid="scene-pin"
-                            />
-                        </label>
+                            <div className="flex flex-wrap gap-1">
+                                {suggestions.map((id) => (
+                                    <button
+                                        key={id}
+                                        onClick={() => add([devices[id]])}
+                                        className="flex items-center gap-1 text-xs rounded-full pl-1.5 pr-2.5 py-1 hover:opacity-80 max-w-full"
+                                        style={secondaryBtn}
+                                        title={id}
+                                        data-testid="scene-suggestion"
+                                    >
+                                        <Plus size={12} className="shrink-0" />
+                                        <span className="truncate">{nameOf(id)}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     )}
+
+                    <button
+                        onClick={() => setPicker(true)}
+                        className="flex items-center gap-1.5 text-xs rounded-lg px-2.5 py-1.5 hover:opacity-80"
+                        style={secondaryBtn}
+                        data-testid="scene-pick"
+                    >
+                        <Search size={12} />
+                        {t('scenes.addDevices')}
+                    </button>
 
                     {msg && (
                         <p
@@ -248,30 +371,28 @@ export function SceneEditModal({ scene, devices, pinRequired, onSave, onLearn, o
                     style={{ borderColor: 'var(--app-border)' }}
                 >
                     {scene && (
-                        <>
-                            <button
-                                onClick={() => setConfirmDelete(true)}
-                                disabled={busy || (pinRequired && !pin)}
-                                className="p-2 rounded-lg hover:opacity-80 disabled:opacity-40"
-                                style={{ ...secondaryBtn, color: '#ef4444' }}
-                                title={t('scenes.delete')}
-                                data-testid="scene-delete"
-                            >
-                                <Trash2 size={14} />
-                            </button>
-                            <button
-                                onClick={() => run(() => onLearn(pin), false, t('scenes.learned'))}
-                                disabled={busy || (pinRequired && !pin)}
-                                className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg hover:opacity-80 disabled:opacity-40"
-                                style={secondaryBtn}
-                                title={t('scenes.learnTitle')}
-                                data-testid="scene-learn"
-                            >
-                                <RefreshCw size={12} className={busy ? 'animate-spin' : ''} />
-                                {t('scenes.learn')}
-                            </button>
-                        </>
+                        <button
+                            onClick={() => setConfirmDelete(true)}
+                            disabled={busy}
+                            className="p-2 rounded-lg hover:opacity-80 disabled:opacity-40"
+                            style={{ ...secondaryBtn, color: '#ef4444' }}
+                            title={t('scenes.delete')}
+                            data-testid="scene-delete"
+                        >
+                            <Trash2 size={14} />
+                        </button>
                     )}
+                    <button
+                        onClick={() => void takeCurrent()}
+                        disabled={busy || !selected.length}
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg hover:opacity-80 disabled:opacity-40"
+                        style={secondaryBtn}
+                        title={t('scenes.takeCurrentTitle')}
+                        data-testid="scene-current"
+                    >
+                        <RefreshCw size={12} className={busy ? 'animate-spin' : ''} />
+                        {t('scenes.takeCurrent')}
+                    </button>
                     <span className="flex-1" />
                     <button
                         onClick={onClose}
@@ -281,7 +402,13 @@ export function SceneEditModal({ scene, devices, pinRequired, onSave, onLearn, o
                         {t('common.cancel')}
                     </button>
                     <button
-                        onClick={() => run(() => onSave(name.trim(), selected, pin), true)}
+                        onClick={() =>
+                            run('saveScene', {
+                                ...(scene ? { id: scene.id } : {}),
+                                name: name.trim(),
+                                members: selected.map((id) => ({ id, value: values[id] })),
+                            })
+                        }
                         disabled={!canSave}
                         className="px-3 py-2 text-xs rounded-lg text-white hover:opacity-80 disabled:opacity-40"
                         style={{ background: 'var(--accent)' }}
@@ -296,12 +423,30 @@ export function SceneEditModal({ scene, devices, pinRequired, onSave, onLearn, o
                         text={t('scenes.deleteConfirm', { name: scene?.name ?? '' })}
                         onConfirm={() => {
                             setConfirmDelete(false);
-                            void run(() => onDelete(pin), true);
+                            void run('deleteScene', { id: scene?.id });
                         }}
                         onCancel={() => setConfirmDelete(false)}
                     />
                 )}
             </div>
+            {picker && (
+                <div onClick={(e) => e.stopPropagation()}>
+                    <DatapointPicker
+                        currentValue=""
+                        onSelect={(id) => {
+                            setPicker(false);
+                            void loadDevices([id]).then(add);
+                        }}
+                        onClose={() => setPicker(false)}
+                        multiSelect
+                        onMultiSelect={(picks) => {
+                            setPicker(false);
+                            const ids = picks.map((p) => p.id).filter(Boolean);
+                            if (ids.length) void loadDevices(ids).then(add);
+                        }}
+                    />
+                </div>
+            )}
         </div>,
         portal,
     );

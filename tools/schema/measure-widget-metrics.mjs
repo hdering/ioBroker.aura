@@ -510,12 +510,21 @@ const COUNTED = [
         build: () => ({ options: {} }),
     },
     {
-        // Szenen (#825): one row per scene the backend lists, plus the "+ Neue Szene" row.
+        // Szenen (#825): one row per scene the backend lists; allowEdit adds the
+        // "+ Neue Szene" row below them.
         type: 'scenes',
         item: 'Szene',
         counts: [1, 3, 6],
         sendTo: (n) => sceneReplies(n),
         build: () => ({ options: {} }),
+        modifiers: [
+            {
+                key: 'allowEdit',
+                label: 'Zeile „+ Neue Szene“ (allowEdit: true)',
+                when: { path: 'allowEdit', equals: true },
+                build: () => ({ options: { allowEdit: true } }),
+            },
+        ],
     },
     {
         // Verlaufstabelle (#760): the fabricated history behind DP_HIST has more rows
@@ -794,17 +803,10 @@ function historyRows(n) {
 }
 
 /** Datapoint per type where the default demo value would not do. */
-/** sendTo replies of the scenes widget: n own scenes, one allowed device. */
+/** sendTo replies of the scenes widget: n own scenes with one device each. */
 function sceneReplies(n) {
     return {
-        sceneStatus: {
-            ok: true,
-            instance: 'scenes.0',
-            installed: true,
-            running: true,
-            pinRequired: false,
-            devices: [{ id: DP, name: 'Licht', label: '', type: 'boolean', unit: '' }],
-        },
+        sceneStatus: { ok: true, instance: 'scenes.0', installed: true, running: true },
         listScenes: {
             ok: true,
             scenes: Array.from({ length: n }, (_, i) => ({

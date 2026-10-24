@@ -3,68 +3,24 @@
  *
  * Aura keeps no scenes of its own: the list, the members and their values live in
  * `scene.0.*` objects of the scenes adapter. Tapping a scene writes `true` to it
- * (the adapter sets the members); "+" and "⋯" open SceneEditModal, whose writes go
- * through the Aura backend (lib/scenes.js) — it checks the device whitelist of the
- * instance config and the optional scenes PIN, and only touches `scene.0.aura.*`.
+ * (the adapter sets the members). Scenes are managed in the widget's edit dialog
+ * (ScenesConfig); with `allowEdit` also right here: "+" and "⋯" open SceneEditModal,
+ * whose writes go through the Aura backend (lib/scenes.js) — it finds the scenes
+ * instance itself, checks every device and only touches `scene.0.aura.*`.
  *
  * Layouts: `default` = list, `card` = tiles.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Clapperboard, MoreHorizontal, Plus, AlertTriangle } from 'lucide-react';
-import {
-    getStateDirect,
-    sendToDirect,
-    setStateDirect,
-    subscribeStateDirect,
-    useIoBroker,
-} from '../../hooks/useIoBroker';
+import { getStateDirect, setStateDirect, subscribeStateDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { NS } from '../../utils/namespace';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
-import { SceneEditModal, type SceneEditResult } from './SceneEditModal';
-
-export interface SceneDevice {
-    id: string;
-    name: string;
-    label: string;
-    type: string;
-    unit: string;
-    missing?: boolean;
-}
-
-export interface SceneInfo {
-    id: string;
-    name: string;
-    own: boolean;
-    enabled: boolean;
-    memberCount: number;
-    /** Own scenes only: members with their stored "on" value. */
-    members?: { id: string; value: unknown }[];
-}
-
-interface SceneStatus {
-    ok: boolean;
-    instance: string;
-    installed: boolean;
-    running: boolean;
-    pinRequired: boolean;
-    devices: SceneDevice[];
-}
-
-type Reply = { ok?: boolean; error?: string; retryAfter?: number; missing?: string[] } & Record<string, unknown>;
-
-/** sendTo to this page's aura instance, normalised to { ok, error } — timeouts and permission strings included. */
-async function callBackend(command: string, payload: Record<string, unknown> = {}): Promise<Reply> {
-    const r = await sendToDirect<Reply>(NS, command, payload);
-    if (r && typeof r === 'object' && '__timeout' in r) return { ok: false, error: 'timeout' };
-    if (typeof r === 'string') return { ok: false, error: r };
-    if (!r) return { ok: false, error: 'no reply' };
-    return r as Reply;
-}
+import { SceneEditModal } from './SceneEditModal';
+import { loadScenes, sceneDeviceName, type SceneInfo, type SceneReply, type SceneStatus } from './scenesApi';
 
 export function ScenesWidget({ config }: WidgetProps) {
     const t = useT();
@@ -76,7 +32,7 @@ export function ScenesWidget({ config }: WidgetProps) {
     const titleAlign = (o.titleAlign as 'left' | 'center' | 'right') ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
     const showForeign = o.showForeignScenes === true;
-    const allowEdit = o.allowEdit !== false;
+    const allowEdit = o.allowEdit === true;
     const showDeviceCount = o.showDeviceCount !== false;
     const tiles = config.layout === 'card';
     const Icon = getWidgetIcon((o.icon as string) ?? 'Clapperboard', Clapperboard);
@@ -91,16 +47,15 @@ export function ScenesWidget({ config }: WidgetProps) {
     const [notice, setNotice] = useState<string | null>(null);
 
     const reload = useCallback(async (): Promise<SceneInfo[]> => {
-        const [st, list] = await Promise.all([callBackend('sceneStatus'), callBackend('listScenes')]);
-        if (!st.ok) {
-            setLoadError(st.error === 'timeout' ? t('scenes.err.timeout') : (st.error ?? t('scenes.err.generic')));
+        const r = await loadScenes();
+        if (r.error) {
+            setLoadError(r.error === 'timeout' ? t('scenes.err.timeout') : r.error);
             return [];
         }
-        const next = list.ok && Array.isArray(list.scenes) ? (list.scenes as SceneInfo[]) : [];
         setLoadError(null);
-        setStatus(st as unknown as SceneStatus);
-        setScenes(next);
-        return next;
+        setStatus(r.status);
+        setScenes(r.scenes);
+        return r.scenes;
     }, [t]);
 
     useEffect(() => {
@@ -128,15 +83,11 @@ export function ScenesWidget({ config }: WidgetProps) {
         setStateDirect(s.id, true);
     };
 
-    const deviceNames = (ids: string[]) =>
-        ids.map((id) => status?.devices.find((d) => d.id === id)?.name ?? id).join(', ');
-
-    const afterWrite = async (r: Reply): Promise<SceneEditResult> => {
-        if (r.ok) {
-            setNotice(r.missing?.length ? t('scenes.learnMissing', { list: deviceNames(r.missing) }) : null);
-            await reload();
-        }
-        return r as SceneEditResult;
+    const afterWrite = (r: SceneReply) => {
+        setNotice(
+            r.missing?.length ? t('scenes.learnMissing', { list: r.missing.map(sceneDeviceName).join(', ') }) : null,
+        );
+        void reload();
     };
 
     const editingScene = editing && editing !== 'new' ? editing : null;
@@ -232,7 +183,6 @@ export function ScenesWidget({ config }: WidgetProps) {
         body = (
             <>
                 {!status.running && hint(t('scenes.notRunning', { instance: status.instance }), true)}
-                {canEdit && status.devices.length === 0 && hint(t('scenes.noDevices'))}
                 {visible.length === 0 && !canEdit && hint(t('scenes.empty'))}
                 <div
                     className={
@@ -323,34 +273,7 @@ export function ScenesWidget({ config }: WidgetProps) {
             {header}
             {body}
             {editing && status && (
-                <SceneEditModal
-                    scene={editingScene}
-                    devices={status.devices}
-                    pinRequired={status.pinRequired}
-                    onClose={() => setEditing(null)}
-                    onSave={async (name, members, pin) =>
-                        afterWrite(
-                            await callBackend('saveScene', {
-                                ...(editingScene ? { id: editingScene.id } : {}),
-                                name,
-                                members,
-                                pin,
-                            }),
-                        )
-                    }
-                    onLearn={async (pin) => {
-                        const r = await callBackend('learnScene', { id: editingScene?.id, pin });
-                        if (r.ok) {
-                            // Show the freshly learned values in the open popup.
-                            const fresh = (await reload()).find((s) => s.id === editingScene?.id);
-                            if (fresh) setEditing(fresh);
-                        }
-                        return r as SceneEditResult;
-                    }}
-                    onDelete={async (pin) =>
-                        afterWrite(await callBackend('deleteScene', { id: editingScene?.id, pin }))
-                    }
-                />
+                <SceneEditModal scene={editingScene} onClose={() => setEditing(null)} onDone={afterWrite} />
             )}
         </div>
     );

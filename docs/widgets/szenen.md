@@ -1,6 +1,6 @@
 # Szenen
 
-Löst Szenen des ioBroker-Szenen-Adapters (`scenes`) aus. Neue Szenen lassen sich direkt im Dashboard anlegen: Geräte wählen, Werte lernen, fertig. Aura speichert keine eigenen Szenen. Alle liegen als `scene.0.*` im Szenen-Adapter und funktionieren auch in Skripten, Blockly und Alexa.
+Löst Szenen des ioBroker-Szenen-Adapters (`scenes`) aus. Neue Szenen legst du direkt in Aura an: Geräte wählen, Werte festlegen, fertig. Aura speichert keine eigenen Szenen. Alle liegen als `scene.0.*` im Szenen-Adapter und funktionieren auch in Skripten, Blockly und Alexa.
 
 | Liste | Kacheln | Szene bearbeiten |
 | --- | --- | --- |
@@ -10,18 +10,29 @@ Löst Szenen des ioBroker-Szenen-Adapters (`scenes`) aus. Neue Szenen lassen sic
 
 | | |
 | --- | --- |
-| Adapter | `scenes` installiert und gestartet |
-| Instanz-Einstellungen von Aura → **Szenen-Widget** | Instanz, erlaubte Geräte, optional PIN |
+| Adapter | `scenes` installiert und gestartet; die Instanz findet Aura selbst |
 
-### Instanz-Einstellungen
+## Szenen verwalten
 
-| Feld | |
+Im Bearbeiten-Dialog des Widgets, Abschnitt **Szenen verwalten**. Mit der Option `allowEdit` geht das auch direkt im Dashboard (**+ Neue Szene**, **⋯**).
+
+![](./assets/szenen/verwalten.png)
+
+| Im Popup | |
 | --- | --- |
-| Instanz des Szenen-Adapters | Standard `scenes.0` |
-| Für Szenen erlaubte Geräte | ein Datenpunkt je Zeile (z. B. `….STATE`, `….LEVEL`), Bezeichnung optional |
-| PIN zum Ändern von Szenen | leer = kein PIN; gesetzt = Anlegen, Lernen und Löschen fragen danach |
+| **Geräte und Werte** | Wert je Gerät: an/aus, Zahl, Auswahlliste (bei `common.states`) oder Text |
+| **Geräte in diesem Bereich** | Datenpunkte der Widgets im selben Bereich, ein Tipp fügt hinzu |
+| **Weitere Geräte …** | beliebiger Datenpunkt über die Datenpunkt-Suche |
+| neues Gerät | startet mit seinem aktuellen Wert |
+| **Aktuelle Werte** | alle Werte auf den momentanen Zustand der Geräte setzen |
+| **🗑** | Szene löschen (mit Rückfrage) |
 
-Nur die eingetragenen Datenpunkte lassen sich einer Szene hinzufügen. Der Adapter prüft das bei jedem Speichern.
+Erlaubt ist jeder beschreibbare Datenpunkt außer `system.*` und `scene.*`.
+
+| Szenen | bearbeitbar | Ablage |
+| --- | --- | --- |
+| in Aura angelegt | ja | `scene.0.aura.<name>` |
+| im Admin des Szenen-Adapters angelegt | nein, nur auslösen | `scene.0.…` |
 
 ## Bedienung
 
@@ -29,22 +40,15 @@ Nur die eingetragenen Datenpunkte lassen sich einer Szene hinzufügen. Der Adapt
 | --- | --- |
 | Tipp auf eine Szene | Szene auslösen |
 | hervorgehoben | alle Geräte stehen auf den Werten der Szene |
-| **+ Neue Szene** | Name, Geräte wählen, **Speichern** = aktuelle Werte übernehmen |
-| **⋯** | bearbeiten, **Neu lernen**, löschen |
 
-**Lernen:** Geräte erst so einstellen, wie die Szene sein soll, dann speichern. Nachträglich hinzugefügte Geräte lernen ihren Wert beim Speichern, **Neu lernen** übernimmt alle Werte erneut.
-
-| Szenen | bearbeitbar | Ablage |
-| --- | --- | --- |
-| im Dashboard angelegt | ja | `scene.0.aura.<name>` |
-| im Admin des Szenen-Adapters angelegt | nein, nur auslösen | `scene.0.…` |
+Wer im Dashboard Szenen ändern darf, regelt `allowEdit` zusammen mit dem PIN von Bereich oder Tab.
 
 ## Einstellungen
 
 | Option | Standard | |
 | --- | --- | --- |
 | `layout` | `default` | `default` = Liste, `card` = Kacheln |
-| `allowEdit` | `true` | **+ Neue Szene** und **⋯** |
+| `allowEdit` | `false` | Szenen auch im Dashboard anlegen und bearbeiten |
 | `showDeviceCount` | `true` | Anzahl Geräte je Szene (Liste) |
 | `showForeignScenes` | `false` | Szenen aus dem Admin mit anzeigen |
 | `autoHeight` | `false` | Höhe folgt der Zahl der Szenen — siehe [Höhe an Inhalt anpassen](../einstellungen/editor#hohe-an-inhalt-anpassen) |
@@ -55,6 +59,6 @@ Nur die eingetragenen Datenpunkte lassen sich einer Szene hinzufügen. Der Adapt
 | --- | --- |
 | Szenen-Adapter nicht installiert | Adapter `scenes` fehlt |
 | Szenen-Adapter läuft nicht | Instanz gestoppt, Auslösen wirkt nicht |
-| Noch keine Geräte freigegeben | Liste in den Instanz-Einstellungen leer |
-| Ohne Wert (beim Auslösen „aus“) | Gerät hatte beim Lernen keinen Wert |
-| Falscher PIN | PIN der Instanz-Einstellungen eingeben |
+| Ohne Wert (beim Auslösen „aus“) | Gerät hatte beim Speichern keinen Wert |
+| Nicht als Szenen-Gerät nutzbar | Datenpunkt nur lesbar, `system.*` oder `scene.*` |
+| nicht verfügbar (im Popup) | Datenpunkt existiert nicht mehr; Gerät entfernen |
