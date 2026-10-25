@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.92.0",
+    "auraVersion": "0.93.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -9103,7 +9103,7 @@
         "streamUrl": {
           "type": "string",
           "default": "",
-          "description": "Feste Stream-Adresse."
+          "description": "Feste Stream-Adresse. Typ nach Endung: .html/.htm = iframe, .mp4/.m4v/.webm/.mov/.ogv = Video-Clip (Ring Livestream.mp4), rtsp:// = Hinweis, sonst Bild/MJPEG."
         },
         "streamUrlDp": {
           "type": "string",
@@ -9147,6 +9147,12 @@
           "type": "string",
           "ref": "WakeUpMode",
           "description": "\"onClick\" lädt den Stream erst beim Antippen, \"onView\" beim Sichtbarwerden, \"auto\" sofort. Mit wakeUpDp nur onClick/onView. Ohne wakeUpDp eignet sich onClick für Player, die die Kamera selbst starten (eusec), dann ohne Wartezeit."
+        },
+        "wakeUpReadyDp": {
+          "type": "string",
+          "default": "",
+          "description": "Bereit-Signal statt fester Wartezeit: Der Stream startet beim ersten Update dieses Datenpunkts nach dem Wecken (höchstens 120 s Warten). Für Kameras, die erst aufzeichnen, z. B. Ring: wakeUpDp = ring.0.<id>.Livestream.request, wakeUpReadyDp = ring.0.<id>.Livestream.moment. Nur mit wakeUpDp; nie den Weck-DP selbst eintragen.",
+          "datapoint": true
         },
         "windowColor": {
           "type": "string",
