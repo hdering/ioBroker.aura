@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.91.0",
+    "auraVersion": "0.92.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -9066,6 +9066,17 @@
           "type": "string",
           "default": "static",
           "description": "Woher die Stream-Adresse kommt: fest oder aus einem Datenpunkt."
+        },
+        "talk": {
+          "type": "boolean",
+          "default": false,
+          "description": "Gegensprechen (Türsprechstelle): Button \"Annehmen\"/\"Auflegen\" über dem Stream. Nur für go2rtc webrtc.html (iframe). Angenommen lädt den Stream mit media=…+microphone neu, sonst wird \"microphone\" aus der URL entfernt. Während des Gesprächs ruhen Stream-Timeout und Popup-Auto-Close. Braucht HTTPS für Aura und go2rtc."
+        },
+        "talkDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optional: true beim Annehmen, false beim Auflegen, Stream-Ende oder Schließen des Widgets/Popups (z. B. Gong der Klingel stoppen).",
+          "datapoint": true
         },
         "videoRatio": {
           "type": "number",
