@@ -16,7 +16,7 @@ import {
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
 import type { WidgetProps, ioBrokerState } from '../../types';
-import { setStateDirect, subscribeDpValue } from '../../hooks/useIoBroker';
+import { getStateDirect, setStateDirect, subscribeDpValue, subscribeStateDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useWakeReload } from '../../hooks/useWakeReload';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
@@ -141,7 +141,7 @@ export const SLOT_TYPE_OPTIONS: { value: CameraSlotType; label: string; group?: 
 
 // ── Internal types ────────────────────────────────────────────────────────────
 
-type StreamMode = 'img' | 'iframe' | 'rtsp-hint';
+type StreamMode = 'img' | 'video' | 'iframe' | 'rtsp-hint';
 type WakeUpMode = 'auto' | 'onView' | 'onClick';
 type StopReason = 'initial' | 'timeout' | 'error';
 
@@ -166,11 +166,16 @@ function parsePlayerMessage(data: unknown): PlayerStatus | null {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+/** Longest wait for `wakeUpReadyDp` before the wake-up counts as failed. */
+const READY_WAIT_MAX_S = 120;
+
 function detectMode(url: string): StreamMode {
     if (!url) return 'img';
     if (url.startsWith('rtsp://') || url.startsWith('rtsps://')) return 'rtsp-hint';
     const path = url.split('?')[0].toLowerCase();
     if (path.endsWith('.html') || path.endsWith('.htm')) return 'iframe';
+    // Recorded clips (Ring's Livestream.mp4) — an <img> can never decode them. (#843)
+    if (/\.(mp4|m4v|webm|mov|ogv)$/.test(path)) return 'video';
     return 'img';
 }
 
@@ -616,7 +621,7 @@ function StreamView(p: StreamViewProps) {
         );
     }
 
-    const hasError = p.loadError && p.mode === 'img';
+    const hasError = p.loadError && (p.mode === 'img' || p.mode === 'video');
     const frameSrc = p.talk ? talkStreamUrl(p.streamUrl, p.talk.micOn) : p.streamUrl;
 
     // Countdown color: green → amber ≤60s → red ≤10s
@@ -648,6 +653,19 @@ function StreamView(p: StreamViewProps) {
                         <div className="absolute inset-0 z-[1]" style={{ pointerEvents: 'all', cursor: 'default' }} />
                     )}
                 </>
+            ) : p.mode === 'video' ? (
+                // Muted, or the browser refuses to autoplay without a tap.
+                <video
+                    key={`${p.imgSrc}#${p.wakeNonce}`}
+                    src={p.imgSrc}
+                    autoPlay
+                    muted
+                    playsInline
+                    controls
+                    onError={p.onError}
+                    onLoadedData={p.onLoad}
+                    style={{ width: '100%', height: '100%', objectFit: p.fitMode, display: 'block' }}
+                />
             ) : (
                 // An MJPEG connection dropped during standby never re-opens on its
                 // own — the src is unchanged, so only a remount re-requests it.
@@ -713,7 +731,13 @@ function StreamView(p: StreamViewProps) {
                         color: '#fff',
                     }}
                 >
-                    {p.mode === 'iframe' ? 'HTML' : p.refreshInterval === 0 ? 'LIVE' : 'CAM'}
+                    {p.mode === 'iframe'
+                        ? 'HTML'
+                        : p.mode === 'video'
+                          ? 'VIDEO'
+                          : p.refreshInterval === 0
+                            ? 'LIVE'
+                            : 'CAM'}
                 </div>
             )}
 
@@ -928,11 +952,12 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const staticStreamUrl = (opts.streamUrl as string) ?? '';
     const streamUrl = streamUrlDp && dpStreamUrl != null && dpStreamUrl !== '' ? String(dpStreamUrl) : staticStreamUrl;
     const configuredRefresh = (opts.refreshInterval as number) ?? 5;
-    const refreshInterval = isMjpegStreamUrl(streamUrl) ? 0 : configuredRefresh;
+    const refreshInterval = isMjpegStreamUrl(streamUrl) || detectMode(streamUrl) === 'video' ? 0 : configuredRefresh;
     const fitMode = (opts.fitMode as 'cover' | 'contain') ?? 'cover';
     const showTimestamp = (opts.showTimestamp as boolean) ?? true;
     const wakeUpDp = (opts.wakeUpDp as string) ?? '';
     const wakeUpDelay = (opts.wakeUpDelay as number) ?? 3;
+    const wakeUpReadyDp = (opts.wakeUpReadyDp as string) ?? '';
     // When a wake-up DP is configured, never auto-start. Treat stored 'auto' as 'onClick'.
     // Without one the stream starts right away unless a trigger is chosen — a player page
     // that starts the camera itself (eusec "start livestreams on demand") then only loads
@@ -998,12 +1023,15 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const containerRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const wakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const readyUnsubRef = useRef<(() => void) | null>(null);
     const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const consecutiveErrRef = useRef(0);
     const streamReadyRef = useRef(false);
     streamReadyRef.current = streamReady;
     const wakeUpDpRef = useRef(wakeUpDp);
     const wakeUpDelayRef = useRef(wakeUpDelay);
+    const wakeUpReadyDpRef = useRef(wakeUpReadyDp);
+    wakeUpReadyDpRef.current = editMode ? '' : wakeUpReadyDp;
     const streamTimeoutCfgRef = useRef(streamTimeout);
     wakeUpDpRef.current = wakeUpDp;
     wakeUpDelayRef.current = wakeUpDelay;
@@ -1096,9 +1124,15 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         return () => clearInterval(id);
     }, [talking, popupLayer]);
 
+    function stopReadyWatch() {
+        readyUnsubRef.current?.();
+        readyUnsubRef.current = null;
+    }
+
     function doSleep(reason: StopReason = 'initial') {
         endCall();
         if (wakeTimerRef.current) clearTimeout(wakeTimerRef.current);
+        stopReadyWatch();
         clearCountdown();
         if (wakeUpDpRef.current) setStateDirect(wakeUpDpRef.current, false);
         consecutiveErrRef.current = 0;
@@ -1110,11 +1144,14 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
 
     function doWake() {
         if (wakeTimerRef.current) clearTimeout(wakeTimerRef.current);
+        stopReadyWatch();
         clearCountdown();
         setStopReason('initial');
         setPlayerStatus(null);
         consecutiveErrRef.current = 0;
         const start = () => {
+            if (wakeTimerRef.current) clearTimeout(wakeTimerRef.current);
+            stopReadyWatch();
             setWaking(false);
             setStreamReady(true);
             if (streamTimeoutCfgRef.current > 0) {
@@ -1126,10 +1163,25 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
             start();
             return;
         }
+        const readyDp = wakeUpReadyDpRef.current;
+        if (readyDp) {
+            // A recording camera (Ring) only has its clip after the recording — its
+            // length, not a fixed delay, decides. Start on the first update after the
+            // wake-up; the baseline ts filters a replay of the old value. (#843)
+            let baselineTs: number | undefined;
+            void getStateDirect(readyDp).then((st) => {
+                baselineTs = st?.ts;
+            });
+            readyUnsubRef.current = subscribeStateDirect(readyDp, (st) => {
+                if (st && st.ts !== baselineTs) start();
+            });
+        }
         setStateDirect(wakeUpDpRef.current, true);
         setWaking(true);
         setStreamReady(false);
-        wakeTimerRef.current = setTimeout(start, wakeUpDelayRef.current * 1000);
+        wakeTimerRef.current = readyDp
+            ? setTimeout(() => doSleep('error'), READY_WAIT_MAX_S * 1000)
+            : setTimeout(start, wakeUpDelayRef.current * 1000);
     }
 
     // The timeout only runs while the player reports neither 'playing' nor 'waiting':
@@ -1197,16 +1249,17 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
 
     // ── Image refresh loop ─────────────────────────────────────────────────────────
     const buildSrc = (url: string) => {
-        if (!url || mode !== 'img') return url;
+        if (!url || (mode !== 'img' && mode !== 'video')) return url;
         // Resolve after mode detection so an adapter path / base64 snapshot from a
         // datapoint loads too, without changing how the mode itself is derived.
         const resolved = resolveImageSource(url);
-        if (refreshInterval === 0 || resolved.startsWith('data:')) return resolved;
+        // A clip is rewritten under the same name on every recording — never the cached one.
+        if ((refreshInterval === 0 && mode !== 'video') || resolved.startsWith('data:')) return resolved;
         return resolved.includes('?') ? `${resolved}&_t=${Date.now()}` : `${resolved}?_t=${Date.now()}`;
     };
 
     useEffect(() => {
-        if (!streamUrl || !streamReady || mode !== 'img') return;
+        if (!streamUrl || !streamReady || (mode !== 'img' && mode !== 'video')) return;
         setLoadError(false);
         setImgSrc(buildSrc(streamUrl));
         setLastRefresh(new Date());

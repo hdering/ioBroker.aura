@@ -937,7 +937,10 @@ export const WIDGET_OPTION_NOTES = {
     },
     camera: {
         streamUrlMode: { description: 'Woher die Stream-Adresse kommt: fest oder aus einem Datenpunkt.' },
-        streamUrl: { description: 'Feste Stream-Adresse.' },
+        streamUrl: {
+            description:
+                'Feste Stream-Adresse. Typ nach Endung: .html/.htm = iframe, .mp4/.m4v/.webm/.mov/.ogv = Video-Clip (Ring Livestream.mp4), rtsp:// = Hinweis, sonst Bild/MJPEG.',
+        },
         streamUrlDp: { description: 'Datenpunkt, der die Stream-Adresse liefert.' },
         refreshInterval: {
             description:
@@ -956,6 +959,10 @@ export const WIDGET_OPTION_NOTES = {
         },
         wakeUpDelay: {
             description: 'Wartezeit nach dem Aufwecken in Sekunden, bevor der Stream startet. Nur mit wakeUpDp.',
+        },
+        wakeUpReadyDp: {
+            description:
+                'Bereit-Signal statt fester Wartezeit: Der Stream startet beim ersten Update dieses Datenpunkts nach dem Wecken (höchstens 120 s Warten). Für Kameras, die erst aufzeichnen, z. B. Ring: wakeUpDp = ring.0.<id>.Livestream.request, wakeUpReadyDp = ring.0.<id>.Livestream.moment. Nur mit wakeUpDp; nie den Weck-DP selbst eintragen.',
         },
         showTimestamp: { description: 'Zeitstempel im Bild anzeigen.' },
         infoItems: { description: 'Zusätzliche Werte, die über dem Bild eingeblendet werden.' },

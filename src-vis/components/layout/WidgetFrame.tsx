@@ -6596,6 +6596,7 @@ const PICKER_OPTION_KEYS = {
     status_unreachDp: 'unreachDp',
     status_windowDp: 'windowDp',
     camera_wakeUpDp: 'wakeUpDp',
+    camera_readyDp: 'wakeUpReadyDp',
     camera_urlDp: 'streamUrlDp',
     camera_talkDp: 'talkDp',
     climate_humidityDp: 'humidityDatapoint',
@@ -13455,6 +13456,50 @@ function WidgetFrameInner({
                                                         </select>
                                                     </div>
                                                     {(o.wakeUpDp as string) && (
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Bereit-Signal (optional)
+                                                            </label>
+                                                            <div className="flex gap-1">
+                                                                <input
+                                                                    type="text"
+                                                                    value={(o.wakeUpReadyDp as string) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        set({
+                                                                            wakeUpReadyDp: e.target.value || undefined,
+                                                                        })
+                                                                    }
+                                                                    placeholder="ring.0.….Livestream.moment"
+                                                                    className={`${cCls} flex-1 font-mono min-w-0`}
+                                                                    style={cSty}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setPickerTarget('camera_readyDp')}
+                                                                    className="px-2 rounded-lg shrink-0"
+                                                                    style={{
+                                                                        background: 'var(--app-bg)',
+                                                                        color: 'var(--text-secondary)',
+                                                                        border: '1px solid var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    …
+                                                                </button>
+                                                            </div>
+                                                            <p
+                                                                className="text-[10px] mt-1"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Stream startet, sobald sich dieser Datenpunkt nach dem
+                                                                Wecken ändert (statt nach fester Wartezeit), z. B. bei
+                                                                Ring nach Ende der Aufnahme.
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                    {(o.wakeUpDp as string) && !(o.wakeUpReadyDp as string) && (
                                                         <div>
                                                             <label
                                                                 className="text-[11px] mb-1 block"

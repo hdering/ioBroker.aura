@@ -48,7 +48,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `transparent` | `false` | transparenter Hintergrund |
 | `interactionMode` | `content` | nur bei `.html`-Stream: `action` · `content` · `contentOnly` — siehe [iFrame](./iframe#interaktion-vs-klick-aktion) |
 
-Stream-Typ wird aus der URL erkannt: `.html`/`.htm` → iframe, `rtsp://` → Hinweis, sonst Bild.
+Stream-Typ wird aus der URL erkannt: `.html`/`.htm` → iframe, `.mp4`/`.m4v`/`.webm`/`.mov`/`.ogv` → Video, `rtsp://` → Hinweis, sonst Bild.
 
 Scrollleiste im Widget: Passt die eingebettete Stream-Seite nicht exakt in die Kachel,
 zeigt sie ihre eigene Scrollleiste — auf dem Desktop dauerhaft, auf Tablets unsichtbar
@@ -68,7 +68,17 @@ oder ohne, wenn der Player die Kamera selbst startet (eusec „Livestreams bei B
 | `wakeUpDp` | — | Wake-up-Datenpunkt (`boolean`) |
 | `wakeUpMode` | `onClick` | `onClick` · `onView`; ohne `wakeUpDp` zusätzlich `auto` (Standard, sofort laden) |
 | `wakeUpDelay` | `3` | Sekunden bis der Stream nach dem Wecken bereit ist (nur mit `wakeUpDp`) |
+| `wakeUpReadyDp` | — | Bereit-Signal: Stream startet beim ersten Update dieses DPs nach dem Wecken, ersetzt `wakeUpDelay` (max. 120 s) |
 | `streamTimeout` | `60` | Sekunden bis Auto-Abschaltung (`0` = aus) |
+
+Ring (Adapter `ring`): Der Livestream ist ein aufgezeichneter Clip, der erst nach `Livestream.duration` Sekunden fertig ist.
+
+| Option | Wert |
+| --- | --- |
+| `streamUrl` | Inhalt von `ring.0.<id>.Livestream.url` (`…_Livestream.mp4`) |
+| `wakeUpDp` | `ring.0.<id>.Livestream.request` |
+| `wakeUpReadyDp` | `ring.0.<id>.Livestream.moment` |
+| `streamTimeout` | ≥ `Livestream.duration` |
 
 Player-Status (eusec `stream.html`): Meldet die Player-Seite `waiting` oder `playing`, ruht der
 Timeout; bei `error`/`paused` läuft er neu an. `waiting` blendet „Station überträgt gerade „…““ ein.
