@@ -154,6 +154,20 @@ await show('default', [
 ]);
 check('centred draws a rule on both sides', (await ruleCount()) === 2);
 
+// Borderless themes (Lovelace, Material 3) set --widget-border to transparent; the rule
+// must not vanish with the widget outline (#846).
+{
+    const bg = await page.evaluate(() => {
+        document.documentElement.style.setProperty('--widget-border', 'transparent');
+        const rule = [...document.querySelectorAll('.aura-section-break span')].find((s) => !s.textContent.trim());
+        const v = rule ? getComputedStyle(rule).backgroundColor : null;
+        document.documentElement.style.removeProperty('--widget-border');
+        return v;
+    });
+    const transparent = !bg || bg === 'transparent' || /,\s*0\)$/.test(bg) || /\/\s*0\)$/.test(bg);
+    check('the rule stays visible with a transparent widget border', !transparent, String(bg));
+}
+
 await show('default', [
     { id: 'demo.a', label: 'Alpha' },
     { id: 'divider:1', divider: true, dividerLabel: 'Ohne Linie', dividerLine: false },

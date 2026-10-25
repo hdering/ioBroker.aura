@@ -264,7 +264,14 @@ function SectionBreak({ entry, variant, first }: { entry: StaticListEntry; varia
     const align = entry.dividerAlign ?? 'left';
     const line = entry.dividerLine !== false;
     if (!label && !line) return null;
-    const rule = <span className="flex-1 h-px min-w-0" style={{ background: 'var(--widget-border)' }} />;
+    // Not --widget-border: borderless themes (Lovelace, Material 3, …) set it to transparent,
+    // which made a rule the user explicitly switched on invisible (#846).
+    const rule = (
+        <span
+            className="flex-1 h-px min-w-0"
+            style={{ background: 'color-mix(in srgb, var(--text-secondary) 35%, transparent)' }}
+        />
+    );
     const before = line && (align === 'right' || align === 'center');
     const after = line && (align === 'left' || align === 'center' || !label);
     return (

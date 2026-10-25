@@ -18,3 +18,4 @@
 - Custom layout - the select cell can be shown as a circle menu: a round button with the current entry that fans all entries out, optionally with -/+ steps for numbers (#838)
 - Custom layout - new cell type "Chart": mirrors an existing chart widget inside one cell, so a device and its history fit into one widget (#838)
 - Device card - "Popup: widget content" on a child widget now shows the data of the card's own device instead of an empty chart or value (#845)
+- Static list - the rule of a separator now also shows in borderless themes (Lovelace, Material 3, ...), where it stayed invisible (#846)
