@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.82.5 (2026-10-13)
+- Settings - the guidelines page explains why the frontend hides the lines while "Fill window width" is on
+- Status overview - classic HomeMatic battery devices (window contacts, handles, smoke detectors …) now show "battery low"; mains actuators stay out, one row per device
+- Status overview - remembered batteries imported by their full datapoint id are now picked up by the widget (snooze, recheck, quiet entries)
+- 🌟 **New feature:** Timer - switch any number of datapoints with one schedule (e.g. several thermostats), all get the same value ([#774](https://github.com/hdering/ioBroker.aura/issues/774))
+- 🌟 **New feature:** Widgets - the background image (Advanced) can come from a datapoint holding a URL, path or Base64 image; the fixed image stays the fallback ([#775](https://github.com/hdering/ioBroker.aura/issues/775))
+
 ## 0.82.4 (2026-10-13)
 - Status overview - dimmers in the "Light" function now count as lights ("On · 60 %"), and the "Off" row action sets them to 0
 - Dynamic list - a list with filters but no entries searches right away instead of waiting for the sync interval; new option to drop entries the filters no longer find
