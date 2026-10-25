@@ -9,6 +9,7 @@ import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { useResolvedTitle } from '../DynamicTitle';
 import { DEFAULT_POPUP_PADDING } from '../../../store/popupConfigStore';
 import { resolveDualDeep, restoreDualDeep } from '../../../utils/dualColor';
+import { stripRenderOverrides } from '../../../utils/conditionSet';
 import { useColorBindings } from '../../../hooks/useColorBindings';
 import { useIsDarkTheme } from '../../../contexts/BrightnessContext';
 
@@ -135,8 +136,15 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
                         // the widget's real dashboard position. restoreDualDeep puts
                         // the light/dark pairs back: the body spreads the RESOLVED
                         // config, so without it the other half would be lost (#689).
+                        // The trigger may arrive resolved (device card, #845) — strip that
+                        // against the stored widget so no `{{parent}}` gets overwritten.
+                        const restored = restoreDualDeep(restoreColorBindings(next, target), target);
+                        const stored = allWidgets.find((w) => w.id === target.id);
                         updateWidgetById(target.id, {
-                            options: restoreDualDeep(restoreColorBindings(next, target), target).options,
+                            options: (stored && stored !== target
+                                ? stripRenderOverrides(restored, stored, target)
+                                : restored
+                            ).options,
                         });
                     }}
                 />

@@ -22133,7 +22133,9 @@ function WidgetFrameInner({
             {/* Runtime popup */}
             {popupOpen && hasClickAction && (
                 <WidgetClickPopup
-                    widget={config}
+                    // Resolved like the body (device card `{{parent}}` & co., #845), but
+                    // under the real id: the popup looks the widget up by it.
+                    widget={baseConfig === config ? config : { ...baseConfig, id: config.id }}
                     action={clickAction}
                     onClose={() => setPopupOpen(false)}
                     allWidgets={useDashboardStore

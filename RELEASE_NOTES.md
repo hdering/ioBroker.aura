@@ -17,3 +17,4 @@
 - Thermostat, shutter, select - the circle menu is now also a component of the custom layout, and switching a circle layout to Custom keeps the round button (#838)
 - Custom layout - the select cell can be shown as a circle menu: a round button with the current entry that fans all entries out, optionally with -/+ steps for numbers (#838)
 - Custom layout - new cell type "Chart": mirrors an existing chart widget inside one cell, so a device and its history fit into one widget (#838)
+- Device card - "Popup: widget content" on a child widget now shows the data of the card's own device instead of an empty chart or value (#845)
