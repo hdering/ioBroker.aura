@@ -923,6 +923,14 @@ export const WIDGET_OPTION_NOTES = {
         showTimestamp: { description: 'Zeitstempel im Bild anzeigen.' },
         infoItems: { description: 'Zusätzliche Werte, die über dem Bild eingeblendet werden.' },
         cameraTemplate: { description: 'Vorlage für eine bekannte Kameramarke.' },
+        talk: {
+            description:
+                'Gegensprechen (Türsprechstelle): Button "Annehmen"/"Auflegen" über dem Stream. Nur für go2rtc webrtc.html (iframe). Angenommen lädt den Stream mit media=…+microphone neu, sonst wird "microphone" aus der URL entfernt. Während des Gesprächs ruhen Stream-Timeout und Popup-Auto-Close. Braucht HTTPS für Aura und go2rtc.',
+        },
+        talkDp: {
+            description:
+                'Optional: true beim Annehmen, false beim Auflegen, Stream-Ende oder Schließen des Widgets/Popups (z. B. Gong der Klingel stoppen).',
+        },
     },
     panels: {
         loop: { description: 'Nach dem letzten Panel wieder beim ersten beginnen.' },

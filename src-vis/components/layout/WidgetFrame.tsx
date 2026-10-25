@@ -6595,6 +6595,7 @@ const PICKER_OPTION_KEYS = {
     status_windowDp: 'windowDp',
     camera_wakeUpDp: 'wakeUpDp',
     camera_urlDp: 'streamUrlDp',
+    camera_talkDp: 'talkDp',
     climate_humidityDp: 'humidityDatapoint',
     climate_targetDp: 'targetDatapoint',
     climate_pressureDp: 'pressureDatapoint',
@@ -13493,6 +13494,102 @@ function WidgetFrameInner({
                                                                 style={cSty}
                                                             />
                                                         </div>
+                                                    )}
+                                                </SubGroup>
+                                                <SubGroup title="Gegensprechen">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="min-w-0">
+                                                            <label
+                                                                className="text-[11px] block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Annehmen-Button
+                                                            </label>
+                                                            <p
+                                                                className="text-[10px]"
+                                                                style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                            >
+                                                                Mikrofon des Geräts über go2rtc an die Klingel
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => set({ talk: !o.talk || undefined })}
+                                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                            style={{
+                                                                background: o.talk
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                style={{ left: o.talk ? '18px' : '2px' }}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                    {!!o.talk && (
+                                                        <>
+                                                            {(() => {
+                                                                const url = (o.streamUrl as string) ?? '';
+                                                                const notes: string[] = [];
+                                                                if (
+                                                                    camUrlMode === 'static' &&
+                                                                    !/webrtc\.html/i.test(url)
+                                                                )
+                                                                    notes.push(
+                                                                        'Stream-URL muss go2rtc webrtc.html sein (…/webrtc.html?src=<stream>).',
+                                                                    );
+                                                                if (!window.isSecureContext)
+                                                                    notes.push(
+                                                                        'Aura läuft nicht über HTTPS – das Mikrofon gibt der Browser dann nicht frei.',
+                                                                    );
+                                                                return notes.map((n) => (
+                                                                    <p
+                                                                        key={n}
+                                                                        className="text-[10px] leading-tight"
+                                                                        style={{ color: '#f59e0b' }}
+                                                                    >
+                                                                        ⚠ {n}
+                                                                    </p>
+                                                                ));
+                                                            })()}
+                                                            <div>
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    Gesprächs-Datenpunkt{' '}
+                                                                    <span style={{ opacity: 0.6 }}>
+                                                                        (optional, true = angenommen)
+                                                                    </span>
+                                                                </label>
+                                                                <div className="flex gap-1">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={(o.talkDp as string) ?? ''}
+                                                                        onChange={(e) =>
+                                                                            set({ talkDp: e.target.value || undefined })
+                                                                        }
+                                                                        placeholder="mqtt.0.klingel.call"
+                                                                        className={`${cCls} flex-1 font-mono min-w-0`}
+                                                                        style={cSty}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setPickerTarget('camera_talkDp')}
+                                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                                        style={{
+                                                                            background: 'var(--app-bg)',
+                                                                            color: 'var(--text-secondary)',
+                                                                            border: '1px solid var(--app-border)',
+                                                                        }}
+                                                                        title={t('wf.edit.fromIoBroker')}
+                                                                    >
+                                                                        <Database size={13} />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </>
                                                     )}
                                                 </SubGroup>
                                             </ConfigSection>

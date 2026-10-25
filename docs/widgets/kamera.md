@@ -73,6 +73,43 @@ oder ohne, wenn der Player die Kamera selbst startet (eusec „Livestreams bei B
 Player-Status (eusec `stream.html`): Meldet die Player-Seite `waiting` oder `playing`, ruht der
 Timeout; bei `error`/`paused` läuft er neu an. `waiting` blendet „Station überträgt gerade „…““ ein.
 
+### Gegensprechen
+
+Türsprechstelle über go2rtc (WebRTC mit Rückkanal). Erst „Annehmen“ öffnet das Mikrofon des Geräts.
+
+![](./assets/kamera/talk.png)
+
+| Option | Standard | |
+| --- | --- | --- |
+| `talk` | `false` | Button „Annehmen“ / „Auflegen“ (nur `.html`-Stream) |
+| `talkDp` | — | `true` beim Annehmen, `false` beim Auflegen, Stream-Ende oder Schließen |
+
+| Voraussetzung | |
+| --- | --- |
+| Stream-URL | `https://<go2rtc>/webrtc.html?src=<stream>` — `stream.html` kann kein Mikrofon |
+| HTTPS | Aura **und** go2rtc, sonst gibt der Browser das Mikrofon nicht frei |
+| Fully Kiosk | „Enable Microphone Access“ |
+| Rückkanal | Kamera/Klingel mit go2rtc-Backchannel (ONVIF, DoorBird, Hikvision, Dahua, Tapo …) oder eigene `exec`-Quelle |
+
+| Verhalten | |
+| --- | --- |
+| `media` | angenommen `…+microphone`, sonst wird `microphone` aus der URL entfernt |
+| Stream-Timeout | ruht während des Gesprächs |
+| Popup-Auto-Close | ruht während des Gesprächs |
+| Vollbild | nur das Vollbild hält das Mikrofon |
+
+Klingeln → Popup: Admin → **Popups** → Trigger auf den Klingel-DP, Popup-Ansicht mit dieser Kamera.
+
+Bild, Mikrofon und Lautsprecher dürfen aus verschiedenen Quellen kommen, z. B. DIY-Klingel (Raspberry Pi) + separate Kamera:
+
+```yaml
+streams:
+  tuer:
+    - rtsp://user:pw@kamera/stream1
+    - exec:ffmpeg -hide_banner -f alsa -ac 1 -i plughw:1 -c:a libopus -rtsp_transport tcp -f rtsp {output}
+    - exec:aplay -t raw -f S16_BE -r 48000 -c 1 -#backchannel=1
+```
+
 ### Anzeige
 
 | Option | Standard | |

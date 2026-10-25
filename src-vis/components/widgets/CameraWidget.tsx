@@ -1,6 +1,18 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { Camera, BatteryMedium, Thermometer, Shield, Activity, Building2, RefreshCw, Maximize2, X } from 'lucide-react';
+import {
+    Camera,
+    BatteryMedium,
+    Thermometer,
+    Shield,
+    Activity,
+    Building2,
+    RefreshCw,
+    Maximize2,
+    X,
+    Phone,
+    PhoneOff,
+} from 'lucide-react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
 import type { WidgetProps, ioBrokerState } from '../../types';
@@ -16,6 +28,7 @@ import {
     type IframeInteractionMode,
 } from '../../utils/iframeInteraction';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { usePopupLayer } from '../../contexts/PopupLayerContext';
 
 // ── Exported types (used by WidgetFrame config) ───────────────────────────────
 
@@ -172,6 +185,31 @@ export function isMjpegStreamUrl(url: string): boolean {
     const path = rawPath.replace(/\/+$/, '');
     if (/\.(mjpe?g)$/.test(path) || /\/(mjpe?g|mjpeg_stream|mjpegstream)(\/|$)/.test(path)) return true;
     return /(^|&)action=stream(&|$)/.test(query);
+}
+
+/**
+ * Intercom (#836): go2rtc's `webrtc.html` sends the tablet microphone back to the
+ * camera/doorbell when `media` contains `microphone`. The stream only carries it
+ * while a call is accepted, so the microphone is never open by mere display — the
+ * token is added for a call and stripped otherwise, even from a configured URL.
+ */
+const MIC_TOKEN = 'microphone';
+
+export function talkStreamUrl(url: string, mic: boolean): string {
+    let u: URL;
+    try {
+        u = new URL(url, typeof window !== 'undefined' ? window.location.href : 'http://localhost/');
+    } catch {
+        return url;
+    }
+    const tokens = (u.searchParams.get('media') ?? '').split(/[\s,+]+/).filter(Boolean);
+    if (tokens.includes(MIC_TOKEN) === mic) return url;
+    const next = mic
+        ? [...(tokens.length ? tokens : ['video', 'audio']), MIC_TOKEN]
+        : tokens.filter((t) => t !== MIC_TOKEN);
+    if (next.length) u.searchParams.set('media', next.join('+'));
+    else u.searchParams.delete('media');
+    return u.toString();
 }
 
 const DEFAULT_LABELS: Partial<Record<CameraSlotType, string>> = {
@@ -518,6 +556,17 @@ interface StreamViewProps {
     /** Last state the embedded player page reported, null when it never did. */
     playerStatus: PlayerStatus | null;
     onPlayerStatus: (status: PlayerStatus) => void;
+    /** Intercom button over an iframe stream; undefined = option off. (#836) */
+    talk?: TalkControl;
+}
+
+interface TalkControl {
+    /** A call is accepted — drives the button. */
+    active: boolean;
+    /** This copy of the stream carries the microphone. Only one copy may: while
+     *  fullscreen is open the tile reconnects without it. */
+    micOn: boolean;
+    onToggle: () => void;
 }
 
 function StreamView(p: StreamViewProps) {
@@ -568,6 +617,7 @@ function StreamView(p: StreamViewProps) {
     }
 
     const hasError = p.loadError && p.mode === 'img';
+    const frameSrc = p.talk ? talkStreamUrl(p.streamUrl, p.talk.micOn) : p.streamUrl;
 
     // Countdown color: green → amber ≤60s → red ≤10s
     const sLeft = p.streamSecondsLeft;
@@ -580,11 +630,15 @@ function StreamView(p: StreamViewProps) {
                 <>
                     <iframe
                         ref={frameRef}
-                        key={`${p.streamUrl}#${p.wakeNonce}`}
-                        src={p.streamUrl}
+                        key={`${frameSrc}#${p.wakeNonce}`}
+                        src={frameSrc}
                         title={p.title || 'Kamera'}
                         className="aura-frame-neutral"
-                        allow="autoplay; fullscreen; picture-in-picture"
+                        allow={
+                            p.talk
+                                ? 'autoplay; fullscreen; picture-in-picture; microphone'
+                                : 'autoplay; fullscreen; picture-in-picture'
+                        }
                         scrolling={iframeScrollingAttr(p.interactionMode)}
                         style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                     />
@@ -684,7 +738,44 @@ function StreamView(p: StreamViewProps) {
                     <Maximize2 size={13} />
                 </button>
             )}
+
+            {p.talk && p.mode === 'iframe' && <TalkButton talk={p.talk} editMode={p.editMode} />}
         </div>
+    );
+}
+
+// ── TalkButton ────────────────────────────────────────────────────────────────
+
+function TalkButton({ talk, editMode }: { talk: TalkControl; editMode: boolean }) {
+    // Browsers hand out the microphone on secure pages only; over plain HTTP the
+    // call would connect one-way and look broken, so say why instead.
+    const secure = typeof window === 'undefined' || window.isSecureContext;
+    const disabled = editMode || !secure;
+    const Icon = talk.active ? PhoneOff : Phone;
+    return (
+        // Top centre: the bottom edge belongs to the stream-full overlay chips.
+        <button
+            type="button"
+            className="aura-camera-talk absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+            data-talk={talk.active ? 'active' : 'idle'}
+            disabled={disabled}
+            onClick={(e) => {
+                e.stopPropagation();
+                if (!disabled) talk.onToggle();
+            }}
+            title={secure ? undefined : 'Das Mikrofon gibt der Browser nur über HTTPS frei.'}
+            style={{
+                background: !secure ? 'rgba(0,0,0,0.6)' : talk.active ? '#ef4444' : '#22c55e',
+                color: '#fff',
+                border: 'none',
+                cursor: disabled ? 'default' : 'pointer',
+                // Above the `action`-mode interaction blocker, like the fullscreen button.
+                zIndex: 2,
+            }}
+        >
+            <Icon size={14} />
+            {!secure ? 'Mikrofon nur über HTTPS' : talk.active ? 'Auflegen' : 'Annehmen'}
+        </button>
     );
 }
 
@@ -896,6 +987,14 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const [streamSecondsLeft, setStreamSecondsLeft] = useState<number | null>(null);
     const [playerStatus, setPlayerStatus] = useState<PlayerStatus | null>(null);
 
+    // Intercom button only makes sense for a player page; the editor shows it inert.
+    const talkEnabled = !!opts.talk && mode === 'iframe';
+    const [talking, setTalking] = useState(false);
+    const talkingRef = useRef(false);
+    const talkDpRef = useRef('');
+    talkDpRef.current = editMode ? '' : ((opts.talkDp as string) ?? '');
+    const popupLayer = usePopupLayer();
+
     const containerRef = useRef<HTMLDivElement>(null);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const wakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -953,7 +1052,52 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         }, 1000);
     }
 
+    // ── Intercom (#836) ──────────────────────────────────────────────────────────
+    // A call keeps the stream and an enclosing popup open: neither the stream
+    // timeout nor the popup's auto-close may cut off someone mid-sentence.
+
+    function startCall() {
+        if (talkingRef.current) return;
+        talkingRef.current = true;
+        setTalking(true);
+        clearCountdown();
+        if (talkDpRef.current) setStateDirect(talkDpRef.current, true);
+    }
+
+    function endCall() {
+        if (!talkingRef.current) return;
+        talkingRef.current = false;
+        setTalking(false);
+        if (talkDpRef.current) setStateDirect(talkDpRef.current, false);
+    }
+
+    function toggleCall() {
+        if (!talkingRef.current) {
+            startCall();
+            return;
+        }
+        endCall();
+        if (streamReadyRef.current && onDemand && streamTimeoutCfgRef.current > 0) {
+            startCountdown(streamTimeoutCfgRef.current);
+        }
+    }
+
+    useEffect(() => {
+        if (!talkEnabled) endCall();
+    }, [talkEnabled]);
+
+    // Hang up when the widget goes away — popup closed, tab left, layout switched.
+    useEffect(() => () => endCall(), []);
+
+    useEffect(() => {
+        if (!talking || !popupLayer) return;
+        popupLayer.keepAlive();
+        const id = setInterval(() => popupLayer.keepAlive(), 1000);
+        return () => clearInterval(id);
+    }, [talking, popupLayer]);
+
     function doSleep(reason: StopReason = 'initial') {
+        endCall();
         if (wakeTimerRef.current) clearTimeout(wakeTimerRef.current);
         clearCountdown();
         if (wakeUpDpRef.current) setStateDirect(wakeUpDpRef.current, false);
@@ -994,7 +1138,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     // plain countdown from doWake().
     function handlePlayerStatus(status: PlayerStatus) {
         setPlayerStatus(status);
-        if (!streamReadyRef.current || streamTimeoutCfgRef.current <= 0) return;
+        if (!streamReadyRef.current || streamTimeoutCfgRef.current <= 0 || talkingRef.current) return;
         if (status.state === 'playing' || status.state === 'waiting') clearCountdown();
         else if (!countdownRef.current) startCountdown(streamTimeoutCfgRef.current);
     }
@@ -1120,6 +1264,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         interactionMode,
         playerStatus,
         onPlayerStatus: handlePlayerStatus,
+        talk: talkEnabled ? { active: talking, micOn: talking && !fullscreen, onToggle: toggleCall } : undefined,
     };
 
     const scProps: StreamCellProps = {
@@ -1132,7 +1277,12 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         doWake,
     };
 
-    const portal = fullscreen ? <FullscreenPortal svProps={svProps} onClose={() => setFullscreen(false)} /> : null;
+    const portal = fullscreen ? (
+        <FullscreenPortal
+            svProps={{ ...svProps, talk: svProps.talk && { ...svProps.talk, micOn: talking } }}
+            onClose={() => setFullscreen(false)}
+        />
+    ) : null;
 
     // ── MINIMAL layout ──────────────────────────────────────────────────────────────
     if (layout === 'minimal') {

@@ -135,11 +135,17 @@ function PopupDialog({ onClose, ...initial }: Props) {
     const [swapped, setSwapped] = useState<{ content: PopupContent; n: number } | null>(null);
     const { widget, action: rawAction, allWidgets = [], titleOverride } = swapped?.content ?? initial;
     const action = normalizeAction(rawAction);
+    // The layer is memoised; keepAlive reaches the current timer through this ref.
+    const armTimerRef = useRef<() => void>(() => {});
     const layer = useMemo<PopupLayer>(
         () => ({
             depth: (parent?.depth ?? 0) + 1,
             closeAll: parent?.closeAll ?? onClose,
             replace: (content) => setSwapped((cur) => ({ content, n: (cur?.n ?? 0) + 1 })),
+            keepAlive: () => {
+                armTimerRef.current();
+                parent?.keepAlive();
+            },
         }),
         [parent, onClose],
     );
@@ -223,6 +229,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
             timerRef.current = window.setTimeout(onClose, effectiveAutoCloseSec * 1000);
         }
     };
+    armTimerRef.current = armTimer;
     useEffect(() => {
         armTimer();
         return () => {

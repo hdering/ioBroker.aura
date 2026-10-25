@@ -29,6 +29,9 @@ export interface PopupLayer {
     closeAll: () => void;
     /** Shows `content` in this layer instead of its current content. */
     replace: (content: PopupContent) => void;
+    /** Restarts the auto-close timer of this layer and every layer below it — for
+     *  activity the popup cannot see, such as a call running inside an iframe (#836). */
+    keepAlive: () => void;
 }
 
 export const PopupLayerContext = createContext<PopupLayer | null>(null);
