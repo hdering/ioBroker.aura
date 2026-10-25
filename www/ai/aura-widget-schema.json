@@ -2087,34 +2087,9 @@
           ],
           "description": "which timestamp the last-change line and the lastchange cell show: 'lastChange' = when the value last changed (lc, default), 'lastUpdate' = when the datapoint was last written, even with the same value (ts)"
         },
-        "embedSource": {
-          "type": "string",
-          "enum": [
-            "embedded",
-            "mirror"
-          ],
-          "description": "'widget' cell: 'embedded' (default) = the chart's own settings live in `embed`; 'mirror' = shows an existing chart widget of the dashboard (`embedWidgetId`)"
-        },
-        "embed": {
-          "type": "object",
-          "fields": {
-            "type": {
-              "type": "string",
-              "enum": [
-                "echart"
-              ],
-              "required": true
-            },
-            "options": {
-              "type": "object",
-              "tsType": "Record<string, unknown>"
-            }
-          },
-          "description": "'widget' cell, embedSource 'embedded': the chart, stored exactly like a widget of that type stores its options. Only 'echart' (Diagramm erweitert) for now."
-        },
         "embedWidgetId": {
           "type": "string",
-          "description": "'widget' cell, embedSource 'mirror': id of the chart widget shown (type chart, echart or echartsPreset; any tab or layout); its settings stay on that widget"
+          "description": "'widget' cell: id of the chart widget shown (type chart, echart or echartsPreset; any tab or layout); its settings stay on that widget"
         },
         "clickAction": {
           "type": "object",
