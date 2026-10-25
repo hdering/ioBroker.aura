@@ -69,6 +69,20 @@ export const CELL_LABELS: Record<string, string> = {
 };
 
 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
+    climate: [
+        { key: 'icon', label: 'Widget-Icon' },
+        { key: 'actual', label: 'Isttemperatur (groß)' },
+        { key: 'main-values', label: 'Hauptwerte (Ist + Primärwerte)' },
+        { key: 'secondary-values', label: 'Werte rechts (Soll, Feuchte, Druck …)' },
+        { key: 'metrics', label: 'Weitere Werte' },
+        { key: 'comfort-badge', label: 'Komfort-Badge' },
+        { key: 'range-chips', label: 'Zeitraum-Auswahl' },
+        { key: 'chart', label: 'Verlaufsdiagramm' },
+        { key: 'battery-icon', label: 'Batterie-Icon' },
+        { key: 'reach-icon', label: 'Erreichbarkeit-Icon' },
+        { key: 'window-icon', label: 'Fenster-Icon' },
+        { key: 'status-badges', label: 'Status-Badges (alle)' },
+    ],
     value: [
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'battery-icon', label: 'Batterie-Icon' },
@@ -328,6 +342,16 @@ function splitEventKey(key: string): { base: string; index: number } {
 }
 
 const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
+    climate: [
+        { key: 'target', label: 'Solltemperatur' },
+        { key: 'humidity', label: 'Luftfeuchtigkeit' },
+        { key: 'pressure', label: 'Luftdruck' },
+        { key: 'average', label: 'Durchschnitt' },
+        { key: 'comfort', label: 'Komfort' },
+        { key: 'battery', label: 'Batterie' },
+        { key: 'reach', label: 'Erreichbarkeit' },
+        { key: 'window', label: 'Fenster' },
+    ],
     calendar: [
         { key: 'summary', label: 'Terminname' },
         { key: 'date', label: 'Datum / Zeit' },

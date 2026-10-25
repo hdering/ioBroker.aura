@@ -56,7 +56,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     scenes: ['default', 'card'],
     // One layout, no choice: the widget ignores `layout` entirely.
     gauge: ['default'],
-    climate: ['default'],
+    climate: ['default', 'custom'],
     aircontrol: ['default'],
     echartsPreset: ['default'],
     chips: ['default'],

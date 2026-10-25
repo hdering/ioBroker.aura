@@ -123,6 +123,14 @@ const CASES = [
         title: 'Heizung Kind',
     },
     {
+        type: 'climate',
+        layouts: { default: [10, 5] },
+        options: { targetDatapoint: DP_ACTUAL, humidityDatapoint: DP_BATT, showComfort: true, batteryDp: DP_BATT },
+        val: 21.5,
+        actual: 22,
+        title: 'Wohnzimmer',
+    },
+    {
         type: 'weather',
         layouts: { default: [10, 9], compact: [10, 2], minimal: [8, 5] },
         options: { forecastDays: 3 },

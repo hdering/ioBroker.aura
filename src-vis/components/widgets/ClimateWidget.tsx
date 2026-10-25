@@ -24,6 +24,8 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
 import { StatusBadges } from './StatusBadges';
+import { CustomGridView } from './CustomGridView';
+import { useStatusFields } from '../../hooks/useStatusFields';
 import {
     climateMetricRefs,
     formatMetric,
@@ -32,6 +34,7 @@ import {
     resolveClimateMetrics,
     HUMIDITY_CHART_COLOR,
     LEGACY_HUMIDITY,
+    LEGACY_PRESSURE,
     LEGACY_TARGET,
     type ClimateContext,
     type FormattedMetric,
@@ -55,12 +58,16 @@ function formatLabel(ts: number): string {
     });
 }
 
-function ComfortBadge({ temp, humidity }: { temp: number | null; humidity: number | null }) {
+function comfortState(temp: number | null, humidity: number | null): { color: string; label: string } {
     const tempOk = temp !== null && temp >= 18 && temp <= 24;
     const humOk = humidity !== null && humidity >= 40 && humidity <= 60;
-    const bothOk = tempOk && humOk;
-    const color = bothOk ? '#22c55e' : '#f59e0b';
-    const label = bothOk ? 'Komfortabel' : 'Außerhalb Komfortzone';
+    return tempOk && humOk
+        ? { color: '#22c55e', label: 'Komfortabel' }
+        : { color: '#f59e0b', label: 'Außerhalb Komfortzone' };
+}
+
+function ComfortBadge({ temp, humidity }: { temp: number | null; humidity: number | null }) {
+    const { color, label } = comfortState(temp, humidity);
     return (
         <span
             className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium self-start"
@@ -129,6 +136,17 @@ export function ClimateWidget({ config }: WidgetProps) {
     const showChartLegend = o.showChartLegend !== false;
 
     const TempIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
+    const layout = config.layout ?? 'default';
+    const {
+        battery,
+        reach,
+        window: windowText,
+        batteryIcon,
+        reachIcon,
+        windowIcon,
+        statusBadges,
+        statusItemCells,
+    } = useStatusFields(config);
 
     const targetDpId = (o.targetDatapoint as string | undefined) ?? '';
     const humidityDpId = (o.humidityDatapoint as string | undefined) ?? '';
@@ -333,7 +351,8 @@ export function ClimateWidget({ config }: WidgetProps) {
         });
         ro.observe(el);
         return () => ro.disconnect();
-    }, []);
+        // The layouts put the ref on different elements — observe the current one.
+    }, [layout]);
 
     const tooltipStyle = {
         background: 'var(--app-surface)',
@@ -385,6 +404,245 @@ export function ClimateWidget({ config }: WidgetProps) {
             </div>
         ) : null;
 
+    // ── Bausteine — vom Standard-Layout gezeichnet und dem Custom-Grid angeboten (#838) ──
+    const actualBlock = showActualTemp ? (
+        <div className="flex flex-col leading-none">
+            <span className="font-black" style={{ fontSize: Math.round(30 * fontScale), color: 'var(--text-primary)' }}>
+                {actualTemp !== null ? formatNum(actualTemp, decimals, numFmt) : '–'}
+                <span
+                    className="ml-0.5 font-medium"
+                    style={{ fontSize: Math.round(16 * fontScale), color: 'var(--text-secondary)' }}
+                >
+                    {unit}
+                </span>
+            </span>
+            {showAverageAsValue && avg !== null && (
+                <span className="mt-0.5" style={{ fontSize: Math.round(11 * fontScale), color: avgColor }}>
+                    Ø {formatNum(avg, decimals, numFmt)} {unit}
+                </span>
+            )}
+        </div>
+    ) : null;
+
+    const mainValues = (
+        <div className="flex items-end gap-3 min-w-0">
+            {actualBlock}
+            {primaryMetrics.map((m) => (
+                <ClimateMetricPrimary key={m.id} metric={m} formatted={formatted[m.id]} fontScale={fontScale} />
+            ))}
+        </div>
+    );
+
+    const secondaryValues =
+        secondaryMetrics.length > 0 ? (
+            <div className="flex flex-col items-end gap-0.5 shrink-0">
+                {secondaryMetrics.map((m) =>
+                    // Die Soll-Temperatur war schon immer weg, wenn sie keinen Wert hat.
+                    m.id === LEGACY_TARGET && formatted[m.id].empty ? null : (
+                        <ClimateMetricValue
+                            key={m.id}
+                            metric={m}
+                            formatted={formatted[m.id]}
+                            fontScale={fontScale}
+                            showLabel={m.legacy ? true : showMetricLabels}
+                        />
+                    ),
+                )}
+            </div>
+        ) : null;
+
+    const metricGrid = (
+        <ClimateMetricGrid
+            metrics={gridMetrics}
+            formatted={formatted}
+            fontScale={fontScale}
+            columns={metricColumns}
+            showLabels={showMetricLabels}
+        />
+    );
+
+    const comfortBadge = showComfort ? <ComfortBadge temp={actualTemp} humidity={humidity} /> : null;
+
+    const chartBody = !showChartSection ? null : history.length > 1 ? (
+        hasSize ? (
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={history}>
+                    <defs>
+                        <linearGradient id={`climate-grad-${config.id}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
+                            <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
+                        </linearGradient>
+                    </defs>
+                    {showGridLines && <CartesianGrid horizontal vertical={false} stroke="var(--app-border)" />}
+                    <YAxis
+                        yAxisId="left"
+                        domain={['auto', 'auto']}
+                        hide={!showYAxis}
+                        tick={tickStyle}
+                        tickLine={false}
+                        axisLine={false}
+                        width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
+                        tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact, numFmt)}
+                    />
+                    {hasRightAxis && (
+                        <YAxis
+                            yAxisId="right"
+                            orientation="right"
+                            domain={['auto', 'auto']}
+                            hide={!showYAxis}
+                            tick={tickStyle}
+                            tickLine={false}
+                            axisLine={false}
+                            width={showYAxis ? (yAxisCompact ? 28 : 42) : 0}
+                            tickFormatter={(v: number) => formatYTick(v, 0, yAxisCompact, numFmt)}
+                        />
+                    )}
+                    <XAxis dataKey="t" type="number" domain={['dataMin', 'dataMax']} scale="time" hide />
+                    <Tooltip
+                        contentStyle={tooltipStyle}
+                        labelFormatter={(label) => formatLabel(Number(label))}
+                        formatter={(v, _n, entry) => {
+                            const meta = seriesMeta[String(entry?.dataKey ?? TEMP_SERIES)];
+                            if (!meta) return String(v);
+                            return [`${formatNum(Number(v), meta.decimals, numFmt)} ${meta.unit}`.trim(), meta.name];
+                        }}
+                    />
+                    {showChartLegend && chartSeries.length > 1 && (
+                        <Legend
+                            iconSize={8}
+                            wrapperStyle={{
+                                fontSize: Math.round(10 * fontScale),
+                                color: 'var(--text-secondary)',
+                            }}
+                            formatter={(value) => seriesMeta[String(value)]?.name ?? String(value)}
+                        />
+                    )}
+                    {showTempSeries && (
+                        <Area
+                            yAxisId="left"
+                            type="monotone"
+                            dataKey={TEMP_SERIES}
+                            stroke={lineColor}
+                            strokeWidth={2}
+                            fill={`url(#climate-grad-${config.id})`}
+                            dot={false}
+                            connectNulls
+                            isAnimationActive={false}
+                        />
+                    )}
+                    {chartMetrics.map((m) =>
+                        m.chartType === 'area' ? (
+                            <Area
+                                key={m.id}
+                                yAxisId={m.chartAxis === 'right' ? 'right' : 'left'}
+                                type="monotone"
+                                dataKey={m.id}
+                                stroke={m.color ?? 'var(--accent)'}
+                                fill={m.color ?? 'var(--accent)'}
+                                fillOpacity={0.15}
+                                strokeWidth={1.5}
+                                dot={false}
+                                connectNulls
+                                isAnimationActive={false}
+                            />
+                        ) : (
+                            <Line
+                                key={m.id}
+                                yAxisId={m.chartAxis === 'right' ? 'right' : 'left'}
+                                type="monotone"
+                                dataKey={m.id}
+                                stroke={m.color ?? 'var(--accent)'}
+                                strokeWidth={1.5}
+                                dot={false}
+                                connectNulls
+                                isAnimationActive={false}
+                            />
+                        ),
+                    )}
+                    {showAverage && avg !== null && (
+                        <ReferenceLine
+                            yAxisId="left"
+                            y={avg}
+                            stroke={avgColor}
+                            strokeDasharray="4 3"
+                            strokeWidth={1.5}
+                            label={{
+                                value: `Ø ${formatNum(avg, decimals, numFmt)} ${unit}`,
+                                position: 'insideTopRight',
+                                fill: avgColor,
+                                fontSize: 10,
+                            }}
+                        />
+                    )}
+                </AreaChart>
+            </ResponsiveContainer>
+        ) : null
+    ) : (
+        <div
+            className="flex flex-col items-center justify-center h-full gap-2"
+            style={{ color: 'var(--text-secondary)' }}
+        >
+            {loading ? (
+                <Loader size={16} strokeWidth={1.5} className="animate-spin" />
+            ) : (
+                <BarChart2 size={18} strokeWidth={1} />
+            )}
+            <span className="text-xs">{loading ? 'Lade Verlauf…' : 'Warte auf Daten…'}</span>
+        </div>
+    );
+
+    // ── CUSTOM (#838) ─────────────────────────────────────────────────────────
+    if (layout === 'custom') {
+        const metricText = (id: string) => formatted[id]?.text ?? '';
+        return (
+            <div ref={containerRef} className="h-full w-full" style={{ position: 'relative' }}>
+                <CustomGridView
+                    config={config}
+                    value={actualTemp !== null ? formatNum(actualTemp, decimals, numFmt) : '–'}
+                    rawValue={actualTemp}
+                    unit={unit}
+                    extraFields={{
+                        target: metricText(LEGACY_TARGET),
+                        humidity: metricText(LEGACY_HUMIDITY),
+                        pressure: metricText(LEGACY_PRESSURE),
+                        average: avg !== null ? `Ø ${formatNum(avg, decimals, numFmt)} ${unit}` : '',
+                        comfort: comfortState(actualTemp, humidity).label,
+                        battery,
+                        reach,
+                        window: windowText,
+                    }}
+                    extraComponents={{
+                        icon: showIcon ? (
+                            <TempIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                strokeWidth={1.5}
+                                style={{ '--aura-icon-color': `var(--aura-cell-color, ${lineColor})`, flexShrink: 0 }}
+                            />
+                        ) : null,
+                        actual: actualBlock,
+                        'main-values': <div className="aura-widget-value">{mainValues}</div>,
+                        'secondary-values': secondaryValues,
+                        metrics: gridMetrics.length > 0 ? <div className="w-full">{metricGrid}</div> : null,
+                        'comfort-badge': comfortBadge,
+                        'range-chips': rangeSelector,
+                        // isolation:isolate — see the default layout's chart.
+                        chart: chartBody ? (
+                            <div className="w-full h-full" style={{ minHeight: 1, isolation: 'isolate' }}>
+                                {chartBody}
+                            </div>
+                        ) : null,
+                        'battery-icon': batteryIcon,
+                        'reach-icon': reachIcon,
+                        'window-icon': windowIcon,
+                        'status-badges': statusBadges,
+                        ...statusItemCells,
+                    }}
+                />
+            </div>
+        );
+    }
+
     return (
         <div ref={containerRef} className="aura-widget-row flex flex-col h-full gap-1" style={{ position: 'relative' }}>
             {/* Title */}
@@ -426,215 +684,24 @@ export function ClimateWidget({ config }: WidgetProps) {
             {/* Main values */}
             {(showActualTemp || primaryMetrics.length > 0 || secondaryMetrics.length > 0) && (
                 <div className="aura-widget-value flex items-end justify-between gap-2">
-                    <div className="flex items-end gap-3 min-w-0">
-                        {showActualTemp && (
-                            <div className="flex flex-col leading-none">
-                                <span
-                                    className="font-black"
-                                    style={{ fontSize: Math.round(30 * fontScale), color: 'var(--text-primary)' }}
-                                >
-                                    {actualTemp !== null ? formatNum(actualTemp, decimals, numFmt) : '–'}
-                                    <span
-                                        className="ml-0.5 font-medium"
-                                        style={{ fontSize: Math.round(16 * fontScale), color: 'var(--text-secondary)' }}
-                                    >
-                                        {unit}
-                                    </span>
-                                </span>
-                                {showAverageAsValue && avg !== null && (
-                                    <span
-                                        className="mt-0.5"
-                                        style={{ fontSize: Math.round(11 * fontScale), color: avgColor }}
-                                    >
-                                        Ø {formatNum(avg, decimals, numFmt)} {unit}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-                        {primaryMetrics.map((m) => (
-                            <ClimateMetricPrimary
-                                key={m.id}
-                                metric={m}
-                                formatted={formatted[m.id]}
-                                fontScale={fontScale}
-                            />
-                        ))}
-                    </div>
-                    {secondaryMetrics.length > 0 && (
-                        <div className="flex flex-col items-end gap-0.5 shrink-0">
-                            {secondaryMetrics.map((m) =>
-                                // Die Soll-Temperatur war schon immer weg, wenn sie keinen Wert hat.
-                                m.id === LEGACY_TARGET && formatted[m.id].empty ? null : (
-                                    <ClimateMetricValue
-                                        key={m.id}
-                                        metric={m}
-                                        formatted={formatted[m.id]}
-                                        fontScale={fontScale}
-                                        showLabel={m.legacy ? true : showMetricLabels}
-                                    />
-                                ),
-                            )}
-                        </div>
-                    )}
+                    {mainValues}
+                    {secondaryValues}
                 </div>
             )}
 
             {/* Weitere Werte */}
-            <ClimateMetricGrid
-                metrics={gridMetrics}
-                formatted={formatted}
-                fontScale={fontScale}
-                columns={metricColumns}
-                showLabels={showMetricLabels}
-            />
+            {metricGrid}
 
             {/* Comfort badge */}
-            {showComfort && <ComfortBadge temp={actualTemp} humidity={humidity} />}
+            {comfortBadge}
 
             {/* Range selector */}
             {rangeSelector && <div>{rangeSelector}</div>}
 
             {/* Chart — isolation:isolate ensures the SVG stacking context doesn't cover the WidgetFrame last-change overlay */}
-            {showChartSection && (
+            {chartBody && (
                 <div className="flex-1" style={{ minHeight: 1, isolation: 'isolate' }}>
-                    {history.length > 1 ? (
-                        hasSize ? (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={history}>
-                                    <defs>
-                                        <linearGradient id={`climate-grad-${config.id}`} x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor={lineColor} stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    {showGridLines && (
-                                        <CartesianGrid horizontal vertical={false} stroke="var(--app-border)" />
-                                    )}
-                                    <YAxis
-                                        yAxisId="left"
-                                        domain={['auto', 'auto']}
-                                        hide={!showYAxis}
-                                        tick={tickStyle}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
-                                        tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact, numFmt)}
-                                    />
-                                    {hasRightAxis && (
-                                        <YAxis
-                                            yAxisId="right"
-                                            orientation="right"
-                                            domain={['auto', 'auto']}
-                                            hide={!showYAxis}
-                                            tick={tickStyle}
-                                            tickLine={false}
-                                            axisLine={false}
-                                            width={showYAxis ? (yAxisCompact ? 28 : 42) : 0}
-                                            tickFormatter={(v: number) => formatYTick(v, 0, yAxisCompact, numFmt)}
-                                        />
-                                    )}
-                                    <XAxis
-                                        dataKey="t"
-                                        type="number"
-                                        domain={['dataMin', 'dataMax']}
-                                        scale="time"
-                                        hide
-                                    />
-                                    <Tooltip
-                                        contentStyle={tooltipStyle}
-                                        labelFormatter={(label) => formatLabel(Number(label))}
-                                        formatter={(v, _n, entry) => {
-                                            const meta = seriesMeta[String(entry?.dataKey ?? TEMP_SERIES)];
-                                            if (!meta) return String(v);
-                                            return [
-                                                `${formatNum(Number(v), meta.decimals, numFmt)} ${meta.unit}`.trim(),
-                                                meta.name,
-                                            ];
-                                        }}
-                                    />
-                                    {showChartLegend && chartSeries.length > 1 && (
-                                        <Legend
-                                            iconSize={8}
-                                            wrapperStyle={{
-                                                fontSize: Math.round(10 * fontScale),
-                                                color: 'var(--text-secondary)',
-                                            }}
-                                            formatter={(value) => seriesMeta[String(value)]?.name ?? String(value)}
-                                        />
-                                    )}
-                                    {showTempSeries && (
-                                        <Area
-                                            yAxisId="left"
-                                            type="monotone"
-                                            dataKey={TEMP_SERIES}
-                                            stroke={lineColor}
-                                            strokeWidth={2}
-                                            fill={`url(#climate-grad-${config.id})`}
-                                            dot={false}
-                                            connectNulls
-                                            isAnimationActive={false}
-                                        />
-                                    )}
-                                    {chartMetrics.map((m) =>
-                                        m.chartType === 'area' ? (
-                                            <Area
-                                                key={m.id}
-                                                yAxisId={m.chartAxis === 'right' ? 'right' : 'left'}
-                                                type="monotone"
-                                                dataKey={m.id}
-                                                stroke={m.color ?? 'var(--accent)'}
-                                                fill={m.color ?? 'var(--accent)'}
-                                                fillOpacity={0.15}
-                                                strokeWidth={1.5}
-                                                dot={false}
-                                                connectNulls
-                                                isAnimationActive={false}
-                                            />
-                                        ) : (
-                                            <Line
-                                                key={m.id}
-                                                yAxisId={m.chartAxis === 'right' ? 'right' : 'left'}
-                                                type="monotone"
-                                                dataKey={m.id}
-                                                stroke={m.color ?? 'var(--accent)'}
-                                                strokeWidth={1.5}
-                                                dot={false}
-                                                connectNulls
-                                                isAnimationActive={false}
-                                            />
-                                        ),
-                                    )}
-                                    {showAverage && avg !== null && (
-                                        <ReferenceLine
-                                            yAxisId="left"
-                                            y={avg}
-                                            stroke={avgColor}
-                                            strokeDasharray="4 3"
-                                            strokeWidth={1.5}
-                                            label={{
-                                                value: `Ø ${formatNum(avg, decimals, numFmt)} ${unit}`,
-                                                position: 'insideTopRight',
-                                                fill: avgColor,
-                                                fontSize: 10,
-                                            }}
-                                        />
-                                    )}
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        ) : null
-                    ) : (
-                        <div
-                            className="flex flex-col items-center justify-center h-full gap-2"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            {loading ? (
-                                <Loader size={16} strokeWidth={1.5} className="animate-spin" />
-                            ) : (
-                                <BarChart2 size={18} strokeWidth={1} />
-                            )}
-                            <span className="text-xs">{loading ? 'Lade Verlauf…' : 'Warte auf Daten…'}</span>
-                        </div>
-                    )}
+                    {chartBody}
                 </div>
             )}
 

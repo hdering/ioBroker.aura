@@ -9555,8 +9555,72 @@
         "h": 6
       },
       "layouts": [
-        "default"
+        "default",
+        "custom"
       ],
+      "customFromLayout": {
+        "default": {
+          "cols": 3,
+          "rows": 3,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "main-values",
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2,
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "secondary-values",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "20px",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "conditionSlots": [
         "icon",
         "title"
@@ -9582,6 +9646,7 @@
         "conditions",
         "confirmAction",
         "confirmText",
+        "customGrid",
         "decimals",
         "defaultCollapsed",
         "fullscreenPosition",

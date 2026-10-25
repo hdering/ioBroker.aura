@@ -20,6 +20,7 @@ import { buildMediaplayerGrid } from './mediaplayer';
 import { buildLightGrid } from './light';
 import { buildCalendarGrid } from './calendar';
 import { buildEvccGrid } from './evcc';
+import { buildClimateGrid } from './climate';
 
 /**
  * Custom grids that rebuild a widget's fixed layouts (#768).
@@ -61,6 +62,7 @@ const PRESETS: Record<string, PresetBuilder> = {
     light: buildLightGrid,
     calendar: buildCalendarGrid,
     evcc: buildEvccGrid,
+    climate: buildClimateGrid,
 };
 
 /**

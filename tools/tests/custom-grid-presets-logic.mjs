@@ -66,6 +66,7 @@ const SOURCE = {
     light: 'LightWidget.tsx',
     calendar: 'CalendarWidget.tsx',
     evcc: 'EvccWidget.tsx',
+    climate: 'ClimateWidget.tsx',
 };
 // Types whose layouts draw no status badges (no battery / reach DPs).
 const NO_BADGES = new Set([
