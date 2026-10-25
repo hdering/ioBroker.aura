@@ -2822,38 +2822,190 @@ export function CustomCellEditor({
                                     )}
                                 </div>
                             )}
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-2">
                                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    Aktuelles Label anzeigen
+                                    Darstellung
                                 </label>
-                                <button
-                                    onClick={() => onChange({ showSelectedLabel: !cell.showSelectedLabel })}
-                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                    style={{
-                                        background: cell.showSelectedLabel ? 'var(--accent)' : 'var(--app-border)',
-                                    }}
+                                <div
+                                    className="aura-select-display flex rounded-lg overflow-hidden shrink-0"
+                                    style={{ border: '1px solid var(--app-border)' }}
                                 >
-                                    <span
-                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: cell.showSelectedLabel ? '14px' : '2px' }}
-                                    />
-                                </button>
+                                    {(
+                                        [
+                                            { key: 'dropdown', label: 'Dropdown' },
+                                            { key: 'circle', label: 'Kreismenü' },
+                                        ] as const
+                                    ).map(({ key, label }) => {
+                                        const active = (cell.selectDisplay ?? 'dropdown') === key;
+                                        return (
+                                            <button
+                                                key={key}
+                                                onClick={() =>
+                                                    onChange({ selectDisplay: key === 'dropdown' ? undefined : key })
+                                                }
+                                                className="text-[10px] px-2 py-1 transition-colors"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: 'none',
+                                                }}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    Dropdown ausblenden (nur Einträge)
-                                </label>
-                                <button
-                                    onClick={() => onChange({ hideSelect: !cell.hideSelect })}
-                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                    style={{ background: cell.hideSelect ? 'var(--accent)' : 'var(--app-border)' }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: cell.hideSelect ? '14px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
+                            {cell.selectDisplay === 'circle' && (
+                                <div className="aura-select-circle space-y-2">
+                                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        Runder Knopf mit dem aktuellen Eintrag; ein Tipp fächert alle Einträge im Kreis
+                                        auf. Mit Schrittweite kommen − und + für Zahlen dazu.
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {(
+                                            [
+                                                ['circleStep', 'Schritt − / +'],
+                                                ['min', 'Min'],
+                                                ['max', 'Max'],
+                                            ] as const
+                                        ).map(([key, label]) => (
+                                            <div key={key}>
+                                                <label
+                                                    className="text-[10px] mb-0.5 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {label}
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    value={cell[key] ?? ''}
+                                                    placeholder="–"
+                                                    onChange={(e) =>
+                                                        onChange({
+                                                            [key]:
+                                                                e.target.value === ''
+                                                                    ? undefined
+                                                                    : Number(e.target.value),
+                                                        })
+                                                    }
+                                                    className={inputCls}
+                                                    style={inputSty}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label
+                                                className="text-[10px] mb-0.5 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Richtung
+                                            </label>
+                                            <select
+                                                value={cell.circleDirection ?? 'auto'}
+                                                onChange={(e) =>
+                                                    onChange({
+                                                        circleDirection:
+                                                            e.target.value === 'auto'
+                                                                ? undefined
+                                                                : (e.target.value as CustomCell['circleDirection']),
+                                                    })
+                                                }
+                                                className={inputCls}
+                                                style={inputSty}
+                                            >
+                                                <option value="auto">Automatisch</option>
+                                                <option value="full">Vollkreis</option>
+                                                <option value="top">Halbkreis oben</option>
+                                                <option value="right">Halbkreis rechts</option>
+                                                <option value="bottom">Halbkreis unten</option>
+                                                <option value="left">Halbkreis links</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label
+                                                className="text-[10px] mb-0.5 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Eintragsgröße px
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={32}
+                                                max={96}
+                                                value={cell.circleItemSize ?? 48}
+                                                onChange={(e) =>
+                                                    onChange({
+                                                        circleItemSize:
+                                                            e.target.value === '' || Number(e.target.value) === 48
+                                                                ? undefined
+                                                                : Number(e.target.value),
+                                                    })
+                                                }
+                                                className={inputCls}
+                                                style={inputSty}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                            Nach Auswahl offen bleiben
+                                        </label>
+                                        <button
+                                            onClick={() =>
+                                                onChange({ circleKeepOpen: cell.circleKeepOpen ? undefined : true })
+                                            }
+                                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                            style={{
+                                                background: cell.circleKeepOpen ? 'var(--accent)' : 'var(--app-border)',
+                                            }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                style={{ left: cell.circleKeepOpen ? '14px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                            {cell.selectDisplay !== 'circle' && (
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                        Aktuelles Label anzeigen
+                                    </label>
+                                    <button
+                                        onClick={() => onChange({ showSelectedLabel: !cell.showSelectedLabel })}
+                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                        style={{
+                                            background: cell.showSelectedLabel ? 'var(--accent)' : 'var(--app-border)',
+                                        }}
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                            style={{ left: cell.showSelectedLabel ? '14px' : '2px' }}
+                                        />
+                                    </button>
+                                </div>
+                            )}
+                            {cell.selectDisplay !== 'circle' && (
+                                <div className="flex items-center justify-between">
+                                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                        Dropdown ausblenden (nur Einträge)
+                                    </label>
+                                    <button
+                                        onClick={() => onChange({ hideSelect: !cell.hideSelect })}
+                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                        style={{ background: cell.hideSelect ? 'var(--accent)' : 'var(--app-border)' }}
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                            style={{ left: cell.hideSelect ? '14px' : '2px' }}
+                                        />
+                                    </button>
+                                </div>
+                            )}
                             <div className="flex items-center justify-between gap-2">
                                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                     Anzeige aktueller Eintrag

@@ -22,10 +22,11 @@ import { cellBarColor } from '../../utils/cellBarColor';
 import { BarValueLabel, BAR_VALUE_EMPTY_COLOR, BAR_VALUE_FILLED_COLOR } from './BarValueLabel';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
 import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
-import { EnumCurrent, EnumOptionLabel, type EnumEntry } from './enumEntry';
+import { EnumCircleContent, EnumCurrent, EnumOptionLabel, entryRenderMode, type EnumEntry } from './enumEntry';
+import { CircleMenu, type CircleMenuItem } from './CircleMenu';
 import { HtmlSelect } from '../common/HtmlSelect';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HelpCircle, Send } from 'lucide-react';
+import { HelpCircle, Minus, Plus, Send } from 'lucide-react';
 import type { DateOutputFormat } from '../../utils/dateValue';
 import { useDateValueFields, type DateValueSettings } from '../common/DateValueFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
@@ -1896,6 +1897,104 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     const lcLine = cell.showLastChange && (
         <LastChangeLine lc={lastChangeTs(state, cell.lastChangeSource)} fmt={cell.lastChangeFormat ?? 'relative'} />
     );
+
+    // Circle display (#838): the Auswahlfeld's circle menu inside one cell —
+    // every entry a button around the round trigger, optionally − / + steps.
+    if (cell.selectDisplay === 'circle') {
+        const itemSize = cell.circleItemSize || 48;
+        const step = cell.circleStep;
+        const num = typeof value === 'number' ? value : Number(currentStr);
+        const canStep = !!step && step > 0 && currentStr !== '' && Number.isFinite(num);
+        const stepBy = (dir: 1 | -1) => {
+            let next = Math.round((num + dir * step!) / step!) * step!;
+            if (cell.min !== undefined) next = Math.max(cell.min, next);
+            if (cell.max !== undefined) next = Math.min(cell.max, next);
+            // Float noise (0.1 + 0.2) must not reach the datapoint.
+            setValue(Number(next.toFixed(10)));
+        };
+        const itemIcon = Math.round(itemSize * 0.42);
+        const items: CircleMenuItem[] = [
+            ...(canStep
+                ? [
+                      {
+                          key: 'minus',
+                          content: <Minus size={itemIcon} />,
+                          title: '−',
+                          onSelect: () => stepBy(-1),
+                          stays: true,
+                      },
+                  ]
+                : []),
+            ...entries.map((e): CircleMenuItem => {
+                const active = current?.value === e.value;
+                return {
+                    key: `value-${e.value}`,
+                    content: <EnumCircleContent entry={e} iconPx={Math.round(itemSize * 0.5)} share="70%" />,
+                    title: e.label || e.value,
+                    active,
+                    onSelect: () => onPick(e.value),
+                    style: !active && e.color ? { color: e.color } : undefined,
+                };
+            }),
+            ...(canStep
+                ? [
+                      {
+                          key: 'plus',
+                          content: <Plus size={itemIcon} />,
+                          title: '+',
+                          onSelect: () => stepBy(1),
+                          stays: true,
+                      },
+                  ]
+                : []),
+        ];
+        const accent = cond.color || current?.color || cell.color || 'var(--accent)';
+        const label = current ? current.label || current.value : fallback;
+        const picture = current && (current.icon || entryRenderMode(current) === 'image');
+        return (
+            <div className={`aura-custom-cell-${index}`} style={{ ...wrapSty, alignItems: 'stretch', padding: 2 }}>
+                <div className="w-full h-full min-h-0">
+                    <CircleMenu
+                        triggerTitle={label}
+                        triggerStyle={{ borderColor: accent }}
+                        items={items}
+                        direction={cell.circleDirection || 'auto'}
+                        itemSize={itemSize}
+                        keepOpen={!!cell.circleKeepOpen}
+                        center={canStep ? label : undefined}
+                        trigger={
+                            <>
+                                {picture && current && (
+                                    <span
+                                        className="flex items-center justify-center"
+                                        style={{ color: accent, width: '40%', height: '40%' }}
+                                    >
+                                        <EnumCircleContent entry={current} share="100%" />
+                                    </span>
+                                )}
+                                {(!picture || display !== 'icon') && (
+                                    <span
+                                        className="font-semibold text-center"
+                                        style={{
+                                            color: finalColor,
+                                            fontSize: cell.fontSize ? `${cell.fontSize}px` : '16cqw',
+                                            lineHeight: 1.15,
+                                            maxWidth: '80%',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap',
+                                        }}
+                                    >
+                                        {label}
+                                    </span>
+                                )}
+                            </>
+                        }
+                    />
+                </div>
+            </div>
+        );
+    }
 
     if (hideSelect) {
         return (

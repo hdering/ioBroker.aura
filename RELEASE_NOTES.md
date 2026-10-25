@@ -15,3 +15,4 @@
 - Room climate - new "Custom" layout: switching to it rebuilds the current layout as a custom grid, including the history chart, the value columns and the comfort badge (#838)
 - Room climate - the target temperature can be set from the widget: "Target adjustable" adds -/+ beside the target and quick-select buttons, and the custom layout offers the circle menu as in the thermostat (#838)
 - Thermostat, shutter, select - the circle menu is now also a component of the custom layout, and switching a circle layout to Custom keeps the round button (#838)
+- Custom layout - the select cell can be shown as a circle menu: a round button with the current entry that fans all entries out, optionally with -/+ steps for numbers (#838)

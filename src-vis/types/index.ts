@@ -328,9 +328,9 @@ export interface CustomCell {
     imageHeight?: number; // 'image' type: explicit height in px (undefined = fill cell height)
     // NOTE: 'image' cells also reuse `dpId` — when set, the image source is read from that datapoint's value (URL / path / base64), like the standalone Image widget.
     // 'slider' type
-    min?: number;
-    max?: number;
-    step?: number;
+    min?: number; // 'slider' cell: lower end; 'select' cell in circle display: lowest value the − entry steps to (unset = no limit)
+    max?: number; // 'slider' cell: upper end; 'select' cell in circle display: highest value the + entry steps to (unset = no limit)
+    step?: number; // 'slider' cell: step width
     barStyle?: boolean;
     barSize?: number;
     orientation?: 'horizontal' | 'vertical';
@@ -413,6 +413,11 @@ export interface CustomCell {
     entriesImageKey?: string; // 'select' cell: JSON field holding the image URL (empty = auto-detect)
     showSelectedLabel?: boolean; // 'select' cell: render current label next to dropdown
     hideSelect?: boolean; // 'select' cell: hide dropdown and render entries as a button group
+    selectDisplay?: 'dropdown' | 'circle'; // 'select' cell: 'dropdown' (default) or 'circle' — a round button with the current entry that fans every entry out as a circle menu, like the Auswahlfeld's circle layout (#838); hideSelect and showSelectedLabel are ignored then
+    circleStep?: number; // 'select' cell in circle display: adds − / + entries that step a numeric datapoint by this amount (within min/max); unset = only the entries
+    circleDirection?: 'auto' | 'full' | 'top' | 'right' | 'bottom' | 'left'; // 'select' cell in circle display: where the menu fans out — 'auto' full circle when it fits, else the half with the most room (default)
+    circleItemSize?: number; // 'select' cell in circle display: diameter of the entries in px (default 48)
+    circleKeepOpen?: boolean; // 'select' cell in circle display: stay open after an entry was picked (− / + always keep it open)
     entryDisplay?: 'icon' | 'icon-text' | 'text'; // 'select' cell: how the current entry is shown (default 'text')
     // last-change display (for value-bearing cells)
     showLastChange?: boolean; // show lc timestamp below the cell content

@@ -152,6 +152,14 @@ Das [Auswahlfeld](./auswahlfeld)-Widget als Zelle — mit denselben Einträgen, 
 | `showSelectedLabel` | `false` | aktuellen Eintrag neben dem Dropdown anzeigen |
 | `hideSelect` | `false` | Dropdown ausblenden (nur der aktuelle Eintrag) |
 | `entryDisplay` | `text` | `text` · `icon-text` · `icon` |
+| `selectDisplay` | `dropdown` | `dropdown` · `circle` = Kreismenü wie beim [Auswahlfeld](./auswahlfeld) |
+| `circleStep` | — | nur `circle`: zusätzlich − / + mit dieser Schrittweite (Zahlen-DP) |
+| `min` · `max` | — | nur `circle`: Grenzen für − / + |
+| `circleDirection` | `auto` | `auto` · `full` · `top` · `right` · `bottom` · `left` |
+| `circleItemSize` | `48` | px |
+| `circleKeepOpen` | `false` | nach Auswahl offen bleiben |
+
+![](./assets/custom-layout/select-circle.png)
 
 Akzeptierte JSON-Formen und die Feldnamen-Erkennung: siehe [Auswahlfeld → JSON-Datenpunkt](./auswahlfeld#json-datenpunkt).
 

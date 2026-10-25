@@ -152,3 +152,44 @@ export function EnumOptionLabel({ entry, size = 16 }: { entry: EnumEntry; size?:
         </span>
     );
 }
+
+/**
+ * An entry as it fits into a round button: its image or icon filling a share of
+ * the circle, else the label. `iconPx` sizes icons (px, unset = `share`); images take `share` of
+ * the button. The colour is left to the caller (an active entry draws white).
+ * Shared by the Auswahlfeld widget and the select cell of the custom grid (#838).
+ */
+export function EnumCircleContent({ entry, iconPx, share }: { entry: EnumEntry; iconPx?: number; share: string }) {
+    const mode = entryRenderMode(entry);
+    if (mode === 'image' && entry.image) {
+        return (
+            <img
+                src={resolveImageSource(entry.image)}
+                alt={entry.label}
+                style={{ width: share, height: share, objectFit: 'contain' }}
+            />
+        );
+    }
+    if (entry.icon && (mode === 'icon' || mode === 'text')) {
+        const Icon = getWidgetIcon(entry.icon, ListChecks);
+        return iconPx ? (
+            <Icon size={iconPx} style={{ flexShrink: 0 }} />
+        ) : (
+            <Icon style={{ width: share, height: share, flexShrink: 0 }} />
+        );
+    }
+    if (mode === 'html') return <EnumEntryLabel entry={entry} style={{ color: 'inherit' }} />;
+    return (
+        <span
+            style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                wordBreak: 'break-word',
+            }}
+        >
+            {entry.label || entry.value}
+        </span>
+    );
+}

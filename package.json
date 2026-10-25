@@ -165,6 +165,7 @@
     "test:climate-metrics-ui": "node tools/tests/climate-metrics-ui.mjs",
     "test:climate-chart-series": "node tools/tests/climate-chart-series.mjs",
     "test:climate-setpoint": "node tools/tests/climate-setpoint.mjs",
+    "test:select-cell-circle": "node tools/tests/select-cell-circle.mjs",
     "test:carousel-label": "node tools/tests/carousel-state-label.mjs",
     "test:list-max-rows": "node tools/tests/list-max-rows.mjs",
     "test:list-row-heights": "node tools/tests/list-row-heights.mjs",

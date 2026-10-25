@@ -1094,6 +1094,65 @@
       ]
     },
     {
+      "id": "zelle-kreismenue",
+      "title": "Kreismenü für einen beliebigen Datenpunkt im eigenen Layout",
+      "when": "Ein Kreismenü soll neben anderen Inhalten in einem Custom-Grid sitzen — Wallbox-Modus, Lüfterstufe, Szene — oder einen Zahlenwert in Schritten stellen (#838).",
+      "instead": "einem eigenen Auswahlfeld-Widget daneben",
+      "notes": [
+        "Zelle type \"select\" mit selectDisplay \"circle\": entries (oder entriesSource \"json\") werden Knöpfe im Kreis, der runde Knopf zeigt den aktuellen Eintrag.",
+        "circleStep ergänzt − und + für Zahlen-Datenpunkte, min/max begrenzen sie; ohne entries bleiben nur − und +.",
+        "Die Zelle braucht Platz für den runden Knopf — eine 1fr-Zeile oder rowSpan, nicht eine auto-Zeile mit Text.",
+        "Für Thermostat, Rollladen, Auswahlfeld und Raumklima (targetControl) gibt es das Kreismenü schon als Komponente \"circle-menu\" — dort die nehmen."
+      ],
+      "widgets": [
+        {
+          "id": "w-zelle-kreis",
+          "type": "universal",
+          "title": "Wallbox",
+          "datapoint": "",
+          "layout": "custom",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 5
+          },
+          "options": {
+            "customGrid": {
+              "cols": 1,
+              "rows": 1,
+              "cells": [
+                {
+                  "type": "select",
+                  "dpId": "%dp.befehl%",
+                  "selectDisplay": "circle",
+                  "entries": [
+                    {
+                      "value": "0",
+                      "label": "Aus"
+                    },
+                    {
+                      "value": "1",
+                      "label": "PV"
+                    },
+                    {
+                      "value": "2",
+                      "label": "Min+PV"
+                    },
+                    {
+                      "value": "3",
+                      "label": "Schnell",
+                      "color": "var(--accent-red)"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "id": "raumklima-soll",
       "title": "Raumklima mit Soll-Bedienung",
       "when": "Ein Raum zeigt Temperatur, Feuchte und Verlauf und soll zugleich die Solltemperatur stellen — ohne zweites Thermostat-Widget daneben (#838).",
