@@ -17,7 +17,8 @@ mkdirSync(cache, { recursive: true });
 const bundle = join(cache, `aura-speech-logic-${process.pid}.mjs`);
 await build({
     stdin: {
-        contents: "export * from './src-vis/utils/speech.ts'; export * from './src-vis/utils/speechPlayer.ts';",
+        contents:
+            "export * from './src-vis/utils/speech.ts'; export * from './src-vis/utils/speechPlayer.ts'; export * from './src-vis/utils/speechClaim.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -36,7 +37,10 @@ const {
     toSpeechVolume,
     SpeechQueue,
     SPEECH_QUEUE_MAX,
-    SPEECH_BLOCKED_TTL_MS,
+    SPEECH_MAX_AGE_MS,
+    ServerClock,
+    claimAnnouncement,
+    SPEECH_CLAIMS_KEY,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
@@ -294,7 +298,7 @@ const item = (req, extra = {}) => ({ req, volume: 100, queuedAt: Date.now(), ...
     f.block();
     q.enqueue({ req: { text: 'alt' }, volume: 100, queuedAt: now });
     await tick();
-    now += SPEECH_BLOCKED_TTL_MS + 1;
+    now += SPEECH_MAX_AGE_MS + 1;
     q.dropExpired();
     eq('a stale blocked announcement expires', log, ['blocked:alt', 'blocked:true', 'skipped:alt', 'blocked:false']);
     check('nothing left to unlock', !q.isBlocked && q.size === 0);
@@ -312,6 +316,112 @@ const item = (req, extra = {}) => ({ req, volume: 100, queuedAt: Date.now(), ...
     f.finish();
     await tick();
     eq('an error does not stop the queue', log, ['error:kaputt', 'played:ok']);
+}
+
+// ── 6. Expiry while waiting and on a late start ────────────────────────────
+{
+    const f = fakeBackend();
+    const log = [];
+    let now = 5_000_000;
+    const q = new SpeechQueue(f.backend, { onResult: (r, it) => log.push(`${r}:${it.req.text}`) }, () => now);
+    q.enqueue({ req: { text: 'lang' }, volume: 100, queuedAt: now });
+    q.enqueue({ req: { text: 'klingel' }, volume: 100, queuedAt: now, expiresAt: now + 1000 });
+    q.enqueue({ req: { text: 'danach' }, volume: 100, queuedAt: now });
+    await tick();
+    now += 5000; // the first one took longer than the doorbell is worth
+    f.finish();
+    await tick();
+    eq('an announcement that expired behind a long one is skipped', log, ['played:lang', 'skipped:klingel']);
+    eq('the next one still plays', f.calls, ['speak:lang', 'speak:danach']);
+}
+{
+    const deadlines = [];
+    const backend = {
+        speak: async (_t, o) => {
+            deadlines.push(o.deadline);
+            return 'expired';
+        },
+        play: async (_u, _v, d) => {
+            deadlines.push(d);
+            return 'ended';
+        },
+        cancel() {},
+    };
+    const log = [];
+    const q = new SpeechQueue(backend, { onResult: (r) => log.push(r) }, () => 100);
+    q.enqueue({ req: { text: 'x' }, volume: 100, queuedAt: 100, expiresAt: 900 });
+    q.enqueue({ req: { file: 'a.mp3' }, volume: 100, queuedAt: 100 });
+    await tick();
+    await tick();
+    eq('the backend gets the deadline (explicit, else queuedAt + max age)', deadlines, [900, 100 + SPEECH_MAX_AGE_MS]);
+    eq('a start after the deadline counts as skipped', log, ['skipped', 'played']);
+}
+
+// ── 7. Server clock ─────────────────────────────────────────────────────────
+{
+    let local = 1_000_000;
+    const c = new ServerClock(() => local);
+    eq('unknown before the first sample', c.offset(), null);
+    eq('no conversion without an offset', c.toLocal(5), undefined);
+    c.note(1_000_000 + 60_000 - 200); // server 60 s ahead, 200 ms latency
+    local += 15_000;
+    c.note(1_015_000 + 60_000 - 50);
+    eq('the largest sample wins (least latency)', c.offset(), 60_000 - 50);
+    local += 1000;
+    c.note(local + 60_000 - 3_600_000); // a stale value delivered after a tab woke up
+    eq('a late delivery does not drag the estimate down', c.offset(), 60_000 - 50);
+    eq('server time on the device clock', c.toLocal(2_000_000), 2_000_000 - (60_000 - 50));
+    c.note('garbage');
+    c.note(0);
+    eq('garbage is not a sample', c.offset(), 60_000 - 50);
+    local += 31 * 60_000;
+    c.note(local - 10_000); // the clock was corrected meanwhile: server now 10 s behind
+    eq('old samples age out', c.offset(), -10_000);
+}
+
+// ── 8. One device, one announcement ─────────────────────────────────────────
+{
+    const store = new Map();
+    const storage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)) };
+    let chain = Promise.resolve();
+    const locks = {
+        request: (_name, cb) => {
+            const run = chain.then(() => cb());
+            chain = run.catch(() => {});
+            return run;
+        },
+    };
+    const sleeps = [];
+    const tab = (visible) => ({
+        storage,
+        locks,
+        visible: () => visible,
+        sleep: (ms) => {
+            sleeps.push(ms);
+            return new Promise((r) => setTimeout(r, 20));
+        },
+        now: () => Date.now(),
+    });
+    const [hiddenA, visibleB, hiddenC] = await Promise.all([
+        claimAnnouncement('aura.0.speech.say@1', tab(false)),
+        claimAnnouncement('aura.0.speech.say@1', tab(true)),
+        claimAnnouncement('aura.0.speech.say@1', tab(false)),
+    ]);
+    eq('the visible tab plays it, the hidden ones do not', [hiddenA, visibleB, hiddenC], [false, true, false]);
+    check('hidden tabs wait before asking', sleeps.length === 2 && sleeps.every((ms) => ms > 0));
+    const [a, b] = await Promise.all([
+        claimAnnouncement('aura.0.speech.say@2', tab(false)),
+        claimAnnouncement('aura.0.speech.say@2', tab(false)),
+    ]);
+    check('with all tabs hidden exactly one plays', a !== b, `${a} ${b}`);
+    eq('a new announcement is claimed again', await claimAnnouncement('aura.0.speech.say@3', tab(true)), true);
+    eq('without storage every tab plays', await claimAnnouncement('k', { ...tab(true), storage: null }), true);
+    store.set(SPEECH_CLAIMS_KEY, '{broken');
+    eq('a broken claim list does not silence the device', await claimAnnouncement('k2', tab(true)), true);
+    const old = { stale: Date.now() - 2 * 3_600_000 };
+    store.set(SPEECH_CLAIMS_KEY, JSON.stringify(old));
+    await claimAnnouncement('k3', tab(true));
+    eq('old claims are pruned', Object.keys(JSON.parse(store.get(SPEECH_CLAIMS_KEY))), ['k3']);
 }
 
 let failed = 0;

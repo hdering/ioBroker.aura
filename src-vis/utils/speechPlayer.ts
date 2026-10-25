@@ -9,16 +9,23 @@ import { pickVoice, splitSpeechText, type SpeechRequest, type SpeechResult } fro
  * Autoplay: browsers refuse sound until the page has seen a user gesture. A
  * refused announcement is not lost — it stays at the head of the queue, the
  * queue reports `blocked`, and `unlock()` (called from a tap) plays it.
+ *
+ * Expiry: an announcement is only worth playing for SPEECH_MAX_AGE_MS. Whatever
+ * held it up — the autoplay block, a tab the browser put to sleep and woke an
+ * hour later, Chrome holding media back in a background tab until it is shown —
+ * a late one is reported `skipped` instead of "Es hat geklingelt" an hour on.
  */
 
-export type PlayOutcome = 'ended' | 'blocked' | 'interrupted' | 'error';
+/** `expired`: it only got to start after its deadline and was stopped at once. */
+export type PlayOutcome = 'ended' | 'blocked' | 'interrupted' | 'error' | 'expired';
 
 export interface SpeechBackend {
     speak(
         text: string,
-        opts: { volume: number; voice?: string; lang?: string; rate?: number; pitch?: number },
+        opts: { volume: number; voice?: string; lang?: string; rate?: number; pitch?: number; deadline?: number },
     ): Promise<PlayOutcome>;
-    play(url: string, volume: number): Promise<PlayOutcome>;
+    /** `deadline` (epoch ms): if the sound only starts after it, stop and resolve `expired`. */
+    play(url: string, volume: number, deadline?: number): Promise<PlayOutcome>;
     /** Stop whatever is playing; the running speak/play resolves `interrupted`. */
     cancel(): void;
 }
@@ -30,6 +37,8 @@ export interface QueuedSpeech {
     /** Resolved sound URL for a file item. */
     url?: string;
     queuedAt: number;
+    /** Epoch ms (local clock) after which it is not played any more. Absent = queuedAt + SPEECH_MAX_AGE_MS. */
+    expiresAt?: number;
 }
 
 export interface SpeechQueueHooks {
@@ -41,8 +50,12 @@ export interface SpeechQueueHooks {
 /** More than this waiting means a script is looping; the oldest are dropped. */
 export const SPEECH_QUEUE_MAX = 20;
 
-/** A blocked announcement older than this is not worth playing any more. */
-export const SPEECH_BLOCKED_TTL_MS = 10 * 60_000;
+/** An announcement older than this is not worth playing any more. */
+export const SPEECH_MAX_AGE_MS = 10 * 60_000;
+
+export function speechExpiry(item: QueuedSpeech): number {
+    return item.expiresAt ?? item.queuedAt + SPEECH_MAX_AGE_MS;
+}
 
 export class SpeechQueue {
     private queue: QueuedSpeech[] = [];
@@ -100,12 +113,12 @@ export class SpeechQueue {
         void this.run();
     }
 
-    /** Throw away blocked announcements that are too old to still matter. */
+    /** Throw away waiting announcements that are too old to still matter. */
     dropExpired(): void {
-        const cutoff = this.now() - SPEECH_BLOCKED_TTL_MS;
+        const now = this.now();
         const keep: QueuedSpeech[] = [];
         for (const q of this.queue) {
-            if (q.queuedAt < cutoff) this.hooks.onResult?.('skipped', q);
+            if (speechExpiry(q) < now) this.hooks.onResult?.('skipped', q);
             else keep.push(q);
         }
         this.queue = keep;
@@ -142,6 +155,10 @@ export class SpeechQueue {
         const gen = this.generation;
         while (gen === this.generation && !this.blocked && this.queue.length) {
             const item = this.queue.shift()!;
+            if (speechExpiry(item) < this.now()) {
+                this.hooks.onResult?.('skipped', item);
+                continue;
+            }
             this.current = item;
             this.setPlaying(true);
             let outcome: PlayOutcome;
@@ -159,7 +176,7 @@ export class SpeechQueue {
                 this.setBlocked(true);
                 break;
             }
-            this.hooks.onResult?.(outcome === 'ended' ? 'played' : outcome, item);
+            this.hooks.onResult?.(outcome === 'ended' ? 'played' : outcome === 'expired' ? 'skipped' : outcome, item);
         }
         if (gen === this.generation) {
             this.running = false;
@@ -169,9 +186,11 @@ export class SpeechQueue {
 
     private playOne(item: QueuedSpeech): Promise<PlayOutcome> {
         const { req, volume } = item;
-        if (req.file) return this.backend.play(item.url ?? req.file, volume);
+        const deadline = speechExpiry(item);
+        if (req.file) return this.backend.play(item.url ?? req.file, volume, deadline);
         return this.backend.speak(req.text ?? '', {
             volume,
+            deadline,
             voice: req.voice,
             lang: req.lang,
             rate: req.rate,
@@ -203,7 +222,7 @@ export function browserSpeechBackend(): SpeechBackend {
     let finishAudio: ((o: PlayOutcome) => void) | null = null;
     let cancelled = false;
 
-    const speakChunk = (synth: SpeechSynthesis, u: SpeechSynthesisUtterance, chars: number) =>
+    const speakChunk = (synth: SpeechSynthesis, u: SpeechSynthesisUtterance, chars: number, deadline?: number) =>
         new Promise<PlayOutcome>((resolve) => {
             let settled = false;
             const guard: { id?: ReturnType<typeof setTimeout> } = {};
@@ -212,6 +231,12 @@ export function browserSpeechBackend(): SpeechBackend {
                 settled = true;
                 clearTimeout(guard.id);
                 resolve(o);
+            };
+            u.onstart = () => {
+                if (deadline && Date.now() > deadline) {
+                    settle('expired');
+                    synth.cancel();
+                }
             };
             u.onend = () => settle('ended');
             u.onerror = (e) => {
@@ -253,13 +278,13 @@ export function browserSpeechBackend(): SpeechBackend {
                 u.volume = Math.max(0, Math.min(1, opts.volume / 100));
                 if (opts.rate) u.rate = opts.rate;
                 if (opts.pitch !== undefined) u.pitch = opts.pitch;
-                const o = await speakChunk(synth, u, chunk.length);
+                const o = await speakChunk(synth, u, chunk.length, opts.deadline);
                 if (o !== 'ended') return cancelled ? 'interrupted' : o;
             }
             return 'ended';
         },
 
-        play(url, volume) {
+        play(url, volume, deadline) {
             cancelled = false;
             return new Promise<PlayOutcome>((resolve) => {
                 const a = new Audio();
@@ -270,7 +295,7 @@ export function browserSpeechBackend(): SpeechBackend {
                     settled = true;
                     finishAudio = null;
                     if (audio === a) audio = null;
-                    a.onended = a.onerror = null;
+                    a.onended = a.onerror = a.onplaying = null;
                     resolve(o);
                 };
                 finishAudio = settle;
@@ -278,6 +303,13 @@ export function browserSpeechBackend(): SpeechBackend {
                 a.volume = Math.max(0, Math.min(1, volume / 100));
                 a.onended = () => settle('ended');
                 a.onerror = () => settle('error');
+                // A background tab may hold the sound back until it is shown.
+                a.onplaying = () => {
+                    if (deadline && Date.now() > deadline) {
+                        a.pause();
+                        settle('expired');
+                    }
+                };
                 a.src = url;
                 a.play().catch((e: unknown) => {
                     const name = (e as { name?: string })?.name;

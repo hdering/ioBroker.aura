@@ -6,7 +6,8 @@ import { useConfigStore } from './configStore';
 import { NS } from '../utils/namespace';
 import { resolveImageSource } from '../utils/assetUrl';
 import type { SpeechRequest, SpeechResult } from '../utils/speech';
-import { SpeechQueue, browserSpeechBackend, type QueuedSpeech } from '../utils/speechPlayer';
+import { SpeechQueue, browserSpeechBackend, SPEECH_MAX_AGE_MS, type QueuedSpeech } from '../utils/speechPlayer';
+import { ServerClock, claimAnnouncement } from '../utils/speechClaim';
 
 /**
  * Runtime of the speech output (issue #834): one queue per page, the device
@@ -86,17 +87,31 @@ function defaultLang(): string {
     return useConfigStore.getState().frontend.language === 'en' ? 'en' : 'de';
 }
 
+/** Server vs. device clock, fed by SpeechOutput with every server timestamp it sees. */
+export const speechClock = new ServerClock();
+
+export interface AnnounceMeta {
+    /**
+     * Identifies this one announcement across the tabs of the browser
+     * (`<dp>@<ts>`, `msg:<id>@<ts>`). Tabs share the client id, so only one of
+     * them plays it. Absent = this tab plays it without asking.
+     */
+    key?: string;
+    /** Server time the announcement was sent; it expires SPEECH_MAX_AGE_MS later. */
+    serverTs?: number;
+}
+
 /**
- * Play one announcement on this device, if it is meant for it. Returns what
- * happened right away (`muted`, `skipped`), or undefined when it was queued or
- * not addressed to this device at all.
+ * Play one announcement on this device, if it is meant for it and this tab is
+ * the one of the device that plays it.
  */
-export function announce(req: SpeechRequest): SpeechResult | undefined {
+export async function announce(req: SpeechRequest, meta: AnnounceMeta = {}): Promise<SpeechResult | undefined> {
     if (req.target && !inMessageScope(req.target, device.scope)) return undefined;
     if (isScreenshotMode()) {
         devAnnounced.push(req);
         return undefined;
     }
+    if (meta.key && !(await claimAnnouncement(meta.key))) return undefined;
     if (device.muted) {
         reportResult('muted');
         return 'muted';
@@ -105,11 +120,20 @@ export function announce(req: SpeechRequest): SpeechResult | undefined {
         reportResult('skipped');
         return 'skipped';
     }
+    const now = Date.now();
+    const sentAt = meta.serverTs !== undefined ? speechClock.toLocal(meta.serverTs) : undefined;
+    const expiresAt = sentAt !== undefined ? sentAt + SPEECH_MAX_AGE_MS : undefined;
+    if (expiresAt !== undefined && expiresAt < now) {
+        // A tab that slept through it gets the old value on waking up.
+        reportResult('skipped');
+        return 'skipped';
+    }
     const item: QueuedSpeech = {
         req: req.text && !req.lang ? { ...req, lang: defaultLang() } : req,
         volume: req.volume ?? device.volume,
         url: req.file ? resolveImageSource(req.file) : undefined,
-        queuedAt: Date.now(),
+        queuedAt: now,
+        expiresAt,
     };
     getQueue().enqueue(item);
     return undefined;
@@ -120,7 +144,7 @@ export function unlockSpeech(): void {
     queue?.unlock();
 }
 
-/** Drop announcements that waited too long for a tap. */
+/** Drop announcements that waited too long (for a tap, or behind a long one). */
 export function expireBlockedSpeech(): void {
     queue?.dropExpired();
 }

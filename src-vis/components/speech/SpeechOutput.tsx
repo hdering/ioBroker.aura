@@ -6,6 +6,7 @@ import {
     announce,
     configureSpeechDevice,
     expireBlockedSpeech,
+    speechClock,
     stopSpeech,
     unlockSpeech,
     useSpeechStore,
@@ -26,7 +27,9 @@ import type { ioBrokerState } from '../../types';
  *
  * A value that was already there when the page subscribed is never played: only
  * a write with a newer server timestamp counts, so a reload or a reconnect cannot
- * replay yesterday's announcement.
+ * replay yesterday's announcement. One that a sleeping tab only gets on waking
+ * up is dropped once it is older than SPEECH_MAX_AGE_MS, and tabs of the same
+ * browser (one device, one client id) play each announcement only once.
  */
 function subscribeSay(id: string, clear: boolean): () => void {
     let baseline: number | null = null;
@@ -34,11 +37,14 @@ function subscribeSay(id: string, clear: boolean): () => void {
     const early: ioBrokerState[] = [];
 
     const handle = (state: ioBrokerState) => {
-        if (!state || !(state.ts > lastTs)) return;
+        if (!state) return;
+        // Every server timestamp is a clock sample, the self-clear echo included.
+        speechClock.note(state.ts);
+        if (!(state.ts > lastTs)) return;
         lastTs = state.ts;
         const req = parseSpeechPayload(state.val);
         if (!req) return;
-        announce(req);
+        void announce(req, { key: `${id}@${state.ts}`, serverTs: state.ts });
         if (clear && !isScreenshotMode()) setStateDirect(id, '');
     };
 
@@ -94,11 +100,20 @@ export function SpeechOutput({ scope, clientReady }: { scope: MessageScope; clie
         };
     }, [clientId]);
 
+    // The adapter's heartbeat: js-controller rewrites `alive` every ~15 s, so the
+    // server clock is known before the first announcement arrives.
+    useEffect(() => {
+        const aliveId = `system.adapter.${NS}.alive`;
+        const unsubscribe = subscribeStateDirect(aliveId, (st) => speechClock.note(st?.ts));
+        void getStateDirect(aliveId).then((st) => speechClock.note(st?.ts));
+        return unsubscribe;
+    }, []);
+
     // Messages with `speak` (phase 3).
     useEffect(() => {
         setMessageSpeaker((msg) => {
             const text = messageSpeechText(msg);
-            if (text) announce({ text });
+            if (text) void announce({ text }, { key: `msg:${msg.id}@${msg.ts}`, serverTs: msg.ts });
         });
         return () => {
             setMessageSpeaker(null);

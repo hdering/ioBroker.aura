@@ -9,7 +9,13 @@ Das Dashboard spricht Texte und spielt Töne auf dem Gerät ab, auf dem es geöf
 | `aura.0.speech.say` | Alle Geräte |
 | `aura.0.clients.<ID>.speech.say` | Nur dieses Gerät |
 
-Der Datenpunkt leert sich nach der Übernahme von selbst. Ein Wert, der beim Laden der Seite schon drinsteht, wird nicht abgespielt.
+Der Datenpunkt leert sich nach der Übernahme von selbst.
+
+| Regel | |
+| --- | --- |
+| Schon beim Laden vorhanden | wird nicht abgespielt |
+| Mehrere Tabs im selben Browser | ein Gerät — nur ein Tab spielt, der sichtbare zuerst |
+| Älter als 10 Minuten | verfällt (`skipped`), z. B. in einem Tab, den der Browser schlafen gelegt hat |
 
 | Inhalt | |
 | --- | --- |
@@ -60,7 +66,7 @@ setState('aura.0.speech.say', JSON.stringify({
 | `played` | Abgespielt |
 | `blocked` | Browser verlangt erst eine Berührung — die Ansage wartet |
 | `muted` | Gerät stumm geschaltet |
-| `skipped` | Display aus (`onlyVisible`), zu lange blockiert oder Warteschlange voll |
+| `skipped` | Display aus (`onlyVisible`), älter als 10 Minuten oder Warteschlange voll |
 | `interrupted` | Von einer Ansage mit `interrupt` abgebrochen |
 | `error` | Datei nicht ladbar oder keine Sprachausgabe im Browser |
 

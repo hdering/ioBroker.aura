@@ -1,6 +1,7 @@
 // The real browser backend of the speech output (issue #834) in Chromium:
 // autoplay refused → `blocked`, the announcement waits, a tap plays it; with
 // autoplay allowed (Fully Kiosk setting / --autoplay-policy flag) it plays at once.
+// Plus: two tabs of one browser (one device) play an announcement only once.
 //
 //   node tools/tests/speech-browser.mjs
 //
@@ -33,6 +34,22 @@ q.enqueue({ req: { file: '/gong.wav' }, volume: 50, url: '/gong.wav', queuedAt: 
 });
 const js = outputFiles[0].text;
 
+// The claim page: asks for one announcement on load, like SpeechOutput does.
+const claimBuild = await build({
+    stdin: {
+        contents: `import { claimAnnouncement } from './src-vis/utils/speechClaim.ts';
+const key = new URLSearchParams(location.search).get('key');
+claimAnnouncement(key).then((won) => { document.title = won ? 'won' : 'lost'; });`,
+        resolveDir: process.cwd(),
+        loader: 'ts',
+    },
+    bundle: true,
+    format: 'iife',
+    write: false,
+    logLevel: 'warning',
+});
+const claimJs = claimBuild.outputFiles[0].text;
+
 /** 0.3 s of a 440 Hz tone, 8 kHz mono 8-bit. */
 function wav() {
     const n = 2400;
@@ -61,6 +78,10 @@ const server = http.createServer((req, res) => {
         return;
     }
     res.writeHead(200, { 'Content-Type': 'text/html' });
+    if (req.url.startsWith('/claim')) {
+        res.end(`<!doctype html><html><head><title></title></head><body><script>${claimJs}</script></body></html>`);
+        return;
+    }
     res.end(
         `<!doctype html><html><head><title></title></head><body style="height:100vh"><script>${js}</script></body></html>`,
     );
@@ -109,6 +130,27 @@ async function open(policy) {
     const { browser, page } = await open('no-user-gesture-required');
     const log = await titleAfter(page, (t) => t.includes('played') || t.includes('blocked') || t.includes('error'));
     check('with autoplay allowed it plays straight away', log === 'played', log);
+    await browser.close();
+}
+
+// ── Two tabs, one device ─────────────────────────────────────────────────────
+{
+    const browser = await chromium.launch();
+    const ctx = await browser.newContext(); // one profile: shared localStorage and locks
+    const tabs = await Promise.all([ctx.newPage(), ctx.newPage(), ctx.newPage()]);
+    await Promise.all(tabs.map((t) => t.goto(`${base}claim?key=aura.0.speech.say@42`)));
+    const titles = await Promise.all(tabs.map((t) => titleAfter(t, (x) => x.length > 0)));
+    check(
+        'three tabs, one announcement: exactly one plays it',
+        titles.filter((x) => x === 'won').length === 1 && titles.filter((x) => x === 'lost').length === 2,
+        titles.join(),
+    );
+    await tabs[1].goto(`${base}claim?key=aura.0.speech.say@43`);
+    check('the next announcement is played again', (await titleAfter(tabs[1], (x) => x.length > 0)) === 'won');
+    const other = await browser.newContext(); // another browser profile = another device
+    const page = await other.newPage();
+    await page.goto(`${base}claim?key=aura.0.speech.say@42`);
+    check('another device plays the same announcement too', (await titleAfter(page, (x) => x.length > 0)) === 'won');
     await browser.close();
 }
 
