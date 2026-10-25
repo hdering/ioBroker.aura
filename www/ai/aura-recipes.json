@@ -1094,6 +1094,172 @@
       ]
     },
     {
+      "id": "zelle-kreismenue",
+      "title": "Kreismenü für einen beliebigen Datenpunkt im eigenen Layout",
+      "when": "Ein Kreismenü soll neben anderen Inhalten in einem Custom-Grid sitzen — Wallbox-Modus, Lüfterstufe, Szene — oder einen Zahlenwert in Schritten stellen (#838).",
+      "instead": "einem eigenen Auswahlfeld-Widget daneben",
+      "notes": [
+        "Zelle type \"select\" mit selectDisplay \"circle\": entries (oder entriesSource \"json\") werden Knöpfe im Kreis, der runde Knopf zeigt den aktuellen Eintrag.",
+        "circleStep ergänzt − und + für Zahlen-Datenpunkte, min/max begrenzen sie; ohne entries bleiben nur − und +.",
+        "Die Zelle braucht Platz für den runden Knopf — eine 1fr-Zeile oder rowSpan, nicht eine auto-Zeile mit Text.",
+        "Für Thermostat, Rollladen, Auswahlfeld und Raumklima (targetControl) gibt es das Kreismenü schon als Komponente \"circle-menu\" — dort die nehmen."
+      ],
+      "widgets": [
+        {
+          "id": "w-zelle-kreis",
+          "type": "universal",
+          "title": "Wallbox",
+          "datapoint": "",
+          "layout": "custom",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 5
+          },
+          "options": {
+            "customGrid": {
+              "cols": 1,
+              "rows": 1,
+              "cells": [
+                {
+                  "type": "select",
+                  "dpId": "%dp.befehl%",
+                  "selectDisplay": "circle",
+                  "entries": [
+                    {
+                      "value": "0",
+                      "label": "Aus"
+                    },
+                    {
+                      "value": "1",
+                      "label": "PV"
+                    },
+                    {
+                      "value": "2",
+                      "label": "Min+PV"
+                    },
+                    {
+                      "value": "3",
+                      "label": "Schnell",
+                      "color": "var(--accent-red)"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "geraet-mit-verlauf",
+      "title": "Gerät und Verlaufsdiagramm in einem Widget",
+      "when": "Bedienung und Verlauf gehören zusammen — Thermostat mit Temperaturkurve, Wallbox mit Ladeleistung — und sollen eine Kachel sein statt einer Gruppe aus zwei Widgets (#838).",
+      "instead": "einer Gruppe aus Gerät und Diagramm",
+      "notes": [
+        "layout \"custom\" des Geräts und eine Zelle type \"widget\": embed.type \"echart\", embed.options genau wie die Optionen eines echart-Widgets (echartSeries, echartRange …).",
+        "Soll ein vorhandenes Diagramm-Widget gezeigt werden: embedSource \"mirror\" und embedWidgetId — dann gelten dessen Einstellungen, und es bleibt an seinem Platz.",
+        "Die Diagramm-Zelle braucht Fläche: eine 1fr-Spalte/Zeile oder colSpan/rowSpan. Das Icon des Diagramms ist in der Zelle aus (showIcon false), solange nichts anderes gesetzt ist.",
+        "Beim Thermostat passt das Kreismenü daneben: Komponente \"circle-menu\"."
+      ],
+      "widgets": [
+        {
+          "id": "w-geraet-verlauf",
+          "type": "thermostat",
+          "title": "Heizung Bad",
+          "datapoint": "%dp.solltemperatur%",
+          "layout": "custom",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 5
+          },
+          "options": {
+            "actualDatapoint": "%dp.isttemperatur%",
+            "presets": [
+              19,
+              21,
+              22
+            ],
+            "customGrid": {
+              "cols": 2,
+              "rows": 1,
+              "colSizes": [
+                "1fr",
+                "2fr"
+              ],
+              "cells": [
+                {
+                  "type": "component",
+                  "componentKey": "circle-menu",
+                  "align": "center",
+                  "valign": "middle"
+                },
+                {
+                  "type": "widget",
+                  "embed": {
+                    "type": "echart",
+                    "options": {
+                      "echartMode": "timeseries",
+                      "echartRange": "24h",
+                      "echartSeries": [
+                        {
+                          "id": "s1",
+                          "name": "Ist",
+                          "datapointId": "%dp.isttemperatur%",
+                          "chartType": "line",
+                          "historyInstance": "history.0",
+                          "yAxisIndex": 0
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "raumklima-soll",
+      "title": "Raumklima mit Soll-Bedienung",
+      "when": "Ein Raum zeigt Temperatur, Feuchte und Verlauf und soll zugleich die Solltemperatur stellen — ohne zweites Thermostat-Widget daneben (#838).",
+      "instead": "einer Gruppe aus Raumklima und Thermostat",
+      "notes": [
+        "Widget climate mit targetControl true und targetDatapoint: − / + stehen neben dem Sollwert, presets als Knopfreihe darunter.",
+        "Für das Kreismenü layout \"custom\": die Komponente \"circle-menu\" in eine Zelle legen (Sollwert im Knopf, −/presets/+ im Kreis); die übrigen Bausteine heißen \"main-values\", \"secondary-values\", \"metrics\", \"chart\", \"range-chips\", \"presets\", \"btn-minus\", \"btn-plus\".",
+        "Am einfachsten vom Grid in widgets.climate.customFromLayout.default ausgehen und eine Zeile mit \"circle-menu\" ergänzen.",
+        "Geschrieben wird nur in targetDatapoint; minTemp, maxTemp und step begrenzen wie beim Thermostat."
+      ],
+      "widgets": [
+        {
+          "id": "w-raumklima-soll",
+          "type": "climate",
+          "title": "Wohnzimmer",
+          "datapoint": "%dp.isttemperatur%",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 8,
+            "h": 6
+          },
+          "options": {
+            "targetDatapoint": "%dp.solltemperatur%",
+            "targetControl": true,
+            "presets": [
+              19,
+              21,
+              22
+            ],
+            "step": 0.5
+          }
+        }
+      ]
+    },
+    {
       "id": "heizung",
       "title": "Thermostat als Rundskala",
       "when": "Ein Heizkörper- oder Raumthermostat soll bedienbar sein, nicht nur ablesbar.",

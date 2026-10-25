@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-24",
+    "measured": "2026-10-25",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -65,6 +65,28 @@
         }
       ],
       "modifiers": [
+        {
+          "key": "targetControl",
+          "label": "Soll bedienbar (targetControl mit targetDatapoint, Schnellwahl-Zeile)",
+          "when": {
+            "all": [
+              {
+                "path": "targetControl",
+                "equals": true
+              },
+              {
+                "path": "targetDatapoint",
+                "nonEmpty": true
+              }
+            ]
+          },
+          "basePx": 44,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 13.3,
+            "perItemPx": 0
+          }
+        },
         {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
