@@ -797,7 +797,10 @@ function SwitchCellView({
         // Per-state colours win over the state-independent base colour, which in turn
         // falls back to the theme accent / white.
         const btnBg = (on ? cell.buttonTrueColor : cell.buttonFalseColor) || cell.color || 'var(--accent)';
-        const btnFg = (on ? cell.buttonTrueTextColor : cell.buttonFalseTextColor) || cell.buttonTextColor || '#fff';
+        // A matched condition overrides text colour and font like on text cells (#842).
+        const btnFg =
+            cond.color || (on ? cell.buttonTrueTextColor : cell.buttonFalseTextColor) || cell.buttonTextColor || '#fff';
+        const btnFontSize = cond.fontSize ?? cell.fontSize;
         const widthStyle: React.CSSProperties =
             cell.buttonWidth === 'full'
                 ? { width: '100%' }
@@ -816,9 +819,9 @@ function SwitchCellView({
                         border: 'none',
                         cursor: 'pointer',
                         padding: `${pad}px ${pad * 2}px`,
-                        fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
-                        fontWeight: cell.bold ? 'bold' : undefined,
-                        fontStyle: cell.italic ? 'italic' : undefined,
+                        fontSize: btnFontSize ? `${btnFontSize}px` : undefined,
+                        fontWeight: (cond.bold ?? cell.bold) ? 'bold' : undefined,
+                        fontStyle: (cond.italic ?? cell.italic) ? 'italic' : undefined,
                         textAlign: 'center',
                         ...widthStyle,
                     }}
@@ -1222,8 +1225,9 @@ function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                     color: '#fff',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
-                    fontWeight: cell.bold ? 'bold' : undefined,
+                    fontSize: (cond.fontSize ?? cell.fontSize) ? `${cond.fontSize ?? cell.fontSize}px` : undefined,
+                    fontWeight: (cond.bold ?? cell.bold) ? 'bold' : undefined,
+                    fontStyle: (cond.italic ?? cell.italic) ? 'italic' : undefined,
                 }}
             >
                 {cond.text ?? cell.text ?? '⏵'}
@@ -1493,7 +1497,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
         border: '1px solid var(--app-border)',
         borderRadius: 8,
         padding: '4px 6px',
-        fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
+        fontSize: (cond.fontSize ?? cell.fontSize) ? `${cond.fontSize ?? cell.fontSize}px` : 12,
         fontWeight: (cond.bold ?? cell.bold) ? 'bold' : undefined,
         fontStyle: (cond.italic ?? cell.italic) ? 'italic' : undefined,
         width: '100%',
@@ -1526,7 +1530,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
             className="aura-input-unit shrink-0 self-center"
             style={{
                 color: 'var(--text-secondary)',
-                fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
+                fontSize: inputSty.fontSize,
             }}
         >
             {cellUnit}
@@ -1928,7 +1932,8 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                             // A matched per-cell condition overrides the dropdown's
                             // colour/weight/style (it shows the current value).
                             color: cond.color || cell.color || 'var(--text-primary)',
-                            fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
+                            fontSize:
+                                (cond.fontSize ?? cell.fontSize) ? `${cond.fontSize ?? cell.fontSize}px` : undefined,
                             fontWeight: (cond.bold ?? cell.bold) ? 'bold' : undefined,
                             fontStyle: (cond.italic ?? cell.italic) ? 'italic' : undefined,
                         }}
