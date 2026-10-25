@@ -77,6 +77,10 @@ export default [
             // It was previously excluded via .prettierignore; that file is obsolete
             // under @iobroker/eslint-config (W5048), so the exclusion lives here now.
             'prettier/prettier': 'off',
+            // Plain JS checked by `npm run typecheck:backend` (checkJs): `@type` is how
+            // types get in, not redundant, and `any` marks gaps in the ioBroker typings.
+            'jsdoc/check-tag-names': ['warn', { typed: false }],
+            'jsdoc/reject-any-type': 'off',
         },
     },
 ];

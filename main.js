@@ -757,6 +757,8 @@ class Aura extends utils.Adapter {
         this.on('message', this.onMessage.bind(this));
         this.on('unload', this.onUnload.bind(this));
         this._httpServer = null;
+        /** @type {Set<string> | undefined} timer warnings already logged, each only once */
+        this._timerWarned = undefined;
         // Serializes every change to messages.history, see _updateMessageHistory
         this._messageHistoryQueue = Promise.resolve();
     }
@@ -1139,7 +1141,7 @@ class Aura extends utils.Adapter {
         if (!id) return null;
         let obj = null;
         try {
-            obj = await this.getForeignObjectAsync(`system.adapter.${id}`);
+            obj = /** @type {ioBroker.Object} */ (await this.getForeignObjectAsync(`system.adapter.${id}`));
         } catch {
             /* reported below */
         }
@@ -1823,7 +1825,7 @@ class Aura extends utils.Adapter {
                             res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': 'max-age=30' });
                             stream.pipe(res);
                         });
-                        stream.on('error', (e) => {
+                        stream.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
                             if (!res.headersSent) {
                                 res.writeHead(e.code === 'ENOENT' ? 404 : 500);
                                 res.end(e.message);
@@ -1940,6 +1942,7 @@ class Aura extends utils.Adapter {
                     `aura: loading certificates — public="${this.config.certPublic}" private="${this.config.certPrivate}" chained="${this.config.certChained || ''}"`,
                 );
                 let certificates;
+                /** @type {any} */
                 let rawResult;
                 if (typeof this.getCertificatesAsync === 'function') {
                     rawResult = await this.getCertificatesAsync(
@@ -2041,7 +2044,7 @@ class Aura extends utils.Adapter {
             proxyWebSocket(req, socket, targetWsUrl, this.log);
         });
 
-        server.on('error', (e) => {
+        server.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
             if (e.code === 'EADDRINUSE') {
                 this.log.error(
                     `aura: port ${port} is already in use — another aura instance or service is listening on this port. Change "Port" in the instance configuration to a free value (default 8095) and restart.`,
@@ -2126,7 +2129,7 @@ class Aura extends utils.Adapter {
     async _setTargetStates(objId, states) {
         const obj = await this.getObjectAsync(objId);
         if (!obj || obj.type !== 'state') return;
-        obj.common = obj.common || {};
+        obj.common = obj.common || /** @type {ioBroker.StateCommon} */ ({});
         // Repair the role on objects created before the fix: role 'value' rejects
         // a writable string (E1009/E1011). The selector is a writable text DP.
         const roleWrong = obj.common.role !== 'text';
@@ -3070,6 +3073,7 @@ class Aura extends utils.Adapter {
         const sys = await this.getForeignObjectAsync('system.config');
         const active = sys?.common?.activeRepo ?? [];
         const names = (typeof active === 'string' ? [active] : Array.isArray(active) ? active : []).map(String);
+        /** @type {Record<string, any>} */
         const repos = (await this.getForeignObjectAsync('system.repositories'))?.native?.repositories || {};
         // js-controller 5 allows several repositories at once; the highest offer wins.
         const usable = names.filter((n) => repos[n]);
@@ -3464,6 +3468,7 @@ class Aura extends utils.Adapter {
         ]) {
             const common = {
                 name: `${label} theme mode ('dark'|'light'|''); empty = no override`,
+                /** @type {ioBroker.CommonType} */
                 type: 'string',
                 role: 'text',
                 read: true,
@@ -3982,6 +3987,7 @@ class Aura extends utils.Adapter {
 
             const frontendLink = base ? `${base}/` : `%protocol%://%ip%:${port}/`;
             const backendLink = base ? `${base}/#/admin` : `%protocol%://%ip%:${port}/#/admin`;
+            /** @type {Record<string, any>} */
             const wantLinks = {
                 frontend: { link: frontendLink, name: makeName('Aura Frontend') },
                 backend: { link: backendLink, name: makeName('Aura Backend') },
@@ -4976,6 +4982,7 @@ class Aura extends utils.Adapter {
      * @returns {Promise<boolean>} false when the dashboard could not be read (nothing changed)
      */
     async _readPublishWidgets(orphans) {
+        /** @type {any} */
         const cfg = {};
         for (const [key, stateId] of [
             ['dashboard', 'config.dashboard'],
@@ -5097,7 +5104,7 @@ class Aura extends utils.Adapter {
     /**
      * A Statusübersicht announced what it shows (status.register, `publish: true`).
      *
-     * @param payload {source, items: [{id, cat, name?, room?, role?, type?, states?, min?, max?, unit?}]}
+     * @param {object} payload {source, items: [{id, cat, name?, room?, role?, type?, states?, min?, max?, unit?}]}
      */
     async _registerPublishStatus(payload) {
         if (!this._publish) {
@@ -5646,7 +5653,7 @@ class Aura extends utils.Adapter {
                 let store = {};
                 try {
                     const cur = await this.getStateAsync('info.rendered');
-                    const prev = cur && cur.val ? JSON.parse(cur.val) : null;
+                    const prev = cur && cur.val ? JSON.parse(/** @type {string} */ (cur.val)) : null;
                     if (prev && prev.tabs && typeof prev.tabs === 'object') store = prev.tabs;
                 } catch {
                     // Unreadable or not JSON — start over rather than lose the new report.

@@ -1,0 +1,17 @@
+{
+  "extends": "@tsconfig/node22/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "module": "node20",
+    "moduleResolution": "node16",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noImplicitAny": false,
+    "types": ["node", "@iobroker/types"]
+  },
+  "include": ["main.js", "lib/**/*.js", "lib/**/*.d.ts"],
+  "exclude": ["lib/shared/**"]
+}
