@@ -44,7 +44,7 @@ const bundle = join(cache, `aura-client-id-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: `
-            export { useConnectionStore, sanitizeClientId, legacyFingerprintId } from './src-vis/store/connectionStore.ts';
+            export { useConnectionStore, sanitizeClientId, legacyFingerprintId, isFingerprintClientId } from './src-vis/store/connectionStore.ts';
         `,
         resolveDir: root,
         loader: 'ts',
@@ -141,6 +141,31 @@ async function session({ ua = UA_EDGE_140, search = '', storage = new Map(), wid
     // Reload without the parameter → the pinned id stays.
     const again = await session({ storage: s.storage });
     eq('the pinned id survives a reload without the parameter', again.store.getState().clientId, 'wohnzimmer-tablet');
+}
+
+// ── 4b. Identical devices: a stable token per browser, and a way off the shared id (#844)
+{
+    const flur = await session();
+    const wohnzimmer = await session();
+    const id = flur.store.getState().clientId;
+    eq('identical hardware yields the same fingerprint', wohnzimmer.store.getState().clientId, id);
+    check(
+        'each browser gets its own device token',
+        flur.store.getState().deviceToken !== wohnzimmer.store.getState().deviceToken,
+    );
+    check(
+        'the token is persisted from the first start',
+        String(flur.storage.get('aura-connection') ?? '').includes(flur.store.getState().deviceToken),
+    );
+    const reload = await session({ storage: flur.storage });
+    eq('the token survives a reload', reload.store.getState().deviceToken, flur.store.getState().deviceToken);
+
+    check('a fingerprint id is recognised', flur.mod.isFingerprintClientId(id));
+    const fresh = wohnzimmer.store.getState().splitClientId();
+    check('splitting leaves the shared id', fresh !== id && /^[0-9a-f]{16}$/.test(fresh));
+    check('the split id is pinned', wohnzimmer.store.getState().clientIdPinned === true);
+    check('the split id is no fingerprint, so it never splits again', !wohnzimmer.mod.isFingerprintClientId(fresh));
+    check('a speaking id is never split', !flur.mod.isFingerprintClientId('wohnzimmer-tablet'));
 }
 
 // ── 5. Frontend and adapter sanitise identically ─────────────────────────────

@@ -20,7 +20,7 @@ import { useConfigSync } from './hooks/useConfigSync';
 import { useActiveSelectionSync } from './hooks/useActiveSelectionSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionLost } from './hooks/useConnectionLost';
-import { useConnectionStore, legacyFingerprintId } from './store/connectionStore';
+import { useConnectionStore, legacyFingerprintId, isFingerprintClientId } from './store/connectionStore';
 import { useGlobalSettingsStore } from './store/globalSettingsStore';
 import { useConfigStore } from './store/configStore';
 import { useDashboardStore, resolveView, resolveTabBarSettings } from './store/dashboardStore';
@@ -329,7 +329,7 @@ export default function App() {
     const { frontend } = useConfigStore();
     const { setTheme } = useThemeStore();
     const { connected, subscribe } = useIoBroker();
-    const { clientId, clientIdPinned, clientName, pinClientId } = useConnectionStore();
+    const { clientId, clientIdPinned, clientName, deviceToken, pinClientId, splitClientId } = useConnectionStore();
 
     // Wire up passive frontend load-time metrics (initial load, FCP, long tasks).
     useEffect(() => {
@@ -1006,9 +1006,16 @@ export default function App() {
     // Report this client's viewport resolution: once on connect and (debounced)
     // whenever the window is resized or the device rotates. The adapter stores it
     // in clients.<id>.info.resolutionWidth / .resolutionHeight.
+    // The report also carries this browser's device token; the adapter stores the first
+    // one it sees as the owner of the id. Two identical devices (same model, same
+    // browser) share a fingerprint and therefore the auto-generated id — the one that
+    // finds a foreign token on its id moves to a fresh one instead of reporting (#844).
+    // Runs on every connect, so a race where both claimed at once settles on the next.
     useEffect(() => {
-        if (!connected) return;
+        // Unpinned → the register effect above is about to settle the id; report after.
+        if (!connected || !clientIdPinned) return;
         let timer: ReturnType<typeof setTimeout> | undefined;
+        let cancelled = false;
         const report = () =>
             setStateDirect(
                 `${NS}.clients.resolution`,
@@ -1017,21 +1024,35 @@ export default function App() {
                     width: window.innerWidth,
                     height: window.innerHeight,
                     userAgent: navigator.userAgent,
+                    deviceToken,
                 }),
             );
-        report();
         const onResize = () => {
             if (timer) clearTimeout(timer);
             timer = setTimeout(report, 500);
         };
-        window.addEventListener('resize', onResize);
-        window.addEventListener('orientationchange', onResize);
+        void (async () => {
+            if (isFingerprintClientId(clientId)) {
+                const owner = await getStateDirect(`${NS}.clients.${clientId}.info.deviceToken`);
+                if (cancelled) return;
+                const ownerToken = String(owner?.val ?? '');
+                if (ownerToken && ownerToken !== deviceToken) {
+                    // The effect re-runs for the new id and registers it as a new device.
+                    splitClientId();
+                    return;
+                }
+            }
+            report();
+            window.addEventListener('resize', onResize);
+            window.addEventListener('orientationchange', onResize);
+        })();
         return () => {
+            cancelled = true;
             if (timer) clearTimeout(timer);
             window.removeEventListener('resize', onResize);
             window.removeEventListener('orientationchange', onResize);
         };
-    }, [connected, clientId]);
+    }, [connected, clientId, clientIdPinned, deviceToken, splitClientId]);
 
     // Mirror the idle-return control datapoints (global + this client) into the
     // store the timer and the header chip read (#638).

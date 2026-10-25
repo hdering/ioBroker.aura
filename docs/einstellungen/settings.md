@@ -94,6 +94,11 @@ Jedes Gerät bekommt eine ID; darüber wird es einzeln angesprochen:
 Die ID wird beim ersten Kontakt vergeben und dann im Browser gespeichert. Sie bleibt
 danach unverändert — Browser-Updates, Auflösungs- oder Skalierungswechsel ändern sie nicht.
 
+Baugleiche Geräte (z. B. zwei Fire-Tablets mit Fully) bekommen beim ersten Kontakt
+dieselbe Start-ID. Das zweite Gerät erkennt das am fremden `info.deviceToken` und meldet
+sich beim nächsten Verbindungsaufbau unter einer neuen ID an. Feste IDs (`?client=`,
+✎) sind davon ausgenommen.
+
 | Feste ID vergeben | |
 | --- | --- |
 | Einstellungen → Verbundene Geräte | Beim eigenen Gerät auf ✎, Feld **Feste ID für dieses Gerät** |
@@ -127,7 +132,7 @@ erst Browser/Kiosk schließen, dann löschen.
 | Relais-Datenpunkte unter `aura.0.clients.` | |
 | --- | --- |
 | `register` | JSON `{clientId, name}` — legt einen Client an |
-| `resolution` | JSON `{clientId, width, height}` — Auflösung melden |
+| `resolution` | JSON `{clientId, width, height, deviceToken}` — Auflösung melden |
 | `deleteRequest` | Client-ID — löscht diesen Client |
 
 Alle drei leeren sich nach der Ausführung selbst.

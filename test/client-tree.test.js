@@ -339,6 +339,27 @@ const FULL_TREE = [
         console.log('✓ a rename is mirrored onto the client channel (#624)');
     }
 
+    // ── #844: the first device token claims the id, later ones never overwrite it ─
+    {
+        const a = makeAdapter();
+        a.getStateAsync = async (id) => a._states.get(id) || null;
+        const report = (deviceToken) =>
+            a.onStateChange('aura.0.clients.resolution', {
+                val: JSON.stringify({ clientId: 'a1b2c3d4e5f60718', width: 800, height: 1280, deviceToken }),
+                ack: false,
+            });
+        await report('tablet-flur');
+        assert.ok(a._objects.has('clients.a1b2c3d4e5f60718.info.deviceToken'), 'deviceToken DP is created');
+        assert.strictEqual(a._states.get('clients.a1b2c3d4e5f60718.info.deviceToken').val, 'tablet-flur');
+        await report('tablet-wohnzimmer');
+        assert.strictEqual(
+            a._states.get('clients.a1b2c3d4e5f60718.info.deviceToken').val,
+            'tablet-flur',
+            'a second device must not take over the id',
+        );
+        console.log('✓ the first device token owns the client id (#844)');
+    }
+
     console.log('\nAll client-tree tests passed.');
 })().catch((e) => {
     console.error(e);

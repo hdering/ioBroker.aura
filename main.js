@@ -888,6 +888,16 @@ class Aura extends utils.Adapter {
                     });
                     await this.setStateAsync(`clients.${cId}.info.userAgent`, { val: userAgent, ack: true });
                 }
+                // First token wins: it marks the browser that owns this id. A second device
+                // with the same fingerprint reads a foreign token and moves to a new id (#844).
+                const deviceToken = payload.deviceToken ? String(payload.deviceToken).slice(0, 64) : '';
+                if (deviceToken) {
+                    await this._ensureClientDeviceTokenDp(cId);
+                    const owner = await this.getStateAsync(`clients.${cId}.info.deviceToken`);
+                    if (!owner || !owner.val) {
+                        await this.setStateAsync(`clients.${cId}.info.deviceToken`, { val: deviceToken, ack: true });
+                    }
+                }
             }
             await this.setStateAsync('clients.resolution', '', true);
             return;
@@ -2266,6 +2276,22 @@ class Aura extends utils.Adapter {
         await this._ensureIdleStateDps(cId);
         this.log.debug(`[clients] completed object tree for ${cId}`);
         return true;
+    }
+
+    /** clients.<id>.info.deviceToken — added after the tree, so it carries its own backfill (#844). */
+    async _ensureClientDeviceTokenDp(cId) {
+        await this.setObjectNotExistsAsync(`clients.${cId}.info.deviceToken`, {
+            type: 'state',
+            common: {
+                name: 'Device token (browser that owns this client id)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
     }
 
     /** Keep the client channel's name in sync with clients.<id>.info.name. */

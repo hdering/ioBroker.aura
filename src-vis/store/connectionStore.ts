@@ -68,16 +68,43 @@ export function legacyFingerprintId(): string {
     return hashParts([navigator.userAgent, ...baseFingerprintParts()]);
 }
 
+/**
+ * True when the id was derived from the device fingerprint rather than chosen by
+ * the user. Identical hardware (two Fire tablets of the same model, same browser)
+ * yields the same fingerprint, so only such ids can collide by accident (#844).
+ */
+export function isFingerprintClientId(id: string): boolean {
+    return id === deviceFingerprintId() || id === legacyFingerprintId();
+}
+
+// getRandomValues, not randomUUID: the latter needs a secure context, and kiosk
+// tablets usually open Aura over plain http on the LAN.
+function randomToken(): string {
+    try {
+        return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+    } catch {
+        return `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`;
+    }
+}
+
 interface ConnectionState {
     ioBrokerUrl: string;
     clientId: string;
     /** true once the id is anchored in localStorage (adopted, seeded or user-set). */
     clientIdPinned: boolean;
     clientName: string;
+    /**
+     * Random per-browser token, persisted from the first start. The adapter remembers
+     * which token owns a client id (clients.<id>.info.deviceToken), which is how a
+     * second device with the same fingerprint notices that the id is taken (#844).
+     */
+    deviceToken: string;
     setIoBrokerUrl: (url: string) => void;
     setClientName: (name: string) => void;
     /** Anchor an id for this device. Returns the sanitised id that was stored. */
     pinClientId: (id: string) => string;
+    /** Leave a fingerprint id another device owns: pin a fresh, random-salted one. */
+    splitClientId: () => string;
 }
 
 // In production use same host as the page but socketio port 8084.
@@ -93,6 +120,7 @@ export const useConnectionStore = create<ConnectionState>()(
             clientId: deviceFingerprintId(),
             clientIdPinned: false,
             clientName: '',
+            deviceToken: randomToken(),
             setIoBrokerUrl: (url) => {
                 invalidateDatapointCache();
                 reconnectSocket(url);
@@ -104,6 +132,11 @@ export const useConnectionStore = create<ConnectionState>()(
                 set({ clientId: clean, clientIdPinned: true });
                 return clean;
             },
+            splitClientId: () => {
+                const fresh = hashParts([...baseFingerprintParts(), randomToken()]);
+                set({ clientId: fresh, clientIdPinned: true });
+                return fresh;
+            },
         }),
         {
             name: 'aura-connection',
@@ -114,11 +147,17 @@ export const useConnectionStore = create<ConnectionState>()(
                 ({
                     ioBrokerUrl: state.ioBrokerUrl,
                     clientName: state.clientName,
+                    deviceToken: state.deviceToken,
                     ...(state.clientIdPinned ? { clientId: state.clientId, clientIdPinned: true } : {}),
                 }) as Partial<ConnectionState>,
         },
     ),
 );
+
+// persist writes nothing until the first set(), and the token has to be stable from
+// the very first start on, or every reload would look like a different device.
+// localStorage hydrates synchronously, so this keeps a token that is already stored.
+useConnectionStore.setState({ deviceToken: useConnectionStore.getState().deviceToken });
 
 // `?client=wohnzimmer-tablet` pins a speaking id for this device and wins over
 // everything else: the datapoint tree then reads aura.0.clients.wohnzimmer-tablet.*,
