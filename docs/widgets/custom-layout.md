@@ -163,6 +163,18 @@ Das [Auswahlfeld](./auswahlfeld)-Widget als Zelle — mit denselben Einträgen, 
 
 Akzeptierte JSON-Formen und die Feldnamen-Erkennung: siehe [Auswahlfeld → JSON-Datenpunkt](./auswahlfeld#json-datenpunkt).
 
+### Diagramm (`widget`)
+
+Ein Diagramm in einer Zelle — z. B. Thermostat mit Kreismenü links und Temperaturverlauf rechts.
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `embedSource` | `embedded` | `embedded` = eigenes Diagramm (Erweitert) in der Zelle · `mirror` = vorhandenes Diagramm-Widget zeigen |
+| `embed` | — | bei `embedded`: Typ `echart` und dessen Optionen; Editor **Diagramm einrichten…** |
+| `embedWidgetId` | — | bei `mirror`: Diagramm-Widget (Einfach, Erweitert, eCharts); Änderungen gelten fürs Original |
+
+Das Icon des eingebetteten Diagramms ist aus, solange es nicht eingeschaltet wird. Die Zelle braucht Fläche (`1fr` oder Spannweite).
+
 ### Eingabefeld (`input`)
 
 Das [Eingabefeld](./eingabefeld)-Widget als Zelle. `text` ist hier der Platzhalter.

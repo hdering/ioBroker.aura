@@ -20326,6 +20326,7 @@ function WidgetFrameInner({
                                                             onOpenImagePicker={() => setCustomCellImagePickerOpen(true)}
                                                             onOpenConditions={() => setCustomCellCondOpen(true)}
                                                             onOpenClickAction={() => setCustomCellClickOpen(true)}
+                                                            hostId={config.id}
                                                             statusItems={
                                                                 Array.isArray(o.statusItems)
                                                                     ? (o.statusItems as StatusItem[])

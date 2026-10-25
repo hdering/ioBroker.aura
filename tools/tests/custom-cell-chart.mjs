@@ -1,0 +1,236 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Diagramm in einer Custom-Zelle (issue #838)
+// ─────────────────────────────────────────────────────────────────────────────
+// The custom grid's 'widget' cell draws a chart inside one cell: with its own
+// settings (`embed`, the advanced chart's options) or as a mirror of a chart
+// widget of the dashboard (`embedWidgetId`). Checked: the embedded chart fills
+// its cell and draws, a mirror shows its source and refuses itself / non-charts,
+// the host's header items stay out of the chart, and the editor creates the
+// cell, opens the chart editor in a popup and writes the series into `embed`.
+//
+//   npm run dev                       (or set AURA_BASE)
+//   node tools/tests/custom-cell-chart.mjs
+//
+// Runs against injected demo state with screenshotMode on, so no ioBroker object
+// or state is ever touched. SHOT_DIR=<dir> also saves screenshots.
+import { chromium } from 'playwright';
+
+const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
+const SHOT_DIR = process.env.SHOT_DIR;
+
+const results = [];
+const check = (name, ok, detail = '') => {
+    results.push({ name, ok, detail });
+    console.log(`${ok ? '  ok  ' : '  FAIL'} ${name}${detail ? ` — ${detail}` : ''}`);
+};
+
+const now = Date.now();
+const curve = Array.from({ length: 96 }, (_, i) => [now - (95 - i) * 15 * 60 * 1000, 20 + 2 * Math.sin(i / 8)]);
+
+const CHART_OPTIONS = {
+    echartMode: 'timeseries',
+    echartRange: '24h',
+    echartShowCurrent: false,
+    echartSeries: [
+        {
+            id: 's1',
+            name: 'Temperatur',
+            datapointId: 'demo.temp',
+            chartType: 'line',
+            historyInstance: 'history.0',
+            yAxisIndex: 0,
+        },
+    ],
+};
+const comp = (componentKey) => ({ type: 'component', componentKey, align: 'center', valign: 'middle' });
+// Thermostat with its circle on the left and the history on the right — the
+// combination the issue asks for.
+const host = (chartCell, extra = {}) => ({
+    id: 'w-ccc-host',
+    type: 'thermostat',
+    title: 'Bad',
+    datapoint: 'demo.set',
+    layout: 'custom',
+    gridPos: { x: 0, y: 0, w: 14, h: 6 },
+    options: {
+        presets: [19, 21],
+        customGrid: { cols: 2, rows: 1, colSizes: ['1fr', '2fr'], cells: [comp('circle-menu'), chartCell] },
+        ...extra,
+    },
+});
+const source = {
+    id: 'w-ccc-source',
+    type: 'echart',
+    title: 'Quelle',
+    datapoint: '',
+    layout: 'default',
+    gridPos: { x: 0, y: 7, w: 14, h: 6 },
+    options: CHART_OPTIONS,
+};
+
+const browser = await chromium.launch();
+const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    deviceScaleFactor: SHOT_DIR ? 2 : 1,
+    ignoreHTTPSErrors: true,
+});
+const page = await ctx.newPage();
+const pageErrors = [];
+page.on('pageerror', (e) => pageErrors.push(e.message));
+await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+await page.waitForFunction(() => !!window.__auraShot?.ready, null, { timeout: 60000 });
+await page.evaluate((c) => {
+    window.__auraShot.enableHistory(true);
+    window.__auraShot.mockHistory({ 'demo.temp': c });
+}, curve);
+
+async function show(widgets, opts) {
+    await page.evaluate(
+        ([ws, o]) => {
+            window.__auraShot.mock({ 'demo.set': 20, 'demo.temp': 21 });
+            window.__auraShot.showWidgets(ws, o);
+        },
+        [widgets, opts],
+    );
+    await page.waitForTimeout(1500);
+}
+/** Size of the ECharts container inside the host's cell 1 (the line itself needs real history). */
+const chartBox = () =>
+    page.evaluate(() => {
+        const cell = document.querySelector('.aura-widget-w-ccc-host .aura-custom-cell-1');
+        const el = cell?.querySelector('[_echarts_instance_]');
+        if (!cell || !el) return null;
+        const c = cell.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        return { cw: c.width, ch: c.height, w: r.width, h: r.height };
+    });
+const cellText = () => page.locator('.aura-widget-w-ccc-host .aura-custom-cell-1').textContent();
+
+// ── Embedded chart ───────────────────────────────────────────────────────────
+await show([host({ type: 'widget', embed: { type: 'echart', options: CHART_OPTIONS } })]);
+{
+    const b = await chartBox();
+    check('embedded chart draws in its cell', !!b && b.w > 100 && b.h > 60, JSON.stringify(b));
+    check('and fills its width', !!b && b.w >= b.cw * 0.8, JSON.stringify(b));
+    check(
+        'no icon row of its own (showIcon defaults to off)',
+        (await page.locator('.aura-widget-w-ccc-host .aura-custom-cell-1 .aura-widget-icon').count()) === 0,
+    );
+}
+check(
+    'circle menu sits beside it',
+    (await page.locator('.aura-widget-w-ccc-host .aura-custom-cell-0 .aura-circle-trigger').count()) === 1,
+);
+if (SHOT_DIR) await page.locator('.aura-widget-w-ccc-host').screenshot({ path: `${SHOT_DIR}/cell-chart-embedded.png` });
+
+// Header items of the host stay in the host's own header.
+await show([
+    host(
+        { type: 'widget', embed: { type: 'echart', options: { ...CHART_OPTIONS, showTitle: true } } },
+        { headerItems: [{ id: 'h1', kind: 'text', text: 'HDR-838', slot: 'r1-right' }] },
+    ),
+]);
+check(
+    'host header items are not repeated inside the chart',
+    !((await cellText()) ?? '').includes('HDR-838'),
+    (await cellText()) ?? '',
+);
+
+// ── Mirror ───────────────────────────────────────────────────────────────────
+await show([host({ type: 'widget', embedSource: 'mirror', embedWidgetId: source.id }), source]);
+{
+    const b = await chartBox();
+    check('mirror draws the source chart', !!b && b.w > 100 && b.h > 60, JSON.stringify(b));
+}
+await show([host({ type: 'widget', embedSource: 'mirror', embedWidgetId: 'w-ccc-host' })]);
+check('mirror of the host itself is refused', ((await cellText()) ?? '').includes('nicht gefunden'));
+await show([host({ type: 'widget', embedSource: 'mirror', embedWidgetId: 'nope' })]);
+check('missing source is named', ((await cellText()) ?? '').includes('nicht gefunden'));
+await show([
+    host({ type: 'widget', embedSource: 'mirror', embedWidgetId: 'w-ccc-val' }),
+    { id: 'w-ccc-val', type: 'value', title: 'Wert', datapoint: 'demo.temp', gridPos: { x: 0, y: 7, w: 4, h: 2 } },
+]);
+check('a non-chart source is refused', ((await cellText()) ?? '').includes('Kein Diagramm'));
+
+// ── Editor ───────────────────────────────────────────────────────────────────
+await page.evaluate(() => window.__auraShot.unfoldSections());
+await show(
+    [
+        {
+            id: 'w-ccc-edit',
+            type: 'universal',
+            title: 'Raster',
+            layout: 'custom',
+            gridPos: { x: 0, y: 0, w: 20, h: 10 },
+            options: { customGrid: { cols: 1, rows: 1, cells: [{ type: 'empty' }] } },
+        },
+        source,
+    ],
+    { editMode: true },
+);
+await page.evaluate(() => window.__auraShot.setEditMode(true));
+await page.locator('.aura-widget-w-ccc-edit').hover();
+await page.locator('.aura-widget-w-ccc-edit .aura-edit-chrome button').first().click();
+await page.locator('button:text-is("Bearbeiten")').click();
+const dlg = page.locator('.aura-widget-edit-modal');
+await dlg.waitFor({ timeout: 10000 });
+await dlg.locator('button:has(> span:text-is("1/1"))').click();
+await dlg.locator('select:has(option[value="widget"])').selectOption('widget');
+await page.waitForTimeout(300);
+const opts = () => page.evaluate(() => window.__auraShot.widgetOptions('w-ccc-edit'));
+check('cell type "Diagramm" is offered and set', (await opts()).customGrid.cells[0].type === 'widget');
+check('the editor offers the chart popup', (await dlg.locator('.aura-embed-edit').count()) === 1);
+await dlg.locator('.aura-embed-edit').click();
+const modal = page.locator('.aura-config-modal').filter({ hasText: 'Diagramm in Zelle 1' });
+await modal.waitFor({ timeout: 10000 });
+check('chart editor opens in a popup', await modal.isVisible());
+if (SHOT_DIR) await modal.screenshot({ path: `${SHOT_DIR}/cell-chart-editor.png` });
+// The chart editor's own series dialog writes through into the cell's embed.
+await modal.locator('button:has-text("Datenpunkte verwalten")').first().click();
+const seriesDlg = page
+    .locator('.aura-config-modal')
+    .filter({ has: page.locator('button:text-is("Serie hinzufügen")') });
+await seriesDlg.locator('.aura-config-modal-tabs button', { hasText: 'Serien' }).click();
+await seriesDlg.locator('button:text-is("Serie hinzufügen")').click();
+await page.waitForTimeout(300);
+{
+    const c = (await opts()).customGrid.cells[0];
+    const n = c.embed?.options?.echartSeries?.length ?? 0;
+    check(
+        'a series added in the chart editor lands in embed',
+        c.embed?.type === 'echart' && n === 1,
+        JSON.stringify(c.embed),
+    );
+}
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+
+// Mirror picker lists the chart widget, not the host itself.
+await dlg.locator('[data-aura-embed-source="mirror"]').click();
+await page.waitForTimeout(200);
+const optionValues = await dlg
+    .locator('.aura-widget-cell-editor select option')
+    .evaluateAll((els) => els.map((e) => e.value));
+check(
+    'mirror picker lists chart widgets only',
+    JSON.stringify(optionValues) === '["","w-ccc-source"]',
+    JSON.stringify(optionValues),
+);
+await dlg.locator('.aura-widget-cell-editor select').selectOption('w-ccc-source');
+await page.waitForTimeout(200);
+{
+    const c = (await opts()).customGrid.cells[0];
+    check(
+        'mirror choice is written',
+        c.embedSource === 'mirror' && c.embedWidgetId === 'w-ccc-source',
+        JSON.stringify(c),
+    );
+}
+
+check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
+await browser.close();
+const passed = results.filter((r) => r.ok).length;
+console.log(`\n${passed}/${results.length} checks passed`);
+process.exit(passed === results.length ? 0 : 1);

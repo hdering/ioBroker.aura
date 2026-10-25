@@ -24,6 +24,9 @@ import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellC
 import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
 import { EnumCircleContent, EnumCurrent, EnumOptionLabel, entryRenderMode, type EnumEntry } from './enumEntry';
 import { CircleMenu, type CircleMenuItem } from './CircleMenu';
+import { EmbeddedWidget } from './EmbeddedWidget';
+import { useDashboardStore } from '../../store/dashboardStore';
+import { EMBED_MIRROR_TYPES, embeddedChartConfig } from '../../utils/embedCell';
 import { HtmlSelect } from '../common/HtmlSelect';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, Minus, Plus, Send } from 'lucide-react';
@@ -32,7 +35,6 @@ import { useDateValueFields, type DateValueSettings } from '../common/DateValueF
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CheckboxControl } from './CheckboxControl';
 import { useRowPopup } from '../../hooks/useRowPopup';
-import { useDashboardStore } from '../../store/dashboardStore';
 import type { RowPopupOptions } from '../../utils/rowClickAction';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
@@ -2044,6 +2046,80 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     );
 }
 
+/**
+ * A chart inside the cell (#838): its own settings (`embed`) or a mirror of a
+ * chart widget of the dashboard (`embedWidgetId`). The chart fills the cell.
+ */
+function WidgetCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    host,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    host: WidgetConfig;
+}) {
+    const mirror = cell.embedSource === 'mirror';
+    const mirrorId = mirror ? cell.embedWidgetId : undefined;
+    // Resolve a mirrored chart live from the whole dashboard, like the mirror widget.
+    const source = useDashboardStore((st) => {
+        if (!mirrorId) return undefined;
+        for (const l of st.layouts)
+            for (const sec of l.sections)
+                for (const tab of sec.tabs) {
+                    const w = tab.widgets.find((x) => x.id === mirrorId);
+                    if (w) return w;
+                }
+        return undefined;
+    });
+    const updateWidget = useDashboardStore((st) => st.updateWidget);
+    const embedded = useMemo(
+        () => (mirror ? null : embeddedChartConfig(cell, host, index)),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [mirror, cell.embed, host.id, host.gridPos, index],
+    );
+
+    const wrap: React.CSSProperties = { ...cellWrapStyle(cell, index, cols, rows), alignItems: 'stretch' };
+    const notice = (text: string) => (
+        <div className={`aura-custom-cell-${index}`} style={wrap}>
+            <div
+                className="w-full h-full flex items-center justify-center text-center text-xs p-1"
+                style={{ color: 'var(--text-secondary)', border: '1px dashed var(--app-border)', borderRadius: 6 }}
+            >
+                {text}
+            </div>
+        </div>
+    );
+
+    let target: WidgetConfig | null = embedded;
+    if (mirror) {
+        if (!mirrorId) return notice('Diagramm wählen');
+        if (mirrorId === host.id || !source) return notice('Diagramm nicht gefunden');
+        if (!EMBED_MIRROR_TYPES.has(source.type)) return notice('Kein Diagramm');
+        target = source;
+    }
+    if (!target) return notice('Diagramm wählen');
+    return (
+        <div className={`aura-custom-cell-${index}`} style={wrap}>
+            <div className="aura-cell-chart w-full h-full min-w-0 min-h-0" style={{ position: 'relative' }}>
+                <EmbeddedWidget
+                    target={target}
+                    gridPos={host.gridPos}
+                    isolateHeader
+                    // A mirrored chart keeps its edits on the source; an embedded one
+                    // has no live settings of its own to write back.
+                    onOptionsChange={mirror && source ? (options) => updateWidget(source.id, { options }) : undefined}
+                    unknownType={notice(`Unbekannter Typ ${target.type}`)}
+                />
+            </div>
+        </div>
+    );
+}
+
 /** Date/time picker bound to a DP. Writes back in the configured `dateFormat`. */
 function DatePickerCellView({
     cell,
@@ -2383,6 +2459,8 @@ export function CustomGridView({
                 return <StateTextCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
             case 'select':
                 return <SelectCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+            case 'widget':
+                return <WidgetCellView key={i} cell={cell} index={i} cols={cols} rows={rows} host={config} />;
             case 'lastchange':
                 return <LastChangeCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
             default:

@@ -1153,6 +1153,77 @@
       ]
     },
     {
+      "id": "geraet-mit-verlauf",
+      "title": "Gerät und Verlaufsdiagramm in einem Widget",
+      "when": "Bedienung und Verlauf gehören zusammen — Thermostat mit Temperaturkurve, Wallbox mit Ladeleistung — und sollen eine Kachel sein statt einer Gruppe aus zwei Widgets (#838).",
+      "instead": "einer Gruppe aus Gerät und Diagramm",
+      "notes": [
+        "layout \"custom\" des Geräts und eine Zelle type \"widget\": embed.type \"echart\", embed.options genau wie die Optionen eines echart-Widgets (echartSeries, echartRange …).",
+        "Soll ein vorhandenes Diagramm-Widget gezeigt werden: embedSource \"mirror\" und embedWidgetId — dann gelten dessen Einstellungen, und es bleibt an seinem Platz.",
+        "Die Diagramm-Zelle braucht Fläche: eine 1fr-Spalte/Zeile oder colSpan/rowSpan. Das Icon des Diagramms ist in der Zelle aus (showIcon false), solange nichts anderes gesetzt ist.",
+        "Beim Thermostat passt das Kreismenü daneben: Komponente \"circle-menu\"."
+      ],
+      "widgets": [
+        {
+          "id": "w-geraet-verlauf",
+          "type": "thermostat",
+          "title": "Heizung Bad",
+          "datapoint": "%dp.solltemperatur%",
+          "layout": "custom",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 5
+          },
+          "options": {
+            "actualDatapoint": "%dp.isttemperatur%",
+            "presets": [
+              19,
+              21,
+              22
+            ],
+            "customGrid": {
+              "cols": 2,
+              "rows": 1,
+              "colSizes": [
+                "1fr",
+                "2fr"
+              ],
+              "cells": [
+                {
+                  "type": "component",
+                  "componentKey": "circle-menu",
+                  "align": "center",
+                  "valign": "middle"
+                },
+                {
+                  "type": "widget",
+                  "embed": {
+                    "type": "echart",
+                    "options": {
+                      "echartMode": "timeseries",
+                      "echartRange": "24h",
+                      "echartSeries": [
+                        {
+                          "id": "s1",
+                          "name": "Ist",
+                          "datapointId": "%dp.isttemperatur%",
+                          "chartType": "line",
+                          "historyInstance": "history.0",
+                          "yAxisIndex": 0
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "id": "raumklima-soll",
       "title": "Raumklima mit Soll-Bedienung",
       "when": "Ein Raum zeigt Temperatur, Feuchte und Verlauf und soll zugleich die Solltemperatur stellen — ohne zweites Thermostat-Widget daneben (#838).",

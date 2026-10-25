@@ -2209,3 +2209,13 @@ Stelle, an der ein Modell die Felder/Komponenten eines Widgets für das Raster s
 | MCP | `aura_widget_schema` nennt die Layouts mit Vorlage, `customFrom` gibt das JSON aus; Warnung „custom ohne customGrid“ verweist darauf; Rezept `custom-aus-layout` |
 | Raster | neue Felder `CustomGridDef.bg` / `borderColor` (Karten-Fläche); Zellfarben über Widget-Variablen `--aura-state-color`, `--aura-value-color`, `--aura-card-*` (`CustomGridView cssVars`) |
 | Tests | `tools/tests/custom-grid-presets-logic.mjs` (in `npm test`), `tools/tests/custom-grid-from-layout.mjs` (Browser: Original neben Custom, Editor-Ablauf), MCP-Check in `tools/tests/mcp.mjs` |
+
+### Kreismenü und Diagramm im Custom-Raster (#838)
+
+| Teil | |
+| --- | --- |
+| Kreismenü | Komponente `circle-menu` bei Thermostat, Rollladen, Auswahlfeld und Raumklima (`targetControl`); Preset von `layout: 'circle'` = diese Zelle (`customGridPresets/circle.ts`) |
+| Freies Kreismenü | Zelle `select` mit `selectDisplay: 'circle'`, optional `circleStep` + `min`/`max`; Rezept `zelle-kreismenue` |
+| Diagramm | Zellentyp `widget`: `embed` (eigene `echart`-Optionen) oder `embedSource: 'mirror'` + `embedWidgetId` (chart/echart/echartsPreset); Rendering über `EmbeddedWidget` (auch der Spiegel) |
+| Raumklima | `targetControl`, `minTemp`/`maxTemp`/`step`/`presets`; Rezepte `raumklima-soll`, `geraet-mit-verlauf`; Metrik-Modifier `targetControl` |
+| Tests | `climate-setpoint.mjs`, `select-cell-circle.mjs`, `custom-cell-chart.mjs` (Browser), `custom-grid-presets-logic.mjs` |

@@ -1,13 +1,7 @@
-import { Suspense, useMemo } from 'react';
 import { AlertTriangle, CopyPlus } from 'lucide-react';
 import type { WidgetConfig, WidgetProps } from '../../types';
-import { getWidgetMap } from './widgetMap';
-import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
-import { useColorBindings } from '../../hooks/useColorBindings';
-import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
-import { useResolvedTitle } from './DynamicTitle';
+import { EmbeddedWidget } from './EmbeddedWidget';
 import { TabMirror } from './TabMirror';
 import { useT } from '../../i18n';
 
@@ -56,18 +50,6 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
         l.sections.flatMap((sec) => sec.tabs.flatMap((t) => t.widgets)),
     );
     const target = targetId && targetId !== config.id ? allWidgets.find((w) => w.id === targetId) : undefined;
-    // `[[dp]]` in the title resolves at every render boundary (same as WidgetFrame).
-    const resolvedTitle = useResolvedTitle(target?.title ?? '');
-    // A mirror shows the source's content, so it follows the source's reload rules
-    // as well as its own frame's. Read before the early returns (hook order).
-    const targetRefreshNonce = useWidgetRefreshNonce(target?.id);
-    // The source config comes straight from the store, not through the mirror's own
-    // frame, so its light/dark colour pairs are still unresolved (#689). Read before
-    // the early returns (hook order).
-    const dark = useIsDarkTheme();
-    // Then the colours bound to a datapoint (#747), on the half that applies.
-    const dualTarget = useMemo(() => resolveDualDeep(target, dark), [target, dark]);
-    const { value: boundTarget, restore: restoreColorBindings } = useColorBindings(dualTarget);
 
     if (!targetId) {
         return editMode ? (
@@ -107,35 +89,19 @@ function WidgetMirror({ config, editMode, onLastChange }: WidgetProps) {
         );
     }
 
-    const wm = getWidgetMap();
-    const Widget = wm[target.type as keyof typeof wm];
-
-    if (!Widget) {
-        return <Notice icon={<AlertTriangle size={22} />} title={t('mirror.unknownType', { type: target.type })} />;
-    }
-
-    // Take the source's content but keep the mirror's own placement.
-    const mirroredConfig: WidgetConfig = { ...(boundTarget ?? target), title: resolvedTitle, gridPos: config.gridPos };
-
+    // Take the source's content but keep the mirror's own placement; option edits
+    // go back to the source — never the whole config, that would clobber its gridPos.
     return (
-        <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-            <Widget
-                key={`r${targetRefreshNonce}`}
-                config={mirroredConfig}
-                editMode={false}
-                onConfigChange={(next) => {
-                    // Persist only options — mirroredConfig overrides gridPos, so writing
-                    // the whole config back would clobber the source's real position.
-                    // restoreDualDeep: the body spreads the RESOLVED config, so without
-                    // it the other half of a light/dark pair would be lost (#689).
-                    updateWidget(target.id, {
-                        options: restoreDualDeep(restoreColorBindings(next, target), target).options,
-                    });
-                }}
-                // Let the mirror's frame overlay show the source's last-change
-                // for sources that self-report it (e.g. calendar).
-                onLastChange={onLastChange}
-            />
-        </Suspense>
+        <EmbeddedWidget
+            target={target}
+            gridPos={config.gridPos}
+            onOptionsChange={(options) => updateWidget(target.id, { options })}
+            // Let the mirror's frame overlay show the source's last-change
+            // for sources that self-report it (e.g. calendar).
+            onLastChange={onLastChange}
+            unknownType={
+                <Notice icon={<AlertTriangle size={22} />} title={t('mirror.unknownType', { type: target.type })} />
+            }
+        />
     );
 }

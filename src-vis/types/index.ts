@@ -287,7 +287,9 @@ export type CustomCellType =
     | 'progress'
     | 'state-text'
     | 'select'
-    | 'lastchange';
+    | 'lastchange'
+    // Embedded chart (#838)
+    | 'widget';
 export type CustomCellAlign = 'left' | 'center' | 'right';
 export type CustomCellValign = 'top' | 'middle' | 'bottom';
 
@@ -424,6 +426,11 @@ export interface CustomCell {
     lastChangeFormat?: 'relative' | 'time' | 'datetime'; // timestamp format (default 'relative')
     lastChangeSource?: 'lastChange' | 'lastUpdate'; // which timestamp the last-change line and the lastchange cell show: 'lastChange' = when the value last changed (lc, default), 'lastUpdate' = when the datapoint was last written, even with the same value (ts)
     // click action on display cells (issue #729) — see CLICKABLE_CELL_TYPES in CustomGridView
+    // 'widget' type — a chart drawn inside the cell (#838)
+    embedSource?: 'embedded' | 'mirror'; // 'widget' cell: 'embedded' (default) = the chart's own settings live in `embed`; 'mirror' = shows an existing chart widget of the dashboard (`embedWidgetId`)
+    /** 'widget' cell, embedSource 'embedded': the chart, stored exactly like a widget of that type stores its options. Only 'echart' (Diagramm erweitert) for now. */
+    embed?: { type: 'echart'; options?: Record<string, unknown> };
+    embedWidgetId?: string; // 'widget' cell, embedSource 'mirror': id of the chart widget shown (type chart, echart or echartsPreset; any tab or layout); its settings stay on that widget
     /** Display cells only (text, value, dp, image, icon, …): what a click on this cell does — same actions as a widget click (popup view, link to tab, …). Unset = the cell is not clickable and a click reaches the widget's own action. */
     clickAction?: ClickAction;
     /** Popup settings for the cell's clickAction; each field unset = inherit popup view / global setting. */

@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, StatusItem, WidgetType } from '../../types';
+import { WidgetCellEditor } from './WidgetCellEditor';
 import { STATUS_ITEM_CELL_PREFIX } from '../widgets/StatusBadges';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CLICKABLE_CELL_TYPES, CONTENT_BG_TYPES } from '../widgets/CustomGridView';
@@ -66,6 +67,7 @@ export const CELL_LABELS: Record<string, string> = {
     'state-text': 'Status-Text',
     select: 'Auswahl',
     lastchange: 'Letzte Änderung',
+    widget: 'Diagramm',
 };
 
 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
@@ -689,6 +691,8 @@ export interface CustomCellEditorProps {
     onOpenClickAction?: () => void;
     /** The widget's own status symbols — each one is a pickable component (#792). */
     statusItems?: StatusItem[];
+    /** Id of the widget that owns the grid — a 'widget' cell must not mirror it (#838). */
+    hostId?: string;
 }
 
 // Value-bearing / icon cell types that support per-cell conditional formatting.
@@ -730,6 +734,7 @@ export function CustomCellEditor({
     onOpenConditions,
     onOpenClickAction,
     statusItems,
+    hostId = '',
 }: CustomCellEditorProps) {
     // Only for the small previews in this panel: a colour may be a light/dark
     // pair (#689), and a preview has to show the half that applies right now.
@@ -827,6 +832,9 @@ export function CustomCellEditor({
                             </option>
                         ))}
                     </optgroup>
+                    <optgroup label="Eingebettet">
+                        <option value="widget">Diagramm</option>
+                    </optgroup>
                 </select>
             </div>
 
@@ -844,6 +852,11 @@ export function CustomCellEditor({
                         style={inputSty}
                     />
                 </div>
+            )}
+
+            {/* Embedded chart (#838) */}
+            {cell.type === 'widget' && (
+                <WidgetCellEditor cell={cell} index={index} hostId={hostId} onChange={onChange} />
             )}
 
             {/* Image URL / base64 */}
@@ -3312,6 +3325,7 @@ export function CustomCellEditor({
                 cell.type !== 'image' &&
                 cell.type !== 'icon' &&
                 cell.type !== 'component' &&
+                cell.type !== 'widget' &&
                 cell.type !== 'lastchange' && (
                     <>
                         <div className="flex items-center justify-between">
