@@ -1,12 +1,10 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Diagramm in einer Custom-Zelle (issue #838)
 // ─────────────────────────────────────────────────────────────────────────────
-// The custom grid's 'widget' cell draws a chart inside one cell: with its own
-// settings (`embed`, the advanced chart's options) or as a mirror of a chart
-// widget of the dashboard (`embedWidgetId`). Checked: the embedded chart fills
-// its cell and draws, a mirror shows its source and refuses itself / non-charts,
-// the host's header items stay out of the chart, and the editor creates the
-// cell, opens the chart editor in a popup and writes the series into `embed`.
+// The custom grid's 'widget' cell mirrors a chart widget of the dashboard
+// (`embedWidgetId`) inside one cell. Checked: the mirror fills its cell, refuses
+// itself / non-charts, the host's header items stay out of the chart, and the
+// editor creates the cell and lists chart widgets only.
 //
 //   npm run dev                       (or set AURA_BASE)
 //   node tools/tests/custom-cell-chart.mjs
@@ -106,48 +104,36 @@ const chartBox = () =>
     });
 const cellText = () => page.locator('.aura-widget-w-ccc-host .aura-custom-cell-1').textContent();
 
-// ── Embedded chart ───────────────────────────────────────────────────────────
-await show([host({ type: 'widget', embed: { type: 'echart', options: CHART_OPTIONS } })]);
+// ── Mirror ───────────────────────────────────────────────────────────────────
+const mirrorCell = { type: 'widget', embedWidgetId: source.id };
+await show([host(mirrorCell), source]);
 {
     const b = await chartBox();
-    check('embedded chart draws in its cell', !!b && b.w > 100 && b.h > 60, JSON.stringify(b));
+    check('mirror draws the source chart in its cell', !!b && b.w > 100 && b.h > 60, JSON.stringify(b));
     check('and fills its width', !!b && b.w >= b.cw * 0.8, JSON.stringify(b));
-    check(
-        'no icon row of its own (showIcon defaults to off)',
-        (await page.locator('.aura-widget-w-ccc-host .aura-custom-cell-1 .aura-widget-icon').count()) === 0,
-    );
 }
 check(
     'circle menu sits beside it',
     (await page.locator('.aura-widget-w-ccc-host .aura-custom-cell-0 .aura-circle-trigger').count()) === 1,
 );
-if (SHOT_DIR) await page.locator('.aura-widget-w-ccc-host').screenshot({ path: `${SHOT_DIR}/cell-chart-embedded.png` });
+if (SHOT_DIR) await page.locator('.aura-widget-w-ccc-host').screenshot({ path: `${SHOT_DIR}/cell-chart-mirror.png` });
 
 // Header items of the host stay in the host's own header.
 await show([
-    host(
-        { type: 'widget', embed: { type: 'echart', options: { ...CHART_OPTIONS, showTitle: true } } },
-        { headerItems: [{ id: 'h1', kind: 'text', text: 'HDR-838', slot: 'r1-right' }] },
-    ),
+    host(mirrorCell, { headerItems: [{ id: 'h1', kind: 'text', text: 'HDR-838', slot: 'r1-right' }] }),
+    { ...source, options: { ...CHART_OPTIONS, showTitle: true } },
 ]);
 check(
     'host header items are not repeated inside the chart',
     !((await cellText()) ?? '').includes('HDR-838'),
     (await cellText()) ?? '',
 );
-
-// ── Mirror ───────────────────────────────────────────────────────────────────
-await show([host({ type: 'widget', embedSource: 'mirror', embedWidgetId: source.id }), source]);
-{
-    const b = await chartBox();
-    check('mirror draws the source chart', !!b && b.w > 100 && b.h > 60, JSON.stringify(b));
-}
-await show([host({ type: 'widget', embedSource: 'mirror', embedWidgetId: 'w-ccc-host' })]);
+await show([host({ type: 'widget', embedWidgetId: 'w-ccc-host' })]);
 check('mirror of the host itself is refused', ((await cellText()) ?? '').includes('nicht gefunden'));
-await show([host({ type: 'widget', embedSource: 'mirror', embedWidgetId: 'nope' })]);
+await show([host({ type: 'widget', embedWidgetId: 'nope' })]);
 check('missing source is named', ((await cellText()) ?? '').includes('nicht gefunden'));
 await show([
-    host({ type: 'widget', embedSource: 'mirror', embedWidgetId: 'w-ccc-val' }),
+    host({ type: 'widget', embedWidgetId: 'w-ccc-val' }),
     { id: 'w-ccc-val', type: 'value', title: 'Wert', datapoint: 'demo.temp', gridPos: { x: 0, y: 7, w: 4, h: 2 } },
 ]);
 check('a non-chart source is refused', ((await cellText()) ?? '').includes('Kein Diagramm'));
@@ -179,37 +165,7 @@ await dlg.locator('select:has(option[value="widget"])').selectOption('widget');
 await page.waitForTimeout(300);
 const opts = () => page.evaluate(() => window.__auraShot.widgetOptions('w-ccc-edit'));
 check('cell type "Diagramm" is offered and set', (await opts()).customGrid.cells[0].type === 'widget');
-check('the editor offers the chart popup', (await dlg.locator('.aura-embed-edit').count()) === 1);
-await dlg.locator('.aura-embed-edit').click();
-const modal = page.locator('.aura-config-modal').filter({ hasText: 'Diagramm in Zelle 1' });
-await modal.waitFor({ timeout: 10000 });
-check('chart editor opens in a popup', await modal.isVisible());
-if (SHOT_DIR) await modal.screenshot({ path: `${SHOT_DIR}/cell-chart-editor.png` });
-// The chart editor's own series dialog writes through into the cell's embed.
-await modal.locator('button:has-text("Datenpunkte verwalten")').first().click();
-const seriesDlg = page
-    .locator('.aura-config-modal')
-    .filter({ has: page.locator('button:text-is("Serie hinzufügen")') });
-await seriesDlg.locator('.aura-config-modal-tabs button', { hasText: 'Serien' }).click();
-await seriesDlg.locator('button:text-is("Serie hinzufügen")').click();
-await page.waitForTimeout(300);
-{
-    const c = (await opts()).customGrid.cells[0];
-    const n = c.embed?.options?.echartSeries?.length ?? 0;
-    check(
-        'a series added in the chart editor lands in embed',
-        c.embed?.type === 'echart' && n === 1,
-        JSON.stringify(c.embed),
-    );
-}
-await page.keyboard.press('Escape');
-await page.waitForTimeout(200);
-await page.keyboard.press('Escape');
-await page.waitForTimeout(200);
-
-// Mirror picker lists the chart widget, not the host itself.
-await dlg.locator('[data-aura-embed-source="mirror"]').click();
-await page.waitForTimeout(200);
+// The picker lists the chart widget, not the host itself.
 const optionValues = await dlg
     .locator('.aura-widget-cell-editor select option')
     .evaluateAll((els) => els.map((e) => e.value));
@@ -222,11 +178,7 @@ await dlg.locator('.aura-widget-cell-editor select').selectOption('w-ccc-source'
 await page.waitForTimeout(200);
 {
     const c = (await opts()).customGrid.cells[0];
-    check(
-        'mirror choice is written',
-        c.embedSource === 'mirror' && c.embedWidgetId === 'w-ccc-source',
-        JSON.stringify(c),
-    );
+    check('mirror choice is written', c.embedWidgetId === 'w-ccc-source', JSON.stringify(c));
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));

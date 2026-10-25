@@ -26,7 +26,7 @@ import { EnumCircleContent, EnumCurrent, EnumOptionLabel, entryRenderMode, type 
 import { CircleMenu, type CircleMenuItem } from './CircleMenu';
 import { EmbeddedWidget } from './EmbeddedWidget';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { EMBED_MIRROR_TYPES, embeddedChartConfig } from '../../utils/embedCell';
+import { EMBED_MIRROR_TYPES } from '../../utils/embedCell';
 import { HtmlSelect } from '../common/HtmlSelect';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, Minus, Plus, Send } from 'lucide-react';
@@ -2047,8 +2047,8 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
 }
 
 /**
- * A chart inside the cell (#838): its own settings (`embed`) or a mirror of a
- * chart widget of the dashboard (`embedWidgetId`). The chart fills the cell.
+ * A chart inside the cell (#838): a mirror of a chart widget of the dashboard
+ * (`embedWidgetId`). The chart fills the cell.
  */
 function WidgetCellView({
     cell,
@@ -2063,9 +2063,8 @@ function WidgetCellView({
     rows: number;
     host: WidgetConfig;
 }) {
-    const mirror = cell.embedSource === 'mirror';
-    const mirrorId = mirror ? cell.embedWidgetId : undefined;
-    // Resolve a mirrored chart live from the whole dashboard, like the mirror widget.
+    const mirrorId = cell.embedWidgetId;
+    // Resolve the mirrored chart live from the whole dashboard, like the mirror widget.
     const source = useDashboardStore((st) => {
         if (!mirrorId) return undefined;
         for (const l of st.layouts)
@@ -2077,11 +2076,6 @@ function WidgetCellView({
         return undefined;
     });
     const updateWidget = useDashboardStore((st) => st.updateWidget);
-    const embedded = useMemo(
-        () => (mirror ? null : embeddedChartConfig(cell, host, index)),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [mirror, cell.embed, host.id, host.gridPos, index],
-    );
 
     const wrap: React.CSSProperties = { ...cellWrapStyle(cell, index, cols, rows), alignItems: 'stretch' };
     const notice = (text: string) => (
@@ -2095,25 +2089,19 @@ function WidgetCellView({
         </div>
     );
 
-    let target: WidgetConfig | null = embedded;
-    if (mirror) {
-        if (!mirrorId) return notice('Diagramm wählen');
-        if (mirrorId === host.id || !source) return notice('Diagramm nicht gefunden');
-        if (!EMBED_MIRROR_TYPES.has(source.type)) return notice('Kein Diagramm');
-        target = source;
-    }
-    if (!target) return notice('Diagramm wählen');
+    if (!mirrorId) return notice('Diagramm wählen');
+    if (mirrorId === host.id || !source) return notice('Diagramm nicht gefunden');
+    if (!EMBED_MIRROR_TYPES.has(source.type)) return notice('Kein Diagramm');
     return (
         <div className={`aura-custom-cell-${index}`} style={wrap}>
             <div className="aura-cell-chart w-full h-full min-w-0 min-h-0" style={{ position: 'relative' }}>
                 <EmbeddedWidget
-                    target={target}
+                    target={source}
                     gridPos={host.gridPos}
                     isolateHeader
-                    // A mirrored chart keeps its edits on the source; an embedded one
-                    // has no live settings of its own to write back.
-                    onOptionsChange={mirror && source ? (options) => updateWidget(source.id, { options }) : undefined}
-                    unknownType={notice(`Unbekannter Typ ${target.type}`)}
+                    // The mirrored chart keeps its edits on the source.
+                    onOptionsChange={(options) => updateWidget(source.id, { options })}
+                    unknownType={notice(`Unbekannter Typ ${source.type}`)}
                 />
             </div>
         </div>

@@ -854,10 +854,8 @@ export function CustomCellEditor({
                 </div>
             )}
 
-            {/* Embedded chart (#838) */}
-            {cell.type === 'widget' && (
-                <WidgetCellEditor cell={cell} index={index} hostId={hostId} onChange={onChange} />
-            )}
+            {/* Mirrored chart (#838) */}
+            {cell.type === 'widget' && <WidgetCellEditor cell={cell} hostId={hostId} onChange={onChange} />}
 
             {/* Image URL / base64 */}
             {cell.type === 'image' && (

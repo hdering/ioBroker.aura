@@ -1158,9 +1158,9 @@
       "when": "Bedienung und Verlauf gehören zusammen — Thermostat mit Temperaturkurve, Wallbox mit Ladeleistung — und sollen eine Kachel sein statt einer Gruppe aus zwei Widgets (#838).",
       "instead": "einer Gruppe aus Gerät und Diagramm",
       "notes": [
-        "layout \"custom\" des Geräts und eine Zelle type \"widget\": embed.type \"echart\", embed.options genau wie die Optionen eines echart-Widgets (echartSeries, echartRange …).",
-        "Soll ein vorhandenes Diagramm-Widget gezeigt werden: embedSource \"mirror\" und embedWidgetId — dann gelten dessen Einstellungen, und es bleibt an seinem Platz.",
-        "Die Diagramm-Zelle braucht Fläche: eine 1fr-Spalte/Zeile oder colSpan/rowSpan. Das Icon des Diagramms ist in der Zelle aus (showIcon false), solange nichts anderes gesetzt ist.",
+        "Das Diagramm ist ein eigenes Widget (echart, chart oder echartsPreset, beliebiger Tab); das Gerät bekommt layout \"custom\" und eine Zelle type \"widget\" mit embedWidgetId = dessen id.",
+        "Die Zelle spiegelt das Diagramm: Einstellungen gelten fürs Original, das an seinem Platz bleibt (z. B. auf einem eigenen Tab).",
+        "Die Diagramm-Zelle braucht Fläche: eine 1fr-Spalte/Zeile oder colSpan/rowSpan.",
         "Beim Thermostat passt das Kreismenü daneben: Komponente \"circle-menu\"."
       ],
       "widgets": [
@@ -1199,26 +1199,36 @@
                 },
                 {
                   "type": "widget",
-                  "embed": {
-                    "type": "echart",
-                    "options": {
-                      "echartMode": "timeseries",
-                      "echartRange": "24h",
-                      "echartSeries": [
-                        {
-                          "id": "s1",
-                          "name": "Ist",
-                          "datapointId": "%dp.isttemperatur%",
-                          "chartType": "line",
-                          "historyInstance": "history.0",
-                          "yAxisIndex": 0
-                        }
-                      ]
-                    }
-                  }
+                  "embedWidgetId": "w-geraet-verlauf-chart"
                 }
               ]
             }
+          }
+        },
+        {
+          "id": "w-geraet-verlauf-chart",
+          "type": "echart",
+          "title": "Verlauf Bad",
+          "datapoint": "",
+          "gridPos": {
+            "x": 0,
+            "y": 5,
+            "w": 12,
+            "h": 5
+          },
+          "options": {
+            "echartMode": "timeseries",
+            "echartRange": "24h",
+            "echartSeries": [
+              {
+                "id": "s1",
+                "name": "Ist",
+                "datapointId": "%dp.isttemperatur%",
+                "chartType": "line",
+                "historyInstance": "history.0",
+                "yAxisIndex": 0
+              }
+            ]
           }
         }
       ]
