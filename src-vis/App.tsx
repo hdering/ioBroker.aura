@@ -57,6 +57,7 @@ import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
 import { usePopupRuntimeStore } from './store/popupRuntimeStore';
 import { DpPopupTriggers } from './components/widgets/popup/DpPopupTriggers';
 import { ToastLayer } from './components/messages/ToastLayer';
+import { SpeechOutput } from './components/speech/SpeechOutput';
 import { MessageBell } from './components/layout/MessageBell';
 import type { MessageScope } from './store/messagesStore';
 import { NS } from './utils/namespace';
@@ -1426,6 +1427,7 @@ export default function App() {
             {showClientIdBadge && <ClientIdBadge />}
             <DpPopupTriggers layoutId={layout?.id} tabId={activeTabId} />
             <ToastLayer scope={messageScope} />
+            <SpeechOutput scope={messageScope} clientReady={clientIdPinned} />
             {drawerFloating && (
                 <LayoutDrawer
                     activeLayoutId={layout?.id}

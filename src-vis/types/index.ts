@@ -683,6 +683,8 @@ export interface AuraMessage {
     ackValue?: string;
     actions?: MessageAction[];
     target?: MessageTarget;
+    /** Read title and text out on the devices that show it. Absent = off; the adapter resolves the admin default. */
+    speak?: boolean;
     /** Set once the message was closed on every client (ack or dismiss). */
     dismissed?: boolean;
     ackedAt?: number;
@@ -733,6 +735,8 @@ export interface MessageDraft {
     ackDp: string;
     ackValue: string;
     persist: boolean;
+    /** Read out: '' = admin default per severity, 'on' / 'off' = force it. */
+    speak?: '' | 'on' | 'off';
     actions: { label: string; dp: string; value: string; close: boolean }[];
     targetClients: string;
     targetLayout: string;

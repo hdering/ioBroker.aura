@@ -89,7 +89,8 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 
 Jedes Gerät bekommt eine ID; darüber wird es einzeln angesprochen:
 `aura.0.clients.<ID>.navigate.url`, `.navigate.target`, `.popup.open`, `.messages.send`,
-`.idleReturn.snoozeMinutes`, `.idleReturn.delay`, `.idle.active`, `.idle.delay`.
+`.idleReturn.snoozeMinutes`, `.idleReturn.delay`, `.idle.active`, `.idle.delay`,
+`.speech.say`, `.speech.muted`, `.speech.volume` ([Sprachausgabe](../anleitungen/sprachausgabe)).
 
 Die ID wird beim ersten Kontakt vergeben und dann im Browser gespeichert. Sie bleibt
 danach unverändert — Browser-Updates, Auflösungs- oder Skalierungswechsel ändern sie nicht.

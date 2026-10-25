@@ -75,6 +75,7 @@ export default defineConfig({
             { text: 'Grundriss mit Bedienelementen', link: '/anleitungen/grundriss' },
             { text: 'Verlauf per Klick auf Listenzeile', link: '/anleitungen/verlauf-popup' },
             { text: 'Ohne Rand anzeigen', link: '/anleitungen/ohne-rand' },
+            { text: 'Sprachausgabe', link: '/anleitungen/sprachausgabe' },
           ],
         },
       ],

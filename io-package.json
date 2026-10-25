@@ -431,6 +431,27 @@
       "native": {}
     },
     {
+      "_id": "speech",
+      "type": "channel",
+      "common": {
+        "name": "Speech output (all clients)"
+      },
+      "native": {}
+    },
+    {
+      "_id": "speech.say",
+      "type": "state",
+      "common": {
+        "name": "Speak on every client (text, sound file, \"volume;text\" or JSON)",
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": true,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
       "_id": "admin",
       "type": "channel",
       "common": {

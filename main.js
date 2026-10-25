@@ -42,6 +42,7 @@ const { createAdapterIcons, ioBrokerIconSource } = require('./lib/adapterIcons')
 const { createConfigGuard, CONFIG_KEYS } = require('./lib/configGuard');
 const { runBackendCheck: buildBackendReport, resolveTarget, listBackends } = require('./lib/backendCheck');
 const { createSceneService, SCENE_COMMANDS } = require('./lib/scenes');
+const { createSayitBridge, SAYIT_PREFIX } = require('./lib/sayitBridge');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -165,6 +166,16 @@ const MESSAGE_POSITIONS = [
     'bottom-center',
     'bottom-right',
 ];
+
+/** What `clients.<id>.speech.lastResult` can say (#834); mirrors SPEECH_RESULTS in src-vis/utils/speech.ts. */
+const SPEECH_RESULT_STATES = {
+    played: 'played',
+    blocked: 'blocked (autoplay, waiting for a tap)',
+    muted: 'muted',
+    skipped: 'skipped (display off or queue full)',
+    interrupted: 'interrupted',
+    error: 'error',
+};
 
 /** Auto-close default per severity, in seconds. 0 = stays until dismissed. */
 const MESSAGE_DEFAULT_DURATION = { info: 8, success: 8, warning: 15, error: 0 };
@@ -648,6 +659,33 @@ function parseAdapterAssetPath(p) {
     return { adapter: m[1], file };
 }
 
+/**
+ * `/<adapter>.<n>/<file>.<audio>` — a sound file in an instance's file storage,
+ * the form SayIt hands to VIS (`/sayit.0/tts.mp3`) and the speech output plays
+ * (#834). Answered from the file storage like the adapter assets, so an
+ * announcement does not depend on a web adapter behind the socket port. Audio
+ * only: the storage of other instances holds config files nobody should be able
+ * to read through Aura's server.
+ *
+ * @param {string} p path below `/webfs`, still percent-encoded
+ * @returns {{meta: string, file: string}|null} the storage and the file in it, or null
+ */
+function parseStorageAudioPath(p) {
+    const m = /^\/([A-Za-z0-9][A-Za-z0-9_-]*\.\d+)\/(.+)$/.exec(p);
+    if (!m) return null;
+    let file;
+    try {
+        file = decodeURIComponent(m[2]);
+    } catch {
+        return null;
+    }
+    if (file.includes('\0') || file.includes('\\')) return null;
+    const parts = file.split('/');
+    if (parts.some((s) => s === '' || s === '.' || s === '..')) return null;
+    if (!/\.(mp3|wav|ogg|oga|m4a|aac|opus)$/i.test(file)) return null;
+    return { meta: m[1], file };
+}
+
 const WWW_DIR = path.join(__dirname, 'www');
 
 /**
@@ -1083,6 +1121,7 @@ class Aura extends utils.Adapter {
     // adapter restart. Deletes are handled symmetrically to keep _timerState in
     // sync with what actually exists on disk.
     async onObjectChange(id, obj) {
+        if (this._sayit && this._sayit.onObjectChange(id)) return;
         if (id.startsWith(`${this.namespace}.countdowns.`)) {
             await this._onCountdownObjectChange(id, obj);
             return;
@@ -1333,10 +1372,24 @@ class Aura extends utils.Adapter {
      * @returns {Promise<boolean>} true when the response was written
      */
     async serveAdapterAsset(asset, res) {
+        return this.serveStorageFile(`${asset.adapter}.admin`, asset.file, res);
+    }
+
+    /**
+     * Answer a request with one file of the ioBroker file storage. Resolves
+     * `false` when it is not there, so the caller can fall back to the proxy.
+     *
+     * @param {string} meta storage id (`pirate-weather.admin`, `sayit.0`)
+     * @param {string} file path below it
+     * @param {import('node:http').ServerResponse} res response to write to
+     * @returns {Promise<boolean>} true when the response was written
+     */
+    async serveStorageFile(meta, file, res) {
+        const asset = { file };
         let data;
         let mime;
         try {
-            const raw = await this.readFileAsync(`${asset.adapter}.admin`, asset.file);
+            const raw = await this.readFileAsync(meta, file);
             // adapter-core resolves either { file, mimeType } or [ data, mimeType ]
             if (Array.isArray(raw)) [data, mime] = raw;
             else if (raw && typeof raw === 'object') ({ file: data, mimeType: mime } = raw);
@@ -1910,13 +1963,15 @@ class Aura extends utils.Adapter {
                 // Adapter assets live in the objects DB, which aura can read on its
                 // own — no detour over the web adapter, and no dependency on the
                 // configured socket port pointing at a file-serving instance (#519).
-                const asset =
-                    isWebFs && req.method === 'GET' ? parseAdapterAssetPath(pathname.slice('/webfs'.length)) : null;
-                if (asset) {
+                const webfsPath = pathname.slice('/webfs'.length);
+                const asset = isWebFs && req.method === 'GET' ? parseAdapterAssetPath(webfsPath) : null;
+                // Sound files of an instance's storage (SayIt's tts.mp3, #834) likewise.
+                const audio = isWebFs && req.method === 'GET' && !asset ? parseStorageAudioPath(webfsPath) : null;
+                if (asset || audio) {
                     const fallback = () => {
                         if (!res.headersSent) proxyToWebBackend(req, res, backendPath);
                     };
-                    this.serveAdapterAsset(asset, res)
+                    (asset ? this.serveAdapterAsset(asset, res) : this.serveStorageFile(audio.meta, audio.file, res))
                         .then((served) => {
                             if (!served) fallback();
                         })
@@ -2274,6 +2329,7 @@ class Aura extends utils.Adapter {
         await this._ensureClientMessageDps(cId);
         await this._ensureIdleReturnDps(cId);
         await this._ensureIdleStateDps(cId);
+        await this._ensureSpeechDps(cId);
         this.log.debug(`[clients] completed object tree for ${cId}`);
         return true;
     }
@@ -2338,6 +2394,8 @@ class Aura extends utils.Adapter {
             'info.resolutionWidth',
             'info.resolutionHeight',
             'idle.active',
+            'speech.playing',
+            'speech.lastResult',
         ]) {
             ids.add(`${base}.${known}`);
         }
@@ -2383,6 +2441,8 @@ class Aura extends utils.Adapter {
                     await this._ensureIdleReturnDps(cId);
                     // And for the idle state (#822).
                     await this._ensureIdleStateDps(cId);
+                    // And for the speech output (#834).
+                    await this._ensureSpeechDps(cId);
                     await this._setTargetStates(`clients.${cId}.navigate.target`, states);
                 } catch {
                     /* ignore a client object that vanished mid-sync */
@@ -2440,6 +2500,10 @@ class Aura extends utils.Adapter {
             showTime: d.showTime === true,
             timeFormat: MESSAGE_TIME_FORMATS.includes(d.timeFormat) ? d.timeFormat : MESSAGE_DEFAULT_TIME_FORMAT,
             errorsRequireAck: d.errorsRequireAck === true,
+            // Severities read out by the devices that show them (#834).
+            speakSeverities: Array.isArray(d.speakSeverities)
+                ? d.speakSeverities.filter((s) => MESSAGE_SEVERITIES.includes(s))
+                : [],
         };
     }
 
@@ -2614,6 +2678,11 @@ class Aura extends utils.Adapter {
         }
         if (actions && actions.length) msg.actions = actions;
         if (Object.keys(target).length) msg.target = target;
+
+        // Read out (#834). Tri-state like showTime: an explicit boolean wins,
+        // otherwise the admin's per-severity default. Only carried when on.
+        const speak = typeof src.speak === 'boolean' ? src.speak : defaults.speakSeverities.includes(severity);
+        if (speak) msg.speak = true;
 
         // A message with no visible body at all would render as an empty box.
         if (!msg.title && !msg.text && !msg.html && !msg.image && !msg.view) {
@@ -2970,6 +3039,97 @@ class Aura extends utils.Adapter {
     }
 
     /**
+     * The per-client speech output (issue #834). `say` is the command (cleared by
+     * the client once it took it), `playing` / `lastResult` are written by the
+     * client, `muted` / `volume` are settings of this one device. Own backfill for
+     * the same navigate.url-sentinel reason as the others above.
+     */
+    async _ensureSpeechDps(cId) {
+        const base = `clients.${cId}`;
+        await this.setObjectNotExistsAsync(`${base}.speech`, {
+            type: 'channel',
+            common: { name: 'Speech output of this client' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.speech.say`, {
+            type: 'state',
+            common: {
+                name: 'Speak on this client only (text, sound file, "volume;text" or JSON)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.speech.playing`, {
+            type: 'state',
+            common: {
+                name: 'An announcement is playing (written by the client)',
+                type: 'boolean',
+                role: 'indicator',
+                read: true,
+                write: true,
+                def: false,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.speech.lastResult`, {
+            type: 'state',
+            common: {
+                name: 'Result of the last announcement (written by the client)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+                states: SPEECH_RESULT_STATES,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.speech.muted`, {
+            type: 'state',
+            common: {
+                name: 'Mute announcements on this client',
+                type: 'boolean',
+                role: 'switch',
+                read: true,
+                write: true,
+                def: false,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.speech.volume`, {
+            type: 'state',
+            common: {
+                name: 'Default volume of announcements on this client',
+                type: 'number',
+                role: 'level.volume',
+                unit: '%',
+                min: 0,
+                max: 100,
+                read: true,
+                write: true,
+                def: 100,
+            },
+            native: {},
+        });
+    }
+
+    /**
+     * Hand an announcement to every client via `speech.say` — the relay of the
+     * SayIt bridge. The clients clear the datapoint once they took it.
+     */
+    async _announce(payload) {
+        try {
+            await this.setStateAsync('speech.say', { val: JSON.stringify(payload), ack: true });
+        } catch (e) {
+            this.log.warn(`[speech] announce failed: ${e.message}`);
+        }
+    }
+
+    /**
      * One minute of every running idle-return snooze. Counting down in the state
      * itself (instead of holding an end timestamp in memory) keeps the remaining
      * minutes visible in the object tree and survives an adapter restart.
@@ -3303,6 +3463,23 @@ class Aura extends utils.Adapter {
             native: {},
         });
         await this._ensureMessageTree();
+        await this.setObjectNotExistsAsync('speech', {
+            type: 'channel',
+            common: { name: 'Speech output (all clients)' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('speech.say', {
+            type: 'state',
+            common: {
+                name: 'Speak on every client (text, sound file, "volume;text" or JSON)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
 
         await this.setObjectNotExistsAsync('config.dashboard', {
             type: 'state',
@@ -3814,6 +3991,14 @@ class Aura extends utils.Adapter {
         // Re-publish the counter so a restart cannot leave a stale value behind
         // (retention may have expired entries while the adapter was down).
         await this._updateMessageHistory((history) => history);
+
+        // ── Speech output (issue #834) ────────────────────────────────────────
+        // speech.say is consumed by the clients; the adapter only relays SayIt's
+        // browser announcements until SayIt can address Aura itself.
+        this._sayit = createSayitBridge(this, { announce: (p) => this._announce(p) });
+        this.on('fileChange', (id, fileName, size) => this._sayit?.onFileChange(id, fileName, size));
+        this.subscribeForeignObjects(`${SAYIT_PREFIX}*`);
+        await this._sayit.scan();
 
         // ── Timer widget scheduler ─────────────────────────────────────────────
         // Subscribe to per-widget config/enabled DPs and run a tick to evaluate
@@ -5931,6 +6116,7 @@ class Aura extends utils.Adapter {
             } catch {
                 /* ignore */
             }
+            this._sayit?.stop();
             if (this._timerInterval) {
                 this.clearInterval(this._timerInterval);
                 this._timerInterval = null;
@@ -5982,6 +6168,7 @@ if (require.main !== module) {
     module.exports = (options) => new Aura(options);
     module.exports.sanitizeClientId = sanitizeClientId;
     module.exports.parseAdapterAssetPath = parseAdapterAssetPath;
+    module.exports.parseStorageAudioPath = parseStorageAudioPath;
     module.exports.requestBase = requestBase;
     module.exports.rewriteHtml = rewriteHtml;
     module.exports.rewriteCss = rewriteCss;

@@ -78,6 +78,23 @@ export function clearSessionHandled(): void {
     sessionHandled.clear();
 }
 
+/**
+ * Reads a message out (issue #834). Registered by the speech output, so this store
+ * does not depend on it; null while no speech output is mounted.
+ */
+let messageSpeaker: ((msg: AuraMessage) => void) | null = null;
+export function setMessageSpeaker(fn: ((msg: AuraMessage) => void) | null): void {
+    messageSpeaker = fn;
+}
+
+/**
+ * How far a message may lie behind the datapoint write that delivered it and still
+ * count as live. Both timestamps come from the server, so a tablet with a wrong
+ * clock does not matter. Older ones are a catch-up and stay silent: reading out
+ * what happened while the tablet was away would be noise, not an announcement.
+ */
+const LIVE_SPEAK_WINDOW_MS = 60_000;
+
 /** Datapoints owned by the adapter. */
 const DP_DEFAULTS = `${NS}.config.messageDefaults`;
 const DP_LAST = `${NS}.messages.lastMessage`;
@@ -169,8 +186,10 @@ interface MessagesState {
      * Show a message on this device unless it was already handled or out of scope.
      * `force` is the reload restore: it ignores `seen`, because having shown the
      * message before the refresh is exactly the situation it exists for.
+     * `live` = it arrived just now (not restored, not caught up), so a message with
+     * `speak` is read out.
      */
-    ingest: (msg: AuraMessage, force?: boolean) => void;
+    ingest: (msg: AuraMessage, force?: boolean, live?: boolean) => void;
     /** Local-only removal — used after an auto-close, so other clients keep theirs. */
     closeLocal: (id: string) => void;
     /**
@@ -214,7 +233,7 @@ export const useMessagesStore = create<MessagesState>()(
             setScope: (scope) => set({ scope }),
             setDisplayActive: (displayActive) => set({ displayActive }),
 
-            ingest: (msg, force) => {
+            ingest: (msg, force, live) => {
                 const s = get();
                 if (!msg?.id || !Number.isFinite(msg.ts)) return;
                 if (!s.displayActive) return;
@@ -240,6 +259,7 @@ export const useMessagesStore = create<MessagesState>()(
                     open: [...s.open.filter((m) => m.id !== msg.id), msg],
                     ...handled,
                 });
+                if (live && !force && msg.speak) messageSpeaker?.(msg);
             },
 
             closeLocal: (id) => {
@@ -368,7 +388,7 @@ function restoreUnanswered(oldestFirst: AuraMessage[]): void {
  * `firstDelivery` marks the priming value subscribeDpValue hands over right after
  * subscribing: on it, a device that has never run must not replay the archive.
  */
-export function applyMessageHistory(list: AuraMessage[], firstDelivery: boolean): void {
+export function applyMessageHistory(list: AuraMessage[], firstDelivery: boolean, stateTs?: number): void {
     const store = useMessagesStore;
     store.setState({ history: list });
 
@@ -381,9 +401,14 @@ export function applyMessageHistory(list: AuraMessage[], firstDelivery: boolean)
         restoreUnanswered(oldestFirst);
         return;
     }
-    // Catch-up for the time this device was away.
+    // Catch-up for the time this device was away. The adapter writes the archive
+    // before lastMessage, so a message sent right now usually arrives here first —
+    // `live` (server time of the write vs. of the message) tells it from a backlog.
     for (const msg of oldestFirst) {
-        if (msg && msg.ts > lastSeenTs) ingest(msg);
+        if (msg && msg.ts > lastSeenTs) {
+            const live = !firstDelivery && stateTs !== undefined && stateTs - msg.ts < LIVE_SPEAK_WINDOW_MS;
+            ingest(msg, false, live);
+        }
     }
     restoreUnanswered(oldestFirst);
 }
@@ -414,10 +439,10 @@ function openSubscriptions(): () => void {
                 lastPrimed = true;
                 return;
             }
-            store.getState().ingest(payload);
+            store.getState().ingest(payload, false, true);
         }),
 
-        subscribeDpValue(DP_HISTORY, (value) => {
+        subscribeDpValue(DP_HISTORY, (value, state) => {
             const raw = typeof value === 'string' ? value.trim() : '';
             let list: AuraMessage[] = [];
             if (raw) {
@@ -430,7 +455,7 @@ function openSubscriptions(): () => void {
             }
             const first = !historyPrimed;
             historyPrimed = true;
-            applyMessageHistory(list, first);
+            applyMessageHistory(list, first, state?.ts);
         }),
 
         subscribeDpValue(DP_UNREAD, (value) => {

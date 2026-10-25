@@ -80,6 +80,8 @@ interface MessageDefaults {
     errorsRequireAck: boolean;
     /** Severities that reappear after a reload while nobody has answered them. */
     restoreSeverities: MessageSeverity[];
+    /** Severities read out by default — a payload's `speak` overrides it (#834). */
+    speakSeverities: MessageSeverity[];
 }
 
 const BUILTIN_DEFAULTS: MessageDefaults = {
@@ -94,6 +96,7 @@ const BUILTIN_DEFAULTS: MessageDefaults = {
     timeFormat: 'time',
     errorsRequireAck: false,
     restoreSeverities: DEFAULT_RESTORE_SEVERITIES,
+    speakSeverities: [],
 };
 
 function parseDefaults(raw: unknown): MessageDefaults {
@@ -108,6 +111,9 @@ function parseDefaults(raw: unknown): MessageDefaults {
             restoreSeverities: Array.isArray(p.restoreSeverities)
                 ? p.restoreSeverities.filter((sev) => MESSAGE_SEVERITIES.some((o) => o.value === sev))
                 : BUILTIN_DEFAULTS.restoreSeverities,
+            speakSeverities: Array.isArray(p.speakSeverities)
+                ? p.speakSeverities.filter((sev) => MESSAGE_SEVERITIES.some((o) => o.value === sev))
+                : BUILTIN_DEFAULTS.speakSeverities,
         };
     } catch {
         return BUILTIN_DEFAULTS;
@@ -403,6 +409,45 @@ function DefaultsSection() {
                                             restoreSeverities: on
                                                 ? defaults.restoreSeverities.filter((v) => v !== sev.value)
                                                 : [...defaults.restoreSeverities, sev.value],
+                                        })
+                                    }
+                                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+                                    style={{
+                                        background: on ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: on ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sev.color }} />
+                                    {sev.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div>
+                    <label className="text-[11px] block mb-1" style={labelStyle}>
+                        Vorlesen
+                    </label>
+                    <p className="text-[11px] mb-2 opacity-60" style={labelStyle}>
+                        Meldungen dieser Schweregrade liest das Gerät vor, das sie anzeigt (Titel und Text). Eine
+                        Meldung kann das mit „speak“ einzeln ein- oder ausschalten.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {MESSAGE_SEVERITIES.map((sev) => {
+                            const on = defaults.speakSeverities.includes(sev.value);
+                            return (
+                                <button
+                                    key={sev.value}
+                                    data-aura-msg-speak-default={sev.value}
+                                    aria-pressed={on}
+                                    onClick={() =>
+                                        save({
+                                            ...defaults,
+                                            speakSeverities: on
+                                                ? defaults.speakSeverities.filter((v) => v !== sev.value)
+                                                : [...defaults.speakSeverities, sev.value],
                                         })
                                     }
                                     className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-80"

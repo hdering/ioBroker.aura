@@ -921,6 +921,15 @@
           "type": "boolean",
           "required": true
         },
+        "speak": {
+          "type": "string",
+          "enum": [
+            "",
+            "on",
+            "off"
+          ],
+          "description": "Read out: '' = admin default per severity, 'on' / 'off' = force it."
+        },
         "actions": {
           "type": "array",
           "items": {

@@ -99,6 +99,7 @@ export function emptyDraft(): MessageDraft {
         ackDp: '',
         ackValue: '',
         persist: true,
+        speak: '',
         actions: [],
         targetClients: '',
         targetLayout: '',
@@ -151,6 +152,9 @@ export function draftToPayload(d: MessageDraft): Record<string, unknown> {
         if (str(d[key])) out[key] = str(d[key]);
     }
     if (!d.persist) out.persist = false;
+    // 'off' travels as an explicit false, otherwise the severity default could switch it on.
+    if (d.speak === 'on') out.speak = true;
+    else if (d.speak === 'off') out.speak = false;
 
     const actions = (Array.isArray(d.actions) ? d.actions : [])
         .filter((a) => str(a?.label) && str(a?.dp))
@@ -593,6 +597,19 @@ export function MessageBuilder({ draft, onChange, actions, rowDp, perRow }: Prop
                     value={draft.persist}
                     onChange={(v) => set({ persist: v })}
                 />
+                <Field label="Vorlesen" hint="Titel und Text über die Sprachausgabe des Geräts, das die Meldung zeigt.">
+                    <select
+                        data-aura-msg-speak=""
+                        value={draft.speak ?? ''}
+                        onChange={(e) => set({ speak: e.target.value as MessageDraft['speak'] })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        <option value="">Standard (je Schweregrad)</option>
+                        <option value="on">Vorlesen</option>
+                        <option value="off">Nicht vorlesen</option>
+                    </select>
+                </Field>
 
                 <details>
                     <summary className="text-[11px] cursor-pointer select-none" style={labelStyle}>

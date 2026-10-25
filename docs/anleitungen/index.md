@@ -8,3 +8,4 @@ Schritt für Schritt zu typischen Aufgaben.
 | [Grundriss mit Bedienelementen](./grundriss) | Lampen, Temperaturen und Türen direkt auf dem Grundriss, Klick öffnet das Bedien-Popup |
 | [Verlauf per Klick auf eine Listenzeile](./verlauf-popup) | Eine Popup-View mit Diagramm für alle Zeilen einer Liste |
 | [Ohne Rand anzeigen](./ohne-rand) | Rand links und rechts am Dashboard entfernen, z. B. am Tablet im Hochformat |
+| [Sprachausgabe](./sprachausgabe) | Texte und Töne am Tablet abspielen, SayIt-Ansagen, Meldungen vorlesen |

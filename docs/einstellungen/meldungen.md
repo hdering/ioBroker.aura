@@ -123,6 +123,7 @@ Passt der Inhalt nicht in die angegebene Höhe, scrollt der Text innerhalb der K
 | `ackValue` | string | Wert dafür; leer = `true` |
 | `actions` | Array | Buttons, siehe unten |
 | `target` | Objekt | Empfänger, siehe unten |
+| `speak` | boolean | Titel und Text vorlesen ([Sprachausgabe](../anleitungen/sprachausgabe)); `false` schaltet den [Standardwert](#standardwerte) für diese Meldung ab |
 
 ### Aktions-Buttons
 
@@ -210,6 +211,7 @@ Jede Position ist ein eigener Stapel. Sind mehr Meldungen offen als „Gleichzei
 | Anzeigedauer Fehler | `0` | bleibt offen |
 | Fehler immer bestätigen lassen | aus | erzwingt `requireAck` für alle Fehler |
 | Nach Neuladen erneut anzeigen | `Fehler` | Schweregrade, die einen Reload überleben — siehe unten |
+| Vorlesen | keine | Schweregrade, die das anzeigende Gerät vorliest — `speak` im Payload überschreibt es |
 
 Größe und Aufbewahrung des Archivs stehen in den **Instanz-Einstellungen des Adapters**:
 

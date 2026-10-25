@@ -2841,6 +2841,9 @@ export const de = {
         'Chrome: Einstellungen → Leistung → Speichersparmodus → Aura-Adresse unter „Diese Websites immer aktiv lassen“ eintragen',
     'tabSleep.dismiss': 'Verstanden',
     'connection.lost': 'Keine Verbindung zu ioBroker seit {time} – Werte sind nicht aktuell',
+    'speech.unlock': 'Ton aktivieren',
+    'speech.unlockHint':
+        'Der Browser hat eine Ansage blockiert, bis jemand den Bildschirm berührt. Tippen spielt sie ab.',
     'connection.statusUnknown': 'Status unbekannt',
     'connection.statusUnknownHint': 'Keine Verbindung zu ioBroker – Werte nicht aktuell',
 
