@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.82.6 (2026-10-13)
+- Advanced chart - optional vertical line marking the current time, with a freely selectable colour
+- Thermostat - on the round-scale layout, dragging the dial by touch now follows the finger instead of stopping after one step, and setting the temperature no longer triggers the widget click action ([#776](https://github.com/hdering/ioBroker.aura/issues/776))
+- Timer - the datapoint picker now opens for the second switched datapoint too ([#777](https://github.com/hdering/ioBroker.aura/issues/777))
+
 ## 0.82.5 (2026-10-13)
 - Settings - the guidelines page explains why the frontend hides the lines while "Fill window width" is on
 - Status overview - classic HomeMatic battery devices (window contacts, handles, smoke detectors …) now show "battery low"; mains actuators stay out, one row per device
