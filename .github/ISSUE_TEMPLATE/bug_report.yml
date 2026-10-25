@@ -21,10 +21,29 @@ body:
     validations:
       required: false
 
+  - type: textarea
+    id: logs
+    attributes:
+      label: Browser console / ioBroker log
+      description: >
+        Browser console (F12 → Console) while the problem happens, and/or the
+        ioBroker log of the aura adapter. Errors and warnings are enough.
+      render: shell
+    validations:
+      required: false
+
   - type: input
     id: aura-version
     attributes:
       label: Aura version
       placeholder: e.g. 0.11.1
     validations:
-      required: false
+      required: true
+
+  - type: checkboxes
+    id: export-confirm
+    attributes:
+      label: Checklist
+      options:
+        - label: I pasted the widget export above, or the problem is not about a specific widget.
+          required: true
