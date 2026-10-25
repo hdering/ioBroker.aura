@@ -1094,6 +1094,42 @@
       ]
     },
     {
+      "id": "raumklima-soll",
+      "title": "Raumklima mit Soll-Bedienung",
+      "when": "Ein Raum zeigt Temperatur, Feuchte und Verlauf und soll zugleich die Solltemperatur stellen — ohne zweites Thermostat-Widget daneben (#838).",
+      "instead": "einer Gruppe aus Raumklima und Thermostat",
+      "notes": [
+        "Widget climate mit targetControl true und targetDatapoint: − / + stehen neben dem Sollwert, presets als Knopfreihe darunter.",
+        "Für das Kreismenü layout \"custom\": die Komponente \"circle-menu\" in eine Zelle legen (Sollwert im Knopf, −/presets/+ im Kreis); die übrigen Bausteine heißen \"main-values\", \"secondary-values\", \"metrics\", \"chart\", \"range-chips\", \"presets\", \"btn-minus\", \"btn-plus\".",
+        "Am einfachsten vom Grid in widgets.climate.customFromLayout.default ausgehen und eine Zeile mit \"circle-menu\" ergänzen.",
+        "Geschrieben wird nur in targetDatapoint; minTemp, maxTemp und step begrenzen wie beim Thermostat."
+      ],
+      "widgets": [
+        {
+          "id": "w-raumklima-soll",
+          "type": "climate",
+          "title": "Wohnzimmer",
+          "datapoint": "%dp.isttemperatur%",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 8,
+            "h": 6
+          },
+          "options": {
+            "targetDatapoint": "%dp.solltemperatur%",
+            "targetControl": true,
+            "presets": [
+              19,
+              21,
+              22
+            ],
+            "step": 0.5
+          }
+        }
+      ]
+    },
+    {
       "id": "heizung",
       "title": "Thermostat als Rundskala",
       "when": "Ein Heizkörper- oder Raumthermostat soll bedienbar sein, nicht nur ablesbar.",

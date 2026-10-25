@@ -36,7 +36,7 @@ Runder Knopf mit Grafik und Prozentwert; ein Tipp fächert Öffnen, die Schnellw
 | ![](./assets/rollladen/layout-circle-closed.png) | ![](./assets/rollladen/layout-circle.png) |
 
 ### Custom
-Icon, Position, Status, Neigung und Auf-/Stop-/Ab-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Komponenten: `slider`, `tilt-slider-v`, `tilt-slider-h`, `btn-tilt`, `btn-tilt-open`, `btn-tilt-close`, `presets`; Feld `tilt`. Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `viz` (Grafik mit Lamellenspalte), `btn-col`, `btn-row`, `btn-up-min` · `btn-stop-min` · `btn-down-min`, `tilt-aside`, `tilt-aside-flat`, `tilt-row` und das Feld `movingArrow`.
+Icon, Position, Status, Neigung und Auf-/Stop-/Ab-Tasten frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Komponenten: `slider`, `tilt-slider-v`, `tilt-slider-h`, `btn-tilt`, `btn-tilt-open`, `btn-tilt-close`, `presets`; Feld `tilt`. Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `viz` (Grafik mit Lamellenspalte), `btn-col`, `btn-row`, `btn-up-min` · `btn-stop-min` · `btn-down-min`, `tilt-aside`, `tilt-aside-flat`, `tilt-row` und das Feld `movingArrow`; das Kreismenü ist die Komponente `circle-menu`.
 
 ## Einstellungen
 

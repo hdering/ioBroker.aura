@@ -55,6 +55,15 @@ const CASES = [
         title: 'Wohnzimmer',
     },
     {
+        type: 'climate',
+        variant: 'target control',
+        layouts: { default: [10, 6] },
+        options: { targetDatapoint: DP_ACTUAL, humidityDatapoint: DP_BATT, targetControl: true },
+        val: 21.5,
+        actual: 22,
+        title: 'Wohnzimmer',
+    },
+    {
         type: 'value',
         variant: 'thresholds+badges',
         layouts: { default: [8, 4], card: [8, 4], compact: [8, 2], minimal: [8, 4] },
@@ -107,7 +116,7 @@ const CASES = [
     },
     {
         type: 'thermostat',
-        layouts: { default: [10, 6], compact: [10, 2], minimal: [10, 7], dial: [10, 8] },
+        layouts: { default: [10, 6], compact: [10, 2], minimal: [10, 7], dial: [10, 8], circle: [6, 7] },
         options: { actualDatapoint: DP_ACTUAL },
         val: 22,
         actual: 20.5,
@@ -169,7 +178,7 @@ const CASES = [
     },
     {
         type: 'shutter',
-        layouts: { default: [8, 7], compact: [10, 2], minimal: [4, 7] },
+        layouts: { default: [8, 7], compact: [10, 2], minimal: [4, 7], circle: [6, 7] },
         options: {},
         val: 40,
         title: 'Rollladen Küche',
@@ -240,7 +249,7 @@ const CASES = [
     },
     {
         type: 'enum',
-        layouts: { default: [8, 3], compact: [10, 2], minimal: [6, 5], card: [8, 4] },
+        layouts: { default: [8, 3], compact: [10, 2], minimal: [6, 5], card: [8, 4], circle: [6, 7] },
         options: {
             entries: [
                 { value: '0', label: 'Aus' },
@@ -601,7 +610,10 @@ for (const c of CASES) {
             const a = boxes.a[key];
             const b = boxes.b[key];
             if (!a && !b) continue;
-            const ok = !!a && !!b && Math.abs(a.x - b.x) <= 6 && Math.abs(a.y - b.y) <= 8;
+            // A centred title spans the row in the layout but hugs its text in the grid
+            // cell — then the centres match, not the left edges.
+            const sameX = (p, q) => Math.abs(p.x - q.x) <= 6 || Math.abs(p.x + p.w / 2 - (q.x + q.w / 2)) <= 6;
+            const ok = !!a && !!b && sameX(a, b) && Math.abs(a.y - b.y) <= 8;
             check(
                 `${label}: ${key} at the same spot`,
                 ok,

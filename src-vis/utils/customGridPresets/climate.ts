@@ -37,6 +37,10 @@ export function buildClimateGrid(layout: WidgetLayout, o: Opts): CustomGridDef |
         comp('main-values', { align: 'left', valign: 'bottom', colSpan: textSpan, allowOverflow: true }),
         comp('secondary-values', { align: 'right', valign: 'bottom', allowOverflow: true }),
     ]);
+    // Quick-select of the target temperature (#838), below the values as in the layout.
+    const presets = o.showPresets !== false ? ((o.presets as number[] | undefined) ?? [18, 20, 22, 24]) : [];
+    if (o.targetControl === true && !!o.targetDatapoint && presets.length > 0)
+        b.row('auto', [comp('presets', { align: 'left', colSpan: all })]);
     if (hasGridMetrics(o)) b.row('auto', [comp('metrics', { align: 'left', colSpan: all })]);
     if (o.showComfort === true) b.row('auto', [comp('comfort-badge', { align: 'left', colSpan: all })]);
 

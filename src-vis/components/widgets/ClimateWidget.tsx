@@ -25,6 +25,14 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
+import {
+    DEFAULT_SETPOINT_PRESETS,
+    SetpointCircleMenu,
+    clampSetpoint,
+    setpointCircleItems,
+    setpointPresetText,
+} from './SetpointCircle';
+import type { CircleDirection } from './CircleMenu';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import {
     climateMetricRefs,
@@ -89,7 +97,7 @@ function ComfortBadge({ temp, humidity }: { temp: number | null; humidity: numbe
 }
 
 export function ClimateWidget({ config }: WidgetProps) {
-    const { subscribe, connected } = useIoBroker();
+    const { subscribe, connected, setState } = useIoBroker();
     const fontScale = useConfigStore((s) => s.frontend.fontScale ?? 1);
 
     const o = config.options ?? {};
@@ -154,6 +162,19 @@ export function ClimateWidget({ config }: WidgetProps) {
     const humidityIcon = o.humidityIcon as string | undefined;
     const pressureIcon = o.pressureIcon as string | undefined;
     const extraMetrics = (o.metrics as ClimateMetric[] | undefined) ?? [];
+
+    // ── Soll bedienen (#838): +/−, Schnellwahl und Kreismenü schreiben in targetDatapoint ──
+    const targetControl = o.targetControl === true && !!targetDpId;
+    const minTemp = (o.minTemp as number | undefined) ?? 10;
+    const maxTemp = (o.maxTemp as number | undefined) ?? 30;
+    const step = (o.step as number | undefined) ?? 0.5;
+    const presets = o.showPresets !== false ? ((o.presets as number[] | undefined) ?? DEFAULT_SETPOINT_PRESETS) : [];
+    const { value: rawTarget } = useDatapoint(targetControl ? targetDpId : '');
+    const targetNum = typeof rawTarget === 'number' ? rawTarget : rawTarget != null ? Number(rawTarget) : NaN;
+    const setpoint = Number.isFinite(targetNum) ? targetNum : null;
+    // Ausgangswert für +/−, solange der Sollwert nicht lesbar ist; wird nie angezeigt.
+    const target = setpoint ?? 20;
+    const setTemp = (v: number) => setState(targetDpId, clampSetpoint(v, minTemp, maxTemp, step));
 
     // ── Werte ────────────────────────────────────────────────────────────────
     // Soll, Feuchte und Luftdruck haben eigene Optionen, alles Weitere steht in
@@ -433,12 +454,96 @@ export function ClimateWidget({ config }: WidgetProps) {
         </div>
     );
 
+    const stepButton = (dir: 1 | -1, cls = 'w-6 h-6 rounded text-sm') => (
+        <button
+            className={`aura-widget-action nodrag ${cls} font-bold hover:opacity-70 active:scale-95 transition-all`}
+            style={{ background: 'var(--app-border)', color: 'var(--text-primary)' }}
+            title={dir > 0 ? 'Wärmer' : 'Kälter'}
+            onClick={(e) => {
+                e.stopPropagation();
+                setTemp(target + dir * step);
+            }}
+        >
+            {dir > 0 ? '+' : '−'}
+        </button>
+    );
+
+    const presetButtons =
+        targetControl && presets.length > 0 ? (
+            <div className="aura-widget-action nodrag flex gap-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                {presets.map((v) => {
+                    const active = setpoint !== null && Math.abs(setpoint - v) < 0.1;
+                    return (
+                        <button
+                            key={v}
+                            onClick={() => setTemp(v)}
+                            className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80 active:scale-95 transition-all"
+                            style={{
+                                background: active ? 'var(--accent)' : 'var(--app-border)',
+                                color: active ? '#fff' : 'var(--text-primary)',
+                            }}
+                        >
+                            {setpointPresetText(v)}
+                        </button>
+                    );
+                })}
+            </div>
+        ) : null;
+
+    // Kreismenü wie beim Thermostat: Sollwert im Knopf, Heizen/Kühlen färbt den Rand.
+    const heatCool =
+        actualTemp !== null && setpoint !== null
+            ? setpoint > actualTemp + 0.2
+                ? 'var(--climate-heat, var(--accent-red))'
+                : setpoint < actualTemp - 0.2
+                  ? 'var(--climate-cool, var(--accent))'
+                  : null
+            : null;
+    const circleMenu = targetControl ? (
+        <div className="w-full h-full min-h-0">
+            <SetpointCircleMenu
+                settings={{
+                    order: o.circleOrder,
+                    direction: (o.circleDirection as CircleDirection) || 'auto',
+                    itemSize: (o.circleItemSize as number) || 48,
+                    keepOpen: !!o.circleKeepOpen,
+                    shade: o.circleShade !== false,
+                    triggerSize: (o.circleTriggerSize as number) || undefined,
+                }}
+                items={setpointCircleItems({
+                    controls: true,
+                    presets,
+                    target,
+                    step,
+                    itemSize: (o.circleItemSize as number) || 48,
+                    setTemp,
+                })}
+                title={config.title || 'Soll'}
+                setpointText={setpoint !== null ? formatNum(setpoint, decimals, numFmt) : '–'}
+                actualText={actualTemp !== null ? `Ist ${formatNum(actualTemp, decimals, numFmt)}°` : null}
+                accentColor={heatCool ?? lineColor}
+                icon={showIcon ? (o.circleIcon ? getWidgetIcon(o.circleIcon as string, Thermometer) : TempIcon) : null}
+            />
+        </div>
+    ) : null;
+
     const secondaryValues =
         secondaryMetrics.length > 0 ? (
             <div className="flex flex-col items-end gap-0.5 shrink-0">
                 {secondaryMetrics.map((m) =>
                     // Die Soll-Temperatur war schon immer weg, wenn sie keinen Wert hat.
-                    m.id === LEGACY_TARGET && formatted[m.id].empty ? null : (
+                    m.id === LEGACY_TARGET && targetControl ? (
+                        <div key={m.id} className="flex items-center gap-1">
+                            {stepButton(-1)}
+                            <ClimateMetricValue
+                                metric={m}
+                                formatted={formatted[m.id]}
+                                fontScale={fontScale}
+                                showLabel
+                            />
+                            {stepButton(1)}
+                        </div>
+                    ) : m.id === LEGACY_TARGET && formatted[m.id].empty ? null : (
                         <ClimateMetricValue
                             key={m.id}
                             metric={m}
@@ -623,6 +728,10 @@ export function ClimateWidget({ config }: WidgetProps) {
                         actual: actualBlock,
                         'main-values': <div className="aura-widget-value">{mainValues}</div>,
                         'secondary-values': secondaryValues,
+                        'btn-plus': targetControl ? stepButton(1, 'w-8 h-8 rounded-lg text-lg') : null,
+                        'btn-minus': targetControl ? stepButton(-1, 'w-8 h-8 rounded-lg text-lg') : null,
+                        presets: presetButtons,
+                        'circle-menu': circleMenu,
                         metrics: gridMetrics.length > 0 ? <div className="w-full">{metricGrid}</div> : null,
                         'comfort-badge': comfortBadge,
                         'range-chips': rangeSelector,
@@ -688,6 +797,9 @@ export function ClimateWidget({ config }: WidgetProps) {
                     {secondaryValues}
                 </div>
             )}
+
+            {/* Schnellwahl der Solltemperatur */}
+            {presetButtons}
 
             {/* Weitere Werte */}
             {metricGrid}

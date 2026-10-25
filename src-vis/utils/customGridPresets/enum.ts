@@ -1,5 +1,6 @@
 import type { CustomGridDef, WidgetLayout } from '../../types';
 import { GridBuilder } from './gridBuilder';
+import { buildCircleMenuGrid } from './circle';
 import {
     FS,
     SECONDARY,
@@ -81,8 +82,9 @@ export function buildEnumGrid(layout: WidgetLayout, o: Opts): CustomGridDef | nu
             addStatusBadges(b, o);
             return b.build();
         }
-        // The circle menu (#815) carries the same content as the minimal stack.
+        // The circle layout (#815): the round button itself (#838).
         case 'circle':
+            return buildCircleMenuGrid(o);
         case 'minimal': {
             // Centred stack (gap-2): big label, dropdown, title
             const b = new GridBuilder(1);

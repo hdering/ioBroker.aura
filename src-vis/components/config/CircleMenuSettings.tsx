@@ -17,6 +17,18 @@ const inputStyle: React.CSSProperties = {
     border: '1px solid var(--app-border)',
 };
 
+/**
+ * Does the widget draw its circle menu — as the circle layout or as a
+ * 'circle-menu' cell of its custom grid (#838)? Then the settings below apply.
+ */
+export function showsCircleMenu(layout: string | undefined, o: Record<string, unknown>): boolean {
+    if (layout === 'circle') return true;
+    if (layout !== 'custom') return false;
+    const g = o.customGrid as { cells?: unknown[] } | unknown[] | undefined;
+    const cells = Array.isArray(g) ? g : (g?.cells ?? []);
+    return cells.some((c) => (c as { type?: string; componentKey?: string })?.componentKey === 'circle-menu');
+}
+
 /** Right end of the button-size slider = no fixed size: the button fills the widget. */
 const TRIGGER_MAX = 400;
 

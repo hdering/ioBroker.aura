@@ -35,7 +35,7 @@ Runder Knopf mit dem aktiven Eintrag; ein Tipp fächert alle Einträge im Kreis 
 | ![](./assets/auswahlfeld/layout-circle-closed.png) | ![](./assets/auswahlfeld/layout-circle.png) |
 
 ### Custom
-Icon, Label und Dropdown frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `label-lg` und `accent-bar`.
+Icon, Label und Dropdown frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); dafür die Komponenten `label-lg` und `accent-bar`; das Kreismenü ist die Komponente `circle-menu`.
 
 ## Einstellungen
 

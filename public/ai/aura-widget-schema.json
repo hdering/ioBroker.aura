@@ -9694,6 +9694,46 @@
           "description": "Farbe der Mittelwertlinie.",
           "color": true
         },
+        "circleDirection": {
+          "type": "string",
+          "ref": "CircleDirection",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "full",
+            "top",
+            "right",
+            "bottom",
+            "left"
+          ],
+          "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+        },
+        "circleIcon": {
+          "type": "string",
+          "description": "Nur Kreismenü (Custom-Komponente \"circle-menu\"): Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon. Der Knopf zeigt darunter Soll- und Ist-Temperatur."
+        },
+        "circleItemSize": {
+          "type": "number",
+          "default": 48,
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
+        },
+        "circleKeepOpen": {
+          "type": "boolean",
+          "default": false,
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Kreismenü bleibt nach einer Auswahl offen."
+        },
+        "circleOrder": {
+          "description": "Nur Kreismenü: Reihenfolge der Einträge als Liste von Schlüsseln — \"minus\", \"plus\" und \"preset-<Wert>\" (Wert aus presets). Standard: minus, presets, plus. Leer = Standard."
+        },
+        "circleShade": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
+        },
+        "circleTriggerSize": {
+          "type": "number",
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+        },
         "historyInstance": {
           "type": "string",
           "description": "History-Adapterinstanz, z. B. \"history.0\" oder \"influxdb.0\"."
@@ -9754,6 +9794,11 @@
           "default": false,
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten."
         },
+        "maxTemp": {
+          "type": "number",
+          "default": 30,
+          "description": "Nur mit targetControl: obere Grenze der Soll-Temperatur (Standard 30)."
+        },
         "metricColumns": {
           "type": "number",
           "default": 0,
@@ -9766,6 +9811,18 @@
             "ref": "ClimateMetric"
           },
           "description": "Weitere Messwerte der Kachel — CO₂, VOC, Taupunkt, Luftqualität, Helligkeit, Bewegung … (Issue #698). Jeder Eintrag bringt Datenpunkt, Beschriftung, Einheit, Farben und Diagramm-Reihe selbst mit, deshalb braucht ein neuer Messwert KEINE neue Option. Temperatur (datapoint), Soll-Temperatur, Luftfeuchte und Luftdruck bleiben in ihren eigenen Schlüsseln und gehören NICHT hier hinein. source \"dewpoint\", \"absoluteHumidity\" und \"comfort\" rechnen aus Ist-Temperatur und Luftfeuchte und brauchen keinen Datenpunkt; nur source \"datapoint\" kann mit inChart in den Verlauf."
+        },
+        "minTemp": {
+          "type": "number",
+          "default": 10,
+          "description": "Nur mit targetControl: untere Grenze der Soll-Temperatur (Standard 10)."
+        },
+        "presets": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Nur mit targetControl: Schnellwahl-Temperaturen (Standard [18, 20, 22, 24]); [] = keine Schnellwahl. Erscheinen als Knopfreihe unter den Werten und als Einträge im Kreismenü."
         },
         "pressureDatapoint": {
           "type": "string",
@@ -9832,6 +9889,11 @@
           "default": true,
           "description": "Beschriftung (label) vor dem Wert der weiteren Werte anzeigen. Aus = nur Icon und Zahl."
         },
+        "showPresets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Nur mit targetControl: false = Schnellwahl aus (wie presets []). Der Editor schreibt stattdessen presets."
+        },
         "showPressure": {
           "type": "boolean",
           "default": true,
@@ -9846,6 +9908,16 @@
           "type": "boolean",
           "default": false,
           "description": "Y-Achse anzeigen."
+        },
+        "step": {
+          "type": "number",
+          "default": 0.5,
+          "description": "Nur mit targetControl: Schrittweite von − / + (Standard 0.5)."
+        },
+        "targetControl": {
+          "type": "boolean",
+          "default": false,
+          "description": "Soll-Temperatur bedienbar machen (#838, braucht targetDatapoint): − / + neben dem Sollwert und die Schnellwahl (presets) im Standard-Layout; im Custom-Layout die Komponenten \"btn-minus\", \"btn-plus\", \"presets\" und \"circle-menu\" (Kreismenü wie beim Thermostat). Geschrieben wird in targetDatapoint, begrenzt auf minTemp…maxTemp im Raster step."
         },
         "targetDatapoint": {
           "type": "string",
@@ -11984,26 +12056,13 @@
         },
         "circle": {
           "cols": 1,
-          "rows": 6,
+          "rows": 2,
           "cells": [
             {
-              "type": "empty"
-            },
-            {
               "type": "component",
-              "componentKey": "label-lg",
+              "componentKey": "circle-menu",
               "align": "center",
               "valign": "middle"
-            },
-            {
-              "type": "component",
-              "componentKey": "select",
-              "align": "center",
-              "valign": "middle",
-              "allowOverflow": true
-            },
-            {
-              "type": "empty"
             },
             {
               "type": "title",
@@ -12011,18 +12070,11 @@
               "color": "var(--text-secondary)",
               "align": "center",
               "valign": "middle"
-            },
-            {
-              "type": "empty"
             }
           ],
           "rowSizes": [
             "1fr",
-            "auto",
-            "auto",
-            "2px",
-            "auto",
-            "1fr"
+            "auto"
           ]
         }
       },
@@ -12102,30 +12154,30 @@
             "bottom",
             "left"
           ],
-          "description": "Nur layout \"circle\" (#815): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+          "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
         },
         "circleIcon": {
           "type": "string",
-          "description": "Nur layout \"circle\" (#815): Icon im runden Knopf (Iconify-Name). Leer = Icon bzw. Bild des aktiven Eintrags, sonst das Widget-Icon. Die Einträge (entries) stehen in ihrer Listenreihenfolge im Kreis — mit icon/image als Bild, sonst als Text."
+          "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): Icon im runden Knopf (Iconify-Name). Leer = Icon bzw. Bild des aktiven Eintrags, sonst das Widget-Icon. Die Einträge (entries) stehen in ihrer Listenreihenfolge im Kreis — mit icon/image als Bild, sonst als Text."
         },
         "circleItemSize": {
           "type": "number",
           "default": 48,
-          "description": "Nur layout \"circle\": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
         },
         "circleKeepOpen": {
           "type": "boolean",
           "default": false,
-          "description": "Nur layout \"circle\": Kreismenü bleibt nach einer Auswahl offen."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Kreismenü bleibt nach einer Auswahl offen."
         },
         "circleShade": {
           "type": "boolean",
           "default": true,
-          "description": "Nur layout \"circle\": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
         },
         "circleTriggerSize": {
           "type": "number",
-          "description": "Nur layout \"circle\": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
         },
         "entries": {
           "type": "array",
@@ -17333,59 +17385,25 @@
         },
         "circle": {
           "cols": 1,
-          "rows": 7,
+          "rows": 2,
           "cells": [
             {
-              "type": "empty"
-            },
-            {
               "type": "component",
-              "componentKey": "btn-up-min",
+              "componentKey": "circle-menu",
               "align": "center",
               "valign": "middle"
             },
             {
-              "type": "field",
-              "fieldKey": "position",
-              "valign": "middle",
-              "fontSize": 20,
-              "bold": true,
-              "color": "var(--aura-value-color, var(--text-primary))",
-              "align": "center",
-              "allowOverflow": true
-            },
-            {
-              "type": "field",
-              "fieldKey": "movingArrow",
-              "valign": "middle",
-              "fontSize": 10,
-              "color": "var(--accent-yellow)",
-              "align": "center"
-            },
-            {
-              "type": "component",
-              "componentKey": "btn-stop-min",
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
               "align": "center",
               "valign": "middle"
-            },
-            {
-              "type": "component",
-              "componentKey": "btn-down-min",
-              "align": "center",
-              "valign": "middle"
-            },
-            {
-              "type": "empty"
             }
           ],
           "rowSizes": [
             "1fr",
-            "auto",
-            "20px",
-            "auto",
-            "auto",
-            "auto",
-            "1fr"
+            "auto"
           ]
         }
       },
@@ -17496,33 +17514,33 @@
             "bottom",
             "left"
           ],
-          "description": "Nur layout \"circle\" (#815): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+          "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
         },
         "circleIcon": {
           "type": "string",
-          "description": "Nur layout \"circle\": Icon im runden Knopf (Iconify-Name, z. B. \"mdi:window-shutter\"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Icon im runden Knopf (Iconify-Name, z. B. \"mdi:window-shutter\"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik."
         },
         "circleItemSize": {
           "type": "number",
           "default": 48,
-          "description": "Nur layout \"circle\": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
         },
         "circleKeepOpen": {
           "type": "boolean",
           "default": false,
-          "description": "Nur layout \"circle\": Kreismenü bleibt nach einer Auswahl offen."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Kreismenü bleibt nach einer Auswahl offen."
         },
         "circleOrder": {
-          "description": "Nur layout \"circle\": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — \"up\", \"down\", \"stop\", \"tilt\" und \"preset-<i>\" (i = Index in positionPresets ab 0). Unbekannte Schlüssel fallen weg, nicht genannte Einträge folgen in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — \"up\", \"down\", \"stop\", \"tilt\" und \"preset-<i>\" (i = Index in positionPresets ab 0). Unbekannte Schlüssel fallen weg, nicht genannte Einträge folgen in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard."
         },
         "circleShade": {
           "type": "boolean",
           "default": true,
-          "description": "Nur layout \"circle\": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
         },
         "circleTriggerSize": {
           "type": "number",
-          "description": "Nur layout \"circle\": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
         },
         "controlMode": {
           "type": "string",
@@ -19460,96 +19478,26 @@
           ]
         },
         "circle": {
-          "cols": 2,
-          "rows": 7,
+          "cols": 1,
+          "rows": 2,
           "cells": [
             {
-              "type": "empty"
-            },
-            {
-              "type": "empty"
-            },
-            {
               "type": "component",
-              "componentKey": "icon",
+              "componentKey": "circle-menu",
               "align": "center",
-              "valign": "middle",
-              "allowOverflow": true,
-              "colSpan": 2
+              "valign": "middle"
             },
             {
-              "type": "empty"
-            },
-            {
-              "type": "value",
-              "suffix": "°C",
-              "fontSize": 20,
-              "bold": true,
-              "color": "var(--aura-state-color, var(--accent))",
-              "align": "center",
-              "valign": "middle",
-              "colSpan": 2
-            },
-            {
-              "type": "empty"
-            },
-            {
-              "type": "field",
-              "fieldKey": "actualLine",
+              "type": "title",
               "fontSize": 12,
-              "color": "var(--aura-actual-color, var(--text-secondary))",
+              "color": "var(--text-secondary)",
               "align": "center",
-              "valign": "middle",
-              "colSpan": 2
-            },
-            {
-              "type": "empty"
-            },
-            {
-              "type": "component",
-              "componentKey": "btn-minus-round",
-              "align": "right",
-              "valign": "middle",
-              "allowOverflow": true,
-              "fontSize": 32
-            },
-            {
-              "type": "component",
-              "componentKey": "btn-plus-round",
-              "align": "left",
-              "valign": "middle",
-              "allowOverflow": true,
-              "fontSize": 32
-            },
-            {
-              "type": "component",
-              "componentKey": "presets",
-              "align": "center",
-              "valign": "middle",
-              "colSpan": 2
-            },
-            {
-              "type": "empty"
-            },
-            {
-              "type": "empty"
-            },
-            {
-              "type": "empty"
+              "valign": "middle"
             }
-          ],
-          "colSizes": [
-            "1fr",
-            "1fr"
           ],
           "rowSizes": [
             "1fr",
-            "auto",
-            "auto",
-            "auto",
-            "auto",
-            "auto",
-            "1fr"
+            "auto"
           ]
         }
       },
@@ -19639,33 +19587,33 @@
             "bottom",
             "left"
           ],
-          "description": "Nur layout \"circle\" (#815): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
+          "description": "Nur Kreismenü — layout \"circle\" oder Custom-Komponente \"circle-menu\" (#815, #838): wohin sich das Kreismenü auffächert. \"auto\" = Vollkreis, wenn er ins Fenster passt, sonst der Halbkreis mit dem meisten Platz; \"full\" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung."
         },
         "circleIcon": {
           "type": "string",
-          "description": "Nur layout \"circle\": Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon (icon), ohne beides ein Thermometer. Der Knopf zeigt darunter Soll- und Ist-Temperatur (showSetpoint/showActualTemp)."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon (icon), ohne beides ein Thermometer. Der Knopf zeigt darunter Soll- und Ist-Temperatur (showSetpoint/showActualTemp)."
         },
         "circleItemSize": {
           "type": "number",
           "default": 48,
-          "description": "Nur layout \"circle\": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48)."
         },
         "circleKeepOpen": {
           "type": "boolean",
           "default": false,
-          "description": "Nur layout \"circle\": Kreismenü bleibt nach einer Auswahl offen."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Kreismenü bleibt nach einer Auswahl offen."
         },
         "circleOrder": {
-          "description": "Nur layout \"circle\": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — \"minus\", \"plus\" und \"preset-<Wert>\" (z. B. \"preset-21.5\", Wert aus presets). Standard: minus, presets, plus. − und + nur mit showControls, Presets nur mit showPresets. − und + lassen das Menü offen und zeigen den Sollwert in der Mitte. Leer = Standard."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — \"minus\", \"plus\" und \"preset-<Wert>\" (z. B. \"preset-21.5\", Wert aus presets). Standard: minus, presets, plus. − und + nur mit showControls, Presets nur mit showPresets. − und + lassen das Menü offen und zeigen den Sollwert in der Mitte. Leer = Standard."
         },
         "circleShade": {
           "type": "boolean",
           "default": true,
-          "description": "Nur layout \"circle\": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an)."
         },
         "circleTriggerSize": {
           "type": "number",
-          "description": "Nur layout \"circle\": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
+          "description": "Nur Kreismenü (layout \"circle\" oder Custom-Komponente \"circle-menu\"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget."
         },
         "dialColor": {
           "type": "string",

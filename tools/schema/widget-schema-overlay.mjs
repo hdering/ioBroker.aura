@@ -232,24 +232,32 @@ export const KEY_DESCRIPTIONS = {
     bins: 'Die Tonnen mit Name, Farbe und Datenpunkt.',
 };
 
-/** The circle-menu options every widget with `layout: 'circle'` shares (#815): shutter, thermostat, enum. */
+/**
+ * The circle-menu options every widget with a circle menu shares (#815): shutter, thermostat, enum as
+ * `layout: 'circle'` or as the custom-grid component 'circle-menu' (#838), the room climate only as that component.
+ */
 const CIRCLE_NOTES = {
     circleDirection: {
         enum: ['auto', 'full', 'top', 'right', 'bottom', 'left'],
         description:
-            'Nur layout "circle" (#815): wohin sich das Kreismenü auffächert. "auto" = Vollkreis, wenn er ins Fenster passt, ' +
+            'Nur Kreismenü — layout "circle" oder Custom-Komponente "circle-menu" (#815, #838): wohin sich das Kreismenü auffächert. "auto" = Vollkreis, wenn er ins Fenster passt, ' +
             'sonst der Halbkreis mit dem meisten Platz; "full" = Vollkreis; top/right/bottom/left = Halbkreis in diese Richtung.',
     },
     circleItemSize: {
-        description: 'Nur layout "circle": Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48).',
+        description:
+            'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Durchmesser der Kreismenü-Einträge in px (32–96, Standard 48).',
     },
-    circleKeepOpen: { description: 'Nur layout "circle": Kreismenü bleibt nach einer Auswahl offen.' },
+    circleKeepOpen: {
+        description:
+            'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Kreismenü bleibt nach einer Auswahl offen.',
+    },
     circleTriggerSize: {
         description:
-            'Nur layout "circle": fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget.',
+            'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): fester Durchmesser des runden Knopfs (geschlossenes Menü) in px, höchstens so groß wie das Widget; leer = füllt das Widget.',
     },
     circleShade: {
-        description: 'Nur layout "circle": Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an).',
+        description:
+            'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Seite hinter dem geöffneten Kreismenü abdunkeln (Standard an).',
     },
 };
 
@@ -314,12 +322,12 @@ export const WIDGET_OPTION_NOTES = {
         ...CIRCLE_NOTES,
         circleIcon: {
             description:
-                'Nur layout "circle": Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon (icon), ohne beides ein Thermometer. ' +
+                'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon (icon), ohne beides ein Thermometer. ' +
                 'Der Knopf zeigt darunter Soll- und Ist-Temperatur (showSetpoint/showActualTemp).',
         },
         circleOrder: {
             description:
-                'Nur layout "circle": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — "minus", "plus" und ' +
+                'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — "minus", "plus" und ' +
                 '"preset-<Wert>" (z. B. "preset-21.5", Wert aus presets). Standard: minus, presets, plus. − und + nur mit showControls, ' +
                 'Presets nur mit showPresets. − und + lassen das Menü offen und zeigen den Sollwert in der Mitte. Leer = Standard.',
         },
@@ -684,11 +692,11 @@ export const WIDGET_OPTION_NOTES = {
         ...CIRCLE_NOTES,
         circleIcon: {
             description:
-                'Nur layout "circle": Icon im runden Knopf (Iconify-Name, z. B. "mdi:window-shutter"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik.',
+                'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Icon im runden Knopf (Iconify-Name, z. B. "mdi:window-shutter"). Leer = das Widget-Icon (icon), ohne beides die Rollladen-Grafik.',
         },
         circleOrder: {
             description:
-                'Nur layout "circle": Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — "up", "down", "stop", "tilt" und ' +
+                'Nur Kreismenü (layout "circle" oder Custom-Komponente "circle-menu"): Reihenfolge der Kreismenü-Einträge als Liste von Schlüsseln — "up", "down", "stop", "tilt" und ' +
                 '"preset-<i>" (i = Index in positionPresets ab 0). Unbekannte Schlüssel fallen weg, nicht genannte Einträge folgen ' +
                 'in Standardreihenfolge (up, Presets, down, stop, tilt). Vollkreis: erster Eintrag oben, dann im Uhrzeigersinn; ' +
                 'Halbkreis: von links nach rechts bzw. von oben nach unten. Leer = Standard.',
@@ -844,6 +852,35 @@ export const WIDGET_OPTION_NOTES = {
     },
     climate: {
         targetDatapoint: { description: 'Datenpunkt der Soll-Temperatur.' },
+        targetControl: {
+            description:
+                'Soll-Temperatur bedienbar machen (#838, braucht targetDatapoint): − / + neben dem Sollwert und die Schnellwahl ' +
+                '(presets) im Standard-Layout; im Custom-Layout die Komponenten "btn-minus", "btn-plus", "presets" und ' +
+                '"circle-menu" (Kreismenü wie beim Thermostat). Geschrieben wird in targetDatapoint, begrenzt auf minTemp…maxTemp im Raster step.',
+        },
+        showPresets: {
+            description:
+                'Nur mit targetControl: false = Schnellwahl aus (wie presets []). Der Editor schreibt stattdessen presets.',
+        },
+        minTemp: { description: 'Nur mit targetControl: untere Grenze der Soll-Temperatur (Standard 10).' },
+        maxTemp: { description: 'Nur mit targetControl: obere Grenze der Soll-Temperatur (Standard 30).' },
+        step: { description: 'Nur mit targetControl: Schrittweite von − / + (Standard 0.5).' },
+        presets: {
+            description:
+                'Nur mit targetControl: Schnellwahl-Temperaturen (Standard [18, 20, 22, 24]); [] = keine Schnellwahl. ' +
+                'Erscheinen als Knopfreihe unter den Werten und als Einträge im Kreismenü.',
+        },
+        ...CIRCLE_NOTES,
+        circleIcon: {
+            description:
+                'Nur Kreismenü (Custom-Komponente "circle-menu"): Icon im runden Knopf (Iconify-Name). Leer = das Widget-Icon. ' +
+                'Der Knopf zeigt darunter Soll- und Ist-Temperatur.',
+        },
+        circleOrder: {
+            description:
+                'Nur Kreismenü: Reihenfolge der Einträge als Liste von Schlüsseln — "minus", "plus" und "preset-<Wert>" ' +
+                '(Wert aus presets). Standard: minus, presets, plus. Leer = Standard.',
+        },
         humidityDatapoint: { description: 'Datenpunkt der Luftfeuchte.' },
         pressureDatapoint: { description: 'Datenpunkt des Luftdrucks.' },
         pressureDecimals: { description: 'Nachkommastellen des Luftdrucks.' },
@@ -983,7 +1020,7 @@ export const WIDGET_OPTION_NOTES = {
         ...CIRCLE_NOTES,
         circleIcon: {
             description:
-                'Nur layout "circle" (#815): Icon im runden Knopf (Iconify-Name). Leer = Icon bzw. Bild des aktiven Eintrags, ' +
+                'Nur Kreismenü — layout "circle" oder Custom-Komponente "circle-menu" (#815, #838): Icon im runden Knopf (Iconify-Name). Leer = Icon bzw. Bild des aktiven Eintrags, ' +
                 'sonst das Widget-Icon. Die Einträge (entries) stehen in ihrer Listenreihenfolge im Kreis — mit icon/image als Bild, sonst als Text.',
         },
     },

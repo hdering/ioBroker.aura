@@ -187,7 +187,7 @@ import { ImagePathHint } from '../config/ImagePathHint';
 import { ImageSourceField } from '../config/ImageSourceField';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { shutterCircleEntries } from '../widgets/ShutterWidget';
-import { CircleMenuSettings } from '../config/CircleMenuSettings';
+import { CircleMenuSettings, showsCircleMenu } from '../config/CircleMenuSettings';
 import { thermostatCircleEntries } from '../widgets/ThermostatWidget';
 import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
@@ -298,6 +298,7 @@ import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ConfigModal } from '../config/ConfigModal';
 import { ClimateMetricsEditor } from '../config/ClimateMetricsEditor';
+import { ClimateSetpointConfig } from '../config/ClimateSetpointConfig';
 import { CLIMATE_METRIC_TEMPLATES, HUMIDITY_CHART_COLOR, metricFromTemplate } from '../../utils/climateMetrics';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
@@ -2056,7 +2057,7 @@ function ClimateConfig({
                                 () => set({ lineColor: undefined }),
                             )}
                         </SubGroup>
-                        {showTarget && (
+                        {(showTarget || o.targetControl === true) && (
                             <SubGroup title="Soll-Temperatur">
                                 {dpField(
                                     (o.targetDatapoint as string) ?? '',
@@ -2065,6 +2066,7 @@ function ClimateConfig({
                                 )}
                             </SubGroup>
                         )}
+                        <ClimateSetpointConfig o={o} set={set} layout={config.layout} />
                         {(showHum || humidityUsers.length > 0) && (
                             <SubGroup title="Luftfeuchtigkeit">
                                 {(showHum || humidityUsers.length > 0) &&
@@ -18168,6 +18170,15 @@ function WidgetFrameInner({
                                                                         )}
                                                                 </SubGroup>
                                                             )}
+                                                            {!isCircle && showsCircleMenu(config.layout, o) && (
+                                                                <CircleMenuSettings
+                                                                    o={o}
+                                                                    setO={setO}
+                                                                    intro="Kreismenü-Zelle im eigenen Layout: Öffnen, die Schnellwahl-Werte, Schließen, Stopp und – mit Neigungs-DP – die Lamellen."
+                                                                    entries={shutterCircleEntries(o)}
+                                                                    iconPlaceholder="Rollladen-Grafik"
+                                                                />
+                                                            )}
                                                         </>
                                                     );
                                                 })()}
@@ -19347,7 +19358,7 @@ function WidgetFrameInner({
                                                 </SubGroup>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
-                                                {config.layout === 'circle' && (
+                                                {showsCircleMenu(config.layout, o) && (
                                                     <CircleMenuSettings
                                                         o={o}
                                                         setO={setO}

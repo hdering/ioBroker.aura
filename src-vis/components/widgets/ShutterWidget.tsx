@@ -626,6 +626,115 @@ export function ShutterWidget({ config }: WidgetProps) {
     const stopSz = Math.max(8, Math.round(buttonSize * 0.7));
     const movingArrow = isMoving ? (movingDir === 'up' ? '▲' : movingDir === 'down' ? '▼' : '↕') : '';
 
+    // ── Circle menu (#815) as a reusable element: the circle layout and the
+    // custom grid's 'circle-menu' component (#838).
+    const renderCircle = (below?: React.ReactNode) => {
+        const dirItemStyle = (dir: 'up' | 'stop' | 'down' | 'tilt'): React.CSSProperties => ({
+            background: `var(--blind-${dir}-bg, var(--app-surface))`,
+            color: `var(--blind-${dir}-color, var(--text-primary))`,
+            border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
+        });
+        const itemIcon = Math.round(((opts.circleItemSize as number) || 48) * 0.42);
+        // Own icon of the round button; without one the widget icon, else the shutter graphic.
+        const circleIconName = opts.circleIcon as string | undefined;
+        const TriggerIcon = circleIconName ? getWidgetIcon(circleIconName, Square) : CustomIcon;
+        const items: CircleMenuItem[] = [
+            {
+                key: 'up',
+                content: <ChevronUp size={itemIcon} />,
+                title: 'Öffnen',
+                onSelect: openFully,
+                style: dirItemStyle('up'),
+            },
+            ...presets.map(
+                (p, i): CircleMenuItem => ({
+                    key: `preset-${i}`,
+                    content: p.label || presetText(p),
+                    title: p.label ? `${p.label}: ${presetText(p)}` : presetText(p),
+                    active: !isMoving && presetActive(p),
+                    onSelect: () => applyPreset(p),
+                }),
+            ),
+            {
+                key: 'down',
+                content: <ChevronDown size={itemIcon} />,
+                title: 'Schließen',
+                onSelect: closeFully,
+                style: dirItemStyle('down'),
+            },
+        ];
+        if (showControls)
+            items.push({
+                key: 'stop',
+                content: <Square size={Math.round(itemIcon * 0.8)} />,
+                title: 'Stopp',
+                onSelect: stop,
+                style: dirItemStyle('stop'),
+            });
+        if (tiltActive && (opts.tiltPlacement as string) !== 'off')
+            items.push({
+                key: 'tilt',
+                content: <Blinds size={itemIcon} />,
+                title: tiltLabel,
+                onSelect: () => setTiltOpen(true),
+                style: dirItemStyle('tilt'),
+                closes: true,
+            });
+        return (
+            <CircleMenu
+                triggerRef={tiltBtnRef}
+                triggerTitle={`${config.title ? `${config.title}: ` : ''}${statusText}`}
+                triggerStyle={{ borderColor: accentColor }}
+                items={applyCircleOrder(items, opts.circleOrder)}
+                direction={(opts.circleDirection as CircleDirection) || 'auto'}
+                itemSize={(opts.circleItemSize as number) || 48}
+                keepOpen={!!opts.circleKeepOpen}
+                shade={opts.circleShade !== false}
+                triggerSize={(opts.circleTriggerSize as number) || undefined}
+                trigger={
+                    <>
+                        {showIcon &&
+                            (TriggerIcon ? (
+                                <TriggerIcon
+                                    className="aura-widget-icon"
+                                    style={{
+                                        '--aura-icon-color': accentColor,
+                                        width: '38%',
+                                        height: '38%',
+                                        flexShrink: 0,
+                                    }}
+                                />
+                            ) : (
+                                <ShutterViz
+                                    closedFrac={closedFrac}
+                                    accentColor={accentColor}
+                                    isMoving={isMoving}
+                                    tiltFrac={tiltFrac}
+                                    className="aura-widget-icon"
+                                    style={{ width: '34%', height: '34%', flexShrink: 0 }}
+                                />
+                            ))}
+                        {showValue && (
+                            <span
+                                className="aura-widget-value font-bold tabular-nums"
+                                style={{
+                                    color: thresholdColor ?? (isMoving ? 'var(--accent-yellow)' : valueColor),
+                                    fontSize: `min(${valueSize}px, 22cqw)`,
+                                    lineHeight: 1.1,
+                                    marginTop: '4cqw',
+                                }}
+                            >
+                                {movingArrow && <span className="animate-pulse">{movingArrow} </span>}
+                                {displayPct}%
+                            </span>
+                        )}
+                    </>
+                }
+                below={below}
+            />
+        );
+    };
+
     if (layout === 'custom') {
         const dirBtnStyle = (dir: 'up' | 'stop' | 'down' | 'tilt'): React.CSSProperties => ({
             background: `var(--blind-${dir}-bg, var(--app-bg))`,
@@ -697,6 +806,7 @@ export function ShutterWidget({ config }: WidgetProps) {
                             </button>
                         ),
                         slider,
+                        'circle-menu': <div className="w-full h-full min-h-0">{renderCircle()}</div>,
                         'tilt-slider-v': tiltActive ? (
                             <div className="h-full flex items-stretch justify-center">{tiltSliderEl(true)}</div>
                         ) : null,
@@ -825,124 +935,23 @@ export function ShutterWidget({ config }: WidgetProps) {
 
     // ── CIRCLE (#815) ─────────────────────────────────────────────────────────
     if (layout === 'circle') {
-        const dirItemStyle = (dir: 'up' | 'stop' | 'down' | 'tilt'): React.CSSProperties => ({
-            background: `var(--blind-${dir}-bg, var(--app-surface))`,
-            color: `var(--blind-${dir}-color, var(--text-primary))`,
-            border: `1px solid var(--blind-${dir}-border, var(--app-border))`,
-        });
-        const itemIcon = Math.round(((opts.circleItemSize as number) || 48) * 0.42);
-        // Own icon of the round button; without one the widget icon, else the shutter graphic.
-        const circleIconName = opts.circleIcon as string | undefined;
-        const TriggerIcon = circleIconName ? getWidgetIcon(circleIconName, Square) : CustomIcon;
-        const items: CircleMenuItem[] = [
-            {
-                key: 'up',
-                content: <ChevronUp size={itemIcon} />,
-                title: 'Öffnen',
-                onSelect: openFully,
-                style: dirItemStyle('up'),
-            },
-            ...presets.map(
-                (p, i): CircleMenuItem => ({
-                    key: `preset-${i}`,
-                    content: p.label || presetText(p),
-                    title: p.label ? `${p.label}: ${presetText(p)}` : presetText(p),
-                    active: !isMoving && presetActive(p),
-                    onSelect: () => applyPreset(p),
-                }),
-            ),
-            {
-                key: 'down',
-                content: <ChevronDown size={itemIcon} />,
-                title: 'Schließen',
-                onSelect: closeFully,
-                style: dirItemStyle('down'),
-            },
-        ];
-        if (showControls)
-            items.push({
-                key: 'stop',
-                content: <Square size={Math.round(itemIcon * 0.8)} />,
-                title: 'Stopp',
-                onSelect: stop,
-                style: dirItemStyle('stop'),
-            });
-        if (tiltActive && (opts.tiltPlacement as string) !== 'off')
-            items.push({
-                key: 'tilt',
-                content: <Blinds size={itemIcon} />,
-                title: tiltLabel,
-                onSelect: () => setTiltOpen(true),
-                style: dirItemStyle('tilt'),
-                closes: true,
-            });
         return (
             <div className="aura-widget-row h-full" style={{ position: 'relative' }}>
-                <CircleMenu
-                    triggerRef={tiltBtnRef}
-                    triggerTitle={`${config.title ? `${config.title}: ` : ''}${statusText}`}
-                    triggerStyle={{ borderColor: accentColor }}
-                    items={applyCircleOrder(items, opts.circleOrder)}
-                    direction={(opts.circleDirection as CircleDirection) || 'auto'}
-                    itemSize={(opts.circleItemSize as number) || 48}
-                    keepOpen={!!opts.circleKeepOpen}
-                    shade={opts.circleShade !== false}
-                    triggerSize={(opts.circleTriggerSize as number) || undefined}
-                    trigger={
-                        <>
-                            {showIcon &&
-                                (TriggerIcon ? (
-                                    <TriggerIcon
-                                        className="aura-widget-icon"
-                                        style={{
-                                            '--aura-icon-color': accentColor,
-                                            width: '38%',
-                                            height: '38%',
-                                            flexShrink: 0,
-                                        }}
-                                    />
-                                ) : (
-                                    <ShutterViz
-                                        closedFrac={closedFrac}
-                                        accentColor={accentColor}
-                                        isMoving={isMoving}
-                                        tiltFrac={tiltFrac}
-                                        className="aura-widget-icon"
-                                        style={{ width: '34%', height: '34%', flexShrink: 0 }}
-                                    />
-                                ))}
-                            {showValue && (
-                                <span
-                                    className="aura-widget-value font-bold tabular-nums"
-                                    style={{
-                                        color: thresholdColor ?? (isMoving ? 'var(--accent-yellow)' : valueColor),
-                                        fontSize: `min(${valueSize}px, 22cqw)`,
-                                        lineHeight: 1.1,
-                                        marginTop: '4cqw',
-                                    }}
-                                >
-                                    {movingArrow && <span className="animate-pulse">{movingArrow} </span>}
-                                    {displayPct}%
-                                </span>
-                            )}
-                        </>
-                    }
-                    below={
-                        showTitle ? (
-                            <p
-                                className="aura-widget-title text-xs truncate w-full shrink-0"
-                                style={{
-                                    '--aura-title-color': 'var(--text-secondary)',
-                                    textAlign: (titleAlign === 'left'
-                                        ? 'center'
-                                        : titleAlign) as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        ) : null
-                    }
-                />
+                {renderCircle(
+                    showTitle ? (
+                        <p
+                            className="aura-widget-title text-xs truncate w-full shrink-0"
+                            style={{
+                                '--aura-title-color': 'var(--text-secondary)',
+                                textAlign: (titleAlign === 'left'
+                                    ? 'center'
+                                    : titleAlign) as React.CSSProperties['textAlign'],
+                            }}
+                        >
+                            {config.title}
+                        </p>
+                    ) : null,
+                )}
                 <StatusBadges config={config} />
                 {tiltPopover}
             </div>

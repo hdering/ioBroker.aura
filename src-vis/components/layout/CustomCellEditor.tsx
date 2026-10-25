@@ -70,6 +70,10 @@ export const CELL_LABELS: Record<string, string> = {
 
 const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     climate: [
+        { key: 'circle-menu', label: 'Kreismenü (Soll)' },
+        { key: 'btn-plus', label: '+ Soll' },
+        { key: 'btn-minus', label: '− Soll' },
+        { key: 'presets', label: 'Schnellwahl Soll' },
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'actual', label: 'Isttemperatur (groß)' },
         { key: 'main-values', label: 'Hauptwerte (Ist + Primärwerte)' },
@@ -112,6 +116,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'status-badges', label: 'Status-Badges (alle)' },
     ],
     thermostat: [
+        { key: 'circle-menu', label: 'Kreismenü' },
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'btn-plus', label: '+ Temperatur' },
         { key: 'btn-minus', label: '− Temperatur' },
@@ -121,6 +126,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'status-badges', label: 'Status-Badges (alle)' },
     ],
     shutter: [
+        { key: 'circle-menu', label: 'Kreismenü' },
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'btn-up', label: '▲ Hoch' },
         { key: 'btn-stop', label: '■ Stop' },
@@ -158,6 +164,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     ],
     httpRequest: [{ key: 'button', label: 'HTTP-Button' }],
     enum: [
+        { key: 'circle-menu', label: 'Kreismenü' },
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'select', label: 'Dropdown' },
         { key: 'label', label: 'Aktuelle Auswahl' },

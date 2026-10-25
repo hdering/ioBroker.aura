@@ -321,6 +321,22 @@ const COUNTED = [
         item: 'Zusatzwert-Zeile',
         counts: [0, 2, 4, 6],
         build: (n) => ({ options: { metricColumns: 1, metrics: climateMetrics(n) } }),
+        modifiers: [
+            {
+                // Soll bedienen (#838): − / + neben dem Soll und die Schnellwahl als eigene Zeile.
+                key: 'targetControl',
+                label: 'Soll bedienbar (targetControl mit targetDatapoint, Schnellwahl-Zeile)',
+                when: {
+                    all: [
+                        { path: 'targetControl', equals: true },
+                        { path: 'targetDatapoint', nonEmpty: true },
+                    ],
+                },
+                build: (n) => ({
+                    options: { metricColumns: 1, metrics: climateMetrics(n), targetControl: true, targetDatapoint: DP },
+                }),
+            },
+        ],
         notIncluded: [
             'gezählt werden nur die Werte mit slot "grid" (die Vorgabe). Ohne metricColumns brechen sie um — ' +
                 'die Rechnung nimmt dann eine Zeile je Wert an und liegt eher zu hoch als zu niedrig',

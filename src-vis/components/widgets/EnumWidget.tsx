@@ -199,53 +199,9 @@ export function EnumWidget({ config }: WidgetProps) {
 
     const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
-    // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
-    if (layout === 'custom') {
-        return (
-            <div className="relative w-full h-full">
-                <CustomGridView
-                    config={config}
-                    value={currentLabel}
-                    valueColor={currentColor}
-                    extraFields={{ battery, reach }}
-                    extraComponents={{
-                        'battery-icon': batteryIcon,
-                        'reach-icon': reachIcon,
-                        'status-badges': statusBadges,
-                        ...statusItemCells,
-                        icon: showIcon ? (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{
-                                    // A cell colour wins (grids built from the default layout grey it, #768).
-                                    '--aura-icon-color': `var(--aura-cell-color, ${currentColor ?? 'var(--accent)'})`,
-                                    flexShrink: 0,
-                                }}
-                            />
-                        ) : null,
-                        select: selectEl,
-                        label: showValue
-                            ? renderCurrent('aura-widget-value text-base font-semibold truncate', {
-                                  color: currentColor ?? 'var(--text-primary)',
-                              })
-                            : null,
-                        // The big label of the minimal and card layouts (#768).
-                        'label-lg': showValue
-                            ? renderCurrent('aura-widget-value text-xl font-bold truncate max-w-full', {
-                                  color: currentColor ?? 'var(--accent)',
-                              })
-                            : null,
-                        'accent-bar': <AccentBar color={currentColor ?? 'var(--accent)'} />,
-                    }}
-                />
-                {confirmOverlay}
-            </div>
-        );
-    }
-
-    // --- CIRCLE (#815): the value list fanned out around a round button ---
-    if (layout === 'circle') {
+    // ── Circle menu (#815) as a reusable element: the circle layout and the
+    // custom grid's 'circle-menu' component (#838).
+    const renderCircle = (below?: React.ReactNode) => {
         const itemSize = (o.circleItemSize as number) || 48;
         const accent = currentColor ?? 'var(--accent)';
         const items: CircleMenuItem[] = entries.map((e) => {
@@ -273,66 +229,119 @@ export function EnumWidget({ config }: WidgetProps) {
         } as React.CSSProperties;
         const TriggerIcon = ownIcon ?? (showIcon && !entryPicture ? WidgetIcon : null);
         return (
-            <div className="aura-widget-row h-full" style={{ position: 'relative' }}>
-                <CircleMenu
-                    triggerTitle={`${config.title ? `${config.title}: ` : ''}${currentLabel}`}
-                    triggerStyle={{ borderColor: accent }}
-                    items={items}
-                    direction={(o.circleDirection as CircleDirection) || 'auto'}
-                    itemSize={itemSize}
-                    keepOpen={!!o.circleKeepOpen}
-                    shade={o.circleShade !== false}
-                    triggerSize={(o.circleTriggerSize as number) || undefined}
-                    trigger={
-                        <>
-                            {TriggerIcon && <TriggerIcon className="aura-widget-icon" style={iconStyle} />}
-                            {entryPicture && current && (
-                                <span
-                                    className="aura-widget-icon flex items-center justify-center"
-                                    style={{
-                                        color: accent,
-                                        width: pictureOnly ? '50%' : '34%',
-                                        height: pictureOnly ? '50%' : '34%',
-                                    }}
-                                >
-                                    <EnumCircleContent entry={current} share="100%" />
-                                </span>
-                            )}
-                            {showValue && !pictureOnly && (
-                                <span
-                                    className="aura-widget-value font-semibold text-center"
-                                    style={{
-                                        color: currentColor ?? 'var(--text-primary)',
-                                        fontSize: '13cqw',
-                                        lineHeight: 1.15,
-                                        marginTop: '3cqw',
-                                        maxWidth: '80%',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                    }}
-                                >
-                                    {currentLabel}
-                                </span>
-                            )}
-                        </>
-                    }
-                    below={
-                        showTitle ? (
-                            <p
-                                className="aura-widget-title text-xs truncate w-full shrink-0"
+            <CircleMenu
+                triggerTitle={`${config.title ? `${config.title}: ` : ''}${currentLabel}`}
+                triggerStyle={{ borderColor: accent }}
+                items={items}
+                direction={(o.circleDirection as CircleDirection) || 'auto'}
+                itemSize={itemSize}
+                keepOpen={!!o.circleKeepOpen}
+                shade={o.circleShade !== false}
+                triggerSize={(o.circleTriggerSize as number) || undefined}
+                trigger={
+                    <>
+                        {TriggerIcon && <TriggerIcon className="aura-widget-icon" style={iconStyle} />}
+                        {entryPicture && current && (
+                            <span
+                                className="aura-widget-icon flex items-center justify-center"
                                 style={{
-                                    '--aura-title-color': 'var(--text-secondary)',
-                                    textAlign: (titleAlign === 'left'
-                                        ? 'center'
-                                        : titleAlign) as React.CSSProperties['textAlign'],
+                                    color: accent,
+                                    width: pictureOnly ? '50%' : '34%',
+                                    height: pictureOnly ? '50%' : '34%',
                                 }}
                             >
-                                {config.title}
-                            </p>
-                        ) : null
-                    }
+                                <EnumCircleContent entry={current} share="100%" />
+                            </span>
+                        )}
+                        {showValue && !pictureOnly && (
+                            <span
+                                className="aura-widget-value font-semibold text-center"
+                                style={{
+                                    color: currentColor ?? 'var(--text-primary)',
+                                    fontSize: '13cqw',
+                                    lineHeight: 1.15,
+                                    marginTop: '3cqw',
+                                    maxWidth: '80%',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                }}
+                            >
+                                {currentLabel}
+                            </span>
+                        )}
+                    </>
+                }
+                below={below}
+            />
+        );
+    };
+
+    // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
+    if (layout === 'custom') {
+        return (
+            <div className="relative w-full h-full">
+                <CustomGridView
+                    config={config}
+                    value={currentLabel}
+                    valueColor={currentColor}
+                    extraFields={{ battery, reach }}
+                    extraComponents={{
+                        'battery-icon': batteryIcon,
+                        'reach-icon': reachIcon,
+                        'status-badges': statusBadges,
+                        ...statusItemCells,
+                        icon: showIcon ? (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{
+                                    // A cell colour wins (grids built from the default layout grey it, #768).
+                                    '--aura-icon-color': `var(--aura-cell-color, ${currentColor ?? 'var(--accent)'})`,
+                                    flexShrink: 0,
+                                }}
+                            />
+                        ) : null,
+                        select: selectEl,
+                        'circle-menu': <div className="w-full h-full min-h-0">{renderCircle()}</div>,
+                        label: showValue
+                            ? renderCurrent('aura-widget-value text-base font-semibold truncate', {
+                                  color: currentColor ?? 'var(--text-primary)',
+                              })
+                            : null,
+                        // The big label of the minimal and card layouts (#768).
+                        'label-lg': showValue
+                            ? renderCurrent('aura-widget-value text-xl font-bold truncate max-w-full', {
+                                  color: currentColor ?? 'var(--accent)',
+                              })
+                            : null,
+                        'accent-bar': <AccentBar color={currentColor ?? 'var(--accent)'} />,
+                    }}
                 />
+                {confirmOverlay}
+            </div>
+        );
+    }
+
+    // --- CIRCLE (#815): the value list fanned out around a round button ---
+    if (layout === 'circle') {
+        return (
+            <div className="aura-widget-row h-full" style={{ position: 'relative' }}>
+                {renderCircle(
+                    showTitle ? (
+                        <p
+                            className="aura-widget-title text-xs truncate w-full shrink-0"
+                            style={{
+                                '--aura-title-color': 'var(--text-secondary)',
+                                textAlign: (titleAlign === 'left'
+                                    ? 'center'
+                                    : titleAlign) as React.CSSProperties['textAlign'],
+                            }}
+                        >
+                            {config.title}
+                        </p>
+                    ) : null,
+                )}
                 <StatusBadges config={config} />
                 {confirmOverlay}
             </div>

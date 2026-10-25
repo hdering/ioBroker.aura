@@ -17,7 +17,46 @@ Jeder weitere Messwert des Sensors — CO₂, VOC, Taupunkt, Luftqualität, Hell
 
 ## Layouts
 
-Das Widget hat ein einziges Layout: Titel/Icon oben, darunter Ist-Temperatur groß mit Soll-Wert, Feuchte und Luftdruck rechts, dem Raster der weiteren Werte, optionalem Komfort-Badge, Zeitraum-Auswahl und Verlaufsdiagramm.
+| Layout | |
+| --- | --- |
+| `default` | Titel/Icon oben, Ist-Temperatur groß, Soll/Feuchte/Luftdruck rechts, Raster der weiteren Werte, Komfort-Badge, Zeitraum-Auswahl, Verlauf |
+| `custom` | freies Raster; beim Wechsel wird `default` als Raster nachgebaut |
+
+### Bausteine im eigenen Layout
+
+| Komponente | |
+| --- | --- |
+| `main-values` | Ist-Temperatur groß + Werte mit `slot: primary` |
+| `actual` | nur die Ist-Temperatur (mit Ø-Wert) |
+| `secondary-values` | rechte Spalte: Soll (mit − / +), Feuchte, Luftdruck, `slot: secondary` |
+| `metrics` | Raster der weiteren Werte |
+| `comfort-badge` | Komfort-Badge |
+| `range-chips` | Zeitraum-Auswahl |
+| `chart` | Verlaufsdiagramm |
+| `circle-menu` | Kreismenü der Solltemperatur (nur mit `targetControl`) |
+| `btn-minus` · `btn-plus` | − / + der Solltemperatur (nur mit `targetControl`) |
+| `presets` | Schnellwahl der Solltemperatur (nur mit `targetControl`) |
+
+| Feld | |
+| --- | --- |
+| `target` · `humidity` · `pressure` | Werte mit Einheit |
+| `average` | Ø des Verlaufs |
+| `comfort` | Text des Komfort-Badges |
+
+## Soll bedienen
+
+| ![](./assets/raumklima/soll-default.png) | ![](./assets/raumklima/soll-custom.png) | ![](./assets/raumklima/soll-kreis-offen.png) |
+| --- | --- | --- |
+| `default` | `custom` mit `circle-menu` | Kreismenü offen |
+
+| Option | Standard | |
+| --- | --- | --- |
+| `targetControl` | `false` | Solltemperatur bedienbar (braucht `targetDatapoint`) |
+| `minTemp` | `10` | untere Grenze |
+| `maxTemp` | `30` | obere Grenze |
+| `step` | `0.5` | Schrittweite von − / + |
+| `presets` | `[18, 20, 22, 24]` | Schnellwahl; `[]` = keine |
+| `circle…` | | Kreismenü wie beim [Thermostat](./thermostat.md#kreismenü) |
 
 ## Einstellungen
 

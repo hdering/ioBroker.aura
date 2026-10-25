@@ -24,7 +24,7 @@ import { ColorPicker } from '../common/ColorPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { EnumJsonSourceSection } from './EnumJsonSourceSection';
 import { ConfigSection, SubGroup } from './ConfigSection';
-import { CircleMenuSettings } from './CircleMenuSettings';
+import { CircleMenuSettings, showsCircleMenu } from './CircleMenuSettings';
 import { StatusDpField } from './StatusDpField';
 import { useT } from '../../i18n';
 
@@ -352,7 +352,7 @@ export function EnumConfig({ config, onConfigChange, mainDpField }: Props) {
                 </SubGroup>
             </ConfigSection>
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
-                {isCircle && (
+                {showsCircleMenu(config.layout, o) && (
                     <CircleMenuSettings
                         o={o}
                         setO={setO}

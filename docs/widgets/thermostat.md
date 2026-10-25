@@ -42,7 +42,7 @@ Runder Knopf mit Soll- und Ist-Temperatur; ein Tipp fächert −, die Schnellwah
 | ![](./assets/thermostat/layout-circle-closed.png) | ![](./assets/thermostat/layout-circle.png) |
 
 ### Custom
-Icon, Soll-Wert (`value`), Ist-Wert (`actual`), Status (`status`) und Tasten (`btn-plus`/`btn-minus`) frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); die Rundskala ist dafür die Komponente `dial`, die Schnellwahl `presets`.
+Icon, Soll-Wert (`value`), Ist-Wert (`actual`), Status (`status`) und Tasten (`btn-plus`/`btn-minus`) frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout). Startet auf Wunsch aus dem bisherigen Layout ([Aus Layout übernehmen](./custom-layout#aus-layout-ubernehmen)); die Rundskala ist dafür die Komponente `dial`, die Schnellwahl `presets`, das Kreismenü `circle-menu`.
 
 ![](./assets/thermostat/layout-custom.png)
 

@@ -186,6 +186,32 @@ for (const type of CUSTOM_GRID_PRESET_TYPES) {
     }
 }
 
+// Circle layouts (#838) become the widget's own round button.
+for (const type of ['thermostat', 'shutter', 'enum']) {
+    const g = buildCustomGridFromLayout({ type, options: {} }, 'circle');
+    check(
+        `${type} circle → circle-menu cell`,
+        g.cells.some((c) => c.componentKey === 'circle-menu'),
+    );
+}
+// Raumklima with a writable target (#838): the quick-select row comes along.
+const climCtl = buildCustomGridFromLayout(
+    { type: 'climate', options: { targetControl: true, targetDatapoint: 'x.target' } },
+    'default',
+);
+check(
+    'climate targetControl → presets cell',
+    climCtl.cells.some((c) => c.componentKey === 'presets'),
+);
+const climNoPresets = buildCustomGridFromLayout(
+    { type: 'climate', options: { targetControl: true, targetDatapoint: 'x.target', presets: [] } },
+    'default',
+);
+check(
+    'climate targetControl, no presets → no presets cell',
+    !climNoPresets.cells.some((c) => c.componentKey === 'presets'),
+);
+
 // Things the presets must not do.
 check('custom → custom has no preset', buildCustomGridFromLayout({ type: 'value' }, 'custom') === null);
 check('unknown type has no preset', buildCustomGridFromLayout({ type: 'gauge' }, 'default') === null);
