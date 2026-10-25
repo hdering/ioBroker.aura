@@ -1,11 +1,19 @@
-name: Feature request
-description: Suggest an idea for the Aura dashboard
+name: Funktionswunsch / Feature request
+description: Eine Idee für das Aura-Dashboard vorschlagen / Suggest an idea for the Aura dashboard
 labels: [feature]
 body:
+  - type: markdown
+    attributes:
+      value: >
+        Du kannst gern auf Deutsch oder Englisch schreiben.
+        / Feel free to write in German or English.
+
   - type: textarea
     id: feature
     attributes:
-      label: What would you like?
-      description: Describe the feature or improvement. Screenshots or mockups welcome.
+      label: Was wünschst du dir? / What would you like?
+      description: >
+        Beschreibe die Funktion oder Verbesserung. Screenshots oder Skizzen sind willkommen.
+        / Describe the feature or improvement. Screenshots or mockups welcome.
     validations:
       required: true

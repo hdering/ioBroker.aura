@@ -1,21 +1,31 @@
-name: Bug report
-description: Report a problem with the Aura dashboard
+name: Fehler melden / Bug report
+description: Ein Problem mit dem Aura-Dashboard melden / Report a problem with the Aura dashboard
 labels: [bug]
 body:
+  - type: markdown
+    attributes:
+      value: >
+        Du kannst gern auf Deutsch oder Englisch schreiben.
+        / Feel free to write in German or English.
+
   - type: textarea
     id: what-happened
     attributes:
-      label: What happened?
-      description: Describe the problem. Drag & drop screenshots here — they help a lot.
+      label: Was ist passiert? / What happened?
+      description: >
+        Beschreibe das Problem. Screenshots per Drag & Drop hier ablegen — sie helfen sehr.
+        / Describe the problem. Drag & drop screenshots here — they help a lot.
     validations:
       required: true
 
   - type: textarea
     id: widget-export
     attributes:
-      label: Widget export
+      label: Widget-Export / Widget export
       description: >
-        If the problem is about a specific widget, export it
+        Betrifft das Problem ein bestimmtes Widget, exportiere es
+        (Widget-Menü → Exportieren) und füge das JSON hier ein.
+        / If the problem is about a specific widget, export it
         (widget menu → Export) and paste the JSON here.
       render: json
     validations:
@@ -24,9 +34,11 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: Browser console / ioBroker log
+      label: Browser-Konsole, ioBroker-Log / Browser console, ioBroker log
       description: >
-        Browser console (F12 → Console) while the problem happens, and/or the
+        Browser-Konsole (F12 → Konsole), während das Problem auftritt, und/oder das
+        ioBroker-Log des Aura-Adapters. Fehler und Warnungen genügen.
+        / Browser console (F12 → Console) while the problem happens, and/or the
         ioBroker log of the aura adapter. Errors and warnings are enough.
       render: shell
     validations:
@@ -35,15 +47,17 @@ body:
   - type: input
     id: aura-version
     attributes:
-      label: Aura version
-      placeholder: e.g. 0.11.1
+      label: Aura-Version / Aura version
+      placeholder: z. B. / e.g. 0.11.1
     validations:
       required: true
 
   - type: checkboxes
     id: export-confirm
     attributes:
-      label: Checklist
+      label: Checkliste / Checklist
       options:
-        - label: I pasted the widget export above, or the problem is not about a specific widget.
+        - label: >
+            Ich habe den Widget-Export oben eingefügt, oder das Problem betrifft kein bestimmtes Widget.
+            / I pasted the widget export above, or the problem is not about a specific widget.
           required: true
