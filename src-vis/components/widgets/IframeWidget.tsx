@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MonitorDot, AlertTriangle, ExternalLink, X, Minus, Plus } from 'lucide-react';
+import { MonitorDot, AlertTriangle, ExternalLink, X, Minus, Plus, Volume2, VolumeX } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -8,6 +8,7 @@ import { iframeScrollingAttr, resolveIframeInteractionMode } from '../../utils/i
 import { useIframeColorScheme } from '../../hooks/useIframeColorScheme';
 import { useIframePinchZoom } from '../../hooks/useIframePinchZoom';
 import { useWakeReload } from '../../hooks/useWakeReload';
+import { useIframeMute } from '../../hooks/useIframeMute';
 import {
     clampIframeZoom,
     iframeZoomStyle,
@@ -53,6 +54,8 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const sandboxCustom = opts.sandboxCustom as string | undefined;
     const baseZoom = clampIframeZoom((opts.iframeZoom as number) ?? 100);
     const zoomControls = (opts.iframeZoomControls as boolean) ?? false;
+    const soundControl = (opts.iframeSoundControl as boolean) ?? false;
+    const startMuted = (opts.iframeMuted as boolean) ?? false;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
@@ -69,6 +72,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const [hintDismissed, setHintDismissed] = useState(false);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const frameBoxRef = useRef<HTMLDivElement | null>(null);
+    const frameRef = useRef<HTMLIFrameElement | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     // An embedded player torn down while the display slept only restarts on a
     // fresh load (issue #526). Deliberately overrides keepAlive — a frame kept
@@ -78,6 +82,13 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const wakeNonce = useWakeReload((reloadOnWake || inFullscreen) && !!url);
     // Brightness handed down to the embedded page (#663) — no-op in Blink.
     const colorSchemeStyle = useIframeColorScheme(frameBoxRef, opts, rawUrl);
+
+    // Sound of the embedded media (#855): null = the page decides until the first
+    // tap. Kept for the session, so a refresh tick does not undo the user's choice.
+    const [muted, setMuted] = useState<boolean | null>(startMuted ? true : null);
+    useEffect(() => setMuted(startMuted ? true : null), [startMuted]);
+    const sound = useIframeMute(frameRef, soundControl || startMuted, muted, setMuted);
+    const shownMuted = muted ?? sound.pageMuted ?? false;
 
     const zoom = resolveIframeZoom(baseZoom, deviceZoom, zoomControls);
     const zoomRef = useRef(zoom);
@@ -210,6 +221,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
             >
                 {!unloaded && (
                     <iframe
+                        ref={frameRef}
                         key={iframeKey}
                         src={url}
                         sandbox={sandboxAttr}
@@ -219,6 +231,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                         onLoad={() => {
                             setLoaded(true);
                             if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                            sound.attach();
                         }}
                         style={{
                             border: 'none',
@@ -236,34 +249,65 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                         data-iframe-blocker=""
                     />
                 )}
-                {/* Zoom controls (#667) – the level they set lives on this device only */}
-                {zoomControls && (
-                    <div
-                        className="aura-zoom-ctl nodrag absolute bottom-1.5 right-1.5 z-[2] flex items-center rounded-md overflow-hidden"
-                        style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(4px)' }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => applyZoom(stepIframeZoom(zoom, -1))}
-                            className="w-7 h-7 flex items-center justify-center hover:bg-white/15"
-                            title="Verkleinern"
-                        >
-                            <Minus size={13} />
-                        </button>
-                        <button
-                            onClick={() => applyZoom(null)}
-                            className="px-1.5 h-7 text-[10px] tabular-nums hover:bg-white/15"
-                            title="Auf die konfigurierte Stufe zurücksetzen"
-                        >
-                            {zoom}%
-                        </button>
-                        <button
-                            onClick={() => applyZoom(stepIframeZoom(zoom, 1))}
-                            className="w-7 h-7 flex items-center justify-center hover:bg-white/15"
-                            title="Vergrößern"
-                        >
-                            <Plus size={13} />
-                        </button>
+                {(zoomControls || soundControl) && (
+                    <div className="nodrag absolute bottom-1.5 right-1.5 z-[2] flex items-center gap-1.5">
+                        {/* Sound (#855) – only a page of Aura's own origin can be reached */}
+                        {soundControl && (
+                            <button
+                                className="aura-sound-ctl w-7 h-7 flex items-center justify-center rounded-md hover:bg-white/15"
+                                style={{
+                                    background: 'rgba(0,0,0,0.55)',
+                                    color: '#fff',
+                                    backdropFilter: 'blur(4px)',
+                                    opacity: sound.reachable === false ? 0.45 : 1,
+                                    cursor: sound.reachable === false ? 'not-allowed' : undefined,
+                                }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (sound.reachable !== false) setMuted(!shownMuted);
+                                }}
+                                title={
+                                    sound.reachable === false
+                                        ? 'Ton nicht steuerbar: fremde Seite – URL über den Proxy laden'
+                                        : shownMuted
+                                          ? 'Ton einschalten'
+                                          : 'Ton ausschalten'
+                                }
+                                data-muted={shownMuted ? 'true' : 'false'}
+                            >
+                                {shownMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                            </button>
+                        )}
+                        {/* Zoom controls (#667) – the level they set lives on this device only */}
+                        {zoomControls && (
+                            <div
+                                className="aura-zoom-ctl flex items-center rounded-md overflow-hidden"
+                                style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(4px)' }}
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <button
+                                    onClick={() => applyZoom(stepIframeZoom(zoom, -1))}
+                                    className="w-7 h-7 flex items-center justify-center hover:bg-white/15"
+                                    title="Verkleinern"
+                                >
+                                    <Minus size={13} />
+                                </button>
+                                <button
+                                    onClick={() => applyZoom(null)}
+                                    className="px-1.5 h-7 text-[10px] tabular-nums hover:bg-white/15"
+                                    title="Auf die konfigurierte Stufe zurücksetzen"
+                                >
+                                    {zoom}%
+                                </button>
+                                <button
+                                    onClick={() => applyZoom(stepIframeZoom(zoom, 1))}
+                                    className="w-7 h-7 flex items-center justify-center hover:bg-white/15"
+                                    title="Vergrößern"
+                                >
+                                    <Plus size={13} />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
                 {/* Load-failure hint – shown after timeout if iframe never fired onLoad */}

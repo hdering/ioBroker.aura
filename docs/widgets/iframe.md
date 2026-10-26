@@ -30,6 +30,8 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 | `iframeColorScheme` | `theme` | `theme` · `device` · `neutral` — siehe unten |
 | `iframeZoom` | `100` | Zoomstufe in % (25–400), gilt auf allen Geräten |
 | `iframeZoomControls` | `false` | Zoom-Tasten am Widget; Stufe gilt nur auf dem Gerät |
+| `iframeSoundControl` | `false` | Ton-Taste (an/aus) am Widget — siehe unten |
+| `iframeMuted` | `false` | Ton beim Laden aus |
 | `mobileHeight` | `aspect` | Höhe auf dem Handy: `aspect` (Desktop-Seitenverhältnis) · `rows` (Zeilenhöhe, z. B. Grafana) · `px` |
 | `mobileHeightPx` | `300` | feste Höhe in px bei `mobileHeight: px` |
 
@@ -63,6 +65,21 @@ konfigurierte Stufe zurück.
 Die Wischgeste erreicht Aura nur, solange die Sperrschicht von `action` darüber liegt:
 Eine bedienbare Fremdseite behält ihre Berührungen für sich, davon erfährt das Widget
 nichts.
+
+#### Ton
+
+`iframeSoundControl` blendet unten rechts eine Lautsprecher-Taste ein; sie schaltet alle
+Videos und Audio-Elemente der Seite stumm bzw. wieder laut. `iframeMuted` startet stumm.
+
+| Seite | Ton steuerbar |
+| --- | --- |
+| über `useProxy` geladen | ja |
+| Datei von Aura (`/webfs/…`) | ja |
+| direkter Video-Link (`.mp4`, `.webm`) mit `useProxy` | ja |
+| fremde Seite ohne Proxy (YouTube, Kamera-Weboberfläche …) | nein — Taste ausgegraut |
+
+Der Browser lässt Aura nur in Seiten der eigenen Adresse hineinsehen. Ein `.mpg`
+(MPEG-1/2) spielt kein Browser ab, unabhängig von der Taste.
 
 #### Farbschema der Seite
 

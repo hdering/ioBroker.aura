@@ -14223,6 +14223,16 @@
           "default": "theme",
           "description": "Welche Helligkeit die eingebettete Seite bekommt: \"theme\" (Standard) gibt das Aura-Theme weiter, \"device\" überlässt sie der Systemeinstellung des Geräts, \"neutral\" setzt gar keine - dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht. Ohne Angabe gilt für Energiefluss-erweitert-URLs (/energiefluss-erweitert) \"neutral\", sonst läge eine weiße Fläche hinter dem Diagramm."
         },
+        "iframeMuted": {
+          "type": "boolean",
+          "default": false,
+          "description": "Videos und Audio der Seite beim Laden stummschalten (gleiche Einschränkung wie iframeSoundControl). Zusammen mit iframeSoundControl am Gerät wieder einschaltbar."
+        },
+        "iframeSoundControl": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ton-Taste (an/aus) am Widget für Videos und Audio der eingebetteten Seite. Wirkt nur bei gleicher Herkunft: Seite über useProxy oder von Aura selbst (/webfs); eine fremde Seite bleibt unerreichbar, die Taste erscheint dann ausgegraut. Für einen direkten Video-Link useProxy einschalten."
+        },
         "iframeUrl": {
           "type": "string",
           "default": "",

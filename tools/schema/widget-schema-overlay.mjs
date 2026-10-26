@@ -399,6 +399,17 @@ export const WIDGET_OPTION_NOTES = {
                 'sie gesetzt wurde, und schlägt iframeZoom dort. Bei interactionMode "action" kommt Zwei-Finger-' +
                 'Zoom dazu; ein bedienbarer Inhalt behält die Berührung für sich, dort bleiben die Tasten der Weg.',
         },
+        iframeSoundControl: {
+            description:
+                'Ton-Taste (an/aus) am Widget für Videos und Audio der eingebetteten Seite. Wirkt nur bei gleicher ' +
+                'Herkunft: Seite über useProxy oder von Aura selbst (/webfs); eine fremde Seite bleibt unerreichbar, ' +
+                'die Taste erscheint dann ausgegraut. Für einen direkten Video-Link useProxy einschalten.',
+        },
+        iframeMuted: {
+            description:
+                'Videos und Audio der Seite beim Laden stummschalten (gleiche Einschränkung wie iframeSoundControl). ' +
+                'Zusammen mit iframeSoundControl am Gerät wieder einschaltbar.',
+        },
     },
     clock: {
         display: {

@@ -57,6 +57,7 @@ Ein Tab mit dem Slug `active` bekäme über `.aura-tab-<slug>` ebenfalls `.aura-
 | `.aura-click-action-btn` | Klick-Aktions-Symbol in der Kartenecke bzw. rechts in der eingeklappten Kopfzeile |
 | `.aura-collapsed-header` | eingeklappte Karte: die Zeile mit Icon und Titel |
 | `.aura-zoom-ctl` | Zoom-Tasten im iFrame-Widget (Option `iframeZoomControls`) |
+| `.aura-sound-ctl` | Ton-Taste im iFrame-Widget (Option `iframeSoundControl`) |
 | `.aura-badge-corner` | Badge-Overlay in der Kartenecke |
 | `.aura-textwrap` | Karte mit aktivem Textumbruch (Option „Textumbruch") |
 | `.aura-devicecard-link` | Editor: farbiger Rahmen verknüpfter [Gerätekarten](../widgets/geraetekarte) |

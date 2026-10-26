@@ -14810,6 +14810,60 @@ function WidgetFrameInner({
                                                             />
                                                         </button>
                                                     </div>
+                                                    {(
+                                                        [
+                                                            {
+                                                                key: 'iframeSoundControl',
+                                                                label: 'Ton-Taste am Widget',
+                                                                hint: 'Schaltet Videos und Audio der Seite stumm. Nur bei Seiten von Aura selbst oder über den Proxy — eine fremde Seite lässt sich nicht erreichen.',
+                                                            },
+                                                            {
+                                                                key: 'iframeMuted',
+                                                                label: 'Ton beim Laden aus',
+                                                                hint: 'Gleiche Einschränkung; mit Ton-Taste lässt er sich am Gerät wieder einschalten.',
+                                                            },
+                                                        ] as const
+                                                    ).map(({ key, label, hint }) => {
+                                                        const on = !!(o[key] ?? false);
+                                                        return (
+                                                            <div
+                                                                key={key}
+                                                                className="flex items-start justify-between gap-2"
+                                                            >
+                                                                <div className="min-w-0">
+                                                                    <label
+                                                                        className="text-[11px] block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {label}
+                                                                    </label>
+                                                                    <p
+                                                                        className="text-[10px]"
+                                                                        style={{
+                                                                            color: 'var(--text-secondary)',
+                                                                            opacity: 0.6,
+                                                                        }}
+                                                                    >
+                                                                        {hint}
+                                                                    </p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => set({ [key]: !on })}
+                                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                                    style={{
+                                                                        background: on
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    <span
+                                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                        style={{ left: on ? '18px' : '2px' }}
+                                                                    />
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
                                                     <EmbedMobileHeightField options={o} onChange={set} />
                                                 </>
                                             </ConfigSection>
