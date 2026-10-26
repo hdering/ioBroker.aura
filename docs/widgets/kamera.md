@@ -45,6 +45,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `fitMode` | `cover` | `cover` · `contain` |
 | `showTimestamp` | `true` | Zeitstempel einblenden |
 | `reloadOnWake` | `true` | Stream nach Display-Standby neu laden |
+| `reloadDp` | — | Trigger-DP: jedes Schreiben lädt Bild/Stream neu |
 | `transparent` | `false` | transparenter Hintergrund |
 | `interactionMode` | `content` | nur bei `.html`-Stream: `action` · `content` · `contentOnly` — siehe [iFrame](./iframe#interaktion-vs-klick-aktion) |
 

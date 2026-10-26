@@ -6607,6 +6607,8 @@ const PICKER_OPTION_KEYS = {
     climate_pressureDp: 'pressureDatapoint',
     iframe_urlDp: 'iframeUrlDp',
     image_dp: 'imageDatapoint',
+    image_reloadDp: 'reloadDp',
+    camera_reloadDp: 'reloadDp',
     http_response_dp: 'responseDatapoint',
     html_dp: 'htmlDatapoint',
     chips_checkDp: 'checkDp',
@@ -13398,6 +13400,40 @@ function WidgetFrameInner({
                                                             style={cSty}
                                                         />
                                                     </div>
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Neu laden bei Änderung von{' '}
+                                                            <span style={{ opacity: 0.6 }}>(Datenpunkt)</span>
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={(o.reloadDp as string) ?? ''}
+                                                                onChange={(e) =>
+                                                                    set({ reloadDp: e.target.value || undefined })
+                                                                }
+                                                                placeholder="z.B. 0_userdata.0.snapshotSaved"
+                                                                className={`flex-1 ${cCls} font-mono min-w-0`}
+                                                                style={cSty}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setPickerTarget('camera_reloadDp')}
+                                                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    color: 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                                title={t('wf.edit.fromIoBroker')}
+                                                            >
+                                                                <Database size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </SubGroup>
                                                 <SubGroup title="Aufwecken">
                                                     <div>
@@ -14075,9 +14111,8 @@ function WidgetFrameInner({
                                                 resetTitle="Hintergrund entfernen"
                                                 onChange={(v) => set({ imageBackground: v })}
                                             />
-                                            {imageUrl &&
-                                                !imageUrl.startsWith('data:') &&
-                                                imageUrl.startsWith('http') && (
+                                            {((imageUrl && !imageUrl.startsWith('data:')) || !!o.imageDatapoint) && (
+                                                <>
                                                     <div>
                                                         <label
                                                             className="text-[11px] mb-1 block"
@@ -14100,7 +14135,41 @@ function WidgetFrameInner({
                                                             style={iSty}
                                                         />
                                                     </div>
-                                                )}
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Neu laden bei Änderung von{' '}
+                                                            <span style={{ opacity: 0.6 }}>(Datenpunkt)</span>
+                                                        </label>
+                                                        <div className="flex gap-1">
+                                                            <input
+                                                                type="text"
+                                                                value={(o.reloadDp as string) ?? ''}
+                                                                onChange={(e) =>
+                                                                    set({ reloadDp: e.target.value || undefined })
+                                                                }
+                                                                placeholder="z.B. 0_userdata.0.snapshotSaved"
+                                                                className={`flex-1 ${iCls} font-mono min-w-0`}
+                                                                style={iSty}
+                                                            />
+                                                            <button
+                                                                onClick={() => setPickerTarget('image_reloadDp')}
+                                                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    color: 'var(--text-secondary)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                }}
+                                                                title="Aus ioBroker wählen"
+                                                            >
+                                                                <Database size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
                                         </>
                                     );
                                 })()}

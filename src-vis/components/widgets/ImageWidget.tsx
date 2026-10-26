@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { ImageIcon } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useReloadTrigger } from '../../hooks/useReloadTrigger';
 import { CustomGridView } from './CustomGridView';
 import { resolveAssetUrl, resolveImageSource } from '../../utils/assetUrl';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -21,6 +22,11 @@ export function ImageWidget({ config }: WidgetProps) {
     const imageBackground = (opts.imageBackground as string) || undefined;
 
     const { value: dpValue } = useDatapoint(datapointId);
+    // A script that saves a new picture under the same name writes the same path
+    // again - the src would not change, so every write of the source DP counts as
+    // a reload. A separate trigger DP does the same for a fixed URL. (issue #853)
+    const sourceWrites = useReloadTrigger(datapointId);
+    const triggerWrites = useReloadTrigger((opts.reloadDp as string) ?? '');
 
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
@@ -33,16 +39,24 @@ export function ImageWidget({ config }: WidgetProps) {
     const [tick, setTick] = useState(0);
     const [loadError, setLoadError] = useState(false);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const hasSource = !!imageUrl || !!datapointId;
 
     useEffect(() => {
         setLoadError(false);
         if (intervalRef.current) clearInterval(intervalRef.current);
-        if (!imageUrl || refreshSeconds < 1) return;
+        if (!hasSource || refreshSeconds < 1) return;
         intervalRef.current = setInterval(() => setTick((n) => n + 1), refreshSeconds * 1000);
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
         };
-    }, [imageUrl, refreshSeconds]);
+    }, [hasSource, imageUrl, refreshSeconds]);
+
+    const fromDp = !!datapointId && dpValue != null;
+    const reload = tick + triggerWrites + (fromDp ? sourceWrites : 0);
+    // A time stamp, not the counter: `_t=1` after a page reload would hit the
+    // browser cache from the previous visit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const reloadStamp = useMemo(() => Date.now(), [reload]);
 
     if (layout === 'custom')
         return (
@@ -58,13 +72,13 @@ export function ImageWidget({ config }: WidgetProps) {
 
     // Build src from datapoint value (base64, URL or web-adapter path) or from static URL
     const src = (() => {
-        if (datapointId && dpValue != null) return resolveImageSource(String(dpValue));
-        if (!imageUrl) return '';
-        const resolved = resolveImageSource(imageUrl);
-        // data: URIs carry the payload inline – no cache-bust
-        if (!resolved || resolved.startsWith('data:')) return resolved;
+        if (!fromDp && !imageUrl) return '';
+        const resolved = resolveImageSource(fromDp ? String(dpValue) : imageUrl);
+        // data:/blob: URIs carry the payload inline – no cache-bust
+        if (!resolved || resolved.startsWith('data:') || resolved.startsWith('blob:')) return resolved;
+        if (reload === 0) return resolved;
         const sep = resolved.includes('?') ? '&' : '?';
-        return tick > 0 ? `${resolved}${sep}_t=${tick}` : resolved;
+        return `${resolved}${sep}_t=${reloadStamp}`;
     })();
 
     if (!src) {

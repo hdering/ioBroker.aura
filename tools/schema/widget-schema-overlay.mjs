@@ -226,6 +226,8 @@ export const KEY_DESCRIPTIONS = {
     // ── Sonstiges mit Mehrfachverwendung ─────────────────────────────────────
     refreshInterval: 'Neuladen alle n Sekunden. 0 = nie.',
     reloadOnWake: 'Nach dem Aufwachen des Geräts neu laden.',
+    reloadDp:
+        'Trigger-Datenpunkt: jedes Schreiben (auch derselbe Wert) lädt den Inhalt neu. Für Skripte, die ein Bild unter gleichem Namen ersetzen.',
     sandboxPreset: 'Sicherheitsstufe des eingebetteten Inhalts.',
     sandboxCustom: 'Eigene sandbox-Attribute, wenn sandboxPreset "custom" ist.',
     showActualTemp: 'Ist-Temperatur anzeigen.',
@@ -369,8 +371,11 @@ export const WIDGET_OPTION_NOTES = {
     },
     image: {
         imageUrl: { description: 'Feste Bild-URL. Relative Pfade laufen über /webfs.' },
-        imageDatapoint: { description: 'Datenpunkt, der die Bild-URL liefert.' },
-        refreshInterval: { description: 'Neuladen alle n Sekunden. 0 = nie.' },
+        imageDatapoint: {
+            description:
+                'Datenpunkt, der die Bild-URL liefert. Jedes Schreiben lädt das Bild neu, auch mit unverändertem Wert.',
+        },
+        refreshInterval: { description: 'Neuladen alle n Sekunden (Bild-URL und Datenpunkt). 0 = nie.' },
     },
     iframe: {
         iframeUrlMode: { description: 'Woher die Adresse kommt: fest oder aus einem Datenpunkt.' },

@@ -36,10 +36,11 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | Option            | Standard  |                                                       |
 | ----------------- | --------- | ----------------------------------------------------- |
 | `imageUrl`        | —         | Bild-URL, lokale Datei, Base64 oder SVG               |
-| `imageDatapoint`  | —         | Datenpunkt mit URL/Base64/SVG                         |
+| `imageDatapoint`  | —         | Datenpunkt mit URL/Base64/SVG; jedes Schreiben lädt neu |
 | `fit`             | `contain` | `none` · `contain` · `width` · `height`               |
 | `imageBackground` | —         | Hintergrundfarbe hinter dem Bild (leer = transparent) |
 | `refreshInterval` | `0`       | Sekunden zwischen Reloads (`0` = aus)                 |
+| `reloadDp`        | —         | Trigger-DP: jedes Schreiben lädt das Bild neu         |
 
 ### Anzeige
 

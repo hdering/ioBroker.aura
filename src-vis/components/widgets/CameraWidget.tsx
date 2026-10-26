@@ -19,6 +19,7 @@ import type { WidgetProps, ioBrokerState } from '../../types';
 import { getStateDirect, setStateDirect, subscribeDpValue, subscribeStateDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useWakeReload } from '../../hooks/useWakeReload';
+import { useReloadTrigger } from '../../hooks/useReloadTrigger';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { MomentaryButton, parseWrite } from './entryControls';
@@ -991,6 +992,9 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     // A stream torn down while the display slept only comes back on a fresh load
     // (issue #526). The editor is exempt — no live stream to save there.
     const wakeNonce = useWakeReload(reloadOnWake && !editMode && !!streamUrl && mode !== 'rtsp-hint');
+    // External "content changed" signal (issue #853): a snapshot gets a fresh
+    // cache-busted src below, iframe/MJPEG/video reload through the element key.
+    const triggerNonce = useReloadTrigger((opts.reloadDp as string) ?? '');
 
     // An .html stream renders in an iframe: clicks stay inside that document and
     // never reach the frame's click action, so ask for a host-side action button.
@@ -1275,6 +1279,14 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [streamUrl, refreshInterval, streamReady, mode]);
 
+    useEffect(() => {
+        if (!triggerNonce || !streamUrl || !streamReady || (mode !== 'img' && mode !== 'video')) return;
+        setLoadError(false);
+        setImgSrc(buildSrc(streamUrl));
+        setLastRefresh(new Date());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [triggerNonce]);
+
     // ── Error handler ──────────────────────────────────────────────────────────────
     // For snapshot mode: require 3 consecutive errors before declaring stream dead.
     // For MJPEG (refreshInterval=0): single error is enough (connection closed by server).
@@ -1313,7 +1325,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         streamSecondsLeft,
         onFullscreen: editMode ? undefined : () => setFullscreen(true),
         transparent,
-        wakeNonce,
+        wakeNonce: wakeNonce + triggerNonce,
         interactionMode,
         playerStatus,
         onPlayerStatus: handlePlayerStatus,
