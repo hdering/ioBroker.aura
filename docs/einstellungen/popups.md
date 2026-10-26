@@ -141,6 +141,8 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 | `{{dpname}}` | `common.name` des Datenpunkts, z. B. `Soll-Temperatur` | Texten der Popup-Widgets · Popup-Titel |
 | `{{parentname}}`, `{{parent2name}}`, … | `common.name` von `{{parent}}`, `{{parent2}}`, … | Texten der Popup-Widgets · Popup-Titel |
 | `[[<dp>]]` | Wert des Datenpunkts | Popup-Titel · Widget-Name (jedes Widget) |
+| `{{row_<feld>}}` | Rohwert eines Felds der geklickten [JSON-Tabellen-Zeile](../widgets/json-tabelle#klick-auf-zeile) | jedem Feld der Popup-Widgets · Popup-Titel · HTML-Popup |
+| `{{rowtext_<feld>}}` | dasselbe Feld, wie die Tabelle es zeigt (Datum, Zahlenformat, Zuordnung) | jedem Feld der Popup-Widgets · Popup-Titel · HTML-Popup |
 
 `{{…}}` ersetzt beim Öffnen einmalig Text, `[[…]]` liest laufend den Wert. Die Text-Ersetzung läuft zuerst, beides ist also kombinierbar:
 
@@ -156,7 +158,7 @@ Jede Zahl steht für eine Ebene weiter oben. Nötig, wenn der gesuchte Datenpunk
 (Messwert) und `hm-rpc.2.000A….0.OPERATING_VOLTAGE` (Batterie): `{{parent}}` endet im Kanal `.1`,
 `{{parent2}}` trifft das Gerät. Oberhalb von `adapter.instanz` gibt es keine Ebene mehr.
 
-Beim Klick auf eine Listenzeile ist der Haupt-Datenpunkt die geklickte Zeile — ein Popup-Titel mit Platzhaltern gilt damit für alle Zeilen.
+Beim Klick auf eine Listenzeile ist der Haupt-Datenpunkt die geklickte Zeile — ein Popup-Titel mit Platzhaltern gilt damit für alle Zeilen. Das HTML-Popup ersetzt die Platzhalter in seinem festen HTML, nicht in HTML aus einem Datenpunkt.
 
 Ein Platzhalter im Namensfeld einer Listenzeile bleibt Text — nur das Feld `Datenpunkt-ID` der Zeile wird als Datenpunkt gelesen.
 
