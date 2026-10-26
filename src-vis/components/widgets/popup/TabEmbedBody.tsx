@@ -174,7 +174,7 @@ function PopupWidgetCell({
     onConfigChange: (next: WidgetConfig) => void;
     /** True when this cell should render its widget at natural height (auto-height popup). */
     autoHeight?: boolean;
-    /** Reports the cell's measured pixel height so the parent can grow the grid row-count. */
+    /** Reports the cell's natural (content-driven) pixel height so the parent can grow the grid row-count. */
     onMeasure?: (id: string, px: number) => void;
 }) {
     const wm = getWidgetMap();
@@ -218,25 +218,41 @@ function PopupWidgetCell({
               ? 'animate-[blink_1s_step-end_infinite]'
               : '';
 
-    // In auto-height mode, observe the cell's natural (border-box) height and report it up.
-    // Kept off entirely otherwise so fixed-height cells carry no observer overhead.
-    const measureRef = useRef<HTMLDivElement | null>(null);
+    // In auto-height mode, observe the content's natural height plus the cell's own padding
+    // and border, and report it up. The cell itself fills at least its grid slot, so it
+    // can't be measured: it would never report less than the slot and could not shrink
+    // back after growing. Kept off entirely otherwise so fixed-height cells carry no
+    // observer overhead.
+    const cellRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
         if (!autoHeight || !onMeasure) return;
-        const el = measureRef.current;
-        if (!el) return;
-        const report = () => onMeasure(w.id, el.offsetHeight);
+        const cell = cellRef.current;
+        const content = contentRef.current;
+        if (!cell || !content) return;
+        const report = () => {
+            const cs = getComputedStyle(cell);
+            const chrome =
+                parseFloat(cs.paddingTop) +
+                parseFloat(cs.paddingBottom) +
+                parseFloat(cs.borderTopWidth) +
+                parseFloat(cs.borderBottomWidth);
+            onMeasure(w.id, Math.ceil(content.offsetHeight + (chrome || 0)));
+        };
         report();
         const ro = new ResizeObserver(report);
-        ro.observe(el);
+        ro.observe(content);
         return () => ro.disconnect();
     }, [autoHeight, onMeasure, w.id]);
 
     return (
         <div
-            ref={measureRef}
+            ref={cellRef}
             className={`box-border ${autoHeight ? '' : 'h-full overflow-hidden'} ${effectClass}`}
             style={{
+                // Auto height: fill the grid slot like in the editor and grow past it only
+                // when the content needs more, so loading steps inside the slot stay invisible.
+                ...(autoHeight ? { minHeight: '100%' } : {}),
                 ...cardStyleFor(w, widgetPadding),
                 ...cond.cssVars,
                 ...(clickAction && !cond.disabled ? { cursor: 'pointer' } : {}),
@@ -245,28 +261,31 @@ function PopupWidgetCell({
             data-aura-popup-widget={w.id}
             onClick={onCellClick}
         >
-            {Widget ? (
-                <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                    <Widget
-                        key={`r${refreshNonce}`}
-                        config={rendered}
-                        editMode={false}
-                        onConfigChange={(next) => onConfigChange(restoreColorBindings(next, w))}
-                    />
-                </Suspense>
-            ) : (
-                <div
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs h-full"
-                    style={{
-                        background: 'var(--app-bg)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid var(--app-border)',
-                    }}
-                >
-                    <AlertTriangle size={13} />
-                    Unbekannter Typ: {w.type}
-                </div>
-            )}
+            {/* Wraps only the content so auto-height mode can measure it apart from the cell. */}
+            <div ref={contentRef} className={autoHeight ? 'flow-root' : 'h-full'}>
+                {Widget ? (
+                    <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
+                        <Widget
+                            key={`r${refreshNonce}`}
+                            config={rendered}
+                            editMode={false}
+                            onConfigChange={(next) => onConfigChange(restoreColorBindings(next, w))}
+                        />
+                    </Suspense>
+                ) : (
+                    <div
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs h-full"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        <AlertTriangle size={13} />
+                        Unbekannter Typ: {w.type}
+                    </div>
+                )}
+            </div>
             {popupOpen && clickAction && (
                 <WidgetClickPopup
                     widget={rendered}
