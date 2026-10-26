@@ -162,6 +162,9 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-custom-cell-<index>` | eine Zelle darin, von `0` an gezählt |
 | `.aura-custom-cell-clickable` | Hülle um eine Zelle mit Klick-Aktion (`display: contents`) — die Zelle selbst trifft `.aura-custom-cell-clickable > *` |
 | `.aura-fill-segments-value` | Füllstand, Layout LED-Segmente: der Wert unter oder neben den Segmenten |
+| `.aura-slideshow` · `.aura-slideshow-stage` | Diashow: Widget, Bildfläche; `data-aura-slideshow-paused` solange angehalten |
+| `.aura-slideshow-layer` · `.aura-slideshow-media` · `.aura-slideshow-backdrop` | Diashow: eine Bild-Ebene (`data-anim` = laufender Übergang), das Bild/Video, der unscharfe Hintergrund |
+| `.aura-slideshow-caption` · `.aura-slideshow-notice` · `.aura-slideshow-paused` · `.aura-slideshow-sound` | Diashow: Beschriftung, Hinweis (kein Ordner, leer), Pause-Zeichen, Ton-Knopf |
 | `.aura-marquee-track` | Lauftext im Karussell |
 | `.aura-carousel-shake` | kurzer Anstoß beim Öffnen (Karussell) |
 | `.aura-map-pin` | Markierung im Karten-Widget |

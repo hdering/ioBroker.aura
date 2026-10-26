@@ -25,7 +25,8 @@ import { auraUrl } from '../../utils/basePath';
 
 export type PickerResult =
     | { kind: 'dp'; id: string; unit?: string; name?: string; role?: string; dpType?: string }
-    | { kind: 'file'; path: string; mime?: string; size?: number; url: string };
+    | { kind: 'file'; path: string; mime?: string; size?: number; url: string }
+    | { kind: 'folder'; path: string };
 
 interface DatapointPickerProps {
     currentValue: string;
@@ -44,6 +45,8 @@ interface DatapointPickerProps {
     defaultMode?: 'dp' | 'files';
     /** Mime whitelist for file mode, e.g. ['image/*'] */
     acceptMime?: string[];
+    /** File mode picks a folder instead of a file (slideshow, #848); files are only shown. */
+    pickFolder?: boolean;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1023,10 +1026,12 @@ function FileModeBody({
     onSelect,
     acceptMime,
     pickerWidth,
+    pickFolder,
 }: {
     onSelect: (r: PickerResult) => void;
     acceptMime?: string[];
     pickerWidth: number;
+    pickFolder?: boolean;
 }) {
     const t = useT();
     const { roots, loading: rootsLoading } = useFsRoots();
@@ -1076,7 +1081,7 @@ function FileModeBody({
         const url = auraUrl(`/fs/read?path=${encodeURIComponent(entryPath)}`);
         if (showPreview) {
             setPreviewEntry({ path: entryPath, mime });
-        } else {
+        } else if (!pickFolder) {
             onSelect({ kind: 'file', path: entryPath, url, mime: mime ?? undefined, size: size ?? undefined });
         }
     };
@@ -1186,6 +1191,34 @@ function FileModeBody({
                 </button>
             </div>
 
+            {pickFolder && (
+                <div
+                    className="aura-picker-folder-bar px-5 py-2 flex items-center gap-3 shrink-0"
+                    style={{
+                        borderBottom: '1px solid var(--app-border)',
+                        background: 'color-mix(in srgb, var(--accent) 8%, transparent)',
+                    }}
+                >
+                    <Folder size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                    <p className="flex-1 min-w-0 text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
+                        {listLoading
+                            ? '…'
+                            : t('fs.picker.folderFiles', {
+                                  n: filteredEntries.filter((e) => !e.isDir).length,
+                              })}
+                    </p>
+                    <button
+                        type="button"
+                        data-aura-pick-folder=""
+                        onClick={() => onSelect({ kind: 'folder', path: currentPath })}
+                        className="px-3 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-80 shrink-0"
+                        style={{ background: 'var(--accent)' }}
+                    >
+                        {t('fs.picker.pickFolder')}
+                    </button>
+                </div>
+            )}
+
             {/* Search */}
             <div className="px-5 py-2 shrink-0" style={{ borderBottom: '1px solid var(--app-border)' }}>
                 <div
@@ -1285,7 +1318,8 @@ function FileModeBody({
                                             style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
                                         />
                                     ) : (
-                                        !showPreview && (
+                                        !showPreview &&
+                                        !pickFolder && (
                                             <span
                                                 className="text-[10px] px-2 py-1 rounded shrink-0"
                                                 style={{
@@ -1354,13 +1388,15 @@ function FileModeBody({
                                                 {formatSize(entry.size)}
                                             </p>
                                         )}
-                                        <button
-                                            onClick={handleConfirmPreview}
-                                            className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 shrink-0"
-                                            style={{ background: 'var(--accent)' }}
-                                        >
-                                            {t('fs.picker.select')}
-                                        </button>
+                                        {!pickFolder && (
+                                            <button
+                                                onClick={handleConfirmPreview}
+                                                className="px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-80 shrink-0"
+                                                style={{ background: 'var(--accent)' }}
+                                            >
+                                                {t('fs.picker.select')}
+                                            </button>
+                                        )}
                                     </>
                                 );
                             })()
@@ -1386,6 +1422,7 @@ export function DatapointPicker({
     modes = ['dp'],
     defaultMode,
     acceptMime,
+    pickFolder,
 }: DatapointPickerProps) {
     const t = useT();
     const themeVars = usePortalThemeVars();
@@ -1574,7 +1611,12 @@ export function DatapointPicker({
                         datapoints={datapoints}
                     />
                 ) : (
-                    <FileModeBody onSelect={handleFileSelect} acceptMime={acceptMime} pickerWidth={size.w} />
+                    <FileModeBody
+                        onSelect={handleFileSelect}
+                        acceptMime={acceptMime}
+                        pickerWidth={size.w}
+                        pickFolder={pickFolder}
+                    />
                 )}
 
                 {/* Resize handle – bottom-right corner */}

@@ -1053,6 +1053,68 @@ export const WIDGET_OPTION_NOTES = {
         allowClear: { description: 'Taste zum Leeren des Archivs anzeigen.' },
         layoutFilter: { description: 'Nur Meldungen dieses Layouts zeigen. Leer = alle.' },
     },
+    slideshow: {
+        folder: {
+            description:
+                'Absoluter Ordnerpfad auf dem Rechner des Adapters, z. B. "/media/usb/fotos". Muss unterhalb eines der ' +
+                'freigegebenen Wurzelverzeichnisse der Instanz liegen (Instanzeinstellung fsRoots), sonst zeigt das Widget ' +
+                '„nicht freigegeben“. Kein aura-file:-Präfix, kein Datenpunkt.',
+        },
+        recursive: { description: 'Unterordner mit einlesen (bis 6 Ebenen, höchstens 5000 Dateien).' },
+        order: {
+            default: 'random',
+            description:
+                'Reihenfolge. "random" = gemischt, jede Datei einmal pro Runde, keine Wiederholung an der Rundengrenze. ' +
+                '"dateDesc"/"dateAsc" = nach Aufnahmedatum (EXIF bzw. mp4-Erstellzeit, sonst Dateidatum). "name" = Dateiname, Zahlen natürlich sortiert.',
+        },
+        intervalSec: { type: 'number', default: 10, description: 'Anzeigedauer je Bild in Sekunden (mindestens 2).' },
+        transition: {
+            default: 'fadeBlack',
+            description:
+                'Übergang: "fadeBlack" Schwarzblende (über die Hintergrundfarbe), "fade" Überblenden, "slide" Schieben, ' +
+                '"pageTurn" Umblättern, "none" harter Schnitt. Bei prefers-reduced-motion wird daraus ein kurzes Überblenden.',
+        },
+        transitionMs: { type: 'number', default: 800, description: 'Dauer des Übergangs in ms (100–5000).' },
+        fit: {
+            default: 'contain',
+            description: '"contain" = ganzes Bild mit Rand, "cover" = Fläche füllen, Ränder werden beschnitten.',
+        },
+        background: {
+            default: '#000000',
+            description: 'Farbe neben dem Bild (bei "contain") und für die Schwarzblende. Standard #000000.',
+        },
+        blurBackground: {
+            description:
+                'Bei fit "contain": das Bild unscharf und abgedunkelt als Füllung dahinter statt der Farbe (Fotorahmen-Look).',
+        },
+        showCaption: {
+            description: 'Beschriftung unten: "none", "name" (Dateiname), "date" (Aufnahmedatum) oder "nameDate".',
+        },
+        rescanMin: {
+            type: 'number',
+            default: 30,
+            description: 'Ordner alle N Minuten neu lesen, neue Fotos kommen ohne Neuladen dazu. Standard 30.',
+        },
+        includeVideos: { description: 'Auch Videos (mp4, m4v, webm, mov, ogv) zeigen. Aus = nur Bilder.' },
+        videoMode: {
+            description: '"full" = Video bis zum Ende, dann weiter; "interval" = nur intervalSec lang.',
+        },
+        videoSound: {
+            description:
+                'Videos mit Ton. Browser erlauben Ton erst nach dem ersten Tippen auf die Seite; bis dahin läuft das Video stumm ' +
+                'mit Lautsprecher-Symbol. Während einer Ansage der Sprachausgabe ist das Video stumm.',
+        },
+        videoVolume: {
+            type: 'number',
+            default: 60,
+            description: 'Lautstärke der Videos 0–100 (nur mit videoSound). Standard 60.',
+        },
+        controls: {
+            description:
+                'Bedienung: Wischen oder Tippen am linken/rechten Rand blättert, Tippen in die Mitte hält an. ' +
+                'Für den Einsatz als Bildschirmschoner (Ruhezustand-Popup) auf false setzen — dort beendet jede Berührung ohnehin den Ruhezustand.',
+        },
+    },
     scenes: {
         allowEdit: {
             description:

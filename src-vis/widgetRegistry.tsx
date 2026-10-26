@@ -64,6 +64,7 @@ import {
     IdCard,
     History,
     Clapperboard,
+    Images,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType, ConditionSlot } from './types';
@@ -981,6 +982,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'control',
         mock: { t: 'Szenen', v: '' },
         hint: 'Szenen des ioBroker-Szenen-Adapters auslösen – und direkt im Dashboard anlegen, Werte lernen, löschen',
+    },
+    {
+        type: 'slideshow',
+        label: 'Diashow',
+        shortLabel: 'Diashow',
+        Icon: Images,
+        iconName: 'Images',
+        color: '#ec4899',
+        defaultW: 12,
+        defaultH: 8,
+        addMode: 'free',
+        widgetGroup: 'special',
+        mock: { t: 'Diashow', v: '' },
+        hint: 'Fotos und Videos aus einem Ordner als Diashow – nach Aufnahmedatum oder zufällig, als Kachel oder Bildschirmschoner',
     },
 ];
 

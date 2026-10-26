@@ -43,6 +43,7 @@ const { createConfigGuard, CONFIG_KEYS } = require('./lib/configGuard');
 const { runBackendCheck: buildBackendReport, resolveTarget, listBackends } = require('./lib/backendCheck');
 const { createSceneService, SCENE_COMMANDS } = require('./lib/scenes');
 const { createSayitBridge, SAYIT_PREFIX } = require('./lib/sayitBridge');
+const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -619,6 +620,9 @@ const MIME_TYPES = {
     '.bmp': 'image/bmp',
     '.mp4': 'video/mp4',
     '.webm': 'video/webm',
+    '.m4v': 'video/mp4',
+    '.mov': 'video/quicktime',
+    '.avif': 'image/avif',
     '.ogv': 'video/ogg',
     '.mp3': 'audio/mpeg',
     '.wav': 'audio/wav',
@@ -799,6 +803,8 @@ class Aura extends utils.Adapter {
         this._timerWarned = undefined;
         // Serializes every change to messages.history, see _updateMessageHistory
         this._messageHistoryQueue = Promise.resolve();
+        /** @type {ReturnType<typeof createMediaLibrary> | undefined} slideshow folder lists, see /fs/media */
+        this._mediaLibrary = undefined;
     }
 
     // State-based calendar fetch: frontend writes {id, url, ttl?} to calendar.request,
@@ -1632,12 +1638,19 @@ class Aura extends utils.Adapter {
                   .map((r) => ({ label: String(r.label || r.path), path: path.resolve(String(r.path)) }))
             : [];
 
+        const insideRoots = (abs) => fsRootsConfig.some((r) => abs === r.path || abs.startsWith(r.path + path.sep));
         const resolveSafePath = (rawPath) => {
             const abs = path.resolve(rawPath);
-            const ok = fsRootsConfig.some((r) => abs === r.path || abs.startsWith(r.path + path.sep));
-            if (!ok) throw Object.assign(new Error('path outside allowed roots'), { statusCode: 403 });
+            if (!insideRoots(abs)) throw Object.assign(new Error('path outside allowed roots'), { statusCode: 403 });
             return abs;
         };
+        // Slideshow folder lists with capture dates (#848); created on first use.
+        const mediaLibrary = () =>
+            (this._mediaLibrary ??= createMediaLibrary({
+                dataDir: this._instanceDataDir(),
+                isAllowed: insideRoots,
+                log: this.log,
+            }));
 
         // Icons are served from our own origin (see lib/iconCache.js): the public
         // Iconify hosts are blocked by mobile tracker blockers and unreachable
@@ -1867,6 +1880,47 @@ class Aura extends utils.Adapter {
                     return;
                 }
 
+                if (pathname === '/fs/media') {
+                    if (!fsPath) {
+                        res.writeHead(400);
+                        res.end('Missing path parameter');
+                        return;
+                    }
+                    let abs;
+                    try {
+                        abs = resolveSafePath(fsPath);
+                    } catch (e) {
+                        res.writeHead(e.statusCode || 500);
+                        res.end(e.message);
+                        return;
+                    }
+                    const recursive = parsedUrl.searchParams.get('recursive') === '1';
+                    fs.promises
+                        .stat(abs)
+                        .then((st) => {
+                            if (!st.isDirectory()) {
+                                res.writeHead(400);
+                                res.end('path is not a directory');
+                                return;
+                            }
+                            return mediaLibrary()
+                                .list(abs, recursive)
+                                .then((body) => {
+                                    res.writeHead(200, {
+                                        'Content-Type': 'application/json',
+                                        'Cache-Control': 'no-store',
+                                    });
+                                    res.end(JSON.stringify(body));
+                                });
+                        })
+                        .catch((/** @type {NodeJS.ErrnoException} */ e) => {
+                            if (res.headersSent) return;
+                            res.writeHead(e.code === 'ENOENT' ? 404 : 500);
+                            res.end(e.message);
+                        });
+                    return;
+                }
+
                 if (pathname === '/fs/read') {
                     if (!fsPath) {
                         res.writeHead(400);
@@ -1883,9 +1937,54 @@ class Aura extends utils.Adapter {
                     }
                     const streamFile = (finalPath) => {
                         const ct = MIME_TYPES[path.extname(finalPath).toLowerCase()] || 'application/octet-stream';
-                        const stream = fs.createReadStream(finalPath);
+                        let st;
+                        try {
+                            st = fs.statSync(finalPath);
+                        } catch (e) {
+                            res.writeHead(e.code === 'ENOENT' ? 404 : 500);
+                            res.end(e.message);
+                            return;
+                        }
+                        // Validators let a slideshow that shows the same photos again
+                        // revalidate with a 304 instead of loading them anew; byte ranges
+                        // are what <video> asks for, and Safari plays no mp4 without (#848).
+                        const etag = `"${st.size.toString(36)}-${Math.round(st.mtimeMs).toString(36)}"`;
+                        const headers = {
+                            'Content-Type': ct,
+                            'Cache-Control': 'max-age=30',
+                            'Accept-Ranges': 'bytes',
+                            ETag: etag,
+                            'Last-Modified': new Date(st.mtimeMs).toUTCString(),
+                        };
+                        if (req.headers['if-none-match'] === etag) {
+                            res.writeHead(304, headers);
+                            res.end();
+                            return;
+                        }
+                        const range = parseRange(req.headers.range, st.size);
+                        if (range === 'unsatisfiable') {
+                            res.writeHead(416, { ...headers, 'Content-Range': `bytes */${st.size}` });
+                            res.end();
+                            return;
+                        }
+                        const stream = range
+                            ? fs.createReadStream(finalPath, { start: range.start, end: range.end })
+                            : fs.createReadStream(finalPath);
                         stream.on('open', () => {
-                            res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': 'max-age=30' });
+                            if (range) {
+                                res.writeHead(206, {
+                                    ...headers,
+                                    'Content-Range': `bytes ${range.start}-${range.end}/${st.size}`,
+                                    'Content-Length': range.end - range.start + 1,
+                                });
+                            } else {
+                                res.writeHead(200, { ...headers, 'Content-Length': st.size });
+                            }
+                            if (req.method === 'HEAD') {
+                                stream.destroy();
+                                res.end();
+                                return;
+                            }
                             stream.pipe(res);
                         });
                         stream.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
@@ -6117,6 +6216,7 @@ class Aura extends utils.Adapter {
                 /* ignore */
             }
             this._sayit?.stop();
+            this._mediaLibrary?.flush().catch(() => {});
             if (this._timerInterval) {
                 this.clearInterval(this._timerInterval);
                 this._timerInterval = null;

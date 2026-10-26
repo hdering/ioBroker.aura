@@ -51,6 +51,10 @@ Jedes Gerät meldet seinen Zustand in `aura.0.clients.<ID>.idle.active` (`true` 
 setState('aura.0.clients.wandtablet.idle.delay', 300);
 ```
 
+::: tip Fotos als Bildschirmschoner
+Eine [Diashow](../widgets/diashow#als-bildschirmschoner) als einziges Widget der Ruhe-Ansicht macht das Tablet zum Bilderrahmen.
+:::
+
 ::: tip Vollbild-Widgets
 Ein Video oder eine Kamera im Vollbild zählt ohne Eingabe ebenfalls als Leerlauf. Trigger bei Bedarf mit **Nur auf Tab** einschränken.
 :::

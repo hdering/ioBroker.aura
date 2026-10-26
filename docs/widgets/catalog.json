@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-10-12",
+  "generatedAt": "2026-10-26",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -76,6 +76,7 @@
         "default",
         "compact",
         "minimal",
+        "circle",
         "custom"
       ],
       "options": [],
@@ -290,6 +291,7 @@
         "compact",
         "minimal",
         "dial",
+        "circle",
         "custom"
       ],
       "options": [
@@ -651,7 +653,8 @@
         "h": 7
       },
       "layouts": [
-        "default"
+        "default",
+        "custom"
       ],
       "options": [],
       "crosscutting": [
@@ -759,6 +762,7 @@
         "compact",
         "minimal",
         "card",
+        "circle",
         "custom"
       ],
       "options": [],
@@ -1641,6 +1645,28 @@
       "screenshots": {
         "hero": "assets/bild/runtime.png",
         "config": "assets/bild/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "slideshow",
+      "slug": "diashow",
+      "label": "Diashow",
+      "group": "special",
+      "hint": "Fotos und Videos aus einem Ordner als Diashow – nach Aufnahmedatum oder zufällig, als Kachel oder Bildschirmschoner.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/diashow/runtime.png",
+        "config": "assets/diashow/config.png",
         "shots": {}
       }
     },

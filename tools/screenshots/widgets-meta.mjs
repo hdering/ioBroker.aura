@@ -114,7 +114,7 @@ export const WIDGETS = [
     // Screenshots come from tools/screenshots/szenen.mjs (backend replies mocked via mockSendTo).
     { type: 'scenes', slug: 'szenen', label: 'Szenen', group: 'control',
       hint: 'Szenen des ioBroker-Szenen-Adapters auslösen – und in Aura anlegen: Geräte wählen, Werte festlegen.',
-      runtime: null },
+      runtime: null, defaultGrid: { w: 8, h: 8 }, hero: 'assets/szenen/runtime.png', configShot: null },
     { type: 'echart', slug: 'diagramm-erweitert', label: 'Diagramm (erweitert)', group: 'control',
       hint: 'Erweitertes Diagramm mit mehreren Datenpunkten und Optionen.', runtime: null },
     { type: 'energiebilanz', slug: 'verteilung', label: 'Diagramm (Verteilung)', group: 'control',
@@ -157,6 +157,12 @@ export const WIDGETS = [
       hint: 'Kamera-Livebild einbinden (go2rtc / MJPEG-Stream).', runtime: null },
     { type: 'image', slug: 'bild', label: 'Bild', group: 'special',
       hint: 'Statisches Bild, lokale Datei oder URL anzeigen.', runtime: null },
+    // Screenshots come from tools/screenshots/diashow.mjs (server routes mocked).
+    { type: 'slideshow', slug: 'diashow', label: 'Diashow', group: 'special',
+      hint: 'Fotos und Videos aus einem Ordner als Diashow – nach Aufnahmedatum oder zufällig, als Kachel oder Bildschirmschoner.',
+      runtime: null, defaultGrid: { w: 12, h: 8 },
+      hero: 'assets/diashow/runtime.png',
+      configShot: 'assets/diashow/config.png' },
     { type: 'trash', slug: 'muellabfuhr', label: 'Müllabfuhr', group: 'special',
       hint: 'Nächste Müllabfuhr-Termine vom Trash-Adapter anzeigen.', runtime: null },
     { type: 'trashSchedule', slug: 'muellabfuhr-zeitplan', label: 'Müllabfuhr-Zeitplan', group: 'special',

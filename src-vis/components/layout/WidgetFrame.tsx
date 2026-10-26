@@ -217,6 +217,7 @@ import { AutoListConfig } from '../config/AutoListConfig';
 import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
 import { HistoryTableConfig } from '../config/HistoryTableConfig';
+import { SlideshowConfig } from '../config/SlideshowConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
 import {
@@ -485,6 +486,7 @@ const SECTIONED_EDIT_TYPES = new Set<WidgetType>([
     'evcc',
     'historytable',
     'scenes',
+    'slideshow',
     'switch',
     'windowcontact',
     'gauge',
@@ -547,6 +549,7 @@ const NO_MAIN_DP_TYPES = new Set<WidgetType>([
     'aircontrol',
     'energiebilanz',
     'scenes',
+    'slideshow',
 ]);
 
 // ── Custom grid: row height control, leading column of the cell picker (#737) ──
@@ -12174,6 +12177,9 @@ function WidgetFrameInner({
                                         </SubGroup>
                                     }
                                 />
+                            )}
+                            {config.type === 'slideshow' && (
+                                <SlideshowConfig config={config} onConfigChange={onConfigChange} />
                             )}
                             {config.type === 'historytable' && (
                                 <HistoryTableConfig

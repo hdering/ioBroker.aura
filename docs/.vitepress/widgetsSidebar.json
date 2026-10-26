@@ -154,6 +154,10 @@
         "link": "/widgets/bild"
       },
       {
+        "text": "Diashow",
+        "link": "/widgets/diashow"
+      },
+      {
         "text": "Energiefluss (evcc)",
         "link": "/widgets/evcc"
       },

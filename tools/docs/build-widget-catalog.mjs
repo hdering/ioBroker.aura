@@ -433,7 +433,8 @@ const widgets = WIDGETS.map((w) => {
         customComponentKeys: CUSTOM_KEYS[w.slug] ?? null,
         screenshots: {
             hero: w.hero ?? heroShot(w),
-            config: w.configShot ?? `assets/${w.slug}/config.png`,
+            // `configShot: null` = no config shot on purpose (hand-documented widgets).
+            config: 'configShot' in w ? w.configShot : `assets/${w.slug}/config.png`,
             shots: Object.fromEntries(shots.map((s) => [s.file, `assets/${w.slug}/${s.file}.png`])),
         },
     };

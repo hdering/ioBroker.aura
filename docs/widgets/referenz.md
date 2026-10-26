@@ -8,21 +8,21 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 
 | Widget | `type` | Layouts | Default-Grid (w×h) |
 | --- | --- | --- | --- |
-| [Rollladen](./rollladen) | `shutter` | `default` · `compact` · `minimal` · `custom` | 9×6 |
+| [Rollladen](./rollladen) | `shutter` | `default` · `compact` · `minimal` · `circle` · `custom` | 9×6 |
 | [Dimmer](./dimmer) | `dimmer` | `default` · `compact` · `minimal` · `custom` | 11×6 |
 | [Countdown](./countdown) | `countdown` | `default` · `compact` · `custom` | 12×6 |
 | [Schieberegler](./schieberegler) | `slider` | `default` · `custom` | 11×5 |
-| [Thermostat](./thermostat) | `thermostat` | `default` · `compact` · `minimal` · `dial` · `custom` | 11×7 |
+| [Thermostat](./thermostat) | `thermostat` | `default` · `compact` · `minimal` · `dial` · `circle` · `custom` | 11×7 |
 | [Wert-Anzeige](./wert-anzeige) | `value` | `default` · `card` · `compact` · `minimal` · `custom` | 11×5 |
 | [Gauge](./gauge) | `gauge` | `default` | 11×8 |
 | [Füllstandsanzeige](./fuellstandsanzeige) | `fill` | `default` · `battery` · `bar` · `segments` · `wave` | 9×9 |
 | [Drehregler](./drehregler) | `knob` | `default` · `knob-scale` · `knob-endless` · `custom` | 8×8 |
 | [Fenster-/Türkontakt](./fensterkontakt) | `windowcontact` | `default` · `card` · `compact` · `minimal` · `custom` | 11×5 |
 | [Binärsensor](./binaersensor) | `binarysensor` | `default` · `card` · `compact` · `minimal` · `custom` | 11×5 |
-| [Raumklima](./raumklima) | `climate` | `default` | 12×7 |
+| [Raumklima](./raumklima) | `climate` | `default` · `custom` | 12×7 |
 | [Datumswähler](./datumswaehler) | `datepicker` | `default` · `card` · `compact` · `minimal` | 11×5 |
 | [Eingabefeld](./eingabefeld) | `input` | `default` · `compact` · `custom` | 12×4 |
-| [Auswahlfeld](./auswahlfeld) | `enum` | `default` · `compact` · `minimal` · `card` · `custom` | 12×6 |
+| [Auswahlfeld](./auswahlfeld) | `enum` | `default` · `compact` · `minimal` · `card` · `circle` · `custom` | 12×6 |
 | [Diagramm (einfach)](./diagramm) | `chart` | `default` · `card` | 12×6 |
 | [Verlaufstabelle](./verlaufstabelle) | `historytable` | `default` | 12×6 |
 | [Szenen](./szenen) | `scenes` | `default` · `card` | 8×8 |
@@ -47,6 +47,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Energiefluss (evcc)](./evcc) | `evcc` | `default` · `compact` · `flow` · `battery` · `production` · `consumption` · `loadpoints` · `custom` | 12×6 |
 | [Kamera](./kamera) | `camera` | `minimal` · `default` · `custom` | 12×6 |
 | [Bild](./bild) | `image` | `default` · `custom` | 12×6 |
+| [Diashow](./diashow) | `slideshow` | `default` | 12×8 |
 | [Müllabfuhr](./muellabfuhr) | `trash` | `default` | 12×6 |
 | [Müllabfuhr-Zeitplan](./muellabfuhr-zeitplan) | `trashSchedule` | `default` · `list` · `compact` | 12×6 |
 | [JSON-Tabelle](./json-tabelle) | `jsontable` | `default` | 13×6 |

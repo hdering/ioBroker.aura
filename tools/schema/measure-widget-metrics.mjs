@@ -1144,6 +1144,7 @@ const SKIP = {
     iframe: 'zeigt eine fremde Seite — die Höhe bestimmt der Inhalt, nicht das Widget',
     camera: 'Videostream, Seitenverhältnis der Kamera',
     image: 'Höhe folgt dem Bild',
+    slideshow: 'Bild füllt jede Höhe, Seitenverhältnis der Fotos',
     map: 'Karte füllt jede Höhe',
     group: 'Höhe ergibt sich aus den Kindern (groupRows)',
     devicecard: 'Höhe ergibt sich aus den Kindern (wie group, groupRows)',

@@ -6787,6 +6787,34 @@
         "time",
         "value"
       ]
+    },
+    "SlideshowOrder": {
+      "type": "string",
+      "enum": [
+        "dateDesc",
+        "dateAsc",
+        "name",
+        "random"
+      ]
+    },
+    "SlideshowTransition": {
+      "type": "string",
+      "enum": [
+        "none",
+        "fade",
+        "fadeBlack",
+        "slide",
+        "pageTurn"
+      ]
+    },
+    "SlideshowCaption": {
+      "type": "string",
+      "enum": [
+        "none",
+        "name",
+        "date",
+        "nameDate"
+      ]
     }
   },
   "widgets": {
@@ -17950,6 +17978,150 @@
           "type": "number",
           "default": 0,
           "description": "Umrechnung: wird nach dem Faktor addiert, beim Schreiben wieder abgezogen. Nur zusammen mit valueFactor sinnvoll."
+        }
+      }
+    },
+    "slideshow": {
+      "label": "Diashow",
+      "group": "special",
+      "addMode": "free",
+      "hint": "Fotos und Videos aus einem Ordner als Diashow – nach Aufnahmedatum oder zufällig, als Kachel oder Bildschirmschoner",
+      "defaultSize": {
+        "w": 12,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "badges",
+        "bgImage",
+        "clickAction",
+        "clickActionIcon",
+        "clickActionIconName",
+        "clickActionIconPosition",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenScreen",
+        "fullscreenWidget",
+        "headerItems",
+        "icon",
+        "iconColor",
+        "iconPlace",
+        "iconSize",
+        "lastChangeDatapoint",
+        "lastChangePosition",
+        "lastChangeSource",
+        "showIcon",
+        "showLastChange",
+        "showTitle",
+        "styleOverride",
+        "textLines",
+        "titleAlign",
+        "titleColor",
+        "titleRow",
+        "titleSize",
+        "transparency",
+        "transparent"
+      ],
+      "options": {
+        "background": {
+          "type": "string",
+          "default": "#000000",
+          "description": "Farbe neben dem Bild (bei \"contain\") und für die Schwarzblende. Standard #000000."
+        },
+        "blurBackground": {
+          "type": "boolean",
+          "default": false,
+          "description": "Bei fit \"contain\": das Bild unscharf und abgedunkelt als Füllung dahinter statt der Farbe (Fotorahmen-Look)."
+        },
+        "controls": {
+          "type": "boolean",
+          "default": true,
+          "description": "Bedienung: Wischen oder Tippen am linken/rechten Rand blättert, Tippen in die Mitte hält an. Für den Einsatz als Bildschirmschoner (Ruhezustand-Popup) auf false setzen — dort beendet jede Berührung ohnehin den Ruhezustand."
+        },
+        "fit": {
+          "type": "string",
+          "enum": [
+            "contain",
+            "cover"
+          ],
+          "default": "contain",
+          "description": "\"contain\" = ganzes Bild mit Rand, \"cover\" = Fläche füllen, Ränder werden beschnitten."
+        },
+        "folder": {
+          "type": "string",
+          "default": "",
+          "description": "Absoluter Ordnerpfad auf dem Rechner des Adapters, z. B. \"/media/usb/fotos\". Muss unterhalb eines der freigegebenen Wurzelverzeichnisse der Instanz liegen (Instanzeinstellung fsRoots), sonst zeigt das Widget „nicht freigegeben“. Kein aura-file:-Präfix, kein Datenpunkt."
+        },
+        "includeVideos": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auch Videos (mp4, m4v, webm, mov, ogv) zeigen. Aus = nur Bilder."
+        },
+        "intervalSec": {
+          "type": "number",
+          "default": 10,
+          "description": "Anzeigedauer je Bild in Sekunden (mindestens 2)."
+        },
+        "order": {
+          "type": "string",
+          "ref": "SlideshowOrder",
+          "default": "random",
+          "description": "Reihenfolge. \"random\" = gemischt, jede Datei einmal pro Runde, keine Wiederholung an der Rundengrenze. \"dateDesc\"/\"dateAsc\" = nach Aufnahmedatum (EXIF bzw. mp4-Erstellzeit, sonst Dateidatum). \"name\" = Dateiname, Zahlen natürlich sortiert."
+        },
+        "recursive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Unterordner mit einlesen (bis 6 Ebenen, höchstens 5000 Dateien)."
+        },
+        "rescanMin": {
+          "type": "number",
+          "default": 30,
+          "description": "Ordner alle N Minuten neu lesen, neue Fotos kommen ohne Neuladen dazu. Standard 30."
+        },
+        "showCaption": {
+          "type": "string",
+          "ref": "SlideshowCaption",
+          "default": "none",
+          "description": "Beschriftung unten: \"none\", \"name\" (Dateiname), \"date\" (Aufnahmedatum) oder \"nameDate\"."
+        },
+        "transition": {
+          "type": "string",
+          "ref": "SlideshowTransition",
+          "default": "fadeBlack",
+          "description": "Übergang: \"fadeBlack\" Schwarzblende (über die Hintergrundfarbe), \"fade\" Überblenden, \"slide\" Schieben, \"pageTurn\" Umblättern, \"none\" harter Schnitt. Bei prefers-reduced-motion wird daraus ein kurzes Überblenden."
+        },
+        "transitionMs": {
+          "type": "number",
+          "default": 800,
+          "description": "Dauer des Übergangs in ms (100–5000)."
+        },
+        "videoMode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "interval"
+          ],
+          "default": "full",
+          "description": "\"full\" = Video bis zum Ende, dann weiter; \"interval\" = nur intervalSec lang."
+        },
+        "videoSound": {
+          "type": "boolean",
+          "default": false,
+          "description": "Videos mit Ton. Browser erlauben Ton erst nach dem ersten Tippen auf die Seite; bis dahin läuft das Video stumm mit Lautsprecher-Symbol. Während einer Ansage der Sprachausgabe ist das Video stumm."
+        },
+        "videoVolume": {
+          "type": "number",
+          "default": 60,
+          "description": "Lautstärke der Videos 0–100 (nur mit videoSound). Standard 60."
         }
       }
     },
