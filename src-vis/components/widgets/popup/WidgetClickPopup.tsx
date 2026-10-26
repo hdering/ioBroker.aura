@@ -31,6 +31,7 @@ import { PopupCountdown } from './PopupCountdown';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../common/BackgroundImageLayer';
 import { activeBgImage } from '../../../utils/backgroundImage';
 import { useEscapeLayer } from '../../../utils/escapeStack';
+import { restartIdleState } from '../../../hooks/useIdleStateDp';
 import {
     MAX_POPUP_DEPTH,
     PopupLayerContext,
@@ -226,7 +227,11 @@ function PopupDialog({ onClose, ...initial }: Props) {
         if (timerRef.current !== null) window.clearTimeout(timerRef.current);
         if (effectiveAutoCloseSec > 0) {
             deadlineRef.current = Date.now() + effectiveAutoCloseSec * 1000;
-            timerRef.current = window.setTimeout(onClose, effectiveAutoCloseSec * 1000);
+            timerRef.current = window.setTimeout(() => {
+                // Closing by timeout is no input, but it ends a screensaver cycle (#856).
+                restartIdleState();
+                onClose();
+            }, effectiveAutoCloseSec * 1000);
         }
     };
     armTimerRef.current = armTimer;

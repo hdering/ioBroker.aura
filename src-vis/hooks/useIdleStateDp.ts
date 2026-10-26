@@ -3,6 +3,18 @@ import { setStateDirect, subscribeDpValue } from './useIoBroker';
 import { NS } from '../utils/namespace';
 import { toDelayOverride } from '../utils/idleReturn';
 
+const IDLE_RESTART_EVENT = 'aura-idle-restart';
+
+/**
+ * Restart the idle cycle as if someone had touched the screen: `idle.active` goes
+ * back to false and the idle delay starts over. A popup that closes itself calls
+ * this — the screensaver popup opened by `idle.active` would otherwise leave the
+ * datapoint stuck at true and never come back (#856).
+ */
+export function restartIdleState(): void {
+    window.dispatchEvent(new Event(IDLE_RESTART_EVENT));
+}
+
 /**
  * Idle state of this device (issue #822).
  *
@@ -71,11 +83,13 @@ export function useIdleStateDp(opts: {
         const events = ['pointermove', 'pointerdown', 'keydown', 'touchstart', 'click', 'wheel'] as const;
         events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
         window.addEventListener('scroll', reset, { passive: true, capture: true });
+        window.addEventListener(IDLE_RESTART_EVENT, reset);
         reset();
         return () => {
             clearTimeout(timer);
             events.forEach((e) => window.removeEventListener(e, reset));
             window.removeEventListener('scroll', reset, { capture: true });
+            window.removeEventListener(IDLE_RESTART_EVENT, reset);
         };
     }, [connected, clientReady, clientId, activeId, effDelay]);
 }
