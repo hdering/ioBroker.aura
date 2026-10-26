@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.82.7 (2026-10-13)
+- Advanced chart - the current-time line also works on a JSON category axis, placed at the label containing a chosen text (e.g. "now")
+
 ## 0.82.6 (2026-10-13)
 - Advanced chart - optional vertical line marking the current time, with a freely selectable colour
 - Thermostat - on the round-scale layout, dragging the dial by touch now follows the finger instead of stopping after one step, and setting the temperature no longer triggers the widget click action ([#776](https://github.com/hdering/ioBroker.aura/issues/776))

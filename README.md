@@ -122,6 +122,21 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.94.0 (2026-10-26)
+- 🌟 **New feature:** Scenes - the widget settings can limit which datapoints "Add device" offers in the dashboard: whole instances or wildcard patterns like *.STATE ([#825](https://github.com/hdering/ioBroker.aura/issues/825))
+- Popups - a popup that closes itself after n seconds now resets the idle datapoint clients.<id>.idle.active to false, so the screensaver popup comes back after the next idle period ([#856](https://github.com/hdering/ioBroker.aura/issues/856))
+- 🌟 **New feature:** Slideshow - new widget that shows photos and videos from a folder on the server, sorted by capture date (EXIF) or at random, with fade-to-black, crossfade, slide and page-turn transitions and optional video sound; works as a tile or as a screensaver ([#848](https://github.com/hdering/ioBroker.aura/issues/848))
+- Room climate - in a popup opened from a list row with {{parent}} datapoints the history chart now shows data: an empty history instance falls back to the triggering widget's instance or is detected from the datapoint ([#857](https://github.com/hdering/ioBroker.aura/issues/857))
+- 🌟 **New feature:** Popups - a datapoint trigger can now combine several conditions with AND / OR and brackets, e.g. doorbell AND someone at home; the popup opens when the combination becomes true ([#849](https://github.com/hdering/ioBroker.aura/issues/849))
+- Editor - the settings popovers of sections and tabs are wider while markers or conditions are open and can be dragged wider at their edge (double-click resets); a marker condition row wraps instead of squeezing the datapoint field ([#850](https://github.com/hdering/ioBroker.aura/issues/850))
+- 🌟 **New feature:** JSON table - new per-column switch "Mapping" (Zuordnung): show chosen values as an icon and/or text in their own colour, e.g. a call list type 1/2/3 as incoming/missed/outgoing phone icons; the entries can be imported from common.states of a datapoint ([#852](https://github.com/hdering/ioBroker.aura/issues/852))
+- 🌟 **New feature:** JSON table - a row click can open a popup for that entry: the row's fields, hidden columns included, are available as {{row_<field>}} (raw) and {{rowtext_<field>}} (as printed) in the popup title, an HTML popup or a popup view; HTML popups now resolve {{...}} placeholders in their static markup ([#858](https://github.com/hdering/ioBroker.aura/issues/858))
+- Image / Camera - new option "Reload on change of" (reloadDp): every write to that datapoint reloads the picture or stream, e.g. after a script saved a new snapshot under the same name; the image widget also reloads when its source datapoint is written again with the same path, and its refresh interval now works for a datapoint source too ([#853](https://github.com/hdering/ioBroker.aura/issues/853))
+- 🌟 **New feature:** iFrame - new sound button (on/off) and "start muted" option for videos and audio inside the embedded page; works for pages loaded through the proxy or served by Aura itself, e.g. a direct video link with the proxy switched on ([#855](https://github.com/hdering/ioBroker.aura/issues/855))
+- Popups - in a popup without a fixed height, content-sized widgets (status overview, calendar, list …) now fill their grid slot like in the editor instead of ending at their content, and no longer jump in height while loading
+- Connected devices - a device keeps its client id when the browser wipes its web storage (e.g. Fully kiosk), a ?client= link only applies while it is in the URL instead of sticking to the device for good, two identical tablets that start at the same time are told apart within a minute, and giving a device a fixed id no longer deletes an id that belongs to another device ([#844](https://github.com/hdering/ioBroker.aura/issues/844))
+
+
 ### 0.93.1 (2026-10-25)
 - 🐛 **Bug fix:** Camera - .mp4/.webm clips (e.g. Ring Livestream.mp4) now play in a video player; new optional ready datapoint starts the stream when the recording is finished instead of after a fixed delay ([#843](https://github.com/hdering/ioBroker.aura/issues/843))
 
@@ -267,10 +282,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Energy flow (evcc) - datapoint picker next to the production, consumption, grid and battery fields; with an evcc instance as source these fields now fill in automatically
 
 
-### 0.82.7 (2026-10-13)
-- Advanced chart - the current-time line also works on a JSON category axis, placed at the label containing a chosen text (e.g. "now")
-
-
 ## License
 
 MIT License
@@ -282,6 +293,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
