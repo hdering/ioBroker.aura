@@ -28,6 +28,7 @@ import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import type { BadgeCorner, BadgeSize } from '../../types';
 import type { ResolvedBadge } from '../../hooks/useBadges';
 import { AuraIcon } from '../common/AuraIcon';
+import { ResizablePopover, usePanelWidth } from '../common/ResizablePopover';
 
 interface TabBarProps {
     readonly?: boolean;
@@ -230,6 +231,7 @@ export function TabBar({
     const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
     const [conditionsOpen, setConditionsOpen] = useState(false);
     const [badgesOpen, setBadgesOpen] = useState(false);
+    const tabPanel = usePanelWidth('frontend-tab', conditionsOpen || badgesOpen ? 600 : 256);
     const [iconPickerTabId, setIconPickerTabId] = useState<string | null>(null);
     const settingsBtnRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
@@ -570,8 +572,8 @@ export function TabBar({
         ));
 
     // ── Tab settings portal ──────────────────────────────────────────────────────
-    const panelWidth = conditionsOpen || badgesOpen ? 500 : 256;
-    // Clamp left so a far-right tab's panel (esp. the wide 500px conditions view)
+    const panelWidth = tabPanel.width;
+    // Clamp left so a far-right tab's panel (esp. the wide conditions/marker view)
     // stays inside the viewport instead of being cut off on the right edge.
     const panelLeft = Math.max(
         8,
@@ -585,12 +587,15 @@ export function TabBar({
             ? createPortal(
                   <>
                       <div className="fixed inset-0 z-[998]" onClick={() => setSettingsTabId(null)} />
-                      <div
-                          className="fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 overflow-y-auto"
+                      <ResizablePopover
+                          className="p-3 space-y-3"
+                          width={panelWidth}
+                          onResize={tabPanel.setWidth}
+                          onReset={tabPanel.resetWidth}
+                          pinnedRight={panelLeft < panelPos.left}
                           style={{
                               top: panelPos.top,
                               left: panelLeft,
-                              width: panelWidth,
                               maxHeight: `calc(100vh - ${panelPos.top}px - 16px)`,
                               background: 'var(--app-surface)',
                               backdropFilter: 'blur(20px)',
@@ -812,7 +817,7 @@ export function TabBar({
                                   {t('tabBar.exportTab')}
                               </button>
                           </div>
-                      </div>
+                      </ResizablePopover>
                       {showTabExport && (
                           <ExportAnonymizeDialog
                               onExport={(anon) => exportTab(settingsTab, anon)}

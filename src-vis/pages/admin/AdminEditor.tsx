@@ -85,6 +85,7 @@ import { slugify } from '../../utils/slugify';
 import { exportTab } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { AuraIcon } from '../../components/common/AuraIcon';
+import { ResizablePopover, usePanelWidth } from '../../components/common/ResizablePopover';
 
 // ── Recently used templates (persisted in localStorage) ──────────────────────
 const RECENT_TEMPLATES_KEY = 'aura-recent-templates';
@@ -1103,6 +1104,11 @@ const SectionSwitcher = memo(function SectionSwitcher() {
     const [badgesOpen, setBadgesOpen] = useState(false);
     const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
     const gearRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+    // Marker clause rows need room — 340px squeezed the datapoint field to nothing (#850).
+    const sectionPanel = usePanelWidth('admin-section', badgesOpen ? 600 : 340);
+    const sectionPanelLeft = panelPos
+        ? Math.max(8, Math.min(panelPos.left, window.innerWidth - sectionPanel.width - 12))
+        : 0;
 
     // Full data for the section whose settings popover is open (badges/aggregate).
     const openSection = useDashboardStore((s) => {
@@ -1225,12 +1231,16 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                 createPortal(
                     <>
                         <div className="fixed inset-0 z-[998]" onClick={() => setSettingsSectionId(null)} />
-                        <div
-                            className="fixed z-[999] rounded-xl p-3 shadow-2xl"
+                        <ResizablePopover
+                            className="p-3"
+                            width={sectionPanel.width}
+                            onResize={sectionPanel.setWidth}
+                            onReset={sectionPanel.resetWidth}
+                            pinnedRight={sectionPanelLeft < panelPos.left}
                             style={{
                                 top: panelPos.top,
-                                left: panelPos.left,
-                                width: 340,
+                                left: sectionPanelLeft,
+                                maxHeight: `calc(100vh - ${panelPos.top + 12}px)`,
                                 background: 'var(--app-surface)',
                                 border: '1px solid var(--app-border)',
                             }}
@@ -1398,7 +1408,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </ResizablePopover>
                     </>,
                     portalTarget,
                 )}
@@ -1553,8 +1563,10 @@ const TabBar = memo(function TabBar() {
     }, []);
 
     // Re-clamp left against the panel's *current* width so expanding the conditions
-    // (256 → 500px) on a far-right tab can't push the rules off the right edge.
-    const panelWidth = conditionsOpen || tabBadgesOpen ? 500 : 256;
+    // (256 → 600px, or whatever the user dragged it to) on a far-right tab cannot push
+    // the rules off the right edge.
+    const tabPanel = usePanelWidth('admin-tab', conditionsOpen || tabBadgesOpen ? 600 : 256);
+    const panelWidth = tabPanel.width;
     const panelLeft = Math.max(
         8,
         Math.min(
@@ -1762,12 +1774,15 @@ const TabBar = memo(function TabBar() {
                 createPortal(
                     <>
                         <div className="fixed inset-0 z-[998]" onClick={() => setSettingsTabId(null)} />
-                        <div
-                            className="aura-scroll fixed z-[999] rounded-xl shadow-2xl p-3 space-y-3 overflow-y-auto"
+                        <ResizablePopover
+                            className="p-3 space-y-3"
+                            width={panelWidth}
+                            onResize={tabPanel.setWidth}
+                            onReset={tabPanel.resetWidth}
+                            pinnedRight={panelLeft < panelPos.left}
                             style={{
                                 top: panelPos.top,
                                 left: panelLeft,
-                                width: panelWidth,
                                 maxHeight: `calc(100vh - ${panelPos.top + 12}px)`,
                                 background: 'var(--app-surface)',
                                 border: '1px solid var(--app-border)',
@@ -2262,7 +2277,7 @@ const TabBar = memo(function TabBar() {
                                     </div>
                                 )}
                             </div>
-                        </div>
+                        </ResizablePopover>
                     </>,
                     portalTarget,
                 )}

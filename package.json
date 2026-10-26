@@ -123,6 +123,7 @@
     "test:custom-css-scope": "node tools/tests/custom-css-scope.mjs",
     "test:custom-css-hooks": "node tools/tests/custom-css-hooks-sweep.mjs",
     "test:admin-layouts-ui": "node tools/tests/admin-layouts-ui.mjs",
+    "test:settings-panel-resize": "node tools/tests/settings-panel-resize.mjs",
     "test:design-override-marks": "node tools/tests/design-override-marks.mjs",
     "test:dp-manager-narrow": "node tools/tests/dp-manager-narrow.mjs",
     "test:messages": "node test/messages.test.js",

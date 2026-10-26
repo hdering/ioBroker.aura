@@ -1578,6 +1578,7 @@ export const de = {
     'tabBar.hidden': 'Aus Tab-Leiste ausblenden',
     'tabBar.conditions': 'Bedingungen',
     'tabBar.badges': 'Marker',
+    'tabBar.panelResize': 'Ziehen ändert die Breite · Doppelklick: Standardbreite',
     'tabBar.hideTabOnCond': 'Tab verbergen wenn Bedingung zutrifft',
     'tabBar.icon': 'Icon',
     'tabBar.selectIcon': 'Icon auswählen…',

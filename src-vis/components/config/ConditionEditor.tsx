@@ -293,148 +293,154 @@ export function ClauseRow({
                 </button>
             )}
 
-            {/* Datapoint input + picker */}
-            <div className="flex gap-0.5 flex-1 min-w-0">
-                {ownToken && (
-                    <button
-                        onClick={() => onChange({ ...clause, datapoint: isOwn ? '' : ownToken })}
-                        className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold font-mono"
-                        style={{
-                            background: isOwn ? 'var(--accent)22' : 'var(--app-bg)',
-                            color: isOwn ? 'var(--accent)' : 'var(--text-secondary)',
-                            border: `1px solid ${isOwn ? 'var(--accent)44' : 'var(--app-border)'}`,
-                        }}
-                        title={isOwn ? 'Anderen Datenpunkt angeben' : 'Eigenen Datenpunkt der Zelle verwenden'}
-                    >
-                        {ownToken}
-                    </button>
-                )}
-                {hasSources && (
-                    <DpSourceSelect
-                        value={clause.datapoint}
-                        options={srcOptions}
-                        onChange={(token) => onChange({ ...clause, datapoint: token })}
-                    />
-                )}
-                {isOwn ? (
-                    <span
-                        className={`${cls} flex-1 min-w-0 flex items-center`}
-                        style={{ ...inputStyle, color: 'var(--text-secondary)' }}
-                    >
-                        Eigener Zellwert
-                    </span>
-                ) : srcToken ? (
-                    <span
-                        className={`${cls} flex-1 min-w-0 flex items-center`}
-                        style={{ ...inputStyle, color: 'var(--text-secondary)' }}
-                    >
-                        {srcLabel}
-                    </span>
-                ) : (
-                    <>
-                        <input
-                            type="text"
-                            value={clause.datapoint}
-                            onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
-                            placeholder={sourceCtx?.ownDp ? t('cond.dpEmptyMain') : t('cond.datapointId')}
-                            className={`${cls} flex-1 font-mono min-w-0`}
-                            style={inputStyle}
-                        />
+            {/* Everything right of the bracket wraps as one block: in a narrow panel the
+                operator and value move to a second line instead of squeezing the
+                datapoint field to zero width (#850). The bracket column stays outside so
+                its bar still spans the whole clause. */}
+            <div className="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
+                {/* Datapoint input + picker */}
+                <div className="flex gap-0.5 flex-1 min-w-[10rem]">
+                    {ownToken && (
                         <button
-                            onClick={() => setShowPicker(true)}
-                            className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                            onClick={() => onChange({ ...clause, datapoint: isOwn ? '' : ownToken })}
+                            className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold font-mono"
                             style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
+                                background: isOwn ? 'var(--accent)22' : 'var(--app-bg)',
+                                color: isOwn ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${isOwn ? 'var(--accent)44' : 'var(--app-border)'}`,
                             }}
-                            title={t('cond.fromIoBroker')}
+                            title={isOwn ? 'Anderen Datenpunkt angeben' : 'Eigenen Datenpunkt der Zelle verwenden'}
                         >
-                            <Database size={11} />
-                        </button>
-                        <JsonPathButton
-                            value={clause.datapoint}
-                            onChange={(ref) => onChange({ ...clause, datapoint: ref })}
-                            size={11}
-                        />
-                    </>
-                )}
-            </div>
-
-            {/* Operator */}
-            <select
-                value={clause.operator}
-                onChange={(e) => onChange({ ...clause, operator: e.target.value as ConditionOperator, value: '' })}
-                className={`${cls} shrink-0`}
-                style={{ ...inputStyle, width: '112px' }}
-            >
-                {operators.map((o) => (
-                    <option key={o.value} value={o.value}>
-                        {o.label()}
-                    </option>
-                ))}
-            </select>
-
-            {/* Value (hidden for true/false operators) */}
-            {!op?.noValue ? (
-                <div className={`flex gap-0.5 shrink-0 ${isDpValue ? 'flex-1 min-w-0' : 'w-32'}`}>
-                    <button
-                        onClick={() =>
-                            onChange({ ...clause, valueType: isDpValue ? 'static' : 'datapoint', value: '' })
-                        }
-                        className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold"
-                        style={{
-                            background: isDpValue ? 'var(--accent)22' : 'var(--app-bg)',
-                            color: isDpValue ? 'var(--accent)' : 'var(--text-secondary)',
-                            border: `1px solid ${isDpValue ? 'var(--accent)44' : 'var(--app-border)'}`,
-                            minWidth: 22,
-                        }}
-                        title={isDpValue ? t('cond.toStatic') : t('cond.toDatapoint')}
-                    >
-                        {isDpValue ? 'DP' : '123'}
-                    </button>
-                    <input
-                        type="text"
-                        value={clause.value}
-                        onChange={(e) => onChange({ ...clause, value: e.target.value })}
-                        placeholder={isDpValue ? t('cond.datapointId') : t('cond.value')}
-                        className={`${cls} flex-1 min-w-0 ${isDpValue ? 'font-mono' : ''}`}
-                        style={inputStyle}
-                    />
-                    {isDpValue && (
-                        <button
-                            onClick={() => setShowValuePicker(true)}
-                            className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                            title={t('cond.fromIoBroker')}
-                        >
-                            <Database size={11} />
+                            {ownToken}
                         </button>
                     )}
-                    {isDpValue && (
-                        <JsonPathButton
-                            value={clause.value}
-                            onChange={(ref) => onChange({ ...clause, value: ref })}
-                            size={11}
+                    {hasSources && (
+                        <DpSourceSelect
+                            value={clause.datapoint}
+                            options={srcOptions}
+                            onChange={(token) => onChange({ ...clause, datapoint: token })}
                         />
+                    )}
+                    {isOwn ? (
+                        <span
+                            className={`${cls} flex-1 min-w-0 flex items-center`}
+                            style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                        >
+                            Eigener Zellwert
+                        </span>
+                    ) : srcToken ? (
+                        <span
+                            className={`${cls} flex-1 min-w-0 flex items-center`}
+                            style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                        >
+                            {srcLabel}
+                        </span>
+                    ) : (
+                        <>
+                            <input
+                                type="text"
+                                value={clause.datapoint}
+                                onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
+                                placeholder={sourceCtx?.ownDp ? t('cond.dpEmptyMain') : t('cond.datapointId')}
+                                className={`${cls} flex-1 font-mono min-w-0`}
+                                style={inputStyle}
+                            />
+                            <button
+                                onClick={() => setShowPicker(true)}
+                                className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                                title={t('cond.fromIoBroker')}
+                            >
+                                <Database size={11} />
+                            </button>
+                            <JsonPathButton
+                                value={clause.datapoint}
+                                onChange={(ref) => onChange({ ...clause, datapoint: ref })}
+                                size={11}
+                            />
+                        </>
                     )}
                 </div>
-            ) : (
-                <div className="w-32 shrink-0" />
-            )}
 
-            <button
-                onClick={onDelete}
-                className="shrink-0 hover:opacity-70"
-                style={{ color: 'var(--accent-red)' }}
-                title={t('cond.removeClause')}
-            >
-                <Trash2 size={12} />
-            </button>
+                {/* Operator */}
+                <select
+                    value={clause.operator}
+                    onChange={(e) => onChange({ ...clause, operator: e.target.value as ConditionOperator, value: '' })}
+                    className={`${cls} shrink-0`}
+                    style={{ ...inputStyle, width: '112px' }}
+                >
+                    {operators.map((o) => (
+                        <option key={o.value} value={o.value}>
+                            {o.label()}
+                        </option>
+                    ))}
+                </select>
+
+                {/* Value (hidden for true/false operators) */}
+                {!op?.noValue ? (
+                    <div className={`flex gap-0.5 shrink-0 ${isDpValue ? 'flex-1 min-w-[8rem]' : 'w-32'}`}>
+                        <button
+                            onClick={() =>
+                                onChange({ ...clause, valueType: isDpValue ? 'static' : 'datapoint', value: '' })
+                            }
+                            className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold"
+                            style={{
+                                background: isDpValue ? 'var(--accent)22' : 'var(--app-bg)',
+                                color: isDpValue ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${isDpValue ? 'var(--accent)44' : 'var(--app-border)'}`,
+                                minWidth: 22,
+                            }}
+                            title={isDpValue ? t('cond.toStatic') : t('cond.toDatapoint')}
+                        >
+                            {isDpValue ? 'DP' : '123'}
+                        </button>
+                        <input
+                            type="text"
+                            value={clause.value}
+                            onChange={(e) => onChange({ ...clause, value: e.target.value })}
+                            placeholder={isDpValue ? t('cond.datapointId') : t('cond.value')}
+                            className={`${cls} flex-1 min-w-0 ${isDpValue ? 'font-mono' : ''}`}
+                            style={inputStyle}
+                        />
+                        {isDpValue && (
+                            <button
+                                onClick={() => setShowValuePicker(true)}
+                                className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                                title={t('cond.fromIoBroker')}
+                            >
+                                <Database size={11} />
+                            </button>
+                        )}
+                        {isDpValue && (
+                            <JsonPathButton
+                                value={clause.value}
+                                onChange={(ref) => onChange({ ...clause, value: ref })}
+                                size={11}
+                            />
+                        )}
+                    </div>
+                ) : (
+                    <div className="w-32 shrink-0" />
+                )}
+
+                <button
+                    onClick={onDelete}
+                    className="shrink-0 hover:opacity-70"
+                    style={{ color: 'var(--accent-red)' }}
+                    title={t('cond.removeClause')}
+                >
+                    <Trash2 size={12} />
+                </button>
+            </div>
 
             {showPicker && (
                 <DatapointPicker

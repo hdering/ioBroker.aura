@@ -1565,6 +1565,7 @@ export const en: Record<TranslationKey, string> = {
     'tabBar.hidden': 'Hide from tab bar',
     'tabBar.conditions': 'Conditions',
     'tabBar.badges': 'Badges',
+    'tabBar.panelResize': 'Drag to change the width · double-click: default width',
     'tabBar.hideTabOnCond': 'Hide tab when condition matches',
     'tabBar.icon': 'Icon',
     'tabBar.selectIcon': 'Select icon…',
