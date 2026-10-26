@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-25",
+    "measured": "2026-10-26",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -2547,6 +2547,7 @@
     "menu": "Höhe folgt den Menüeinträgen des Dashboards",
     "html": "freies HTML",
     "adapterstatus": "Zeilen entstehen erst zur Laufzeit",
-    "devicecard": "Höhe ergibt sich aus den Kindern (wie group, groupRows)"
+    "devicecard": "Höhe ergibt sich aus den Kindern (wie group, groupRows)",
+    "slideshow": "Bild füllt jede Höhe, Seitenverhältnis der Fotos"
   }
 }
