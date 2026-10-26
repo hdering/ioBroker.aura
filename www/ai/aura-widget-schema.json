@@ -9125,6 +9125,12 @@
           "default": 5,
           "description": "Bild alle n Sekunden neu laden (Snapshot-Kamera). 0 = Livestream. MJPEG-Adressen (.mjpeg/.mjpg, /mjpeg/, ?action=stream) laufen immer live, das Intervall wird dann ignoriert."
         },
+        "reloadDp": {
+          "type": "string",
+          "default": "",
+          "description": "Trigger-Datenpunkt: jedes Schreiben (auch derselbe Wert) lädt den Inhalt neu. Für Skripte, die ein Bild unter gleichem Namen ersetzen.",
+          "datapoint": true
+        },
         "reloadOnWake": {
           "type": "boolean",
           "default": true,
@@ -14367,7 +14373,7 @@
         "imageDatapoint": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt, der die Bild-URL liefert.",
+          "description": "Datenpunkt, der die Bild-URL liefert. Jedes Schreiben lädt das Bild neu, auch mit unverändertem Wert.",
           "datapoint": true
         },
         "imageUrl": {
@@ -14378,7 +14384,13 @@
         "refreshInterval": {
           "type": "number",
           "default": 0,
-          "description": "Neuladen alle n Sekunden. 0 = nie."
+          "description": "Neuladen alle n Sekunden (Bild-URL und Datenpunkt). 0 = nie."
+        },
+        "reloadDp": {
+          "type": "string",
+          "default": "",
+          "description": "Trigger-Datenpunkt: jedes Schreiben (auch derselbe Wert) lädt den Inhalt neu. Für Skripte, die ein Bild unter gleichem Namen ersetzen.",
+          "datapoint": true
         }
       }
     },
