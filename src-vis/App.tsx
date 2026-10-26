@@ -1011,12 +1011,15 @@ export default function App() {
     // one it sees as the owner of the id. Two identical devices (same model, same
     // browser) share a fingerprint and therefore the auto-generated id — the one that
     // finds a foreign token on its id moves to a fresh one instead of reporting (#844).
-    // Runs on every connect, so a race where both claimed at once settles on the next.
+    // Two twins that start together (power back after an outage) both find no owner
+    // yet; the adapter keeps the first token, so the loser checks again shortly after
+    // its report instead of sharing the id until the next connect, days later on a kiosk.
     useEffect(() => {
         // Unpinned → the register effect above is about to settle the id; report after.
         if (!connected || !clientIdPinned) return;
         let timer: ReturnType<typeof setTimeout> | undefined;
         let cancelled = false;
+        const rechecks: ReturnType<typeof setTimeout>[] = [];
         const report = () =>
             setStateDirect(
                 `${NS}.clients.resolution`,
@@ -1032,24 +1035,29 @@ export default function App() {
             if (timer) clearTimeout(timer);
             timer = setTimeout(report, 500);
         };
+        const mayCollide = !!deviceToken && isFingerprintClientId(clientId);
+        // true → another browser owns the id; the effect re-runs for the new one and
+        // registers it as a new device.
+        const leftForeignId = async () => {
+            const owner = await getStateDirect(`${NS}.clients.${clientId}.info.deviceToken`);
+            if (cancelled) return true;
+            const ownerToken = String(owner?.val ?? '');
+            if (!ownerToken || ownerToken === deviceToken) return false;
+            splitClientId();
+            return true;
+        };
         void (async () => {
-            if (isFingerprintClientId(clientId)) {
-                const owner = await getStateDirect(`${NS}.clients.${clientId}.info.deviceToken`);
-                if (cancelled) return;
-                const ownerToken = String(owner?.val ?? '');
-                if (ownerToken && ownerToken !== deviceToken) {
-                    // The effect re-runs for the new id and registers it as a new device.
-                    splitClientId();
-                    return;
-                }
-            }
+            if (mayCollide && (await leftForeignId())) return;
             report();
             window.addEventListener('resize', onResize);
             window.addEventListener('orientationchange', onResize);
+            if (mayCollide)
+                for (const ms of [5000, 15000, 30000, 60000]) rechecks.push(setTimeout(() => void leftForeignId(), ms));
         })();
         return () => {
             cancelled = true;
             if (timer) clearTimeout(timer);
+            rechecks.forEach(clearTimeout);
             window.removeEventListener('resize', onResize);
             window.removeEventListener('orientationchange', onResize);
         };

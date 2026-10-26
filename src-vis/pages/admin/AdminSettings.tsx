@@ -544,7 +544,13 @@ function DeviceIcon({ kind, ...props }: { kind: DeviceKind } & React.ComponentPr
 
 function ClientsCard() {
     const t = useT();
-    const { clientId: myClientId, clientName: myClientName, setClientName, pinClientId } = useConnectionStore();
+    const {
+        clientId: myClientId,
+        clientName: myClientName,
+        deviceToken: myDeviceToken,
+        setClientName,
+        pinClientId,
+    } = useConnectionStore();
     const { showClientIdBadge, setShowClientIdBadge } = useGlobalSettingsStore();
     const [clients, setClients] = useState<ClientInfo[]>([]);
     const [loading, setLoading] = useState(false);
@@ -690,13 +696,16 @@ function ClientsCard() {
                     setIdError(t('settings.clients.idTaken'));
                     return;
                 }
+                // Only drop the old tree when it is this browser's own. An id another
+                // device owns (a ?client= link opened here once) still belongs to it (#844).
+                const owner = String((await getStateDirect(`${c.channelId}.info.deviceToken`))?.val ?? '');
                 pinClientId(wanted);
                 setClientName(trimmed);
                 setStateDirect(
                     `${NS}.clients.register`,
                     JSON.stringify({ clientId: wanted, name: trimmed, userAgent: navigator.userAgent }),
                 );
-                setStateDirect(`${NS}.clients.deleteRequest`, c.clientId);
+                if (!owner || owner === myDeviceToken) setStateDirect(`${NS}.clients.deleteRequest`, c.clientId);
                 cancelEdit();
                 // The adapter builds the new tree and tears down the old one via relays.
                 setTimeout(() => void load(), 1500);

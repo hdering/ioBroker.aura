@@ -73,6 +73,7 @@
     "test:idle-return": "node test/idle-return.test.js && node tools/tests/idle-return.mjs",
     "test:idle-return-ui": "node tools/tests/idle-return-ui.mjs",
     "test:client-id": "node tools/tests/client-id-stability.mjs",
+    "test:client-id-e2e": "node tools/tests/client-id-e2e.mjs",
     "test:widget-map": "node test/widget-map.test.js",
     "recipes": "node tools/schema/gen-recipes.mjs",
     "recipes:check": "node tools/schema/gen-recipes.mjs --check",

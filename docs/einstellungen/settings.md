@@ -92,13 +92,20 @@ Jedes Gerät bekommt eine ID; darüber wird es einzeln angesprochen:
 `.idleReturn.snoozeMinutes`, `.idleReturn.delay`, `.idle.active`, `.idle.delay`,
 `.speech.say`, `.speech.muted`, `.speech.volume` ([Sprachausgabe](../anleitungen/sprachausgabe)).
 
-Die ID wird beim ersten Kontakt vergeben und dann im Browser gespeichert. Sie bleibt
-danach unverändert — Browser-Updates, Auflösungs- oder Skalierungswechsel ändern sie nicht.
+Die ID wird beim ersten Kontakt vergeben und dann im Browser gespeichert (Web-Speicher
+und zusätzlich ein Cookie `aura-device`). Sie bleibt danach unverändert — Browser-Updates,
+Auflösungs- oder Skalierungswechsel ändern sie nicht, ebenso wenig ein gelöschter
+Web-Speicher (Fully: *Delete Web Storage*), solange das Cookie bleibt.
 
 Baugleiche Geräte (z. B. zwei Fire-Tablets mit Fully) bekommen beim ersten Kontakt
 dieselbe Start-ID. Das zweite Gerät erkennt das am fremden `info.deviceToken` und meldet
-sich beim nächsten Verbindungsaufbau unter einer neuen ID an. Feste IDs (`?client=`,
-✎) sind davon ausgenommen.
+sich innerhalb einer Minute unter einer neuen ID an. Feste IDs (`?client=`, ✎) sind
+davon ausgenommen.
+
+::: warning Web-Speicher UND Cookies gelöscht
+Dann kann Aura baugleiche Geräte nicht mehr auseinanderhalten und vergibt eine neue ID.
+Für Kiosk-Tablets, die beides löschen, die ID fest in die Start-URL schreiben (`?client=`).
+:::
 
 | Feste ID vergeben | |
 | --- | --- |
@@ -106,7 +113,12 @@ sich beim nächsten Verbindungsaufbau unter einer neuen ID an. Feste IDs (`?clie
 | Beim Aufruf | `http://<host>:8095/?client=wohnzimmer-tablet` |
 | Erlaubt | `a–z`, `0–9`, `-`, `_`, max. 40 Zeichen; `register`, `resolution`, `deleteRequest` sind belegt |
 
-Beides legt `aura.0.clients.<ID>` neu an und entfernt den bisherigen Eintrag des Geräts.
+| | ✎ (Feste ID) | `?client=` |
+| --- | --- | --- |
+| Gespeichert im Browser | ja | nein — gilt nur, solange der Parameter in der URL steht |
+| Ohne Parameter geöffnet | feste ID | eigene ID des Geräts |
+| Bisheriger Eintrag | wird entfernt, wenn er diesem Browser gehört | bleibt |
+
 Skripte, die noch die alte ID verwenden, laufen danach ins Leere.
 
 ::: tip

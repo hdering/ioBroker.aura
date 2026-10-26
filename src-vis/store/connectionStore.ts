@@ -87,6 +87,69 @@ function randomToken(): string {
     }
 }
 
+// ── Durable identity ──────────────────────────────────────────────────────────
+// Kiosk browsers (Fully) can be set to wipe web storage on start or reload. A wiped
+// device used to come back with a new token, found its own id "owned" by the old one
+// and split off — a fresh client every day (#844). A cookie keeps a second copy of
+// the token and the own id, and a browser that can keep neither never splits.
+const DEVICE_COOKIE = 'aura-device';
+
+function readDeviceCookie(): { token: string; id: string } {
+    try {
+        if (typeof document === 'undefined') return { token: '', id: '' };
+        const raw = document.cookie.split('; ').find((c) => c.startsWith(`${DEVICE_COOKIE}=`));
+        const [token = '', id = ''] = decodeURIComponent(raw?.slice(DEVICE_COOKIE.length + 1) ?? '').split('.');
+        return { token: /^[0-9a-f]{8,64}$/.test(token) ? token : '', id: sanitizeClientId(id) };
+    } catch {
+        return { token: '', id: '' };
+    }
+}
+
+function writeDeviceCookie(token: string, id: string): void {
+    try {
+        if (typeof document === 'undefined' || !token) return;
+        const value = encodeURIComponent(id ? `${token}.${id}` : token);
+        document.cookie = `${DEVICE_COOKIE}=${value}; path=/; max-age=315360000; SameSite=Lax`;
+    } catch {
+        /* cookies blocked */
+    }
+}
+
+function localStorageWorks(): boolean {
+    try {
+        localStorage.setItem('aura-probe', '1');
+        const ok = localStorage.getItem('aura-probe') === '1';
+        localStorage.removeItem('aura-probe');
+        return ok;
+    } catch {
+        return false;
+    }
+}
+
+function storedConnection(): Partial<ConnectionState> {
+    try {
+        return JSON.parse(localStorage.getItem('aura-connection') ?? '{}')?.state ?? {};
+    } catch {
+        return {};
+    }
+}
+
+// `?client=wohnzimmer-tablet` sets a speaking id for as long as it is in the URL:
+// the datapoint tree then reads aura.0.clients.wohnzimmer-tablet.*. It is NOT stored —
+// opening such a link once on another device (a PC) must not turn that device into
+// the tablet for good (#844). The device's own id stays in storage underneath.
+let urlClientId = '';
+try {
+    urlClientId = sanitizeClientId(new URLSearchParams(window.location.search).get('client') ?? '');
+} catch {
+    /* no URL */
+}
+let ownClient = { id: '', pinned: false };
+
+function ownIdentity(state: Pick<ConnectionState, 'clientId' | 'clientIdPinned'>) {
+    return urlClientId ? ownClient : { id: state.clientId, pinned: state.clientIdPinned };
+}
+
 interface ConnectionState {
     ioBrokerUrl: string;
     clientId: string;
@@ -97,6 +160,7 @@ interface ConnectionState {
      * Random per-browser token, persisted from the first start. The adapter remembers
      * which token owns a client id (clients.<id>.info.deviceToken), which is how a
      * second device with the same fingerprint notices that the id is taken (#844).
+     * Empty when the browser can keep nothing — such a device must never split.
      */
     deviceToken: string;
     setIoBrokerUrl: (url: string) => void;
@@ -127,13 +191,16 @@ export const useConnectionStore = create<ConnectionState>()(
                 set({ ioBrokerUrl: url });
             },
             setClientName: (name) => set({ clientName: name }),
+            // An explicit choice outranks the URL for the rest of this page load.
             pinClientId: (id) => {
                 const clean = sanitizeClientId(id) || deviceFingerprintId();
+                urlClientId = '';
                 set({ clientId: clean, clientIdPinned: true });
                 return clean;
             },
             splitClientId: () => {
                 const fresh = hashParts([...baseFingerprintParts(), randomToken()]);
+                urlClientId = '';
                 set({ clientId: fresh, clientIdPinned: true });
                 return fresh;
             },
@@ -143,30 +210,52 @@ export const useConnectionStore = create<ConnectionState>()(
             // The id is persisted only once it is pinned. Until then the fingerprint
             // above provides a stable-enough seed, which also survives a cleared
             // localStorage on mobile — the reason the id was never stored before.
-            partialize: (state) =>
-                ({
+            // A ?client= id is never written: the device's own id stays stored instead.
+            partialize: (state) => {
+                const own = ownIdentity(state);
+                return {
                     ioBrokerUrl: state.ioBrokerUrl,
                     clientName: state.clientName,
                     deviceToken: state.deviceToken,
-                    ...(state.clientIdPinned ? { clientId: state.clientId, clientIdPinned: true } : {}),
-                }) as Partial<ConnectionState>,
+                    ...(own.pinned ? { clientId: own.id, clientIdPinned: true } : {}),
+                } as Partial<ConnectionState>;
+            },
         },
     ),
 );
+
+// Restore what a wiped web storage lost from the cookie copy: the token, so the
+// device still owns its id, and the pinned id itself. Then lay a ?client= id on top.
+{
+    const s = useConnectionStore.getState();
+    const stored = storedConnection();
+    const cookie = readDeviceCookie();
+    ownClient = { id: s.clientId, pinned: s.clientIdPinned };
+    if (!stored.clientIdPinned && cookie.id) ownClient = { id: cookie.id, pinned: true };
+    useConnectionStore.setState({
+        ...(!stored.deviceToken && cookie.token ? { deviceToken: cookie.token } : {}),
+        ...(urlClientId
+            ? { clientId: urlClientId, clientIdPinned: true }
+            : { clientId: ownClient.id, clientIdPinned: ownClient.pinned }),
+    });
+}
 
 // persist writes nothing until the first set(), and the token has to be stable from
 // the very first start on, or every reload would look like a different device.
 // localStorage hydrates synchronously, so this keeps a token that is already stored.
 useConnectionStore.setState({ deviceToken: useConnectionStore.getState().deviceToken });
 
-// `?client=wohnzimmer-tablet` pins a speaking id for this device and wins over
-// everything else: the datapoint tree then reads aura.0.clients.wohnzimmer-tablet.*,
-// which is what scripts and Blockly actually want to address.
-try {
-    const wanted = sanitizeClientId(new URLSearchParams(window.location.search).get('client') ?? '');
-    if (wanted && wanted !== useConnectionStore.getState().clientId) {
-        useConnectionStore.getState().pinClientId(wanted);
+{
+    const keepCookie = (s: ConnectionState) => {
+        const own = ownIdentity(s);
+        writeDeviceCookie(s.deviceToken, own.pinned ? own.id : '');
+    };
+    keepCookie(useConnectionStore.getState());
+    useConnectionStore.subscribe(keepCookie);
+    // Neither storage nor cookie survives a reload → a token would be new on every
+    // start and the device would split off its own id each time. Without one it just
+    // shares the fingerprint id, as before #844.
+    if (!localStorageWorks() && readDeviceCookie().token !== useConnectionStore.getState().deviceToken) {
+        useConnectionStore.setState({ deviceToken: '' });
     }
-} catch {
-    /* no URL / no storage — keep the fingerprint */
 }

@@ -11,7 +11,9 @@
 // The checks below pin the three parts of the fix:
 //   - the fingerprint ignores the user agent, so a browser update changes nothing
 //   - the id is anchored in localStorage once pinned and survives everything after
-//   - ?client=<name> pins a speaking id, and both sides sanitise it the same way
+//   - ?client=<name> sets a speaking id while it is in the URL (never stored), and
+//     both sides sanitise it the same way
+//   - a wiped web storage gets token and id back from a cookie (#844)
 import { build } from 'esbuild';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
@@ -72,10 +74,37 @@ const UA_EDGE_141 =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57';
 
 let loadCount = 0;
-async function session({ ua = UA_EDGE_140, search = '', storage = new Map(), width = 1920, height = 1080 } = {}) {
+async function session({
+    ua = UA_EDGE_140,
+    search = '',
+    storage = new Map(),
+    cookies = new Map(),
+    width = 1920,
+    height = 1080,
+    storageBroken = false,
+    cookiesBroken = false,
+} = {}) {
+    globalThis.document = {
+        get cookie() {
+            return [...cookies].map(([k, v]) => `${k}=${v}`).join('; ');
+        },
+        set cookie(line) {
+            if (cookiesBroken) {
+                return;
+            }
+            const [pair] = String(line).split(';');
+            const eqAt = pair.indexOf('=');
+            cookies.set(pair.slice(0, eqAt), pair.slice(eqAt + 1));
+        },
+    };
     globalThis.localStorage = {
         getItem: (k) => (storage.has(k) ? storage.get(k) : null),
-        setItem: (k, v) => storage.set(k, String(v)),
+        setItem: (k, v) => {
+            if (storageBroken) {
+                return;
+            } // storage disabled: writes go nowhere
+            storage.set(k, String(v));
+        },
         removeItem: (k) => storage.delete(k),
         clear: () => storage.clear(),
         key: (i) => [...storage.keys()][i] ?? null,
@@ -93,7 +122,7 @@ async function session({ ua = UA_EDGE_140, search = '', storage = new Map(), wid
     globalThis.window = { location: { protocol: 'http:', hostname: 'iobroker', origin: 'http://iobroker', search } };
     const mod = await import(`${pathToFileURL(bundle).href}?boot=${++loadCount}`);
     // Captured now: the next session replaces the globals this reads from.
-    return { store: mod.useConnectionStore, mod, storage, legacyId: mod.legacyFingerprintId() };
+    return { store: mod.useConnectionStore, mod, storage, cookies, legacyId: mod.legacyFingerprintId() };
 }
 
 // ── 1. A browser update must not change the id ───────────────────────────────
@@ -131,16 +160,37 @@ async function session({ ua = UA_EDGE_140, search = '', storage = new Map(), wid
     check('the seed still separates different screens', a.store.getState().clientId !== b.store.getState().clientId);
 }
 
-// ── 4. ?client=<name> pins a speaking id ─────────────────────────────────────
+// ── 4. ?client=<name> sets a speaking id while it is in the URL ──────────────
 {
-    const s = await session({ search: '?client=Wohnzimmer%20Tablet' });
-    eq('URL parameter pins a speaking id', s.store.getState().clientId, 'wohnzimmer-tablet');
-    check('URL parameter pins', s.store.getState().clientIdPinned === true);
-    check('URL parameter is persisted', String(s.storage.get('aura-connection') ?? '').includes('wohnzimmer-tablet'));
+    const pc = await session();
+    const own = pc.store.getState().pinClientId(pc.store.getState().clientId);
 
-    // Reload without the parameter → the pinned id stays.
-    const again = await session({ storage: s.storage });
-    eq('the pinned id survives a reload without the parameter', again.store.getState().clientId, 'wohnzimmer-tablet');
+    const s = await session({ search: '?client=Wohnzimmer%20Tablet', storage: pc.storage, cookies: pc.cookies });
+    eq('URL parameter sets a speaking id', s.store.getState().clientId, 'wohnzimmer-tablet');
+    check('URL id counts as pinned', s.store.getState().clientIdPinned === true);
+    check(
+        'URL parameter is not persisted (#844)',
+        !String(s.storage.get('aura-connection') ?? '').includes('wohnzimmer-tablet'),
+    );
+    check('the own id stays stored underneath', String(s.storage.get('aura-connection') ?? '').includes(own));
+    check('URL parameter is not in the cookie', !String(s.cookies.get('aura-device') ?? '').includes('wohnzimmer'));
+
+    // Reload without the parameter → the device is itself again, not the tablet.
+    const again = await session({ storage: s.storage, cookies: s.cookies });
+    eq('without the parameter the own id is back', again.store.getState().clientId, own);
+
+    // A fresh kiosk that only ever runs with the parameter.
+    const kiosk = await session({ search: '?client=flur' });
+    eq('a fresh device takes the URL id', kiosk.store.getState().clientId, 'flur');
+    const kioskReload = await session({ search: '?client=flur', storage: kiosk.storage, cookies: kiosk.cookies });
+    eq('…and keeps it on every reload', kioskReload.store.getState().clientId, 'flur');
+
+    // An explicit choice made while the URL carries one is stored.
+    kioskReload.store.getState().pinClientId('kueche');
+    check(
+        'pinning under a URL id persists',
+        String(kioskReload.storage.get('aura-connection') ?? '').includes('kueche'),
+    );
 }
 
 // ── 4b. Identical devices: a stable token per browser, and a way off the shared id (#844)
@@ -166,6 +216,33 @@ async function session({ ua = UA_EDGE_140, search = '', storage = new Map(), wid
     check('the split id is pinned', wohnzimmer.store.getState().clientIdPinned === true);
     check('the split id is no fingerprint, so it never splits again', !wohnzimmer.mod.isFingerprintClientId(fresh));
     check('a speaking id is never split', !flur.mod.isFingerprintClientId('wohnzimmer-tablet'));
+}
+
+// ── 4c. A wiped web storage must not make the device a new client (#844) ────
+{
+    const tablet = await session();
+    const id = tablet.store.getState().pinClientId(tablet.store.getState().clientId);
+    const token = tablet.store.getState().deviceToken;
+    check('the cookie mirrors the token', String(tablet.cookies.get('aura-device') ?? '').includes(token));
+
+    // Fully "delete web storage": localStorage empty, cookie still there.
+    const wiped = await session({ cookies: tablet.cookies });
+    eq('the token comes back from the cookie', wiped.store.getState().deviceToken, token);
+    eq('the pinned id comes back from the cookie', wiped.store.getState().clientId, id);
+    check('…and is pinned again', wiped.store.getState().clientIdPinned === true);
+    check('…and written back to storage', String(wiped.storage.get('aura-connection') ?? '').includes(token));
+
+    // A split id must survive the wipe too, or the twin splits again every day.
+    const twin = await session();
+    const split = twin.store.getState().splitClientId();
+    const twinWiped = await session({ cookies: twin.cookies });
+    eq('a split id survives a wiped storage', twinWiped.store.getState().clientId, split);
+
+    // Nothing persists at all → no token, so the App never splits this device.
+    const amnesiac = await session({ storageBroken: true, cookiesBroken: true });
+    eq('a browser that keeps nothing has no token', amnesiac.store.getState().deviceToken, '');
+    const cookieOnly = await session({ storageBroken: true });
+    check('cookies alone are enough for a token', cookieOnly.store.getState().deviceToken !== '');
 }
 
 // ── 5. Frontend and adapter sanitise identically ─────────────────────────────
