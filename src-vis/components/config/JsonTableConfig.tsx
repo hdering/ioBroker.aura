@@ -5,6 +5,8 @@ import { ColorPicker } from '../common/ColorPicker';
 import { ImagePathHint } from './ImagePathHint';
 import { ConfigModal } from './ConfigModal';
 import { EnumEntriesEditor } from './EnumEntriesEditor';
+import { CommonStatesImport } from './CommonStatesImport';
+import { mergeStatesIntoEntries } from '../../utils/commonStates';
 import { JsonTableSortSection } from './JsonTableSortSection';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
@@ -1135,6 +1137,20 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                         Wert, wie er im JSON steht (1, true, Text). Mit Icon erscheint das Icon, ein Text daneben ist
                         optional; ohne Icon ersetzt der Text den Wert. Die Farbe gilt für beides.
                     </p>
+                    <div className="mb-3">
+                        <CommonStatesImport
+                            defaultDp={datapoint}
+                            onImport={(states) => {
+                                const before = colDefs[mapEditIdx].valueMap ?? [];
+                                const next = mergeStatesIntoEntries(before, states, (value, label) => ({
+                                    value,
+                                    label,
+                                }));
+                                updateCol(mapEditIdx, { valueMap: next.length ? next : undefined });
+                                return next.length - before.length;
+                            }}
+                        />
+                    </div>
                     <EnumEntriesEditor
                         entries={colDefs[mapEditIdx].valueMap ?? []}
                         onChange={(next) => updateCol(mapEditIdx, { valueMap: next.length ? next : undefined })}

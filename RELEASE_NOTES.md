@@ -13,4 +13,4 @@
 - Popups - a datapoint trigger can now combine several conditions with AND / OR and brackets, e.g. doorbell AND someone at home; the popup opens when the combination becomes true (#849)
 
 - Editor - the settings popovers of sections and tabs are wider while markers or conditions are open and can be dragged wider at their edge (double-click resets); a marker condition row wraps instead of squeezing the datapoint field (#850)
-- JSON table - new per-column switch "Mapping" (Zuordnung): show chosen values as an icon and/or text in their own colour, e.g. a call list type 1/2/3 as incoming/missed/outgoing phone icons (#852)
+- JSON table - new per-column switch "Mapping" (Zuordnung): show chosen values as an icon and/or text in their own colour, e.g. a call list type 1/2/3 as incoming/missed/outgoing phone icons; the entries can be imported from common.states of a datapoint (#852)

@@ -100,7 +100,7 @@ Zeitstempel in Sekunden und Millisekunden, ISO-Zeitangaben und `HH:mm` werden au
 
 #### Zuordnung
 
-Schalter **Zuordnung** in der Spalte → **Zuordnungen bearbeiten** öffnet die Liste Wert → Icon / Text / Farbe. Nicht zugeordnete Werte erscheinen unverändert. Nur bei Text-Spalten (nicht Bild/HTML).
+Schalter **Zuordnung** in der Spalte → **Zuordnungen bearbeiten** öffnet die Liste Wert → Icon / Text / Farbe. Nicht zugeordnete Werte erscheinen unverändert. Nur bei Text-Spalten (nicht Bild/HTML). Oben im Popup: **Aus common.states eines Datenpunkts übernehmen** (vorbelegt mit dem Tabellen-DP) — vorhandene Einträge behalten Icon und Farbe, neue Werte werden angehängt.
 
 ![](./assets/json-tabelle/zuordnung.png)
 

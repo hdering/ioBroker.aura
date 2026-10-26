@@ -165,21 +165,50 @@ const bodyText = (sel) =>
     await page.locator('text=Zuordnung: type').waitFor({ timeout: 5000 });
     await page.locator('button:has-text("Eintrag hinzufügen")').last().click();
     await page.waitForTimeout(150);
-    await page.locator('input[placeholder="Text (optional)"]').last().fill('entgangen');
+    await page.locator('input[placeholder="Wert"]').last().fill('2');
     await page.waitForTimeout(350);
     col = await opts();
     check(
         'an entry added in the popup lands on the column',
-        col?.valueMap?.length === 1 && col.valueMap[0].label === 'entgangen',
+        col?.valueMap?.length === 1 && col.valueMap[0].value === '2',
         JSON.stringify(col?.valueMap),
     );
+
+    // Import from common.states of the table's datapoint (prefilled): the existing "2"
+    // gets its text, 1 and 3 are appended.
+    await page.evaluate(
+        (dp) =>
+            window.__auraShot.mockObject({
+                [dp]: {
+                    _id: dp,
+                    type: 'state',
+                    common: { name: 'Anrufe', states: '1:eingehend;2:entgangen;3:ausgehend' },
+                },
+            }),
+        `aura-selftest.0.jsontable-value-map.d${seq}`,
+    );
+    await page.locator('button:text-is("Importieren")').click();
+    await page.waitForTimeout(400);
+    col = await opts();
+    check(
+        'common.states import merges into the list',
+        JSON.stringify(col?.valueMap?.map((e) => [e.value, e.label])) ===
+            JSON.stringify([
+                ['2', 'entgangen'],
+                ['1', 'eingehend'],
+                ['3', 'ausgehend'],
+            ]),
+        JSON.stringify(col?.valueMap),
+    );
+    const status = (await page.locator('p:has-text("neu hinzugefügt")').count()) === 1;
+    check('and reports what it added', status);
     if (process.env.AURA_SHOT_DIR)
         await page.screenshot({ path: `${process.env.AURA_SHOT_DIR}/jsontable-value-map.png` });
     await page.keyboard.press('Escape');
     await page.waitForTimeout(200);
     check(
         'the button counts the entries',
-        (await card.locator('button:has-text("Zuordnungen bearbeiten (1)")').count()) === 1,
+        (await card.locator('button:has-text("Zuordnungen bearbeiten (3)")').count()) === 1,
     );
 
     // Picking Bild switches the mapping off, the entries survive.
@@ -188,7 +217,7 @@ const bodyText = (sel) =>
     col = await opts();
     check(
         'Bild switches the mapping off, entries kept',
-        col?.mapValues === false && col?.valueMap?.length === 1,
+        col?.mapValues === false && col?.valueMap?.length === 3,
         JSON.stringify(col),
     );
 }

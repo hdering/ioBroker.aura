@@ -16,7 +16,7 @@
 import { useState, type ReactNode } from 'react';
 import type { WidgetConfig } from '../../types';
 import { type EnumEntry } from '../widgets/enumEntry';
-import { getObjectDirect } from '../../hooks/useIoBroker';
+import { readCommonStates } from '../../utils/commonStates';
 import type { EnumJsonKeys } from '../../utils/enumEntriesJson';
 import { EnumEntriesEditor } from './EnumEntriesEditor';
 import { EnumJsonSourceSection } from './EnumJsonSourceSection';
@@ -82,20 +82,8 @@ export function EnumConfig({ config, onConfigChange, mainDpField }: Props) {
         setImporting(true);
         setImportStatus(null);
         try {
-            const obj = await getObjectDirect(config.datapoint);
-            const states = (obj?.common as { states?: Record<string, string> | string } | undefined)?.states;
-            let parsed: Record<string, string> | null = null;
-            if (typeof states === 'object' && states) {
-                parsed = states as Record<string, string>;
-            } else if (typeof states === 'string') {
-                // ioBroker also supports the legacy "0:zu;1:auf" format
-                parsed = {};
-                states.split(';').forEach((pair) => {
-                    const [k, v] = pair.split(':');
-                    if (k !== undefined && v !== undefined) parsed![k.trim()] = v.trim();
-                });
-            }
-            if (!parsed || Object.keys(parsed).length === 0) {
+            const parsed = await readCommonStates(config.datapoint);
+            if (!parsed) {
                 setImportStatus('Keine common.states am Datenpunkt');
                 return;
             }
