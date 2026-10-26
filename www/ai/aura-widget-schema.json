@@ -9763,6 +9763,11 @@
         "windowOpenValues"
       ],
       "options": {
+        "autoHistoryInstance": {
+          "type": "boolean",
+          "default": false,
+          "description": "History-Instanz automatisch aus dem Datenpunkt bestimmen."
+        },
         "avgColor": {
           "type": "string",
           "description": "Farbe der Mittelwertlinie.",
