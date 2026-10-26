@@ -3,6 +3,8 @@ import { Plus, Trash2, X, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCen
 import { parseJson, type JsonColumnDef } from '../widgets/JsonTableWidget';
 import { ColorPicker } from '../common/ColorPicker';
 import { ImagePathHint } from './ImagePathHint';
+import { ConfigModal } from './ConfigModal';
+import { EnumEntriesEditor } from './EnumEntriesEditor';
 import { JsonTableSortSection } from './JsonTableSortSection';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
@@ -91,6 +93,9 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
     const setColDefs = (cols: JsonColumnDef[]) => set({ columns: cols });
 
     const [newKey, setNewKey] = useState('');
+    // Column whose value mapping is open in the popup (#852).
+    const [mapEditKey, setMapEditKey] = useState<string | null>(null);
+    const mapEditIdx = mapEditKey === null ? -1 : colDefs.findIndex((c) => c.key === mapEditKey);
     const [loading, setLoading] = useState(false);
     const t = useT();
     const globalNumFmt = useGlobalSettingsStore((s) => s.numberFormat);
@@ -415,6 +420,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                                                         image: !(col.image ?? false),
                                                         html: (col.image ?? false) ? col.html : false,
                                                         iconify: (col.image ?? false) ? col.iconify : false,
+                                                        mapValues: (col.image ?? false) ? col.mapValues : false,
                                                     })
                                                 }
                                             />
@@ -430,6 +436,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                                                         html: !(col.html ?? false),
                                                         image: (col.html ?? false) ? col.image : false,
                                                         iconify: (col.html ?? false) ? col.iconify : false,
+                                                        mapValues: (col.html ?? false) ? col.mapValues : false,
                                                     })
                                                 }
                                             />
@@ -437,24 +444,31 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                                                 HTML
                                             </span>
                                         </label>
-                                        <label
-                                            className="flex items-center gap-1.5 cursor-pointer"
-                                            title="mdi:..., material-symbols:..., lucide:... inline rendern"
-                                        >
-                                            <Toggle
-                                                value={col.iconify ?? false}
-                                                onToggle={() =>
-                                                    updateCol(idx, {
-                                                        iconify: !(col.iconify ?? false),
-                                                        image: (col.iconify ?? false) ? col.image : false,
-                                                        html: (col.iconify ?? false) ? col.html : false,
-                                                    })
-                                                }
-                                            />
-                                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Icons
-                                            </span>
-                                        </label>
+                                        {/* A mapped column draws its icons from the entries, so the
+                                    inline-token switch has nothing left to do there. */}
+                                        {!col.mapValues && (
+                                            <label
+                                                className="flex items-center gap-1.5 cursor-pointer"
+                                                title="mdi:..., material-symbols:..., lucide:... inline rendern"
+                                            >
+                                                <Toggle
+                                                    value={col.iconify ?? false}
+                                                    onToggle={() =>
+                                                        updateCol(idx, {
+                                                            iconify: !(col.iconify ?? false),
+                                                            image: (col.iconify ?? false) ? col.image : false,
+                                                            html: (col.iconify ?? false) ? col.html : false,
+                                                        })
+                                                    }
+                                                />
+                                                <span
+                                                    className="text-[10px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Icons
+                                                </span>
+                                            </label>
+                                        )}
                                         <label className="flex items-center gap-1.5 cursor-pointer">
                                             <Toggle
                                                 value={col.hidden ?? false}
@@ -477,6 +491,25 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                                     so these two only show up for plain text columns. */}
                                         {!col.image && !col.html && (
                                             <>
+                                                <label
+                                                    className="flex items-center gap-1.5 cursor-pointer"
+                                                    title="Bestimmte Werte als Icon und/oder Text in eigener Farbe anzeigen"
+                                                >
+                                                    <Toggle
+                                                        value={col.mapValues ?? false}
+                                                        onToggle={() =>
+                                                            updateCol(idx, {
+                                                                mapValues: !(col.mapValues ?? false) || undefined,
+                                                            })
+                                                        }
+                                                    />
+                                                    <span
+                                                        className="text-[10px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Zuordnung
+                                                    </span>
+                                                </label>
                                                 <label
                                                     className="flex items-center gap-1.5 cursor-pointer"
                                                     title="Zeitstempel als Datum / Uhrzeit anzeigen"
@@ -510,6 +543,22 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                                             </>
                                         )}
                                     </div>
+                                    {/* Row 3.4: value mapping (#852) — the list itself lives in a popup */}
+                                    {col.mapValues && !col.image && !col.html && (
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setMapEditKey(col.key)}
+                                                className="text-[11px] px-2 py-1 rounded-lg hover:opacity-80"
+                                                style={{ ...jSty, color: 'var(--text-secondary)' }}
+                                            >
+                                                Zuordnungen bearbeiten ({col.valueMap?.length ?? 0})
+                                            </button>
+                                            <span className="text-[10px]" style={hintSty}>
+                                                Nicht zugeordnete Werte erscheinen unverändert
+                                            </span>
+                                        </div>
+                                    )}
                                     {/* Row 3.5: width / alignment / wrap */}
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <div className="flex items-center gap-1">
@@ -1072,6 +1121,28 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                     </div>
                 </>
             </ConfigSection>
+
+            {mapEditIdx >= 0 && (
+                <ConfigModal
+                    title={`Zuordnung: ${colDefs[mapEditIdx].label || colDefs[mapEditIdx].key}`}
+                    maxWidth={560}
+                    maxHeight={440}
+                    padded
+                    storageKey="aura-jsontable-valuemap-modal"
+                    onClose={() => setMapEditKey(null)}
+                >
+                    <p className="text-[11px] mb-2" style={hintSty}>
+                        Wert, wie er im JSON steht (1, true, Text). Mit Icon erscheint das Icon, ein Text daneben ist
+                        optional; ohne Icon ersetzt der Text den Wert. Die Farbe gilt für beides.
+                    </p>
+                    <EnumEntriesEditor
+                        entries={colDefs[mapEditIdx].valueMap ?? []}
+                        onChange={(next) => updateCol(mapEditIdx, { valueMap: next.length ? next : undefined })}
+                        emptyHint="Noch keine Zuordnungen. Lege Wert→Icon/Text-Paare an."
+                        labelPlaceholder="Text (optional)"
+                    />
+                </ConfigModal>
+            )}
         </>
     );
 }

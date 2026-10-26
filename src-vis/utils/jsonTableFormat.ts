@@ -83,3 +83,26 @@ export function formatCellValue(col: JsonCellFormat, raw: unknown, t: TFn, numFm
     }
     return cellText(value);
 }
+
+/** One "Zuordnung" entry of a column (#852) — the Auswahlfeld's EnumEntry, reduced to what matching reads. */
+interface CellMapEntry {
+    value: string;
+}
+
+/**
+ * The entry a column's value mapping holds for this cell, if any. The entries store
+ * their value as text, while JSON carries numbers and booleans — so 1, "1" and "1.0"
+ * all meet the entry "1", and true meets "true" in any case.
+ */
+export function findCellEntry<E extends CellMapEntry>(entries: E[] | undefined, raw: unknown): E | undefined {
+    if (!entries?.length || raw === null || raw === undefined || raw === '') return undefined;
+    const text = String(raw).trim();
+    const lower = text.toLowerCase();
+    const num = typeof raw === 'number' ? raw : NUMERIC_TEXT.test(text) ? Number(text) : NaN;
+    return entries.find((e) => {
+        const v = String(e.value ?? '').trim();
+        if (v === text) return true;
+        if (typeof raw === 'boolean') return v.toLowerCase() === lower;
+        return Number.isFinite(num) && NUMERIC_TEXT.test(v) && Number(v) === num;
+    });
+}

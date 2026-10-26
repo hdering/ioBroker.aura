@@ -8,7 +8,8 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { cellText, formatCellValue, hasCellFormat } from '../../utils/jsonTableFormat';
+import { cellText, findCellEntry, formatCellValue, hasCellFormat } from '../../utils/jsonTableFormat';
+import type { EnumEntry } from './enumEntry';
 import { sortJsonRows, usableJsonSortRules, type JsonSortRule } from '../../utils/jsonTableSort';
 import type { NumberFormat } from '../../utils/formatValue';
 import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets, resolveImageSource } from '../../utils/assetUrl';
@@ -60,6 +61,10 @@ export interface JsonColumnDef {
     decimals?: number;
     /** Thousands separator of numeric cells (also numeric strings). Unset = the global setting, applied only when decimals is set. */
     numberFormat?: NumberFormat;
+    /** Map cell values to an icon, text and colour (#852). Image and HTML columns ignore it. */
+    mapValues?: boolean;
+    /** Value → entry list of mapValues — kept while the switch is off. Unmatched values print as usual. */
+    valueMap?: EnumEntry[];
     order?: number; // lower = further left
 }
 
@@ -94,6 +99,36 @@ function renderTextWithIcons(text: string, fontSize: number): React.ReactNode {
     }
     if (last < text.length) parts.push(text.slice(last));
     return parts;
+}
+
+/**
+ * A cell whose value has an entry in the column's mapping (#852): the entry's icon, its
+ * text next to it, both in its colour. An entry without icon and text only colours the
+ * value as it would print anyway — "2 in red" needs no label.
+ */
+function MappedCell({ entry, text, fontSize }: { entry: EnumEntry; text: string; fontSize: number }) {
+    const color = entry.color || undefined;
+    const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, Table2) : null;
+    const label = entry.label?.trim() ?? '';
+    if (!EntryIcon) return <span style={{ color }}>{label || text}</span>;
+    const size = Math.round(fontSize * 1.25);
+    return (
+        <span
+            className="aura-jsontable-mapped"
+            title={label || text}
+            style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                maxWidth: '100%',
+                verticalAlign: 'middle',
+                color,
+            }}
+        >
+            <EntryIcon size={size} style={{ flexShrink: 0 }} />
+            {label && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>}
+        </span>
+    );
 }
 
 /** Derive admin base URL: explicit setting wins, else same host on port 8081. */
@@ -279,8 +314,14 @@ export function JsonTableWidget({ config }: WidgetProps) {
         if (!tableData) return [];
         if (!query.trim()) return tableData.rows;
         const q = query.toLowerCase();
-        const haystack = (col: JsonColumnDef, raw: unknown) =>
-            hasCellFormat(col) ? `${cellText(raw)} ${formatCellValue(col, raw, t, numFmt)}` : cellText(raw);
+        const haystack = (col: JsonColumnDef, raw: unknown) => {
+            const base = hasCellFormat(col)
+                ? `${cellText(raw)} ${formatCellValue(col, raw, t, numFmt)}`
+                : cellText(raw);
+            // A mapped cell shows its entry's text — "entgangen" must find the 2 behind it.
+            const entry = col.mapValues && !col.image && !col.html ? findCellEntry(col.valueMap, raw) : undefined;
+            return entry?.label ? `${base} ${entry.label}` : base;
+        };
         return tableData.rows.filter((row) =>
             columns.some((col) => haystack(col, row[col.key]).toLowerCase().includes(q)),
         );
@@ -623,7 +664,12 @@ export function JsonTableWidget({ config }: WidgetProps) {
                                             ? resolveImageSrc(raw, adminBaseUrl, col.imagePathPrefix)
                                             : '';
                                         const isHtml = !isImage && (col.html ?? false);
-                                        const useIconify = !isImage && !isHtml && (col.iconify ?? false);
+                                        const mapped =
+                                            !isImage && !isHtml && col.mapValues
+                                                ? findCellEntry(col.valueMap, raw)
+                                                : undefined;
+                                        const useIconify =
+                                            !isImage && !isHtml && !col.mapValues && (col.iconify ?? false);
                                         const imgSize =
                                             col.imageSize && col.imageSize > 0 ? col.imageSize : Math.round(fs * 2.4);
                                         const wrap = col.wrap ?? false;
@@ -686,6 +732,8 @@ export function JsonTableWidget({ config }: WidgetProps) {
                                                             __html: resolveHtmlAssets(decorated),
                                                         }}
                                                     />
+                                                ) : mapped ? (
+                                                    <MappedCell entry={mapped} text={decorated} fontSize={fs} />
                                                 ) : useIconify ? (
                                                     renderTextWithIcons(decorated, fs)
                                                 ) : (

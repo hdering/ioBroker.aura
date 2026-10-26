@@ -283,7 +283,7 @@ export const WIDGET_OPTION_NOTES = {
         },
         columns: {
             description:
-                'Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen, numberFormat setzt das Tausendertrennzeichen (auch ohne decimals, dann mit den Nachkommastellen des Werts).',
+                'Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen, numberFormat setzt das Tausendertrennzeichen (auch ohne decimals, dann mit den Nachkommastellen des Werts). Zuordnung: mapValues true + valueMap [{value, label?, icon?, color?}] zeigt bestimmte Werte als Icon (Iconify-Id) mit optionalem Text daneben, ohne Icon den Text statt des Werts, alles in color — z. B. Anrufart 1/2/3 als Telefon-Icons in Grün/Rot/Blau. value ist Text und trifft Zahlen ("1" = 1) und Booleans ("true"); nicht zugeordnete Werte erscheinen normal formatiert. Nicht in Bild- oder HTML-Spalten.',
         },
     },
     switch: {

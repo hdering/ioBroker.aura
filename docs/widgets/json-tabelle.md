@@ -98,6 +98,24 @@ Zwei Schalter in der Spalte, neben Bild/HTML/Icons: **Datum/Zeit** und **Zahlenf
 
 Zeitstempel in Sekunden und Millisekunden, ISO-Zeitangaben und `HH:mm` werden automatisch erkannt: `1720562400000` mit `valueTimeFormat: date` ergibt `10.07.2024`.
 
+#### Zuordnung
+
+Schalter **Zuordnung** in der Spalte → **Zuordnungen bearbeiten** öffnet die Liste Wert → Icon / Text / Farbe. Nicht zugeordnete Werte erscheinen unverändert. Nur bei Text-Spalten (nicht Bild/HTML).
+
+![](./assets/json-tabelle/zuordnung.png)
+
+| Eintrag | Zelle |
+| --- | --- |
+| Icon, Text leer | nur Icon |
+| Icon + Text | Icon und Text |
+| nur Text | Text statt Wert |
+| nur Farbe | Wert in der Farbe |
+
+| Feld | |
+| --- | --- |
+| `mapValues` | Zuordnung an |
+| `valueMap` | `[{ value, label, icon, color }]` — `value` als Text: `"1"` trifft `1`, `"true"` trifft `true` |
+
 #### HTML-Breite
 
 ![](./assets/json-tabelle/html-breite.png)

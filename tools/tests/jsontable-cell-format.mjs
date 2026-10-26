@@ -44,7 +44,7 @@ await build({
         },
     ],
 });
-const { formatCellValue, hasCellFormat, cellText } = await import(pathToFileURL(bundle).href);
+const { formatCellValue, hasCellFormat, cellText, findCellEntry } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 let failed = 0;
@@ -138,6 +138,37 @@ eq(
     '12345',
 );
 eq('unset keeps the untouched value verbatim', formatCellValue({}, 12345, t, 'de'), '12345');
+
+// ── Value mapping (#852): stored values are text, JSON brings numbers/booleans ──
+const calls = [
+    { value: '1', label: 'eingehend', icon: 'mdi:phone-incoming' },
+    { value: '2', label: 'entgangen' },
+    { value: 'true', label: 'ja' },
+    { value: 'Aus', label: 'aus' },
+];
+eq('number meets its text entry', findCellEntry(calls, 1)?.label, 'eingehend');
+eq('numeric string meets it too', findCellEntry(calls, '2')?.label, 'entgangen');
+eq('"1.0" is the same number', findCellEntry(calls, '1.0')?.label, 'eingehend');
+eq('boolean meets "true"', findCellEntry(calls, true)?.label, 'ja');
+eq('boolean false has no entry', findCellEntry(calls, false), undefined);
+eq('"TRUE" is a text, not the boolean', findCellEntry(calls, 'TRUE'), undefined);
+eq('text matches exactly', findCellEntry(calls, 'Aus')?.label, 'aus');
+eq('surrounding blanks are ignored', findCellEntry(calls, ' Aus ')?.label, 'aus');
+eq('unmapped value finds nothing', findCellEntry(calls, 3), undefined);
+eq('empty cell finds nothing', findCellEntry([{ value: '' }], ''), undefined);
+eq('null finds nothing', findCellEntry(calls, null), undefined);
+eq('no entries, no match', findCellEntry(undefined, 1), undefined);
+eq(
+    'first entry wins on duplicates',
+    findCellEntry(
+        [
+            { value: '1', label: 'a' },
+            { value: '1', label: 'b' },
+        ],
+        1,
+    )?.label,
+    'a',
+);
 
 console.log(failed === 0 ? '\nAll JSON table cell formats OK' : `\n${failed} check(s) failed`);
 process.exit(failed === 0 ? 0 : 1);
