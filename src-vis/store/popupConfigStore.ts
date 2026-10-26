@@ -119,13 +119,20 @@ export interface PopupTrigger {
     id: string;
     name: string;
     enabled: boolean;
+    /** First condition. Its datapoint is the trigger DP: popup `{{dp}}` and reset target. */
     clause: ConditionClause;
+    /**
+     * Further conditions (#849), chained to `clause` via their `join` / `bracket`
+     * exactly like widget conditions (AND binds tighter than OR). Kept apart from
+     * `clause` so stored single-condition rules stay valid unchanged.
+     */
+    extraClauses?: ConditionClause[];
     host: WidgetConfig;
     /** Write `resetValue` back to the trigger DP after opening ("button mode"). */
     resetDp: boolean;
     /** Value written on reset. Empty/undefined = boolean false. */
     resetValue?: string;
-    /** Close an open popup again as soon as the clause no longer matches. */
+    /** Close an open popup again as soon as the conditions no longer match. */
     closeOnFalse?: boolean;
     /** Restrict to these client ids (aura.0.clients.<id>). Empty/undefined = all clients. */
     clientIds?: string[];
@@ -133,6 +140,11 @@ export interface PopupTrigger {
     layoutId?: string;
     tabId?: string;
     createdAt?: number;
+}
+
+/** All conditions of a trigger in evaluation order — `clause` first. */
+export function triggerClauses(trigger: Pick<PopupTrigger, 'clause' | 'extraClauses'>): ConditionClause[] {
+    return trigger.extraClauses?.length ? [trigger.clause, ...trigger.extraClauses] : [trigger.clause];
 }
 
 /**
@@ -485,6 +497,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                                 id: newId,
                                 name: `${source.name} (Kopie)`,
                                 clause: { ...source.clause },
+                                extraClauses: source.extraClauses?.map((c) => ({ ...c })),
                                 host: { ...source.host, id: `ptw-${Date.now()}`, options: { ...source.host.options } },
                                 clientIds: source.clientIds ? [...source.clientIds] : undefined,
                                 createdAt: Date.now(),

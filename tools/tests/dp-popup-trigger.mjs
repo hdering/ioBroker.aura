@@ -178,6 +178,64 @@ for (const action of [
     check('{{clientId}} trigger opens on this device and closes on false', opened && !(await popupVisible()));
 }
 
+// ── 10. Several conditions (#849) ───────────────────────────────────────────
+// UND: fires only once both hold; ODER: either one; staggered priming (second DP
+// arrives after the rule is armed) must stay silent like a plain page load.
+{
+    const B = 'demo.popupTriggerB';
+    const arm = (rule, values) =>
+        page.evaluate(
+            ([r, v]) => {
+                window.__auraShot.dpTriggers(false);
+                window.__auraShot.mock(v);
+                window.__auraShot.dpTriggers([r]);
+            },
+            [rule, values],
+        );
+    const set = (values) => page.evaluate((v) => window.__auraShot.mock(v), values);
+    const closePopup = async () => {
+        if (await popupVisible()) await page.locator('.fixed.inset-0 button').first().click();
+        await settle();
+    };
+    const extra = (join) => [{ datapoint: B, operator: 'true', value: '', join }];
+
+    await arm(trigger({ extraClauses: extra('AND') }), { [DP]: false, [B]: false });
+    await settle();
+    await set({ [DP]: true });
+    await settle();
+    const firstOnly = await popupVisible();
+    await set({ [B]: true });
+    await settle();
+    check('UND: first condition alone stays silent, both open the popup', !firstOnly && (await popupVisible()));
+    await closePopup();
+
+    await arm(trigger({ extraClauses: extra('OR') }), { [DP]: false, [B]: false });
+    await settle();
+    await set({ [B]: true });
+    await settle();
+    check('ODER: the second condition alone opens the popup', await popupVisible());
+    await closePopup();
+
+    // Half-configured extra row (no DP yet) must not block the rule.
+    await arm(trigger({ extraClauses: [{ datapoint: '', operator: '==', value: '', join: 'AND' }] }), {
+        [DP]: false,
+    });
+    await settle();
+    await set({ [DP]: true });
+    await settle();
+    check('an extra condition without datapoint is ignored', await popupVisible());
+    await closePopup();
+
+    const C = 'demo.popupTriggerLate';
+    await arm(trigger({ extraClauses: [{ datapoint: C, operator: 'true', value: '', join: 'AND' }] }), {
+        [DP]: true,
+    });
+    await settle();
+    await set({ [C]: true });
+    await settle();
+    check('no popup when the last condition only primes after arming', !(await popupVisible()));
+}
+
 // ── 9. Fullscreen popup covers the whole viewport ───────────────────────────
 {
     const rule = trigger();

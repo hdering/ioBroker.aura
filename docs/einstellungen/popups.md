@@ -29,18 +29,25 @@ Die Hintergrundfarbe gibt es zusätzlich als Theme-Token: `--popup-bg` (und `--p
 
 ## Popup per Datenpunkt
 
-Öffnet ein Popup, sobald ein beliebiger Datenpunkt seine Bedingung erfüllt — ohne Klick auf ein Widget.
+Öffnet ein Popup, sobald ein oder mehrere Datenpunkte ihre Bedingungen erfüllen — ohne Klick auf ein Widget.
 
 | Option | |
 | --- | --- |
-| Bedingung | Datenpunkt + Operator + Wert; ausgelöst wird nur die Flanke (nicht erfüllt → erfüllt) |
+| Bedingungen | Datenpunkt + Operator + Wert; mehrere mit UND / ODER und Klammern verknüpfbar. Ausgelöst wird nur die Flanke (nicht erfüllt → erfüllt) |
 | Ziel | Vollständige Klick-Aktion: Popup-View, alle Datenpunkte des Geräts, Bild, Webseite, JSON, HTML, Widget-Inhalt |
-| Datenpunkt zurücksetzen | Schreibt nach dem Öffnen einen Wert zurück (Tastermodus); leer = `false` |
-| Popup schließen, wenn … | Schließt das Popup, sobald die Bedingung nicht mehr erfüllt ist |
+| Datenpunkt zurücksetzen | Schreibt nach dem Öffnen einen Wert in den Datenpunkt der ersten Bedingung zurück (Tastermodus); leer = `false` |
+| Popup schließen, wenn … | Schließt das Popup, sobald die Bedingungen nicht mehr erfüllt sind |
 | Gültig auf Geräten | Optionaler Client-Filter; leer = alle Geräte |
 | Nur in Layout / Nur auf Tab | Optionaler Scope |
 
-Der Trigger-Datenpunkt steht im Popup als `{{dp}}` bereit — eine Popup-View lässt sich so für mehrere Trigger wiederverwenden.
+Der Datenpunkt der ersten Bedingung steht im Popup als `{{dp}}` bereit — eine Popup-View lässt sich so für mehrere Trigger wiederverwenden.
+
+| Beispiel | Bedingungen |
+| --- | --- |
+| Klingel nur bei Anwesenheit | `Klingel` ist wahr **UND** `Anwesend` ist wahr |
+| Ruhe-Ansicht bei Leerlauf oder Nachtmodus | `clients.{{clientId}}.idle.active` = `true` **ODER** `Nachtmodus` ist wahr |
+
+UND bindet stärker als ODER; die Klammer-Schaltfläche links fasst Zeilen zusammen.
 
 `{{clientId}}` im Datenpunkt steht für das Gerät, auf dem das Dashboard läuft — eine Regel gilt so für jedes Gerät einzeln.
 

@@ -3,10 +3,16 @@ import type { ClickAction, ConditionClause, WidgetConfig } from '../../../types'
 import { subscribeDpValue, setStateDirect } from '../../../hooks/useIoBroker';
 import { useConnectionStore } from '../../../store/connectionStore';
 import { useDashboardStore } from '../../../store/dashboardStore';
-import { usePopupConfigStore, CLIENT_ID_TOKEN, type PopupTrigger } from '../../../store/popupConfigStore';
+import {
+    usePopupConfigStore,
+    CLIENT_ID_TOKEN,
+    triggerClauses,
+    type PopupTrigger,
+} from '../../../store/popupConfigStore';
 import { usePopupRuntimeStore } from '../../../store/popupRuntimeStore';
 import { isScreenshotMode } from '../../../store/persistManager';
 import { evaluateClause } from '../../../utils/conditionEval';
+import { combineClauseHits } from '../../../utils/clauseLogic';
 import { WidgetClickPopup } from './WidgetClickPopup';
 
 /** Delay before writing the reset value back to the trigger DP.
@@ -23,21 +29,40 @@ export function __devForceDpTriggers(on: boolean): void {
     devTriggersForced = on;
 }
 
+/** How long a rule waits for the primed values of all its DPs before arming anyway. */
+const PRIME_GRACE_MS = 2000;
+
 function clauseDps(clause: ConditionClause): string[] {
     const dps = clause.datapoint ? [clause.datapoint] : [];
     if (clause.valueType === 'datapoint' && clause.value) dps.push(clause.value);
     return dps;
 }
 
+function triggerDps(trigger: PopupTrigger): string[] {
+    return [...new Set(triggerClauses(trigger).flatMap(clauseDps))];
+}
+
 function withClientId(trigger: PopupTrigger, clientId: string): PopupTrigger {
     const sub = (v: string) => v.split(CLIENT_ID_TOKEN).join(clientId);
-    const c = trigger.clause;
-    if (!c.datapoint.includes(CLIENT_ID_TOKEN) && !(c.valueType === 'datapoint' && c.value.includes(CLIENT_ID_TOKEN)))
-        return trigger;
-    return {
-        ...trigger,
-        clause: { ...c, datapoint: sub(c.datapoint), value: c.valueType === 'datapoint' ? sub(c.value) : c.value },
-    };
+    const usesToken = (c: ConditionClause) =>
+        c.datapoint.includes(CLIENT_ID_TOKEN) || (c.valueType === 'datapoint' && c.value.includes(CLIENT_ID_TOKEN));
+    const resolve = (c: ConditionClause): ConditionClause =>
+        usesToken(c)
+            ? { ...c, datapoint: sub(c.datapoint), value: c.valueType === 'datapoint' ? sub(c.value) : c.value }
+            : c;
+    if (!triggerClauses(trigger).some(usesToken)) return trigger;
+    return { ...trigger, clause: resolve(trigger.clause), extraClauses: trigger.extraClauses?.map(resolve) };
+}
+
+/**
+ * All conditions of a trigger against the latest values. A further condition
+ * whose datapoint is still empty is half-configured and simply left out — it
+ * must not turn an otherwise working rule into one that never fires.
+ */
+function triggerMatches(trigger: PopupTrigger, values: Map<string, unknown>): boolean {
+    const clauses = triggerClauses(trigger).filter((c, i) => i === 0 || c.datapoint);
+    const hits = clauses.map((c) => evaluateClause(c, values.get(c.datapoint) ?? null, values));
+    return combineClauseHits(clauses, hits, 'AND');
 }
 
 function inScope(trigger: PopupTrigger, clientId: string, layoutId?: string, tabId?: string): boolean {
@@ -104,17 +129,22 @@ export function DpPopupTriggers({ layoutId, tabId }: Props) {
             if (!liveIds.has(id)) matchedRef.current.delete(id);
         }
 
+        // DPs per trigger whose primed value has not arrived yet. With several
+        // conditions the primes land one after the other, and a rule half-primed
+        // would see `true AND <unknown>` flip to `true AND true` on page load. A DP
+        // that does not exist never primes, hence the grace period as a backstop.
+        const pending = new Map<string, Set<string>>(activeTriggers.map((t) => [t.id, new Set(triggerDps(t))]));
+        const graceTimer = window.setTimeout(() => pending.clear(), PRIME_GRACE_MS);
+
         const evaluate = (trigger: PopupTrigger) => {
-            const values = valuesRef.current;
-            const raw = values.get(trigger.clause.datapoint) ?? null;
-            const matched = evaluateClause(trigger.clause, raw, values);
+            const matched = triggerMatches(trigger, valuesRef.current);
             const prev = matchedRef.current.get(trigger.id);
             matchedRef.current.set(trigger.id, matched);
 
             // First evaluation only records the baseline. subscribeDpValue primes
             // with the current value, so firing here would re-open every popup
             // whose DP happens to sit at `true` on each page load / reconnect.
-            if (prev === undefined) return;
+            if (prev === undefined || pending.has(trigger.id)) return;
             if (matched === prev) return;
 
             if (!matched) {
@@ -152,7 +182,7 @@ export function DpPopupTriggers({ layoutId, tabId }: Props) {
         // re-evaluates all of them.
         const consumers = new Map<string, PopupTrigger[]>();
         for (const trigger of activeTriggers) {
-            for (const dp of clauseDps(trigger.clause)) {
+            for (const dp of triggerDps(trigger)) {
                 const list = consumers.get(dp);
                 if (list) list.push(trigger);
                 else consumers.set(dp, [trigger]);
@@ -162,11 +192,19 @@ export function DpPopupTriggers({ layoutId, tabId }: Props) {
         const unsubs = [...consumers.entries()].map(([dp, rules]) =>
             subscribeDpValue(dp, (value) => {
                 valuesRef.current.set(dp, value);
-                for (const rule of rules) evaluate(rule);
+                for (const rule of rules) {
+                    // The evaluation that completes priming still only sets the
+                    // baseline — the rule is armed from the next value on.
+                    const waiting = pending.get(rule.id);
+                    waiting?.delete(dp);
+                    evaluate(rule);
+                    if (waiting && !waiting.size) pending.delete(rule.id);
+                }
             }),
         );
 
         return () => {
+            window.clearTimeout(graceTimer);
             unsubs.forEach((u) => u());
             for (const timer of resetTimers.values()) window.clearTimeout(timer);
             resetTimers.clear();

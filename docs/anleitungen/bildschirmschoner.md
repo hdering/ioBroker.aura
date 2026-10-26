@@ -30,7 +30,7 @@ Jedes Gerät meldet seinen Zustand in `aura.0.clients.<ID>.idle.active` (`true` 
 
 | Schritt | |
 | --- | --- |
-| Knopf **Bildschirmschoner** | Setzt die Bedingung `aura.0.clients.{{clientId}}.idle.active` = `true` und „Popup schließen, wenn die Bedingung nicht mehr erfüllt ist“ |
+| Knopf **Bildschirmschoner** | Setzt die Bedingung `aura.0.clients.{{clientId}}.idle.active` = `true` und „Popup schließen, wenn die Bedingungen nicht mehr erfüllt sind“ |
 | Aktion | `Popup: View` |
 | Popup-View | Die Ruhe-Ansicht aus Schritt 2 |
 | Titel ausblenden | An |

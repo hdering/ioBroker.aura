@@ -15,6 +15,7 @@ import {
     DEFAULT_POPUP_PADDING,
     MAX_POPUP_PADDING,
     CLIENT_ID_TOKEN,
+    triggerClauses,
     type PopupView,
     type PopupTrigger,
 } from '../../store/popupConfigStore';
@@ -26,7 +27,7 @@ import { BackgroundImageField } from '../../components/config/BackgroundImageFie
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { ClickActionEditor } from '../../components/config/ClickActionEditor';
 import { PopupCountdownSelect } from '../../components/config/PopupCountdownSelect';
-import { ClauseRow, newClause } from '../../components/config/ConditionEditor';
+import { ClauseList, newClause } from '../../components/config/ConditionEditor';
 import { ConfigModal } from '../../components/config/ConfigModal';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
@@ -1247,18 +1248,26 @@ function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose
 
                 <div>
                     <label className="text-[11px] mb-1 block" style={labelStyle}>
-                        Bedingung
+                        Bedingungen
                     </label>
-                    <ClauseRow
-                        clause={trigger.clause}
-                        isFirst
-                        onChange={(clause) => patch({ clause })}
-                        onDelete={() => patch({ clause: newClause() })}
-                    />
+                    {/* Several conditions with UND/ODER and brackets (#849). The first
+                        row stays the trigger DP — `{{dp}}` in the popup and reset target. */}
+                    <div className="space-y-1.5">
+                        <ClauseList
+                            clauses={triggerClauses(trigger)}
+                            logic="AND"
+                            addLabel="Bedingung hinzufügen"
+                            onChange={(next) => {
+                                const [first = newClause(), ...rest] = next;
+                                patch({ clause: first, extraClauses: rest.length ? rest : undefined });
+                            }}
+                        />
+                    </div>
                     <p className="text-[11px] mt-1.5" style={labelStyle}>
-                        Das Popup öffnet bei der Flanke — also erst, wenn die Bedingung von {'„nicht erfüllt“'} auf{' '}
-                        {'„erfüllt“'} wechselt. Steht der Datenpunkt beim Laden der Seite schon auf dem Trigger-Wert,
-                        passiert nichts.
+                        Das Popup öffnet bei der Flanke — also erst, wenn die Bedingungen von {'„nicht erfüllt“'} auf{' '}
+                        {'„erfüllt“'} wechseln. Sind sie beim Laden der Seite schon erfüllt, passiert nichts. Der
+                        Datenpunkt der ersten Bedingung steht im Popup als <span className="font-mono">{'{{dp}}'}</span>{' '}
+                        bereit und wird beim Zurücksetzen beschrieben.
                     </p>
                     {/* Screensaver preset (#822): the idle DP of whichever device shows the dashboard. */}
                     <div className="flex items-start gap-2 mt-2">
@@ -1342,7 +1351,7 @@ function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose
                             onChange={(e) => patch({ closeOnFalse: e.target.checked })}
                         />
                         <span style={{ color: 'var(--text-primary)' }}>
-                            Popup schließen, wenn die Bedingung nicht mehr erfüllt ist
+                            Popup schließen, wenn die Bedingungen nicht mehr erfüllt sind
                         </span>
                     </label>
                     {trigger.closeOnFalse && trigger.resetDp && (
@@ -1564,6 +1573,9 @@ function PopupTriggersSection() {
                                 title={trigger.clause.datapoint}
                             >
                                 {trigger.clause.datapoint || '— kein Datenpunkt —'}
+                                {!!trigger.extraClauses?.length && (
+                                    <span className="font-sans"> + {trigger.extraClauses.length} weitere</span>
+                                )}
                             </div>
                         </div>
 
