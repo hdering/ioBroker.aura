@@ -11,7 +11,8 @@
 // delete asks first, then sends deleteScene; Escape closes only the picker; the notices for a missing / stopped scenes adapter;
 // editing in the frontend only with allowEdit; the edit dialog's "Manage scenes" section
 // lists the own scenes and opens the master-detail editor: datapoint of a row changed,
-// rows reordered by drag, a device added, all of it saved in that order.
+// rows reordered by drag, a device added, all of it saved in that order. Option sceneDps
+// narrows the runtime picker (instance / wildcard patterns) and is edited in that section.
 // Backend replies come from the harness (mockSendTo), writes are captured (captureWrites).
 import { chromium } from 'playwright';
 
@@ -72,10 +73,14 @@ const SCENES = [
     { id: 'scene.0.Nacht', name: 'Nacht', own: false, enabled: true, memberCount: 5 },
 ];
 // The picker's datapoint list (getObjectView). demo.sc counts as an enabled instance,
-// otherwise the picker hides the rows as inactive.
+// otherwise the picker hides the rows as inactive. hm-rpc.0 is only there for the
+// "whole instance" select of sceneDps.
 await page.evaluate((dev) => {
     window.__auraShot.mockObjectView({
-        state: dev.map((d) => ({
+        state: [
+            ...dev,
+            { id: 'hm-rpc.0.ABC123.1.STATE', name: 'Flurlicht', type: 'boolean', unit: '', problem: null },
+        ].map((d) => ({
             id: d.id,
             value: {
                 _id: d.id,
@@ -83,7 +88,10 @@ await page.evaluate((dev) => {
                 common: { name: d.name, type: d.type, role: 'state', unit: d.unit, write: d.problem !== 'read-only' },
             },
         })),
-        instance: [{ id: 'system.adapter.demo.sc', value: { common: { enabled: true } } }],
+        instance: [
+            { id: 'system.adapter.demo.sc', value: { common: { enabled: true } } },
+            { id: 'system.adapter.hm-rpc.0', value: { common: { enabled: true } } },
+        ],
     });
 }, DEV);
 const PICKER = '.z-\\[10050\\]';
@@ -297,6 +305,40 @@ const row = (name) => modal.locator('[data-testid="scene-device"]', { hasText: n
     await modal.waitFor({ state: 'detached' });
 }
 
+// ── allowed datapoints (sceneDps) ─────────────────────────────────────────────
+{
+    const w = await mount({ allowEdit: true, sceneDps: ['*.desk', 'demo.sc.mode'] }, REPLIES);
+    await w.locator('[data-testid="scene-add"]').click();
+    await modal.waitFor();
+    await modal.locator('[data-testid="scene-pick"]').click();
+    const picker = page.locator(PICKER).last();
+    await picker.waitFor({ timeout: 10000 });
+    await picker.getByText('Schreibtisch', { exact: true }).first().waitFor({ timeout: 10000 });
+    const offered = ['Schreibtisch', 'Modus', 'Stehlampe', 'Fernseher'];
+    const counts = [];
+    for (const name of offered) counts.push(await picker.getByText(name, { exact: true }).count());
+    check(
+        'sceneDps: picker offers only matching datapoints (wildcard + exact id)',
+        counts[0] > 0 && counts[1] > 0 && counts[2] === 0 && counts[3] === 0,
+        offered.map((x, i) => `${x}=${counts[i]}`).join(' '),
+    );
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+    await modal.waitFor({ state: 'detached' });
+}
+{
+    const w = await mount({ allowEdit: true, sceneDps: ['demo.sc'] }, REPLIES);
+    await w.locator('[data-testid="scene-add"]').click();
+    await modal.waitFor();
+    await modal.locator('[data-testid="scene-pick"]').click();
+    const picker = page.locator(PICKER).last();
+    await picker.getByText('Stehlampe', { exact: true }).first().waitFor({ timeout: 10000 });
+    check('sceneDps: an instance prefix covers everything below it', true);
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');
+    await modal.waitFor({ state: 'detached' });
+}
+
 // ── notices ───────────────────────────────────────────────────────────────────
 {
     const w = await mount({}, { ...REPLIES, sceneStatus: status({ installed: false }) });
@@ -426,6 +468,30 @@ const row = (name) => modal.locator('[data-testid="scene-device"]', { hasText: n
         JSON.stringify(save?.payload?.members),
     );
     check('edit dialog stays open', (await cfg.count()) === 1);
+
+    // allowed datapoints: free pattern + whole instance, chips with match counts
+    const filter = cfg.locator('.aura-scenes-dp-filter');
+    await filter.locator('[data-testid="scenes-dp-input"]').fill('*.desk');
+    await filter.locator('[data-testid="scenes-dp-input"]').press('Enter');
+    await filter.locator('[data-testid="scenes-dp-instance"]').selectOption('hm-rpc.0');
+    await page.waitForTimeout(200);
+    const chips = await filter.locator('[data-testid="scenes-dp-pattern"]').evaluateAll((els) =>
+        els.map((e) => {
+            const p = e.getAttribute('data-pattern');
+            return `${p}:${e.innerText.replace(p, '').replace(/\D+/g, '')}`;
+        }),
+    );
+    check(
+        'pattern and instance added, each with its match count',
+        chips.join('|') === '*.desk:1|hm-rpc.0:1',
+        chips.join('|'),
+    );
+    await filter.locator('[data-testid="scenes-dp-pattern-remove"]').first().click();
+    check(
+        'pattern removed',
+        (await filter.locator('[data-testid="scenes-dp-pattern"]').count()) === 1,
+        String(await filter.locator('[data-testid="scenes-dp-pattern"]').count()),
+    );
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));

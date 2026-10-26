@@ -15423,7 +15423,9 @@ function WidgetFrameInner({
                             {config.type === 'timer' && <TimerConfig config={config} onConfigChange={onConfigChange} />}
 
                             {/* ── Scenes: manage the scenes (#825) ── */}
-                            {config.type === 'scenes' && <ScenesConfig />}
+                            {config.type === 'scenes' && (
+                                <ScenesConfig config={config} onConfigChange={onConfigChange} />
+                            )}
 
                             {/* ── Countdown config (#675) ── */}
                             {config.type === 'countdown' && (

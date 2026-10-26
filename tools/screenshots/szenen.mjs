@@ -4,6 +4,7 @@
 //         docs/widgets/assets/szenen/popup.png    (Szene bearbeiten)
 //         docs/widgets/assets/szenen/verwalten.png (Bearbeiten-Dialog, „Szenen verwalten“)
 //         docs/widgets/assets/szenen/editor.png   (Bearbeiten-Dialog, Szene bearbeiten)
+//         docs/widgets/assets/szenen/erlaubt.png  (Erlaubte Datenpunkte im Dashboard, sceneDps)
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/screenshots/szenen.mjs
@@ -134,14 +135,26 @@ await page.keyboard.press('Escape');
 
 // ── Bearbeiten-Dialog: „Szenen verwalten“ ─────────────────────────────────────
 await page.evaluate(
-    ([replies, widgets]) => {
+    ([replies, widgets, devices]) => {
         const a = window.__auraShot;
         a.mockSendTo(replies);
+        // Datapoint list for the match counts of sceneDps.
+        a.mockObjectView({
+            state: devices.map((d) => ({
+                id: d.id,
+                value: { _id: d.id, type: 'state', common: { name: d.name, type: d.type, role: 'state' } },
+            })),
+            instance: [{ id: 'system.adapter.demo.doc', value: { common: { enabled: true } } }],
+        });
         a.unfoldSections();
         a.showWidgets(widgets, { editMode: true });
         a.setEditMode(true);
     },
-    [REPLIES, [{ ...LIST, options: { showForeignScenes: true } }]],
+    [
+        REPLIES,
+        [{ ...LIST, options: { showForeignScenes: true, allowEdit: true, sceneDps: ['demo.doc', '*.STATE'] } }],
+        DEVICES,
+    ],
 );
 await page.locator('.aura-widget-w-sc-list .aura-edit-chrome button').first().click();
 await page.locator('button:text-is("Bearbeiten")').click();
@@ -149,7 +162,8 @@ const cfg = page.locator('details[data-aura-config-section="scenes"]');
 await cfg.locator('[data-testid="scenes-cfg-scene"]').first().waitFor({ timeout: 10000 });
 await page.waitForTimeout(300);
 await cfg.screenshot({ path: `${OUT}/verwalten.png` });
-console.log('✓ verwalten.png');
+await cfg.locator('.aura-scenes-dp-filter').screenshot({ path: `${OUT}/erlaubt.png` });
+console.log('✓ verwalten.png, erlaubt.png');
 
 await cfg
     .locator('[data-testid="scenes-cfg-scene"]', { hasText: 'Fernsehabend' })

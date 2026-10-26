@@ -7,15 +7,17 @@
  * "Current values" refreshes all of them — what learning used to be.
  *
  * The widget's runtime editor (option `allowEdit`); the edit dialog uses the larger
- * SceneManagerModal. Self-contained — it talks to the backend itself.
+ * SceneManagerModal. Self-contained — it talks to the backend itself. Option `sceneDps`
+ * narrows the picker to the datapoints the household may add (patterns, see dpPatterns).
  */
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, RefreshCw, Trash2, Plus } from 'lucide-react';
 import { usePortalTarget, usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { useT } from '../../i18n';
 import { useEscapeLayer } from '../../utils/escapeStack';
 import { DatapointPicker } from '../config/DatapointPicker';
+import { matchesDpPatterns } from '../../utils/dpPatterns';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import {
     callSceneBackend,
@@ -37,6 +39,8 @@ interface Props {
     /** After a successful save or delete (reply incl. `missing`), before closing. */
     onDone: (r: SceneReply) => void;
     onClose: () => void;
+    /** Patterns of the datapoints that may be added (option `sceneDps`); empty = all. */
+    allowedDps?: string[];
 }
 
 const inputCls = 'text-sm rounded-lg px-2.5 py-2 focus:outline-none';
@@ -130,7 +134,7 @@ export function ValueInput({
     );
 }
 
-export function SceneEditModal({ scene, onDone, onClose }: Props) {
+export function SceneEditModal({ scene, onDone, onClose, allowedDps = [] }: Props) {
     const t = useT();
     const portal = usePortalTarget();
     const themeVars = usePortalThemeVars();
@@ -148,6 +152,12 @@ export function SceneEditModal({ scene, onDone, onClose }: Props) {
         if (!picker) onClose();
     });
 
+    const allowedKey = allowedDps.join('|');
+    const allowed = useCallback(
+        (id: string) => matchesDpPatterns(id, allowedDps),
+        [allowedKey], // eslint-disable-line react-hooks/exhaustive-deps
+    );
+
     const merge = (list: SceneDevice[]) =>
         setDevices((prev) => ({ ...prev, ...Object.fromEntries(list.map((d) => [d.id, d])) }));
 
@@ -160,7 +170,9 @@ export function SceneEditModal({ scene, onDone, onClose }: Props) {
     const nameOf = (id: string) => devices[id]?.name ?? id;
 
     // Runs after an async lookup too, so everything goes through functional updates.
-    const add = (list: SceneDevice[]) => {
+    const add = (picked: SceneDevice[]) => {
+        // The picker only offers allowed ones; a typed-in id is checked here.
+        const list = picked.map((d) => (allowed(d.id) ? d : { ...d, problem: d.problem ?? 'not allowed' }));
         const rejected = list.filter((d) => d.problem);
         setMsg(
             rejected.length
@@ -405,6 +417,7 @@ export function SceneEditModal({ scene, onDone, onClose }: Props) {
                 <div onClick={(e) => e.stopPropagation()}>
                     <DatapointPicker
                         currentValue=""
+                        idFilter={allowedDps.length ? allowed : undefined}
                         onSelect={(id) => {
                             setPicker(false);
                             void loadDevices([id]).then(add);

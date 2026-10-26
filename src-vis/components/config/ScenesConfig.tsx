@@ -4,14 +4,20 @@
  * the "Datenpunkte verwalten"-style editor (order, datapoint and value per device). The
  * widget's runtime popup with `allowEdit` is the smaller SceneEditModal. Scenes of the
  * scenes adapter's own admin are only counted — they are edited there.
+ *
+ * Also edits option `sceneDps`: which datapoints the runtime popup may add (patterns —
+ * a whole instance like `hm-rpc.0` or wildcards like `*.STATE`; empty = all).
  */
-import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, MoreHorizontal, Plus } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, MoreHorizontal, Plus, X } from 'lucide-react';
+import type { WidgetConfig } from '../../types';
+import { useDatapointList } from '../../hooks/useDatapointList';
+import { cleanDpPatterns, matchesDpPattern } from '../../utils/dpPatterns';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 import { SceneManagerModal } from './SceneManagerModal';
 import { loadScenes, sceneDeviceName, type SceneInfo, type SceneReply, type SceneStatus } from '../widgets/scenesApi';
-import { ConfigSection } from './ConfigSection';
+import { ConfigSection, SubGroup } from './ConfigSection';
 
 const btnStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
@@ -19,7 +25,132 @@ const btnStyle: React.CSSProperties = {
     border: '1px solid var(--app-border)',
 };
 
-export function ScenesConfig() {
+interface Props {
+    config: WidgetConfig;
+    onConfigChange: (config: WidgetConfig) => void;
+}
+
+/** Instance ids (`adapter.N`) that own at least one datapoint. */
+function instancesOf(ids: string[]): string[] {
+    const set = new Set<string>();
+    for (const id of ids) {
+        const m = /^([^.]+\.\d+)\./.exec(id);
+        if (m) set.add(m[1]);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+}
+
+/** Option `sceneDps`: chips with the number of matching datapoints, free input, instance select. */
+function SceneDpFilter({ config, onConfigChange }: Props) {
+    const t = useT();
+    const o = config.options ?? {};
+    const patterns = cleanDpPatterns(o.sceneDps);
+    const { datapoints, loaded, load } = useDatapointList();
+    const [draft, setDraft] = useState('');
+
+    useEffect(() => {
+        void load();
+    }, [load]);
+
+    const ids = useMemo(() => datapoints.map((d) => d.id), [datapoints]);
+    const instances = useMemo(() => instancesOf(ids), [ids]);
+    const countOf = (p: string) => ids.filter((id) => matchesDpPattern(id, p)).length;
+
+    const write = (next: string[]) =>
+        onConfigChange({ ...config, options: { ...o, sceneDps: next.length ? next : undefined } });
+    const add = (raw: string) => {
+        const next = cleanDpPatterns([...patterns, ...raw.split(/[,;\s]+/)]);
+        if (next.length !== patterns.length) write(next);
+        setDraft('');
+    };
+
+    return (
+        <SubGroup
+            title={t('scenes.cfg.allowedTitle')}
+            count={patterns.length ? String(patterns.length) : t('scenes.cfg.allowedAll')}
+            className="aura-scenes-dp-filter"
+        >
+            {patterns.length > 0 && (
+                <div className="flex flex-wrap gap-1" data-testid="scenes-dp-patterns">
+                    {patterns.map((p) => (
+                        <span
+                            key={p}
+                            className="inline-flex items-center gap-1 pl-2 pr-0.5 py-0.5 rounded-md text-xs font-mono"
+                            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                            data-testid="scenes-dp-pattern"
+                            data-pattern={p}
+                        >
+                            <span style={{ color: 'var(--text-primary)' }}>{p}</span>
+                            {loaded && (
+                                <span className="font-sans text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {countOf(p)}
+                                </span>
+                            )}
+                            <button
+                                onClick={() => write(patterns.filter((x) => x !== p))}
+                                className="p-0.5 rounded hover:opacity-70"
+                                style={{ color: 'var(--text-secondary)' }}
+                                title={t('scenes.remove')}
+                                data-testid="scenes-dp-pattern-remove"
+                            >
+                                <X size={11} />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
+            <div className="flex gap-1.5">
+                <input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' && draft.trim()) add(draft);
+                    }}
+                    placeholder={t('scenes.cfg.allowedPlaceholder')}
+                    className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-1.5 font-mono focus:outline-none"
+                    style={{ ...btnStyle, color: 'var(--text-primary)' }}
+                    data-testid="scenes-dp-input"
+                />
+                <button
+                    onClick={() => add(draft)}
+                    disabled={!draft.trim()}
+                    className="shrink-0 px-2 rounded-lg hover:opacity-80 disabled:opacity-40"
+                    style={btnStyle}
+                    title={t('scenes.cfg.allowedAdd')}
+                    data-testid="scenes-dp-add"
+                >
+                    <Plus size={12} />
+                </button>
+            </div>
+            <select
+                value=""
+                onChange={(e) => e.target.value && add(e.target.value)}
+                className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                style={{ ...btnStyle, color: 'var(--text-primary)' }}
+                data-testid="scenes-dp-instance"
+            >
+                <option value="">{t('scenes.cfg.allowedInstance')}</option>
+                {instances
+                    .filter((i) => !patterns.includes(i))
+                    .map((i) => (
+                        <option key={i} value={i}>
+                            {i}
+                        </option>
+                    ))}
+            </select>
+            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                {t('scenes.cfg.allowedHint')}
+            </p>
+            {o.allowEdit !== true && patterns.length > 0 && (
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    {t('scenes.cfg.allowedNoEdit')}
+                </p>
+            )}
+        </SubGroup>
+    );
+}
+
+export function ScenesConfig({ config, onConfigChange }: Props) {
     const t = useT();
     const { connected } = useIoBroker();
     const [status, setStatus] = useState<SceneStatus | null>(null);
@@ -129,6 +260,7 @@ export function ScenesConfig() {
                         {notice && warn(notice)}
                     </>
                 )}
+                <SceneDpFilter config={config} onConfigChange={onConfigChange} />
             </div>
             {editing && (
                 <SceneManagerModal

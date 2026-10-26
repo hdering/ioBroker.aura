@@ -20,6 +20,7 @@ import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { SceneEditModal } from './SceneEditModal';
+import { cleanDpPatterns } from '../../utils/dpPatterns';
 import { loadScenes, sceneDeviceName, type SceneInfo, type SceneReply, type SceneStatus } from './scenesApi';
 
 export function ScenesWidget({ config }: WidgetProps) {
@@ -34,6 +35,7 @@ export function ScenesWidget({ config }: WidgetProps) {
     const showForeign = o.showForeignScenes === true;
     const allowEdit = o.allowEdit === true;
     const showDeviceCount = o.showDeviceCount !== false;
+    const sceneDps = useMemo(() => cleanDpPatterns(o.sceneDps as string[] | undefined), [o.sceneDps]);
     const tiles = config.layout === 'card';
     const Icon = getWidgetIcon((o.icon as string) ?? 'Clapperboard', Clapperboard);
     const { fit: autoHeight, measureRef } = useContentAutoHeight(config);
@@ -273,7 +275,12 @@ export function ScenesWidget({ config }: WidgetProps) {
             {header}
             {body}
             {editing && status && (
-                <SceneEditModal scene={editingScene} onClose={() => setEditing(null)} onDone={afterWrite} />
+                <SceneEditModal
+                    scene={editingScene}
+                    onClose={() => setEditing(null)}
+                    onDone={afterWrite}
+                    allowedDps={sceneDps}
+                />
             )}
         </div>
     );

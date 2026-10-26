@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.93.0",
+    "auraVersion": "0.93.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -17053,6 +17053,13 @@
           "type": "string",
           "default": "Clapperboard",
           "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, \"#tint\" färbt ein einfarbiges PNG in der Icon-Farbe ein; sonst hat ein PNG seine eigenen Farben). Leer = Standard-Icon des Typs."
+        },
+        "sceneDps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Liste von Mustern: welche Datenpunkte „Gerät hinzufügen“ im Dashboard (allowEdit) anbietet. Ohne * gilt der Eintrag samt allem darunter (\"hm-rpc.0\" = ganze Instanz, \"zigbee.0.0x1234\" = ein Gerät); * = beliebige Zeichen inkl. Punkt (\"*.STATE\", \"0_userdata.0.licht*\"). Leer/fehlt = alle. Gilt nicht für „Szenen verwalten“ im Bearbeiten-Dialog; vorhandene Szenen-Mitglieder bleiben."
         },
         "showDeviceCount": {
           "type": "boolean",

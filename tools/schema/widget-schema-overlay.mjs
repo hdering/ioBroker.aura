@@ -1066,6 +1066,13 @@ export const WIDGET_OPTION_NOTES = {
                 'Auch Szenen zeigen, die im Admin des Szenen-Adapters angelegt wurden — die lassen sich nur auslösen, ' +
                 'nicht bearbeiten. Aus = nur die im Dashboard angelegten (scene.0.aura.*).',
         },
+        sceneDps: {
+            description:
+                'Liste von Mustern: welche Datenpunkte „Gerät hinzufügen“ im Dashboard (allowEdit) anbietet. ' +
+                'Ohne * gilt der Eintrag samt allem darunter ("hm-rpc.0" = ganze Instanz, "zigbee.0.0x1234" = ein Gerät); ' +
+                '* = beliebige Zeichen inkl. Punkt ("*.STATE", "0_userdata.0.licht*"). Leer/fehlt = alle. ' +
+                'Gilt nicht für „Szenen verwalten“ im Bearbeiten-Dialog; vorhandene Szenen-Mitglieder bleiben.',
+        },
     },
     historytable: {
         historyInstance: {

@@ -33,6 +33,21 @@ Im Bearbeiten-Dialog des Widgets, Abschnitt **Szenen verwalten**; **+ Neue Szene
 
 Erlaubt ist jeder beschreibbare Datenpunkt außer `system.*` und `scene.*`.
 
+### Erlaubte Datenpunkte im Dashboard
+
+Im selben Abschnitt: welche Datenpunkte **Gerät hinzufügen** im Dashboard (`allowEdit`) anbietet, z. B. für Haushaltsmitglieder. Leer = alle. Der Editor im Bearbeiten-Dialog bleibt uneingeschränkt.
+
+![](./assets/szenen/erlaubt.png)
+
+| Eintrag | erlaubt |
+| --- | --- |
+| `hm-rpc.0` (über **Ganze Instanz hinzufügen**) | alle Datenpunkte der Instanz |
+| `zigbee.0.0x00158d0001a2b3c4` | ein Gerät mit allem darunter |
+| `*.STATE` | jeder Datenpunkt, der auf `.STATE` endet |
+| `0_userdata.0.licht*` | alles, was so beginnt |
+
+Die Zahl am Eintrag zeigt, wie viele Datenpunkte er trifft.
+
 | Szenen | bearbeitbar | Ablage |
 | --- | --- | --- |
 | in Aura angelegt | ja | `scene.0.aura.<name>` |
@@ -55,6 +70,7 @@ Wer im Dashboard Szenen ändern darf, regelt `allowEdit` zusammen mit dem PIN vo
 | `allowEdit` | `false` | Szenen auch im Dashboard anlegen und bearbeiten |
 | `showDeviceCount` | `true` | Anzahl Geräte je Szene (Liste) |
 | `showForeignScenes` | `false` | Szenen aus dem Admin mit anzeigen |
+| `sceneDps` | leer | Muster der im Dashboard wählbaren Datenpunkte |
 | `autoHeight` | `false` | Höhe folgt der Zahl der Szenen — siehe [Höhe an Inhalt anpassen](../einstellungen/editor#hohe-an-inhalt-anpassen) |
 
 ## Hinweise im Widget
@@ -65,5 +81,5 @@ Wer im Dashboard Szenen ändern darf, regelt `allowEdit` zusammen mit dem PIN vo
 | Szenen-Adapter läuft nicht | Instanz gestoppt, Auslösen wirkt nicht |
 | keine weiteren Szenen (unter „Szenen verwalten“) | im Admin des Szenen-Adapters ist nichts angelegt; `showForeignScenes` zeigt dann nichts |
 | Ohne Wert (beim Auslösen „aus“) | Gerät hatte beim Speichern keinen Wert |
-| Nicht als Szenen-Gerät nutzbar | Datenpunkt nur lesbar, `system.*` oder `scene.*` |
+| Nicht als Szenen-Gerät nutzbar | Datenpunkt nicht in `sceneDps`, nur lesbar, `system.*` oder `scene.*` |
 | nicht verfügbar (im Popup) | Datenpunkt existiert nicht mehr; Gerät entfernen |

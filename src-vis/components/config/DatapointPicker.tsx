@@ -37,6 +37,8 @@ interface DatapointPickerProps {
     multiSelect?: boolean;
     onMultiSelect?: (picks: DatapointEntry[]) => void;
     allowedTypes?: string[];
+    /** Only offer datapoints this returns true for (e.g. a widget's allow-list). */
+    idFilter?: (id: string) => boolean;
     /** Which modes to offer: ['dp'] = DP only (default), ['files'] = files only, ['dp','files'] = both */
     modes?: ('dp' | 'files')[];
     defaultMode?: 'dp' | 'files';
@@ -1380,13 +1382,18 @@ export function DatapointPicker({
     multiSelect,
     onMultiSelect,
     allowedTypes,
+    idFilter,
     modes = ['dp'],
     defaultMode,
     acceptMime,
 }: DatapointPickerProps) {
     const t = useT();
     const themeVars = usePortalThemeVars();
-    const { datapoints, loading, loaded, load } = useDatapointList();
+    const { datapoints: allDatapoints, loading, loaded, load } = useDatapointList();
+    const datapoints = useMemo(
+        () => (idFilter ? allDatapoints.filter((dp) => idFilter(dp.id)) : allDatapoints),
+        [allDatapoints, idFilter],
+    );
 
     // The picker is always the topmost layer, so Escape closes it — and nothing
     // else. Without the shared stack the dialog underneath closed instead.
