@@ -5727,9 +5727,57 @@
           "ref": "NumberFormat",
           "description": "Thousands separator of numeric cells (also numeric strings). Unset = the global setting, applied only when decimals is set."
         },
+        "mapValues": {
+          "type": "boolean",
+          "description": "Map cell values to an icon, text and colour (#852). Image and HTML columns ignore it."
+        },
+        "valueMap": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "EnumEntry"
+          },
+          "description": "Value → entry list of mapValues — kept while the switch is off. Unmatched values print as usual."
+        },
         "order": {
           "type": "number",
           "description": "lower = further left"
+        }
+      }
+    },
+    "EnumEntry": {
+      "type": "object",
+      "fields": {
+        "value": {
+          "type": "string",
+          "required": true,
+          "description": "stored as string; parsed to number if numeric"
+        },
+        "label": {
+          "type": "string",
+          "required": true,
+          "description": "text/HTML content, and the name/alt for image+icon entries"
+        },
+        "color": {
+          "type": "string",
+          "color": true
+        },
+        "render": {
+          "type": "string",
+          "ref": "EnumRender",
+          "description": "How the entry is rendered. Defaults to text (or html for legacy HTML labels)."
+        },
+        "image": {
+          "type": "string",
+          "description": "image URL or aura-file: path (render === 'image')"
+        },
+        "icon": {
+          "type": "string",
+          "description": "iconify id (render === 'icon')"
+        },
+        "size": {
+          "type": "number",
+          "description": "px size for image/icon"
         }
       }
     },
@@ -5851,42 +5899,6 @@
         "md",
         "lg"
       ]
-    },
-    "EnumEntry": {
-      "type": "object",
-      "fields": {
-        "value": {
-          "type": "string",
-          "required": true,
-          "description": "stored as string; parsed to number if numeric"
-        },
-        "label": {
-          "type": "string",
-          "required": true,
-          "description": "text/HTML content, and the name/alt for image+icon entries"
-        },
-        "color": {
-          "type": "string",
-          "color": true
-        },
-        "render": {
-          "type": "string",
-          "ref": "EnumRender",
-          "description": "How the entry is rendered. Defaults to text (or html for legacy HTML labels)."
-        },
-        "image": {
-          "type": "string",
-          "description": "image URL or aura-file: path (render === 'image')"
-        },
-        "icon": {
-          "type": "string",
-          "description": "iconify id (render === 'icon')"
-        },
-        "size": {
-          "type": "number",
-          "description": "px size for image/icon"
-        }
-      }
     },
     "LightColorMode": {
       "type": "string",
@@ -14656,7 +14668,7 @@
             "type": "object",
             "ref": "JsonColumnDef"
           },
-          "description": "Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen, numberFormat setzt das Tausendertrennzeichen (auch ohne decimals, dann mit den Nachkommastellen des Werts)."
+          "description": "Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen, numberFormat setzt das Tausendertrennzeichen (auch ohne decimals, dann mit den Nachkommastellen des Werts). Zuordnung: mapValues true + valueMap [{value, label?, icon?, color?}] zeigt bestimmte Werte als Icon (Iconify-Id) mit optionalem Text daneben, ohne Icon den Text statt des Werts, alles in color — z. B. Anrufart 1/2/3 als Telefon-Icons in Grün/Rot/Blau. value ist Text und trifft Zahlen (\"1\" = 1) und Booleans (\"true\"); nicht zugeordnete Werte erscheinen normal formatiert. Nicht in Bild- oder HTML-Spalten."
         },
         "firstColBg": {
           "type": "string",
