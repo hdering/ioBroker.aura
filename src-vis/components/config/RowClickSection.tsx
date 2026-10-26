@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { BackgroundImage, ClickAction, PopupCountdownPosition, WidgetConfig } from '../../types';
 import { DEFAULT_ROW_CLICK_ACTION, type RowClickSetting, type RowPopupOptions } from '../../utils/rowClickAction';
 import { ClickActionEditor } from './ClickActionEditor';
@@ -177,22 +178,31 @@ export function RowClickSection({
     config,
     opts,
     onChange,
+    allowAuto = true,
+    hint,
+    defaultAction = DEFAULT_ROW_CLICK_ACTION,
 }: {
     config: WidgetConfig;
     opts: RowPopupOptions;
     onChange: (patch: RowPopupOptions) => void;
+    /** False where rows carry no datapoint to derive a popup from (JSON table). */
+    allowAuto?: boolean;
+    /** Shown under the custom action, e.g. the tokens the clicked row provides. */
+    hint?: ReactNode;
+    /** What "Eigene Aktion" starts from. Default: the datapoint list of the row's branch. */
+    defaultAction?: ClickAction;
 }) {
     const stored = opts.rowClickAction;
     // undefined = not configured = off, so rows stay inert until an action is picked.
     const mode: Mode =
         stored === undefined ? 'off' : stored === 'auto' ? 'auto' : stored.kind === 'none' ? 'off' : 'custom';
-    const customAction = typeof stored === 'object' ? stored : DEFAULT_ROW_CLICK_ACTION;
+    const customAction = typeof stored === 'object' ? stored : defaultAction;
 
     const setMode = (next: Mode) => {
         if (next === mode) return;
         if (next === 'auto') return onChange({ rowClickAction: 'auto' });
         if (next === 'off') return onChange({ rowClickAction: { kind: 'none' } });
-        onChange({ rowClickAction: DEFAULT_ROW_CLICK_ACTION });
+        onChange({ rowClickAction: defaultAction });
     };
 
     return (
@@ -202,7 +212,7 @@ export function RowClickSection({
                 Klick auf Zeile
             </label>
             <div className="flex gap-1 mb-1.5">
-                {MODES.map((m) => (
+                {MODES.filter((m) => allowAuto || m.value !== 'auto').map((m) => (
                     <button
                         key={m.value}
                         onClick={() => setMode(m.value)}
@@ -263,6 +273,7 @@ export function RowClickSection({
                     hideNone
                 />
             )}
+            {mode === 'custom' && hint}
         </div>
     );
 }

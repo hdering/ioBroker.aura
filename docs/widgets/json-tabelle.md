@@ -116,6 +116,22 @@ Schalter **Zuordnung** in der Spalte → **Zuordnungen bearbeiten** öffnet die 
 | `mapValues` | Zuordnung an |
 | `valueMap` | `[{ value, label, icon, color }]` — `value` als Text: `"1"` trifft `1`, `"true"` trifft `true` |
 
+#### Klick auf Zeile
+
+Bereich **Verhalten** → **Klick auf Zeile** → **Eigene Aktion** öffnet pro Zeile ein Popup (HTML-Popup mit allen Feldern als Vorlage, Popup-View, …). Im Popup stehen die Felder der geklickten Zeile bereit, auch ausgeblendete Spalten:
+
+| Platzhalter | |
+| --- | --- |
+| `{{row_<feld>}}` | Rohwert (Objekte als JSON) |
+| `{{rowtext_<feld>}}` | Text wie in der Tabelle (Datum, Zahlenformat, Zuordnung, Präfix/Suffix) |
+
+Andere Zeichen als Buchstaben, Ziffern und `_` im Feldnamen werden zu `_`: `Wert (kWh)` → `{{row_Wert__kWh_}}`. Gilt in Popup-Titel, HTML-Popup und allen Feldern der Widgets einer Popup-View. Ohne eigenen Titel heißt das Popup wie die erste sichtbare Zelle.
+
+| Option | |
+| --- | --- |
+| `rowClickAction` | Aktion je Zeile; leer = Zeilen nicht anklickbar |
+| `rowPopupTitle` | Popup-Titel, darf Platzhalter enthalten |
+
 #### HTML-Breite
 
 ![](./assets/json-tabelle/html-breite.png)

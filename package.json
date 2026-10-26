@@ -160,6 +160,7 @@
     "test:jsontable-format": "node tools/tests/jsontable-cell-format.mjs",
     "test:jsontable-format-ui": "node tools/tests/jsontable-cell-format-ui.mjs",
     "test:jsontable-value-map": "node tools/tests/jsontable-value-map-ui.mjs",
+    "test:jsontable-row-popup": "node tools/tests/jsontable-row-popup-ui.mjs",
     "test:common-states": "node tools/tests/common-states.mjs",
     "test:jsontable-sort": "node tools/tests/jsontable-default-sort.mjs",
     "test:apple-keys": "node tools/tests/apple-shortcut-keys.mjs",

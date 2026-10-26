@@ -8,7 +8,16 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { cellText, findCellEntry, formatCellValue, hasCellFormat } from '../../utils/jsonTableFormat';
+import {
+    cellText,
+    findCellEntry,
+    formatCellValue,
+    hasCellFormat,
+    jsonRowVars,
+    rowTokenName,
+} from '../../utils/jsonTableFormat';
+import { useRowPopup } from '../../hooks/useRowPopup';
+import type { RowPopupOptions } from '../../utils/rowClickAction';
 import type { EnumEntry } from './enumEntry';
 import { sortJsonRows, usableJsonSortRules, type JsonSortRule } from '../../utils/jsonTableSort';
 import type { NumberFormat } from '../../utils/formatValue';
@@ -246,7 +255,7 @@ export function parseJson(raw: unknown): TableData | null {
 }
 
 // ── Main widget ────────────────────────────────────────────────────────────────
-export function JsonTableWidget({ config }: WidgetProps) {
+export function JsonTableWidget({ config, editMode }: WidgetProps) {
     const opts = config.options ?? {};
     const { value } = useDatapoint(config.datapoint);
 
@@ -352,6 +361,24 @@ export function JsonTableWidget({ config }: WidgetProps) {
         () => (maxRows > 0 ? sortedRows.slice(0, maxRows) : sortedRows),
         [sortedRows, maxRows],
     );
+
+    // Row click → popup with the row's fields as {{row_<key>}} / {{rowtext_<key>}} (#858).
+    // The rows have no datapoint of their own, so "automatic" (role-derived) means off here.
+    const rowPopupOpts = useMemo<RowPopupOptions>(() => {
+        const o = (config.options ?? {}) as RowPopupOptions;
+        return { ...o, rowClickAction: o.rowClickAction === 'auto' ? undefined : o.rowClickAction };
+    }, [config.options]);
+    const rowPopup = useRowPopup(config, rowPopupOpts, editMode);
+    const rowClickProps = (row: Record<string, unknown>) => {
+        // Building the tokens walks every field, so rows without an action skip it.
+        if (!rowPopup.actionFor(config.datapoint)) return undefined;
+        const allDefs = (opts.columns as JsonColumnDef[] | undefined) ?? [];
+        const vars = jsonRowVars(row, allDefs, t, numFmt);
+        // Default heading: the first visible cell as the table prints it.
+        const first = columns[0];
+        const label = first ? (vars[`rowtext_${rowTokenName(first.key)}`] ?? '') : '';
+        return rowPopup.row(config.datapoint, label, undefined, undefined, undefined, undefined, undefined, vars);
+    };
 
     // Cycle a header through asc → desc → unsorted. "Unsorted" is the configured
     // order, so its leading column just flips between its two directions. A column the
@@ -649,7 +676,12 @@ export function JsonTableWidget({ config }: WidgetProps) {
                             displayedRows.map((row, ri) => (
                                 <tr
                                     key={ri}
+                                    {...rowClickProps(row)}
+                                    className={
+                                        rowPopup.actionFor(config.datapoint) ? 'aura-jsontable-row-click' : undefined
+                                    }
                                     style={{
+                                        cursor: rowPopup.actionFor(config.datapoint) ? 'pointer' : undefined,
                                         background:
                                             striped && ri % 2 === 1
                                                 ? 'color-mix(in srgb, var(--app-bg) 60%, transparent)'
@@ -748,6 +780,8 @@ export function JsonTableWidget({ config }: WidgetProps) {
                     </tbody>
                 </table>
             </div>
+
+            {rowPopup.node}
 
             {/* Row count when search active */}
             {showSearch && query && (

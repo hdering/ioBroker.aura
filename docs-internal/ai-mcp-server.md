@@ -1431,6 +1431,16 @@ zeichnet auf ein Canvas, wo `var()` nicht aufgelöst wird; das Rezept sagt das
 dazu. Ein Test hält es fest: kein Widget eines Rezepts außer `echart` darf einen
 Hex-Wert enthalten.
 
+## Zeilen-Popup der JSON-Tabelle (#858)
+
+Die JSON-Tabelle kennt `rowClickAction` wie die Listen, ohne `"auto"` (die Zeilen
+haben keinen Datenpunkt). Die Felder der geklickten Zeile reisen als String-Optionen
+`row_<feld>` / `rowtext_<feld>` am synthetischen Host-Widget mit (`useRowPopup`,
+`vars`) — `buildPopupSubMap` nimmt jede String-Option des Auslösers in die
+Platzhalter-Tabelle, deshalb brauchte das Popup selbst keinen Umbau. `popup-html`
+ersetzt seit #858 `{{…}}` im statischen `html` (nicht im HTML aus einem Datenpunkt).
+Ohne Rezept hätte kein Modell die Platzhalter gefunden: `json-protokoll-detail`.
+
 ## Union-Typen: `ClickAction`
 
 Aus der Praxis gemeldet: `aura_widget_schema` **und** `aura_types` antworteten

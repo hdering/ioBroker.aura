@@ -14,3 +14,4 @@
 
 - Editor - the settings popovers of sections and tabs are wider while markers or conditions are open and can be dragged wider at their edge (double-click resets); a marker condition row wraps instead of squeezing the datapoint field (#850)
 - JSON table - new per-column switch "Mapping" (Zuordnung): show chosen values as an icon and/or text in their own colour, e.g. a call list type 1/2/3 as incoming/missed/outgoing phone icons; the entries can be imported from common.states of a datapoint (#852)
+- JSON table - a row click can open a popup for that entry: the row's fields, hidden columns included, are available as {{row_<field>}} (raw) and {{rowtext_<field>}} (as printed) in the popup title, an HTML popup or a popup view; HTML popups now resolve {{...}} placeholders in their static markup (#858)

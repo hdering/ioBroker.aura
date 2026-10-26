@@ -44,7 +44,9 @@ await build({
         },
     ],
 });
-const { formatCellValue, hasCellFormat, cellText, findCellEntry } = await import(pathToFileURL(bundle).href);
+const { formatCellValue, hasCellFormat, cellText, findCellEntry, jsonRowVars } = await import(
+    pathToFileURL(bundle).href
+);
 rmSync(bundle, { force: true });
 
 let failed = 0;
@@ -169,6 +171,28 @@ eq(
     )?.label,
     'a',
 );
+
+// ── Row tokens for the click popup (#858) ────────────────────────────────────────
+{
+    const row = { ts: MS, 'Wert (kWh)': 1234, type: 2, note: null, data: { a: 1 }, ok: true };
+    const cols = [
+        { key: 'ts', valueTimeFormat: 'date' },
+        { key: 'Wert (kWh)', valueFactor: 0.001, decimals: 1, suffix: ' kWh' },
+        { key: 'type', mapValues: true, valueMap: [{ value: '2', label: 'entgangen' }] },
+    ];
+    const v = jsonRowVars(row, cols, t, 'plain');
+    eq('raw value', v.row_ts, String(MS));
+    eq('formatted text', v.rowtext_ts, '10.07.2024');
+    eq('key with blanks and brackets becomes a word', v['row_Wert__kWh_'], '1234');
+    eq('text carries conversion and suffix', v['rowtext_Wert__kWh_'], '1.2 kWh');
+    eq('mapped text is the entry label', v.rowtext_type, 'entgangen');
+    eq('mapped raw stays the value', v.row_type, '2');
+    eq('null is empty', v.row_note, '');
+    eq('null text is empty', v.rowtext_note, '');
+    eq('object as JSON', v.row_data, '{"a":1}');
+    eq('boolean raw', v.row_ok, 'true');
+    eq('field without column def still has text', v.rowtext_ok, '✓');
+}
 
 console.log(failed === 0 ? '\nAll JSON table cell formats OK' : `\n${failed} check(s) failed`);
 process.exit(failed === 0 ? 0 : 1);

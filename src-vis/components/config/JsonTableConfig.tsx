@@ -7,6 +7,10 @@ import { ConfigModal } from './ConfigModal';
 import { EnumEntriesEditor } from './EnumEntriesEditor';
 import { CommonStatesImport } from './CommonStatesImport';
 import { mergeStatesIntoEntries } from '../../utils/commonStates';
+import { RowClickSection } from './RowClickSection';
+import type { RowPopupOptions } from '../../utils/rowClickAction';
+import { rowTokenName } from '../../utils/jsonTableFormat';
+import type { WidgetConfig } from '../../types';
 import { JsonTableSortSection } from './JsonTableSortSection';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
@@ -25,6 +29,8 @@ import { NUMBER_FORMATS, NUMBER_FORMAT_SAMPLES, type NumberFormat } from '../../
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 interface Props {
+    /** Whole widget — the row-click editor reuses the regular click-action editor. */
+    config: WidgetConfig;
     datapoint: string;
     options: Record<string, unknown>;
     onChange: (patch: Record<string, unknown>) => void;
@@ -58,6 +64,16 @@ function Toggle({ value, onToggle }: { value: boolean; onToggle: () => void }) {
     );
 }
 
+/** Starting point of a row popup (#858): every field of the row as a label/value table. */
+function rowFieldsHtml(keys: string[], cols: JsonColumnDef[]): string {
+    const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const lines = keys.map((k) => {
+        const label = cols.find((c) => c.key === k)?.label || k;
+        return `  <tr><th style="text-align:left;padding:2px 12px 2px 0">${esc(label)}</th><td>{{rowtext_${rowTokenName(k)}}}</td></tr>`;
+    });
+    return ['<table>', ...lines, '</table>'].join('\n');
+}
+
 function parseHeadersFromRaw(raw: unknown): string[] | null {
     let data: unknown;
     if (typeof raw === 'string') {
@@ -88,7 +104,7 @@ function parseHeadersFromRaw(raw: unknown): string[] | null {
     return null;
 }
 
-export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }: Props) {
+export function JsonTableConfig({ config, datapoint, options: o, onChange, mainDpField }: Props) {
     const set = (patch: Record<string, unknown>) => onChange(patch);
 
     const colDefs: JsonColumnDef[] = (o.columns as JsonColumnDef[] | undefined) ?? [];
@@ -107,6 +123,8 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
     const { value: liveValue } = useDatapoint(datapoint);
     const liveTable = useMemo(() => parseJson(liveValue), [liveValue]);
     const sampleRow = liveTable?.rows[0];
+    // Field names of the live data, for the row-click token hint (#858).
+    const rowKeys = [...new Set([...(liveTable?.headers ?? []), ...colDefs.map((c) => c.key)])];
 
     // The two format switches work like the Bild/HTML ones, but they have no flag of
     // their own — they stand for a group of values. So the switch reads those values,
@@ -1122,6 +1140,31 @@ export function JsonTableConfig({ datapoint, options: o, onChange, mainDpField }
                         />
                     </div>
                 </>
+            </ConfigSection>
+            <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
+                <RowClickSection
+                    config={config}
+                    opts={o as RowPopupOptions}
+                    onChange={(patch) => set(patch as Record<string, unknown>)}
+                    allowAuto={false}
+                    defaultAction={{ kind: 'popup-html', html: rowFieldsHtml(rowKeys, colDefs) }}
+                    hint={
+                        <div className="text-[10px] mt-2 space-y-1" style={hintSty}>
+                            <p>
+                                Im Popup (Titel, Text-/HTML-Widgets, Datenpunkt-Felder) stehen die Felder der geklickten
+                                Zeile bereit – auch ausgeblendete Spalten:{' '}
+                                <span className="font-mono">{'{{row_<feld>}}'}</span> = Rohwert,{' '}
+                                <span className="font-mono">{'{{rowtext_<feld>}}'}</span> = Text wie in der Tabelle
+                                (Datum, Zahlenformat, Zuordnung).
+                            </p>
+                            {rowKeys.length > 0 && (
+                                <p className="font-mono break-all">
+                                    {rowKeys.map((k) => `{{row_${rowTokenName(k)}}}`).join('  ')}
+                                </p>
+                            )}
+                        </div>
+                    }
+                />
             </ConfigSection>
 
             {mapEditIdx >= 0 && (

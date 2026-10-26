@@ -277,6 +277,10 @@ export const WIDGET_OPTION_NOTES = {
         },
     },
     jsontable: {
+        rowClickAction: {
+            description:
+                'Klick auf eine Tabellenzeile (#858). Nicht gesetzt = Zeilen nicht anklickbar; "auto" gilt hier als aus (die Zeilen haben keinen Datenpunkt). Ein ClickAction-Objekt, meist popup-html oder popup-view. Im Popup stehen die Felder der geklickten Zeile als Platzhalter: {{row_<feld>}} = Rohwert (Objekte als JSON), {{rowtext_<feld>}} = Text wie in der Tabelle (Format, Zuordnung, Präfix/Suffix) — auch für ausgeblendete Spalten; andere Zeichen als Buchstaben/Ziffern/_ im Feldnamen werden zu _. Ohne rowPopupTitle ist der Titel die erste sichtbare Zelle. Rezept json-protokoll-detail.',
+        },
         sortRules: {
             description:
                 'Sortier-Kette wie bei der statischen Liste, aber je Spalte: [{column, order?, mode?, empty?}]. column = JSON-Schlüssel (auch ausgeblendete Spalten). order asc (Standard) | desc. mode auto (Standard) | number | text | active | time (liest Zeitstempel, ISO und dd.MM.yyyy als Zeitpunkt). empty first | last (Standard: Zeilen ohne Wert ans Ende, in beiden Richtungen). Die erste Regel entscheidet, die weiteren bei Gleichstand. Gilt auch ohne sortable; mit sortable übernimmt ein Klick auf den Spaltenkopf die Führung, der dritte Klick kehrt zur Kette zurück.',

@@ -29,6 +29,8 @@ interface OpenPopup {
     hideTitle?: boolean;
     /** Per-entry popup settings; each set field wins over the list-wide one. */
     popupOpts?: RowPopupOptions;
+    /** Extra popup tokens of the row (JSON table: {{row_<key>}}, #858). */
+    vars?: Record<string, string>;
 }
 
 /**
@@ -71,6 +73,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
         popupTitle?: string,
         popupHideTitle?: boolean,
         popupOpts?: RowPopupOptions,
+        vars?: Record<string, string>,
     ): RowClickProps | undefined => {
         const action = actionFor(dpId, hint, override);
         if (!action) return undefined;
@@ -83,7 +86,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                 // Navigation kinds have no popup body - they act immediately, exactly
                 // like WidgetFrame.runClickAction does for a widget-level click.
                 if (runNavigation(action)) return;
-                setOpen({ dpId, label, action, title: popupTitle, hideTitle: popupHideTitle, popupOpts });
+                setOpen({ dpId, label, action, title: popupTitle, hideTitle: popupHideTitle, popupOpts, vars });
             },
         };
     };
@@ -102,8 +105,11 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                     datapoint: open.dpId,
                     // Keep the widget's own options: `popup-widget` without a target id
                     // embeds THIS widget, which would render empty from a stripped config.
+                    // Row tokens ride along as string options: the popup's token table
+                    // (buildPopupSubMap) takes every string option of its trigger widget.
                     options: {
                         ...base.options,
+                        ...open.vars,
                         popupTitle: open.title || po.rowPopupTitle,
                         popupHideTitle: open.hideTitle ?? po.rowPopupHideTitle,
                         popupWidth: po.rowPopupWidth,

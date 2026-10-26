@@ -106,3 +106,48 @@ export function findCellEntry<E extends CellMapEntry>(entries: E[] | undefined, 
         return Number.isFinite(num) && NUMERIC_TEXT.test(v) && Number(v) === num;
     });
 }
+
+/** Display options of a column that the row tokens honour — the cell format plus decoration and mapping. */
+interface RowTokenColumn extends JsonCellFormat {
+    key: string;
+    prefix?: string;
+    suffix?: string;
+    mapValues?: boolean;
+    valueMap?: { value: string; label?: string }[];
+    image?: boolean;
+    html?: boolean;
+}
+
+/** A JSON key as popup token name: `{{…}}` only matches word characters. */
+export function rowTokenName(key: string): string {
+    return key.replace(/\W/g, '_');
+}
+
+/**
+ * The popup tokens of one clicked table row (#858): `{{row_<key>}}` holds the raw
+ * value (objects as JSON), `{{rowtext_<key>}}` the text the table would print —
+ * formatted, mapped and decorated by the column's settings, also for hidden columns.
+ */
+export function jsonRowVars(
+    row: Record<string, unknown>,
+    columns: RowTokenColumn[],
+    t: TFn,
+    numFmt?: NumberFormat,
+): Record<string, string> {
+    const defs = new Map(columns.map((c) => [c.key, c]));
+    const vars: Record<string, string> = {};
+    for (const [key, raw] of Object.entries(row)) {
+        const name = rowTokenName(key);
+        vars[`row_${name}`] =
+            raw === null || raw === undefined ? '' : typeof raw === 'object' ? JSON.stringify(raw) : String(raw);
+        const col = defs.get(key);
+        const plain = !col || col.image || col.html;
+        let text = plain ? cellText(raw) : formatCellValue(col, raw, t, numFmt);
+        const entry = !plain && col.mapValues ? findCellEntry(col.valueMap, raw) : undefined;
+        if (entry?.label) text = entry.label;
+        else if (!plain && raw !== null && raw !== undefined && raw !== '' && (col.prefix || col.suffix))
+            text = `${col.prefix ?? ''}${text}${col.suffix ?? ''}`;
+        vars[`rowtext_${name}`] = raw === null || raw === undefined ? '' : text;
+    }
+    return vars;
+}

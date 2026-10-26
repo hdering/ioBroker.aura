@@ -250,10 +250,8 @@ function PopupDialog({ onClose, ...initial }: Props) {
     // list row that is the clicked row), `[[dp]]` resolved live by DynamicTitle below.
     const mainDp = popupMainDp(widget, action.kind === 'popup-view' ? action.dp : undefined);
     const nameVars = useDpNameVars(mainDp);
-    const title = subAll(getTitle(widget, action, titleOverride), {
-        ...nameVars,
-        ...buildPopupSubMap(widget, mainDp),
-    });
+    const subMap = { ...nameVars, ...buildPopupSubMap(widget, mainDp) };
+    const title = subAll(getTitle(widget, action, titleOverride), subMap);
     const customWidth = widget.options?.popupWidth as number | undefined;
     const customHeight = widget.options?.popupHeight as number | undefined;
     // Fullscreen: the dialog covers the whole viewport — no margin, corners or frame.
@@ -303,7 +301,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
             case 'popup-json':
                 return <JsonPopupBody action={action} />;
             case 'popup-html':
-                return <HtmlPopupBody action={action} />;
+                return <HtmlPopupBody action={action} vars={subMap} />;
             case 'popup-widget':
                 return <WidgetEmbedBody widget={widget} action={action} allWidgets={allWidgets} padding={padding} />;
             case 'popup-dps':

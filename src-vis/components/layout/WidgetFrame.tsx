@@ -13160,6 +13160,7 @@ function WidgetFrameInner({
                             {/* ── JSON Table config ── */}
                             {config.type === 'jsontable' && (
                                 <JsonTableConfig
+                                    config={config}
                                     datapoint={config.datapoint ?? ''}
                                     mainDpField={renderMainDpField()}
                                     options={config.options ?? {}}
