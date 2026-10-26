@@ -14702,6 +14702,60 @@
           "type": "number",
           "default": 0
         },
+        "rowClickAction": {
+          "type": [
+            "string",
+            "object"
+          ],
+          "ref": "RowClickSetting",
+          "description": "Klick auf eine Tabellenzeile (#858). Nicht gesetzt = Zeilen nicht anklickbar; \"auto\" gilt hier als aus (die Zeilen haben keinen Datenpunkt). Ein ClickAction-Objekt, meist popup-html oder popup-view. Im Popup stehen die Felder der geklickten Zeile als Platzhalter: {{row_<feld>}} = Rohwert (Objekte als JSON), {{rowtext_<feld>}} = Text wie in der Tabelle (Format, Zuordnung, Präfix/Suffix) — auch für ausgeblendete Spalten; andere Zeichen als Buchstaben/Ziffern/_ im Feldnamen werden zu _. Ohne rowPopupTitle ist der Titel die erste sichtbare Zelle. Rezept json-protokoll-detail."
+        },
+        "rowPopupAutoCloseCountdown": {
+          "type": "string",
+          "ref": "PopupCountdownPosition",
+          "description": "Ecke des Zeilen-Popups, in der die Sekunden bis zum Auto-Schließen herunterlaufen: off, top-left, top-right, bottom-left, bottom-right. Leer = View/Global."
+        },
+        "rowPopupAutoCloseSec": {
+          "type": "number",
+          "description": "Zeilen-Popup nach so vielen Sekunden schließen. 0 = nie."
+        },
+        "rowPopupBackdropDim": {
+          "type": "number",
+          "description": "Abdunklung des Hintergrunds hinter dem Zeilen-Popup, 0–100."
+        },
+        "rowPopupBackground": {
+          "type": "string",
+          "description": "Popup surface colour; undefined = inherit view/global/theme."
+        },
+        "rowPopupBackgroundImage": {
+          "type": "object",
+          "ref": "BackgroundImage",
+          "description": "Popup background image; undefined = inherit view/global (issue #442)."
+        },
+        "rowPopupHeight": {
+          "type": "number",
+          "description": "Höhe des Zeilen-Popups in px."
+        },
+        "rowPopupHideTitle": {
+          "type": "boolean",
+          "description": "Titelzeile des Zeilen-Popups ausblenden."
+        },
+        "rowPopupPadding": {
+          "type": "number",
+          "description": "Innenabstand des Popups in px (0…40); undefined = View/Global."
+        },
+        "rowPopupTitle": {
+          "type": "string",
+          "description": "Titel des Popups, das eine Zeile beim Antippen öffnet."
+        },
+        "rowPopupTransparency": {
+          "type": "number",
+          "description": "Popup transparency / backdrop dim in percent; undefined = inherit view/global."
+        },
+        "rowPopupWidth": {
+          "type": "number",
+          "description": "Breite des Zeilen-Popups in px."
+        },
         "showHeader": {
           "type": "boolean",
           "default": true,
