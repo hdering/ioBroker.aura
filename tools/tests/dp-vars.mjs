@@ -20,7 +20,7 @@ const bundle = join(cache, `aura-dpvars-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: [
-            "export { dpVarMap, subAll, buildPopupSubMap } from './src-vis/utils/popupPlaceholders.ts';",
+            "export { dpVarMap, subAll, buildPopupSubMap, resolvePopupWidget } from './src-vis/utils/popupPlaceholders.ts';",
             "export { toSubDpTemplateId, resolveSubDpTemplate, isResolvedDpId } from './src-vis/utils/subDpTemplate.ts';",
             "export { substituteItemVars } from './src-vis/utils/nameFilter.ts';",
             "export { resolveRuleRefs } from './src-vis/utils/rowConditions.ts';",
@@ -38,6 +38,7 @@ const {
     dpVarMap,
     subAll,
     buildPopupSubMap,
+    resolvePopupWidget,
     toSubDpTemplateId,
     resolveSubDpTemplate,
     isResolvedDpId,
@@ -158,6 +159,31 @@ eq(
     resolveSubDpTemplate([{ id: toSubDpTemplateId('hm-rpc.2.000A1234567890.0.OPERATING_VOLTAGE', HM) }], HM)[0].id,
     'hm-rpc.2.000A1234567890.0.OPERATING_VOLTAGE',
 );
+
+// -- room climate in a popup (#857) ------------------------------------------
+// A list row opens a room-climate popup whose datapoints are {{parent}} patterns.
+// The list carries no history instance, so the chart must fall back to detection.
+const climatePopup = {
+    id: 'c',
+    type: 'climate',
+    title: '',
+    datapoint: '{{parent}}.ACTUAL_TEMPERATURE',
+    options: { humidityDatapoint: '{{parent}}.HUMIDITY' },
+};
+const listTrigger = { id: 'l', type: 'list', title: '', datapoint: '', options: {} };
+const climateResolved = resolvePopupWidget(climatePopup, buildPopupSubMap(listTrigger, HM), listTrigger);
+eq('climate popup resolves {{parent}}', climateResolved.datapoint, HM);
+eq('climate popup without instance detects one', climateResolved.options.autoHistoryInstance, true);
+const chartTrigger = { ...listTrigger, options: { historyInstance: 'history.0' } };
+const climateInherited = resolvePopupWidget(climatePopup, buildPopupSubMap(chartTrigger, HM), chartTrigger);
+eq('climate popup inherits the trigger instance', climateInherited.options.historyInstance, 'history.0');
+eq('an inherited instance needs no detection', climateInherited.options.autoHistoryInstance, undefined);
+const climateOwn = resolvePopupWidget(
+    { ...climatePopup, options: { historyInstance: 'influxdb.0' } },
+    buildPopupSubMap(chartTrigger, HM),
+    chartTrigger,
+);
+eq('an own climate instance wins', climateOwn.options.historyInstance, 'influxdb.0');
 
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed`);

@@ -16,7 +16,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
 import { type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
-import { useMultiSeriesData, type EChartSeriesConfig } from '../../hooks/useMultiSeriesData';
+import { useAutoHistoryInstances, useMultiSeriesData, type EChartSeriesConfig } from '../../hooks/useMultiSeriesData';
 import { useTemplateValues } from '../../hooks/useTemplateValues';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { ClimateMetric, WidgetProps } from '../../types';
@@ -127,6 +127,9 @@ export function ClimateWidget({ config }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const historyInstance = o.historyInstance as string | undefined;
+    // Popup opened with {{parent}} datapoints from a trigger without a history instance
+    // (e.g. a list row): detect the adapter per series from its resolved datapoint (#857).
+    const autoHistory = o.autoHistoryInstance === true && !historyInstance;
     const cfgRange = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
     const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
@@ -275,10 +278,11 @@ export function ClimateWidget({ config }: WidgetProps) {
         return list;
     }, [metrics, humidityInChart, humidityDpId, humidityUnit, humidityChartColor, humidityAxis]);
 
-    const showChartSection = showChart && !!historyInstance && (showTempSeries || chartMetrics.length > 0);
+    const showChartSection =
+        showChart && (!!historyInstance || autoHistory) && (showTempSeries || chartMetrics.length > 0);
 
     const activeCustomValue = activeCustomMs ? activeCustomMs / 3_600_000 : customVal;
-    const chartSeries: EChartSeriesConfig[] = useMemo(() => {
+    const configuredSeries: EChartSeriesConfig[] = useMemo(() => {
         if (!showChartSection) return [];
         const common = {
             historyRange: activeRange,
@@ -320,6 +324,19 @@ export function ClimateWidget({ config }: WidgetProps) {
         activeRange,
         activeCustomValue,
     ]);
+
+    const { resolved: autoInstances } = useAutoHistoryInstances(configuredSeries, autoHistory);
+    const autoKey = JSON.stringify(Object.entries(autoInstances).map(([id, r]) => [id, r.instance]));
+    const chartSeries: EChartSeriesConfig[] = useMemo(
+        () =>
+            autoHistory
+                ? configuredSeries.map((s) =>
+                      s.historyInstance ? s : { ...s, historyInstance: autoInstances[s.id]?.instance },
+                  )
+                : configuredSeries,
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [configuredSeries, autoHistory, autoKey],
+    );
 
     const seriesData = useMultiSeriesData(chartSeries, connected, subscribe);
 

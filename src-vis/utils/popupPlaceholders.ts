@@ -127,7 +127,7 @@ function triggerHistoryInstance(w: WidgetConfig | undefined): string | undefined
  *  the widget that opened it. Explicit per-widget/per-series instances are preserved. */
 function inheritHistoryInstance(w: WidgetConfig, inst: string | undefined): WidgetConfig {
     if (!inst) return w;
-    if (w.type === 'chart') {
+    if (w.type === 'chart' || w.type === 'climate') {
         const own = w.options?.historyInstance;
         if (typeof own === 'string' && own) return w;
         return { ...w, options: { ...w.options, historyInstance: inst } };
@@ -154,6 +154,18 @@ function inheritHistoryInstance(w: WidgetConfig, inst: string | undefined): Widg
 function markAutoHistory(w: WidgetConfig, orig: WidgetConfig): WidgetConfig {
     if (w.type === 'chart') {
         const isTpl = (orig.datapoint ?? '').includes('{{');
+        const inst = w.options?.historyInstance;
+        const hasInst = typeof inst === 'string' && inst.length > 0;
+        if (isTpl && !hasInst) return { ...w, options: { ...w.options, autoHistoryInstance: true } };
+    }
+    if (w.type === 'climate') {
+        // Room climate draws its history from several datapoints (temperature, humidity,
+        // metrics) under one widget-level instance (#857).
+        const o = orig.options ?? {};
+        const metrics = (o.metrics as Array<{ datapoint?: string }> | undefined) ?? [];
+        const isTpl = [orig.datapoint, o.humidityDatapoint, ...metrics.map((m) => m.datapoint)].some(
+            (dp) => typeof dp === 'string' && dp.includes('{{'),
+        );
         const inst = w.options?.historyInstance;
         const hasInst = typeof inst === 'string' && inst.length > 0;
         if (isTpl && !hasInst) return { ...w, options: { ...w.options, autoHistoryInstance: true } };
