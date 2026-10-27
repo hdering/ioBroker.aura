@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.82.8 (2026-10-13)
+- Energy flow (evcc) - datapoint picker next to the production, consumption, grid and battery fields; with an evcc instance as source these fields now fill in automatically
+
 ## 0.82.7 (2026-10-13)
 - Advanced chart - the current-time line also works on a JSON category axis, placed at the label containing a chosen text (e.g. "now")
 

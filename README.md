@@ -122,6 +122,20 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.95.0 (2026-10-27)
+- 🐛 **Bug fix:** Weather - the widget no longer overflows when a custom temperature font size or forecast row spacing is set
+- 🐛 **Bug fix:** AI assistant (MCP) - size checks say "cannot be judged" instead of "fits" when the widget uses its own typography, and popup views can now be measured in the browser
+- 🌟 **New feature:** New widget "News (RSS)" - shows RSS/Atom feeds or the rssfeed adapter as a list, cards, a ticker or a rotating headline; articles open in a popup or a new tab; optional unread marks, spoken announcements of new articles, a read-aloud button and loading images through Aura ([#854](https://github.com/hdering/ioBroker.aura/issues/854))
+- 🐛 **Bug fix:** Overview - the "widget references to missing DPs" check now includes widgets inside groups and device cards right after a page reload, not only after clicking "Refresh" ([#859](https://github.com/hdering/ioBroker.aura/issues/859))
+- 🐛 **Bug fix:** Slideshow - number fields such as the transition duration accept typed values again instead of jumping to the minimum on the first digit ([#860](https://github.com/hdering/ioBroker.aura/issues/860))
+- 🌟 **New feature:** Popups - new datapoints popup.close (all devices) and clients.<id>.popup.close (one device): writing true closes every open popup on the device, whether opened by a click, a trigger or popup.open, stacked popups included ([#861](https://github.com/hdering/ioBroker.aura/issues/861))
+- 🐛 **Bug fix:** Fill level (wave) - the charging bolt and the charging sweep stay inside the tank instead of spilling below it when the widget is taller than wide ([#863](https://github.com/hdering/ioBroker.aura/issues/863))
+- 🐛 **Bug fix:** Popups - widgets in a popup view no longer stay squeezed to a fraction of the dialog (looking like the phone layout) when the popup was opened before its view had its final width, e.g. a screensaver popup ([#862](https://github.com/hdering/ioBroker.aura/issues/862))
+- 🐛 **Bug fix:** Room climate - with placeholder datapoints such as {{parent}} the history series (temperature, humidity) and time range can be set again with the adapter instance left empty, so a popup can show the humidity history ([#857](https://github.com/hdering/ioBroker.aura/issues/857))
+- 🌟 **New feature:** Thermostat - dial and circle menu can show the measured temperature large and the setpoint small (new option "Large display"); also for the room climate circle menu ([#864](https://github.com/hdering/ioBroker.aura/issues/864))
+- 🌟 **New feature:** Phone and tablet layout - the column flow can be split into blocks with their own number of columns (1-4), e.g. four widgets in a row at the top and two wider ones below; set in the editor's mobile/tablet order panel ("+ Block" between blocks, the arrows move widgets from block to block) ([#851](https://github.com/hdering/ioBroker.aura/issues/851))
+
+
 ### 0.94.0 (2026-10-26)
 - 🌟 **New feature:** Scenes - the widget settings can limit which datapoints "Add device" offers in the dashboard: whole instances or wildcard patterns like *.STATE ([#825](https://github.com/hdering/ioBroker.aura/issues/825))
 - Popups - a popup that closes itself after n seconds now resets the idle datapoint clients.<id>.idle.active to false, so the screensaver popup comes back after the next idle period ([#856](https://github.com/hdering/ioBroker.aura/issues/856))
@@ -278,10 +292,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Media player - shuffle and repeat now show their current state (accent color with a dot) and switch the mode back off on a second click (repeat steps through off / all / one); the cover no longer sticks to the previous track or freezes with Sonos ([#782](https://github.com/hdering/ioBroker.aura/issues/782))
 
 
-### 0.82.8 (2026-10-13)
-- Energy flow (evcc) - datapoint picker next to the production, consumption, grid and battery fields; with an evcc instance as source these fields now fill in automatically
-
-
 ## License
 
 MIT License
@@ -293,6 +303,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
