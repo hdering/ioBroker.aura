@@ -308,6 +308,43 @@ const approx = (a, b, tol = 2) => Math.abs(a - b) <= tol;
     await ctx.close();
 }
 
+// ── Eigene Spaltenzahl pro Abschnitt (#851): tabletBandCols beginnt einen neuen Block ──
+{
+    const { ctx, page, pageErrors } = await open(900);
+    await show(page, {
+        settings: { tabletBreakpoint: 1024, tabletCols: 3 },
+        orders: {
+            A: { tabletOrder: 0 },
+            B: { tabletOrder: 1 },
+            C: { tabletOrder: 2, tabletWide: false, tabletBandCols: 2 },
+            D: { tabletOrder: 3 },
+            E: { tabletOrder: 4, tabletBandCols: 1 },
+        },
+    });
+    const g = await geometry(page);
+    const blockCols = await page.$$eval('[data-aura-flow-band-cols]', (els) =>
+        els.map((e) => Number(e.getAttribute('data-aura-flow-band-cols'))),
+    );
+    check('Abschnitte: Bloecke mit 3, 2 und 1 Spalte', blockCols.join(',') === '3,2,1', blockCols.join(','));
+    check(
+        'Abschnitte: A ein Drittel, C und D je die Haelfte nebeneinander, E volle Breite',
+        g.boxes.A.width < g.flowWidth * 0.4 &&
+            sameRow(g.boxes.C, g.boxes.D) &&
+            approx(g.boxes.C.width, g.boxes.D.width) &&
+            g.boxes.C.width > g.flowWidth * 0.45 &&
+            approx(g.boxes.E.width, g.flowWidth),
+        `A ${g.boxes.A.width} C ${g.boxes.C.width} D ${g.boxes.D.width} E ${g.boxes.E.width} von ${g.flowWidth}`,
+    );
+    check(
+        'Abschnitte: Reihenfolge von oben nach unten',
+        g.boxes.A.top < g.boxes.C.top && g.boxes.C.top < g.boxes.E.top,
+        `${g.boxes.A.top} ${g.boxes.C.top} ${g.boxes.E.top}`,
+    );
+    check('Abschnitte: kein Ueberlauf', g.overflowX !== null && g.overflowX <= 0, `${g.overflowX}px`);
+    check('Abschnitte: keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
+    await ctx.close();
+}
+
 // ── Handy bleibt einspaltig, Desktop bleibt Raster ─────────────────────────────────────
 {
     const { ctx, page } = await open(500);

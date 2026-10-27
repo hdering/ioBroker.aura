@@ -869,9 +869,13 @@ export function Dashboard({
                                                                             <div
                                                                                 key={`band-${bi}`}
                                                                                 data-aura-flow-band={bi}
+                                                                                data-aura-flow-band-cols={
+                                                                                    band.columns.length
+                                                                                }
                                                                                 style={{
                                                                                     display: 'grid',
-                                                                                    gridTemplateColumns: `repeat(${flowCols}, minmax(0, 1fr))`,
+                                                                                    // A block may have its own column count (#851).
+                                                                                    gridTemplateColumns: `repeat(${band.columns.length}, minmax(0, 1fr))`,
                                                                                     gap: MARGIN,
                                                                                     alignItems: 'start',
                                                                                 }}

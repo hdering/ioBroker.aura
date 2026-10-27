@@ -910,6 +910,13 @@ async function build() {
                     'true = volle Breite über alle Mobile-Spalten (eigenes Band), false = eine Spalte. ' +
                     'Fehlt sie, entscheidet die Desktop-Breite. Nur bei mobileCols > 1 wirksam.',
             },
+            mobileBandCols: {
+                type: 'number',
+                description:
+                    '1–4: dieses Widget beginnt einen neuen Spaltenblock der Mobilansicht mit eigener Spaltenzahl ' +
+                    '(z. B. 4 Spalten oben, darunter ein Block mit 2). Gilt bis zum nächsten Band oder Block. ' +
+                    'Fehlt sie, gilt mobileCols. Nur bei mobileCols > 1 wirksam.',
+            },
             tabletOrder: {
                 type: 'number',
                 description:
@@ -927,6 +934,12 @@ async function build() {
                 description:
                     'true = volle Breite über alle Tablet-Spalten, als eigenes Band zwischen den Spaltenblöcken; ' +
                     'false = eine Spalte. Fehlt sie, entscheidet die Desktop-Breite (füllt das Widget den Tab, ist es breit).',
+            },
+            tabletBandCols: {
+                type: 'number',
+                description:
+                    '1–4: dieses Widget beginnt einen neuen Spaltenblock im Tablet-Fluss mit eigener Spaltenzahl. ' +
+                    'Gilt bis zum nächsten Band oder Block; tabletCol wird auf diese Zahl gekappt. Fehlt sie, gilt tabletCols.',
             },
         },
         groups: reg.WIDGET_GROUPS,

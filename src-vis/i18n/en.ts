@@ -1081,10 +1081,10 @@ export const en: Record<TranslationKey, string> = {
     'editor.mobile.hint': 'Single column below the mobile breakpoint',
     'editor.flow.settingsLink': 'Set breakpoint & columns',
     'editor.mobile.colsHint':
-        'Columns as below the mobile breakpoint. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order.',
+        'Columns as below the mobile breakpoint. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order. The scissors start a section with its own column count.',
     'editor.tablet.title': 'Tablet Order',
     'editor.tablet.hint':
-        'Columns as on the tablet. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order.',
+        'Columns as on the tablet. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order. The scissors start a section with its own column count.',
     'editor.tablet.columns': 'columns',
     'editor.tablet.wide': 'Full width',
     'editor.tablet.narrow': 'Into a column',
@@ -1092,6 +1092,9 @@ export const en: Record<TranslationKey, string> = {
     'editor.tablet.right': 'Column to the right',
     'editor.tablet.up': 'Move up',
     'editor.tablet.down': 'Move down',
+    'editor.tablet.blockCols': 'Columns in this section',
+    'editor.tablet.split': 'New section from this row',
+    'editor.tablet.merge': 'Join with the section above',
     'editor.peekHint': 'Hold {mod}+{alt} = preview without edit buttons',
     'editor.mobile.top': 'Top',
     'editor.mobile.bottom': 'Bottom',

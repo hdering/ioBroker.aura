@@ -7,7 +7,9 @@ import {
     ExternalLink,
     GripVertical,
     Maximize2,
+    Merge,
     Minimize2,
+    Scissors,
 } from 'lucide-react';
 import { useDashboardStore } from '../../../store/dashboardStore';
 import { useT } from '../../../i18n';
@@ -18,6 +20,8 @@ import {
     flowFields,
     isWideInFlow,
     linearizeBands,
+    MAX_FLOW_COLS,
+    redealBlock,
     tabExtentOf,
     type FlowBand,
     type FlowMode,
@@ -29,22 +33,24 @@ type Slot = { bi: number; ci: number; idx: number };
 const NO_WIDGETS: WidgetConfig[] = [];
 
 const clone = (bands: Band[]): Band[] =>
-    bands.map((b) => (b.kind === 'full' ? { ...b } : { kind: 'columns', columns: b.columns.map((c) => [...c]) }));
+    bands.map((b) => (b.kind === 'full' ? { ...b } : { ...b, columns: b.columns.map((c) => [...c]) }));
 
 const emptyBlock = (cols: number): ColumnsBand => ({
     kind: 'columns',
     columns: Array.from({ length: cols }, () => []),
 });
 
-/** Drop empty blocks and merge two blocks that touch (the band between them went away). */
-function normalize(bands: Band[], cols: number): Band[] {
+/** Drop empty blocks and merge two blocks that touch (the band between them went away).
+ *  A block started on purpose (its own section, #851) stays apart. Merging folds the
+ *  lower block's extra columns into the upper block's last one. */
+function normalize(bands: Band[]): Band[] {
     const out: Band[] = [];
     for (const b of bands) {
         if (b.kind === 'columns') {
             if (b.columns.every((c) => c.length === 0)) continue;
             const prev = out[out.length - 1];
-            if (prev && prev.kind === 'columns') {
-                for (let c = 0; c < cols; c++) prev.columns[c].push(...(b.columns[c] ?? []));
+            if (prev && prev.kind === 'columns' && !b.start) {
+                b.columns.forEach((col, c) => prev.columns[Math.min(c, prev.columns.length - 1)].push(...col));
                 continue;
             }
         }
@@ -149,9 +155,10 @@ export function TabletOrderPanel({
     const commit = (next: Band[]) => {
         if (!tab) return;
         const tabExtent = tabExtentOf(widgets);
-        for (const { widget: w, order, col, wide } of linearizeBands(normalize(next, cols))) {
+        for (const { widget: w, order, col, wide, bandCols } of linearizeBands(normalize(next), cols)) {
             const patch: Partial<WidgetConfig> = {};
             if (w[fields.order] !== order) patch[fields.order] = order;
+            if (w[fields.band] !== (bandCols ?? undefined)) patch[fields.band] = bandCols ?? undefined;
             if (wide) {
                 if (w[fields.wide] !== true) patch[fields.wide] = true;
             } else {
@@ -191,7 +198,7 @@ export function TabletOrderPanel({
         const b = next[at.bi];
         if (b.kind !== 'columns') return;
         const to = at.ci + dir;
-        if (to < 0 || to >= cols) return;
+        if (to < 0 || to >= b.columns.length) return;
         const w = b.columns[at.ci].splice(at.idx, 1)[0];
         const target = b.columns[to];
         target.splice(Math.min(at.idx, target.length), 0, w);
@@ -215,6 +222,37 @@ export function TabletOrderPanel({
         } else {
             next.splice(at.bi + 1, 0, { kind: 'full', widget: w });
         }
+        commit(next);
+    };
+
+    /** A block's own column count (#851): its cards are dealt anew row by row, so a
+     *  row of four becomes rows of three instead of leaving a column behind. */
+    const setBlockCols = (bi: number, n: number) => {
+        const next = clone(bands);
+        const b = next[bi];
+        if (!b || b.kind !== 'columns' || b.columns.length === n) return;
+        next[bi] = { kind: 'columns', columns: redealBlock(b.columns, n), start: true };
+        commit(next);
+    };
+
+    /** Start a new section at a card's row: that row and everything below it in the block move into it. */
+    const splitAt = (id: string) => {
+        const next = clone(bands);
+        const at = locate(next, id);
+        if (!at || at.idx <= 0) return;
+        const b = next[at.bi];
+        if (b.kind !== 'columns') return;
+        const lower: ColumnsBand = { kind: 'columns', columns: b.columns.map((c) => c.splice(at.idx)), start: true };
+        next.splice(at.bi + 1, 0, lower);
+        commit(next);
+    };
+
+    /** Join a section into the block right above it, which keeps its column count. */
+    const mergeUp = (bi: number) => {
+        const next = clone(bands);
+        const b = next[bi];
+        if (!b || b.kind !== 'columns' || next[bi - 1]?.kind !== 'columns') return;
+        next[bi] = { ...b, start: false };
         commit(next);
     };
 
@@ -247,7 +285,10 @@ export function TabletOrderPanel({
 
     const title = (w: WidgetConfig) => w.title || t(`widget.${w.type}` as never) || w.type;
 
-    const card = (w: WidgetConfig, ctx: { wide: boolean; canUp: boolean; canDown: boolean; ci: number }) => {
+    const card = (
+        w: WidgetConfig,
+        ctx: { wide: boolean; canUp: boolean; canDown: boolean; ci: number; blockCols: number; canSplit?: boolean },
+    ) => {
         const isDragging = dragId === w.id;
         const isOver = overId === w.id && dragId !== w.id;
         return (
@@ -290,6 +331,17 @@ export function TabletOrderPanel({
                     >
                         {title(w)}
                     </span>
+                    {ctx.canSplit && (
+                        <button
+                            data-aura-order-action="split"
+                            className="shrink-0 hover:opacity-80"
+                            style={{ color: 'var(--text-secondary)' }}
+                            onClick={() => splitAt(w.id)}
+                            title={t('editor.tablet.split')}
+                        >
+                            <Scissors size={11} />
+                        </button>
+                    )}
                 </div>
                 <div className="flex items-center gap-0.5 mt-1">
                     {!ctx.wide && (
@@ -329,7 +381,7 @@ export function TabletOrderPanel({
                             data-aura-order-action="right"
                             className={iconBtn}
                             style={iconBtnStyle}
-                            disabled={ctx.ci >= cols - 1}
+                            disabled={ctx.ci >= ctx.blockCols - 1}
                             onClick={() => moveHorizontal(w.id, 1)}
                             title={t('editor.tablet.right')}
                         >
@@ -352,7 +404,9 @@ export function TabletOrderPanel({
     };
 
     // Wide enough for the columns to stay readable: ~140 px per column plus padding.
-    const width = Math.max(260, cols * 150 + 24);
+    // Sized by the widest block, since a section can have more columns than the setting (#851).
+    const widest = Math.max(cols, ...bands.map((b) => (b.kind === 'columns' ? b.columns.length : 1)));
+    const width = Math.max(260, widest * 150 + 24);
 
     return (
         <div
@@ -385,52 +439,105 @@ export function TabletOrderPanel({
                                     canUp: bi > 0,
                                     canDown: bi < bands.length - 1,
                                     ci: 0,
+                                    blockCols: 1,
                                 })}
                             </div>
                         ) : (
                             <div
                                 key={`block-${bi}`}
                                 data-aura-order-block={bi}
-                                className="grid gap-1.5"
-                                style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                                data-aura-order-block-cols={band.columns.length}
                             >
-                                {band.columns.map((col, ci) => (
-                                    <div
-                                        key={ci}
-                                        data-aura-order-col={ci}
-                                        className="flex flex-col gap-1.5 min-w-0 rounded-lg"
-                                        style={{ border: '1px dashed var(--app-border)', padding: 4, minHeight: 40 }}
-                                    >
-                                        {col.map((w, idx) =>
-                                            card(w, { wide: false, canUp: idx > 0, canDown: idx < col.length - 1, ci }),
-                                        )}
-                                        {/* Tail: drop here to append to this column. */}
+                                {/* Section head (#851): its own column count, and joining it into the block above. */}
+                                <div className="flex items-center gap-1 mb-1">
+                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('editor.tablet.blockCols')}
+                                    </span>
+                                    {Array.from({ length: MAX_FLOW_COLS }, (_, i) => i + 1).map((n) => {
+                                        const active = band.columns.length === n;
+                                        return (
+                                            <button
+                                                key={n}
+                                                data-aura-order-block-set={n}
+                                                className="w-5 h-5 rounded text-[10px] hover:opacity-80"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-surface)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                                aria-pressed={active}
+                                                onClick={() => setBlockCols(bi, n)}
+                                            >
+                                                {n}
+                                            </button>
+                                        );
+                                    })}
+                                    <span className="flex-1" />
+                                    {bands[bi - 1]?.kind === 'columns' && (
+                                        <button
+                                            data-aura-order-action="merge"
+                                            className={iconBtn}
+                                            style={iconBtnStyle}
+                                            onClick={() => mergeUp(bi)}
+                                            title={t('editor.tablet.merge')}
+                                        >
+                                            <Merge size={11} />
+                                        </button>
+                                    )}
+                                </div>
+                                <div
+                                    className="grid gap-1.5"
+                                    style={{ gridTemplateColumns: `repeat(${band.columns.length}, minmax(0, 1fr))` }}
+                                >
+                                    {band.columns.map((col, ci) => (
                                         <div
-                                            data-aura-order-tail={ci}
-                                            className="flex-1 rounded"
+                                            key={ci}
+                                            data-aura-order-col={ci}
+                                            className="flex flex-col gap-1.5 min-w-0 rounded-lg"
                                             style={{
-                                                minHeight: 14,
-                                                background:
-                                                    dragId && overId === `tail:${bi}:${ci}`
-                                                        ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
-                                                        : undefined,
+                                                border: '1px dashed var(--app-border)',
+                                                padding: 4,
+                                                minHeight: 40,
                                             }}
-                                            onDragOver={(e) => {
-                                                if (!dragId) return;
-                                                e.preventDefault();
-                                                setOverId(`tail:${bi}:${ci}`);
-                                            }}
-                                            onDragLeave={() =>
-                                                setOverId((cur) => (cur === `tail:${bi}:${ci}` ? null : cur))
-                                            }
-                                            onDrop={(e) => {
-                                                e.preventDefault();
-                                                dropInto(null, band, ci);
-                                                endDrag();
-                                            }}
-                                        />
-                                    </div>
-                                ))}
+                                        >
+                                            {col.map((w, idx) =>
+                                                card(w, {
+                                                    wide: false,
+                                                    canUp: idx > 0,
+                                                    canDown: idx < col.length - 1,
+                                                    ci,
+                                                    blockCols: band.columns.length,
+                                                    canSplit: idx > 0,
+                                                }),
+                                            )}
+                                            {/* Tail: drop here to append to this column. */}
+                                            <div
+                                                data-aura-order-tail={ci}
+                                                className="flex-1 rounded"
+                                                style={{
+                                                    minHeight: 14,
+                                                    background:
+                                                        dragId && overId === `tail:${bi}:${ci}`
+                                                            ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                                            : undefined,
+                                                }}
+                                                onDragOver={(e) => {
+                                                    if (!dragId) return;
+                                                    e.preventDefault();
+                                                    setOverId(`tail:${bi}:${ci}`);
+                                                }}
+                                                onDragLeave={() =>
+                                                    setOverId((cur) => (cur === `tail:${bi}:${ci}` ? null : cur))
+                                                }
+                                                onDrop={(e) => {
+                                                    e.preventDefault();
+                                                    dropInto(null, band, ci);
+                                                    endDrag();
+                                                }}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         ),
                     )

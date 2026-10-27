@@ -1090,10 +1090,10 @@ export const de = {
     'editor.mobile.hint': 'Einspaltig unterhalb des Mobile-Breakpoints',
     'editor.flow.settingsLink': 'Breakpoint & Spalten einstellen',
     'editor.mobile.colsHint':
-        'Spalten wie unterhalb des Mobile-Breakpoints. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge.',
+        'Spalten wie unterhalb des Mobile-Breakpoints. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge. Die Schere beginnt einen Abschnitt mit eigener Spaltenzahl.',
     'editor.tablet.title': 'Tablet-Reihenfolge',
     'editor.tablet.hint':
-        'Spalten wie im Tablet-Bereich. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge.',
+        'Spalten wie im Tablet-Bereich. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge. Die Schere beginnt einen Abschnitt mit eigener Spaltenzahl.',
     'editor.tablet.columns': 'Spalten',
     'editor.tablet.wide': 'Volle Breite',
     'editor.tablet.narrow': 'In eine Spalte',
@@ -1101,6 +1101,9 @@ export const de = {
     'editor.tablet.right': 'Spalte nach rechts',
     'editor.tablet.up': 'Nach oben',
     'editor.tablet.down': 'Nach unten',
+    'editor.tablet.blockCols': 'Spalten in diesem Abschnitt',
+    'editor.tablet.split': 'Neuer Abschnitt ab dieser Reihe',
+    'editor.tablet.merge': 'Mit dem Abschnitt darüber verbinden',
     'editor.peekHint': '{mod}+{alt} halten = Vorschau ohne Bearbeiten-Buttons',
     'editor.mobile.top': 'Oben',
     'editor.mobile.bottom': 'Unten',

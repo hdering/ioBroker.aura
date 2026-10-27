@@ -284,6 +284,18 @@ function installScreenshotApi(): void {
             return null;
         },
 
+        /** A widget's whole STORED config, for tests that check fields outside `options`
+         *  (e.g. the flow fields tabletBandCols / mobileBandCols the order panel writes, #851). */
+        widgetConfig(widgetId: string): WidgetConfig | null {
+            for (const layout of useDashboardStore.getState().layouts)
+                for (const section of layout.sections ?? [])
+                    for (const tab of section.tabs ?? []) {
+                        const found = (tab.widgets ?? []).find((w) => w.id === widgetId);
+                        if (found) return JSON.parse(JSON.stringify(found)) as WidgetConfig;
+                    }
+            return null;
+        },
+
         /** What the widgets of the open tab MEASURE right now — the same walk the
          *  frontend reports to the adapter (utils/renderReport.ts). Exposed so the
          *  measurement itself can be tested against a real layout instead of being

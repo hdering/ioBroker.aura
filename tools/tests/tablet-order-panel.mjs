@@ -181,6 +181,51 @@ check(s(await mobileCol(1)) === 'Alpha,Beta,Delta', 'Alpha oben in Mobile Spalte
 await tabletBtn.click();
 await page.waitForTimeout(300);
 check(s(await colTitles(0)) === 'Alpha,Beta', 'Tablet-Anordnung davon unberuehrt', s(await colTitles(0)));
+
+// ── Abschnitte mit eigener Spaltenzahl (#851) ───────────────────────────────
+// Ausgang: ein Block, Spalte 1 Alpha,Beta, Spalte 2 Gamma,Delta.
+const blockCols = async () =>
+    tablet
+        .locator('[data-aura-order-block]')
+        .evaluateAll((els) => els.map((e) => e.getAttribute('data-aura-order-block-cols')).join(','));
+const blockTitles = async (bi) =>
+    s(
+        await tablet
+            .locator(`[data-aura-order-block="${bi}"] [data-aura-order-card] [data-aura-order-title]`)
+            .allInnerTexts(),
+    );
+const stored = () =>
+    page.evaluate(() =>
+        Object.fromEntries(
+            ['w0', 'w1', 'w2', 'w3'].map((id) => [id, window.__auraShot.widgetConfig(id)?.tabletBandCols ?? null]),
+        ),
+    );
+check(s(await colTitles(1)) === 'Gamma,Delta', 'Ausgang: Spalte 2 Gamma,Delta', s(await colTitles(1)));
+check((await action('w0', 'split').count()) === 0, 'oberste Reihe hat keine Schere');
+await action('w1', 'split').click();
+await page.waitForTimeout(300);
+check((await blockCols()) === '2,2', 'Schere an Beta: zwei Abschnitte', await blockCols());
+check((await blockTitles(1)) === 'Beta,Delta', 'unterer Abschnitt: Beta, Delta', await blockTitles(1));
+check((await stored()).w1 === 2, 'Beta traegt tabletBandCols 2', JSON.stringify(await stored()));
+
+await tablet.locator('[data-aura-order-block="1"] [data-aura-order-block-set="1"]').click();
+await page.waitForTimeout(300);
+check((await blockCols()) === '2,1', 'unterer Abschnitt auf 1 Spalte', await blockCols());
+check(s(await colTitles(0)).endsWith('Beta,Delta'), 'Beta und Delta untereinander', s(await colTitles(0)));
+
+await tablet.locator('[data-aura-order-block="0"] [data-aura-order-block-set="3"]').click();
+await page.waitForTimeout(300);
+check((await blockCols()) === '3,1', 'oberer Abschnitt auf 3 Spalten', await blockCols());
+check((await stored()).w0 === 3, 'Alpha traegt tabletBandCols 3', JSON.stringify(await stored()));
+check(
+    (await tablet.locator('[data-aura-order-block="0"] [data-aura-order-action="merge"]').count()) === 0,
+    'oberster Abschnitt ohne Verbinden',
+);
+
+await tablet.locator('[data-aura-order-block="1"] [data-aura-order-action="merge"]').click();
+await page.waitForTimeout(300);
+check((await blockCols()) === '3', 'Verbinden: ein Abschnitt mit 3 Spalten', await blockCols());
+check((await stored()).w1 === null, 'Beta ohne tabletBandCols', JSON.stringify(await stored()));
 await tabletBtn.click();
 
 check(pageErrors.length === 0, 'keine Seitenfehler', pageErrors.join(' | '));
