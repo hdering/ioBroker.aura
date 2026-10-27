@@ -40,6 +40,12 @@ export interface FillStatusLayerProps {
     chargeColor: string;
     dischargeColor: string;
     offlineColor: string;
+    /**
+     * Corner radius of the track as a share of its shorter side. Unset = the bar's own
+     * small radius; the wave tank is far rounder (rx 8 of 100), and a sweep or badge drawn
+     * with the bar's radius pokes out of its corners (#863).
+     */
+    trackRadiusFrac?: number;
 }
 
 type BadgeKind = 'charge' | 'discharge' | 'offline';
@@ -66,6 +72,7 @@ export function FillStatusLayer({
     chargeColor,
     dischargeColor,
     offlineColor,
+    trackRadiusFrac,
 }: FillStatusLayerProps) {
     // No track ref: measure the host against itself, which yields its own box at 0/0.
     const box = useTrackBox(hostRef, trackRef ?? hostRef);
@@ -82,7 +89,9 @@ export function FillStatusLayer({
     const vertical = orientation === 'vertical';
     const cross = Math.min(box.width, box.height);
     const size = Math.max(9, Math.min(22, cross * 0.45));
-    const pad = Math.max(2, Math.min(6, cross * 0.08));
+    const radius = trackRadiusFrac != null ? cross * trackRadiusFrac : Math.min(9, cross / 2);
+    // A round corner cuts ~0.3 r into the diagonal — keep the badge clear of it.
+    const pad = Math.max(2, Math.min(6, cross * 0.08), radius * 0.3);
 
     // The lit part of the bar. An almost empty battery has nothing to sweep over, so
     // the sweep falls back to the full track — a charging light on an empty cell is
@@ -127,7 +136,7 @@ export function FillStatusLayer({
                         position: 'absolute',
                         ...sweepBox,
                         overflow: 'hidden',
-                        borderRadius: Math.min(9, cross / 2),
+                        borderRadius: radius,
                     }}
                 >
                     <div

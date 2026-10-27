@@ -771,7 +771,8 @@ function WaveViz({
     fillColor,
     showValue,
     uid,
-}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'numFmt' | 'fillColor' | 'showValue' | 'uid'>) {
+    trackRef,
+}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'numFmt' | 'fillColor' | 'showValue' | 'uid' | 'trackRef'>) {
     const clipId = `wave-${uid}`;
     const aboveId = `wave-above-${uid}`;
     const belowId = `wave-below-${uid}`;
@@ -817,8 +818,10 @@ function WaveViz({
                 </clipPath>
             </defs>
 
-            {/* Background */}
+            {/* Background — also the box the status layer draws in: the svg is fitted
+                square into a host of any aspect ratio (#863). */}
             <rect
+                ref={trackRef}
                 x={0}
                 y={0}
                 width={100}
@@ -1570,11 +1573,15 @@ export function FillWidget({ config }: WidgetProps) {
             .filter(Boolean)
             .join(' ') || undefined;
     /** The status layer, mounted in the same wrapper as the limits. */
-    const statusLayerFor = (ref: RefObject<Element> | null) => (
+    const statusLayerFor = (
+        ref: RefObject<Element> | null,
+        over?: { orientation?: 'vertical' | 'horizontal'; trackRadiusFrac?: number },
+    ) => (
         <FillStatusLayer
             hostRef={hostRef}
             trackRef={ref}
-            orientation={orientation}
+            orientation={over?.orientation ?? orientation}
+            trackRadiusFrac={over?.trackRadiusFrac}
             fillFrac={pct / 100}
             status={status}
             showChargeIcon={opts.showChargeIcon !== false}
@@ -1912,8 +1919,10 @@ export function FillWidget({ config }: WidgetProps) {
                             fillColor={fillColor}
                             showValue={showValue}
                             uid={uid}
+                            trackRef={trackRef}
                         />
-                        {statusLayerFor(null)}
+                        {/* The wave always rises bottom-up; its tank has rx 8 of 100. */}
+                        {statusLayerFor(trackRef, { orientation: 'vertical', trackRadiusFrac: 0.08 })}
                     </div>
                 </div>
                 <StatusBadges config={config} />

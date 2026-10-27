@@ -12,3 +12,4 @@
 - Overview - the "widget references to missing DPs" check now includes widgets inside groups and device cards right after a page reload, not only after clicking "Refresh" (#859)
 - Slideshow - number fields such as the transition duration accept typed values again instead of jumping to the minimum on the first digit (#860)
 - Popups - new datapoints popup.close (all devices) and clients.<id>.popup.close (one device): writing true closes every open popup on the device, whether opened by a click, a trigger or popup.open, stacked popups included (#861)
+- Fill level (wave) - the charging bolt and the charging sweep stay inside the tank instead of spilling below it when the widget is taller than wide (#863)

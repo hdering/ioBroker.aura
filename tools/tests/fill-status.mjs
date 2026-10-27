@@ -37,9 +37,12 @@ await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 })
 await page.evaluate(() => window.__auraShot.unfoldSections());
 await page.evaluate(() => window.__auraShot.writes(true));
 
+let seq = 0;
+// A fresh id per call: the harness keeps a widget with the same id mounted, and a
+// status datapoint added to it later is never subscribed while offline.
 /** A battery fill widget; `opts` is merged over the defaults, `extra` over the widget. */
 const widget = (opts, extra = {}) => ({
-    id: 'w-status',
+    id: `w-status-${++seq}`,
     type: 'fill',
     title: 'Akku',
     datapoint: SOC,
@@ -305,6 +308,40 @@ for (const layout of ['default', 'bar', 'segments', 'wave']) {
     );
     const r = await state();
     check(`layout ${layout} shows the bolt`, !!r.bolt, String(r.charging));
+}
+
+// The wave svg is fitted square into a host of any shape; bolt and sweep belong in
+// the tank, not in the letterbox below it (#863).
+{
+    await show(
+        widget(
+            { chargeDatapoint: CHARGE, chargeEffect: 'scan' },
+            { layout: 'wave', gridPos: { x: 0, y: 0, w: 4, h: 24 } },
+        ),
+        { [SOC]: 40, [CHARGE]: true },
+        '[data-aura-fill-badge="charge"]',
+    );
+    const r = await page.evaluate(() => {
+        const box = (el) => {
+            const b = el?.getBoundingClientRect();
+            return b ? { top: b.top, bottom: b.bottom, left: b.left, right: b.right } : null;
+        };
+        const host = document.querySelector('[data-aura-fill-status]')?.parentElement;
+        return {
+            host: box(host),
+            tank: box(host?.querySelector('svg > rect')),
+            bolt: box(document.querySelector('[data-aura-fill-badge="charge"]')),
+            scan: box(document.querySelector('[data-aura-fill-scan]')),
+        };
+    });
+    const inside = (b) => b && r.tank && b.bottom <= r.tank.bottom + 0.5 && b.top >= r.tank.top - 0.5;
+    check(
+        'wave: the host is taller than the tank (test premise)',
+        r.host && r.tank && r.host.bottom - r.tank.bottom > 10,
+        JSON.stringify({ host: r.host, tank: r.tank }),
+    );
+    check('wave: the bolt sits inside the tank', inside(r.bolt), JSON.stringify({ bolt: r.bolt, tank: r.tank }));
+    check('wave: the sweep stays inside the tank', inside(r.scan), JSON.stringify({ scan: r.scan, tank: r.tank }));
 }
 
 // ── 7. The editor panel writes the options ──────────────────────────────────
