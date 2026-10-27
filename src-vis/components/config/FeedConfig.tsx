@@ -62,6 +62,9 @@ function NumberField({
     max: number;
     onChange: (v: number) => void;
 }) {
+    // Typing passes through values below min, so the text is kept as a draft and only
+    // clamped when the field is left (#860).
+    const [draft, setDraft] = useState<string | null>(null);
     return (
         <div className="flex-1 min-w-0">
             <label className={labelCls} style={labelSty}>
@@ -71,10 +74,18 @@ function NumberField({
                 type="number"
                 min={min}
                 max={max}
-                value={value}
+                value={draft ?? value}
                 onChange={(e) => {
-                    const n = Number(e.target.value);
-                    if (Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
+                    const raw = e.target.value;
+                    setDraft(raw);
+                    const n = Number(raw);
+                    if (raw !== '' && Number.isFinite(n) && n >= min && n <= max) onChange(n);
+                }}
+                onBlur={() => {
+                    if (draft === null) return;
+                    const n = Number(draft);
+                    if (draft !== '' && Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
+                    setDraft(null);
                 }}
                 className={fieldCls}
                 style={fieldSty}
