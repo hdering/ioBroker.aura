@@ -131,6 +131,8 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const showTitle = o.showTitle !== false;
     const showSetpoint = o.showSetpoint !== false;
     const showActualTemp = o.showActualTemp !== false;
+    // Dial and circle menu: which temperature is drawn large (#864).
+    const primaryValue = o.primaryValue === 'actual' ? 'actual' : 'setpoint';
     const showControls = o.showControls !== false;
     const showPresets = o.showPresets !== false;
     const presets = (o.presets as number[] | undefined) ?? DEFAULT_PRESETS;
@@ -175,6 +177,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
     // written on release, so a drag does not fire a write per pointermove.
     const [dialDrag, setDialDrag] = useState<number | null>(null);
     const dialDragging = useRef(false);
+    // Pointer down on the arc — rendered, unlike the ref: the setpoint leads the
+    // centre only for that long (#864), not until the datapoint echoes back.
+    const [dialHeld, setDialHeld] = useState(false);
     // Hold the dragged value until the datapoint echoes back, otherwise the arc
     // snaps to the stale setpoint for the round-trip and visibly jumps twice.
     useEffect(() => {
@@ -284,6 +289,7 @@ export function ThermostatWidget({ config }: WidgetProps) {
             e.stopPropagation();
             (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
             dialDragging.current = true;
+            setDialHeld(true);
             const v = valueFromEvent(e);
             if (v !== null) setDialDrag(v);
         };
@@ -296,14 +302,28 @@ export function ThermostatWidget({ config }: WidgetProps) {
             if (!dialDragging.current) return;
             e.stopPropagation();
             dialDragging.current = false;
+            setDialHeld(false);
             if (dialDrag !== null) setState(config.datapoint, dialDrag);
         };
 
         // Centre stack — only the enabled fields, vertically centred as a block so
         // the dial stays balanced whichever of them is switched off.
         const lines: { key: string; text: string; fs: number; weight: number; fill: string }[] = [];
-        if (showSetpoint) {
-            const valueText = `${dialDrag !== null ? formatNum(dialDrag, decimals, numFmt) : setpointText} °C`;
+        // With primaryValue 'actual' the reading leads and the setpoint drops to the
+        // small line — except while dragging, so the value being set stays readable (#864).
+        const actualFirst = primaryValue === 'actual' && showActualTemp && actual !== null && !dialHeld;
+        const dialValueText = dialDrag !== null ? formatNum(dialDrag, decimals, numFmt) : setpointText;
+        if (actualFirst) {
+            const actualText = `${formatNum(actual, decimals, numFmt)} °C`;
+            lines.push({
+                key: 'actual',
+                text: actualText,
+                fs: fitDialValue(actualText),
+                weight: 700,
+                fill: thresholdColor ?? 'var(--text-primary)',
+            });
+        } else if (showSetpoint) {
+            const valueText = `${dialValueText} °C`;
             lines.push({ key: 'value', text: valueText, fs: fitDialValue(valueText), weight: 700, fill: arcColor });
         }
         if (showTitle)
@@ -314,7 +334,16 @@ export function ThermostatWidget({ config }: WidgetProps) {
                 weight: 400,
                 fill: 'var(--text-secondary)',
             });
-        if (showActualTemp && actual !== null)
+        if (actualFirst) {
+            if (showSetpoint)
+                lines.push({
+                    key: 'value',
+                    text: `${t('thermo.setPoint')} ${dialValueText} °C`,
+                    fs: 11,
+                    weight: 400,
+                    fill: arcColor,
+                });
+        } else if (showActualTemp && actual !== null)
             lines.push({
                 key: 'actual',
                 text: `${t('thermo.actual')} ${formatNum(actual, decimals, numFmt)} °C`,
@@ -491,6 +520,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
             }
             accentColor={accentColor}
             actualColor={thresholdColor ?? undefined}
+            primary={primaryValue}
+            actualValue={showActualTemp && actual !== null ? formatNum(actual, decimals, numFmt) : null}
+            setpointLabel={t('thermo.setPoint')}
             icon={showIcon ? (o.circleIcon ? getWidgetIcon(o.circleIcon as string, Thermometer) : ThermoIcon) : null}
             below={below}
         />

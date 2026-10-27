@@ -10007,6 +10007,9 @@
           "default": "hPa",
           "description": "Einheit hinter dem Luftdruck."
         },
+        "primaryValue": {
+          "description": "Nur Custom-Komponente \"circle-menu\": welcher Wert im Knopf groß steht — \"setpoint\" (Standard) oder \"actual\" (Ist-Temperatur groß, Sollwert klein darunter)."
+        },
         "showActualTemp": {
           "type": "boolean",
           "default": true,
@@ -20188,6 +20191,9 @@
           "items": {
             "type": "number"
           }
+        },
+        "primaryValue": {
+          "description": "Nur Rundskala (layout \"dial\") und Kreismenü (layout \"circle\" / Custom-Komponente \"circle-menu\"): welcher Wert groß in der Mitte steht — \"setpoint\" (Standard) oder \"actual\" (Ist-Temperatur groß, Sollwert klein darunter). Ohne Ist-Wert bzw. mit showActualTemp false bleibt der Sollwert groß; beim Ziehen an der Rundskala ist der Sollwert vorübergehend groß."
         },
         "showActualTemp": {
           "type": "boolean",

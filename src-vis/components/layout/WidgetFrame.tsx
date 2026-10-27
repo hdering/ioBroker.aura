@@ -187,7 +187,7 @@ import { ImagePathHint } from '../config/ImagePathHint';
 import { ImageSourceField } from '../config/ImageSourceField';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { shutterCircleEntries } from '../widgets/ShutterWidget';
-import { CircleMenuSettings, showsCircleMenu } from '../config/CircleMenuSettings';
+import { CircleMenuSettings, PrimaryValueSelect, showsCircleMenu } from '../config/CircleMenuSettings';
 import { thermostatCircleEntries } from '../widgets/ThermostatWidget';
 import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
@@ -19549,10 +19549,12 @@ function WidgetFrameInner({
                                                         intro="Im Kreis: Kälter (−), die Schnellwahl-Temperaturen und Wärmer (+). − und + lassen das Menü offen; in der Mitte steht der Sollwert."
                                                         entries={thermostatCircleEntries(o)}
                                                         iconPlaceholder="Thermometer"
+                                                        extra={<PrimaryValueSelect o={o} setO={setO} />}
                                                     />
                                                 )}
                                                 {config.layout === 'dial' && (
                                                     <SubGroup title="Rundskala">
+                                                        <PrimaryValueSelect o={o} setO={setO} />
                                                         <div className="flex items-center justify-between gap-2">
                                                             <label
                                                                 className="text-[11px]"

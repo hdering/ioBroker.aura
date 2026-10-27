@@ -325,6 +325,12 @@ export const WIDGET_OPTION_NOTES = {
         minTemp: { description: 'Untere Grenze der Soll-Temperatur.' },
         maxTemp: { description: 'Obere Grenze der Soll-Temperatur.' },
         step: { description: 'Schrittweite der Soll-Temperatur.' },
+        primaryValue: {
+            description:
+                'Nur Rundskala (layout "dial") und Kreismenü (layout "circle" / Custom-Komponente "circle-menu"): welcher Wert groß in der Mitte steht — ' +
+                '"setpoint" (Standard) oder "actual" (Ist-Temperatur groß, Sollwert klein darunter). Ohne Ist-Wert bzw. mit showActualTemp false bleibt der Sollwert groß; ' +
+                'beim Ziehen an der Rundskala ist der Sollwert vorübergehend groß.',
+        },
         ...CIRCLE_NOTES,
         circleIcon: {
             description:
@@ -885,6 +891,10 @@ export const WIDGET_OPTION_NOTES = {
         minTemp: { description: 'Nur mit targetControl: untere Grenze der Soll-Temperatur (Standard 10).' },
         maxTemp: { description: 'Nur mit targetControl: obere Grenze der Soll-Temperatur (Standard 30).' },
         step: { description: 'Nur mit targetControl: Schrittweite von − / + (Standard 0.5).' },
+        primaryValue: {
+            description:
+                'Nur Custom-Komponente "circle-menu": welcher Wert im Knopf groß steht — "setpoint" (Standard) oder "actual" (Ist-Temperatur groß, Sollwert klein darunter).',
+        },
         presets: {
             description:
                 'Nur mit targetControl: Schnellwahl-Temperaturen (Standard [18, 20, 22, 24]); [] = keine Schnellwahl. ' +

@@ -15,3 +15,4 @@
 - Fill level (wave) - the charging bolt and the charging sweep stay inside the tank instead of spilling below it when the widget is taller than wide (#863)
 - Popups - widgets in a popup view no longer stay squeezed to a fraction of the dialog (looking like the phone layout) when the popup was opened before its view had its final width, e.g. a screensaver popup (#862)
 - Room climate - with placeholder datapoints such as {{parent}} the history series (temperature, humidity) and time range can be set again with the adapter instance left empty, so a popup can show the humidity history (#857)
+- Thermostat - dial and circle menu can show the measured temperature large and the setpoint small (new option "Large display"); also for the room climate circle menu (#864)

@@ -320,6 +320,7 @@
     "test:scale-target": "node tools/tests/scale-target.mjs",
     "test:thermo-dial": "node tools/tests/thermostat-dial.mjs",
     "test:thermo-dial-touch": "node tools/tests/thermostat-dial-touch.mjs",
+    "test:thermo-primary": "node tools/tests/thermostat-primary-value.mjs",
     "test:chart-series-modal": "node tools/tests/chart-series-modal.mjs",
     "test:chart-json-labels": "node tools/tests/chart-json-time-labels.mjs",
     "test:chart-legend": "node tools/tests/chart-legend-rows.mjs",

@@ -539,6 +539,8 @@ export function ClimateWidget({ config }: WidgetProps) {
                 setpointText={setpoint !== null ? formatNum(setpoint, decimals, numFmt) : '–'}
                 actualText={actualTemp !== null ? `Ist ${formatNum(actualTemp, decimals, numFmt)}°` : null}
                 accentColor={heatCool ?? lineColor}
+                primary={o.primaryValue === 'actual' ? 'actual' : 'setpoint'}
+                actualValue={actualTemp !== null ? formatNum(actualTemp, decimals, numFmt) : null}
                 icon={showIcon ? (o.circleIcon ? getWidgetIcon(o.circleIcon as string, Thermometer) : TempIcon) : null}
             />
         </div>

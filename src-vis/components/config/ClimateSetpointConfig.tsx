@@ -6,7 +6,7 @@
  */
 import { SubGroup } from './ConfigSection';
 import { NumberListInput } from './NumberListInput';
-import { CircleMenuSettings, showsCircleMenu } from './CircleMenuSettings';
+import { CircleMenuSettings, PrimaryValueSelect, showsCircleMenu } from './CircleMenuSettings';
 import { DEFAULT_SETPOINT_PRESETS, setpointCircleEntries } from '../widgets/SetpointCircle';
 
 const hint: React.CSSProperties = { color: 'var(--text-secondary)' };
@@ -120,6 +120,7 @@ export function ClimateSetpointConfig({
                     intro="Kreismenü-Zelle: Kälter (−), die Schnellwahl-Temperaturen und Wärmer (+). − und + lassen das Menü offen; in der Mitte steht der Sollwert."
                     entries={setpointCircleEntries(true, presets)}
                     iconPlaceholder="Thermometer"
+                    extra={<PrimaryValueSelect o={o} setO={set} />}
                 />
             )}
         </>

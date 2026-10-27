@@ -105,6 +105,9 @@ export function SetpointCircleMenu({
     actualColor,
     icon,
     below,
+    primary = 'setpoint',
+    actualValue = null,
+    setpointLabel = 'Soll',
 }: {
     settings: SetpointCircleSettings;
     items: CircleMenuItem[];
@@ -119,8 +122,28 @@ export function SetpointCircleMenu({
     /** Icon drawn in the button; null = none. */
     icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> | null;
     below?: React.ReactNode;
+    /** Which value the button shows large (#864); 'actual' falls back to the setpoint without a reading. */
+    primary?: 'setpoint' | 'actual';
+    /** Formatted reading without label ("20,5") — the large value when primary is 'actual'. */
+    actualValue?: string | null;
+    /** Label of the small setpoint line when the reading is shown large. */
+    setpointLabel?: string;
 }) {
     const Icon = icon;
+    // Large and small line of the button — swapped when the reading leads (#864).
+    const actualFirst = primary === 'actual' && actualValue !== null;
+    const big = actualFirst
+        ? { text: `${actualValue}°`, color: actualColor ?? 'var(--text-primary)' }
+        : setpointText !== null
+          ? { text: `${setpointText}°`, color: accentColor }
+          : null;
+    const small = actualFirst
+        ? setpointText !== null
+            ? { text: `${setpointLabel} ${setpointText}°`, color: accentColor }
+            : null
+        : actualText !== null
+          ? { text: actualText, color: actualColor ?? 'var(--text-secondary)' }
+          : null;
     return (
         <CircleMenu
             triggerTitle={setpointText !== null ? `${title}: ${setpointText}°C` : title}
@@ -148,29 +171,31 @@ export function SetpointCircleMenu({
                             }
                         />
                     )}
-                    {setpointText !== null && (
+                    {big && (
                         <span
                             className="aura-widget-value font-bold tabular-nums"
+                            data-aura-circle-line="big"
                             style={{
-                                color: accentColor,
+                                color: big.color,
                                 fontSize: '20cqw',
                                 lineHeight: 1.1,
                                 marginTop: '3cqw',
                             }}
                         >
-                            {setpointText}°
+                            {big.text}
                         </span>
                     )}
-                    {actualText !== null && (
+                    {small && (
                         <span
                             className="tabular-nums"
+                            data-aura-circle-line="small"
                             style={{
-                                color: actualColor ?? 'var(--text-secondary)',
+                                color: small.color,
                                 fontSize: '10cqw',
                                 lineHeight: 1.2,
                             }}
                         >
-                            {actualText}
+                            {small.text}
                         </span>
                     )}
                 </>

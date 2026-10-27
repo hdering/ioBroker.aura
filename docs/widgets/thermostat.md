@@ -92,6 +92,7 @@ Nur im Layout **Rundskala**.
 
 | Option | Standard | |
 | --- | --- | --- |
+| `primaryValue` | `setpoint` | **Große Anzeige** in der Mitte: `setpoint` (Soll) oder `actual` (Ist, Soll klein darunter). Beim Ziehen ist der Sollwert groß. Gilt auch fürs Kreismenü |
 | `dialColor` | — | feste Bogenfarbe (leer = Heiz-/Kühl-Akzent) |
 | `dialColorThresholds` | — | Liste aus `[Schwelle, Farbe]`, gegen den **Soll**-Wert geprüft; schlägt `dialColor` |
 | `dialThickness` | `11` | Bogenbreite |
@@ -105,6 +106,7 @@ Nur im Layout **Rundskala**.
 | --- | --- | --- |
 | `circleDirection` | `auto` | `auto` (Vollkreis, wenn er ins Fenster passt, sonst Halbkreis mit dem meisten Platz) · `full` · `top` · `right` · `bottom` · `left` |
 | `circleOrder` | — | Reihenfolge der Einträge: `minus`, `plus`, `preset-<Wert>` (z. B. `preset-21.5`). Vollkreis ab oben im Uhrzeigersinn, Halbkreis von links bzw. oben. Nicht genannte Einträge folgen in Standardreihenfolge |
+| `primaryValue` | `setpoint` | **Große Anzeige** im Knopf: `setpoint` (Soll) oder `actual` (Ist, Soll klein darunter) |
 | `circleIcon` | — | Icon im runden Knopf; leer = Widget-Icon (`icon`), ohne beides ein Thermometer |
 | `circleTriggerSize` | — | fester Durchmesser des runden Knopfs in px (40–396), höchstens Widget-Größe; leer = füllt das Widget (Regler ganz rechts) |
 | `circleItemSize` | `48` | Durchmesser der Einträge in px (32–96) |

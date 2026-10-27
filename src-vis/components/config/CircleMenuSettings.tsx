@@ -29,6 +29,38 @@ export function showsCircleMenu(layout: string | undefined, o: Record<string, un
     return cells.some((c) => (c as { type?: string; componentKey?: string })?.componentKey === 'circle-menu');
 }
 
+/**
+ * "Große Anzeige" (#864): thermostat dial / circle menu and the room climate's
+ * circle menu draw either the setpoint or the measured temperature large.
+ */
+export function PrimaryValueSelect({
+    o,
+    setO,
+}: {
+    o: Record<string, unknown>;
+    setO: (patch: Record<string, unknown>) => void;
+}) {
+    return (
+        <div data-aura-primary-value="">
+            <label className="text-[11px] mb-1 block" style={hint}>
+                Große Anzeige
+            </label>
+            <select
+                value={o.primaryValue === 'actual' ? 'actual' : 'setpoint'}
+                onChange={(e) => setO({ primaryValue: e.target.value === 'actual' ? 'actual' : undefined })}
+                className={inputCls}
+                style={inputStyle}
+            >
+                <option value="setpoint">Solltemperatur</option>
+                <option value="actual">Isttemperatur</option>
+            </select>
+            <p className="text-[10px] mt-0.5" style={hint}>
+                Der andere Wert steht klein darunter. Beim Einstellen ist der Sollwert groß.
+            </p>
+        </div>
+    );
+}
+
 /** Right end of the button-size slider = no fixed size: the button fills the widget. */
 const TRIGGER_MAX = 400;
 
@@ -112,6 +144,7 @@ export function CircleMenuSettings({
     entries,
     iconPlaceholder,
     widgetIconFallback = true,
+    extra,
 }: {
     o: Record<string, unknown>;
     setO: (patch: Record<string, unknown>) => void;
@@ -123,6 +156,8 @@ export function CircleMenuSettings({
     iconPlaceholder: string;
     /** The widget icon stands in for an unset `circleIcon` (off where something else comes first). */
     widgetIconFallback?: boolean;
+    /** Widget-specific rows right below the intro. */
+    extra?: ReactNode;
 }) {
     const widgetIcon = widgetIconFallback ? (o.icon as string) || undefined : undefined;
     const triggerSize = (o.circleTriggerSize as number) || TRIGGER_MAX;
@@ -132,6 +167,7 @@ export function CircleMenuSettings({
             <p className="text-[10px]" style={hint}>
                 {intro}
             </p>
+            {extra}
             <div>
                 <label className="text-[11px] mb-1 block" style={hint}>
                     Richtung
