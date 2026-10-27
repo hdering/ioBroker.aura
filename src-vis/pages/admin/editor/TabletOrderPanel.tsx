@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import {
     ChevronDown,
     ChevronLeft,
@@ -6,10 +6,11 @@ import {
     ChevronUp,
     ExternalLink,
     GripVertical,
+    Plus,
     Maximize2,
     Merge,
     Minimize2,
-    Scissors,
+    X,
 } from 'lucide-react';
 import { useDashboardStore } from '../../../store/dashboardStore';
 import { useT } from '../../../i18n';
@@ -73,6 +74,12 @@ function locate(bands: Band[], id: string): Slot | null {
         }
     }
     return null;
+}
+
+/** The nearest column block above (dir -1) or below (dir 1) band `bi`, full-width bands skipped; -1 if none. */
+function neighbourBlock(bands: Band[], bi: number, dir: -1 | 1): number {
+    for (let j = bi + dir; j >= 0 && j < bands.length; j += dir) if (bands[j].kind === 'columns') return j;
+    return -1;
 }
 
 /** Take a widget out of the structure, wherever it is. */
@@ -146,7 +153,24 @@ export function TabletOrderPanel({
     // A stable empty array, so the memo below does not rebuild on every render of an empty tab.
     const widgets = tab?.widgets ?? NO_WIDGETS;
 
-    const bands = useMemo(() => flowBands(widgets, mode, cols), [widgets, mode, cols]);
+    const stored = useMemo(() => flowBands(widgets, mode, cols), [widgets, mode, cols]);
+    // A block added with "+ Block" holds no widget yet, so nothing stores it: it lives
+    // here, before band `at`, until the first card moves in (commit() then writes it).
+    // The block below it is marked as started on purpose, so that it does not merge
+    // into the new one once that holds a card.
+    const [pending, setPending] = useState<{ tabId: string; at: number; cols: number } | null>(null);
+    const pendingHere = pending && pending.tabId === activeTabId ? pending : null;
+    const bands = useMemo<Band[]>(() => {
+        if (!pendingHere) return stored;
+        const at = Math.min(pendingHere.at, stored.length);
+        const below = stored[at];
+        return [
+            ...stored.slice(0, at),
+            { ...emptyBlock(pendingHere.cols), start: true },
+            ...(below ? [below.kind === 'columns' ? { ...below, start: true } : below] : []),
+            ...stored.slice(at + 1),
+        ];
+    }, [stored, pendingHere]);
 
     const [dragId, setDragId] = useState<string | null>(null);
     const [overId, setOverId] = useState<string | null>(null);
@@ -154,6 +178,7 @@ export function TabletOrderPanel({
     /** Write the arranged structure back — order for all, column for cards, band flag for bands. */
     const commit = (next: Band[]) => {
         if (!tab) return;
+        setPending(null);
         const tabExtent = tabExtentOf(widgets);
         for (const { widget: w, order, col, wide, bandCols } of linearizeBands(normalize(next), cols)) {
             const patch: Partial<WidgetConfig> = {};
@@ -185,8 +210,19 @@ export function TabletOrderPanel({
         } else {
             const col = b.columns[at.ci];
             const j = at.idx + dir;
-            if (j < 0 || j >= col.length) return;
-            [col[at.idx], col[j]] = [col[j], col[at.idx]];
+            if (j < 0 || j >= col.length) {
+                // Past the column's end: into the next block in that direction, same
+                // column (or its last one), at the edge it came in from.
+                const tb = neighbourBlock(next, at.bi, dir);
+                const target = next[tb];
+                if (!target || target.kind !== 'columns') return;
+                const [w] = col.splice(at.idx, 1);
+                const tc = target.columns[Math.min(at.ci, target.columns.length - 1)];
+                if (dir < 0) tc.push(w);
+                else tc.unshift(w);
+            } else {
+                [col[at.idx], col[j]] = [col[j], col[at.idx]];
+            }
         }
         commit(next);
     };
@@ -231,23 +267,16 @@ export function TabletOrderPanel({
         const next = clone(bands);
         const b = next[bi];
         if (!b || b.kind !== 'columns' || b.columns.length === n) return;
+        if (b.columns.every((c) => c.length === 0)) {
+            // The still empty "+ Block": nothing to store yet.
+            if (pendingHere) setPending({ ...pendingHere, cols: n });
+            return;
+        }
         next[bi] = { kind: 'columns', columns: redealBlock(b.columns, n), start: true };
         commit(next);
     };
 
-    /** Start a new section at a card's row: that row and everything below it in the block move into it. */
-    const splitAt = (id: string) => {
-        const next = clone(bands);
-        const at = locate(next, id);
-        if (!at || at.idx <= 0) return;
-        const b = next[at.bi];
-        if (b.kind !== 'columns') return;
-        const lower: ColumnsBand = { kind: 'columns', columns: b.columns.map((c) => c.splice(at.idx)), start: true };
-        next.splice(at.bi + 1, 0, lower);
-        commit(next);
-    };
-
-    /** Join a section into the block right above it, which keeps its column count. */
+    /** Join a block into the block right above it, which keeps its column count. */
     const mergeUp = (bi: number) => {
         const next = clone(bands);
         const b = next[bi];
@@ -287,7 +316,7 @@ export function TabletOrderPanel({
 
     const card = (
         w: WidgetConfig,
-        ctx: { wide: boolean; canUp: boolean; canDown: boolean; ci: number; blockCols: number; canSplit?: boolean },
+        ctx: { wide: boolean; canUp: boolean; canDown: boolean; ci: number; blockCols: number },
     ) => {
         const isDragging = dragId === w.id;
         const isOver = overId === w.id && dragId !== w.id;
@@ -331,17 +360,6 @@ export function TabletOrderPanel({
                     >
                         {title(w)}
                     </span>
-                    {ctx.canSplit && (
-                        <button
-                            data-aura-order-action="split"
-                            className="shrink-0 hover:opacity-80"
-                            style={{ color: 'var(--text-secondary)' }}
-                            onClick={() => splitAt(w.id)}
-                            title={t('editor.tablet.split')}
-                        >
-                            <Scissors size={11} />
-                        </button>
-                    )}
                 </div>
                 <div className="flex items-center gap-0.5 mt-1">
                     {!ctx.wide && (
@@ -403,8 +421,24 @@ export function TabletOrderPanel({
         );
     };
 
+    /** "+ Block" between two bands (and above the first, below the last): inserts an empty
+     *  block there. Hidden while one is waiting for its first card. */
+    const addBlockBtn = (at: number) =>
+        pendingHere ? null : (
+            <button
+                data-aura-order-add-block={at}
+                className="w-full flex items-center justify-center gap-1 rounded py-0.5 text-[10px] hover:opacity-80"
+                style={{ border: '1px dashed var(--app-border)', color: 'var(--text-secondary)' }}
+                onClick={() => setPending({ tabId: activeTabId, at, cols })}
+                title={t('editor.tablet.addBlockHint')}
+            >
+                <Plus size={10} />
+                {t('editor.tablet.addBlock')}
+            </button>
+        );
+
     // Wide enough for the columns to stay readable: ~140 px per column plus padding.
-    // Sized by the widest block, since a section can have more columns than the setting (#851).
+    // Sized by the widest block, since a block can have more columns than the setting (#851).
     const widest = Math.max(cols, ...bands.map((b) => (b.kind === 'columns' ? b.columns.length : 1)));
     const width = Math.max(260, widest * 150 + 24);
 
@@ -431,117 +465,139 @@ export function TabletOrderPanel({
                         {t('editor.tab.noWidgets')}
                     </p>
                 ) : (
-                    bands.map((band, bi) =>
-                        band.kind === 'full' ? (
-                            <div key={band.widget.id} data-aura-order-band="full">
-                                {card(band.widget, {
-                                    wide: true,
-                                    canUp: bi > 0,
-                                    canDown: bi < bands.length - 1,
-                                    ci: 0,
-                                    blockCols: 1,
-                                })}
-                            </div>
-                        ) : (
-                            <div
-                                key={`block-${bi}`}
-                                data-aura-order-block={bi}
-                                data-aura-order-block-cols={band.columns.length}
-                            >
-                                {/* Section head (#851): its own column count, and joining it into the block above. */}
-                                <div className="flex items-center gap-1 mb-1">
-                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('editor.tablet.blockCols')}
-                                    </span>
-                                    {Array.from({ length: MAX_FLOW_COLS }, (_, i) => i + 1).map((n) => {
-                                        const active = band.columns.length === n;
-                                        return (
-                                            <button
-                                                key={n}
-                                                data-aura-order-block-set={n}
-                                                className="w-5 h-5 rounded text-[10px] hover:opacity-80"
-                                                style={{
-                                                    background: active ? 'var(--accent)' : 'var(--app-surface)',
-                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                }}
-                                                aria-pressed={active}
-                                                onClick={() => setBlockCols(bi, n)}
-                                            >
-                                                {n}
-                                            </button>
-                                        );
+                    bands.map((band, bi) => (
+                        <Fragment key={band.kind === 'full' ? band.widget.id : `block-${bi}`}>
+                            {addBlockBtn(bi)}
+                            {band.kind === 'full' ? (
+                                <div data-aura-order-band="full">
+                                    {card(band.widget, {
+                                        wide: true,
+                                        canUp: bi > 0,
+                                        canDown: bi < bands.length - 1,
+                                        ci: 0,
+                                        blockCols: 1,
                                     })}
-                                    <span className="flex-1" />
-                                    {bands[bi - 1]?.kind === 'columns' && (
-                                        <button
-                                            data-aura-order-action="merge"
-                                            className={iconBtn}
-                                            style={iconBtnStyle}
-                                            onClick={() => mergeUp(bi)}
-                                            title={t('editor.tablet.merge')}
+                                </div>
+                            ) : (
+                                <div data-aura-order-block={bi} data-aura-order-block-cols={band.columns.length}>
+                                    {/* Block head (#851): its own column count, and joining it into the block above. */}
+                                    <div className="flex items-center gap-1 mb-1">
+                                        <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                            {t('editor.tablet.blockCols')}
+                                        </span>
+                                        {Array.from({ length: MAX_FLOW_COLS }, (_, i) => i + 1).map((n) => {
+                                            const active = band.columns.length === n;
+                                            return (
+                                                <button
+                                                    key={n}
+                                                    data-aura-order-block-set={n}
+                                                    className="w-5 h-5 rounded text-[10px] hover:opacity-80"
+                                                    style={{
+                                                        background: active ? 'var(--accent)' : 'var(--app-surface)',
+                                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    }}
+                                                    aria-pressed={active}
+                                                    onClick={() => setBlockCols(bi, n)}
+                                                >
+                                                    {n}
+                                                </button>
+                                            );
+                                        })}
+                                        <span className="flex-1" />
+                                        {band.columns.every((c) => c.length === 0) && (
+                                            <button
+                                                data-aura-order-action="discard"
+                                                className={iconBtn}
+                                                style={iconBtnStyle}
+                                                onClick={() => setPending(null)}
+                                                title={t('editor.tablet.discardBlock')}
+                                            >
+                                                <X size={11} />
+                                            </button>
+                                        )}
+                                        {bands[bi - 1]?.kind === 'columns' && band.columns.some((c) => c.length) && (
+                                            <button
+                                                data-aura-order-action="merge"
+                                                className={iconBtn}
+                                                style={iconBtnStyle}
+                                                onClick={() => mergeUp(bi)}
+                                                title={t('editor.tablet.merge')}
+                                            >
+                                                <Merge size={11} />
+                                            </button>
+                                        )}
+                                    </div>
+                                    {band.columns.every((c) => c.length === 0) && (
+                                        <p
+                                            data-aura-order-block-empty=""
+                                            className="text-[10px] mb-1"
+                                            style={{ color: 'var(--text-secondary)' }}
                                         >
-                                            <Merge size={11} />
-                                        </button>
+                                            {t('editor.tablet.emptyBlock')}
+                                        </p>
                                     )}
-                                </div>
-                                <div
-                                    className="grid gap-1.5"
-                                    style={{ gridTemplateColumns: `repeat(${band.columns.length}, minmax(0, 1fr))` }}
-                                >
-                                    {band.columns.map((col, ci) => (
-                                        <div
-                                            key={ci}
-                                            data-aura-order-col={ci}
-                                            className="flex flex-col gap-1.5 min-w-0 rounded-lg"
-                                            style={{
-                                                border: '1px dashed var(--app-border)',
-                                                padding: 4,
-                                                minHeight: 40,
-                                            }}
-                                        >
-                                            {col.map((w, idx) =>
-                                                card(w, {
-                                                    wide: false,
-                                                    canUp: idx > 0,
-                                                    canDown: idx < col.length - 1,
-                                                    ci,
-                                                    blockCols: band.columns.length,
-                                                    canSplit: idx > 0,
-                                                }),
-                                            )}
-                                            {/* Tail: drop here to append to this column. */}
+                                    <div
+                                        className="grid gap-1.5"
+                                        style={{
+                                            gridTemplateColumns: `repeat(${band.columns.length}, minmax(0, 1fr))`,
+                                        }}
+                                    >
+                                        {band.columns.map((col, ci) => (
                                             <div
-                                                data-aura-order-tail={ci}
-                                                className="flex-1 rounded"
+                                                key={ci}
+                                                data-aura-order-col={ci}
+                                                className="flex flex-col gap-1.5 min-w-0 rounded-lg"
                                                 style={{
-                                                    minHeight: 14,
-                                                    background:
-                                                        dragId && overId === `tail:${bi}:${ci}`
-                                                            ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
-                                                            : undefined,
+                                                    border: '1px dashed var(--app-border)',
+                                                    padding: 4,
+                                                    minHeight: 40,
                                                 }}
-                                                onDragOver={(e) => {
-                                                    if (!dragId) return;
-                                                    e.preventDefault();
-                                                    setOverId(`tail:${bi}:${ci}`);
-                                                }}
-                                                onDragLeave={() =>
-                                                    setOverId((cur) => (cur === `tail:${bi}:${ci}` ? null : cur))
-                                                }
-                                                onDrop={(e) => {
-                                                    e.preventDefault();
-                                                    dropInto(null, band, ci);
-                                                    endDrag();
-                                                }}
-                                            />
-                                        </div>
-                                    ))}
+                                            >
+                                                {col.map((w, idx) =>
+                                                    card(w, {
+                                                        wide: false,
+                                                        canUp: idx > 0 || neighbourBlock(bands, bi, -1) >= 0,
+                                                        canDown:
+                                                            idx < col.length - 1 || neighbourBlock(bands, bi, 1) >= 0,
+                                                        ci,
+                                                        blockCols: band.columns.length,
+                                                    }),
+                                                )}
+                                                {/* Tail: drop here to append to this column. */}
+                                                <div
+                                                    data-aura-order-tail={ci}
+                                                    className="flex-1 rounded"
+                                                    style={{
+                                                        minHeight: 14,
+                                                        background:
+                                                            dragId && overId === `tail:${bi}:${ci}`
+                                                                ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                                                : undefined,
+                                                    }}
+                                                    onDragOver={(e) => {
+                                                        if (!dragId) return;
+                                                        e.preventDefault();
+                                                        setOverId(`tail:${bi}:${ci}`);
+                                                    }}
+                                                    onDragLeave={() =>
+                                                        setOverId((cur) => (cur === `tail:${bi}:${ci}` ? null : cur))
+                                                    }
+                                                    onDrop={(e) => {
+                                                        e.preventDefault();
+                                                        dropInto(null, band, ci);
+                                                        endDrag();
+                                                    }}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ),
-                    )
+                            )}
+                        </Fragment>
+                    ))
                 )}
+                {widgets.length > 0 && addBlockBtn(bands.length)}
             </div>
         </div>
     );

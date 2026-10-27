@@ -14,7 +14,7 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 | Importieren | Widget aus JSON-Export einfügen |
 | Mobile-Reihenfolge | Reihenfolge der Widgets in der Einspaltenansicht; bei mehreren Mobile-Spalten wie die Tablet-Reihenfolge |
 | Tablet-Reihenfolge | Spalten wie im Tablet-Bereich: Widgets per Drag oder Pfeilen in Spalte und Reihenfolge setzen, ⤢ = volle Breite über alle Spalten; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge |
-| Abschnitte | Je Abschnitt eigene Spaltenzahl (1–4) über die Zahlen im Kopf; Schere an einer Karte = neuer Abschnitt ab dieser Reihe, Verbinden-Knopf = mit dem Abschnitt darüber zusammenlegen |
+| Blöcke | Je Block eigene Spaltenzahl (1–4) über die Zahlen im Kopf; „+ Block“ zwischen den Blöcken = dort neuen leeren Block einfügen, ▲ ▼ am Spaltenende = in den Block darüber/darunter, Verbinden-Knopf = mit dem Block darüber zusammenlegen |
 | Schloss | Bedienelemente der Widgets sperren (Standard) oder freigeben |
 | Hilfslinien | Rote Ziellinien ein-/ausblenden |
 | Strg+Alt halten (Mac: ⌘+⌥) | Vorschau ohne Bearbeiten-Buttons |

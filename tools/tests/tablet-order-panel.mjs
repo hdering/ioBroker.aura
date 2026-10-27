@@ -182,7 +182,7 @@ await tabletBtn.click();
 await page.waitForTimeout(300);
 check(s(await colTitles(0)) === 'Alpha,Beta', 'Tablet-Anordnung davon unberuehrt', s(await colTitles(0)));
 
-// ── Abschnitte mit eigener Spaltenzahl (#851) ───────────────────────────────
+// ── Bloecke mit eigener Spaltenzahl (#851) ──────────────────────────────────
 // Ausgang: ein Block, Spalte 1 Alpha,Beta, Spalte 2 Gamma,Delta.
 const blockCols = async () =>
     tablet
@@ -200,32 +200,93 @@ const stored = () =>
             ['w0', 'w1', 'w2', 'w3'].map((id) => [id, window.__auraShot.widgetConfig(id)?.tabletBandCols ?? null]),
         ),
     );
+const addBtns = tablet.locator('[data-aura-order-add-block]');
+const addAt = (i) => tablet.locator(`[data-aura-order-add-block="${i}"]`);
+const blockSet = (bi, n) => tablet.locator(`[data-aura-order-block="${bi}"] [data-aura-order-block-set="${n}"]`);
+/** Id der obersten Karte einer Spalte in einem Block. */
+const topCard = (bi, ci) =>
+    tablet
+        .locator(`[data-aura-order-block="${bi}"] [data-aura-order-col="${ci}"] [data-aura-order-card]`)
+        .first()
+        .getAttribute('data-aura-order-card');
+const settle = () => page.waitForTimeout(300);
+
 check(s(await colTitles(1)) === 'Gamma,Delta', 'Ausgang: Spalte 2 Gamma,Delta', s(await colTitles(1)));
-check((await action('w0', 'split').count()) === 0, 'oberste Reihe hat keine Schere');
-await action('w1', 'split').click();
-await page.waitForTimeout(300);
-check((await blockCols()) === '2,2', 'Schere an Beta: zwei Abschnitte', await blockCols());
-check((await blockTitles(1)) === 'Beta,Delta', 'unterer Abschnitt: Beta, Delta', await blockTitles(1));
-check((await stored()).w1 === 2, 'Beta traegt tabletBandCols 2', JSON.stringify(await stored()));
+check((await tablet.locator('[data-aura-order-action="split"]').count()) === 0, 'keine Schere an den Widgets');
+check((await addBtns.count()) === 2, '„+ Block“ ueber und unter dem Block', String(await addBtns.count()));
 
-await tablet.locator('[data-aura-order-block="1"] [data-aura-order-block-set="1"]').click();
-await page.waitForTimeout(300);
-check((await blockCols()) === '2,1', 'unterer Abschnitt auf 1 Spalte', await blockCols());
-check(s(await colTitles(0)).endsWith('Beta,Delta'), 'Beta und Delta untereinander', s(await colTitles(0)));
+// ── leerer Block: Spalten umstellbar, verwerfbar ─────────────────────────────
+await addAt(1).click();
+await settle();
+check((await blockCols()) === '2,2', '„+ Block“ unten: leerer Block mit 2 Spalten', await blockCols());
+check((await tablet.locator('[data-aura-order-block-empty]').count()) === 1, 'leerer Block zeigt den Hinweis');
+check((await addBtns.count()) === 0, 'solange er leer ist, keine weiteren „+ Block“');
+await blockSet(1, 1).click();
+await settle();
+check((await blockCols()) === '2,1', 'Spaltenzahl am leeren Block umstellbar', await blockCols());
+await tablet.locator('[data-aura-order-block="1"] [data-aura-order-action="discard"]').click();
+await settle();
+check((await blockCols()) === '2', '✕ verwirft den leeren Block', await blockCols());
+check((await addBtns.count()) === 2, '„+ Block“ wieder da');
 
-await tablet.locator('[data-aura-order-block="0"] [data-aura-order-block-set="3"]').click();
-await page.waitForTimeout(300);
-check((await blockCols()) === '3,1', 'oberer Abschnitt auf 3 Spalten', await blockCols());
+// ── ▼ am Spaltenende schiebt in den neuen Block ─────────────────────────────
+await addAt(1).click();
+await settle();
+await blockSet(1, 1).click();
+await settle();
+await action('w1', 'down').click();
+await settle();
+check((await blockTitles(1)) === 'Beta', '▼ an Beta (Spaltenende): in den neuen Block', await blockTitles(1));
+check((await stored()).w1 === 1, 'Beta traegt tabletBandCols 1', JSON.stringify(await stored()));
+await action('w3', 'down').click();
+await settle();
+check((await blockTitles(1)) === 'Delta,Beta', '▼ an Delta: oben in den unteren Block', await blockTitles(1));
+check(
+    (await stored()).w3 === 1 && (await stored()).w1 === null,
+    'Markierung wandert zu Delta',
+    JSON.stringify(await stored()),
+);
+
+await blockSet(0, 3).click();
+await settle();
+check((await blockCols()) === '3,1', 'oberer Block auf 3 Spalten', await blockCols());
 check((await stored()).w0 === 3, 'Alpha traegt tabletBandCols 3', JSON.stringify(await stored()));
 check(
     (await tablet.locator('[data-aura-order-block="0"] [data-aura-order-action="merge"]').count()) === 0,
-    'oberster Abschnitt ohne Verbinden',
+    'oberster Block ohne Verbinden',
 );
-
 await tablet.locator('[data-aura-order-block="1"] [data-aura-order-action="merge"]').click();
-await page.waitForTimeout(300);
-check((await blockCols()) === '3', 'Verbinden: ein Abschnitt mit 3 Spalten', await blockCols());
-check((await stored()).w1 === null, 'Beta ohne tabletBandCols', JSON.stringify(await stored()));
+await settle();
+check((await blockCols()) === '3', 'Verbinden: ein Block mit 3 Spalten', await blockCols());
+check((await stored()).w3 === null, 'Delta ohne tabletBandCols', JSON.stringify(await stored()));
+
+// ── „+ Block“ ganz oben: ▲ an der obersten Karte schiebt hinein ─────────────
+await addAt(0).click();
+await settle();
+check((await blockCols()) === '2,3', '„+ Block“ oben: leerer Block ueber dem 3er-Block', await blockCols());
+const first = await topCard(1, 0);
+await action(first, 'up').click();
+await settle();
+check((await blockCols()) === '2,3', '▲ fuellt den oberen Block, der 3er-Block bleibt eigen', await blockCols());
+check(
+    (await tablet.locator('[data-aura-order-block="0"] [data-aura-order-card]').count()) === 1,
+    'oberer Block haelt genau ein Widget',
+);
+const st = await stored();
+const second = await topCard(1, 0);
+check(st[first] === 2 && st[second] === 3, 'beide Bloecke tragen ihre Spaltenzahl', JSON.stringify(st));
+
+// ── „+ Block“ zwischen zwei Bloecken ────────────────────────────────────────
+await addAt(1).click();
+await settle();
+check((await blockCols()) === '2,2,3', '„+ Block“ in der Mitte: leerer Block dazwischen', await blockCols());
+await action(await topCard(2, 0), 'up').click();
+await settle();
+check((await blockCols()) === '2,2,3', '▲ aus dem unteren Block fuellt den mittleren', await blockCols());
+check(
+    (await tablet.locator('[data-aura-order-block="1"] [data-aura-order-card]').count()) === 1,
+    'mittlerer Block haelt ein Widget',
+);
 await tabletBtn.click();
 
 check(pageErrors.length === 0, 'keine Seitenfehler', pageErrors.join(' | '));

@@ -16,4 +16,4 @@
 - Popups - widgets in a popup view no longer stay squeezed to a fraction of the dialog (looking like the phone layout) when the popup was opened before its view had its final width, e.g. a screensaver popup (#862)
 - Room climate - with placeholder datapoints such as {{parent}} the history series (temperature, humidity) and time range can be set again with the adapter instance left empty, so a popup can show the humidity history (#857)
 - Thermostat - dial and circle menu can show the measured temperature large and the setpoint small (new option "Large display"); also for the room climate circle menu (#864)
-- Phone and tablet layout - every section of the column flow can have its own number of columns (1-4), e.g. four widgets in a row at the top and two wider ones below; set in the editor's mobile/tablet order panel, where the scissors start a new section (#851)
+- Phone and tablet layout - the column flow can be split into blocks with their own number of columns (1-4), e.g. four widgets in a row at the top and two wider ones below; set in the editor's mobile/tablet order panel ("+ Block" between blocks, the arrows move widgets from block to block) (#851)
