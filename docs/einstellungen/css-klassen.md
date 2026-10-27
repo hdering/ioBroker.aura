@@ -171,6 +171,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-feed-item` (+ `.aura-feed-row` · `.aura-feed-card` · `.aura-feed-ticker-item` · `.aura-feed-single`) | Nachrichten: ein Artikel; `data-aura-feed-item` = Id des Artikels |
 | `.aura-feed-title` · `.aura-feed-summary` · `.aura-feed-image` · `.aura-feed-meta` · `.aura-feed-source` · `.aura-feed-source-dot` · `.aura-feed-date` | Nachrichten: Teile eines Artikels |
 | `.aura-feed-notice` · `.aura-feed-warning` · `.aura-feed-dots` | Nachrichten: Hinweis (kein Feed, leer, Fehler), Warnzeichen bei einem ausgefallenen Feed, Punkte der Einzelmeldung |
+| `.aura-feed-new` · `.aura-feed-unread` · `.aura-feed-speak` | Nachrichten: Punkt an einem ungelesenen Artikel, „N neu“-Knopf, Vorlese-Knopf (`data-aura-feed-reading` solange er liest) |
 | `.aura-marquee-track` | Lauftext im Karussell |
 | `.aura-carousel-shake` | kurzer Anstoß beim Öffnen (Karussell) |
 | `.aura-map-pin` | Markierung im Karten-Widget |

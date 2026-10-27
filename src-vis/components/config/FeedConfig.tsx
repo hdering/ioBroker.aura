@@ -14,9 +14,11 @@ import {
     FEED_COLORS,
     FEED_DATE_MODES,
     FEED_DEFAULTS,
+    FEED_IMAGE_PROXY,
     FEED_OPEN_MODES,
     feedSources,
     type FeedDateMode,
+    type FeedImageProxy,
     type FeedOpenMode,
 } from '../widgets/FeedWidget';
 
@@ -367,6 +369,21 @@ export function FeedConfig({ config, onConfigChange }: Props) {
                             onChange={(v) => set({ showImage: v ? undefined : false })}
                             label={t('feed.cfg.showImage')}
                         />
+                        {o.showImage !== false && (
+                            <>
+                                <Select
+                                    label={t('feed.cfg.imageProxy')}
+                                    value={(o.imageProxy as FeedImageProxy | undefined) ?? FEED_DEFAULTS.imageProxy}
+                                    options={FEED_IMAGE_PROXY.map((id) => ({ id, label: t(`feed.imageProxy.${id}`) }))}
+                                    onChange={(v) =>
+                                        set({ imageProxy: v === FEED_DEFAULTS.imageProxy ? undefined : v })
+                                    }
+                                />
+                                <p className="text-[10px] -mt-1" style={hintSty}>
+                                    {t('feed.cfg.imageProxyHint')}
+                                </p>
+                            </>
+                        )}
                         <Check
                             checked={o.showSummary === true}
                             onChange={(v) => set({ showSummary: v || undefined })}
@@ -465,6 +482,39 @@ export function FeedConfig({ config, onConfigChange }: Props) {
                 <p className="text-[10px] -mt-1" style={hintSty}>
                     {t('feed.cfg.openHint')}
                 </p>
+            </ConfigSection>
+
+            <ConfigSection title={t('feed.cfg.newSection')} sectionKey="news">
+                <Check
+                    checked={o.markNew === true}
+                    onChange={(v) => set({ markNew: v || undefined })}
+                    label={t('feed.cfg.markNew')}
+                />
+                <p className="text-[10px] -mt-1" style={hintSty}>
+                    {t('feed.cfg.markNewHint')}
+                </p>
+                <Check
+                    checked={o.speakNew === true}
+                    onChange={(v) => set({ speakNew: v || undefined })}
+                    label={t('feed.cfg.speakNew')}
+                />
+                <p className="text-[10px] -mt-1" style={hintSty}>
+                    {t('feed.cfg.speakNewHint')}
+                </p>
+                <Check
+                    checked={o.speakButton === true}
+                    onChange={(v) => set({ speakButton: v || undefined })}
+                    label={t('feed.cfg.speakButton')}
+                />
+                {o.speakButton === true && (
+                    <NumberField
+                        label={t('feed.cfg.speakCount')}
+                        value={Number(o.speakCount) || FEED_DEFAULTS.speakCount}
+                        min={1}
+                        max={20}
+                        onChange={(v) => set({ speakCount: v })}
+                    />
+                )}
             </ConfigSection>
         </>
     );

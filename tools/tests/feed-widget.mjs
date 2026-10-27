@@ -9,7 +9,8 @@
 // opening an article (auto → popup or new tab, newTab, editor does nothing),
 // cards, ticker (doubled track, pauses on hover), single (rotates, swipe), the
 // rssfeed adapter source, filters, error notices and the warning for one failing
-// feed, and the settings dialog (add a URL feed, rssfeed states offered).
+// feed, phase 2 (new marks, announcing arrivals, read aloud, image proxy), and the
+// settings dialog (add a URL feed, rssfeed states offered).
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -323,6 +324,142 @@ await waitFor(async () => (await titles('fw')).length === 2);
 }
 await mount('f0', {});
 check('no feeds: notice', /Kein Feed/.test(await W('f0').innerText()));
+
+// ── phase 2: new marks, announcements, read aloud, image proxy ───────────────
+{
+    // The speech store as the app loaded it (after a hot update the URL carries ?t=…).
+    const speech = (fn) =>
+        page.evaluate(async (fn) => {
+            const url = performance
+                .getEntriesByType('resource')
+                .map((e) => e.name)
+                .find((n) => n.includes('/src-vis/store/speechStore.ts'));
+            if (!url) return null;
+            const m = await import(url);
+            if (fn === 'clear') return m.__devClearAnnounced();
+            return m.__devAnnounced().map((r) => r.text);
+        }, fn);
+    const art = (n, minAgo) => ({
+        title: `Meldung ${n}`,
+        link: `https://neu.test/${n}`,
+        date: new Date(NOW - minAgo * 60e3).toISOString(),
+    });
+    const setFeed = (articles) =>
+        page.evaluate(
+            (state) => {
+                window.__auraShot.mock({ 'rssfeed.0.neu': state });
+                window.__auraShot.mockServerState({ 'rssfeed.0.neu': state });
+            },
+            JSON.stringify({ meta: { title: 'Neu' }, articles }),
+        );
+    const NEWS = { feeds: [{ id: 'n', type: 'adapter', datapoint: 'rssfeed.0.neu' }], openMode: 'none' };
+    const dots = (id) => W(id).locator('.aura-feed-new').count();
+    const unreadText = (id) =>
+        W(id)
+            .locator('.aura-feed-unread')
+            .innerText({ timeout: 500 })
+            .catch(() => '');
+
+    await page.evaluate(() => localStorage.removeItem('aura-feed-seen:fnew'));
+    await setFeed([art(1, 30), art(2, 60)]);
+    await mount('fnew', { ...NEWS, markNew: true, speakNew: true });
+    await waitFor(async () => (await titles('fnew')).length === 2);
+    await speech('clear');
+    check('new: nothing new on the very first load', (await dots('fnew')) === 0 && !(await unreadText('fnew')));
+
+    await setFeed([art(3, 1), art(1, 30), art(2, 60)]);
+    await waitFor(async () => (await titles('fnew')).length === 3);
+    check(
+        'new: the arrival gets a dot',
+        (await W('fnew').locator('[data-aura-feed-item="https://neu.test/3"] .aura-feed-new').count()) === 1,
+    );
+    check('new: "1 neu" in the title row', /1 neu/.test(await unreadText('fnew')), await unreadText('fnew'));
+    check(
+        'speak: the arrival is announced, the first load was not',
+        JSON.stringify(await speech()) === '["Neue Meldung: Meldung 3"]',
+        JSON.stringify(await speech()),
+    );
+
+    await W('fnew').locator('[data-aura-feed-item="https://neu.test/3"]').click();
+    check('new: tapping an article marks it read', (await dots('fnew')) === 0 && !(await unreadText('fnew')));
+
+    await setFeed([art(4, 0), art(5, 0.5), art(3, 1), art(1, 30), art(2, 60)]);
+    await waitFor(async () => (await dots('fnew')) === 2);
+    check('new: two more → "2 neu"', /2 neu/.test(await unreadText('fnew')), await unreadText('fnew'));
+    await W('fnew').locator('.aura-feed-unread').click();
+    check('new: "N neu" marks all read', (await dots('fnew')) === 0);
+
+    // Read marks live on this device: a remount (reload) keeps them.
+    await page.evaluate(() =>
+        window.__auraShot.showWidgets([
+            { id: 'tmp', type: 'value', title: 'x', datapoint: 'demo.x', gridPos: { x: 0, y: 0, w: 4, h: 4 } },
+        ]),
+    );
+    await page.waitForTimeout(200);
+    await speech('clear');
+    await mount('fnew', { ...NEWS, markNew: true, speakNew: true });
+    await waitFor(async () => (await titles('fnew')).length === 5);
+    await page.waitForTimeout(300);
+    check('new: read marks survive a remount', (await dots('fnew')) === 0);
+    check('speak: a remount does not announce again', (await speech()).length === 0, JSON.stringify(await speech()));
+
+    const many = [10, 11, 12, 13, 14].map((n) => art(n, 0));
+    await setFeed([...many, art(4, 0), art(5, 0.5), art(3, 1), art(1, 30), art(2, 60)]);
+    await waitFor(async () => (await dots('fnew')) === 5);
+    check('speak: at most three arrivals at once', (await speech()).length === 3, JSON.stringify(await speech()));
+
+    // Read aloud button
+    await mount('fread', { ...NEWS, speakButton: true, speakCount: 2 });
+    await waitFor(async () => (await titles('fread')).length > 2);
+    await speech('clear');
+    await W('fread').locator('.aura-feed-speak').click();
+    check(
+        'read aloud: the first speakCount headlines',
+        JSON.stringify(await speech()) === '["Meldung 10. Meldung 11."]',
+        JSON.stringify(await speech()),
+    );
+    check('read aloud: no new marks without markNew', (await dots('fread')) === 0);
+
+    // Image proxy
+    await page.route('https://img.fail.test/**', (route) => route.fulfill({ status: 403, body: 'hotlink' }));
+    await page.route('**/proxy?url=**', (route) =>
+        route.fulfill({
+            status: 200,
+            contentType: 'image/svg+xml',
+            body: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#0f0"/></svg>',
+        }),
+    );
+    const state = JSON.stringify({
+        meta: { title: 'Bilder' },
+        articles: [{ title: 'Mit Bild', link: 'https://img.test/1', image: { url: 'https://img.fail.test/a.jpg' } }],
+    });
+    await page.evaluate((state) => {
+        window.__auraShot.mock({ 'rssfeed.0.img': state });
+        window.__auraShot.mockServerState({ 'rssfeed.0.img': state });
+    }, state);
+    const IMGS = { feeds: [{ id: 'i', type: 'adapter', datapoint: 'rssfeed.0.img' }] };
+    const img = (id) => W(id).locator('img.aura-feed-image');
+    const src = (id) => img(id).getAttribute('src', { timeout: 5000 });
+
+    await mount('fimg-auto', IMGS);
+    check(
+        'image auto: a refused picture is retried through Aura',
+        await waitFor(async () => /proxy\?url=https%3A%2F%2Fimg\.fail\.test/.test((await src('fimg-auto')) ?? '')),
+        await src('fimg-auto'),
+    );
+    check(
+        'image auto: …and shown',
+        await waitFor(() => img('fimg-auto').evaluate((el) => el.naturalWidth > 0 && el.style.display !== 'none')),
+    );
+    await mount('fimg-always', { ...IMGS, imageProxy: 'always' });
+    check('image always: through Aura from the start', /proxy\?url=/.test((await src('fimg-always')) ?? ''));
+    await mount('fimg-off', { ...IMGS, imageProxy: 'off' });
+    check(
+        'image off: broken picture hidden, no retry',
+        await waitFor(() => img('fimg-off').evaluate((el) => el.style.display === 'none')),
+    );
+    check('image off: src stays direct', (await src('fimg-off')) === 'https://img.fail.test/a.jpg');
+}
 
 // ── editor ───────────────────────────────────────────────────────────────────
 await mount('fed', { feeds: [SRC[0]] });

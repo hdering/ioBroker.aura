@@ -1727,6 +1727,27 @@ export const en: Record<TranslationKey, string> = {
     'feed.open.none': 'Nothing',
     'feed.cfg.openHint':
         'Many news sites refuse to be embedded – "Automatic" checks first and opens those in a new tab.',
+    'feed.new': 'New',
+    'feed.unread': '{n} new',
+    'feed.markAllRead': 'Mark all as read',
+    'feed.speak.new': 'News: {title}',
+    'feed.speak.read': 'Read headlines aloud',
+    'feed.speak.stop': 'Stop reading',
+    'feed.cfg.newSection': 'New and read aloud',
+    'feed.cfg.markNew': 'Mark new articles',
+    'feed.cfg.markNewHint':
+        'Dot on articles not opened on this device yet. "N new" in the title row marks all as read.',
+    'feed.cfg.speakNew': 'Announce new articles',
+    'feed.cfg.speakNewHint':
+        'Through the speech output, at most three at once, only while the screen is on. Not on the first load.',
+    'feed.cfg.speakButton': '"Read headlines aloud" button',
+    'feed.cfg.speakCount': 'Headlines read aloud',
+    'feed.cfg.imageProxy': 'Load images',
+    'feed.imageProxy.auto': 'Automatic (through Aura when needed)',
+    'feed.imageProxy.always': 'Always through Aura',
+    'feed.imageProxy.off': 'Directly from the publisher',
+    'feed.cfg.imageProxyHint':
+        'Through Aura: for https dashboards with http images, sites blocking hotlinks and devices without internet.',
 
     // ── ConditionEditor ───────────────────────────────────────────────────────────
     'cond.equal': '= Equal',

@@ -1741,6 +1741,27 @@ export const de = {
     'feed.open.none': 'Nichts',
     'feed.cfg.openHint':
         'Viele Nachrichtenseiten lassen sich nicht einbetten – „Automatisch“ prüft das vorher und öffnet solche Seiten in einem neuen Tab.',
+    'feed.new': 'Neu',
+    'feed.unread': '{n} neu',
+    'feed.markAllRead': 'Alle als gelesen markieren',
+    'feed.speak.new': 'Neue Meldung: {title}',
+    'feed.speak.read': 'Schlagzeilen vorlesen',
+    'feed.speak.stop': 'Vorlesen beenden',
+    'feed.cfg.newSection': 'Neu und Vorlesen',
+    'feed.cfg.markNew': 'Neue Artikel markieren',
+    'feed.cfg.markNewHint':
+        'Punkt an Artikeln, die auf diesem Gerät noch nicht geöffnet wurden. „N neu“ in der Titelzeile markiert alle als gelesen.',
+    'feed.cfg.speakNew': 'Neue Artikel ansagen',
+    'feed.cfg.speakNewHint':
+        'Über die Sprachausgabe, höchstens drei auf einmal, nur bei eingeschaltetem Bildschirm. Nicht beim ersten Laden.',
+    'feed.cfg.speakButton': 'Knopf „Schlagzeilen vorlesen“',
+    'feed.cfg.speakCount': 'Vorgelesene Schlagzeilen',
+    'feed.cfg.imageProxy': 'Bilder laden',
+    'feed.imageProxy.auto': 'Automatisch (bei Bedarf über Aura)',
+    'feed.imageProxy.always': 'Immer über Aura',
+    'feed.imageProxy.off': 'Direkt vom Anbieter',
+    'feed.cfg.imageProxyHint':
+        'Über Aura: für https-Dashboards mit http-Bildern, Seiten mit Hotlink-Sperre und Geräte ohne Internet.',
 
     // ── ConditionEditor ───────────────────────────────────────────────────────────
     'cond.equal': '= Gleich',

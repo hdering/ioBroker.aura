@@ -1188,6 +1188,26 @@ export const WIDGET_OPTION_NOTES = {
             default: 60,
             description: 'Nur Layout "ticker": Laufgeschwindigkeit in px/s. Hover hält an.',
         },
+        markNew: {
+            description:
+                'Punkt an Artikeln, die auf diesem Gerät noch nicht geöffnet wurden (localStorage je Widget); „N neu“ in der ' +
+                'Titelzeile markiert alle gelesen. Beim ersten Laden eines Feeds ist nichts neu.',
+        },
+        speakNew: {
+            description:
+                'Neu eintreffende Artikel über die Sprachausgabe ansagen („Neue Meldung: …“), höchstens drei auf einmal, ' +
+                'nur bei sichtbarer Seite, nie beim ersten Laden. Mehrere Tabs/Widgets mit demselben Artikel sagen ihn einmal.',
+        },
+        speakButton: {
+            description: 'Lautsprecher-Knopf in der Titelzeile liest die ersten speakCount Schlagzeilen vor.',
+        },
+        speakCount: { type: 'number', default: 5, description: 'Wie viele Schlagzeilen der Vorlese-Knopf liest.' },
+        imageProxy: {
+            default: 'auto',
+            description:
+                'Vorschaubilder: "auto" = direkt, über Aura (/proxy) bei http-Bild auf https-Dashboard oder wenn das direkte ' +
+                'Laden scheitert (Hotlink-Sperre, Gerät ohne Internet); "always" = immer über Aura; "off" = nur direkt.',
+        },
     },
     scenes: {
         allowEdit: {

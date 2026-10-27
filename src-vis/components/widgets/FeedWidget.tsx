@@ -11,12 +11,15 @@
  * opened after an await is eaten by the popup blocker.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Newspaper } from 'lucide-react';
+import { AlertTriangle, CheckCheck, Newspaper, Square, Volume2 } from 'lucide-react';
 import type { ClickAction, FeedSource, WidgetLayout, WidgetProps } from '../../types';
 import { auraUrl } from '../../utils/basePath';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
+import { announce, stopSpeech, unlockSpeech, useSpeechStore } from '../../store/speechStore';
+import { SPEECH_TEXT_MAX } from '../../utils/speech';
+import { loadSeen, saveSeen, unknownIds, type FeedIds } from './feedNews';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { WidgetClickPopup } from './popup/WidgetClickPopup';
 import {
@@ -31,9 +34,11 @@ import {
 
 export type FeedDateMode = 'none' | 'relative' | 'time' | 'dateTime';
 export type FeedOpenMode = 'auto' | 'popup' | 'newTab' | 'none';
+export type FeedImageProxy = 'auto' | 'always' | 'off';
 
 export const FEED_DATE_MODES: FeedDateMode[] = ['relative', 'time', 'dateTime', 'none'];
 export const FEED_OPEN_MODES: FeedOpenMode[] = ['auto', 'popup', 'newTab', 'none'];
+export const FEED_IMAGE_PROXY: FeedImageProxy[] = ['auto', 'always', 'off'];
 export const FEED_COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 export const FEED_DEFAULTS = {
@@ -45,10 +50,85 @@ export const FEED_DEFAULTS = {
     openMode: 'auto' as FeedOpenMode,
     rotateSec: 8,
     tickerSpeed: 60,
+    speakCount: 5,
+    imageProxy: 'auto' as FeedImageProxy,
 };
 
 /** A swipe needs this many px sideways; less is a tap. */
 const SWIPE_PX = 40;
+/** Arrivals announced at once; a feed that dumps twenty new items is not read out whole. */
+const SPEAK_NEW_MAX = 3;
+
+/** A preview image through Aura's server (/proxy): https pages, hotlink checks, kiosks without internet. */
+function viaAura(url: string): string {
+    return auraUrl(`/proxy?url=${encodeURIComponent(url)}`);
+}
+
+function imageSrc(url: string, mode: FeedImageProxy): string {
+    if (!/^https?:\/\//i.test(url) || mode === 'off') return url;
+    if (mode === 'always') return viaAura(url);
+    // auto: an http picture on an https dashboard is blocked as mixed content.
+    return typeof location !== 'undefined' && location.protocol === 'https:' && /^http:/i.test(url)
+        ? viaAura(url)
+        : url;
+}
+
+function safeStorage(): Storage | null {
+    try {
+        return window.localStorage;
+    } catch {
+        return null;
+    }
+}
+
+/** Feed key + article ids per loaded source — the input of unknownIds(). */
+function feedIdsOf(sources: FeedSource[], states: FeedState[]): FeedIds[] {
+    const out: FeedIds[] = [];
+    sources.forEach((s, i) => {
+        const feed = states[i]?.feed;
+        if (feed) out.push({ key: `${s.type}:${feedSourceTarget(s)}`, ids: feed.items.map((it) => it.id) });
+    });
+    return out;
+}
+
+/**
+ * Unread marks (markNew): what this device has read, per widget, in
+ * localStorage. Opening an article or "all read" marks it.
+ */
+function useUnread(widgetId: string, feedIds: FeedIds[], enabled: boolean) {
+    const ref = useRef<{ seen: Set<string>; sources: Set<string> } | null>(null);
+    const [version, setVersion] = useState(0);
+    if (!ref.current) {
+        const stored = loadSeen(widgetId, safeStorage());
+        ref.current = { seen: new Set(stored.ids), sources: new Set(stored.sources) };
+    }
+    const store = ref.current;
+    const unread = useMemo(() => {
+        if (!enabled) return new Set<string>();
+        const before = store.sources.size;
+        const ids = unknownIds(store.seen, store.sources, feedIds);
+        if (store.sources.size !== before) saveSeen(widgetId, store.seen, store.sources, safeStorage());
+        return new Set(ids);
+        // `version` re-reads after a mark.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [feedIds, enabled, version, widgetId]);
+
+    const mark = useCallback(
+        (ids: Iterable<string>) => {
+            let changed = false;
+            for (const id of ids) {
+                if (store.seen.has(id)) continue;
+                store.seen.add(id);
+                changed = true;
+            }
+            if (!changed) return;
+            saveSeen(widgetId, store.seen, store.sources, safeStorage());
+            setVersion((v) => v + 1);
+        },
+        [store, widgetId],
+    );
+    return { unread, mark };
+}
 
 /** `options.feeds` without the junk a hand-edited config can carry. */
 export function feedSources(list: FeedSource[] | undefined): FeedSource[] {
@@ -220,6 +300,11 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
     const tickerSpeed = Math.max(10, Number(o.tickerSpeed) || FEED_DEFAULTS.tickerSpeed);
     const include = typeof o.includeKeywords === 'string' ? o.includeKeywords : '';
     const exclude = typeof o.excludeKeywords === 'string' ? o.excludeKeywords : '';
+    const markNew = o.markNew === true;
+    const speakNew = o.speakNew === true;
+    const speakButton = o.speakButton === true;
+    const speakCount = Math.max(1, Number(o.speakCount) || FEED_DEFAULTS.speakCount);
+    const imageProxy = (o.imageProxy as FeedImageProxy | undefined) ?? FEED_DEFAULTS.imageProxy;
 
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
@@ -254,16 +339,64 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hostKey]);
 
+    const feedIds = useMemo(() => feedIdsOf(sources, states), [states]); // eslint-disable-line react-hooks/exhaustive-deps
+    const { unread, mark } = useUnread(config.id, feedIds, markNew);
+    const isNew = (item: FeedItem) => markNew && unread.has(item.id);
+    const unreadShown = markNew ? items.filter((i) => unread.has(i.id)).length : 0;
+
+    // Announce arrivals: what came in while this widget is mounted, never the first load.
+    const arrivalsRef = useRef({ known: new Set<string>(), baselined: new Set<string>() });
+    useEffect(() => {
+        const a = arrivalsRef.current;
+        const fresh = new Set(unknownIds(a.known, a.baselined, feedIds));
+        for (const id of fresh) a.known.add(id);
+        if (!speakNew || editMode || !fresh.size) return;
+        for (const it of items.filter((i) => fresh.has(i.id)).slice(0, SPEAK_NEW_MAX)) {
+            // One key per article: two widgets or two tabs with the same feed say it once.
+            void announce(
+                { text: t('feed.speak.new', { title: it.title }), onlyVisible: true },
+                { key: `feed:${it.id}` },
+            );
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [feedIds]);
+
+    // Read the headlines on request; the button turns into "stop" while it speaks.
+    const speechPlaying = useSpeechStore((s) => s.playing);
+    const [reading, setReading] = useState(false);
+    useEffect(() => {
+        if (reading && !speechPlaying) {
+            const id = setTimeout(() => setReading(false), 400);
+            return () => clearTimeout(id);
+        }
+    }, [reading, speechPlaying]);
+    const readHeadlines = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (editMode) return;
+        if (reading) {
+            stopSpeech();
+            setReading(false);
+            return;
+        }
+        const list = items.slice(0, speakCount).map((i) => i.title.replace(/[.!?]?$/, '.'));
+        if (!list.length) return;
+        unlockSpeech();
+        setReading(true);
+        void announce({ text: list.join(' ').slice(0, SPEECH_TEXT_MAX), interrupt: true });
+    };
+
     const [popup, setPopup] = useState<{ action: ClickAction; title: string } | null>(null);
     const open = useCallback(
         (item: FeedItem, e: React.MouseEvent | React.KeyboardEvent) => {
-            if (editMode || !item.link || openMode === 'none') return;
+            if (editMode) return;
+            if (markNew) mark([item.id]);
+            if (!item.link || openMode === 'none') return;
             e.stopPropagation();
             const inPopup = openMode === 'popup' || (openMode === 'auto' && embeddable(item.link));
             if (inPopup) setPopup({ action: { kind: 'popup-iframe', url: item.link }, title: item.title });
             else window.open(item.link, '_blank', 'noopener');
         },
-        [editMode, openMode],
+        [editMode, openMode, markNew, mark],
     );
 
     const sourceName = (i: number) => {
@@ -303,7 +436,12 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
               ? t('feed.empty')
               : null;
 
-    const header = (showTitle || showIcon || failed.length > 0) && (
+    const headerButton: React.CSSProperties = {
+        color: 'var(--text-secondary)',
+        background: 'var(--app-bg)',
+        border: '1px solid var(--app-border)',
+    };
+    const header = (showTitle || showIcon || failed.length > 0 || unreadShown > 0 || speakButton) && (
         <HeaderGroup>
             <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                 {showIcon && (
@@ -332,6 +470,33 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
                     >
                         <AlertTriangle size={12} />
                     </span>
+                )}
+                {unreadShown > 0 && (
+                    <button
+                        type="button"
+                        className="aura-feed-unread shrink-0 ml-auto flex items-center gap-1 px-1.5 rounded-full text-[11px] leading-4 hover:opacity-80"
+                        title={t('feed.markAllRead')}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (!editMode) mark(unread);
+                        }}
+                        style={{ ...headerButton, color: 'var(--accent)' }}
+                    >
+                        {t('feed.unread', { n: unreadShown })}
+                        <CheckCheck size={11} />
+                    </button>
+                )}
+                {speakButton && (
+                    <button
+                        type="button"
+                        className={`aura-feed-speak shrink-0 p-1 rounded-full hover:opacity-80 ${unreadShown > 0 || failed.length > 0 ? '' : 'ml-auto'}`}
+                        data-aura-feed-reading={reading ? '' : undefined}
+                        title={t(reading ? 'feed.speak.stop' : 'feed.speak.read')}
+                        onClick={readHeadlines}
+                        style={headerButton}
+                    >
+                        {reading ? <Square size={11} /> : <Volume2 size={11} />}
+                    </button>
                 )}
                 <HeaderSlotsInline />
             </TitleRow>
@@ -393,13 +558,32 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
     const image = (item: FeedItem, className: string, style: React.CSSProperties) =>
         showImage && item.image ? (
             <img
-                src={item.image}
+                src={imageSrc(item.image, imageProxy)}
                 alt=""
                 loading="lazy"
                 referrerPolicy="no-referrer"
                 className={`aura-feed-image ${className}`}
                 style={{ objectFit: 'cover', ...style }}
-                onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = 'none')}
+                onError={(e) => {
+                    const img = e.currentTarget as HTMLImageElement;
+                    // auto: a picture the browser cannot load directly (hotlink check,
+                    // no internet on the kiosk) gets one more try through Aura.
+                    if (imageProxy === 'auto' && !img.dataset.auraProxied && /^https?:\/\//i.test(item.image)) {
+                        img.dataset.auraProxied = '1';
+                        img.src = viaAura(item.image);
+                        return;
+                    }
+                    img.style.display = 'none';
+                }}
+            />
+        ) : null;
+
+    const newDot = (item: FeedItem) =>
+        isNew(item) ? (
+            <span
+                className="aura-feed-new inline-block w-2 h-2 rounded-full mr-1.5 align-middle"
+                title={t('feed.new')}
+                style={{ background: 'var(--accent)', verticalAlign: '0.1em' }}
             />
         ) : null;
 
@@ -431,6 +615,7 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
                 itemProps={itemProps}
                 sourceColor={sourceColor}
                 sourceName={showSource ? sourceName : undefined}
+                newDot={newDot}
             />
         );
     } else if (layout === 'single') {
@@ -454,6 +639,7 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
                                     overflow: 'hidden',
                                 }}
                             >
+                                {newDot(item)}
                                 {item.title}
                             </p>
                             {showSummary && summary(item, summaryLines)}
@@ -493,6 +679,7 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
                                     overflow: 'hidden',
                                 }}
                             >
+                                {newDot(item)}
                                 {item.title}
                             </p>
                             {showSummary && summary(item, summaryLines)}
@@ -527,6 +714,7 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
                                     overflow: 'hidden',
                                 }}
                             >
+                                {newDot(item)}
                                 {item.title}
                             </p>
                             {showSummary && summary(item, summaryLines)}
@@ -564,12 +752,14 @@ function FeedTicker({
     itemProps,
     sourceColor,
     sourceName,
+    newDot,
 }: {
     items: FeedItem[];
     speed: number;
     itemProps: ItemProps;
     sourceColor: (i: number) => string;
     sourceName?: (i: number) => string;
+    newDot?: (item: FeedItem) => React.ReactNode;
 }) {
     const trackRef = useRef<HTMLDivElement>(null);
     const [seconds, setSeconds] = useState(30);
@@ -602,6 +792,7 @@ function FeedTicker({
                     </span>
                 )}
                 <span className="aura-feed-title" style={{ color: 'var(--text-primary)' }}>
+                    {newDot?.(item)}
                     {item.title}
                 </span>
             </span>

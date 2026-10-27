@@ -2367,7 +2367,8 @@
         "Mehrere Feeds werden nach Datum gemischt; name und color je Feed beschriften die Artikel. Die Feed-URL steht meist im Seitenquelltext (link rel=\"alternate\" type=\"application/rss+xml\") oder unter /rss bzw. /feed.",
         "Laufschrift: layout \"ticker\", Höhe h 3, volle Breite, showTitle/showIcon false, z. B. unter der Kopfzeile. Wechselnde Einzelmeldung: layout \"single\" mit rotateSec, h etwa 6. Liste (\"default\") und Karten (\"card\") scrollen in jeder Höhe.",
         "openMode \"auto\" (Standard) öffnet Artikel im Popup, wenn die Seite das Einbetten erlaubt, sonst in einem neuen Tab. Viele große Nachrichtenseiten verbieten das Einbetten — dann ist \"newTab\" ehrlicher.",
-        "includeKeywords/excludeKeywords filtern Titel und Anriss (Komma-getrennt); maxAgeHours blendet Altes aus."
+        "includeKeywords/excludeKeywords filtern Titel und Anriss (Komma-getrennt); maxAgeHours blendet Altes aus.",
+        "markNew zeigt ungelesene Artikel (je Gerät), speakNew sagt neu eintreffende über die Sprachausgabe an, speakButton liest auf Knopfdruck vor — über die eingebaute Sprachausgabe, kein Adapter nötig; clients.<id>.speech.muted schaltet ein Gerät stumm. imageProxy \"always\", wenn Bilder auf dem Gerät nicht laden (Kiosk ohne Internet, Hotlink-Sperre)."
       ],
       "widgets": [
         {

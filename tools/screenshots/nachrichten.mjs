@@ -3,6 +3,7 @@
 //         docs/widgets/assets/nachrichten/karten.png      (Layout "card")
 //         docs/widgets/assets/nachrichten/laufschrift.png (Layout "ticker")
 //         docs/widgets/assets/nachrichten/einzel.png      (Layout "single")
+//         docs/widgets/assets/nachrichten/neu.png         (Neu-Markierung + Vorlese-Knopf)
 //         docs/widgets/assets/nachrichten/config.png      (Bearbeiten-Dialog)
 //
 //   npm run dev            (or set AURA_BASE)
@@ -112,6 +113,16 @@ await page.route(/\.example\/img\/(\w+)\.svg$/, (route) => {
     return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: PICTURES[name] });
 });
 
+// Neu-Markierung: this device has "read" two of the five articles already.
+await ctx.addInitScript(() => {
+    localStorage.setItem(
+        'aura-feed-seen:w-news-new',
+        JSON.stringify({
+            ids: ['https://stadtanzeiger.example/haushalt', 'https://technik-blog.example/matter'],
+            sources: ['url:https://stadtanzeiger.example/rss', 'url:https://technik-blog.example/feed'],
+        }),
+    );
+});
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, null, { timeout: 90000 });
 
@@ -151,6 +162,13 @@ const WIDGETS = [
         gridPos: { x: 0, y: 23, w: 16, h: 7 },
         options: { feeds: FEED_SOURCES, showSummary: true, rotateSec: 600 },
     },
+    {
+        id: 'w-news-new',
+        type: 'feed',
+        title: 'Nachrichten',
+        gridPos: { x: 16, y: 23, w: 10, h: 14 },
+        options: { feeds: FEED_SOURCES, markNew: true, speakButton: true, showImage: false },
+    },
 ];
 await page.evaluate((widgets) => {
     window.__auraShot.seed({
@@ -175,13 +193,18 @@ await page.evaluate((widgets) => {
         activeLayoutId: 'lay-news',
     });
 }, WIDGETS);
-await page.waitForFunction(() => document.querySelectorAll('.aura-feed-item').length >= 15, null, { timeout: 20000 });
+await page.waitForFunction(() => document.querySelectorAll('.aura-feed-item').length >= 20, null, { timeout: 20000 });
 // Let the lazy preview images arrive.
 await page.waitForFunction(
     () => [...document.querySelectorAll('img.aura-feed-image')].every((i) => i.complete && i.naturalWidth > 0),
     null,
     { timeout: 20000 },
 );
+// The screen-resolution hint of the dev instance would sit on top of the lower widgets.
+await page
+    .locator('button:text-is("Verstanden")')
+    .click({ timeout: 2000 })
+    .catch(() => {});
 await page.waitForTimeout(500);
 
 const shot = (id, file) =>
@@ -193,9 +216,10 @@ await shot('w-news-list', 'runtime.png');
 await shot('w-news-cards', 'karten.png');
 await shot('w-news-ticker', 'laufschrift.png');
 await shot('w-news-single', 'einzel.png');
-console.log('✓ runtime.png, karten.png, laufschrift.png, einzel.png');
+await shot('w-news-new', 'neu.png');
+console.log('✓ runtime.png, karten.png, laufschrift.png, einzel.png, neu.png');
 
-// Settings dialog: the widget's own sections, from "Feeds" to "Verhalten".
+// Settings dialog: the widget's own sections, from "Feeds" to "Neu und Vorlesen".
 await page.evaluate(() => {
     window.__auraShot.setEditMode(true);
     window.__auraShot.unfoldSections();
@@ -222,7 +246,7 @@ await page.setViewportSize({ width: 1600, height: 2600 });
 await page.waitForTimeout(400);
 {
     const a = await modal.locator('[data-aura-config-section="datapoints"]').boundingBox();
-    const b = await modal.locator('[data-aura-config-section="behavior"]').boundingBox();
+    const b = await modal.locator('[data-aura-config-section="news"]').boundingBox();
     await page.screenshot({
         path: `${OUT}/config.png`,
         clip: { x: a.x - 8, y: a.y - 8, width: a.width + 16, height: b.y + b.height - a.y + 16 },

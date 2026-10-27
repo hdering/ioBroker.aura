@@ -42,6 +42,7 @@ Zeigt die Artikel von RSS- und Atom-Feeds oder vom [rssfeed-Adapter](https://git
 | Option | |
 | --- | --- |
 | Vorschaubild | aus `media:thumbnail`/`media:content`, Bild-Anhang oder erstem Bild im Text |
+| Bilder laden | `auto` = direkt, über Aura bei http-Bild auf https-Dashboard oder wenn das Bild nicht lädt · `always` = immer über Aura · `off` |
 | Anriss | Text unter dem Titel, `summaryLines` Zeilen |
 | Zeitangabe | `relative` (vor 5 min) · `time` · `dateTime` · `none` |
 | Quelle anzeigen | automatisch nur bei mehreren Feeds |
@@ -74,3 +75,20 @@ Zeigt die Artikel von RSS- und Atom-Feeds oder vom [rssfeed-Adapter](https://git
 ::: tip
 Viele große Nachrichtenseiten verbieten das Einbetten. Im Popup bliebe die Fläche leer — **Automatisch** prüft das vorher.
 :::
+
+## Neu und Vorlesen
+
+![](./assets/nachrichten/neu.png)
+
+| Option | |
+| --- | --- |
+| Neue Artikel markieren | ● vor Artikeln, die auf diesem Gerät noch nicht geöffnet wurden; **3 neu ✓✓** markiert alle gelesen |
+| Neue Artikel ansagen | „Neue Meldung: …“ über die [Sprachausgabe](../anleitungen/sprachausgabe), höchstens drei auf einmal |
+| Knopf „Schlagzeilen vorlesen“ | 🔊 in der Titelzeile liest die ersten Schlagzeilen, ■ stoppt |
+
+| Regel | |
+| --- | --- |
+| Erstes Laden eines Feeds | nichts ist neu, nichts wird angesagt |
+| Gelesen-Stand | je Gerät und Widget (Browser-Speicher) |
+| Ansage | nur bei eingeschaltetem Bildschirm; mehrere Tabs oder Widgets mit demselben Artikel sagen ihn einmal |
+| Stumm | `clients.<ID>.speech.muted` |

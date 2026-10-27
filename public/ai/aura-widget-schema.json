@@ -6885,6 +6885,14 @@
         "newTab",
         "none"
       ]
+    },
+    "FeedImageProxy": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "always",
+        "off"
+      ]
     }
   },
   "widgets": {
@@ -12903,9 +12911,20 @@
           },
           "description": "Die Feeds, zusammengeführt und nach Datum sortiert (gleicher Artikel aus zwei Feeds nur einmal). type \"url\" = RSS-/Atom-Adresse in url, der Aura-Server holt und cached sie (kein CORS-Problem); type \"adapter\" = Datenpunkt des ioBroker.rssfeed-Adapters in datapoint (z. B. \"rssfeed.0.ntv\", JSON {meta, articles})."
         },
+        "imageProxy": {
+          "type": "string",
+          "ref": "FeedImageProxy",
+          "default": "auto",
+          "description": "Vorschaubilder: \"auto\" = direkt, über Aura (/proxy) bei http-Bild auf https-Dashboard oder wenn das direkte Laden scheitert (Hotlink-Sperre, Gerät ohne Internet); \"always\" = immer über Aura; \"off\" = nur direkt."
+        },
         "includeKeywords": {
           "type": "string",
           "description": "Nur Artikel, deren Titel oder Anriss eines dieser Wörter enthält (Komma-getrennt, ohne Groß/Klein)."
+        },
+        "markNew": {
+          "type": "boolean",
+          "default": false,
+          "description": "Punkt an Artikeln, die auf diesem Gerät noch nicht geöffnet wurden (localStorage je Widget); „N neu“ in der Titelzeile markiert alle gelesen. Beim ersten Laden eines Feeds ist nichts neu."
         },
         "maxAgeHours": {
           "type": "number",
@@ -12952,6 +12971,21 @@
           "type": "boolean",
           "default": false,
           "description": "Anriss als reiner Text unter dem Titel. Nicht bei \"ticker\"."
+        },
+        "speakButton": {
+          "type": "boolean",
+          "default": false,
+          "description": "Lautsprecher-Knopf in der Titelzeile liest die ersten speakCount Schlagzeilen vor."
+        },
+        "speakCount": {
+          "type": "number",
+          "default": 5,
+          "description": "Wie viele Schlagzeilen der Vorlese-Knopf liest."
+        },
+        "speakNew": {
+          "type": "boolean",
+          "default": false,
+          "description": "Neu eintreffende Artikel über die Sprachausgabe ansagen („Neue Meldung: …“), höchstens drei auf einmal, nur bei sichtbarer Seite, nie beim ersten Laden. Mehrere Tabs/Widgets mit demselben Artikel sagen ihn einmal."
         },
         "summaryLines": {
           "type": "number",
