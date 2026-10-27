@@ -1480,7 +1480,7 @@ function ChartHistoryConfig({
     const o = config.options ?? {};
     const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
-    const isTemplate = !!dp?.startsWith('{{');
+    const isTemplate = !!dp?.includes('{{');
 
     useEffect(() => {
         if (!dp || isTemplate) {
@@ -1502,6 +1502,9 @@ function ChartHistoryConfig({
     }, [dp]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const selectedInstance = o.historyInstance as string | undefined;
+    // A placeholder datapoint gets its instance at runtime (trigger or detection) — its
+    // series and range stay configurable with the field left empty (#857).
+    const historyOn = !!selectedInstance || isTemplate;
     const selectedRange = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
     const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
@@ -1573,7 +1576,7 @@ function ChartHistoryConfig({
                 </div>
             )}
 
-            {selectedInstance && seriesSlot}
+            {historyOn && seriesSlot}
         </>
     );
 
@@ -1592,7 +1595,7 @@ function ChartHistoryConfig({
             </ConfigSection>
             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
                 {settingsBefore}
-                {selectedInstance && (
+                {historyOn && (
                     <SubGroup title="Zeitraum">
                         <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
