@@ -203,6 +203,7 @@
     "test:popup-pad": "node tools/tests/popup-padding.mjs",
     "test:popup-width": "node tools/tests/popup-auto-width.mjs",
     "test:popup-auto-height-fill": "node tools/tests/popup-auto-height-fill.mjs",
+    "test:popup-cols-resync": "node tools/tests/popup-cols-resync.mjs",
     "test:popup-preview": "node tools/tests/popup-editor-preview.mjs",
     "test:popup-click": "node tools/tests/popup-click-action.mjs",
     "test:popup-close": "node tools/tests/popup-close-dp.mjs",

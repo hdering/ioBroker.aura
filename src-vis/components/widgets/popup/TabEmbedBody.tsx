@@ -451,11 +451,17 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
                 h = Math.max(designedH, rows);
             }
         }
+        // Clamped to the current column count ourselves (#862): react-grid-layout clamps
+        // its internal copy whenever the layout prop changes, but never widens it again
+        // when only `cols` grows. The measured width trails a view change by one frame,
+        // so a view that got wider while open stayed squeezed into the old column count.
+        // Clamping here makes the prop itself change with `cols` and forces the resync.
+        const cw = Math.min(w.gridPos.w ?? 4, cols);
         return {
             i: w.id,
-            x: Math.max(0, (w.gridPos.x ?? 0) - contentMinX + leftPad),
+            x: Math.min(Math.max(0, (w.gridPos.x ?? 0) - contentMinX + leftPad), cols - cw),
             y: w.gridPos.y ?? 9999,
-            w: w.gridPos.w ?? 4,
+            w: cw,
             h,
             minH: 1,
         };
