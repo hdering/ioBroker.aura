@@ -57,6 +57,8 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     // One layout, no choice: the widget ignores `layout` entirely.
     gauge: ['default'],
     slideshow: ['default'],
+    // News (#854): the same articles as list, cards, ticker or one rotating headline.
+    feed: ['default', 'card', 'ticker', 'single'],
     climate: ['default', 'custom'],
     aircontrol: ['default'],
     echartsPreset: ['default'],
@@ -135,6 +137,7 @@ const LABEL_PER_TYPE: Record<string, Partial<Record<WidgetLayout, string>>> = {
     knob: { default: 'Bogen' },
     trashSchedule: { compact: 'Kompakt' },
     scenes: { default: 'Liste', card: 'Kacheln' },
+    feed: { default: 'Liste', card: 'Karten', ticker: 'Laufschrift', single: 'Einzelmeldung' },
 };
 
 const HEADER_LABEL_KEYS = {

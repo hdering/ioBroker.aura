@@ -1135,6 +1135,60 @@ export const WIDGET_OPTION_NOTES = {
                 'Für den Einsatz als Bildschirmschoner (Ruhezustand-Popup) auf false setzen — dort beendet jede Berührung ohnehin den Ruhezustand.',
         },
     },
+    feed: {
+        feeds: {
+            description:
+                'Die Feeds, zusammengeführt und nach Datum sortiert (gleicher Artikel aus zwei Feeds nur einmal). ' +
+                'type "url" = RSS-/Atom-Adresse in url, der Aura-Server holt und cached sie (kein CORS-Problem); ' +
+                'type "adapter" = Datenpunkt des ioBroker.rssfeed-Adapters in datapoint (z. B. "rssfeed.0.ntv", JSON {meta, articles}).',
+        },
+        maxItems: { type: 'number', default: 10, description: 'Höchstzahl angezeigter Artikel über alle Feeds.' },
+        maxAgeHours: { description: 'Artikel älter als n Stunden ausblenden. 0 = aus; Artikel ohne Datum bleiben.' },
+        refreshMin: {
+            type: 'number',
+            default: 15,
+            description:
+                'URL-Feeds alle n Minuten neu laden; zugleich die Cache-Dauer auf dem Server (min. 1). Adapter-Feeds kommen live.',
+        },
+        showImage: {
+            description: 'Vorschaubild (media:thumbnail/content, enclosure, sonst erstes <img>). Nicht bei "ticker".',
+        },
+        showSummary: { description: 'Anriss als reiner Text unter dem Titel. Nicht bei "ticker".' },
+        summaryLines: { type: 'number', default: 2, description: 'Zeilen des Anrisses, danach abgeschnitten.' },
+        showDate: {
+            default: 'relative',
+            description: '"relative" = „vor 5 min“, "time" = Uhrzeit (an anderen Tagen mit Datum), "dateTime", "none".',
+        },
+        showSource: {
+            type: 'boolean',
+            description: 'Quelle (Name/Farbe des Feeds) an jedem Artikel. Leer = nur bei mehr als einem Feed.',
+        },
+        includeKeywords: {
+            type: 'string',
+            description:
+                'Nur Artikel, deren Titel oder Anriss eines dieser Wörter enthält (Komma-getrennt, ohne Groß/Klein).',
+        },
+        excludeKeywords: {
+            type: 'string',
+            description: 'Artikel mit einem dieser Wörter in Titel oder Anriss ausblenden (Komma-getrennt).',
+        },
+        openMode: {
+            default: 'auto',
+            description:
+                'Tippen auf einen Artikel: "auto" = Popup mit der Seite, wenn sie sich einbetten lässt (der Server prüft ' +
+                'X-Frame-Options/frame-ancestors je Host vorab), sonst neuer Tab; "popup", "newTab", "none". Im Editor öffnet nichts.',
+        },
+        rotateSec: {
+            type: 'number',
+            default: 8,
+            description: 'Nur Layout "single": Wechsel zur nächsten Meldung nach n Sekunden. Wischen blättert.',
+        },
+        tickerSpeed: {
+            type: 'number',
+            default: 60,
+            description: 'Nur Layout "ticker": Laufgeschwindigkeit in px/s. Hover hält an.',
+        },
+    },
     scenes: {
         allowEdit: {
             description:

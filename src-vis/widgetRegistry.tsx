@@ -65,6 +65,7 @@ import {
     History,
     Clapperboard,
     Images,
+    Newspaper,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType, ConditionSlot } from './types';
@@ -996,6 +997,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Diashow', v: '' },
         hint: 'Fotos und Videos aus einem Ordner als Diashow – nach Aufnahmedatum oder zufällig, als Kachel oder Bildschirmschoner',
+    },
+    {
+        type: 'feed',
+        label: 'Nachrichten (RSS)',
+        shortLabel: 'News',
+        Icon: Newspaper,
+        iconName: 'Newspaper',
+        color: '#0ea5e9',
+        defaultW: 8,
+        defaultH: 8,
+        addMode: 'free',
+        widgetGroup: 'special',
+        mock: { t: 'Nachrichten', v: '' },
+        hint: 'RSS-/Atom-Feeds oder den rssfeed-Adapter anzeigen – als Liste, Karten, Laufschrift oder wechselnde Schlagzeile',
     },
 ];
 

@@ -26,6 +26,14 @@ const { createAdapterIcons, folderIconSource } = createRequire(path.resolve('pac
   folderIconSource: (root: string) => unknown;
 };
 
+// The news widget's feed fetch (#854) — same module the adapter serves, so the
+// dev server and the harness reach feeds without a running instance.
+const { createFeedProxy } = createRequire(path.resolve('package.json'))('./lib/feedProxy.js') as {
+  createFeedProxy: (o: { log?: unknown }) => {
+    handle: (req: unknown, res: unknown, url: URL) => boolean;
+  };
+};
+
 const DEFAULT_URL = 'http://192.168.188.168:8082';
 const URL_FILE = path.resolve('.iobroker-url');
 
@@ -92,6 +100,10 @@ function ioBrokerDevPlugin(): Plugin {
       const iconCache = createIconCache({ dir: path.resolve('node_modules/.cache/aura'), log: console });
       server.middlewares.use((req, res, next) => {
         if (!iconCache.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
+      });
+      const feedProxy = createFeedProxy({ log: console });
+      server.middlewares.use((req, res, next) => {
+        if (!feedProxy.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
       });
       const adapterIcons = createAdapterIcons({
         source: folderIconSource(path.resolve(process.env.AURA_ADAPTER_ICONS_DIR || 'tools/fixtures/adapter-icons')),

@@ -48,6 +48,7 @@
 | [Energiefluss (evcc)](./evcc) | PV-Erzeugung, Haus, Netz und Hausbatterie als Flussgrafik – aus einer evcc-Instanz, samt Ladepunkt-Steuerung. |
 | [HTML](./html) | Beliebigen HTML/CSS-Code frei einbetten. |
 | [iFrame](./iframe) | Externe Webseite oder lokale URL einbetten. |
+| [Nachrichten (RSS)](./nachrichten) | RSS-/Atom-Feeds oder den rssfeed-Adapter anzeigen – als Liste, Karten, Laufschrift oder wechselnde Schlagzeile. |
 | [JSON-Tabelle](./json-tabelle) | JSON-Array-Datenpunkt als formatierte Tabelle anzeigen. |
 | [Kalender](./kalender) | Termine aus dem iCal-Adapter. |
 | [Kamera](./kamera) | Kamera-Livebild einbinden (go2rtc / MJPEG-Stream). |

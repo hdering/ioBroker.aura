@@ -48,6 +48,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Kamera](./kamera) | `camera` | `minimal` · `default` · `custom` | 12×6 |
 | [Bild](./bild) | `image` | `default` · `custom` | 12×6 |
 | [Diashow](./diashow) | `slideshow` | `default` | 12×8 |
+| [Nachrichten (RSS)](./nachrichten) | `feed` | `default` · `card` · `ticker` · `single` | 8×8 |
 | [Müllabfuhr](./muellabfuhr) | `trash` | `default` | 12×6 |
 | [Müllabfuhr-Zeitplan](./muellabfuhr-zeitplan) | `trashSchedule` | `default` · `list` · `compact` | 12×6 |
 | [JSON-Tabelle](./json-tabelle) | `jsontable` | `default` | 13×6 |

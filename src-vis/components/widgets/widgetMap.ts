@@ -71,6 +71,7 @@ const HistoryTableWidget = lazyWithReload(() =>
     import('./HistoryTableWidget').then((m) => ({ default: m.HistoryTableWidget })),
 );
 const SlideshowWidget = lazyWithReload(() => import('./SlideshowWidget').then((m) => ({ default: m.SlideshowWidget })));
+const FeedWidget = lazyWithReload(() => import('./FeedWidget').then((m) => ({ default: m.FeedWidget })));
 const ScenesWidget = lazyWithReload(() => import('./ScenesWidget').then((m) => ({ default: m.ScenesWidget })));
 const LoadTimesWidget = lazyWithReload(() => import('./LoadTimesWidget').then((m) => ({ default: m.LoadTimesWidget })));
 
@@ -136,6 +137,7 @@ export function getWidgetMap() {
         historytable: HistoryTableWidget,
         scenes: ScenesWidget,
         slideshow: SlideshowWidget,
+        feed: FeedWidget,
         // `satisfies` makes a missing widget type a build error instead of a
         // "Unbekannter Widget-Typ" notice in mirrors, popups and tab embeds.
     } as const satisfies Record<WidgetType, unknown>;

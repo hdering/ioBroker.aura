@@ -166,6 +166,11 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-slideshow` · `.aura-slideshow-stage` | Diashow: Widget, Bildfläche; `data-aura-slideshow-paused` solange angehalten |
 | `.aura-slideshow-layer` · `.aura-slideshow-media` · `.aura-slideshow-backdrop` | Diashow: eine Bild-Ebene (`data-anim` = laufender Übergang), das Bild/Video, der unscharfe Hintergrund |
 | `.aura-slideshow-caption` · `.aura-slideshow-notice` · `.aura-slideshow-paused` · `.aura-slideshow-sound` | Diashow: Beschriftung, Hinweis (kein Ordner, leer), Pause-Zeichen, Ton-Knopf |
+| `.aura-feed` | Nachrichten: Widget; `data-aura-feed-layout` = `default` · `card` · `ticker` · `single` |
+| `.aura-feed-list` · `.aura-feed-cards` · `.aura-feed-ticker` · `.aura-feed-ticker-track` · `.aura-feed-single-stage` | Nachrichten: Fläche je Layout; die Laufschrift-Spur läuft per `--aura-feed-ticker-s` |
+| `.aura-feed-item` (+ `.aura-feed-row` · `.aura-feed-card` · `.aura-feed-ticker-item` · `.aura-feed-single`) | Nachrichten: ein Artikel; `data-aura-feed-item` = Id des Artikels |
+| `.aura-feed-title` · `.aura-feed-summary` · `.aura-feed-image` · `.aura-feed-meta` · `.aura-feed-source` · `.aura-feed-source-dot` · `.aura-feed-date` | Nachrichten: Teile eines Artikels |
+| `.aura-feed-notice` · `.aura-feed-warning` · `.aura-feed-dots` | Nachrichten: Hinweis (kein Feed, leer, Fehler), Warnzeichen bei einem ausgefallenen Feed, Punkte der Einzelmeldung |
 | `.aura-marquee-track` | Lauftext im Karussell |
 | `.aura-carousel-shake` | kurzer Anstoß beim Öffnen (Karussell) |
 | `.aura-map-pin` | Markierung im Karten-Widget |

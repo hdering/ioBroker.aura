@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-26",
+    "measured": "2026-10-27",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -2548,6 +2548,7 @@
     "html": "freies HTML",
     "adapterstatus": "Zeilen entstehen erst zur Laufzeit",
     "devicecard": "Höhe ergibt sich aus den Kindern (wie group, groupRows)",
-    "slideshow": "Bild füllt jede Höhe, Seitenverhältnis der Fotos"
+    "slideshow": "Bild füllt jede Höhe, Seitenverhältnis der Fotos",
+    "feed": "Artikel entstehen erst zur Laufzeit aus den Feeds; Liste/Karten scrollen. \"ticker\" braucht eine Zeile (h 3), \"single\" etwa h 6"
   }
 }

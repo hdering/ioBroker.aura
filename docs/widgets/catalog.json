@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-10-26",
+  "generatedAt": "2026-10-27",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -1667,6 +1667,31 @@
       "screenshots": {
         "hero": "assets/diashow/runtime.png",
         "config": "assets/diashow/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "feed",
+      "slug": "nachrichten",
+      "label": "Nachrichten (RSS)",
+      "group": "special",
+      "hint": "RSS-/Atom-Feeds oder den rssfeed-Adapter anzeigen – als Liste, Karten, Laufschrift oder wechselnde Schlagzeile.",
+      "defaultGrid": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default",
+        "card",
+        "ticker",
+        "single"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/nachrichten/runtime.png",
+        "config": "assets/nachrichten/config.png",
         "shots": {}
       }
     },

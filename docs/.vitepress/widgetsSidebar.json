@@ -166,6 +166,10 @@
         "link": "/widgets/html"
       },
       {
+        "text": "Nachrichten (RSS)",
+        "link": "/widgets/nachrichten"
+      },
+      {
         "text": "iFrame",
         "link": "/widgets/iframe"
       },

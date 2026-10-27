@@ -98,7 +98,8 @@ export type WidgetType =
     | 'devicecard'
     | 'historytable'
     | 'scenes'
-    | 'slideshow';
+    | 'slideshow'
+    | 'feed';
 
 /**
  * Every layout any widget offers. `segments` / `wave` / `bar` belong to the fill
@@ -138,7 +139,24 @@ export type WidgetLayout =
     /** Status overview: two-line rows (dot, bold name, muted facts) with touch buttons. */
     | 'twoline'
     /** Status overview: the closed hints from the adapter's history ("Zuletzt gewechselt"). */
-    | 'history';
+    | 'history'
+    /** News: the headlines as one scrolling line. */
+    | 'ticker'
+    /** News: one article at a time, rotating. */
+    | 'single';
+
+// ── News widget (#854) ────────────────────────────────────────────────────────
+
+/** One feed of the news widget (`options.feeds`). */
+export interface FeedSource {
+    id: string;
+    type: 'url' | 'adapter'; // url = RSS/Atom address fetched by the Aura server; adapter = ioBroker.rssfeed state
+    url?: string; // Feed address (type url), http or https
+    datapoint?: string; // State of the rssfeed adapter holding the feed JSON (type adapter), e.g. rssfeed.0.ntv
+    name?: string; // Source label next to the articles; empty = the feed's own title
+    color?: string; // Colour of the source dot / label; empty = from the palette by position
+    enabled?: boolean; // false = kept in the list but not shown
+}
 
 // ── Light widget option types ─────────────────────────────────────────────────
 

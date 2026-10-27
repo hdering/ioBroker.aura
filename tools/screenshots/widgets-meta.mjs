@@ -163,6 +163,12 @@ export const WIDGETS = [
       runtime: null, defaultGrid: { w: 12, h: 8 },
       hero: 'assets/diashow/runtime.png',
       configShot: 'assets/diashow/config.png' },
+    // Screenshots come from tools/screenshots/nachrichten.mjs (feeds mocked).
+    { type: 'feed', slug: 'nachrichten', label: 'Nachrichten (RSS)', group: 'special',
+      hint: 'RSS-/Atom-Feeds oder den rssfeed-Adapter anzeigen – als Liste, Karten, Laufschrift oder wechselnde Schlagzeile.',
+      runtime: null, defaultGrid: { w: 8, h: 8 },
+      hero: 'assets/nachrichten/runtime.png',
+      configShot: 'assets/nachrichten/config.png' },
     { type: 'trash', slug: 'muellabfuhr', label: 'Müllabfuhr', group: 'special',
       hint: 'Nächste Müllabfuhr-Termine vom Trash-Adapter anzeigen.', runtime: null },
     { type: 'trashSchedule', slug: 'muellabfuhr-zeitplan', label: 'Müllabfuhr-Zeitplan', group: 'special',

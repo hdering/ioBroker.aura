@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.93.1",
+    "auraVersion": "0.94.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6827,6 +6827,64 @@
         "date",
         "nameDate"
       ]
+    },
+    "FeedSource": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "url",
+            "adapter"
+          ],
+          "required": true,
+          "description": "url = RSS/Atom address fetched by the Aura server; adapter = ioBroker.rssfeed state"
+        },
+        "url": {
+          "type": "string",
+          "description": "Feed address (type url), http or https"
+        },
+        "datapoint": {
+          "type": "string",
+          "description": "State of the rssfeed adapter holding the feed JSON (type adapter), e.g. rssfeed.0.ntv",
+          "datapoint": true
+        },
+        "name": {
+          "type": "string",
+          "description": "Source label next to the articles; empty = the feed's own title"
+        },
+        "color": {
+          "type": "string",
+          "description": "Colour of the source dot / label; empty = from the palette by position",
+          "color": true
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "false = kept in the list but not shown"
+        }
+      }
+    },
+    "FeedDateMode": {
+      "type": "string",
+      "enum": [
+        "none",
+        "relative",
+        "time",
+        "dateTime"
+      ]
+    },
+    "FeedOpenMode": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "popup",
+        "newTab",
+        "none"
+      ]
     }
   },
   "widgets": {
@@ -12776,6 +12834,134 @@
           "type": "string",
           "description": "Farbe des Fenster-Badges bei offenem Fenster. Leer = var(--badge-warn) (orange).",
           "color": true
+        }
+      }
+    },
+    "feed": {
+      "label": "Nachrichten (RSS)",
+      "group": "special",
+      "addMode": "free",
+      "hint": "RSS-/Atom-Feeds oder den rssfeed-Adapter anzeigen – als Liste, Karten, Laufschrift oder wechselnde Schlagzeile",
+      "defaultSize": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default",
+        "card",
+        "ticker",
+        "single"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "badges",
+        "bgImage",
+        "clickAction",
+        "clickActionIcon",
+        "clickActionIconName",
+        "clickActionIconPosition",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenScreen",
+        "fullscreenWidget",
+        "headerItems",
+        "icon",
+        "iconColor",
+        "iconPlace",
+        "iconSize",
+        "lastChangeDatapoint",
+        "lastChangePosition",
+        "lastChangeSource",
+        "showIcon",
+        "showLastChange",
+        "showTitle",
+        "styleOverride",
+        "textLines",
+        "titleAlign",
+        "titleColor",
+        "titleRow",
+        "titleSize",
+        "transparency",
+        "transparent"
+      ],
+      "options": {
+        "excludeKeywords": {
+          "type": "string",
+          "description": "Artikel mit einem dieser Wörter in Titel oder Anriss ausblenden (Komma-getrennt)."
+        },
+        "feeds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "FeedSource"
+          },
+          "description": "Die Feeds, zusammengeführt und nach Datum sortiert (gleicher Artikel aus zwei Feeds nur einmal). type \"url\" = RSS-/Atom-Adresse in url, der Aura-Server holt und cached sie (kein CORS-Problem); type \"adapter\" = Datenpunkt des ioBroker.rssfeed-Adapters in datapoint (z. B. \"rssfeed.0.ntv\", JSON {meta, articles})."
+        },
+        "includeKeywords": {
+          "type": "string",
+          "description": "Nur Artikel, deren Titel oder Anriss eines dieser Wörter enthält (Komma-getrennt, ohne Groß/Klein)."
+        },
+        "maxAgeHours": {
+          "type": "number",
+          "default": 0,
+          "description": "Artikel älter als n Stunden ausblenden. 0 = aus; Artikel ohne Datum bleiben."
+        },
+        "maxItems": {
+          "type": "number",
+          "default": 10,
+          "description": "Höchstzahl angezeigter Artikel über alle Feeds."
+        },
+        "openMode": {
+          "type": "string",
+          "ref": "FeedOpenMode",
+          "default": "auto",
+          "description": "Tippen auf einen Artikel: \"auto\" = Popup mit der Seite, wenn sie sich einbetten lässt (der Server prüft X-Frame-Options/frame-ancestors je Host vorab), sonst neuer Tab; \"popup\", \"newTab\", \"none\". Im Editor öffnet nichts."
+        },
+        "refreshMin": {
+          "type": "number",
+          "default": 15,
+          "description": "URL-Feeds alle n Minuten neu laden; zugleich die Cache-Dauer auf dem Server (min. 1). Adapter-Feeds kommen live."
+        },
+        "rotateSec": {
+          "type": "number",
+          "default": 8,
+          "description": "Nur Layout \"single\": Wechsel zur nächsten Meldung nach n Sekunden. Wischen blättert."
+        },
+        "showDate": {
+          "type": "string",
+          "ref": "FeedDateMode",
+          "description": "\"relative\" = „vor 5 min“, \"time\" = Uhrzeit (an anderen Tagen mit Datum), \"dateTime\", \"none\".",
+          "default": "relative"
+        },
+        "showImage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Vorschaubild (media:thumbnail/content, enclosure, sonst erstes <img>). Nicht bei \"ticker\"."
+        },
+        "showSource": {
+          "type": "boolean",
+          "description": "Quelle (Name/Farbe des Feeds) an jedem Artikel. Leer = nur bei mehr als einem Feed."
+        },
+        "showSummary": {
+          "type": "boolean",
+          "default": false,
+          "description": "Anriss als reiner Text unter dem Titel. Nicht bei \"ticker\"."
+        },
+        "summaryLines": {
+          "type": "number",
+          "default": 2,
+          "description": "Zeilen des Anrisses, danach abgeschnitten."
+        },
+        "tickerSpeed": {
+          "type": "number",
+          "default": 60,
+          "description": "Nur Layout \"ticker\": Laufgeschwindigkeit in px/s. Hover hält an."
         }
       }
     },

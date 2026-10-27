@@ -44,6 +44,7 @@ const { runBackendCheck: buildBackendReport, resolveTarget, listBackends } = req
 const { createSceneService, SCENE_COMMANDS } = require('./lib/scenes');
 const { createSayitBridge, SAYIT_PREFIX } = require('./lib/sayitBridge');
 const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
+const { createFeedProxy } = require('./lib/feedProxy');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -1681,6 +1682,8 @@ class Aura extends utils.Adapter {
         // Icons of installed ioBroker icon adapters (#716) — served from their
         // own storage, never bundled or re-hosted by Aura.
         const adapterIcons = createAdapterIcons({ source: ioBrokerIconSource(this), log: this.log });
+        // RSS/Atom feeds of the news widget (#854), fetched and cached server-side.
+        const feedProxy = createFeedProxy({ log: this.log });
 
         const handler = (req, res) => {
             let parsedUrl;
@@ -1709,6 +1712,9 @@ class Aura extends utils.Adapter {
                 return;
             }
             if (adapterIcons.handle(req, res, parsedUrl)) {
+                return;
+            }
+            if (feedProxy.handle(req, res, parsedUrl)) {
                 return;
             }
 

@@ -1145,6 +1145,7 @@ const SKIP = {
     camera: 'Videostream, Seitenverhältnis der Kamera',
     image: 'Höhe folgt dem Bild',
     slideshow: 'Bild füllt jede Höhe, Seitenverhältnis der Fotos',
+    feed: 'Artikel entstehen erst zur Laufzeit aus den Feeds; Liste/Karten scrollen. "ticker" braucht eine Zeile (h 3), "single" etwa h 6',
     map: 'Karte füllt jede Höhe',
     group: 'Höhe ergibt sich aus den Kindern (groupRows)',
     devicecard: 'Höhe ergibt sich aus den Kindern (wie group, groupRows)',
