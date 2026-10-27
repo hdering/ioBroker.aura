@@ -143,6 +143,24 @@ function defaultClientName(cId) {
 const IDLE_SNOOZE_MAX_MIN = 1440;
 const IDLE_DELAY_MAX_SEC = 86400;
 
+/**
+ * popup.close (global and per client, #861): true closes every open popup; the client resets it.
+ *
+ * @type {ioBroker.SettableStateObject}
+ */
+const POPUP_CLOSE_OBJ = {
+    type: 'state',
+    common: {
+        name: 'Close all open popups (true; reset by the client)',
+        type: 'boolean',
+        role: 'button',
+        read: true,
+        write: true,
+        def: false,
+    },
+    native: {},
+};
+
 function clampIdleSnooze(val) {
     const n = Math.round(Number(val));
     if (!Number.isFinite(n) || n <= 0) return 0;
@@ -2431,6 +2449,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._ensureClientPopupCloseDp(cId);
         await this._ensureClientMessageDps(cId);
         await this._ensureIdleReturnDps(cId);
         await this._ensureIdleStateDps(cId);
@@ -2548,6 +2567,8 @@ class Aura extends utils.Adapter {
                     await this._ensureIdleStateDps(cId);
                     // And for the speech output (#834).
                     await this._ensureSpeechDps(cId);
+                    // And for popup.close (#861).
+                    await this._ensureClientPopupCloseDp(cId);
                     await this._setTargetStates(`clients.${cId}.navigate.target`, states);
                 } catch {
                     /* ignore a client object that vanished mid-sync */
@@ -3101,6 +3122,16 @@ class Aura extends utils.Adapter {
         });
     }
 
+    /** clients.<id>.popup.close (#861) — own backfill, the tree short-circuits on navigate.url. */
+    async _ensureClientPopupCloseDp(cId) {
+        await this.setObjectNotExistsAsync(`clients.${cId}.popup`, {
+            type: 'channel',
+            common: { name: 'Popups' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`clients.${cId}.popup.close`, POPUP_CLOSE_OBJ);
+    }
+
     /**
      * The per-client idle state (issue #822): the frontend flips `active` once
      * nobody has touched the device for the configured time and back on the next
@@ -3585,6 +3616,13 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        // popup.open comes from instanceObjects; popup.close was added later (#861).
+        await this.setObjectNotExistsAsync('popup', {
+            type: 'channel',
+            common: { name: 'Popups' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('popup.close', POPUP_CLOSE_OBJ);
 
         await this.setObjectNotExistsAsync('config.dashboard', {
             type: 'state',

@@ -88,7 +88,7 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 ## Client-ID
 
 Jedes Gerät bekommt eine ID; darüber wird es einzeln angesprochen:
-`aura.0.clients.<ID>.navigate.url`, `.navigate.target`, `.popup.open`, `.messages.send`,
+`aura.0.clients.<ID>.navigate.url`, `.navigate.target`, `.popup.open`, `.popup.close`, `.messages.send`,
 `.idleReturn.snoozeMinutes`, `.idleReturn.delay`, `.idle.active`, `.idle.delay`,
 `.speech.say`, `.speech.muted`, `.speech.volume` ([Sprachausgabe](../anleitungen/sprachausgabe)).
 

@@ -45,7 +45,7 @@ import {
 } from './store/idleReturnStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
 import { useIconPreload } from './hooks/useIconPreload';
-import { useIdleStateDp } from './hooks/useIdleStateDp';
+import { useIdleStateDp, restartIdleState } from './hooks/useIdleStateDp';
 import { useT } from './i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { tabletBandActive } from './utils/flowOrder';
@@ -936,6 +936,18 @@ export default function App() {
         setStateDirect(clearId, '');
     }, []);
 
+    // popup.close (global + per-client, #861): true closes every open popup on
+    // this device; the datapoint resets itself to false like popup.open.
+    const handlePopupClose = useCallback((val: unknown, clearId: string) => {
+        if (!val || val === 'false' || val === '0') return;
+        const runtime = usePopupRuntimeStore.getState();
+        // Ends a screensaver cycle like the auto-close timeout (#856); widget-click
+        // popups do the same for themselves.
+        if (runtime.active) restartIdleState();
+        runtime.closeAll();
+        setStateDirect(clearId, false);
+    }, []);
+
     // Subscribe to global navigate datapoint (affects all clients)
     useEffect(() => {
         const dp = `${NS}.navigate.url`;
@@ -1101,6 +1113,17 @@ export default function App() {
             unsubClient();
         };
     }, [subscribe, clientId, handlePopupOpen]);
+
+    useEffect(() => {
+        const globalId = `${NS}.popup.close`;
+        const clientDpId = `${NS}.clients.${clientId}.popup.close`;
+        const unsubGlobal = subscribe(globalId, (state) => handlePopupClose(state.val, globalId));
+        const unsubClient = subscribe(clientDpId, (state) => handlePopupClose(state.val, clientDpId));
+        return () => {
+            unsubGlobal();
+            unsubClient();
+        };
+    }, [subscribe, clientId, handlePopupClose]);
 
     const layoutUrlBase = viewBase;
 

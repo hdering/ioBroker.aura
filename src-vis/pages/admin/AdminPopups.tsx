@@ -1643,7 +1643,8 @@ function PopupTriggersSection() {
                 <span className="font-mono">
                     {NS}.clients.{'<clientId>'}.popup.open
                 </span>{' '}
-                — Wert ist der Name oder die ID einer Popup-View.
+                — Wert ist der Name oder die ID einer Popup-View. <span className="font-mono">popup.close</span> = true
+                schließt alle offenen Popups.
             </p>
 
             {editing && <TriggerEditModal trigger={editing} onClose={() => setEditingId(null)} />}

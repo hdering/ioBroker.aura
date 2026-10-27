@@ -25,10 +25,16 @@ interface PopupRuntimeState {
     openPopup: (popup: ActivePopup) => void;
     /** Close the active popup. With `key`, only when that opener owns it. */
     closePopup: (key?: string) => void;
+    /** Bumped by `closeAll`; every open popup stack closes when it changes (popup.close, #861). */
+    closeAllSeq: number;
+    /** Close every popup on this device — the runtime slot and widget-click popups alike. */
+    closeAll: () => void;
 }
 
 export const usePopupRuntimeStore = create<PopupRuntimeState>()((set) => ({
     active: null,
     openPopup: (popup) => set({ active: popup }),
     closePopup: (key) => set((s) => (!key || s.active?.key === key ? { active: null } : s)),
+    closeAllSeq: 0,
+    closeAll: () => set((s) => ({ active: null, closeAllSeq: s.closeAllSeq + 1 })),
 }));

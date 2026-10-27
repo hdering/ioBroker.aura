@@ -205,6 +205,7 @@
     "test:popup-auto-height-fill": "node tools/tests/popup-auto-height-fill.mjs",
     "test:popup-preview": "node tools/tests/popup-editor-preview.mjs",
     "test:popup-click": "node tools/tests/popup-click-action.mjs",
+    "test:popup-close": "node tools/tests/popup-close-dp.mjs",
     "test:mobile-header": "node tools/tests/mobile-header-clip.mjs",
     "test:tablet-flow": "node tools/tests/tablet-flow.mjs",
     "test:grid-fluid": "node tools/tests/grid-fluid.mjs",

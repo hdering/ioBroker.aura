@@ -122,6 +122,26 @@ on({ id: 'hm-rpc.0.ABC.1.PRESS_SHORT', change: 'any' }, () => {
 });
 ```
 
+### Per Skript schließen
+
+| Datenpunkt | |
+| --- | --- |
+| `aura.0.popup.close` | Alle Geräte |
+| `aura.0.clients.<clientId>.popup.close` | Nur dieses Gerät |
+
+`true` schließt alle offenen Popups des Geräts — egal ob per Klick, Trigger oder `popup.open` geöffnet, gestapelte Popups eingeschlossen. Der Datenpunkt wird danach automatisch auf `false` zurückgesetzt.
+
+```js
+// Klingel-Popup nach dem Öffnen der Tür schließen
+on({ id: 'hm-rpc.0.TUER.1.STATE', val: true }, () => {
+    setState('aura.0.popup.close', true);
+});
+```
+
+::: tip Trigger mit Zustand
+Ein Trigger-Popup kann auch ohne Skript zugehen: „Popup schließen, wenn die Bedingungen nicht mehr zutreffen“ einschalten und „Zurücksetzen“ ausschalten. Eine weitere Bedingung `<Schließen-DP> ≠ true` (UND) schließt es dann, sobald dieser Datenpunkt `true` wird.
+:::
+
 ## Popup-Views
 
 Mitgeliefert wird `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung). Sie ist bewusst **kein** Widget-Typ-Standard — sie dient nur als Rückfallebene für den [Klick auf eine Listenzeile](../widgets/dynamische-liste#klick-auf-zeile) und ändert das Verhalten bestehender Widgets nicht.

@@ -32,6 +32,7 @@ import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../common/Backgrou
 import { activeBgImage } from '../../../utils/backgroundImage';
 import { useEscapeLayer } from '../../../utils/escapeStack';
 import { restartIdleState } from '../../../hooks/useIdleStateDp';
+import { usePopupRuntimeStore } from '../../../store/popupRuntimeStore';
 import {
     MAX_POPUP_DEPTH,
     PopupLayerContext,
@@ -218,6 +219,17 @@ function PopupDialog({ onClose, ...initial }: Props) {
 
     // Escape closes only the topmost popup of a stack, not every one at once.
     useEscapeLayer(onClose);
+
+    // popup.close (#861) closes the whole stack; the bottom layer owns it. Like the
+    // timeout it is no input, but it ends a screensaver cycle (#856). The runtime
+    // slot unmounts before this runs — App's handler restarts the idle state for it.
+    const closeAllSeq = usePopupRuntimeStore((s) => s.closeAllSeq);
+    const closeAllSeqAtMount = useRef(closeAllSeq);
+    useEffect(() => {
+        if (parent || closeAllSeq === closeAllSeqAtMount.current) return;
+        restartIdleState();
+        onClose();
+    }, [closeAllSeq, parent, onClose]);
 
     // Auto-close timer, reset on pointer activity inside the popup body.
     const timerRef = useRef<number | null>(null);
