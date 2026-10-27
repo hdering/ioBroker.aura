@@ -195,6 +195,10 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
             setBroken([]);
             return;
         }
+        // Group / device card children live only in RAM and arrive with the config
+        // load. Checked before that, only top-level widgets count and every DP
+        // inside a group is silently left out (#859). The effect below re-runs on hydration.
+        if (!useGroupDefsStore.getState().hydrated) return;
         setLoading(true);
         try {
             const refs = collectAllRefs();
@@ -217,9 +221,10 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
         }
     }, []);
 
+    const hydrated = useGroupDefsStore((s) => s.hydrated);
     useEffect(() => {
-        void refresh();
-    }, [refresh]);
+        if (hydrated) void refresh();
+    }, [refresh, hydrated]);
 
     const wasDirtyRef = useRef(isDirty());
     useEffect(() => {

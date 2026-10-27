@@ -240,6 +240,7 @@
     "test:orphans-hydration": "node tools/tests/orphans-group-hydration.mjs",
     "test:config-load-failed": "node tools/tests/config-load-failed-reads.mjs",
     "test:broken-dps-mode": "node tools/tests/broken-dps-mode.mjs",
+    "test:broken-dps-hydration": "node tools/tests/broken-dps-group-hydration.mjs",
     "test:getting-started": "node tools/tests/admin-getting-started.mjs",
     "test:popup-prune": "node tools/tests/popup-builtin-prune.mjs",
     "test:backup-retention": "node tools/tests/backup-retention.mjs",
