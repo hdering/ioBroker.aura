@@ -73,6 +73,8 @@ export interface RenderReport {
     probe?: boolean;
     /** The probe filled the runtime lists to their cap (aura_rendered fill=true). */
     fill?: boolean;
+    /** `tabId` is a popup view, drawn off-screen at its own designed width. */
+    popup?: boolean;
     viewport: { w: number; h: number };
     /** Width of the grid the widgets were laid out in (in a probe: the requested one). */
     gridWidth?: number;
@@ -173,13 +175,19 @@ function clippedTextInside(card: HTMLElement): number {
  * the answer without a word — twelve widgets on the tab, eleven in the table.
  * "Draws nothing" is the more useful output than no row.
  *
+ * A popup view has no WidgetFrame: its cells carry `data-aura-popup-widget`
+ * instead (components/widgets/popup/TabEmbedBody.tsx), and say themselves whether
+ * they grow with their content (`data-aura-auto-box`).
+ *
  * @param root the element holding the tab's grid items
+ * @param kind 'popup' to measure the cells of a popup view
  * @returns one entry per widget in this tab's tree
  */
-export function measureRenderedWidgets(root: ParentNode): RenderedWidget[] {
+export function measureRenderedWidgets(root: ParentNode, kind: 'tab' | 'popup' = 'tab'): RenderedWidget[] {
     const out: RenderedWidget[] = [];
-    for (const el of Array.from(root.querySelectorAll<HTMLElement>('[data-aura-widget]'))) {
-        const id = el.dataset.auraWidget ?? '';
+    const selector = kind === 'popup' ? '[data-aura-popup-widget]' : '[data-aura-widget]';
+    for (const el of Array.from(root.querySelectorAll<HTMLElement>(selector))) {
+        const id = (kind === 'popup' ? el.dataset.auraPopupWidget : el.dataset.auraWidget) ?? '';
         if (!id) {
             continue;
         }
@@ -202,7 +210,7 @@ export function measureRenderedWidgets(root: ParentNode): RenderedWidget[] {
             // (react-grid-layout on desktop, the explicit style on mobile) and
             // leave it off for the content-sized ones. No inline height = the box
             // is whatever the content made it.
-            autoBox: !el.style.height,
+            autoBox: el.dataset.auraAutoBox !== undefined ? el.dataset.auraAutoBox === '1' : !el.style.height,
             ...(clipX ? { clipX } : {}),
         });
     }

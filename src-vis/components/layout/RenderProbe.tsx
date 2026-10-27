@@ -1,9 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Dashboard } from './Dashboard';
 import { subscribeStateDirect } from '../../hooks/useIoBroker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { NS } from '../../utils/namespace';
 import { ProbeContext, ProbeFillContext } from '../../utils/probeContext';
+import { DEFAULT_POPUP_PADDING, usePopupConfigStore } from '../../store/popupConfigStore';
+import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
+import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../../utils/renderReport';
+import { TabEmbedBody } from '../widgets/popup/TabEmbedBody';
 
 /**
  * Renders a tab NOBODY has open, off-screen, so its heights can be measured.
@@ -31,6 +35,13 @@ import { ProbeContext, ProbeFillContext } from '../../utils/probeContext';
  * datapoint — put the camera to SLEEP again on unmount, i.e. a probe would write
  * to a device somebody else is watching. Both types fill whatever box they get,
  * so their height is the box and nothing is lost by leaving them out.
+ *
+ * A popup view is probed the same way (`popup: true` in the request, `tabId` is
+ * then the view id): popups are only drawn while somebody has one open, so
+ * without this `aura_rendered` had nothing to say about them at all. The view
+ * body is rendered at its own designed width — the width the dialog takes when
+ * nothing narrower forces it — and measured by `PopupProbeReport` below, since
+ * there is no Dashboard inside to do it.
  */
 
 /** How long a probe stays mounted: the report goes out 1.2 s after it settles. */
@@ -43,6 +54,10 @@ interface ProbeRequest {
     width?: number;
     /** Fill the runtime lists to their cap with long names (utils/probeContext.tsx). */
     fill?: boolean;
+    /** `tabId` names a popup view, not a tab. */
+    popup?: boolean;
+    /** Main datapoint for the popup's `{{dp}}` placeholders (what the clicked widget would pass). */
+    dp?: string;
 }
 
 function parseRequest(raw: unknown): ProbeRequest | null {
@@ -56,6 +71,8 @@ function parseRequest(raw: unknown): ProbeRequest | null {
             ts: Number(parsed.ts) || 0,
             ...(width > 200 ? { width } : {}),
             ...(parsed.fill === true ? { fill: true } : {}),
+            ...(parsed.popup === true ? { popup: true } : {}),
+            ...(typeof parsed.dp === 'string' && parsed.dp ? { dp: parsed.dp } : {}),
         };
     } catch {
         return null;
@@ -96,7 +113,7 @@ export function RenderProbe({
     // a completely different section can be probed too — which is the point: a
     // freshly created tab is usually not in the section anybody is looking at.
     const target = useMemo(() => {
-        if (!request) return null;
+        if (!request || request.popup) return null;
         for (const layout of layouts) {
             for (const section of layout.sections ?? []) {
                 const tab = (section.tabs ?? []).find((t) => t.id === request.tabId);
@@ -111,6 +128,10 @@ export function RenderProbe({
         const timer = window.setTimeout(() => setRequest(null), PROBE_MS);
         return () => window.clearTimeout(timer);
     }, [request]);
+
+    if (request?.popup) {
+        return <PopupProbe request={request} />;
+    }
 
     // The tab somebody is looking at reports itself — except for a fill probe,
     // whose worst case the screen does not show. Dashboard tells the two copies of
@@ -155,4 +176,91 @@ export function RenderProbe({
             </ProbeContext.Provider>
         </div>
     );
+}
+
+/** When a popup probe measures: after the lazy widget chunks, and again once data has landed. */
+const POPUP_REPORT_AT_MS = [1500, 3500];
+
+/**
+ * One popup view, off-screen, measured and reported under its view id.
+ *
+ * The body is the real one (TabEmbedBody), so cell padding, auto-height cells and
+ * conditions behave as in the dialog. The dialog's own chrome (title bar, scroll
+ * lane) is not part of it — what is measured is the widgets.
+ */
+function PopupProbe({ request }: { request: ProbeRequest }) {
+    const view = usePopupConfigStore((s) => s.views.find((v) => v.id === request.tabId));
+    const globalPadding = usePopupConfigStore((s) => s.globalPopupPadding);
+    const padding = view?.padding ?? globalPadding ?? DEFAULT_POPUP_PADDING;
+    if (!view) return null;
+    return (
+        <div
+            aria-hidden
+            data-aura-render-probe={view.id}
+            style={{
+                position: 'fixed',
+                left: -20000,
+                top: 0,
+                // The view's own designed width (TabEmbedBody sets it as min-width):
+                // that is what the dialog sizes to when nothing narrower forces it.
+                width: 'max-content',
+                maxHeight: 4000,
+                overflow: 'hidden',
+                pointerEvents: 'none',
+                contain: 'layout',
+            }}
+        >
+            <ProbeContext.Provider value={true}>
+                <ProbeFillContext.Provider value={!!request.fill}>
+                    <PopupProbeReport request={request} name={view.name}>
+                        <TabEmbedBody
+                            key={`${request.tabId}|${request.ts}`}
+                            viewId={view.id}
+                            dpOverride={request.dp}
+                            padding={padding}
+                        />
+                    </PopupProbeReport>
+                </ProbeFillContext.Provider>
+            </ProbeContext.Provider>
+        </div>
+    );
+}
+
+function PopupProbeReport({ request, name, children }: { request: ProbeRequest; name: string; children: ReactNode }) {
+    const rootRef = useRef<HTMLDivElement>(null);
+    const settings = useEffectiveSettings();
+    const rowHeight = settings.gridRowHeight ?? 60;
+    const gap = settings.gridGap ?? 10;
+    const snapX = settings.gridSnapX ?? rowHeight;
+    const fontScale = settings.fontScale ?? 1;
+    const widgetPadding = settings.widgetPadding ?? 16;
+    useEffect(() => {
+        let last = '';
+        const send = () => {
+            const root = rootRef.current;
+            if (!root) return;
+            const widgets = measureRenderedWidgets(root, 'popup');
+            if (!widgets.length) return;
+            const report = {
+                tabId: request.tabId,
+                tab: `Popup „${name}“`,
+                viewport: { w: window.innerWidth, h: window.innerHeight },
+                gridWidth: Math.round(root.getBoundingClientRect().width),
+                presentation: { fontScale, widgetPadding },
+                grid: { rowHeight, gap, snapX },
+                widgets,
+                probe: true,
+                popup: true,
+                ...(request.fill ? { fill: true } : {}),
+                hidden: [],
+            };
+            const signature = reportSignature(report);
+            if (signature === last) return;
+            last = signature;
+            sendRenderReport(report);
+        };
+        const timers = POPUP_REPORT_AT_MS.map((ms) => window.setTimeout(send, ms));
+        return () => timers.forEach((t) => window.clearTimeout(t));
+    }, [request, name, rowHeight, gap, snapX, fontScale, widgetPadding]);
+    return <div ref={rootRef}>{children}</div>;
 }

@@ -1270,8 +1270,11 @@ check('options that replace the typography void the verdict, out loud', () => {
     assert.deepEqual(rows[1].voided, []);
     assert.ok(rows[0].voided.length === 3, JSON.stringify(rows[0].voided));
     const out = renderMeasure(rows, { grid: GRID, metrics: METRICS });
-    assert.match(out, /- w — weather.*ACHTUNG: tempFontSize/);
-    assert.match(out, /dieses Urteil daher keins/);
+    assert.equal(rows[0].verdict, 'nicht beurteilbar');
+    assert.notEqual(rows[1].verdict, 'nicht beurteilbar');
+    assert.match(out, /- w — weather.*NICHT BEURTEILBAR.*ACHTUNG: tempFontSize/);
+    assert.ok(!/- w — weather[^\n]*passt/.test(out), 'no „passt“ on a voided line');
+    assert.match(out, /ein Urteil gibt es daher nicht/);
     assert.ok(!/- p — weather.*ACHTUNG/.test(out), 'and nothing of the sort for the plain one');
 });
 
@@ -5236,6 +5239,58 @@ check('a probe passes the requested grid width to the frontend', () => {
     const req = JSON.parse(adapter.states['info.renderProbe']);
     assert.equal(req.width, 1000);
 });
+delete adapter.states['info.renderProbe'];
+
+// A popup is only drawn while open, so aura_rendered probes it: the request says
+// popup, carries the main datapoint, no device width — and the answer reads the
+// report like a tab's, against the popup's own widgets.
+const popupConfigBefore = adapter.states['config.popup-config'];
+adapter.states['config.popup-config'] = JSON.stringify({
+    version: 0,
+    state: { views: [{ id: 'view-probe', name: 'Probe-Popup', widgets: [{ ...OK_SWITCH, id: 'pp1' }] }] },
+});
+let popupReq = null;
+adapter.setStateAsync = async (id, v) => {
+    await realSet(id, v);
+    if (id !== 'info.renderProbe') {
+        return;
+    }
+    popupReq = JSON.parse(v.val);
+    adapter.states['info.rendered'] = JSON.stringify({
+        ts: Date.now(),
+        tabs: {
+            [popupReq.tabId]: {
+                ts: Date.now(),
+                tab: 'Popup „Probe-Popup“',
+                probe: true,
+                popup: true,
+                viewport: { w: 1280, h: 800 },
+                gridWidth: 300,
+                presentation: { fontScale: 1, widgetPadding: 16 },
+                grid: { rowHeight: 20, gap: 10, snapX: 20 },
+                widgets: [{ id: 'pp1', type: 'switch', rows: 3, px: 80, contentPx: 120, scrolls: true }],
+            },
+        },
+    });
+};
+const popupProbe = await client.callTool({
+    name: 'aura_rendered',
+    arguments: { tab: 'Probe-Popup', dp: '0_userdata.0.lampe' },
+});
+adapter.setStateAsync = realSet;
+check('a popup view is measured by a probe of its own', () => {
+    const t = popupProbe.content[0].text;
+    assert.ok(!popupProbe.isError, t);
+    assert.equal(popupReq.tabId, 'view-probe');
+    assert.equal(popupReq.popup, true);
+    assert.equal(popupReq.dp, '0_userdata.0.lampe');
+    assert.equal(popupReq.width, undefined, 'a popup sizes to its own width, not the device');
+    assert.match(t, /Popup „Probe-Popup“/);
+    assert.match(t, /pp1 .*gerendert 80 px.*SCROLLT/);
+    assert.match(t, /Popup unsichtbar gemessen/);
+});
+adapter.states['config.popup-config'] = popupConfigBefore;
+delete adapter.states['info.rendered'];
 delete adapter.states['info.renderProbe'];
 
 adapter.states['info.rendered'] = JSON.stringify({

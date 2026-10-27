@@ -30,6 +30,7 @@ import { useRunNavigationAction } from '../../../contexts/PopupLayerContext';
 import { isInteractiveTarget } from '../../../utils/interactiveTargets';
 import { WidgetClickPopup } from './WidgetClickPopup';
 import { SharedTemplateContext } from '../../../contexts/RenderTransformContext';
+import { PROBE_SKIP_TYPES, ProbeBox, useIsProbe } from '../../../utils/probeContext';
 
 const DEFAULT_MARGIN = 10;
 
@@ -178,7 +179,10 @@ function PopupWidgetCell({
     onMeasure?: (id: string, px: number) => void;
 }) {
     const wm = getWidgetMap();
-    const Widget = wm[w.type as keyof typeof wm];
+    // A probe render of the popup (aura_rendered) must not start a camera stream or
+    // load a foreign page — same rule as WidgetFrame, which this cell bypasses.
+    const isProbe = useIsProbe();
+    const Widget = isProbe && PROBE_SKIP_TYPES.has(w.type) ? ProbeBox : wm[w.type as keyof typeof wm];
     // A "reload widget" condition rule reaches popup-view widgets too — ConditionProbe
     // evaluates them under the same widget id (issue #537).
     const refreshNonce = useWidgetRefreshNonce(w.id);
@@ -259,6 +263,10 @@ function PopupWidgetCell({
                 ...(cond.hidden ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
             }}
             data-aura-popup-widget={w.id}
+            // Read by utils/renderReport.ts when a probe measures the popup view.
+            data-aura-widget-type={w.type}
+            data-aura-widget-rows={w.gridPos.h ?? 3}
+            data-aura-auto-box={autoHeight ? '1' : '0'}
             onClick={onCellClick}
         >
             {/* Wraps only the content so auto-height mode can measure it apart from the cell. */}

@@ -1110,6 +1110,19 @@ den Nutzer bitten müssen.
    antwortet mit der frischen Messung — oder sagt, dass kein Browser geantwortet
    hat (dann muss das Dashboard irgendwo offen sein, auf welchem Tab ist egal).
 
+**Popup-Probe.** Popup-Ansichten werden nur gezeichnet, solange eine offen ist —
+`aura_rendered` mit `tab=<Popup-Name oder -Id>` probt sie deshalb immer
+(`probe` wird gesetzt). Die Anfrage trägt `popup: true` und optional `dp` (der
+Haupt-Datenpunkt für `{{dp}}`-Platzhalter, sonst bleiben solche Widgets leer),
+keine Breite. `RenderProbe` → `PopupProbe` zeichnet den echten `TabEmbedBody`
+in einen Container mit `width: max-content` — also in der entworfenen Breite der
+Ansicht, wie der Dialog sie ohne schmaleren Bildschirm bekommt. Titelleiste und
+Rand des Dialogs gehören nicht dazu. Gemessen wird über
+`measureRenderedWidgets(root, 'popup')` an den Zellen (`data-aura-popup-widget`,
+`data-aura-widget-type/-rows`, `data-aura-auto-box` für Auto-Höhen-Zellen);
+`PopupProbeReport` schickt den Bericht nach 1,5 s und 3,5 s unter der View-Id mit
+`popup: true`. Kamera/iframe sind auch hier leere Kästen (`PopupWidgetCell`).
+
 Zwei Typen zeichnet eine Probe absichtlich nicht (`utils/probeContext.tsx`,
 `PROBE_SKIP_TYPES`, ersetzt in `WidgetFrame`): **Kamera** und **iframe**. Eine
 Kamera startet beim Mounten einen Stream und schreibt beim Unmounten mit
@@ -1240,9 +1253,11 @@ Zwei Sonderfälle stehen jetzt in der Messtabelle statt im Code:
 - `counted.<typ>.voids` — Optionen, die die Höhe nicht um ein Delta verschieben,
   sondern die **Typografie ersetzen**, mit der gemessen wurde (`tempFontSize`,
   `options.fontScale`, `forecastRowGap`). Ein Widget, das eine davon setzt, behält
-  die Zahl als Größenordnung; `aura_measure` schreibt aber ACHTUNG an die Zeile
-  und sagt, dass das Urteil dort keins ist. Genau der gemeldete Fall: „passt
-  (28 px Luft)“ für ein Widget, dessen Inhalt 191 px braucht.
+  die Zahl als Größenordnung; das Urteil ist dann aber `nicht beurteilbar`
+  (Zeile: „NICHT BEURTEILBAR (in der Standarddarstellung … px Luft)“ plus ACHTUNG),
+  nie „passt“ oder „zu klein“. Genau der gemeldete Fall: „passt (28 px Luft)“ für
+  ein Widget, dessen Inhalt 191 px braucht — und auch mit ACHTUNG dahinter wurde
+  das erste Wort gelesen.
 
 ## Zwei Typen, die jetzt gemessen sind
 

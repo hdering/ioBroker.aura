@@ -288,8 +288,8 @@ function installScreenshotApi(): void {
          *  frontend reports to the adapter (utils/renderReport.ts). Exposed so the
          *  measurement itself can be tested against a real layout instead of being
          *  trusted; in the live frontend nothing calls this. */
-        rendered(): ReturnType<typeof measureRenderedWidgets> {
-            return measureRenderedWidgets(document);
+        rendered(kind: 'tab' | 'popup' = 'tab'): ReturnType<typeof measureRenderedWidgets> {
+            return measureRenderedWidgets(document, kind);
         },
 
         setEditMode(on: boolean): void {

@@ -269,13 +269,24 @@ export function WeatherWidget({ config }: WidgetProps) {
     // (so the weather block can't claim the full height) and cap the scale lower
     // — the warnings live in their own flex region that grows with the widget and
     // scrolls internally, rather than being inflated by the global scale.
+    // The two typography options enter the baseline too — with fixed 64/22 px the
+    // widget overflowed at every height once tempFontSize or forecastRowGap was set.
+    // The temperature line (0.85 rem by default, line-height 1.5) only exists in
+    // the layouts that draw the current block; minimal and compact have their own.
     const titleRowH = showTitle || showIcon ? 22 : 0;
-    const headerH = showWeather ? 64 : 0;
+    const drawsCurrentBlock = layout !== 'minimal' && layout !== 'compact';
+    const tempExtraH = drawsCurrentBlock && tempFontSize > 0.85 ? (tempFontSize - 0.85) * 16 * 1.5 : 0;
+    const headerH = showWeather ? 64 + tempExtraH : 0;
     const fcRows = showWeather && showForecast ? forecastDays : 0;
+    // A forecast row is ~16 px of content plus the default 0.375 rem gap (22 px).
+    // The gap is a plain rem value, not run through fs(), so a custom gap does not
+    // scale with the widget: what it adds over the default is taken off the height
+    // before scaling instead of going into the scaled baseline.
+    const gapExtraPx = forecastRowGap > 0 && fcRows > 1 ? (fcRows - 1) * (forecastRowGap - 0.375) * 16 : 0;
     const warnReserve = showWarnings ? 110 : 0; // ≈ room for two compact alert boxes
     const baseContentH = Math.max(60, titleRowH + headerH + fcRows * 22 + warnReserve + 8);
     const scaleW = size.w / 260;
-    const scaleH = size.h / baseContentH;
+    const scaleH = Math.max(1, size.h - gapExtraPx) / baseContentH;
     const scaleCap = showWarnings ? 1.5 : 2.4; // keep the weather block from eating the warnings' space
     const scaleAuto = Math.max(0.55, Math.min(scaleCap, Math.min(scaleW, scaleH)));
     const scale = scaleAuto * fontScale;

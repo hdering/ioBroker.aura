@@ -256,6 +256,64 @@ check('a fill probe of the tab on screen renders a second, off-screen copy', () 
 });
 await page.waitForTimeout(6500);
 
+// A popup view: only drawn while open, so aura_rendered probes it like a tab —
+// the request carries popup: true and the view id in tabId.
+await page.evaluate(
+    ({ dp }) => {
+        window.__auraShot.popupViews([
+            {
+                id: 'pv-probe',
+                name: 'Probe-Popup',
+                widgets: [
+                    {
+                        id: 'pp-list',
+                        type: 'list',
+                        title: 'Im Popup',
+                        datapoint: '',
+                        gridPos: { x: 0, y: 0, w: 12, h: 4 },
+                        options: { entries: Array.from({ length: 6 }, () => ({ id: dp, label: 'Zeile' })) },
+                    },
+                    {
+                        id: 'pp-cam',
+                        type: 'camera',
+                        title: 'Hof',
+                        datapoint: '',
+                        gridPos: { x: 0, y: 4, w: 12, h: 6 },
+                        options: { streamUrl: 'http://127.0.0.1:9/stream.mjpg', wakeUpDp: dp },
+                    },
+                ],
+            },
+        ]);
+    },
+    { dp: DP },
+);
+await requestProbe('pv-probe', { popup: true });
+const popupProbed = await page.evaluate(() => {
+    const box = document.querySelector('[data-aura-render-probe="pv-probe"]');
+    if (!box) return { error: 'no popup probe container' };
+    const rect = box.getBoundingClientRect();
+    const measured = window.__auraShot.rendered('popup');
+    return {
+        offScreen: rect.right < 0,
+        width: Math.round(rect.width),
+        measured,
+        camMedia: box.querySelector('[data-aura-popup-widget="pp-cam"]')?.querySelectorAll('img, video, iframe').length,
+    };
+});
+check('a popup view is probed off-screen and its cells are measured', () => {
+    if (popupProbed.error) throw new Error(popupProbed.error);
+    if (!popupProbed.offScreen) throw new Error('the popup probe is on screen');
+    if (!(popupProbed.width > 200)) throw new Error(`popup width ${popupProbed.width}px`);
+    const ids = popupProbed.measured.map((w) => w.id).sort();
+    if (ids.join(',') !== 'pp-cam,pp-list') throw new Error(ids.join(','));
+    const list = popupProbed.measured.find((w) => w.id === 'pp-list');
+    if (!(list.px > 40) || list.type !== 'list' || list.rows !== 4) throw new Error(JSON.stringify(list));
+});
+check('a camera inside a probed popup is an empty card too', () => {
+    if (popupProbed.camMedia !== 0) throw new Error(`${popupProbed.camMedia} media element(s) mounted`);
+});
+await page.waitForTimeout(6500);
+
 // A tab that does not exist any more (deleted between request and delivery).
 await requestProbe('t-gibtsnicht');
 check('a request for an unknown tab draws nothing', () => {
