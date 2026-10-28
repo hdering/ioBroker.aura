@@ -25,6 +25,15 @@ class FakeAdapter {
         this.log = { info() {}, warn() {}, error() {}, debug() {} };
     }
     on() {}
+    // Adapter timers (idle summary debounce, #868) — unref'd so they never hold the test open.
+    setTimeout(fn, ms) {
+        const t = setTimeout(fn, ms);
+        t.unref();
+        return t;
+    }
+    clearTimeout(t) {
+        clearTimeout(t);
+    }
 }
 const corePath = require.resolve('@iobroker/adapter-core');
 require.cache[corePath] = {
