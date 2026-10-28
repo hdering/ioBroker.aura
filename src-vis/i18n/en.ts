@@ -2786,6 +2786,9 @@ export const en: Record<TranslationKey, string> = {
     'cfg.section.datapoints': 'Datapoints',
     'cfg.section.look': 'Look',
     'cfg.section.behavior': 'Behavior',
+    'cfg.fillTab': 'Fill tab',
+    'cfg.fillTabHint': 'The widget fills the whole tab area',
+    'cfg.fillTabBlocked': 'Remove the other widgets from this tab first ({n})',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
     'sl.fields.value': 'Value',

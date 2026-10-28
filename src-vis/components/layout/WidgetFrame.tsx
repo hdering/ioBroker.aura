@@ -218,6 +218,7 @@ import { StatusOverviewConfig } from '../config/StatusOverviewConfig';
 import { EnergiebilanzConfig } from '../config/EnergiebilanzConfig';
 import { HistoryTableConfig } from '../config/HistoryTableConfig';
 import { SlideshowConfig } from '../config/SlideshowConfig';
+import { FillTabToggle } from '../config/FillTabToggle';
 import { FeedConfig } from '../config/FeedConfig';
 import { StaticListConfig } from '../config/StaticListConfig';
 import { GroupActionConfig } from '../config/GroupActionConfig';
@@ -14179,6 +14180,7 @@ function WidgetFrameInner({
                                                     </div>
                                                 </>
                                             )}
+                                            <FillTabToggle config={config} set={set} />
                                         </>
                                     );
                                 })()}
@@ -14884,59 +14886,7 @@ function WidgetFrameInner({
                                                         sty={iSty}
                                                         hasClickAction={hasClickAction}
                                                     />
-                                                    {(() => {
-                                                        const currentTab = activeSectionState(
-                                                            useDashboardStore.getState(),
-                                                        )?.tabs.find((t) => t.widgets?.some((w) => w.id === config.id));
-                                                        const otherCount = (currentTab?.widgets?.length ?? 1) - 1;
-                                                        const canEnable = otherCount === 0;
-                                                        const isEnabled = !!(o.fillTab ?? false);
-                                                        return (
-                                                            <div className="flex items-start justify-between gap-2">
-                                                                <div
-                                                                    style={{
-                                                                        opacity: canEnable || isEnabled ? 1 : 0.5,
-                                                                    }}
-                                                                >
-                                                                    <label
-                                                                        className="text-[11px]"
-                                                                        style={{ color: 'var(--text-secondary)' }}
-                                                                    >
-                                                                        Tab ausfüllen
-                                                                    </label>
-                                                                    <p
-                                                                        className="text-[10px]"
-                                                                        style={{
-                                                                            color: 'var(--text-secondary)',
-                                                                            opacity: 0.7,
-                                                                        }}
-                                                                    >
-                                                                        {canEnable || isEnabled
-                                                                            ? 'iFrame füllt den gesamten Tab-Bereich aus'
-                                                                            : `Entferne zuerst die anderen ${otherCount} Widget${otherCount === 1 ? '' : 's'} aus diesem Tab`}
-                                                                    </p>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (canEnable || isEnabled)
-                                                                            set({ fillTab: !isEnabled });
-                                                                    }}
-                                                                    disabled={!canEnable && !isEnabled}
-                                                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0 disabled:opacity-30 disabled:cursor-not-allowed"
-                                                                    style={{
-                                                                        background: isEnabled
-                                                                            ? 'var(--accent)'
-                                                                            : 'var(--app-border)',
-                                                                    }}
-                                                                >
-                                                                    <span
-                                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                                        style={{ left: isEnabled ? '18px' : '2px' }}
-                                                                    />
-                                                                </button>
-                                                            </div>
-                                                        );
-                                                    })()}
+                                                    <FillTabToggle config={config} set={set} />
                                                 </>
                                             </ConfigSection>
                                         </>

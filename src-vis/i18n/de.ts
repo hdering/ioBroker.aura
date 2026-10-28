@@ -2807,6 +2807,9 @@ export const de = {
     'cfg.section.datapoints': 'Datenpunkte',
     'cfg.section.look': 'Optik',
     'cfg.section.behavior': 'Verhalten',
+    'cfg.fillTab': 'Tab ausfüllen',
+    'cfg.fillTabHint': 'Das Widget füllt den gesamten Tab-Bereich aus',
+    'cfg.fillTabBlocked': 'Entferne zuerst die anderen Widgets aus diesem Tab ({n})',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
     'sl.fields.value': 'Wert',

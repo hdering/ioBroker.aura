@@ -1884,6 +1884,16 @@ const INTERACTION_MODE_OPTION = {
             ' "contentOnly" ist veraltet (Klick-Aktion wirkungslos) - nicht setzen; keine Klick-Aktion = clickAction "none".',
     },
 };
+// Read by the Dashboard (fill-tab overlay), not by the widget.
+const FILL_TAB_OPTION = {
+    fillTab: {
+        type: 'boolean',
+        default: false,
+        description:
+            'Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). ' +
+            'Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst.',
+    },
+};
 const HTML_INTERACTION_MODE_OPTION = {
     interactionMode: {
         type: 'string',
@@ -1987,7 +1997,10 @@ export const EXTRA_OPTIONS = {
         },
         ...INTERACTION_MODE_OPTION,
         ...EMBED_MOBILE_HEIGHT_OPTIONS,
+        ...FILL_TAB_OPTION,
     },
+    image: { ...FILL_TAB_OPTION },
+    slideshow: { ...FILL_TAB_OPTION },
     html: { ...HTML_INTERACTION_MODE_OPTION, ...EMBED_MOBILE_HEIGHT_OPTIONS },
     calendar: {
         ...AUTO_HEIGHT_OPTION,

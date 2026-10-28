@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { FolderOpen } from 'lucide-react';
 import { ConfigSection } from './ConfigSection';
 import { DatapointPicker } from './DatapointPicker';
+import { FillTabToggle } from './FillTabToggle';
 import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetConfig } from '../../types';
 import { useT } from '../../i18n';
@@ -216,6 +217,7 @@ export function SlideshowConfig({ config, onConfigChange }: Props) {
                 <p className="text-[10px] -mt-1" style={hintSty}>
                     {t('slideshow.cfg.controlsHint')}
                 </p>
+                <FillTabToggle config={config} set={set} />
             </ConfigSection>
 
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">

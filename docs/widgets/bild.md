@@ -41,6 +41,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `imageBackground` | —         | Hintergrundfarbe hinter dem Bild (leer = transparent) |
 | `refreshInterval` | `0`       | Sekunden zwischen Reloads (`0` = aus)                 |
 | `reloadDp`        | —         | Trigger-DP: jedes Schreiben lädt das Bild neu         |
+| `fillTab`         | `false`   | Tab ausfüllen: Bild füllt den ganzen Tab (nur als einziges Widget im Tab) |
 
 ### Anzeige
 

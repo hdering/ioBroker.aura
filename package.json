@@ -430,6 +430,7 @@
     "test:iframe-zoom-ui": "node tools/tests/iframe-zoom-ui.mjs",
     "test:iframe-sound-ui": "node tools/tests/iframe-sound-ui.mjs",
     "test:iframe-keepalive": "node tools/tests/iframe-keepalive.mjs",
+    "test:fill-tab": "node tools/tests/fill-tab.mjs",
     "test:header-title-center": "node tools/tests/header-title-center.mjs"
   },
   "dependencies": {
