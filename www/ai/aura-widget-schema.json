@@ -2085,7 +2085,7 @@
             "entry",
             "dp"
           ],
-          "description": "'select' cell in circle display: what the button shows large — 'entry' the selected entry (default), 'dp' the value of circleValueDp (e.g. the measured temperature while the select writes the setpoint) with the entry small below (#864)"
+          "description": "'select' cell in circle display: what the button shows large — 'entry' the value of the select's own datapoint, i.e. the matching entry (default), 'dp' the value of circleValueDp (e.g. the measured temperature while the select writes the setpoint) with the entry small below (#864)"
         },
         "circleValueDp": {
           "type": "string",
