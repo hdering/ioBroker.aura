@@ -4,6 +4,8 @@ import { NS } from '../utils/namespace';
 import { toDelayOverride } from '../utils/idleReturn';
 
 const IDLE_RESTART_EVENT = 'aura-idle-restart';
+/** Heartbeat into info.lastSeen — the adapter drops a client after 3 min without one (#868). */
+const HEARTBEAT_MS = 60_000;
 
 /**
  * Restart the idle cycle as if someone had touched the screen: `idle.active` goes
@@ -60,6 +62,22 @@ export function useIdleStateDp(opts: {
     }, [clientId, activeId]);
 
     const effDelay = override ?? (enabled ? delaySec : 0);
+    const enabledId = `${NS}.clients.${clientId}.idle.enabled`;
+
+    // Feed the adapter's summary across all clients (#868): whether this device
+    // takes part at all, and a heartbeat so a switched-off panel drops out.
+    useEffect(() => {
+        if (!connected || !clientReady || !clientId) return;
+        setStateDirect(enabledId, effDelay > 0);
+    }, [connected, clientReady, clientId, enabledId, effDelay]);
+    useEffect(() => {
+        if (!connected || !clientReady || !clientId) return;
+        const seenId = `${NS}.clients.${clientId}.info.lastSeen`;
+        const beat = () => setStateDirect(seenId, Date.now());
+        beat();
+        const timer = setInterval(beat, HEARTBEAT_MS);
+        return () => clearInterval(timer);
+    }, [connected, clientReady, clientId]);
 
     useEffect(() => {
         if (!connected || !clientReady || !clientId) return;

@@ -143,6 +143,12 @@ function defaultClientName(cId) {
  */
 const IDLE_SNOOZE_MAX_MIN = 1440;
 const IDLE_DELAY_MAX_SEC = 86400;
+/**
+ * A client counts as switched on while its heartbeat (info.lastSeen, written every
+ * minute by the frontend) is younger than this. Leaves room for browsers that
+ * throttle timers in background tabs to once a minute (#868).
+ */
+const IDLE_CLIENT_ONLINE_MS = 3 * 60 * 1000;
 
 /**
  * popup.close (global and per client, #861): true closes every open popup; the client resets it.
@@ -1005,6 +1011,11 @@ class Aura extends utils.Adapter {
         if (id.endsWith('.idleReturn.snoozeMinutes') && state && !state.ack) {
             const minutes = clampIdleSnooze(state.val);
             await this.setForeignStateAsync(id, { val: minutes, ack: true });
+            return;
+        }
+        // A client's idle state or idle detection changed → refresh the summary (#868).
+        if (/\.clients\.[^.]+\.idle\.(active|enabled)$/.test(id)) {
+            this._scheduleIdleSummary();
             return;
         }
         // The idle-state delay (#822) follows the same -1 / 0 / seconds rules.
@@ -2529,6 +2540,7 @@ class Aura extends utils.Adapter {
             'info.resolutionWidth',
             'info.resolutionHeight',
             'idle.active',
+            'idle.enabled',
             'speech.playing',
             'speech.lastResult',
         ]) {
@@ -3168,6 +3180,18 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this.setObjectNotExistsAsync(`${base}.idle.enabled`, {
+            type: 'state',
+            common: {
+                name: 'Idle detection is on for this client (written by the client)',
+                type: 'boolean',
+                role: 'indicator',
+                read: true,
+                write: true,
+                def: true,
+            },
+            native: {},
+        });
         await this.setObjectNotExistsAsync(`${base}.idle.delay`, {
             type: 'state',
             common: {
@@ -3299,6 +3323,43 @@ class Aura extends utils.Adapter {
                 /* datapoint vanished mid-tick */
             }
         }
+    }
+
+    /** Coalesce bursts of idle writes (several panels at once) into one summary run. */
+    _scheduleIdleSummary() {
+        if (this._idleSummaryTimer) return;
+        this._idleSummaryTimer = this.setTimeout(() => {
+            this._idleSummaryTimer = null;
+            this._updateIdleSummary().catch((e) => this.log.warn(`[idle] summary failed: ${e.message}`));
+        }, 500);
+    }
+
+    /**
+     * Idle state across all clients (issue #868): `idle.allIdle` is true once no
+     * panel is in use any more, `idle.inUse` counts the panels that are. Only
+     * clients that are switched on (heartbeat in info.lastSeen younger than
+     * IDLE_CLIENT_ONLINE_MS) and have idle detection on (idle.enabled) take part —
+     * a tablet that was switched off mid-use would otherwise block the summary
+     * with its last `idle.active = false` forever.
+     */
+    async _updateIdleSummary() {
+        const prefix = `${this.namespace}.clients.`;
+        const [idleStates, seenStates] = await Promise.all([
+            this.getStatesAsync('clients.*.idle.*'),
+            this.getStatesAsync('clients.*.info.lastSeen'),
+        ]);
+        const now = Date.now();
+        let inUse = 0;
+        for (const [fullId, seen] of Object.entries(seenStates || {})) {
+            const cId = fullId.slice(prefix.length).split('.')[0];
+            if (!seen || !(now - Number(seen.val) < IDLE_CLIENT_ONLINE_MS)) continue;
+            const enabled = idleStates[`${prefix}${cId}.idle.enabled`];
+            if (enabled && (enabled.val === false || enabled.val === 'false')) continue;
+            const active = idleStates[`${prefix}${cId}.idle.active`];
+            if (!(active && (active.val === true || active.val === 'true'))) inUse++;
+        }
+        await this.setStateChangedAsync('idle.inUse', { val: inUse, ack: true });
+        await this.setStateChangedAsync('idle.allIdle', { val: inUse === 0, ack: true });
     }
 
     /**
@@ -4082,6 +4143,36 @@ class Aura extends utils.Adapter {
             native: {},
         });
 
+        await this.setObjectNotExistsAsync('idle', {
+            type: 'channel',
+            common: { name: 'Idle state across all clients' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('idle.allIdle', {
+            type: 'state',
+            common: {
+                name: 'Nobody is using any client (switched-on clients with idle detection on)',
+                type: 'boolean',
+                role: 'indicator',
+                read: true,
+                write: false,
+                def: true,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('idle.inUse', {
+            type: 'state',
+            common: {
+                name: 'Number of clients currently in use',
+                type: 'number',
+                role: 'value',
+                read: true,
+                write: false,
+                def: 0,
+            },
+            native: {},
+        });
+
         await this.setObjectNotExistsAsync('idleReturn', {
             type: 'channel',
             common: { name: 'Auto-return to the default tab (all clients)' },
@@ -4132,6 +4223,12 @@ class Aura extends utils.Adapter {
         this.subscribeStates('clients.*.idleReturn.*');
         // Idle state (#822): only the per-client delay needs normalising.
         this.subscribeStates('clients.*.idle.delay');
+        // Idle summary across all clients (#868): changes trigger a run, the interval
+        // drops clients whose heartbeat stopped (switched off, browser closed).
+        this.subscribeStates('clients.*.idle.active');
+        this.subscribeStates('clients.*.idle.enabled');
+        this._idleSummaryInterval = this.setInterval(() => this._scheduleIdleSummary(), 30000);
+        this._scheduleIdleSummary();
         this._idleReturnInterval = this.setInterval(
             () => this._idleReturnTick().catch((e) => this.log.warn(`[idleReturn] tick error: ${e.message}`)),
             60000,
@@ -6359,6 +6456,14 @@ class Aura extends utils.Adapter {
             if (this._idleReturnInterval) {
                 this.clearInterval(this._idleReturnInterval);
                 this._idleReturnInterval = null;
+            }
+            if (this._idleSummaryInterval) {
+                this.clearInterval(this._idleSummaryInterval);
+                this._idleSummaryInterval = null;
+            }
+            if (this._idleSummaryTimer) {
+                this.clearTimeout(this._idleSummaryTimer);
+                this._idleSummaryTimer = null;
             }
             if (this._perfPersistTimer) {
                 this.clearTimeout(this._perfPersistTimer);

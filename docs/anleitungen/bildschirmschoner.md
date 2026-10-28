@@ -51,6 +51,21 @@ Jedes Gerät meldet seinen Zustand in `aura.0.clients.<ID>.idle.active` (`true` 
 setState('aura.0.clients.wandtablet.idle.delay', 300);
 ```
 
+## Alle Geräte zusammen
+
+| Datenpunkt | |
+| --- | --- |
+| `aura.0.idle.allIdle` | `true`, sobald kein Gerät mehr benutzt wird |
+| `aura.0.idle.inUse` | Anzahl der gerade benutzten Geräte |
+
+Ausgeschaltete Geräte (3 Minuten ohne Meldung) und Geräte mit Leerlauf-Erkennung aus zählen nicht mit.
+
+```js
+on({ id: 'aura.0.idle.allIdle', val: true, change: 'ne' }, () => {
+    // niemand nutzt ein Panel
+});
+```
+
 ::: tip Fotos als Bildschirmschoner
 Eine [Diashow](../widgets/diashow#als-bildschirmschoner) als einziges Widget der Ruhe-Ansicht macht das Tablet zum Bilderrahmen. Mit **Optik → Tab ausfüllen** füllt sie den ganzen Bildschirm.
 :::

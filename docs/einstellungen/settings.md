@@ -89,7 +89,7 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 
 Jedes Gerät bekommt eine ID; darüber wird es einzeln angesprochen:
 `aura.0.clients.<ID>.navigate.url`, `.navigate.target`, `.popup.open`, `.popup.close`, `.messages.send`,
-`.idleReturn.snoozeMinutes`, `.idleReturn.delay`, `.idle.active`, `.idle.delay`,
+`.idleReturn.snoozeMinutes`, `.idleReturn.delay`, `.idle.active`, `.idle.enabled`, `.idle.delay`,
 `.speech.say`, `.speech.muted`, `.speech.volume` ([Sprachausgabe](../anleitungen/sprachausgabe)).
 
 Die ID wird beim ersten Kontakt vergeben und dann im Browser gespeichert (Web-Speicher
@@ -183,6 +183,11 @@ Bereichs-Menü, oder ein Schalter-Widget auf einen der Datenpunkte.
 | --- | --- |
 | `aura.0.clients.<ID>.idle.active` | `true`, sobald das Gerät die eingestellte Zeit ohne Eingabe war; bei der nächsten Eingabe `false` |
 | `aura.0.clients.<ID>.idle.delay` | Leerlauf-Zeit für dieses Gerät: `-1` = Einstellung des Dashboards, `0` = aus, sonst Sekunden |
+| `aura.0.clients.<ID>.idle.enabled` | `true`, wenn die Leerlauf-Erkennung auf diesem Gerät an ist (schreibt das Gerät) |
+| `aura.0.idle.allIdle` | `true`, wenn kein Gerät benutzt wird — über alle eingeschalteten Geräte mit Leerlauf-Erkennung |
+| `aura.0.idle.inUse` | Anzahl der gerade benutzten Geräte |
+
+Ein Gerät gilt als ausgeschaltet, wenn es sich 3 Minuten nicht gemeldet hat (`info.lastSeen`); es zählt dann nicht mit.
 
 Die Zeit stellt **Frontend-Design → Navigation → Leerlauf des Geräts melden** ein (global, pro Layout oder Bereich).
 Anwendung: [Bildschirmschoner](./popups#bildschirmschoner), Display dimmen per Skript.
