@@ -12,3 +12,4 @@
 - Advanced chart - settings that do not apply to the selected mode are shown greyed out with the reason instead of disappearing; the horizontal lines switch now also works in comparison mode (#869)
 - Universal widget - vertical and horizontal grid lines are now visible in borderless themes such as Lovelace and Material 3 (#870)
 - Admin - all admin pages (overview, layouts, popups, messages, announcements, widgets, frontend design, settings …) now use the same heading size, the same distance to the top and the same gap between heading and content
+- Universal widget - a select cell shown as circle menu can show a second datapoint large in the button (e.g. the measured temperature), with the selected entry small below (#864)

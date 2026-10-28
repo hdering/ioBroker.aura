@@ -324,9 +324,9 @@ export interface CustomCell {
     dpId?: string; // 'dp' / 'switch' / 'slider' / 'button' / 'state-icon' type: ioBroker datapoint ID
     fieldKey?: string; // 'field' type: key into widget-supplied extraFields map
     componentKey?: string; // 'component' type: key into widget-supplied extraComponents map
-    prefix?: string; // 'value' / 'dp' type: text prepended to value
-    suffix?: string; // 'value' / 'dp' type: text appended to value
-    decimals?: number; // 'value' / 'dp' type: decimal places override (undefined = use global)
+    prefix?: string; // 'value' / 'dp' type, and the circleValueDp of a 'select' cell: text prepended to value
+    suffix?: string; // 'value' / 'dp' type, and the circleValueDp of a 'select' cell: text appended to value
+    decimals?: number; // 'value' / 'dp' type, and the circleValueDp of a 'select' cell: decimal places override (undefined = use global)
     numberFormat?: NumberFormat; // 'value' / 'dp' type: thousands separator override (undefined = use global)
     valueFactor?: number; // 'dp' / 'progress' type: display-only multiplier (default 1)
     valueOffset?: number; // 'dp' / 'progress' type: display-only additive offset (default 0)
@@ -445,6 +445,7 @@ export interface CustomCell {
     circleDirection?: 'auto' | 'full' | 'top' | 'right' | 'bottom' | 'left'; // 'select' cell in circle display: where the menu fans out — 'auto' full circle when it fits, else the half with the most room (default)
     circleItemSize?: number; // 'select' cell in circle display: diameter of the entries in px (default 48)
     circleKeepOpen?: boolean; // 'select' cell in circle display: stay open after an entry was picked (− / + always keep it open)
+    circleValueDp?: string; // 'select' cell in circle display: datapoint shown large in the button (e.g. the measured temperature while the select writes the setpoint); the current entry moves to the small line below. Formatted with the cell's decimals / prefix / suffix; unset = the current entry is the large value (#864)
     entryDisplay?: 'icon' | 'icon-text' | 'text'; // 'select' cell: how the current entry is shown (default 'text')
     // last-change display (for value-bearing cells)
     showLastChange?: boolean; // show lc timestamp below the cell content

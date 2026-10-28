@@ -684,7 +684,7 @@ export interface CustomCellEditorProps {
     isUniversal: boolean;
     onChange: (patch: Partial<CustomCell>) => void;
     onOpenIconPicker: (slot: 'iconName' | 'trueIcon' | 'falseIcon') => void;
-    onOpenDpPicker: (field?: 'dpId' | 'statusDpId') => void;
+    onOpenDpPicker: (field?: 'dpId' | 'statusDpId' | 'circleValueDp') => void;
     onOpenImagePicker: () => void;
     onOpenConditions: () => void;
     /** Opens the cell's click-action popup (display cells only, issue #729). */
@@ -2873,6 +2873,101 @@ export function CustomCellEditor({
                                         Runder Knopf mit dem aktuellen Eintrag; ein Tipp fächert alle Einträge im Kreis
                                         auf. Mit Schrittweite kommen − und + für Zahlen dazu.
                                     </p>
+                                    <div className="aura-select-circle-value">
+                                        <label
+                                            className="text-[11px] mb-1 block"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Große Anzeige (optional)
+                                        </label>
+                                        <div className="flex gap-1">
+                                            <input
+                                                type="text"
+                                                value={cell.circleValueDp ?? ''}
+                                                onChange={(e) =>
+                                                    onChange({ circleValueDp: e.target.value || undefined })
+                                                }
+                                                placeholder="z.B. Isttemperatur-Datenpunkt"
+                                                className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                                style={inputSty}
+                                            />
+                                            <button
+                                                onClick={() => onOpenDpPicker('circleValueDp')}
+                                                className="text-xs px-2 py-1.5 rounded-lg shrink-0"
+                                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                                            >
+                                                <Database size={12} />
+                                            </button>
+                                        </div>
+                                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                            Dieser Wert steht groß im Knopf, der aktuelle Eintrag klein darunter. Leer =
+                                            der Eintrag ist groß.
+                                        </p>
+                                        {cell.circleValueDp && (
+                                            <div className="grid grid-cols-3 gap-2 mt-1">
+                                                <div>
+                                                    <label
+                                                        className="text-[10px] mb-0.5 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Präfix
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={cell.prefix ?? ''}
+                                                        onChange={(e) =>
+                                                            onChange({ prefix: e.target.value || undefined })
+                                                        }
+                                                        className={inputCls}
+                                                        style={inputSty}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="text-[10px] mb-0.5 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Suffix
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={cell.suffix ?? ''}
+                                                        placeholder="°C"
+                                                        onChange={(e) =>
+                                                            onChange({ suffix: e.target.value || undefined })
+                                                        }
+                                                        className={inputCls}
+                                                        style={inputSty}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="text-[10px] mb-0.5 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Nachkommast.
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        max={6}
+                                                        value={cell.decimals ?? ''}
+                                                        placeholder="–"
+                                                        onChange={(e) =>
+                                                            onChange({
+                                                                decimals:
+                                                                    e.target.value === ''
+                                                                        ? undefined
+                                                                        : Number(e.target.value),
+                                                            })
+                                                        }
+                                                        className={inputCls}
+                                                        style={inputSty}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                     <div className="grid grid-cols-3 gap-2">
                                         {(
                                             [

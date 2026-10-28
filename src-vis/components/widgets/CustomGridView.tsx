@@ -1834,8 +1834,26 @@ function StateTextCellView({
  * dropdown is the shared HtmlSelect, so an entry's icon, image or HTML shows up
  * in the open list too — a native <option> can only print text.
  */
-function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
+function SelectCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    defaultDecimals,
+    globalNumFmt,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    defaultDecimals: number;
+    globalNumFmt?: NumberFormat;
+}) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    // Circle display: a second datapoint may take the large line (#864) — only
+    // subscribed in that mode, an empty id is a no-op.
+    const bigRef = cell.selectDisplay === 'circle' ? (cell.circleValueDp?.trim() ?? '') : '';
+    const { value: bigRaw } = useDatapoint(bigRef);
     const cond = useCellConditionStyle(cell, value);
     // The JSON datapoint is only subscribed in that mode — an empty id is a no-op.
     const fromJson = cell.entriesSource === 'json';
@@ -1955,6 +1973,23 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
         const accent = cond.color || current?.color || cell.color || 'var(--accent)';
         const label = current ? current.label || current.value : fallback;
         const picture = current && (current.icon || entryRenderMode(current) === 'image');
+        // Large value from circleValueDp (#864): the current entry drops to the small line.
+        const bigNum = typeof bigRaw === 'number' ? bigRaw : Number(bigRaw);
+        const bigText = !bigRef
+            ? null
+            : bigRaw === null || bigRaw === undefined || bigRaw === ''
+              ? '–'
+              : `${cell.prefix ?? ''}${
+                    typeof bigRaw !== 'boolean' && Number.isFinite(bigNum)
+                        ? formatNum(bigNum, cell.decimals ?? defaultDecimals, cell.numberFormat ?? globalNumFmt)
+                        : String(bigRaw)
+                }${cell.suffix ?? ''}`;
+        const lineSty: React.CSSProperties = {
+            maxWidth: '85%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+        };
         return (
             <div className={`aura-custom-cell-${index}`} style={{ ...wrapSty, alignItems: 'stretch', padding: 2 }}>
                 <div className="w-full h-full min-h-0">
@@ -1967,32 +2002,56 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                         keepOpen={!!cell.circleKeepOpen}
                         center={canStep ? label : undefined}
                         trigger={
-                            <>
-                                {picture && current && (
+                            bigText !== null ? (
+                                <>
                                     <span
-                                        className="flex items-center justify-center"
-                                        style={{ color: accent, width: '40%', height: '40%' }}
-                                    >
-                                        <EnumCircleContent entry={current} share="100%" />
-                                    </span>
-                                )}
-                                {(!picture || display !== 'icon') && (
-                                    <span
-                                        className="font-semibold text-center"
+                                        className="aura-widget-value font-bold tabular-nums text-center"
+                                        data-aura-circle-line="big"
                                         style={{
+                                            ...lineSty,
                                             color: finalColor,
-                                            fontSize: cell.fontSize ? `${cell.fontSize}px` : '16cqw',
-                                            lineHeight: 1.15,
-                                            maxWidth: '80%',
-                                            overflow: 'hidden',
-                                            textOverflow: 'ellipsis',
-                                            whiteSpace: 'nowrap',
+                                            fontSize: cell.fontSize ? `${cell.fontSize}px` : '20cqw',
+                                            lineHeight: 1.1,
                                         }}
+                                    >
+                                        {bigText}
+                                    </span>
+                                    <span
+                                        className="tabular-nums text-center"
+                                        data-aura-circle-line="small"
+                                        style={{ ...lineSty, color: accent, fontSize: '10cqw', lineHeight: 1.2 }}
                                     >
                                         {label}
                                     </span>
-                                )}
-                            </>
+                                </>
+                            ) : (
+                                <>
+                                    {picture && current && (
+                                        <span
+                                            className="flex items-center justify-center"
+                                            style={{ color: accent, width: '40%', height: '40%' }}
+                                        >
+                                            <EnumCircleContent entry={current} share="100%" />
+                                        </span>
+                                    )}
+                                    {(!picture || display !== 'icon') && (
+                                        <span
+                                            className="font-semibold text-center"
+                                            style={{
+                                                color: finalColor,
+                                                fontSize: cell.fontSize ? `${cell.fontSize}px` : '16cqw',
+                                                lineHeight: 1.15,
+                                                maxWidth: '80%',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {label}
+                                        </span>
+                                    )}
+                                </>
+                            )
                         }
                     />
                 </div>
@@ -2448,7 +2507,17 @@ export function CustomGridView({
             case 'state-text':
                 return <StateTextCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
             case 'select':
-                return <SelectCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                return (
+                    <SelectCellView
+                        key={i}
+                        cell={cell}
+                        index={i}
+                        cols={cols}
+                        rows={rows}
+                        defaultDecimals={defaultDecimals}
+                        globalNumFmt={globalNumFmt}
+                    />
+                );
             case 'widget':
                 return <WidgetCellView key={i} cell={cell} index={i} cols={cols} rows={rows} host={config} />;
             case 'lastchange':

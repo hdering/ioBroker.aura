@@ -123,6 +123,19 @@ await page.waitForTimeout(250);
 check('0.2 + 0.1 writes 0.3', (await writes()) === '[{"id":"demo.mode","val":0.3}]', await writes());
 await page.keyboard.press('Escape');
 
+// circleValueDp (#864): a second datapoint takes the large line, the entry the small one.
+await show(widget({ circleValueDp: 'demo.actual', suffix: '°', decimals: 1 }), { 'demo.actual': 20.46 });
+const line = (k) => page.locator(`${TRIGGER} [data-aura-circle-line="${k}"]`).textContent();
+check('circleValueDp is the large line', ((await line('big')) ?? '').replace(',', '.') === '20.5°', await line('big'));
+check('current entry is the small line', (await line('small')) === 'Stufe 1', await line('small'));
+if (SHOT_DIR) await page.screenshot({ path: `${SHOT_DIR}/select-circle-value-dp.png`, clip: CLIP });
+await open();
+await page.locator(`${ITEM}[title="Aus"]`).click();
+await page.waitForTimeout(250);
+check('entries still write the select DP', (await writes()) === '[{"id":"demo.mode","val":0}]', await writes());
+await show(widget({}));
+check('without circleValueDp no line split', (await page.locator(`${TRIGGER} [data-aura-circle-line]`).count()) === 0);
+
 // Dropdown stays the default.
 await show(widget({ selectDisplay: undefined }));
 check('default display is the dropdown', (await page.locator(TRIGGER).count()) === 0);

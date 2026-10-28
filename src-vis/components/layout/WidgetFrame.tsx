@@ -6939,7 +6939,9 @@ function WidgetFrameInner({
     const cellClipboard = useCellClipboard();
     const widgetFramePortalTarget = usePortalTarget();
     // Which cell field the datapoint picker fills: the cell's own DP or the switch read-back DP (#567).
-    const [customCellPickerOpen, setCustomCellPickerOpen] = useState<'dpId' | 'statusDpId' | null>(null);
+    const [customCellPickerOpen, setCustomCellPickerOpen] = useState<'dpId' | 'statusDpId' | 'circleValueDp' | null>(
+        null,
+    );
     const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
     const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(
         null,
