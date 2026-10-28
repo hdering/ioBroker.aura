@@ -26,7 +26,7 @@ import { JsonPopupBody } from './JsonPopupBody';
 import { HtmlPopupBody } from './HtmlPopupBody';
 import { WidgetEmbedBody } from './WidgetEmbedBody';
 import { DeviceDpsBody } from './DeviceDpsBody';
-import { TabEmbedBody } from './TabEmbedBody';
+import { TabEmbedBody, popupViewFillWidget } from './TabEmbedBody';
 import { PopupCountdown } from './PopupCountdown';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../common/BackgroundImageLayer';
 import { activeBgImage } from '../../../utils/backgroundImage';
@@ -270,7 +270,11 @@ function PopupDialog({ onClose, ...initial }: Props) {
     // Width/height are ignored then; the screensaver popup (#822) is the use case.
     const fullscreen = !!widget.options?.popupFullscreen;
     // A web page has no size of its own, so in fullscreen it has to be stretched.
-    const fillBody = fullscreen && isIframe;
+    // A popup view whose single widget fills the tab (#865) stretches the same way —
+    // also to a set width/height, which then becomes the dialog's size.
+    const viewFills = !!popupViewFillWidget(view);
+    const sizedView = viewFills && !fullscreen && !!(customWidth || customHeight);
+    const fillBody = (fullscreen && (isIframe || viewFills)) || sizedView;
     // Without a configured width the dialog sizes to its body: popup views and embedded
     // widgets report their designed grid width, the device/media bodies their own fixed
     // width. Only free-flowing HTML keeps a reading cap — its paragraphs would otherwise
@@ -325,6 +329,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
                         triggerWidget={widget}
                         dpOverride={action.dp}
                         padding={padding}
+                        fill={fillBody}
                     />
                 );
             default:
@@ -363,6 +368,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
                                   : customHeight
                                     ? `min(85dvh, ${customHeight}px)`
                                     : '85dvh',
+                              height: sizedView && customHeight ? `min(85dvh, ${customHeight}px)` : undefined,
                           }),
                 }}
                 onClick={(e) => e.stopPropagation()}

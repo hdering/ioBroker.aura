@@ -2810,6 +2810,9 @@ export const de = {
     'cfg.fillTab': 'Tab ausfüllen',
     'cfg.fillTabHint': 'Das Widget füllt den gesamten Tab-Bereich aus',
     'cfg.fillTabBlocked': 'Entferne zuerst die anderen Widgets aus diesem Tab ({n})',
+    'cfg.fillTabHintPopup':
+        'Das Widget füllt das ganze Popup – bei Vollbild den Bildschirm, sonst die eingestellte Popup-Größe',
+    'cfg.fillTabBlockedPopup': 'Entferne zuerst die anderen Widgets aus dieser Popup-View ({n})',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
     'sl.fields.value': 'Wert',

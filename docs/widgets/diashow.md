@@ -81,6 +81,7 @@ Schritte wie in der Anleitung [Bildschirmschoner erstellen](../anleitungen/bilds
 | --- | --- |
 | `controls` | aus — jede Berührung beendet ohnehin den Ruhezustand |
 | `fit` | `cover`, oder `contain` mit `blurBackground` |
+| `fillTab` | an — mit **Vollbild** im Trigger füllt die Diashow den ganzen Bildschirm |
 | Titel / Icon | aus |
 
 Die Diashow merkt sich das zuletzt gezeigte Bild und macht beim nächsten Ruhezustand mit dem folgenden weiter.
@@ -99,7 +100,7 @@ Die Diashow merkt sich das zuletzt gezeigte Bild und macht beim nächsten Ruhezu
 | `transition` | `fadeBlack` | `fadeBlack` Schwarzblende · `fade` Überblenden · `slide` Schieben · `pageTurn` Umblättern · `none` |
 | `transitionMs` | `800` | Dauer des Übergangs |
 | `controls` | `true` | Wischen / Tippen |
-| `fillTab` | `false` | Tab ausfüllen: Diashow füllt den ganzen Tab (nur als einziges Widget im Tab) |
+| `fillTab` | `false` | Tab ausfüllen: Diashow füllt den ganzen Tab bzw. das Popup (nur als einziges Widget) |
 | `fit` | `contain` | `contain` = ganzes Bild · `cover` = Fläche füllen (beschnitten) |
 | `background` | `#000000` | Fläche neben dem Bild, Farbe der Schwarzblende |
 | `blurBackground` | `false` | bei `contain`: Bild unscharf als Hintergrund |

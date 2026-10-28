@@ -2789,6 +2789,8 @@ export const en: Record<TranslationKey, string> = {
     'cfg.fillTab': 'Fill tab',
     'cfg.fillTabHint': 'The widget fills the whole tab area',
     'cfg.fillTabBlocked': 'Remove the other widgets from this tab first ({n})',
+    'cfg.fillTabHintPopup': 'The widget fills the whole popup – the screen in fullscreen, otherwise the set popup size',
+    'cfg.fillTabBlockedPopup': 'Remove the other widgets from this popup view first ({n})',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
     'sl.fields.value': 'Value',

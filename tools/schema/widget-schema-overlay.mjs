@@ -1884,14 +1884,16 @@ const INTERACTION_MODE_OPTION = {
             ' "contentOnly" ist veraltet (Klick-Aktion wirkungslos) - nicht setzen; keine Klick-Aktion = clickAction "none".',
     },
 };
-// Read by the Dashboard (fill-tab overlay), not by the widget.
+// Read by the Dashboard (fill-tab overlay) and the popup view (TabEmbedBody), not by the widget.
 const FILL_TAB_OPTION = {
     fillTab: {
         type: 'boolean',
         default: false,
         description:
             'Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). ' +
-            'Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst.',
+            'Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst. ' +
+            'In einer Popup-View (einziges Widget der View) füllt es das Popup: bei popupFullscreen den ' +
+            'Bildschirm, bei popupWidth/popupHeight diese Größe, sonst bleibt die entworfene Größe.',
     },
 };
 const HTML_INTERACTION_MODE_OPTION = {

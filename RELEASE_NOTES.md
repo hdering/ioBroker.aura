@@ -13,4 +13,4 @@
 - Universal widget - vertical and horizontal grid lines are now visible in borderless themes such as Lovelace and Material 3 (#870)
 - Admin - all admin pages (overview, layouts, popups, messages, announcements, widgets, frontend design, settings …) now use the same heading size, the same distance to the top and the same gap between heading and content
 - Universal widget - a select cell shown as circle menu can show a second datapoint large in the button (e.g. the measured temperature), with the selected entry small below (#864)
-- Image and slideshow - new option "Fill tab" like the iFrame: the widget covers the whole tab area, e.g. as a photo frame on a wall tablet (#865)
+- Image and slideshow - new option "Fill tab" like the iFrame: the widget covers the whole tab area, e.g. as a photo frame on a wall tablet; "Fill tab" now also works in popup views, where the widget fills the fullscreen popup or the set popup size (#865)

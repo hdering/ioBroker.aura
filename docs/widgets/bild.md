@@ -46,7 +46,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | ----------------- | --------- | ----------------------------------------------------- |
 | `fit`             | `contain` | `none` · `contain` · `width` · `height`               |
 | `imageBackground` | —         | Hintergrundfarbe hinter dem Bild (leer = transparent) |
-| `fillTab`         | `false`   | Tab ausfüllen: Bild füllt den ganzen Tab (nur als einziges Widget im Tab) |
+| `fillTab`         | `false`   | Tab ausfüllen: Bild füllt den ganzen Tab bzw. das Popup (nur als einziges Widget) |
 
 ### Anzeige
 

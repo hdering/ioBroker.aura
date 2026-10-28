@@ -14478,7 +14478,7 @@
         "fillTab": {
           "type": "boolean",
           "default": false,
-          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst."
+          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst. In einer Popup-View (einziges Widget der View) füllt es das Popup: bei popupFullscreen den Bildschirm, bei popupWidth/popupHeight diese Größe, sonst bleibt die entworfene Größe."
         },
         "iframeColorScheme": {
           "type": "string",
@@ -14642,7 +14642,7 @@
         "fillTab": {
           "type": "boolean",
           "default": false,
-          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst."
+          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst. In einer Popup-View (einziges Widget der View) füllt es das Popup: bei popupFullscreen den Bildschirm, bei popupWidth/popupHeight diese Größe, sonst bleibt die entworfene Größe."
         },
         "fit": {
           "type": "string",
@@ -18415,7 +18415,7 @@
         "fillTab": {
           "type": "boolean",
           "default": false,
-          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst."
+          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst. In einer Popup-View (einziges Widget der View) füllt es das Popup: bei popupFullscreen den Bildschirm, bei popupWidth/popupHeight diese Größe, sonst bleibt die entworfene Größe."
         },
         "fit": {
           "type": "string",

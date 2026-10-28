@@ -310,6 +310,16 @@ function PopupWidgetCell({
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
+/**
+ * The widget that fills the whole view (`fillTab`, #865) — only when it is the view's
+ * single widget, like on a dashboard tab. The popup then stretches its body instead of
+ * sizing to the grid.
+ */
+export function popupViewFillWidget(view: { widgets: WidgetConfig[] } | undefined): WidgetConfig | null {
+    const only = view?.widgets.length === 1 ? view.widgets[0] : undefined;
+    return only?.options?.fillTab ? only : null;
+}
+
 interface Props {
     viewId: string;
     triggerWidget?: WidgetConfig;
@@ -319,9 +329,18 @@ interface Props {
     dpOverride?: string;
     /** Inner padding in px, already resolved through action > view > global (issue #621). */
     padding?: number;
+    /** The dialog has a size of its own (fullscreen or a set width/height): a fill-tab
+     *  widget stretches to it. Otherwise it keeps its designed size. */
+    fill?: boolean;
 }
 
-export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFAULT_POPUP_PADDING }: Props) {
+export function TabEmbedBody({
+    viewId,
+    triggerWidget,
+    dpOverride,
+    padding = DEFAULT_POPUP_PADDING,
+    fill = false,
+}: Props) {
     const view = usePopupConfigStore((s) => s.views.find((v) => v.id === viewId));
     const updateWidgetInView = usePopupConfigStore((s) => s.updateWidgetInView);
     const settings = useEffectiveSettings();
@@ -412,6 +431,42 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride, padding = DEFA
     const subMap = { ...nameVars, ...buildPopupSubMap(triggerWidget, mainDp) };
 
     const widgets = view.widgets.map((w) => resolvePopupWidget(w, subMap, triggerWidget));
+
+    // Fill tab (#865): the single widget takes the whole body instead of a grid slot.
+    // Its designed size stays the floor, so a dialog without a size of its own does
+    // not collapse around a widget that has no content height (iframe, slideshow).
+    const fillOrig = popupViewFillWidget(view);
+    if (fillOrig) {
+        const w = widgets[0];
+        const rows = w.gridPos.h ?? 3;
+        const designedH = rows * cellSize + (rows - 1) * MARGIN + 2 * padding;
+        return (
+            <SharedTemplateContext.Provider value="instance">
+                <div
+                    className={fill ? 'w-full h-full box-border' : 'box-border'}
+                    style={{ padding, minWidth: fill ? undefined : naturalMinWidth, minHeight: designedH }}
+                    data-aura-popup-fill=""
+                >
+                    <div style={{ display: 'none' }}>
+                        <ConditionProbe w={w} onResult={onCondResult} />
+                    </div>
+                    <div style={{ height: fill ? '100%' : designedH - 2 * padding }}>
+                        <ContentAutoHeightBlockedContext.Provider value={true}>
+                            <PopupWidgetCell
+                                w={w}
+                                cond={conds[w.id] ?? EMPTY_COND}
+                                widgetPadding={widgetPadding}
+                                onConfigChange={(next) => {
+                                    const patch = mergedOptionsPatch(fillOrig, w, next);
+                                    if (patch) updateWidgetInView(view.id, fillOrig.id, { options: patch });
+                                }}
+                            />
+                        </ContentAutoHeightBlockedContext.Provider>
+                    </div>
+                </div>
+            </SharedTemplateContext.Provider>
+        );
+    }
 
     // Reflow-hidden widgets (condition with hideWidget + reflow) drop out of the
     // grid entirely so ReactGridLayout's vertical compaction slides the rest up.

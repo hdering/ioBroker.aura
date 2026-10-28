@@ -52,7 +52,7 @@ setState('aura.0.clients.wandtablet.idle.delay', 300);
 ```
 
 ::: tip Fotos als Bildschirmschoner
-Eine [Diashow](../widgets/diashow#als-bildschirmschoner) als einziges Widget der Ruhe-Ansicht macht das Tablet zum Bilderrahmen.
+Eine [Diashow](../widgets/diashow#als-bildschirmschoner) als einziges Widget der Ruhe-Ansicht macht das Tablet zum Bilderrahmen. Mit **Optik → Tab ausfüllen** füllt sie den ganzen Bildschirm.
 :::
 
 ::: tip Vollbild-Widgets
