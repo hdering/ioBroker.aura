@@ -86,11 +86,18 @@ Wird eine Ansage blockiert, erscheint unten rechts **Ton aktivieren**. Das näch
 
 Bestehende Skripte mit `setState('sayit.0.tts.text', …)` funktionieren ohne Änderung.
 
+**Ab SayIt 5.5.0:**
+
 | SayIt-Instanz | |
 | --- | --- |
 | Ausgabetyp | **Browser** |
+| Vis-Instanzen | **Aura-Dashboards** |
+| Browser-Instanz | Client-IDs mit Komma getrennt; leer = alle Geräte (siehe [Client-ID](../einstellungen/settings#client-id)) |
+| Aura-Instanz | Leer = `aura.0` |
 
-Aura spielt jede Ansage dieser Instanz auf allen Geräten ab. Ohne installiertes VIS meldet SayIt im Log weiterhin „Cannot control browser via vis(1)“ — die Ansage kommt trotzdem.
+Die Lautstärke aus `80;Text` wird übernommen.
+
+**Ältere SayIt-Version** oder Vis-Instanzen auf vis/vis-2: Aura spielt jede Ansage dieser Instanz auf allen Geräten ab. Ohne installiertes VIS meldet SayIt im Log „Cannot control browser via vis(1)“ — die Ansage kommt trotzdem.
 
 ## Meldungen vorlesen
 
