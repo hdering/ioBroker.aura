@@ -433,6 +433,7 @@
     "test:iframe-keepalive": "node tools/tests/iframe-keepalive.mjs",
     "test:fill-tab": "node tools/tests/fill-tab.mjs",
     "test:popup-fill-tab": "node tools/tests/popup-fill-tab.mjs",
+    "test:popup-editor-fill-tab": "node tools/tests/popup-editor-fill-tab.mjs",
     "test:header-title-center": "node tools/tests/header-title-center.mjs"
   },
   "dependencies": {

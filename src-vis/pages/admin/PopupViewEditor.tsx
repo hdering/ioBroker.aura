@@ -13,6 +13,7 @@ import {
 } from '../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { WidgetFrame } from '../../components/layout/WidgetFrame';
+import { popupViewFillWidget } from '../../components/widgets/popup/TabEmbedBody';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
 import { BackgroundImageField } from '../../components/config/BackgroundImageField';
@@ -213,6 +214,9 @@ export function PopupViewEditor() {
     }
 
     const widgets = view.widgets;
+    // Fill tab (#865): like the dashboard editor, the single fill widget covers the whole
+    // canvas instead of its grid slot — the popup stretches it the same way.
+    const fillWidget = popupViewFillWidget(view);
 
     const layout = widgets.map((w) => ({
         i: w.id,
@@ -643,6 +647,20 @@ export function PopupViewEditor() {
                             >
                                 Noch keine Widgets — füge oben welche hinzu.
                             </div>
+                        ) : fillWidget ? (
+                            <RenderTransformContext.Provider value={renderTransform}>
+                                <SharedTemplateContext.Provider value="template">
+                                    <div className="h-full" data-aura-popup-fill="">
+                                        <WidgetFrame
+                                            config={fillWidget}
+                                            editMode
+                                            onRemove={(id) => removeWidgetFromView(viewId, id)}
+                                            onConfigChange={(cfg) => updateWidgetInView(viewId, cfg.id, cfg)}
+                                            onCopy={(copy) => addWidgetToView(viewId, copy)}
+                                        />
+                                    </div>
+                                </SharedTemplateContext.Provider>
+                            </RenderTransformContext.Provider>
                         ) : (
                             containerWidth > 0 && (
                                 <RenderTransformContext.Provider value={renderTransform}>
