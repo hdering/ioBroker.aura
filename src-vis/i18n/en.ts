@@ -52,6 +52,7 @@ export const en: Record<TranslationKey, string> = {
     'admin.nav.widgetDesigner': 'Widget Designer',
     'admin.nav.popups': 'Popups',
     'admin.nav.messages': 'Messages',
+    'admin.nav.announcements': 'Announcements',
     'admin.nav.design': 'Frontend Design',
     'admin.nav.settings': 'Settings',
     'admin.nav.openFrontend': 'Open Frontend',

@@ -50,6 +50,7 @@ export const de = {
     'admin.nav.widgetDesigner': 'Widget-Designer',
     'admin.nav.popups': 'Popups',
     'admin.nav.messages': 'Meldungen',
+    'admin.nav.announcements': 'Ansagen',
     'admin.nav.design': 'Frontend-Design',
     'admin.nav.settings': 'Einstellungen',
     'admin.nav.openFrontend': 'Frontend öffnen',

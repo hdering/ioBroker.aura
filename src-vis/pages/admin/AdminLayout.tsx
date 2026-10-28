@@ -21,6 +21,7 @@ import {
     X,
     AppWindow,
     BellRing,
+    Megaphone,
     BookOpen,
     Code2,
     AlertTriangle,
@@ -448,6 +449,7 @@ export function AdminLayout() {
         { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
         { to: '/admin/popups', label: t('admin.nav.popups'), icon: AppWindow },
         { to: '/admin/messages', label: t('admin.nav.messages'), icon: BellRing },
+        { to: '/admin/announcements', label: t('admin.nav.announcements'), icon: Megaphone },
         ...(FEATURES.widgetDesigner
             ? [{ to: '/admin/widget-designer', label: t('admin.nav.widgetDesigner'), icon: Shapes }]
             : []),

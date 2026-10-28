@@ -23,3 +23,15 @@ export {
     latchEnabled,
     LATCH_CATEGORIES,
 } from '../../src-vis/utils/statusOverview';
+export {
+    parseAnnouncementConfig,
+    announcementRunnable,
+    announcementDps,
+    announcementMatches,
+    announcementInWindow,
+    announcementLockAllows,
+    announcementTextTemplate,
+    announcementTextDps,
+    renderAnnouncementText,
+    announcementPayload,
+} from '../../src-vis/utils/announcements';

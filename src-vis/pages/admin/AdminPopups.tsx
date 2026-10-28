@@ -20,7 +20,7 @@ import {
     type PopupTrigger,
 } from '../../store/popupConfigStore';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { getObjectViewDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { useClientList } from '../../hooks/useClientList';
 import { NS } from '../../utils/namespace';
 import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
 import { BackgroundImageField } from '../../components/config/BackgroundImageField';
@@ -1153,31 +1153,6 @@ function GlobalSettingsSection() {
 }
 
 // ── DP triggers section ───────────────────────────────────────────────────────
-
-/** Known clients (id + display name) for the per-trigger scope filter. */
-function useClientList(): { clientId: string; name: string }[] {
-    const [clients, setClients] = useState<{ clientId: string; name: string }[]>([]);
-    useEffect(() => {
-        let cancelled = false;
-        void (async () => {
-            const result = await getObjectViewDirect('channel', `${NS}.clients.`, `${NS}.clients.香`);
-            // Only direct client channels: aura.0.clients.<clientId> → exactly 4 dot-segments
-            const rows = result.rows.filter((r) => r.id.split('.').length === 4);
-            const data = await Promise.all(
-                rows.map(async (row) => {
-                    const cId = row.id.split('.')[3];
-                    const nameState = await getStateDirect(`${row.id}.info.name`);
-                    return { clientId: cId, name: nameState?.val ? String(nameState.val) : cId.slice(0, 8) };
-                }),
-            );
-            if (!cancelled) setClients(data.sort((a, b) => byLabel(a.name, b.name)));
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-    return clients;
-}
 
 /** Short human label for a trigger's popup target, shown in the list row. */
 function actionLabel(action: ClickAction | undefined): string {

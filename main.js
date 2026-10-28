@@ -43,6 +43,7 @@ const { createConfigGuard, CONFIG_KEYS } = require('./lib/configGuard');
 const { runBackendCheck: buildBackendReport, resolveTarget, listBackends } = require('./lib/backendCheck');
 const { createSceneService, SCENE_COMMANDS } = require('./lib/scenes');
 const { createSayitBridge, SAYIT_PREFIX } = require('./lib/sayitBridge');
+const { createAnnouncements } = require('./lib/announcements');
 const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
 
@@ -840,6 +841,16 @@ class Aura extends utils.Adapter {
         // may show aura's own states, and other features watch the same ids.
         if (this._publish && this._publishSubscribed && this._publishSubscribed.has(id)) {
             this._publish.update(id, state || null);
+        }
+
+        // Announcement rules (#834 phase 4): a datapoint they read (not returned —
+        // other features may watch the same id) and the rules themselves.
+        if (this._announcements) {
+            this._announcements.onStateChange(id, state);
+            if (id === `${this.namespace}.config.announcements` && state) {
+                await this._announcements.load(state.val);
+                return;
+            }
         }
 
         // Timer widget config/enabled — frontend writes ack=false, ingest into schedule map
@@ -3616,6 +3627,30 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this.setObjectNotExistsAsync('config.announcements', {
+            type: 'state',
+            common: {
+                name: 'Announcement rules (JSON, edited in Admin → Ansagen)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('speech.announcementLog', {
+            type: 'state',
+            common: {
+                name: 'When each announcement rule last spoke (JSON, for its lock)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
         // popup.open comes from instanceObjects; popup.close was added later (#861).
         await this.setObjectNotExistsAsync('popup', {
             type: 'channel',
@@ -4142,6 +4177,35 @@ class Aura extends utils.Adapter {
         this.on('fileChange', (id, fileName, size) => this._sayit?.onFileChange(id, fileName, size));
         this.subscribeForeignObjects(`${SAYIT_PREFIX}*`);
         await this._sayit.scan();
+
+        // Announcement rules of Admin → Ansagen (#834 phase 4), run here so a lock
+        // holds across devices and nothing depends on an open dashboard.
+        /** @type {Record<string, number>} */
+        let announcementLog = {};
+        try {
+            const st = await this.getStateAsync('speech.announcementLog');
+            const parsed = st && st.val ? JSON.parse(String(st.val)) : {};
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) announcementLog = parsed;
+        } catch {
+            /* a broken log only forgets the locks */
+        }
+        this._announcements = createAnnouncements(this, {
+            announce: (p) => this._announce(p),
+            subscribe: (id) => this._foreignSub(id, 'announcement'),
+            unsubscribe: (id) => this._foreignUnsub(id, 'announcement'),
+            lastFired: announcementLog,
+            saveLastFired: (log) =>
+                this.setStateAsync('speech.announcementLog', { val: JSON.stringify(log), ack: true }).catch((e) =>
+                    this.log.warn(`[announcements] could not save the lock: ${e.message}`),
+                ),
+        });
+        this.subscribeStates('config.announcements');
+        try {
+            const st = await this.getStateAsync('config.announcements');
+            await this._announcements.load(st ? st.val : '');
+        } catch (e) {
+            this.log.warn(`[announcements] could not load the rules: ${e.message}`);
+        }
 
         // ── Timer widget scheduler ─────────────────────────────────────────────
         // Subscribe to per-widget config/enabled DPs and run a tick to evaluate
@@ -5609,6 +5673,17 @@ class Aura extends utils.Adapter {
         };
 
         try {
+            // Admin → Ansagen "Test": speak one rule now, conditions and lock aside.
+            if (msg.command === 'announcementTest') {
+                if (!this._announcements) {
+                    reply({ ok: false, error: 'not ready' });
+                    return;
+                }
+                const text = await this._announcements.test(msg.message && msg.message.rule);
+                reply({ ok: true, text });
+                return;
+            }
+
             if (msg.command === 'auraPing') {
                 // Connectivity check from frontend: tells widget the new handler is actually running.
                 let version = '';
@@ -6260,6 +6335,7 @@ class Aura extends utils.Adapter {
                 /* ignore */
             }
             this._sayit?.stop();
+            this._announcements?.stop();
             this._mediaLibrary?.flush().catch(() => {});
             if (this._timerInterval) {
                 this.clearInterval(this._timerInterval);

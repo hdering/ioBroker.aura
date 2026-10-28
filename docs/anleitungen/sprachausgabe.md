@@ -102,3 +102,35 @@ Die Lautstärke aus `80;Text` wird übernommen.
 ## Meldungen vorlesen
 
 Meldungen mit `"speak": true` liest das Gerät vor, das sie anzeigt: Titel, dann Text. Voreinstellung je Schweregrad: **Admin → Meldungen → Standardwerte → Vorlesen**. Siehe [Meldungen](../einstellungen/meldungen#verhalten).
+
+## Ansagen ohne Skript
+
+**Admin → Ansagen**: Datenpunkt + Bedingung → Text → Geräte. Der Adapter prüft die Regeln, auch wenn kein Dashboard offen ist.
+
+| Feld | |
+| --- | --- |
+| Bedingungen | Wie bei den Popup-Triggern, mit UND/ODER und Klammern |
+| Ansagen | **sobald die Bedingungen erfüllt werden** (Flanke) oder **bei jedem neuen Wert** — z. B. eine Klingel, die bei jedem Druck erneut `true` meldet |
+| Text oder Sounddatei | Gesprochener Text oder eine Datei wie oben |
+| Geräte | Leer = alle |
+| Lautstärke, Stimme | Leer = Einstellung des Geräts |
+| Zeitfenster | Von–bis und Wochentage; `22:00`–`06:00` geht über Mitternacht |
+| Sperre | **Höchstens einmal am Tag** und/oder Mindestabstand in Minuten |
+
+| Platzhalter | |
+| --- | --- |
+| `{{value}}` | Wert des ersten Datenpunkts |
+| `[[Datenpunkt-ID]]` | Wert eines beliebigen Datenpunkts |
+| `{{name}}`, `{{parent}}`, `{{dp}}` | Teile der ID des ersten Datenpunkts, auch in `[[{{parent}}.TEMP]]` |
+
+| Beispiel | Bedingung | Text |
+| --- | --- | --- |
+| Klingel | `…klingel` = wahr | `Es hat an der Haustür geklingelt` |
+| Waschmaschine | `…leistung` < `5`, Gerät: Küchentablet | `Die Waschmaschine ist fertig` |
+| Morgengruß | `…bewegung_flur` = wahr, 06:00–09:00, einmal am Tag | `Guten Morgen, draußen hat es [[weather.0.temp]] Grad` |
+
+| Regel | |
+| --- | --- |
+| Bedingungen beim Speichern oder Adapterstart schon erfüllt | keine Ansage |
+| **Jetzt testen** | Spricht die Regel sofort, ohne Bedingung und Sperre |
+| Ablage | `aura.0.config.announcements`; letzte Ansage je Regel in `aura.0.speech.announcementLog` |
