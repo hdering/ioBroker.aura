@@ -861,6 +861,13 @@ class Aura extends utils.Adapter {
 
         // Timer widget config/enabled — frontend writes ack=false, ingest into schedule map
         if (id.startsWith(`${this.namespace}.timers.`) && state) {
+            const reapply = id.match(/\.timers\.([^.]+)\.reapply$/);
+            if (reapply) {
+                if (state.ack || !state.val) return;
+                await this._timerReapply(reapply[1], 'reapply DP');
+                await this.setStateAsync(id.slice(this.namespace.length + 1), state.val, true).catch(() => {});
+                return;
+            }
             this._ingestTimerState(id, state.val);
             return;
         }
@@ -4321,6 +4328,7 @@ class Aura extends utils.Adapter {
         this._timerState = new Map(); // widgetId → { enabled, payload }
         this._timerFired = new Set(); // dedupe key → true (cleared at midnight)
         this._timerException = new Map(); // widgetId → active exception signature or null (#757)
+        this._timerReapplyEnsured = new Set(); // widgetIds whose reapply DP exists (#872)
         this._timerLastDay = this._currentDayKey();
         await this._loadAstroLocation();
         try {
@@ -4332,6 +4340,13 @@ class Aura extends utils.Adapter {
             this.log.debug(`[timers] loaded ${this._timerState.size} timer widget(s)`);
         } catch (e) {
             this.log.warn(`[timers] initial scan failed: ${e.message}`);
+        }
+        // Catch up what was missed while the adapter was down (#872).
+        for (const [widgetId, entry] of this._timerState.entries()) {
+            if (entry.payload?.reapplyOnStart !== true) continue;
+            await this._timerReapply(widgetId, 'adapter start').catch((e) =>
+                this.log.warn(`[timers] reapply on start failed (${widgetId}): ${e.message}`),
+            );
         }
         const tickSec = Math.max(5, Math.min(600, Number(this.config.timerTickSeconds) || 30));
         this._timerTickMs = tickSec * 1000;
@@ -4614,6 +4629,7 @@ class Aura extends utils.Adapter {
             // republishes the config state on every keystroke while mounted, so a
             // rename-on-ingest would spam the object DB. Title sync happens only on
             // explicit save via the renameTimer onMessage handler.
+            if (entry.payload) void this._ensureTimerReapplyObject(widgetId, entry.payload.title);
         }
         this._timerState.set(widgetId, entry);
     }
@@ -4627,6 +4643,9 @@ class Aura extends utils.Adapter {
         await this.extendObjectAsync(base, { common: { name: want } });
         await this.extendObjectAsync(`${base}.config`, { common: { name: `${want} — config` } });
         await this.extendObjectAsync(`${base}.enabled`, { common: { name: `${want} — enabled` } });
+        if (await this.getObjectAsync(`${base}.reapply`)) {
+            await this.extendObjectAsync(`${base}.reapply`, { common: { name: `${want} — reapply` } });
+        }
         this.log.info(`[timers] renamed ${this.namespace}.${base} → "${want}"`);
     }
 
@@ -4760,24 +4779,95 @@ class Aura extends utils.Adapter {
         const prev = this._timerException.has(widgetId) ? this._timerException.get(widgetId) : null;
         if (sig === prev) return;
         this._timerException.set(widgetId, sig);
-        const label = (kind) => (kind === 'vacation' ? 'vacation exception' : 'holiday exception');
         if (exc) {
-            await this._writeTarget(this._timerTargets(payload), exc.value, { label: label(exc.kind) });
+            await this._writeTarget(this._timerTargets(payload), exc.value, { label: this._exceptionLabel(exc.kind) });
             return;
         }
+        if (!(await this._writeLastDue(payload, now, holidays, vacation))) {
+            this.log.info(`[timers] ${this._exceptionLabel(prev.split(':')[0])} ended — no regular event to restore`);
+        }
+    }
+
+    _exceptionLabel(kind) {
+        return kind === 'vacation' ? 'vacation exception' : 'holiday exception';
+    }
+
+    /** Write what the regular schedule wrote last (see lastDueWrite); false when nothing is due. */
+    async _writeLastDue(payload, now, holidays, vacation) {
         const last = lastDueWrite(payload, now, holidays, vacation, (event, date, offsetMin) =>
             this._computeAstroDate(event, date, offsetMin),
         );
-        if (!last) {
-            this.log.info(`[timers] ${label(prev.split(':')[0])} ended — no regular event to restore`);
-            return;
-        }
+        if (!last) return false;
         let override;
         if (last.invert) {
             const v = this._parseValue(last.baseValue);
             override = typeof v === 'boolean' ? !v : typeof v === 'number' ? 0 : '';
         }
         await this._writeTarget(this._timerTargets(payload), last.baseValue, last.ev, override);
+        return true;
+    }
+
+    /**
+     * Re-apply the schedule now (#872): write the value that is due at this moment —
+     * the active exception value, else the last regular write. Triggered by the
+     * timers.<id>.reapply button and, with reapplyOnStart, on adapter start.
+     */
+    async _timerReapply(widgetId, reason) {
+        const entry = this._timerState.get(widgetId);
+        const payload = entry?.payload;
+        const name = payload?.title || widgetId;
+        if (!payload || !Array.isArray(payload.events)) {
+            this.log.info(`[timers] reapply ${name} (${reason}): no schedule`);
+            return;
+        }
+        if (!entry.enabled) {
+            this.log.info(`[timers] reapply ${name} (${reason}): timer is switched off`);
+            return;
+        }
+        if (this._timerTargets(payload).length === 0) return;
+        const now = new Date();
+        const holidays = await this._resolveSpecialDays(payload.holidaysDp);
+        const vacation = await this._resolveSpecialDays(payload.vacationDp);
+        const exc = activeException(payload, holidays, vacation, this._currentDayKey(now));
+        // The next tick must not write the same exception (or the same restore) again.
+        this._timerException.set(widgetId, exc ? `${exc.kind}:${exc.value}` : null);
+        this.log.info(`[timers] reapply ${name} (${reason})`);
+        if (exc) {
+            await this._writeTarget(this._timerTargets(payload), exc.value, { label: this._exceptionLabel(exc.kind) });
+            return;
+        }
+        if (!(await this._writeLastDue(payload, now, holidays, vacation))) {
+            this.log.info(`[timers] reapply ${name}: no regular event due in the last days`);
+        }
+    }
+
+    /** The reapply button of a timer (#872) — created by the adapter, the frontend only knows config/enabled. */
+    async _ensureTimerReapplyObject(widgetId, title) {
+        this._timerReapplyEnsured ??= new Set();
+        if (this._timerReapplyEnsured.has(widgetId)) return;
+        this._timerReapplyEnsured.add(widgetId);
+        try {
+            if (!(await this.getObjectAsync(`timers.${widgetId}`))) {
+                this._timerReapplyEnsured?.delete(widgetId);
+                return;
+            }
+            await this.setObjectNotExistsAsync(`timers.${widgetId}.reapply`, {
+                type: 'state',
+                common: {
+                    name: `${title || 'Zeitschaltuhr'} — reapply`,
+                    desc: 'true = write the value the schedule wants right now',
+                    type: 'boolean',
+                    role: 'button',
+                    read: false,
+                    write: true,
+                    def: false,
+                },
+                native: {},
+            });
+        } catch (e) {
+            this._timerReapplyEnsured.delete(widgetId);
+            this.log.debug(`[timers] could not create reapply DP (${widgetId}): ${e.message}`);
+        }
     }
 
     async _timerTick() {
@@ -6069,7 +6159,7 @@ class Aura extends utils.Adapter {
                 const base = `${this.namespace}.timers.${widgetId}`;
                 const localBase = `timers.${widgetId}`;
                 const results = {};
-                for (const sub of ['config', 'enabled']) {
+                for (const sub of ['config', 'enabled', 'reapply']) {
                     try {
                         await this.delObjectAsync(`${localBase}.${sub}`);
                         results[sub] = 'ok';
@@ -6085,6 +6175,7 @@ class Aura extends utils.Adapter {
                 }
                 this._timerState.delete(widgetId);
                 this._timerException.delete(widgetId);
+                this._timerReapplyEnsured?.delete(widgetId);
                 this.log.info(`[timers] deleteTimer ${base} → ${JSON.stringify(results)}`);
                 reply({ ok: true, results });
                 return;

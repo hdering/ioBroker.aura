@@ -57,6 +57,7 @@ export interface TimerConfigPayload {
     vacationDp?: string;
     holidaysValue?: string; // exception value while holidaysDp marks today (#757)
     vacationValue?: string; // exception value while vacationDp marks today (#757)
+    reapplyOnStart?: boolean; // adapter writes the currently due value on start (#872)
     title?: string;
 }
 

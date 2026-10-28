@@ -330,6 +330,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     };
     const targetValue = o.value as string | undefined;
     const allowEventValue = o.allowEventValue === true;
+    const reapplyOnStart = o.reapplyOnStart === true;
     const holidaysDp = o.holidaysDp as string | undefined;
     const vacationDp = o.vacationDp as string | undefined;
     const holidaysValue = o.holidaysValue as string | undefined;
@@ -437,6 +438,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             vacationDp,
             holidaysValue,
             vacationValue,
+            reapplyOnStart: reapplyOnStart || undefined,
             title: config.title,
         };
         const serialized = JSON.stringify(payload);
@@ -457,6 +459,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         vacationDp,
         holidaysValue,
         vacationValue,
+        reapplyOnStart,
     ]);
 
     const lastEnabledRef = useRef<boolean | null>(null);

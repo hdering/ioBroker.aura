@@ -169,6 +169,8 @@ export function TimerConfig({ config, onConfigChange }: Props) {
     const extraTargetDps = (o.extraTargetDps as string[] | undefined) ?? [];
     const value = (o.value as string | undefined) ?? 'true';
     const allowEventValue = o.allowEventValue === true;
+    const reapplyOnStart = o.reapplyOnStart === true;
+    const stateBaseId = o.stateBaseId as string | undefined;
     const holidaysDp = (o.holidaysDp as string | undefined) ?? '';
     const vacationDp = (o.vacationDp as string | undefined) ?? '';
     const holidaysValue = (o.holidaysValue as string | undefined) ?? '';
@@ -424,6 +426,31 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                 <span
                                     className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
                                     style={{ left: allowEventValue ? '14px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                            <div className="min-w-0 pr-2">
+                                <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                    Plan beim Adapterstart nachholen
+                                </p>
+                                <p className={hintCls} style={hintStyle}>
+                                    Schreibt nach einem Neustart den Wert, der laut Plan gerade gilt. Von außen geht das
+                                    jederzeit über den DP{' '}
+                                    <code className="font-mono">
+                                        {stateBaseId ? `${stateBaseId}.reapply` : 'timers.<id>.reapply'}
+                                    </code>{' '}
+                                    = <code className="font-mono">true</code>.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setOpts({ reapplyOnStart: reapplyOnStart ? undefined : true })}
+                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                style={{ background: reapplyOnStart ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: reapplyOnStart ? '14px' : '2px' }}
                                 />
                             </button>
                         </div>

@@ -1686,6 +1686,10 @@ export const WIDGET_OPTION_NOTES = {
         },
         value: { description: 'Wert, den eine Schaltzeit ohne eigenen Wert schreibt.' },
         allowEventValue: { description: 'Je Schaltzeit einen eigenen Wert erlauben.' },
+        reapplyOnStart: {
+            description:
+                'Beim Adapterstart den Wert schreiben, der laut Plan gerade gilt (aktiver Ausnahme-Wert, sonst die zuletzt fällige Schaltzeit). Unabhängig davon löst der DP timers.<id>.reapply = true (z. B. per Skript) dasselbe jederzeit aus.',
+        },
         stateBaseId: { description: 'Objektpfad, unter dem der Adapter die Schaltzeiten ablegt.' },
         timerInstances: {
             description:

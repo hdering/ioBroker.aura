@@ -19,7 +19,7 @@ Kein Haupt-Datenpunkt am Widget. Stattdessen Widget-Optionen (Admin):
 | `holidaysValue` | nein | `string` | Wert an Feiertagen — siehe [Ausnahme-Wert](#ausnahme-wert) |
 | `vacationValue` | nein | `string` | Wert im Urlaub — siehe [Ausnahme-Wert](#ausnahme-wert) |
 
-Pro Widget legt der Adapter zwei States unter `aura.0.timers.<widget-id>` an: `config` (JSON aller Ereignisse) und `enabled` (Master). Der Backend-Scheduler liest aus diesen States.
+Pro Widget gibt es unter `aura.0.timers.<widget-id>` drei States: `config` (JSON aller Ereignisse), `enabled` (Master) und `reapply` (siehe [Plan erneut anwenden](#plan-erneut-anwenden)). Der Backend-Scheduler liest aus diesen States.
 
 ## Layouts
 
@@ -70,6 +70,7 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 | `targetDp` | — | Ziel-DP — ohne Ziel-DP feuert nichts |
 | `extraTargetDps` | — | Weitere Ziel-DPs („+ Weiterer Datenpunkt“), bekommen denselben Wert — z. B. mehrere Thermostate |
 | `value` | `true` | Wert beim Auslösen |
+| `reapplyOnStart` | `false` | Beim Adapterstart den Wert schreiben, der laut Plan gerade gilt — siehe [Plan erneut anwenden](#plan-erneut-anwenden) |
 
 Beim Auslöser-Typ **Zeitraum** schreibt der Scheduler am Ende den invertierten Wert (`true → false`, `42 → 0`, sonst leerer String).
 
@@ -218,6 +219,19 @@ Logzeilen im Adapter:
 [timers] scheduler tick = 30s
 [timers] fired <Label>: <Ziel-DP> ← <Wert>
 ```
+
+### Plan erneut anwenden
+
+`aura.0.timers.<widget-id>.reapply` = `true` (z. B. per Skript) schreibt sofort den Wert, der laut Plan gerade gilt — nützlich nach Stromausfall oder Handbedienung.
+
+| Situation | geschrieben wird |
+| --- | --- |
+| Ausnahme aktiv | `holidaysValue` / `vacationValue` |
+| sonst | Wert des zuletzt fälligen Ereignisses (bis 7 Tage zurück); Zeitraum-Ende = invertierter Wert |
+| Timer aus (Master) | nichts |
+| kein fälliges Ereignis | nichts |
+
+Einmal-Ereignisse zählen nicht mit. Mit `reapplyOnStart` passiert dasselbe bei jedem Adapterstart.
 
 ## Bearbeitungsmodus
 

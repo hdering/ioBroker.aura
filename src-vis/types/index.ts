@@ -233,6 +233,7 @@ export interface TimerWidgetOptions {
     vacationDp?: string; // optional DP — same format as holidaysDp, for vacation days
     holidaysValue?: string; // optional — written once when holidaysDp marks today; regular events pause meanwhile
     vacationValue?: string; // optional — written once when vacationDp marks today; regular events pause meanwhile
+    reapplyOnStart?: boolean; // adapter writes the value the schedule wants right now on start; anytime via DP timers.<id>.reapply = true (#872)
     showSpecialDaysButton?: boolean; // calendar button opening the frontend holiday / vacation editor (#785); default true
     holidaysEditable?: boolean; // holidaysDp list editable from that popup; default true, a boolean DP is never overwritten
     vacationEditable?: boolean; // vacationDp list editable from that popup; default true, a boolean DP is never overwritten

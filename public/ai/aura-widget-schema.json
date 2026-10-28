@@ -20636,6 +20636,11 @@
           "type": "string",
           "description": "Ausnahme-Wert für Feiertage: wird einmal in targetDp geschrieben, sobald holidaysDp den Tag als Feiertag markiert. Solange pausieren alle Schaltzeiten außer denen mit Filter \"only-holidays\"; endet die Ausnahme, schreibt der Adapter den Wert der zuletzt fälligen regulären Schaltzeit. Leer = aus."
         },
+        "reapplyOnStart": {
+          "type": "boolean",
+          "default": false,
+          "description": "Beim Adapterstart den Wert schreiben, der laut Plan gerade gilt (aktiver Ausnahme-Wert, sonst die zuletzt fällige Schaltzeit). Unabhängig davon löst der DP timers.<id>.reapply = true (z. B. per Skript) dasselbe jederzeit aus."
+        },
         "showAddButton": {
           "type": "boolean",
           "default": true,

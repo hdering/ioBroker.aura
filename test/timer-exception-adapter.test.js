@@ -215,6 +215,54 @@ const payload = {
         assert.deepStrictEqual(writes, [{ id: 'y.0.on', val: true }]);
     });
 
+    await test('reapply DP writes the last regular value (#872)', async () => {
+        const { a, foreignStates, writes } = makeAdapter(payload);
+        foreignStates.set('u.0.vacation', false);
+        await a.onStateChange('aura.0.timers.w1.reapply', { val: true, ack: false });
+        assert.deepStrictEqual(writes, [{ id: 'x.0.setpoint', val: 19 }]);
+    });
+
+    await test('reapply during an exception writes the exception value, the tick not again (#872)', async () => {
+        const { a, foreignStates, writes } = makeAdapter(payload);
+        foreignStates.set('u.0.vacation', true);
+        await a.onStateChange('aura.0.timers.w1.reapply', { val: true, ack: false });
+        await a._timerTick();
+        assert.deepStrictEqual(writes, [{ id: 'x.0.setpoint', val: 16 }]);
+    });
+
+    await test('reapply: range end wins over an earlier start → inverted value (#872)', async () => {
+        const h = 3600000;
+        const range = {
+            targetDp: 'x.0.on',
+            value: 'true',
+            events: [
+                {
+                    id: 'r',
+                    enabled: true,
+                    weekdays: ALL,
+                    trigger: {
+                        kind: 'range',
+                        fromIso: new Date(Date.now() - 2 * h).toISOString(),
+                        toIso: new Date(Date.now() - h).toISOString(),
+                    },
+                    filter: 'all-days',
+                },
+            ],
+        };
+        const { a, writes } = makeAdapter(range);
+        await a._timerReapply('w1', 'test');
+        assert.deepStrictEqual(writes, [{ id: 'x.0.on', val: false }]);
+    });
+
+    await test('reapply ignores ack writes, false and a switched-off timer (#872)', async () => {
+        const { a, writes } = makeAdapter(payload);
+        await a.onStateChange('aura.0.timers.w1.reapply', { val: true, ack: true });
+        await a.onStateChange('aura.0.timers.w1.reapply', { val: false, ack: false });
+        a._timerState.get('w1').enabled = false;
+        await a.onStateChange('aura.0.timers.w1.reapply', { val: true, ack: false });
+        assert.deepStrictEqual(writes, []);
+    });
+
     console.log(`timer-exception-adapter: ${n} tests passed`);
 })().catch((e) => {
     console.error(e);
