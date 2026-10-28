@@ -106,6 +106,21 @@ check(
     JSON.stringify(s),
 );
 
+// Borderless themes (Lovelace, Material 3, …) set --widget-border to transparent; the
+// default line colour must not follow it (#870).
+{
+    const alpha = await page.evaluate(() => {
+        const root = document.querySelector('.aura-widget-gl1 .aura-custom-grid');
+        root.style.setProperty('--widget-border', 'transparent');
+        const c = getComputedStyle(root.querySelector('.aura-custom-grid-line > span')).backgroundColor;
+        root.style.removeProperty('--widget-border');
+        if (c === 'transparent') return 0;
+        const m = c.match(/[\d.]+/g)?.map(Number) ?? [];
+        return m.length >= 4 ? m[m.length - 1] : 1;
+    });
+    check('line visible in a borderless theme', alpha > 0.1, `alpha ${alpha}`);
+}
+
 await box.locator('label:has-text("Waagerechte Linien") input').check();
 await page.waitForTimeout(300);
 g = await grid();

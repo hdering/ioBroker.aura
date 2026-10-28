@@ -520,7 +520,7 @@ export interface CustomGridDef {
     borderColor?: string;
     vLines?: boolean; // thin vertical line between neighbouring columns, drawn in the gap and not through a cell spanning both (#793)
     hLines?: boolean; // thin horizontal line between neighbouring rows, drawn in the gap and not through a cell spanning both (#793)
-    lineColor?: string; // colour of the vLines/hLines, any CSS colour; unset = theme border colour (--widget-border)
+    lineColor?: string; // colour of the vLines/hLines, any CSS colour; unset = muted text colour (--text-secondary at 35 %), visible in borderless themes too
     lineWidth?: number; // thickness of the vLines/hLines in px, 1..10, default 1; above 2 px the gap between the cells widens to the line width
 }
 

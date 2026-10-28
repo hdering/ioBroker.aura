@@ -1525,7 +1525,7 @@
         },
         "lineColor": {
           "type": "string",
-          "description": "colour of the vLines/hLines, any CSS colour; unset = theme border colour (--widget-border)",
+          "description": "colour of the vLines/hLines, any CSS colour; unset = muted text colour (--text-secondary at 35 %), visible in borderless themes too",
           "color": true
         },
         "lineWidth": {

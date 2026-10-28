@@ -1402,7 +1402,7 @@ export const de = {
     'wf.edit.custom.faceHint': 'Hintergrund und Rahmen stammen aus dem Karten-Layout',
     'wf.edit.custom.vLines': 'Senkrechte Linien',
     'wf.edit.custom.hLines': 'Waagerechte Linien',
-    'wf.edit.custom.lineColor': 'Linienfarbe (leer = Rahmenfarbe des Themes)',
+    'wf.edit.custom.lineColor': 'Linienfarbe (leer = gedämpfte Textfarbe des Themes)',
     'wf.edit.custom.lineWidth': 'Linienstärke in px',
     'wf.edit.layout.unknown':
         'Gespeichert ist „{layout}“ — diesen Stil gibt es hier nicht, angezeigt wird der Standard.',

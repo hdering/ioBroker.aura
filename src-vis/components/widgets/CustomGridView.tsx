@@ -125,7 +125,9 @@ function GridLines({
     const hEdge = (r: number, c: number) => r < rows - 1 && at(r, c) !== at(r + 1, c);
     const vOff = -(colGap + width) / 2;
     const hOff = -(rowGap + width) / 2;
-    const bg = color || 'var(--widget-border, var(--app-border))';
+    // Not --widget-border: borderless themes (Lovelace, Material 3, …) set it to transparent,
+    // which hid lines the user explicitly switched on (#870) - same rule colour as the list (#846).
+    const bg = color || 'color-mix(in srgb, var(--text-secondary) 35%, transparent)';
     const items: React.ReactNode[] = [];
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
