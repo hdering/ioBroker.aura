@@ -1560,15 +1560,15 @@
         },
         "prefix": {
           "type": "string",
-          "description": "'value' / 'dp' type: text prepended to value"
+          "description": "'value' / 'dp' type, and the circleValueDp of a 'select' cell: text prepended to value"
         },
         "suffix": {
           "type": "string",
-          "description": "'value' / 'dp' type: text appended to value"
+          "description": "'value' / 'dp' type, and the circleValueDp of a 'select' cell: text appended to value"
         },
         "decimals": {
           "type": "number",
-          "description": "'value' / 'dp' type: decimal places override (undefined = use global)"
+          "description": "'value' / 'dp' type, and the circleValueDp of a 'select' cell: decimal places override (undefined = use global)"
         },
         "numberFormat": {
           "type": "string",
@@ -2078,6 +2078,11 @@
         "circleKeepOpen": {
           "type": "boolean",
           "description": "'select' cell in circle display: stay open after an entry was picked (− / + always keep it open)"
+        },
+        "circleValueDp": {
+          "type": "string",
+          "description": "'select' cell in circle display: datapoint shown large in the button (e.g. the measured temperature while the select writes the setpoint); the current entry moves to the small line below. Formatted with the cell's decimals / prefix / suffix; unset = the current entry is the large value (#864)",
+          "datapoint": true
         },
         "entryDisplay": {
           "type": "string",
