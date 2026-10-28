@@ -13,7 +13,7 @@ import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { unpublishCountdownForWidget } from '../../utils/publishCountdown';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
 
@@ -771,7 +771,7 @@ export function AdminWidgets() {
     const activeTypes = TYPE_ORDER.filter((tp) => (byType.get(tp)?.length ?? 0) > 0);
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-6`}>
+        <div className={ADMIN_PAGE_CLASS}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>

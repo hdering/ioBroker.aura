@@ -37,7 +37,7 @@ import { NavigationSection } from './layouts/sections/NavigationSection';
 import { IconsSection } from './layouts/sections/IconsSection';
 import { ValueFormatSection } from './layouts/sections/ValueFormatSection';
 import { AuraIcon } from '../../components/common/AuraIcon';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── ActiveSection ─────────────────────────────────────────────────────────────
 // One card (group) per tab. The global-only groups that used to hide inside
@@ -163,7 +163,7 @@ export function AdminDesign() {
     };
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-4`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div>
                 <AdminPageTitle>{t('design.title')}</AdminPageTitle>
                 <AdminPageSubtitle>{t('design.subtitle')}</AdminPageSubtitle>

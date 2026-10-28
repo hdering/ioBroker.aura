@@ -41,7 +41,7 @@ import type {
     MessageSeverity,
     MessageTimeFormat,
 } from '../../types';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Shared styles (mirrors AdminPopups) ───────────────────────────────────────
 
@@ -883,7 +883,7 @@ export function AdminMessages() {
     const scope = useMemo(() => ({ clientId }), [clientId]);
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div>
                 <AdminPageTitle>Meldungen</AdminPageTitle>
                 <AdminPageSubtitle>

@@ -38,7 +38,7 @@ import {
 import { useT, type TranslationKey } from '../../i18n';
 import { NS } from '../../utils/namespace';
 import { version as appVersion } from '../../../package.json';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
 
@@ -1077,7 +1077,7 @@ export function AdminSettings() {
     };
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-4`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div>
                 <AdminPageTitle>{t('settings.title')}</AdminPageTitle>
                 <AdminPageSubtitle>{t('settings.subtitle')}</AdminPageSubtitle>

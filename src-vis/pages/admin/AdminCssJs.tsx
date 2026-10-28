@@ -6,7 +6,7 @@ import { useT } from '../../i18n';
 
 import { CustomCssSection } from './layouts/sections/CustomCssSection';
 import { CustomJsSection } from './layouts/sections/CustomJsSection';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 type CssJsTab = 'css' | 'js';
 
@@ -36,7 +36,7 @@ export function AdminCssJs() {
     };
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-4`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div>
                 <AdminPageTitle>{t('cssjs.title')}</AdminPageTitle>
                 <AdminPageSubtitle>{t('cssjs.subtitle')}</AdminPageSubtitle>

@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 
 /**
- * Outer padding of every admin page (not the dashboard editor). One value so the
- * heading sits at the same spot whichever menu entry is open.
+ * Outer padding and block gap of every admin page (not the dashboard editor). One
+ * value so the heading sits at the same spot and the content starts at the same
+ * distance below it, whichever menu entry is open.
  */
-export const ADMIN_PAGE_PAD = 'p-4 sm:p-6';
+export const ADMIN_PAGE_CLASS = 'p-4 sm:p-6 space-y-6';
 
 /** Page heading of an admin page — same size on every page. */
 export function AdminPageTitle({ children, className = '' }: { children: ReactNode; className?: string }) {

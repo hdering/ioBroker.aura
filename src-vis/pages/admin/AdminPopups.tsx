@@ -35,7 +35,7 @@ import { getAvailableLayouts } from '../../utils/widgetLayouts';
 import { exportPopupView, importPopupView } from '../../utils/widgetExportImport';
 import { builtinUsage, type UsageReason } from '../../utils/builtinPopupUsage';
 import type { ClickAction, WidgetLayout } from '../../types';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
@@ -1632,7 +1632,7 @@ function PopupTriggersSection() {
 
 export function AdminPopups() {
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div>
                 <AdminPageTitle>Popups</AdminPageTitle>
                 <AdminPageSubtitle>

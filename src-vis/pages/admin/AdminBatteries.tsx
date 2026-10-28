@@ -14,7 +14,7 @@ import {
     type BatteryLibIndex,
     type DeviceModel,
 } from '../../utils/batteryLibrary';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 interface DeviceRow {
     deviceId: string;
@@ -387,7 +387,7 @@ export function AdminBatteries() {
     );
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div>
                 <AdminPageTitle>Batterien</AdminPageTitle>
                 <AdminPageSubtitle>

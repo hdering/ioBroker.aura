@@ -30,7 +30,7 @@ import { useMcpStatus } from '../../hooks/useMcpStatus';
 import { ConfigModal } from '../../components/config/ConfigModal';
 import { Link } from 'react-router-dom';
 import { NS } from '../../utils/namespace';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 /** Rows a health list shows inline; everything beyond moves into its dialog.
  *  Keeps the overview the same height no matter how damaged the installation
@@ -682,7 +682,7 @@ export function AdminDashboard() {
     const { connected } = useIoBroker();
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div className="flex items-start gap-4 flex-wrap">
                 <div>
                     <AdminPageTitle>{t('dashboard.title')}</AdminPageTitle>

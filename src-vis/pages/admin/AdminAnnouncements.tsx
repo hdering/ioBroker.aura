@@ -20,7 +20,7 @@ import {
     type AnnouncementConfig,
     type AnnouncementRule,
 } from '../../utils/announcements';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 /**
  * Admin → Ansagen (issue #834, phase 4): announcements without a script.
@@ -538,7 +538,7 @@ export function AdminAnnouncements() {
     };
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-6`} data-aura-admin-announcements="">
+        <div className={ADMIN_PAGE_CLASS} data-aura-admin-announcements="">
             <div>
                 <AdminPageTitle>Ansagen</AdminPageTitle>
                 <AdminPageSubtitle>

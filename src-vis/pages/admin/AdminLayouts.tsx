@@ -9,7 +9,7 @@ import { LayoutTree } from './layouts/manage/LayoutTree';
 import { LayoutDetail } from './layouts/manage/LayoutDetail';
 import { SectionDetail } from './layouts/manage/SectionDetail';
 import { Btn, InlinePrompt } from './layouts/manage/pieces';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── AdminLayouts ──────────────────────────────────────────────────────────────
 //
@@ -115,7 +115,7 @@ export function AdminLayouts() {
     );
 
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-4`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="min-w-0">
                     <AdminPageTitle>{t('layouts.title')}</AdminPageTitle>

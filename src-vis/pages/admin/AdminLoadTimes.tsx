@@ -1,6 +1,6 @@
 import { LoadTimesWidget } from '../../components/widgets/LoadTimesWidget';
 import type { WidgetConfig } from '../../types';
-import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
+import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // Throwaway config: the LoadTimesWidget only reads config.options for display
 // defaults (all have fallbacks) and config.title for its header. Rendering it
@@ -18,7 +18,7 @@ const WIDGET_CONFIG: WidgetConfig = {
 
 export function AdminLoadTimes() {
     return (
-        <div className={`${ADMIN_PAGE_PAD} space-y-6`}>
+        <div className={ADMIN_PAGE_CLASS}>
             <div>
                 <AdminPageTitle>Ladezeiten</AdminPageTitle>
                 <AdminPageSubtitle>
