@@ -2038,6 +2038,19 @@ const STATUS_ROW_OPTIONS = {
 };
 
 export const EXTRA_OPTIONS = {
+    camera: {
+        // Read in utils/iframeInteraction (resolveIframeInteractionMode) for the iframe stream
+        // view, not through the widget's own options binding.
+        interactionMode: {
+            type: 'string',
+            enum: ['action', 'content', 'contentOnly'],
+            default: 'content',
+            description:
+                'Nur bei Stream-Adressen, die als iframe laufen (.html, z. B. go2rtc webrtc.html): "action" legt eine ' +
+                'Sperrschicht über den Stream, die ganze Fläche löst die Klick-Aktion aus; "content" (Standard) lässt die ' +
+                'Player-Seite bedienbar. "contentOnly" ist veraltet — nicht setzen.',
+        },
+    },
     shutter: {
         // Read in utils/shutterCommand, shared with the popup and group actions.
         moveDp: {

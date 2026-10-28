@@ -210,6 +210,8 @@ const click = async (label) => {
             { editMode: true },
         );
         window.__auraShot.setEditMode(true);
+        // The edit dialog opens with every section folded; the fields below are inside them.
+        window.__auraShot.unfoldSections();
     });
     const opts = () => page.evaluate(() => window.__auraShot.widgetOptions('w-chips-editor'));
     await page.locator('.aura-edit-chrome button').first().click();

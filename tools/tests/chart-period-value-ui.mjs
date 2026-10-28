@@ -38,6 +38,10 @@ for (const c of Object.keys(DP)) {
     values[DP[c]] = { val: pts[pts.length - 1][1], unit: 'kWh' };
 }
 
+// The newest LOGGED reading — what the widget has to count up to. `now` sits up to one log step
+// later, and in the evening (EV charging) that last stretch alone is more than the 1 % tolerance.
+const lastLog = Math.floor(now / LOG_STEP) * LOG_STEP;
+
 const results = [];
 const check = (name, ok, detail = '') => {
     results.push({ name, ok });
@@ -123,8 +127,8 @@ await show(
 );
 const leg30 = await legendValues();
 const want30 = {
-    Einspeisung: flow.deltaOver('gridOut', now - 30 * DAY, now),
-    Bezug: flow.deltaOver('gridIn', now - 30 * DAY, now),
+    Einspeisung: flow.deltaOver('gridOut', now - 30 * DAY, lastLog),
+    Bezug: flow.deltaOver('gridIn', now - 30 * DAY, lastLog),
 };
 for (const k of Object.keys(want30)) {
     check(
@@ -199,7 +203,7 @@ const btn = page.locator('button', { hasText: /^7/ }).first();
 await btn.click();
 await page.waitForTimeout(1800);
 const leg7 = await legendValues();
-const want7 = flow.deltaOver('gridOut', now - 7 * DAY, now);
+const want7 = flow.deltaOver('gridOut', now - 7 * DAY, lastLog);
 check(
     'range button 7d - value follows',
     Math.abs(leg7.Einspeisung - want7) < Math.max(0.3, want7 * 0.01),
@@ -257,6 +261,8 @@ check(
     await page.evaluate((w) => {
         window.__auraShot.showWidgets([w], { editMode: true });
         window.__auraShot.setEditMode(true);
+        // The edit dialog opens with every section folded; the fields below are inside them.
+        window.__auraShot.unfoldSections();
     }, cfg);
     await page.waitForTimeout(1500);
     const opts = () => page.evaluate((id) => window.__auraShot.widgetOptions(id), cfg.id);

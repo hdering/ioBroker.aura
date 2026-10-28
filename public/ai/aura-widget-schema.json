@@ -9216,6 +9216,16 @@
           },
           "description": "Zusätzliche Werte, die über dem Bild eingeblendet werden."
         },
+        "interactionMode": {
+          "type": "string",
+          "enum": [
+            "action",
+            "content",
+            "contentOnly"
+          ],
+          "default": "content",
+          "description": "Nur bei Stream-Adressen, die als iframe laufen (.html, z. B. go2rtc webrtc.html): \"action\" legt eine Sperrschicht über den Stream, die ganze Fläche löst die Klick-Aktion aus; \"content\" (Standard) lässt die Player-Seite bedienbar. \"contentOnly\" ist veraltet — nicht setzen."
+        },
         "reachColor": {
           "type": "string",
           "description": "Farbe des Erreichbarkeits-Badges bei „nicht erreichbar“. Leer = var(--badge-crit) (rot).",

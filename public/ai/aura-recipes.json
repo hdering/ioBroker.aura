@@ -1297,7 +1297,7 @@
           "id": "w-geraet-verlauf-chart",
           "type": "echart",
           "title": "Verlauf Bad",
-          "datapoint": "",
+          "datapoint": "%dp.isttemperatur%",
           "gridPos": {
             "x": 0,
             "y": 5,
@@ -1313,6 +1313,7 @@
                 "name": "Ist",
                 "datapointId": "%dp.isttemperatur%",
                 "chartType": "line",
+                "color": "var(--accent)",
                 "historyInstance": "history.0",
                 "yAxisIndex": 0
               }
