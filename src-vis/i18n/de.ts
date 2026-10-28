@@ -2273,6 +2273,7 @@ export const de = {
     'echart.noData': 'Keine Daten',
     'echart.noDataJsonLabels': 'Beschriftungen sind keine Zeitstempel — Modus „Kategorien (JSON)“ nutzen',
     'echart.preview': 'Vorschau',
+    'echart.historyError': 'Verlauf nicht lesbar',
     'echart.historyInstance': 'Verlaufs-Instanz',
 
     // ── Device Wizard ─────────────────────────────────────────────────────────────

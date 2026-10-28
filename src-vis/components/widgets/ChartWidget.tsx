@@ -33,6 +33,7 @@ import { applyValueTransform } from '../../utils/valueTransform';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { useChartNav } from '../../hooks/useChartNav';
 import { ChartNavBar } from './ChartNavBar';
+import { HistoryErrorNote } from './HistoryErrorNote';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -238,19 +239,26 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     // hidden, recharts computes the tick positions either way.
     const gridLines = showGridLines ? <CartesianGrid horizontal vertical={false} stroke="var(--app-border)" /> : null;
 
-    const noData = (
-        <div
-            className="flex flex-col items-center justify-center h-full gap-2"
-            style={{ color: 'var(--text-secondary)' }}
-        >
-            {loading ? (
-                <Loader size={20} strokeWidth={1.5} className="animate-spin" />
-            ) : (
-                <BarChart2 size={24} strokeWidth={1} />
-            )}
-            <span className="text-xs">{loading ? 'Lade Verlauf…' : 'Warte auf Daten…'}</span>
-        </div>
-    );
+    // A failed history query replaces the placeholder, or marks a curve that is no longer current.
+    const historyError = isPreview ? null : raw.error;
+    const errorBadge =
+        historyError && history.length > 1 ? <HistoryErrorNote message={historyError} variant="badge" /> : null;
+    const noData =
+        historyError && !loading ? (
+            <HistoryErrorNote message={historyError} variant="block" />
+        ) : (
+            <div
+                className="flex flex-col items-center justify-center h-full gap-2"
+                style={{ color: 'var(--text-secondary)' }}
+            >
+                {loading ? (
+                    <Loader size={20} strokeWidth={1.5} className="animate-spin" />
+                ) : (
+                    <BarChart2 size={24} strokeWidth={1} />
+                )}
+                <span className="text-xs">{loading ? 'Lade Verlauf…' : 'Warte auf Daten…'}</span>
+            </div>
+        );
 
     // "Vorschau" badge — marks the sample chart shown in the popup editor.
     const previewBadge = isPreview ? (
@@ -374,7 +382,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                         {navBar && <div className="ml-auto">{navBar}</div>}
                     </div>
                 )}
-                <div className="flex-1" style={{ minHeight: 1 }}>
+                <div className="flex-1 relative" style={{ minHeight: 1 }}>
                     {history.length > 1 ? (
                         hasSize ? (
                             <ResponsiveContainer width="100%" height="100%">
@@ -432,6 +440,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                     ) : (
                         noData
                     )}
+                    {errorBadge}
                 </div>
             </div>
         );
@@ -491,7 +500,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                     {navBar && <div className="ml-auto">{navBar}</div>}
                 </div>
             )}
-            <div className="flex-1" style={{ minHeight: 1 }}>
+            <div className="flex-1 relative" style={{ minHeight: 1 }}>
                 {history.length > 1 ? (
                     hasSize ? (
                         <ResponsiveContainer width="100%" height="100%">
@@ -553,6 +562,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 ) : (
                     noData
                 )}
+                {errorBadge}
             </div>
         </div>
     );

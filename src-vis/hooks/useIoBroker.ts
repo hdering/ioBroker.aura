@@ -827,6 +827,19 @@ export interface HistoryEntry {
     q?: number;
 }
 
+/** Readable text of a history adapter's error — it arrives as a string, an Error or a plain object. */
+function historyErrorText(err: unknown): string {
+    if (typeof err === 'string') return err;
+    if (err instanceof Error) return err.message;
+    const message = (err as { message?: unknown } | null)?.message;
+    if (typeof message === 'string') return message;
+    try {
+        return JSON.stringify(err);
+    } catch {
+        return String(err);
+    }
+}
+
 export function getHistoryDirect(
     id: string,
     opts: {
@@ -840,20 +853,36 @@ export function getHistoryDirect(
         returnNewestEntries?: boolean;
         /** Leave out the edge rows the adapter adds before/after the window. */
         removeBorderValues?: boolean;
+        /**
+         * Reject with the adapter's error instead of resolving to no rows — for callers that show
+         * it. Otherwise a failing query (e.g. InfluxDB refusing to average a field that also holds
+         * strings) looks exactly like an empty window.
+         */
+        throwOnError?: boolean;
     },
 ): Promise<HistoryEntry[]> {
+    const failed = (err: unknown): Promise<HistoryEntry[]> => {
+        const message = historyErrorText(err);
+        console.warn(`[aura] getHistory ${id} via ${opts.instance} failed: ${message}`);
+        return opts.throwOnError ? Promise.reject(new Error(message)) : Promise.resolve([]);
+    };
     if (devHistoryGen) {
-        return Promise.resolve(
-            devHistoryGen(id, {
-                start: opts.start,
-                end: opts.end ?? Date.now(),
-                count: opts.count,
-                step: opts.step,
-                aggregate: opts.aggregate,
-                returnNewestEntries: opts.returnNewestEntries,
-                removeBorderValues: opts.removeBorderValues,
-            }),
-        );
+        // The stub may throw to stand in for an adapter error.
+        try {
+            return Promise.resolve(
+                devHistoryGen(id, {
+                    start: opts.start,
+                    end: opts.end ?? Date.now(),
+                    count: opts.count,
+                    step: opts.step,
+                    aggregate: opts.aggregate,
+                    returnNewestEntries: opts.returnNewestEntries,
+                    removeBorderValues: opts.removeBorderValues,
+                }),
+            );
+        } catch (err) {
+            return failed(err);
+        }
     }
     return new Promise((resolve) => {
         getSocket().emit(
@@ -875,7 +904,7 @@ export function getHistoryDirect(
                 ...(opts.returnNewestEntries !== undefined ? { returnNewestEntries: opts.returnNewestEntries } : {}),
                 ...(opts.removeBorderValues !== undefined ? { removeBorderValues: opts.removeBorderValues } : {}),
             },
-            (_err: unknown, result: HistoryEntry[] | undefined) => resolve(result ?? []),
+            (err: unknown, result: HistoryEntry[] | undefined) => resolve(err ? failed(err) : (result ?? [])),
         );
     });
 }

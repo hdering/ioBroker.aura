@@ -320,6 +320,11 @@ export interface SeriesDataResult {
      * (those derive it from their bars). Undefined until the fetch came back.
      */
     period?: number | null;
+    /**
+     * The history adapter's error from the last fetch, e.g. InfluxDB refusing to average a field
+     * that also holds strings. Cleared by the next successful fetch; `data` keeps what was there.
+     */
+    error?: string;
 }
 
 const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
@@ -1457,6 +1462,7 @@ export function useMultiSeriesData(
                                 (s.aggregate ?? (isBool ? 'max' : 'average'))
                               : 'none',
                     count: isDelta ? deltaFetchCount(step as number, rangeMs) : 1000,
+                    throwOnError: true,
                 })
                     .then((entries: HistoryEntry[]) => {
                         if (!mountedRef.current) return;
@@ -1606,7 +1612,7 @@ export function useMultiSeriesData(
                                 .catch(() => finish(null));
                         else finish(null);
                     })
-                    .catch(() => {
+                    .catch((err: unknown) => {
                         if (!mountedRef.current) return;
                         setResultsMap((prev) => {
                             const next = new Map(prev);
@@ -1615,6 +1621,7 @@ export function useMultiSeriesData(
                                 data: existing?.data ?? [],
                                 current: existing?.current ?? null,
                                 loading: false,
+                                error: `${instance}: ${err instanceof Error ? err.message : String(err)}`,
                             });
                             return next;
                         });

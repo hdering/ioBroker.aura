@@ -83,6 +83,8 @@ export function useChartHistory(
     // Start in loading state when a DP is set so the spinner shows on first paint instead of
     // the "Warte auf Daten" placeholder during the initial socket round-trip(s).
     const [loading, setLoading] = useState<boolean>(!!datapointId);
+    // The adapter's error from the last fetch — shown instead of a silently empty chart.
+    const [error, setError] = useState<string | null>(null);
     const [refreshTick, setRefreshTick] = useState(0);
     const mountedRef = useRef(true);
     useEffect(() => {
@@ -156,6 +158,7 @@ export function useChartHistory(
             step,
             aggregate: step ? 'average' : 'none',
             count: 500,
+            throwOnError: true,
         })
             .then((data: HistoryEntry[]) => {
                 if (!mountedRef.current) return;
@@ -172,10 +175,13 @@ export function useChartHistory(
                     points = points.filter((p) => p.t <= end);
                 }
                 setHistory(points);
+                setError(null);
                 setLoading(false);
             })
-            .catch(() => {
-                if (mountedRef.current) setLoading(false);
+            .catch((err: unknown) => {
+                if (!mountedRef.current) return;
+                setError(`${effectiveInstance}: ${err instanceof Error ? err.message : String(err)}`);
+                setLoading(false);
             });
     }, [datapointId, effectiveInstance, timeRange, customRangeMs, connected, refreshTick, winStart, winEnd]);
 
@@ -208,5 +214,5 @@ export function useChartHistory(
         return unsub;
     }, [datapointId, connected, subscribe, effectiveInstance, timeRange, customRangeMs, winStart, winEnd]);
 
-    return { adapters, history, current, loading };
+    return { adapters, history, current, loading, error };
 }

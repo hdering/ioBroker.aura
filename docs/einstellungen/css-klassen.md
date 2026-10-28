@@ -107,6 +107,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-frame-neutral` | eingebettetes Dokument ohne eigenes Farbschema (HTML-, eCharts- und Kamera-Widget) |
 | `.aura-camera-talk` | Gegensprech-Button der Kamera; `[data-talk="active"]` während eines Gesprächs |
 | `.aura-chart-period` | Zeile der Zeitraum-Kennzahlen im [Diagramm (erweitert)](../widgets/diagramm-erweitert#zeitraum-kennzahl) |
+| `.aura-history-error` | Fehlerhinweis im Diagramm, wenn der Verlaufs-Adapter eine Abfrage ablehnt (ganze Fläche oder Ecke) |
 
 ```css
 .aura-widget-title {

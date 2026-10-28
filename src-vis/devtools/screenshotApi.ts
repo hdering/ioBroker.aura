@@ -390,13 +390,18 @@ function installScreenshotApi(): void {
          *  by default so the existing mocks keep serving exactly what they list (#685). */
         mockHistory(
             byId: Record<string, [number, HistoryEntry['val']][]> | false,
-            opts: { borderValues?: boolean; ignoreNewest?: boolean } = {},
+            opts: { borderValues?: boolean; ignoreNewest?: boolean; failAggregated?: string } = {},
         ): void {
             if (byId === false) {
                 __devSetHistoryGen(null);
                 return;
             }
             __devSetHistoryGen((id, o) => {
+                // `failAggregated` plays an adapter that serves raw rows but refuses every bucketed
+                // query of a listed id with this error — InfluxDB averaging a field that also holds
+                // strings.
+                if (opts.failAggregated && byId[id] && o.step && o.aggregate !== 'none')
+                    throw new Error(opts.failAggregated);
                 const points = byId[id];
                 if (!points) return genHistory(id, o);
                 let raw = points

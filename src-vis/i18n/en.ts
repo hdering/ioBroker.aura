@@ -2253,6 +2253,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.noData': 'No data',
     'echart.noDataJsonLabels': 'Labels are not timestamps — use the “Categories (JSON)” mode',
     'echart.preview': 'Preview',
+    'echart.historyError': 'History query failed',
     'echart.historyInstance': 'History instance',
 
     // ── Device Wizard ─────────────────────────────────────────────────────────────

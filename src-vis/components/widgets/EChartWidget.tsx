@@ -45,6 +45,7 @@ import { transformSign } from '../../utils/valueTransform';
 import { axisIsBoolean, axisIsZeroBased, axisValueLabels, gridLineAxis, parseValueLabels } from '../../utils/chartAxis';
 import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
+import { HistoryErrorNote } from './HistoryErrorNote';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
 import { useChartNav } from '../../hooks/useChartNav';
@@ -601,6 +602,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         const r = seriesDataMap.get(s.id);
         return (r?.data.length ?? 0) > 0 || (r?.points?.length ?? 0) > 0;
     });
+    // The first history adapter error among the series; with every series failing and nothing
+    // left to draw it replaces the chart, otherwise it sits in the corner.
+    const historyError = echartSeries.map((s) => seriesDataMap.get(s.id)?.error).find((e) => !!e);
+    const allFailed = !!historyError && !hasAnyData && echartSeries.every((s) => !!seriesDataMap.get(s.id)?.error);
 
     // In the popup editor the series datapoints are {{placeholders}} that can't resolve,
     // so there is no real data. Render representative sample curves instead of "Keine Daten".
@@ -671,6 +676,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         // A delta series has no "constant since the last log" reading to draw flat — an empty
         // window simply means nothing was consumed, and no bars is the honest picture.
         if (echartSeries[idx]?.aggregate === 'delta') return data;
+        // A failed query is no empty window — a flat line would pass the error off as data.
+        if (r?.error) return data;
         if (data.length === 0 && r && !r.loading && (dayWindow !== null || !!effectiveSeries[idx]?.historyInstance)) {
             return flatLineData(r.current);
         }
@@ -751,7 +758,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         !jsonLabelsNoTime &&
         (isPreview ||
             hasAnyData ||
-            (echartSeries.length > 0 && !allLoading && !allDelta && (dayWindow !== null || hasHistory)));
+            (echartSeries.length > 0 && !allLoading && !allDelta && !allFailed && (dayWindow !== null || hasHistory)));
     const effLoading = !isPreview && allLoading;
 
     // ── Shared y axes and current-value block (used by the timeseries and JSON branches) ──
@@ -1719,17 +1726,21 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         <Loader size={20} className="animate-spin" />
                     </div>
                 )}
-                {!effLoading && (echartSeries.length === 0 || !effHasData) && (
-                    <div
-                        className="absolute inset-0 flex flex-col items-center justify-center gap-2"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        <BarChart2 size={28} strokeWidth={1.5} />
-                        <span className="text-xs text-center px-2">
-                            {jsonLabelsNoTime ? t('echart.noDataJsonLabels') : t('echart.noData')}
-                        </span>
-                    </div>
-                )}
+                {!effLoading &&
+                    (echartSeries.length === 0 || !effHasData) &&
+                    (historyError && !isPreview ? (
+                        <HistoryErrorNote message={historyError} variant="block" />
+                    ) : (
+                        <div
+                            className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <BarChart2 size={28} strokeWidth={1.5} />
+                            <span className="text-xs text-center px-2">
+                                {jsonLabelsNoTime ? t('echart.noDataJsonLabels') : t('echart.noData')}
+                            </span>
+                        </div>
+                    ))}
                 {hasSize && effHasData && (
                     <ReactECharts
                         ref={chartRef}
@@ -1737,6 +1748,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         style={{ width: '100%', height: '100%' }}
                         opts={{ renderer: 'canvas' }}
                     />
+                )}
+                {effHasData && historyError && !isPreview && (
+                    <HistoryErrorNote message={historyError} variant="badge" />
                 )}
             </div>
         </div>
