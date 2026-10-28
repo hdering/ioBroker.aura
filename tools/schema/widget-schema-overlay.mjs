@@ -1974,7 +1974,9 @@ const FILL_TAB_OPTION = {
             'Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). ' +
             'Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst. ' +
             'In einer Popup-View (einziges Widget der View) füllt es das Popup: bei popupFullscreen den ' +
-            'Bildschirm, bei popupWidth/popupHeight diese Größe, sonst bleibt die entworfene Größe.',
+            'Bildschirm, bei popupWidth/popupHeight diese Größe, sonst bleibt die entworfene Größe. ' +
+            'Bei popupFullscreen füllt ein einzelnes Widget ohne Inhaltshöhe (iFrame, Kamera, Diagramm, Bild …) ' +
+            'den Bildschirm auch ohne fillTab (auch per popup-widget); Listen u. ä. behalten ihre Größe.',
     },
 };
 const HTML_INTERACTION_MODE_OPTION = {

@@ -19,9 +19,11 @@ interface Props {
     allWidgets: WidgetConfig[];
     /** Inner padding in px, resolved by WidgetClickPopup (issue #621). */
     padding?: number;
+    /** Fullscreen: the widget fills the whole screen edge to edge — no padding, no card frame. */
+    fill?: boolean;
 }
 
-export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_POPUP_PADDING }: Props) {
+export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_POPUP_PADDING, fill = false }: Props) {
     // By id, not updateWidget: the target may sit on any tab, not the store's active one (#731).
     const updateWidgetById = useDashboardStore((s) => s.updateWidgetById);
     // Grid pitch — read here (before any early return) so the hook order stays stable.
@@ -111,6 +113,37 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
               border: '1px solid var(--app-border)',
           };
 
+    const persist = (next: WidgetConfig) => {
+        // Persist only options — embedConfig overrides gridPos for the
+        // popup layout, so writing the whole config back would clobber
+        // the widget's real dashboard position. restoreDualDeep puts
+        // the light/dark pairs back: the body spreads the RESOLVED
+        // config, so without it the other half would be lost (#689).
+        // The trigger may arrive resolved (device card, #845) — strip that
+        // against the stored widget so no `{{parent}}` gets overwritten.
+        const restored = restoreDualDeep(restoreColorBindings(next, target), target);
+        const stored = allWidgets.find((w) => w.id === target.id);
+        updateWidgetById(target.id, {
+            options: (stored && stored !== target ? stripRenderOverrides(restored, stored, target) : restored).options,
+        });
+    };
+
+    // Fullscreen (WidgetClickPopup only sets this for a widget without a content height):
+    // the widget is the screen — no designed box, padding or card frame around it.
+    if (fill) {
+        return (
+            <div
+                className="w-full h-full overflow-auto"
+                style={{ background: isTransparent ? cardStyle.background : 'var(--widget-bg)' }}
+                data-aura-popup-fill=""
+            >
+                <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
+                    <Widget key={`r${refreshNonce}`} config={embedConfig} editMode={false} onConfigChange={persist} />
+                </Suspense>
+            </div>
+        );
+    }
+
     return (
         <div
             style={{
@@ -126,28 +159,7 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
             }}
         >
             <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                <Widget
-                    key={`r${refreshNonce}`}
-                    config={embedConfig}
-                    editMode={false}
-                    onConfigChange={(next) => {
-                        // Persist only options — embedConfig overrides gridPos for the
-                        // popup layout, so writing the whole config back would clobber
-                        // the widget's real dashboard position. restoreDualDeep puts
-                        // the light/dark pairs back: the body spreads the RESOLVED
-                        // config, so without it the other half would be lost (#689).
-                        // The trigger may arrive resolved (device card, #845) — strip that
-                        // against the stored widget so no `{{parent}}` gets overwritten.
-                        const restored = restoreDualDeep(restoreColorBindings(next, target), target);
-                        const stored = allWidgets.find((w) => w.id === target.id);
-                        updateWidgetById(target.id, {
-                            options: (stored && stored !== target
-                                ? stripRenderOverrides(restored, stored, target)
-                                : restored
-                            ).options,
-                        });
-                    }}
-                />
+                <Widget key={`r${refreshNonce}`} config={embedConfig} editMode={false} onConfigChange={persist} />
             </Suspense>
         </div>
     );

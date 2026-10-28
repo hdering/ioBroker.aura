@@ -133,6 +133,48 @@ check(
 const shared = await open({ popupFullscreen: true }, [image('pw-d', { fillTab: true }), image('pw-e')]);
 check('Zweites Widget: Raster statt Füllen', !!shared && !shared.fill && shared.h < 400, JSON.stringify(shared));
 
+// 5. Fullscreen fills a lone widget without content height even without fillTab.
+const implicit = await open({ popupFullscreen: true }, [image('pw-f')]);
+check(
+    'Vollbild ohne fillTab: Widget ohne Inhaltshöhe füllt randlos',
+    !!implicit && implicit.fill && implicit.x === 0 && near(implicit.w, 1280) && near(implicit.h, 900),
+    JSON.stringify(implicit),
+);
+
+// 6. … but a widget that sizes to its content keeps its designed size.
+const list = await open({ popupFullscreen: true }, [
+    { id: 'pw-l', type: 'list', title: 'Liste', datapoint: '', gridPos: { x: 0, y: 0, w: 4, h: 3 }, options: {} },
+]);
+check('Vollbild: Liste bleibt im Raster', !!list && !list.fill && list.h < 600, JSON.stringify(list));
+
+// 7. Embedded widget (popup-widget) in fullscreen fills the screen without a frame.
+await open({ popupFullscreen: true, clickAction: { kind: 'popup-widget' } }, []);
+const embed = await page.evaluate(() => {
+    const el = document.querySelector('[data-aura-click-popup="popup-widget"] [data-aura-popup-fill]');
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return {
+        x: Math.round(r.left),
+        y: Math.round(r.top),
+        w: Math.round(r.width),
+        h: Math.round(r.height),
+        pad: parseFloat(cs.paddingLeft),
+        border: parseFloat(cs.borderLeftWidth),
+    };
+});
+check(
+    'Vollbild: eingebettetes Widget füllt randlos',
+    !!embed &&
+        embed.x === 0 &&
+        embed.y === 0 &&
+        near(embed.w, 1280) &&
+        near(embed.h, 900) &&
+        embed.pad === 0 &&
+        embed.border === 0,
+    JSON.stringify(embed),
+);
+
 check('keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

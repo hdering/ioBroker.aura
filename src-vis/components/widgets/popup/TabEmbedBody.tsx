@@ -326,11 +326,26 @@ function PopupWidgetCell({
 /**
  * The widget that fills the whole view (`fillTab`, #865) — only when it is the view's
  * single widget, like on a dashboard tab. The popup then stretches its body instead of
- * sizing to the grid.
+ * sizing to the grid. In a fullscreen popup a lone widget without a content height
+ * fills even without `fillTab` (see fillsFullscreenPopup).
  */
-export function popupViewFillWidget(view: { widgets: WidgetConfig[] } | undefined): WidgetConfig | null {
+export function popupViewFillWidget(
+    view: { widgets: WidgetConfig[] } | undefined,
+    fullscreen = false,
+): WidgetConfig | null {
     const only = view?.widgets.length === 1 ? view.widgets[0] : undefined;
-    return only?.options?.fillTab ? only : null;
+    if (!only) return null;
+    return only.options?.fillTab || (fullscreen && fillsFullscreenPopup(only)) ? only : null;
+}
+
+/**
+ * A fullscreen popup stretches a lone widget that has no content height of its own
+ * (iframe, camera, map, chart …) over the whole screen — at its designed size it would
+ * float as a small card in an otherwise empty screen. Widgets that size to their
+ * content (lists, device controls) keep their designed size.
+ */
+export function fillsFullscreenPopup(w: WidgetConfig): boolean {
+    return !supportsAutoHeight(w.type, w.layout);
 }
 
 interface Props {
@@ -451,7 +466,8 @@ export function TabEmbedBody({
     // Fill tab (#865): the single widget takes the whole body instead of a grid slot.
     // Its designed size stays the floor, so a dialog without a size of its own does
     // not collapse around a widget that has no content height (iframe, slideshow).
-    const fillOrig = popupViewFillWidget(view);
+    // edgeToEdge is only set when the view fills, so it doubles as the fullscreen flag.
+    const fillOrig = popupViewFillWidget(view, edgeToEdge);
     if (fillOrig) {
         const w = widgets[0];
         const rows = w.gridPos.h ?? 3;

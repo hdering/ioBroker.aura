@@ -26,7 +26,7 @@ import { JsonPopupBody } from './JsonPopupBody';
 import { HtmlPopupBody } from './HtmlPopupBody';
 import { WidgetEmbedBody } from './WidgetEmbedBody';
 import { DeviceDpsBody } from './DeviceDpsBody';
-import { TabEmbedBody, popupViewFillWidget } from './TabEmbedBody';
+import { TabEmbedBody, fillsFullscreenPopup, popupViewFillWidget } from './TabEmbedBody';
 import { PopupCountdown } from './PopupCountdown';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../common/BackgroundImageLayer';
 import { activeBgImage } from '../../../utils/backgroundImage';
@@ -271,10 +271,18 @@ function PopupDialog({ onClose, ...initial }: Props) {
     const fullscreen = !!widget.options?.popupFullscreen;
     // A web page has no size of its own, so in fullscreen it has to be stretched.
     // A popup view whose single widget fills the tab (#865) stretches the same way —
-    // also to a set width/height, which then becomes the dialog's size.
-    const viewFills = !!popupViewFillWidget(view);
+    // also to a set width/height, which then becomes the dialog's size. In fullscreen a
+    // lone widget without a content height (iframe, camera, chart …) fills as well, and
+    // so does such a widget embedded directly — the whole screen is clearly the widget.
+    const viewFills = !!popupViewFillWidget(view, fullscreen);
     const sizedView = viewFills && !fullscreen && !!(customWidth || customHeight);
-    const fillBody = (fullscreen && (isIframe || viewFills)) || sizedView;
+    const embedFills =
+        fullscreen &&
+        action.kind === 'popup-widget' &&
+        fillsFullscreenPopup(
+            (action.widgetId ? allWidgets.find((w) => w.id === action.widgetId) : undefined) ?? widget,
+        );
+    const fillBody = (fullscreen && (isIframe || viewFills || embedFills)) || sizedView;
     // Without a configured width the dialog sizes to its body: popup views and embedded
     // widgets report their designed grid width, the device/media bodies their own fixed
     // width. Only free-flowing HTML keeps a reading cap — its paragraphs would otherwise
@@ -319,7 +327,15 @@ function PopupDialog({ onClose, ...initial }: Props) {
             case 'popup-html':
                 return <HtmlPopupBody action={action} vars={subMap} />;
             case 'popup-widget':
-                return <WidgetEmbedBody widget={widget} action={action} allWidgets={allWidgets} padding={padding} />;
+                return (
+                    <WidgetEmbedBody
+                        widget={widget}
+                        action={action}
+                        allWidgets={allWidgets}
+                        padding={padding}
+                        fill={embedFills}
+                    />
+                );
             case 'popup-dps':
                 return <DeviceDpsBody widget={widget} action={action} padding={padding} />;
             case 'popup-view':
