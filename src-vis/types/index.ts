@@ -22,6 +22,10 @@ export interface WidgetConfig {
     mobileWide?: boolean; // true = volle Breite über alle Mobile-Spalten (eigenes Band); fehlt sie, entscheidet die Desktop-Breite
     tabletBandCols?: number; // 1–4: beginnt hier einen neuen Spaltenblock im Tablet-Fluss mit eigener Spaltenzahl; fehlt sie, gilt tabletCols
     mobileBandCols?: number; // 1–4: beginnt hier einen neuen Spaltenblock in der mehrspaltigen Mobilansicht mit eigener Spaltenzahl; fehlt sie, gilt mobileCols
+    /** Spaltenanteile des Blocks, den dieses Widget mit tabletBandCols beginnt (z. B. [2, 1] = linke Spalte doppelt so breit); je 1–3, Länge = Spaltenzahl; fehlt sie, sind alle Spalten gleich breit */
+    tabletBandWidths?: number[];
+    /** Spaltenanteile des Blocks, den dieses Widget mit mobileBandCols beginnt (z. B. [2, 1]); je 1–3, Länge = Spaltenzahl; fehlt sie, sind alle Spalten gleich breit */
+    mobileBandWidths?: number[];
 }
 
 /**

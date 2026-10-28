@@ -287,6 +287,32 @@ check(
     (await tablet.locator('[data-aura-order-block="1"] [data-aura-order-card]').count()) === 1,
     'mittlerer Block haelt ein Widget',
 );
+
+// ── Spaltenanteile je Block (Kommentar in #851) ─────────────────────────────
+const widthsSel = (bi) => tablet.locator(`[data-aura-order-block="${bi}"] [data-aura-order-block-widths]`);
+const colWidth = (bi, ci) =>
+    tablet
+        .locator(`[data-aura-order-block="${bi}"] [data-aura-order-col="${ci}"]`)
+        .evaluate((e) => e.getBoundingClientRect().width);
+const storedWidths = (id) => page.evaluate((i) => window.__auraShot.widgetConfig(i)?.tabletBandWidths ?? null, id);
+check((await widthsSel(0).count()) === 1, 'Block mit 2 Spalten zeigt die Breiten-Auswahl');
+const owner = await topCard(0, 0);
+await widthsSel(0).selectOption({ label: '2:1' });
+await settle();
+check(
+    (await colWidth(0, 0)) > (await colWidth(0, 1)) * 1.6,
+    'Breiten 2:1: linke Spalte im Panel doppelt so breit',
+    `${await colWidth(0, 0)} / ${await colWidth(0, 1)}`,
+);
+check(
+    JSON.stringify(await storedWidths(owner)) === '[2,1]',
+    'erstes Widget traegt tabletBandWidths [2,1]',
+    JSON.stringify(await storedWidths(owner)),
+);
+check((await blockCols()) === '2,2,3', 'Breiten aendern die Bloecke nicht', await blockCols());
+await widthsSel(0).selectOption({ label: '1:1' });
+await settle();
+check((await storedWidths(owner)) === null, '1:1 entfernt tabletBandWidths', JSON.stringify(await storedWidths(owner)));
 await tabletBtn.click();
 
 check(pageErrors.length === 0, 'keine Seitenfehler', pageErrors.join(' | '));

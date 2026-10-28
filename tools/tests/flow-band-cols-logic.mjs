@@ -25,7 +25,9 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { flowBands, linearizeBands, redealBlock } = await import(pathToFileURL(bundle).href);
+const { flowBands, linearizeBands, redealBlock, flowGridTemplate, bandWidthPresets } = await import(
+    pathToFileURL(bundle).href
+);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -131,6 +133,74 @@ eq(
     linearizeBands([{ kind: 'columns', columns: [[{ id: 'a' }], [{ id: 'b' }]] }]).map((e) => e.bandCols),
     [null, null],
 );
+
+// ── Spaltenanteile je Block (2:1, Kommentar in #851) ────────────────────────
+const split = flowBands(mk({ 4: { mobileBandCols: 2, mobileBandWidths: [2, 1] } }), 'mobile', 4);
+eq('mobileBandWidths landet am Block', split.at(-1).widths, [2, 1]);
+eq('Block ohne Anteile hat keine widths', split[0].widths, undefined);
+eq(
+    'falsche Laenge wird ignoriert',
+    flowBands(mk({ 4: { mobileBandCols: 3, mobileBandWidths: [2, 1] } }), 'mobile', 4).at(-1).widths,
+    undefined,
+);
+eq(
+    'alle gleich = keine Anteile',
+    flowBands(mk({ 4: { mobileBandCols: 2, mobileBandWidths: [2, 2] } }), 'mobile', 4).at(-1).widths,
+    undefined,
+);
+eq(
+    'Anteile werden auf 1..3 gekappt',
+    flowBands(mk({ 4: { mobileBandCols: 2, mobileBandWidths: [9, 0] } }), 'mobile', 4).at(-1).widths,
+    [3, 1],
+);
+eq(
+    'Anteile ohne bandCols wirken nicht',
+    flowBands(mk({ 4: { mobileBandWidths: [2, 1, 1, 1] } }), 'mobile', 4).length,
+    1,
+);
+eq(
+    'Tablet liest tabletBandWidths',
+    flowBands(mk({ 4: { tabletBandCols: 3, tabletBandWidths: [1, 2, 1] } }), 'tablet', 4).at(-1).widths,
+    [1, 2, 1],
+);
+const linSplit = linearizeBands(
+    [
+        { kind: 'columns', columns: [[{ id: 'a' }], [{ id: 'b' }], [{ id: 'c' }], [{ id: 'd' }]] },
+        { kind: 'columns', columns: [[{ id: 'e' }], [{ id: 'f' }]], widths: [2, 1] },
+    ],
+    4,
+);
+eq(
+    'linearize: bandWidths nur am ersten Widget, Block wird markiert',
+    linSplit.map((e) => [e.bandCols, e.bandWidths]),
+    [
+        [null, null],
+        [null, null],
+        [null, null],
+        [null, null],
+        [2, [2, 1]],
+        [null, null],
+    ],
+);
+eq(
+    'Anteile allein markieren den Block auch bei eingestellter Spaltenzahl',
+    linearizeBands([{ kind: 'columns', columns: [[{ id: 'a' }], [{ id: 'b' }]], widths: [1, 2] }], 2).map(
+        (e) => e.bandCols,
+    ),
+    [2, null],
+);
+eq('flowGridTemplate gleich', flowGridTemplate(3), 'repeat(3, minmax(0, 1fr))');
+eq('flowGridTemplate 2:1', flowGridTemplate(2, [2, 1]), 'minmax(0, 2fr) minmax(0, 1fr)');
+eq('flowGridTemplate falsche Laenge', flowGridTemplate(3, [2, 1]), 'repeat(3, minmax(0, 1fr))');
+eq('Vorlagen fuer 2 Spalten', bandWidthPresets(2), [
+    [1, 1],
+    [2, 1],
+    [1, 2],
+    [3, 1],
+    [1, 3],
+]);
+eq('Vorlagen fuer 3 Spalten', bandWidthPresets(3).length, 4);
+eq('Vorlagen fuer 1 Spalte', bandWidthPresets(1), []);
 
 // ── Neu verteilen: Reihe fuer Reihe ─────────────────────────────────────────
 eq(

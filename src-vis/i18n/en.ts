@@ -1093,6 +1093,8 @@ export const en: Record<TranslationKey, string> = {
     'editor.tablet.up': 'Move up',
     'editor.tablet.down': 'Move down',
     'editor.tablet.blockCols': 'Columns in this block',
+    'editor.tablet.blockWidths': 'Widths',
+    'editor.tablet.blockWidthsHint': 'Column shares, e.g. 2:1 = two thirds left, one third right',
     'editor.tablet.merge': 'Join with the block above',
     'editor.tablet.addBlock': 'Block',
     'editor.tablet.addBlockHint': 'Insert a new block with its own column count here',

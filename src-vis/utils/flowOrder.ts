@@ -42,11 +42,26 @@ export const flowOrderField = (mode: FlowMode): 'mobileOrder' | 'tabletOrder' =>
  *  tablet's third column does not drag the phone layout along. */
 export const flowFields = (mode: FlowMode) =>
     mode === 'tablet'
-        ? ({ order: 'tabletOrder', col: 'tabletCol', wide: 'tabletWide', band: 'tabletBandCols' } as const)
-        : ({ order: 'mobileOrder', col: 'mobileCol', wide: 'mobileWide', band: 'mobileBandCols' } as const);
+        ? ({
+              order: 'tabletOrder',
+              col: 'tabletCol',
+              wide: 'tabletWide',
+              band: 'tabletBandCols',
+              widths: 'tabletBandWidths',
+          } as const)
+        : ({
+              order: 'mobileOrder',
+              col: 'mobileCol',
+              wide: 'mobileWide',
+              band: 'mobileBandCols',
+              widths: 'mobileBandWidths',
+          } as const);
 
 /** Most columns a column block can have, its own count included (#851). */
 export const MAX_FLOW_COLS = 4;
+
+/** Widest share one column of a block can get: 3 = three times a plain column (#851). */
+export const MAX_FLOW_COL_WEIGHT = 3;
 
 /** Columns the tab's widgets actually use on the desktop grid — the width a widget's
  *  share is measured against. Floor 2 so a lone widget never divides by one column. */
@@ -118,20 +133,55 @@ export type FlowWidget = Pick<
     | 'tabletCol'
     | 'tabletWide'
     | 'tabletBandCols'
+    | 'tabletBandWidths'
     | 'mobileCol'
     | 'mobileWide'
     | 'mobileBandCols'
+    | 'mobileBandWidths'
 >;
 
 /** `start`: the block was begun on purpose (its first widget carries the band field),
- *  so it stays its own block even directly below another one. */
-export type FlowBand<W> = { kind: 'full'; widget: W } | { kind: 'columns'; columns: W[][]; start?: boolean };
+ *  so it stays its own block even directly below another one. `widths`: the columns'
+ *  shares (2:1 = the left column twice as wide), one per column; absent = all equal. */
+export type FlowBand<W> =
+    | { kind: 'full'; widget: W }
+    | { kind: 'columns'; columns: W[][]; start?: boolean; widths?: number[] };
 
 /** A block's own column count as stored, clamped to [1, MAX_FLOW_COLS]; null when none is set. */
 export function bandColsOf(w: FlowWidget, mode: FlowMode): number | null {
     const v = w[flowFields(mode).band];
     if (typeof v !== 'number' || !Number.isFinite(v)) return null;
     return Math.min(MAX_FLOW_COLS, Math.max(1, Math.round(v)));
+}
+
+/** Column shares as stored for an n-column block, each clamped to [1, MAX_FLOW_COL_WEIGHT];
+ *  null when none is set, the length does not match or all are equal (= plain columns). */
+export function bandWidthsOf(w: FlowWidget, mode: FlowMode, n: number): number[] | null {
+    return cleanWidths(w[flowFields(mode).widths], n);
+}
+
+function cleanWidths(v: unknown, n: number): number[] | null {
+    if (!Array.isArray(v) || v.length !== n || n < 2) return null;
+    const out = v.map((x) =>
+        typeof x === 'number' && Number.isFinite(x) ? Math.min(MAX_FLOW_COL_WEIGHT, Math.max(1, Math.round(x))) : 1,
+    );
+    return out.every((x) => x === out[0]) ? null : out;
+}
+
+/** CSS grid columns of a block: equal columns, or the stored shares as fr units. */
+export function flowGridTemplate(n: number, widths?: readonly number[] | null): string {
+    const w = cleanWidths(widths, n);
+    return w ? w.map((x) => `minmax(0, ${x}fr)`).join(' ') : `repeat(${n}, minmax(0, 1fr))`;
+}
+
+/** The splits the order panel offers for an n-column block: all equal first, then one
+ *  column twice as wide in every position, for two columns also 3:1 / 1:3. */
+export function bandWidthPresets(n: number): number[][] {
+    if (n < 2) return [];
+    const out: number[][] = [Array.from({ length: n }, () => 1)];
+    for (let i = 0; i < n; i++) out.push(Array.from({ length: n }, (_, j) => (j === i ? 2 : 1)));
+    if (n === 2) out.push([3, 1], [1, 3]);
+    return out;
 }
 
 /** Does a widget take the whole flow width? An explicit `tabletWide` / `mobileWide` wins;
@@ -156,7 +206,8 @@ export function emptiestColumn(columns: readonly (readonly unknown[])[]): number
  * every other one goes into the current block, into its pinned `tabletCol` /
  * `mobileCol` (clamped to the column count, so dropping from 3 to 2 columns folds
  * the third into the last) or, unpinned, into the emptiest column. A widget with
- * `tabletBandCols` / `mobileBandCols` starts a new block with its own column count;
+ * `tabletBandCols` / `mobileBandCols` starts a new block with its own column count
+ * (and, with `tabletBandWidths` / `mobileBandWidths`, its own column shares);
  * every other block has the configured `cols`.
  */
 export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: FlowMode, cols: number): FlowBand<W>[] {
@@ -177,8 +228,13 @@ export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: Flo
         const own = bandColsOf(w, mode);
         if (!block || own !== null) {
             block = Array.from({ length: own ?? cols }, () => [] as W[]);
+            const widths = own !== null ? bandWidthsOf(w, mode, own) : null;
             bands.push(
-                own !== null ? { kind: 'columns', columns: block, start: true } : { kind: 'columns', columns: block },
+                own === null
+                    ? { kind: 'columns', columns: block }
+                    : widths
+                      ? { kind: 'columns', columns: block, start: true, widths }
+                      : { kind: 'columns', columns: block, start: true },
             );
         }
         const pin = w[colField];
@@ -196,20 +252,28 @@ export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: Flo
  * rebuilds exactly the structure the user arranged — and a widget added later
  * (no pin) lands in the emptiest column of the block its order falls into.
  * `bandCols` is set on the first widget of a block that was started on purpose or
- * whose column count differs from the configured `cols`, null everywhere else.
+ * whose column count differs from the configured `cols`, null everywhere else; the
+ * same widget carries `bandWidths` when the block's columns are not all equal.
  */
-export function linearizeBands<W extends FlowWidget>(
-    bands: readonly FlowBand<W>[],
-    cols = 0,
-): { widget: W; order: number; col: number | null; wide: boolean; bandCols: number | null }[] {
-    const out: { widget: W; order: number; col: number | null; wide: boolean; bandCols: number | null }[] = [];
+export type LinearEntry<W> = {
+    widget: W;
+    order: number;
+    col: number | null;
+    wide: boolean;
+    bandCols: number | null;
+    bandWidths: number[] | null;
+};
+
+export function linearizeBands<W extends FlowWidget>(bands: readonly FlowBand<W>[], cols = 0): LinearEntry<W>[] {
+    const out: LinearEntry<W>[] = [];
     let order = 0;
     for (const band of bands) {
         if (band.kind === 'full') {
-            out.push({ widget: band.widget, order: order++, col: null, wide: true, bandCols: null });
+            out.push({ widget: band.widget, order: order++, col: null, wide: true, bandCols: null, bandWidths: null });
             continue;
         }
-        const marks = !!band.start || (cols > 0 && band.columns.length !== cols);
+        const widths = cleanWidths(band.widths, band.columns.length);
+        const marks = !!band.start || !!widths || (cols > 0 && band.columns.length !== cols);
         const rows = Math.max(0, ...band.columns.map((c) => c.length));
         let first = true;
         for (let r = 0; r < rows; r++) {
@@ -217,7 +281,8 @@ export function linearizeBands<W extends FlowWidget>(
                 const w = band.columns[c][r];
                 if (!w) continue;
                 const bandCols = first && marks ? band.columns.length : null;
-                out.push({ widget: w, order: order++, col: c, wide: false, bandCols });
+                const bandWidths = first ? widths : null;
+                out.push({ widget: w, order: order++, col: c, wide: false, bandCols, bandWidths });
                 first = false;
             }
         }

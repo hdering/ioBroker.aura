@@ -917,6 +917,14 @@ async function build() {
                     '(z. B. 4 Spalten oben, darunter ein Block mit 2). Gilt bis zum nächsten Band oder Block. ' +
                     'Fehlt sie, gilt mobileCols. Nur bei mobileCols > 1 wirksam.',
             },
+            mobileBandWidths: {
+                type: 'array',
+                items: { type: 'number' },
+                description:
+                    'Spaltenanteile des Blocks, den dieses Widget mit mobileBandCols beginnt, eine Zahl 1–3 je Spalte ' +
+                    '(z. B. [2, 1] = links zwei Drittel, rechts ein Drittel). Länge muss mobileBandCols entsprechen, ' +
+                    'sonst gleich breite Spalten. Fehlt sie, sind alle Spalten gleich breit.',
+            },
             tabletOrder: {
                 type: 'number',
                 description:
@@ -940,6 +948,14 @@ async function build() {
                 description:
                     '1–4: dieses Widget beginnt einen neuen Spaltenblock im Tablet-Fluss mit eigener Spaltenzahl. ' +
                     'Gilt bis zum nächsten Band oder Block; tabletCol wird auf diese Zahl gekappt. Fehlt sie, gilt tabletCols.',
+            },
+            tabletBandWidths: {
+                type: 'array',
+                items: { type: 'number' },
+                description:
+                    'Spaltenanteile des Blocks, den dieses Widget mit tabletBandCols beginnt, eine Zahl 1–3 je Spalte ' +
+                    '(z. B. [2, 1] = links zwei Drittel, rechts ein Drittel; [1, 2, 1] = Mitte doppelt). Länge muss ' +
+                    'tabletBandCols entsprechen, sonst gleich breite Spalten. Fehlt sie, sind alle Spalten gleich breit.',
             },
         },
         groups: reg.WIDGET_GROUPS,

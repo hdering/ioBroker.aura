@@ -345,6 +345,38 @@ const approx = (a, b, tol = 2) => Math.abs(a - b) <= tol;
     await ctx.close();
 }
 
+// ── Spaltenanteile je Block (#851): tabletBandWidths 2:1 ──────────────────────────────
+{
+    const { ctx, page, pageErrors } = await open(900);
+    await show(page, {
+        settings: { tabletBreakpoint: 1024, tabletCols: 3 },
+        orders: {
+            A: { tabletOrder: 0, tabletWide: false, tabletBandCols: 2, tabletBandWidths: [2, 1], tabletCol: 0 },
+            B: { tabletOrder: 1, tabletCol: 1 },
+            C: { tabletOrder: 2, tabletWide: false, tabletBandCols: 3 },
+            D: { tabletOrder: 3 },
+            E: { tabletOrder: 4 },
+        },
+    });
+    const g = await geometry(page);
+    check(
+        'Anteile 2:1: A zwei Drittel, B ein Drittel nebeneinander',
+        sameRow(g.boxes.A, g.boxes.B) &&
+            g.boxes.A.width > g.boxes.B.width * 1.8 &&
+            g.boxes.A.width < g.boxes.B.width * 2.3 &&
+            g.boxes.A.left < g.boxes.B.left,
+        `A ${g.boxes.A.width} B ${g.boxes.B.width} von ${g.flowWidth}`,
+    );
+    check(
+        'Anteile 2:1: der Block darunter hat gleich breite Spalten',
+        approx(g.boxes.C.width, g.boxes.D.width) && approx(g.boxes.D.width, g.boxes.E.width),
+        `C ${g.boxes.C.width} D ${g.boxes.D.width} E ${g.boxes.E.width}`,
+    );
+    check('Anteile 2:1: kein Ueberlauf', g.overflowX !== null && g.overflowX <= 0, `${g.overflowX}px`);
+    check('Anteile 2:1: keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
+    await ctx.close();
+}
+
 // ── Handy bleibt einspaltig, Desktop bleibt Raster ─────────────────────────────────────
 {
     const { ctx, page } = await open(500);

@@ -39,7 +39,7 @@ import { isGroupType } from '../../utils/groupTypes';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
 import { TabChainProvider } from '../../contexts/TabChainContext';
 import { mirrorTargetWidgetId } from '../../utils/mirrorSource';
-import { flowBands, flowModeFor } from '../../utils/flowOrder';
+import { flowBands, flowGridTemplate, flowModeFor } from '../../utils/flowOrder';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
@@ -874,8 +874,12 @@ export function Dashboard({
                                                                                 }
                                                                                 style={{
                                                                                     display: 'grid',
-                                                                                    // A block may have its own column count (#851).
-                                                                                    gridTemplateColumns: `repeat(${band.columns.length}, minmax(0, 1fr))`,
+                                                                                    // A block may have its own column count and shares (#851).
+                                                                                    gridTemplateColumns:
+                                                                                        flowGridTemplate(
+                                                                                            band.columns.length,
+                                                                                            band.widths,
+                                                                                        ),
                                                                                     gap: MARGIN,
                                                                                     alignItems: 'start',
                                                                                 }}

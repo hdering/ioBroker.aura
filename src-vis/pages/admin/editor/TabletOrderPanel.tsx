@@ -16,9 +16,11 @@ import { useDashboardStore } from '../../../store/dashboardStore';
 import { useT } from '../../../i18n';
 import type { WidgetConfig } from '../../../types';
 import {
+    bandWidthPresets,
     emptiestColumn,
     flowBands,
     flowFields,
+    flowGridTemplate,
     isWideInFlow,
     linearizeBands,
     MAX_FLOW_COLS,
@@ -34,7 +36,14 @@ type Slot = { bi: number; ci: number; idx: number };
 const NO_WIDGETS: WidgetConfig[] = [];
 
 const clone = (bands: Band[]): Band[] =>
-    bands.map((b) => (b.kind === 'full' ? { ...b } : { ...b, columns: b.columns.map((c) => [...c]) }));
+    bands.map((b) =>
+        b.kind === 'full'
+            ? { ...b }
+            : { ...b, columns: b.columns.map((c) => [...c]), ...(b.widths ? { widths: [...b.widths] } : {}) },
+    );
+
+const sameWidths = (a: readonly number[] | undefined, b: readonly number[]) =>
+    a ? a.length === b.length && a.every((x, i) => x === b[i]) : b.every((x) => x === b[0]);
 
 const emptyBlock = (cols: number): ColumnsBand => ({
     kind: 'columns',
@@ -180,10 +189,12 @@ export function TabletOrderPanel({
         if (!tab) return;
         setPending(null);
         const tabExtent = tabExtentOf(widgets);
-        for (const { widget: w, order, col, wide, bandCols } of linearizeBands(normalize(next), cols)) {
+        for (const { widget: w, order, col, wide, bandCols, bandWidths } of linearizeBands(normalize(next), cols)) {
             const patch: Partial<WidgetConfig> = {};
             if (w[fields.order] !== order) patch[fields.order] = order;
             if (w[fields.band] !== (bandCols ?? undefined)) patch[fields.band] = bandCols ?? undefined;
+            if (JSON.stringify(w[fields.widths] ?? null) !== JSON.stringify(bandWidths))
+                patch[fields.widths] = bandWidths ?? undefined;
             if (wide) {
                 if (w[fields.wide] !== true) patch[fields.wide] = true;
             } else {
@@ -273,6 +284,15 @@ export function TabletOrderPanel({
             return;
         }
         next[bi] = { kind: 'columns', columns: redealBlock(b.columns, n), start: true };
+        commit(next);
+    };
+
+    /** A block's column shares (#851): 2:1 makes the left column twice as wide. The cards stay put. */
+    const setBlockWidths = (bi: number, widths: number[]) => {
+        const next = clone(bands);
+        const b = next[bi];
+        if (!b || b.kind !== 'columns' || b.columns.length !== widths.length) return;
+        next[bi] = { ...b, start: true, widths };
         commit(next);
     };
 
@@ -528,6 +548,42 @@ export function TabletOrderPanel({
                                             </button>
                                         )}
                                     </div>
+                                    {band.columns.length > 1 && band.columns.some((c) => c.length) && (
+                                        <label className="flex items-center gap-1 mb-1">
+                                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {t('editor.tablet.blockWidths')}
+                                            </span>
+                                            <select
+                                                data-aura-order-block-widths=""
+                                                className="text-[10px] rounded px-1 py-0.5"
+                                                style={{
+                                                    background: 'var(--app-surface)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--app-border)',
+                                                }}
+                                                title={t('editor.tablet.blockWidthsHint')}
+                                                value={bandWidthPresets(band.columns.length)
+                                                    .findIndex((p) => sameWidths(band.widths, p))
+                                                    .toString()}
+                                                onChange={(e) => {
+                                                    const p = bandWidthPresets(band.columns.length)[
+                                                        Number(e.target.value)
+                                                    ];
+                                                    if (p) setBlockWidths(bi, p);
+                                                }}
+                                            >
+                                                {/* A stored split the presets do not list (written by hand or the MCP). */}
+                                                {!bandWidthPresets(band.columns.length).some((p) =>
+                                                    sameWidths(band.widths, p),
+                                                ) && <option value="-1">{band.widths?.join(':')}</option>}
+                                                {bandWidthPresets(band.columns.length).map((p, i) => (
+                                                    <option key={i} value={i}>
+                                                        {p.join(':')}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </label>
+                                    )}
                                     {band.columns.every((c) => c.length === 0) && (
                                         <p
                                             data-aura-order-block-empty=""
@@ -540,7 +596,7 @@ export function TabletOrderPanel({
                                     <div
                                         className="grid gap-1.5"
                                         style={{
-                                            gridTemplateColumns: `repeat(${band.columns.length}, minmax(0, 1fr))`,
+                                            gridTemplateColumns: flowGridTemplate(band.columns.length, band.widths),
                                         }}
                                     >
                                         {band.columns.map((col, ci) => (

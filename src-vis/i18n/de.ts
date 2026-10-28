@@ -1102,6 +1102,8 @@ export const de = {
     'editor.tablet.up': 'Nach oben',
     'editor.tablet.down': 'Nach unten',
     'editor.tablet.blockCols': 'Spalten in diesem Block',
+    'editor.tablet.blockWidths': 'Breiten',
+    'editor.tablet.blockWidthsHint': 'Anteile der Spalten, z. B. 2:1 = links zwei Drittel, rechts ein Drittel',
     'editor.tablet.merge': 'Mit dem Block darüber verbinden',
     'editor.tablet.addBlock': 'Block',
     'editor.tablet.addBlockHint': 'Hier einen neuen Block mit eigener Spaltenzahl einfügen',
