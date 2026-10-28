@@ -1,1 +1,0 @@
-import{j as s}from"./react-okGu5lkI.js";const a="p-4 sm:p-6";function o({children:t,className:e=""}){return s.jsx("h1",{className:`text-xl font-bold ${e}`.trim(),style:{color:"var(--text-primary)"},children:t})}function m({children:t}){return s.jsx("p",{className:"text-sm mt-1",style:{color:"var(--text-secondary)"},children:t})}export{a as A,o as a,m as b};
