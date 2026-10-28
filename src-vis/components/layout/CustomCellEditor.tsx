@@ -1229,7 +1229,7 @@ export function CustomCellEditor({
                 </div>
             )}
 
-            {cell.type === 'switch' && (
+            {(cell.type === 'switch' || cell.type === 'slider') && (
                 <>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -1240,7 +1240,11 @@ export function CustomCellEditor({
                                 type="text"
                                 value={cell.statusDpId ?? ''}
                                 onChange={(e) => onChange({ statusDpId: e.target.value || undefined })}
-                                placeholder="z.B. mqtt.1.plug1.stat.POWER"
+                                placeholder={
+                                    cell.type === 'slider'
+                                        ? 'z.B. mqtt.1.dimmer1.stat.Dimmer'
+                                        : 'z.B. mqtt.1.plug1.stat.POWER'
+                                }
                                 className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
                                 style={inputSty}
                             />
@@ -1258,11 +1262,12 @@ export function CustomCellEditor({
                             />
                         </div>
                         <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                            Zustand, Beschriftung und Farben kommen von hier, geschaltet wird weiter auf den Datenpunkt
-                            oben. Leer = beides derselbe Datenpunkt.
+                            {cell.type === 'slider'
+                                ? 'Reglerstellung, Wert und Bedingungen kommen von hier, geschrieben wird weiter auf den Datenpunkt oben. Leer = beides derselbe Datenpunkt.'
+                                : 'Zustand, Beschriftung und Farben kommen von hier, geschaltet wird weiter auf den Datenpunkt oben. Leer = beides derselbe Datenpunkt.'}
                         </p>
                     </div>
-                    <StateEvalRow cell={cell} onChange={onChange} />
+                    {cell.type === 'switch' && <StateEvalRow cell={cell} onChange={onChange} />}
                 </>
             )}
 

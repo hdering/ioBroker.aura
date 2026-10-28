@@ -964,7 +964,13 @@ function SliderCellView({
     defaultDecimals: number;
     globalNumFmt?: NumberFormat;
 }) {
-    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    const own = useDatapoint(cell.dpId ?? '');
+    const setValue = own.setValue;
+    // Split command/status devices: the position comes from the read-back DP while
+    // dragging still writes to dpId (issue #866, same as the switch cell's #567).
+    const statusRef = cell.statusDpId?.trim() ?? '';
+    const status = useDatapoint(statusRef);
+    const { state, value } = statusRef ? status : own;
     const [pending, setPending] = useState<number | null>(null);
     const cond = useCellConditionStyle(cell, value);
     const min = cell.min ?? 0;

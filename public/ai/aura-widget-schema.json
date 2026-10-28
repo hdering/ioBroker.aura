@@ -1789,7 +1789,7 @@
         },
         "statusDpId": {
           "type": "string",
-          "description": "'switch' cell: read-back DP — state, label and colours come from here while clicks still write to dpId (split command/status devices, issue #567)",
+          "description": "'switch' / 'slider' cell: read-back DP — state, label, colours and slider position come from here while clicks/drags still write to dpId (split command/status devices, issues #567, #866)",
           "datapoint": true
         },
         "controlMode": {

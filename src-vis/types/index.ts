@@ -378,7 +378,7 @@ export interface CustomCell {
     stateOperator?: ConditionOperator; // 'condition' mode: comparison against stateValue
     stateValue?: string; // 'condition' mode: comparison value (parsed numerically where needed)
     // 'switch' type
-    statusDpId?: string; // 'switch' cell: read-back DP — state, label and colours come from here while clicks still write to dpId (split command/status devices, issue #567)
+    statusDpId?: string; // 'switch' / 'slider' cell: read-back DP — state, label, colours and slider position come from here while clicks/drags still write to dpId (split command/status devices, issues #567, #866)
     controlMode?: 'toggle' | 'checkbox' | 'icon' | 'button' | 'image'; // 'switch' cell: visual control style — 'toggle' slide switch (default), 'checkbox' tick box, 'icon' clickable icon, 'button' labelled button, 'image' clickable image (trueImage/falseImage)
     trueImage?: string; // 'switch' cell (image mode): image for the ON state — URL, aura-file: path, adapter path or data: URI
     falseImage?: string; // 'switch' cell (image mode): image for the OFF state (empty = trueImage)

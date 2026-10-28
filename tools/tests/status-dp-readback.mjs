@@ -115,6 +115,36 @@ for (const [type, extra, main, status] of [
     );
 }
 
+// ── Universal widget slider cell: position and value come from statusDpId (#866) ──
+{
+    const grid = (statusDpId) => ({
+        customGrid: {
+            cols: 1,
+            rows: 1,
+            cells: [{ type: 'slider', dpId: DP, statusDpId, valuePosition: 'right', min: 0, max: 100 }],
+        },
+    });
+    await show('universal', grid(STATUS_DP), { [DP]: 10, [STATUS_DP]: 73 });
+    eq(
+        'universal slider cell: position from the status DP',
+        await page.inputValue(`${root()} input[type=range]`),
+        '73',
+    );
+    check('universal slider cell: shows the status value', (await rootText()).includes('73'), await rootText());
+    await page.locator(`${root()} input[type=range]`).fill('40');
+    await page.waitForTimeout(250);
+    const w = await page.evaluate(() => window.__auraShot.writes());
+    eq('universal slider cell: writes to the main DP', w.at(-1)?.id, DP);
+    eq('universal slider cell: writes the dragged value', w.at(-1)?.val, 40);
+
+    await show('universal', grid(undefined), { [DP]: 10, [STATUS_DP]: 73 });
+    eq(
+        'universal slider cell without status DP: main value',
+        await page.inputValue(`${root()} input[type=range]`),
+        '10',
+    );
+}
+
 eq('no page errors', pageErrors.join(' | '), '');
 
 await browser.close();
