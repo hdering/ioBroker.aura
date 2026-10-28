@@ -14475,6 +14475,11 @@
         "transparent"
       ],
       "options": {
+        "fillTab": {
+          "type": "boolean",
+          "default": false,
+          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst."
+        },
         "iframeColorScheme": {
           "type": "string",
           "enum": [
@@ -14634,6 +14639,11 @@
         "transparent"
       ],
       "options": {
+        "fillTab": {
+          "type": "boolean",
+          "default": false,
+          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst."
+        },
         "fit": {
           "type": "string",
           "ref": "FitMode",
@@ -18401,6 +18411,11 @@
           "type": "boolean",
           "default": true,
           "description": "Bedienung: Wischen oder Tippen am linken/rechten Rand blättert, Tippen in die Mitte hält an. Für den Einsatz als Bildschirmschoner (Ruhezustand-Popup) auf false setzen — dort beendet jede Berührung ohnehin den Ruhezustand."
+        },
+        "fillTab": {
+          "type": "boolean",
+          "default": false,
+          "description": "Widget füllt den ganzen Tab-Bereich (Overlay statt Rasterplatz, gridPos wird ignoriert). Nur sinnvoll als einziges Widget des Tabs - der Editor sperrt den Schalter sonst."
         },
         "fit": {
           "type": "string",
