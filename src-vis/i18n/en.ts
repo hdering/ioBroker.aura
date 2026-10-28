@@ -2146,6 +2146,26 @@ export const en: Record<TranslationKey, string> = {
     'echart.xLabelCount': 'Labels (approx.)',
     'echart.xLabelCountAuto': 'auto',
     'echart.xLabelCountHint': 'A target – the time axis snaps to round times. For narrow charts e.g. 3.',
+    'echart.unavailTimeAxisOnly':
+        'Only with a time axis – in “Time Series” mode or “Categories (JSON)” with a time axis.',
+    'echart.unavailCurrentComparison': 'Not in “Comparison” mode – the bars already show the current value.',
+    'echart.unavailNowLineComparison': 'Not in “Comparison” mode – without a time axis there is no “now”.',
+    'echart.unavailNowLineMatch':
+        'Only in “Categories (JSON)” mode without a time axis – otherwise the line sits at the current time.',
+    'echart.unavailRightAxisComparison': 'Not in “Comparison” mode – all bars use the left axis.',
+    'echart.unavailRangeComparison': 'Not in “Comparison” mode – it shows the current value, not a time range.',
+    'echart.unavailRangeJson': 'Not in “Categories (JSON)” mode – the values come ready-made from the datapoint.',
+    'echart.unavailRangeNoHistory': 'Only once a series reads from a history adapter.',
+    'echart.unavailSourceJson':
+        'In “Categories (JSON)” mode every series reads the JSON datapoint – selectable in “Time Series” only.',
+    'echart.unavailSourceComparison':
+        'In “Comparison” mode only the current value counts – selectable in “Time Series” only.',
+    'echart.unavailLabelIntervalComparison': 'Not in “Comparison” mode – it would drop the labels of whole bars.',
+    'echart.unavailSourceSettingsComparison': 'Not in “Comparison” mode – it reads no history, only the current value.',
+    'echart.unavailChartTypeComparison': 'Always bars in “Comparison” mode.',
+    'echart.unavailSeriesComparison': 'Not in “Comparison” mode – there each series is a plain bar.',
+    'echart.unavailJsonTimeAxis':
+        'Only in “Categories (JSON)” mode – in “Time Series” the x axis is always a time axis.',
     'echart.gridLines': 'Horizontal grid lines',
     'echart.nowLine': 'Current time as a line',
     'echart.nowLineColor': 'Time line colour',

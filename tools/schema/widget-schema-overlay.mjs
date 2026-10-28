@@ -1459,7 +1459,7 @@ export const WIDGET_OPTION_NOTES = {
         echartShowXAxis: { description: 'X-Achse anzeigen.' },
         echartXLabelCount: {
             description:
-                'Nur Zeitreihe: ungefähre Zahl der Beschriftungen auf der Zeitachse (1–24, leer = automatisch, ' +
+                'Nur mit Zeitachse (Zeitreihe, JSON mit echartJsonTimeAxis): ungefähre Zahl der Beschriftungen auf der Zeitachse (1–24, leer = automatisch, ' +
                 'ECharts-Standard 5). Richtwert — die Ticks rasten auf runde Zeiten ein; sich überschneidende ' +
                 'Beschriftungen fallen ohnehin weg. Für schmale Diagramme z. B. 3.',
         },

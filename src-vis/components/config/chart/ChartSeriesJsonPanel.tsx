@@ -1,6 +1,7 @@
 import { useT } from '../../../i18n';
 import type { EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
 import { JsonAxisBoundsHint } from '../JsonChartHints';
+import { Unavailable } from '../Unavailable';
 import { JsonKeySelect, inputCls, inputStyle, type JsonProbe } from './chartShared';
 
 /**
@@ -62,12 +63,12 @@ export function ChartSeriesJsonPanel({
                 {/* Widget-level, and only a choice in the JSON mode: a
                     timeseries chart always has a time axis, so a JSON
                     series mixed into it (issue #595) has nothing to pick. */}
-                {isJson && (
+                <Unavailable reason={isJson ? undefined : t('echart.unavailJsonTimeAxis')}>
                     <div>
                         <label className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
-                                checked={jsonTimeAxis}
+                                checked={isJson ? jsonTimeAxis : true}
                                 onChange={(e) =>
                                     onWidgetOption({
                                         echartJsonTimeAxis: e.target.checked,
@@ -89,7 +90,7 @@ export function ChartSeriesJsonPanel({
                             {t('echart.jsonTimeAxisHint')}
                         </p>
                     </div>
-                )}
+                </Unavailable>
                 <div className="flex gap-2">
                     <div className="flex-1 min-w-0">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>

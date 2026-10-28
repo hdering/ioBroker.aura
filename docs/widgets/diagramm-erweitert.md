@@ -356,7 +356,7 @@ Für Serien mit `source: json` — im Modus `json` alle, im Modus `timeseries` d
 | `echartShowYAxis`                       | `true`   | Y-Achsen anzeigen                                                                       |
 | `echartShowYAxisRight`                  | `true`   | rechte Y-Achse beschriften; aus = nur die linke Skala, die rechte Achse skaliert weiter |
 | `echartShowXAxis`                       | `true`   | X-Achse anzeigen                                                                        |
-| `echartXLabelCount`                     | `auto`   | nur Zeitreihe: ungefähre Zahl der Beschriftungen an der Zeitachse (1–24)                |
+| `echartXLabelCount`                     | `auto`   | nur mit Zeitachse: ungefähre Zahl der Beschriftungen (1–24)                             |
 | `echartShowGridLines`                   | `true`   | horizontale Hilfslinien (von der Achse, an der die Serien hängen)                       |
 | `echartLeftUnit`                        | —        | Einheit der linken Y-Achse                                                              |
 | `echartRightUnit`                       | —        | Einheit der rechten Y-Achse                                                             |

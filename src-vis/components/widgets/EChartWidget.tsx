@@ -1041,7 +1041,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 },
                 axisTick: { show: echartShowYAxis },
                 axisLine: { show: echartShowYAxis, lineStyle: { color: onCanvasLine } },
-                splitLine: { show: echartShowYAxis, lineStyle: { color: onCanvasGrid } },
+                splitLine: { show: echartShowYAxis && echartShowGridLines, lineStyle: { color: onCanvasGrid } },
                 ...(leftMin !== undefined ? { min: leftMin } : {}),
                 ...(leftMax !== undefined ? { max: leftMax } : {}),
             },
@@ -1275,10 +1275,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 ? {
                       type: 'time',
                       show: echartShowXAxis,
-                      axisLabel: { show: echartShowXAxis, color: onCanvasMuted, fontSize: 10 },
+                      axisLabel: { show: echartShowXAxis, color: onCanvasMuted, fontSize: 10, hideOverlap: true },
                       axisTick: { show: echartShowXAxis },
                       axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
                       splitLine: { show: false },
+                      splitNumber: echartXLabelCount && echartXLabelCount > 0 ? echartXLabelCount : 5,
                   }
                 : {
                       type: 'category',

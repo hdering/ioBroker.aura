@@ -8,6 +8,7 @@ import type { NumberFormat } from '../../../utils/formatValue';
 import { DatapointPicker } from '../DatapointPicker';
 import { ValueTransformButton } from '../ValueTransformButton';
 import { JsonShapeHint } from '../JsonChartHints';
+import { Unavailable } from '../Unavailable';
 import { ChartSeriesJsonPanel } from './ChartSeriesJsonPanel';
 import { ChartSeriesHistoryPanel } from './ChartSeriesHistoryPanel';
 import {
@@ -150,14 +151,23 @@ export function ChartSeriesDetail({
             {/* Data source — a timeseries chart draws history and JSON
                 payloads on the same time axis (issue #595). The other
                 two modes have exactly one source, so they offer no choice. */}
-            {!isComparison && !isJson && (
+            <Unavailable
+                reason={
+                    isJson
+                        ? t('echart.unavailSourceJson')
+                        : isComparison
+                          ? t('echart.unavailSourceComparison')
+                          : undefined
+                }
+            >
                 <div>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.seriesSource')}
                     </label>
                     <div className="aura-series-source flex gap-1">
                         {(['history', 'json'] as const).map((src) => {
-                            const active = (s.source ?? 'history') === src;
+                            // Shown as what the mode reads: JSON forces the payload, comparison the live value.
+                            const active = isComparison ? false : (isJson ? 'json' : (s.source ?? 'history')) === src;
                             return (
                                 <button
                                     key={src}
@@ -175,7 +185,7 @@ export function ChartSeriesDetail({
                         })}
                     </div>
                 </div>
-            )}
+            </Unavailable>
 
             {/* Mixed into a timeseries chart the labels have to BE timestamps —
                 "01" is a month, and the time axis has nowhere to put it, so every
@@ -221,8 +231,8 @@ export function ChartSeriesDetail({
                 needs. Starts unfolded until the payload actually parsed. */}
             {!isComparison && seriesIsJson && <JsonShapeHint open={!probe?.done || !!probe.invalid} />}
 
-            {/* Chart type — hidden in comparison mode */}
-            {!isComparison && (
+            {/* Chart type — comparison mode always draws bars */}
+            <Unavailable reason={isComparison ? t('echart.unavailChartTypeComparison') : undefined}>
                 <div>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.chartType')}
@@ -244,7 +254,7 @@ export function ChartSeriesDetail({
                         ))}
                     </div>
                 </div>
-            )}
+            </Unavailable>
 
             {/* Colour and number format (issue #600) share one row: three narrow controls that would
                 otherwise each claim the full width of the detail pane — the separator select in
@@ -300,8 +310,11 @@ export function ChartSeriesDetail({
                 </p>
             </div>
 
-            {/* Y-Axis, Smooth, LineWidth, History — hidden in comparison mode */}
-            {!isComparison && (
+            {/* Y-Axis, stacking, line shape — comparison mode draws one plain bar per series */}
+            <Unavailable
+                reason={isComparison ? t('echart.unavailSeriesComparison') : undefined}
+                className="space-y-2.5"
+            >
                 <>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -504,64 +517,73 @@ export function ChartSeriesDetail({
                             </div>
                         </div>
                     )}
+                </>
+            </Unavailable>
 
-                    {/* Values at the data points, per series: the bars want their
-                        numbers, the temperature line over them does not (issue #584). */}
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.seriesShowValues')}
-                        </label>
-                        <div className="flex gap-1">
-                            {SERIES_VALUE_MODES.map((m) => {
-                                const active = s.showValues === m.value;
-                                return (
-                                    <button
-                                        key={m.key}
-                                        onClick={() => update({ showValues: m.value })}
-                                        className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        }}
-                                    >
-                                        {m.value === undefined
-                                            ? t('echart.seriesShowValuesAuto', {
-                                                  value: echartShowValues ? t('common.on') : t('common.off'),
-                                              })
-                                            : t(m.value ? 'common.on' : 'common.off')}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                        {/* Thinning out one bar of a comparison chart would drop the
+            {/* Values at the data points, per series: the bars want their
+                numbers, the temperature line over them does not (issue #584). */}
+            <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    {t('echart.seriesShowValues')}
+                </label>
+                <div className="flex gap-1">
+                    {SERIES_VALUE_MODES.map((m) => {
+                        const active = s.showValues === m.value;
+                        return (
+                            <button
+                                key={m.key}
+                                onClick={() => update({ showValues: m.value })}
+                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                style={{
+                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                }}
+                            >
+                                {m.value === undefined
+                                    ? t('echart.seriesShowValuesAuto', {
+                                          value: echartShowValues ? t('common.on') : t('common.off'),
+                                      })
+                                    : t(m.value ? 'common.on' : 'common.off')}
+                            </button>
+                        );
+                    })}
+                </div>
+                {/* Thinning out one bar of a comparison chart would drop the
                             whole series, so the interval stays out of that mode. */}
-                        {!isComparison && (s.showValues ?? echartShowValues) && (
-                            <div className="mt-1.5">
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    {(s.labelInterval ?? 1) > 1
-                                        ? t('echart.labelInterval', {
-                                              value: s.labelInterval ?? 1,
-                                          })
-                                        : t('echart.labelIntervalAll')}
-                                </label>
-                                <input
-                                    type="range"
-                                    min={1}
-                                    max={10}
-                                    step={1}
-                                    value={s.labelInterval ?? 1}
-                                    onChange={(e) =>
-                                        update({
-                                            labelInterval: Number(e.target.value),
-                                        })
-                                    }
-                                    className="w-full accent-[var(--accent)]"
-                                />
-                            </div>
-                        )}
-                    </div>
+                {(s.showValues ?? echartShowValues) && (
+                    <Unavailable reason={isComparison ? t('echart.unavailLabelIntervalComparison') : undefined}>
+                        <div className="mt-1.5">
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {(s.labelInterval ?? 1) > 1
+                                    ? t('echart.labelInterval', {
+                                          value: s.labelInterval ?? 1,
+                                      })
+                                    : t('echart.labelIntervalAll')}
+                            </label>
+                            <input
+                                type="range"
+                                min={1}
+                                max={10}
+                                step={1}
+                                value={s.labelInterval ?? 1}
+                                onChange={(e) =>
+                                    update({
+                                        labelInterval: Number(e.target.value),
+                                    })
+                                }
+                                className="w-full accent-[var(--accent)]"
+                            />
+                        </div>
+                    </Unavailable>
+                )}
+            </div>
 
+            <Unavailable
+                reason={isComparison ? t('echart.unavailSourceSettingsComparison') : undefined}
+                className="space-y-2.5"
+            >
+                <>
                     {seriesIsJson && (
                         <ChartSeriesJsonPanel
                             s={s}
@@ -581,12 +603,11 @@ export function ChartSeriesDetail({
                             update={update}
                             onDetect={onDetect}
                             isBool={isBoolDp}
-                            onAddComparison={isComparison ? undefined : onAddComparison}
-                            showPeriod={!isComparison}
+                            onAddComparison={onAddComparison}
                         />
                     )}
                 </>
-            )}
+            </Unavailable>
 
             {pickerOpen && (
                 <DatapointPicker

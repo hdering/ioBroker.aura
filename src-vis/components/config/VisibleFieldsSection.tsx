@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { useT } from '../../i18n';
 import { ConfigSection } from './ConfigSection';
+import { UnavailableReason } from './Unavailable';
 
 /**
  * One show/hide switch of the widget edit dialog. Every visibility option of every
@@ -13,6 +14,7 @@ export function ToggleRow({
     onChange,
     extra,
     visKey,
+    disabledReason,
     children,
 }: {
     label: ReactNode;
@@ -23,12 +25,17 @@ export function ToggleRow({
     extra?: ReactNode;
     /** Option key, rendered as `data-aura-vis-key` (the structure test collects these). */
     visKey?: string;
+    /** Does not apply right now: switch greyed out and locked, the reason below it (#869). */
+    disabledReason?: ReactNode;
     /** Sub-options of this field, indented below it. The caller decides when to render them. */
     children?: ReactNode;
 }) {
     return (
-        <div data-aura-vis-key={visKey}>
-            <div className="flex items-center justify-between gap-2">
+        <div data-aura-vis-key={visKey} data-aura-unavailable={disabledReason ? '' : undefined}>
+            <div
+                className="flex items-center justify-between gap-2"
+                style={disabledReason ? { opacity: 0.45 } : undefined}
+            >
                 <div className="min-w-0">
                     <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
                         {label}
@@ -48,6 +55,7 @@ export function ToggleRow({
                         type="button"
                         role="switch"
                         aria-checked={on}
+                        disabled={!!disabledReason}
                         onClick={() => onChange(!on)}
                         className="relative w-7 h-4 rounded-full transition-colors shrink-0"
                         style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
@@ -59,6 +67,7 @@ export function ToggleRow({
                     </button>
                 </div>
             </div>
+            {disabledReason && <UnavailableReason reason={disabledReason} />}
             {children && (
                 <div className="mt-1 mb-1.5 ml-1 pl-3 space-y-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
                     {children}
@@ -78,6 +87,8 @@ export interface VisibleField {
     hint?: ReactNode;
     /** Not offered right now (e.g. needs a datapoint first). */
     hidden?: boolean;
+    /** Exists but does not apply right now (e.g. not in this mode): shown greyed out with this reason. */
+    disabledReason?: ReactNode;
     extra?: ReactNode;
     /** Sub-options; rendered only while the field is on. */
     children?: ReactNode;
@@ -116,10 +127,11 @@ export function VisibleFieldsSection({
                 label={f.label}
                 hint={f.hint}
                 on={on}
-                extra={on ? f.extra : undefined}
+                disabledReason={f.disabledReason}
+                extra={on && !f.disabledReason ? f.extra : undefined}
                 onChange={(next) => onChange({ [f.key]: f.invert ? !next : next })}
             >
-                {on ? f.children : undefined}
+                {on && !f.disabledReason ? f.children : undefined}
             </ToggleRow>
         );
     });

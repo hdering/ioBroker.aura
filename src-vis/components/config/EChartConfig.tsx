@@ -22,6 +22,7 @@ import { parseRangeChips, RANGE_UNITS, rangeKey, type RangeUnit } from '../../ut
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
+import { Unavailable } from './Unavailable';
 import type { ManagedEntry } from './list/EntryListItem';
 import { ChartModePanel, type EChartMode } from './chart/ChartModePanel';
 import { ChartFormatPanel } from './chart/ChartFormatPanel';
@@ -145,6 +146,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartAnimation = (o.echartAnimation as boolean | undefined) ?? true;
     // Now line — a time axis marks the clock, a JSON category axis the label matching a text.
     const nowLineOffered = !isComparison;
+    const hasTimeAxis = echartMode === 'timeseries' || (isJson && jsonTimeAxis);
     const nowLineByLabel = isJson && !jsonTimeAxis;
     const echartNowLineMatch = (o.echartNowLineMatch as string | undefined) ?? '';
     const echartNowLineColor = (o.echartNowLineColor as string | undefined) || '#ef4444';
@@ -470,40 +472,39 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
         {
             key: 'echartShowXAxis',
             label: t('echart.showXAxis'),
-            children:
-                echartMode === 'timeseries' ? (
-                    <>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.xLabelCount')}
-                        </label>
-                        <input
-                            type="number"
-                            min={1}
-                            max={24}
-                            value={echartXLabelCount ?? ''}
-                            placeholder={t('echart.xLabelCountAuto')}
-                            onChange={(e) => {
-                                const n = Math.round(Number(e.target.value));
-                                setO({ echartXLabelCount: e.target.value && n >= 1 ? Math.min(24, n) : undefined });
-                            }}
-                            className="w-20 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
-                            style={inputStyle}
-                        />
-                        <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.xLabelCountHint')}
-                        </p>
-                    </>
-                ) : undefined,
+            children: (
+                <Unavailable reason={hasTimeAxis ? undefined : t('echart.unavailTimeAxisOnly')}>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.xLabelCount')}
+                    </label>
+                    <input
+                        type="number"
+                        min={1}
+                        max={24}
+                        value={echartXLabelCount ?? ''}
+                        placeholder={t('echart.xLabelCountAuto')}
+                        onChange={(e) => {
+                            const n = Math.round(Number(e.target.value));
+                            setO({ echartXLabelCount: e.target.value && n >= 1 ? Math.min(24, n) : undefined });
+                        }}
+                        className="w-20 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
+                        style={inputStyle}
+                    />
+                    <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.xLabelCountHint')}
+                    </p>
+                </Unavailable>
+            ),
         },
         { key: 'echartShowGridLines', label: t('echart.gridLines') },
         {
             key: 'echartNowLine',
             label: t('echart.nowLine'),
             def: false,
-            hidden: !nowLineOffered,
+            disabledReason: nowLineOffered ? undefined : t('echart.unavailNowLineComparison'),
             children: (
                 <>
-                    {nowLineByLabel && (
+                    <Unavailable reason={nowLineByLabel ? undefined : t('echart.unavailNowLineMatch')}>
                         <div className="mb-2">
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 {t('echart.nowLineMatch')}
@@ -541,20 +542,22 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                             : 'var(--text-secondary)',
                                 }}
                             >
-                                {!nowLineNeedle
-                                    ? t('echart.nowLineMatchEmpty')
-                                    : nowLineHit
-                                      ? t('echart.nowLineMatchHit', { label: nowLineHit })
-                                      : nowLineCategories.length > 0
-                                        ? t('echart.nowLineMatchMiss', { text: echartNowLineMatch.trim() })
-                                        : null}
+                                {!nowLineByLabel
+                                    ? null
+                                    : !nowLineNeedle
+                                      ? t('echart.nowLineMatchEmpty')
+                                      : nowLineHit
+                                        ? t('echart.nowLineMatchHit', { label: nowLineHit })
+                                        : nowLineCategories.length > 0
+                                          ? t('echart.nowLineMatchMiss', { text: echartNowLineMatch.trim() })
+                                          : null}
                             </p>
                             <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
                                 {t('echart.nowLineMatchHint')}
                             </p>
                         </div>
-                    )}
-                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    </Unavailable>
+                    <label className="text-[11px] mt-2 mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.nowLineColor')}
                     </label>
                     <div className="flex gap-1.5 items-center">
@@ -578,6 +581,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
         {
             key: 'echartShowCurrent',
             label: t('echart.showCurrentValue'),
+            disabledReason: isComparison ? t('echart.unavailCurrentComparison') : undefined,
             children: (
                 <>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -719,8 +723,18 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 </>
             </ConfigSection>
             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
-                {anyHistory && (
-                    <SubGroup title="Zeitraum">
+                <SubGroup title="Zeitraum">
+                    <Unavailable
+                        reason={
+                            isComparison
+                                ? t('echart.unavailRangeComparison')
+                                : isJson
+                                  ? t('echart.unavailRangeJson')
+                                  : !anyHistory
+                                    ? t('echart.unavailRangeNoHistory')
+                                    : undefined
+                        }
+                    >
                         <div className="mb-2">
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 {t('echart.timeRange')}
@@ -850,8 +864,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 </label>
                             )}
                         </div>
-                    </SubGroup>
-                )}
+                    </Unavailable>
+                </SubGroup>
                 <SubGroup title="Achsen">
                     {/* Left Y-Axis */}
                     <div className="mb-2">
@@ -890,42 +904,44 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         </div>
                     </div>
 
-                    {/* Right Y-Axis */}
-                    <div className="mb-2">
-                        <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.yAxisRight')}
-                        </p>
-                        <div className="flex gap-1.5 mb-1">
-                            <input
-                                type="text"
-                                value={echartRightUnit}
-                                onChange={(e) => setO({ echartRightUnit: e.target.value || undefined })}
-                                placeholder={t('echart.unitRight')}
-                                className={`${inputCls} flex-1`}
-                                style={inputStyle}
-                            />
+                    {/* Right Y-Axis — the comparison bars all hang on the left one */}
+                    <Unavailable reason={isComparison ? t('echart.unavailRightAxisComparison') : undefined}>
+                        <div className="mb-2">
+                            <p className="text-[11px] mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.yAxisRight')}
+                            </p>
+                            <div className="flex gap-1.5 mb-1">
+                                <input
+                                    type="text"
+                                    value={echartRightUnit}
+                                    onChange={(e) => setO({ echartRightUnit: e.target.value || undefined })}
+                                    placeholder={t('echart.unitRight')}
+                                    className={`${inputCls} flex-1`}
+                                    style={inputStyle}
+                                />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <AxisBoundRow
+                                    valueKey="echartRightMin"
+                                    dpKey="echartRightMinDp"
+                                    autoToken="dataMin"
+                                    placeholder={t('echart.min')}
+                                    o={o}
+                                    setO={setO}
+                                    onPickDp={() => setPickerForBound('echartRightMinDp')}
+                                />
+                                <AxisBoundRow
+                                    valueKey="echartRightMax"
+                                    dpKey="echartRightMaxDp"
+                                    autoToken="dataMax"
+                                    placeholder={t('echart.max')}
+                                    o={o}
+                                    setO={setO}
+                                    onPickDp={() => setPickerForBound('echartRightMaxDp')}
+                                />
+                            </div>
                         </div>
-                        <div className="flex flex-col gap-1">
-                            <AxisBoundRow
-                                valueKey="echartRightMin"
-                                dpKey="echartRightMinDp"
-                                autoToken="dataMin"
-                                placeholder={t('echart.min')}
-                                o={o}
-                                setO={setO}
-                                onPickDp={() => setPickerForBound('echartRightMinDp')}
-                            />
-                            <AxisBoundRow
-                                valueKey="echartRightMax"
-                                dpKey="echartRightMaxDp"
-                                autoToken="dataMax"
-                                placeholder={t('echart.max')}
-                                o={o}
-                                setO={setO}
-                                onPickDp={() => setPickerForBound('echartRightMaxDp')}
-                            />
-                        </div>
-                    </div>
+                    </Unavailable>
                 </SubGroup>
                 <SubGroup title={t('echart.jsonOverride')} count={echartJsonExtra ? t('echart.active') : undefined}>
                     <p className="text-[10px] mb-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>

@@ -2165,6 +2165,27 @@ export const de = {
     'echart.xLabelCount': 'Beschriftungen (ungefähr)',
     'echart.xLabelCountAuto': 'auto',
     'echart.xLabelCountHint': 'Richtwert – die Zeitachse rastet auf runde Zeiten ein. Für schmale Diagramme z. B. 3.',
+    'echart.unavailTimeAxisOnly': 'Nur mit Zeitachse – im Modus „Zeitreihe“ oder „Kategorien (JSON)“ mit Zeitachse.',
+    'echart.unavailCurrentComparison': 'Nicht im Modus „Vergleich“ – die Balken zeigen den aktuellen Wert schon.',
+    'echart.unavailNowLineComparison': 'Nicht im Modus „Vergleich“ – ohne Zeitachse gibt es kein „jetzt“.',
+    'echart.unavailNowLineMatch':
+        'Nur im Modus „Kategorien (JSON)“ ohne Zeitachse – sonst steht die Linie bei der aktuellen Uhrzeit.',
+    'echart.unavailRightAxisComparison': 'Nicht im Modus „Vergleich“ – alle Balken hängen an der linken Achse.',
+    'echart.unavailRangeComparison': 'Nicht im Modus „Vergleich“ – er zeigt den aktuellen Wert, keinen Zeitraum.',
+    'echart.unavailRangeJson': 'Nicht im Modus „Kategorien (JSON)“ – die Werte kommen fertig aus dem Datenpunkt.',
+    'echart.unavailRangeNoHistory': 'Erst wenn eine Serie aus einem History-Adapter liest.',
+    'echart.unavailSourceJson':
+        'Im Modus „Kategorien (JSON)“ liest jede Serie den JSON-Datenpunkt – wählbar nur in der „Zeitreihe“.',
+    'echart.unavailSourceComparison':
+        'Im Modus „Vergleich“ zählt nur der aktuelle Wert – wählbar nur in der „Zeitreihe“.',
+    'echart.unavailLabelIntervalComparison':
+        'Nicht im Modus „Vergleich“ – sonst fiele die Beschriftung ganzer Balken weg.',
+    'echart.unavailSourceSettingsComparison':
+        'Nicht im Modus „Vergleich“ – er liest keinen Verlauf, nur den aktuellen Wert.',
+    'echart.unavailChartTypeComparison': 'Im Modus „Vergleich“ immer Balken.',
+    'echart.unavailSeriesComparison': 'Nicht im Modus „Vergleich“ – dort ist jede Serie ein schlichter Balken.',
+    'echart.unavailJsonTimeAxis':
+        'Nur im Modus „Kategorien (JSON)“ – in der „Zeitreihe“ ist die X-Achse immer eine Zeitachse.',
     'echart.gridLines': 'Horizontale Linien',
     'echart.nowLine': 'Aktuelle Zeit als Linie',
     'echart.nowLineColor': 'Farbe der Zeitlinie',
