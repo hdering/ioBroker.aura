@@ -30,6 +30,7 @@ import { useMcpStatus } from '../../hooks/useMcpStatus';
 import { ConfigModal } from '../../components/config/ConfigModal';
 import { Link } from 'react-router-dom';
 import { NS } from '../../utils/namespace';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 /** Rows a health list shows inline; everything beyond moves into its dialog.
  *  Keeps the overview the same height no matter how damaged the installation
@@ -681,15 +682,11 @@ export function AdminDashboard() {
     const { connected } = useIoBroker();
 
     return (
-        <div className="p-8 space-y-8">
+        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
             <div className="flex items-start gap-4 flex-wrap">
                 <div>
-                    <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                        {t('dashboard.title')}
-                    </h1>
-                    <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        {t('dashboard.subtitle')}
-                    </p>
+                    <AdminPageTitle>{t('dashboard.title')}</AdminPageTitle>
+                    <AdminPageSubtitle>{t('dashboard.subtitle')}</AdminPageSubtitle>
                 </div>
                 <div className="ml-auto">
                     <GuideToggles />

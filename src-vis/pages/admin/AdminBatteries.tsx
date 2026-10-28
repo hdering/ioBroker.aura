@@ -14,6 +14,7 @@ import {
     type BatteryLibIndex,
     type DeviceModel,
 } from '../../utils/batteryLibrary';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 interface DeviceRow {
     deviceId: string;
@@ -386,14 +387,12 @@ export function AdminBatteries() {
     );
 
     return (
-        <div className="p-8 space-y-8">
+        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
             <div>
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    Batterien
-                </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <AdminPageTitle>Batterien</AdminPageTitle>
+                <AdminPageSubtitle>
                     Batterietypen deiner Geräte – automatisch erkannt, manuell korrigierbar.
-                </p>
+                </AdminPageSubtitle>
             </div>
 
             {/* Stats */}

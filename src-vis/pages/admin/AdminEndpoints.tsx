@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit3, Check, X, Search, ChevronDown, ChevronRight } from
 import { useGroupStore, type DatapointGroup, type GroupDatapoint } from '../../store/groupStore';
 import { useIoBrokerDevices } from '../../hooks/useIoBrokerDevices';
 import { useT } from '../../i18n';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Datenpunkt-Picker (Mehrfachauswahl) ────────────────────────────────────
 function DatapointPicker({ onAdd, onClose }: { onAdd: (dps: GroupDatapoint[]) => void; onClose: () => void }) {
@@ -514,14 +515,10 @@ export function AdminEndpoints() {
     };
 
     return (
-        <div className="p-8 space-y-6">
+        <div className={`${ADMIN_PAGE_PAD} space-y-6`}>
             <div>
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {t('endpoints.title')}
-                </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    {t('endpoints.subtitle')}
-                </p>
+                <AdminPageTitle>{t('endpoints.title')}</AdminPageTitle>
+                <AdminPageSubtitle>{t('endpoints.subtitle')}</AdminPageSubtitle>
             </div>
 
             {/* Neue Gruppe */}

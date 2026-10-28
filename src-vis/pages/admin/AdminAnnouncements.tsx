@@ -20,6 +20,7 @@ import {
     type AnnouncementConfig,
     type AnnouncementRule,
 } from '../../utils/announcements';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 /**
  * Admin → Ansagen (issue #834, phase 4): announcements without a script.
@@ -537,12 +538,10 @@ export function AdminAnnouncements() {
     };
 
     return (
-        <div className="px-6 py-8 space-y-6" data-aura-admin-announcements="">
+        <div className={`${ADMIN_PAGE_PAD} space-y-6`} data-aura-admin-announcements="">
             <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    Ansagen
-                </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <AdminPageTitle>Ansagen</AdminPageTitle>
+                <AdminPageSubtitle>
                     Datenpunkt + Bedingung → Text → Geräte. Sprachausgabe ohne Skript.{' '}
                     <a
                         href={docsUrl('anleitungen/sprachausgabe#ansagen-ohne-skript')}
@@ -552,7 +551,7 @@ export function AdminAnnouncements() {
                     >
                         Anleitung
                     </a>
-                </p>
+                </AdminPageSubtitle>
             </div>
 
             <section>

@@ -1,5 +1,6 @@
 import { LoadTimesWidget } from '../../components/widgets/LoadTimesWidget';
 import type { WidgetConfig } from '../../types';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // Throwaway config: the LoadTimesWidget only reads config.options for display
 // defaults (all have fallbacks) and config.title for its header. Rendering it
@@ -17,16 +18,14 @@ const WIDGET_CONFIG: WidgetConfig = {
 
 export function AdminLoadTimes() {
     return (
-        <div className="p-8 space-y-6">
+        <div className={`${ADMIN_PAGE_PAD} space-y-6`}>
             <div>
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    Ladezeiten
-                </h1>
-                <p className="text-base mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <AdminPageTitle>Ladezeiten</AdminPageTitle>
+                <AdminPageSubtitle>
                     Backend hier offen lassen und das Frontend in einem zweiten Browser-Tab bedienen — die Werte
                     aktualisieren sich hier live, ohne die Messung zu stören. Für die Pro-Widget-Details muss in den
                     Aura-Adapter-Einstellungen {'„Timing pro Widget aufzeichnen“'} aktiv sein.
-                </p>
+                </AdminPageSubtitle>
                 <p
                     className="text-sm mt-2 rounded-lg px-3 py-2"
                     style={{

@@ -6,6 +6,7 @@ import { useT } from '../../i18n';
 
 import { CustomCssSection } from './layouts/sections/CustomCssSection';
 import { CustomJsSection } from './layouts/sections/CustomJsSection';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 type CssJsTab = 'css' | 'js';
 
@@ -35,14 +36,10 @@ export function AdminCssJs() {
     };
 
     return (
-        <div className="p-6 space-y-4">
+        <div className={`${ADMIN_PAGE_PAD} space-y-4`}>
             <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {t('cssjs.title')}
-                </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    {t('cssjs.subtitle')}
-                </p>
+                <AdminPageTitle>{t('cssjs.title')}</AdminPageTitle>
+                <AdminPageSubtitle>{t('cssjs.subtitle')}</AdminPageSubtitle>
             </div>
 
             <div className="flex gap-1 flex-wrap">

@@ -41,6 +41,7 @@ import type {
     MessageSeverity,
     MessageTimeFormat,
 } from '../../types';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Shared styles (mirrors AdminPopups) ───────────────────────────────────────
 
@@ -882,14 +883,12 @@ export function AdminMessages() {
     const scope = useMemo(() => ({ clientId }), [clientId]);
 
     return (
-        <div className="px-6 py-8 space-y-8">
+        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
             <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    Meldungen
-                </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <AdminPageTitle>Meldungen</AdminPageTitle>
+                <AdminPageSubtitle>
                     Informationen, Warnungen und Fehler aus Skripten ins Dashboard einblenden
-                </p>
+                </AdminPageSubtitle>
             </div>
             <DatapointsSection />
             <DesignerSection />

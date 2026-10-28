@@ -38,6 +38,7 @@ import {
 import { useT, type TranslationKey } from '../../i18n';
 import { NS } from '../../utils/namespace';
 import { version as appVersion } from '../../../package.json';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
 
@@ -1076,14 +1077,10 @@ export function AdminSettings() {
     };
 
     return (
-        <div className="p-5 space-y-4">
+        <div className={`${ADMIN_PAGE_PAD} space-y-4`}>
             <div>
-                <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {t('settings.title')}
-                </h1>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                    {t('settings.subtitle')}
-                </p>
+                <AdminPageTitle>{t('settings.title')}</AdminPageTitle>
+                <AdminPageSubtitle>{t('settings.subtitle')}</AdminPageSubtitle>
             </div>
 
             {/* Row 0: Language + Editor side by side */}

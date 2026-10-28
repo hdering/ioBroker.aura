@@ -35,6 +35,7 @@ import { getAvailableLayouts } from '../../utils/widgetLayouts';
 import { exportPopupView, importPopupView } from '../../utils/widgetExportImport';
 import { builtinUsage, type UsageReason } from '../../utils/builtinPopupUsage';
 import type { ClickAction, WidgetLayout } from '../../types';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
@@ -1631,14 +1632,12 @@ function PopupTriggersSection() {
 
 export function AdminPopups() {
     return (
-        <div className="px-6 py-8 space-y-8">
+        <div className={`${ADMIN_PAGE_PAD} space-y-8`}>
             <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    Popups
-                </h1>
-                <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                <AdminPageTitle>Popups</AdminPageTitle>
+                <AdminPageSubtitle>
                     Eigene Popup-Views erstellen und als Standard für Widget-Typen zuweisen
-                </p>
+                </AdminPageSubtitle>
             </div>
             <GlobalSettingsSection />
             <PopupTriggersSection />

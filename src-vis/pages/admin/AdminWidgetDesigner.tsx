@@ -7,6 +7,7 @@ import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { DP_TEMPLATE_CATEGORIES } from '../../utils/dpTemplates';
 import { exportWidgetPreset, importWidgetPreset } from '../../utils/widgetExportImport';
 import { PresetEditDialog } from '../../components/config/PresetEditDialog';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 const cardStyle: React.CSSProperties = {
     background: 'var(--app-surface)',
@@ -62,16 +63,14 @@ export function AdminWidgetDesigner() {
     };
 
     return (
-        <div className="px-6 py-8 space-y-6">
+        <div className={`${ADMIN_PAGE_PAD} space-y-6`}>
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                    <AdminPageTitle className="flex items-center gap-2">
                         <Shapes size={20} style={{ color: 'var(--accent)' }} />
                         {t('widgetDesigner.title')}
-                    </h1>
-                    <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        {t('widgetDesigner.subtitle')}
-                    </p>
+                    </AdminPageTitle>
+                    <AdminPageSubtitle>{t('widgetDesigner.subtitle')}</AdminPageSubtitle>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     {presets.length > 0 && (

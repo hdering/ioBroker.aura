@@ -13,6 +13,7 @@ import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { unpublishCountdownForWidget } from '../../utils/publishCountdown';
+import { ADMIN_PAGE_PAD, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
 
@@ -770,14 +771,12 @@ export function AdminWidgets() {
     const activeTypes = TYPE_ORDER.filter((tp) => (byType.get(tp)?.length ?? 0) > 0);
 
     return (
-        <div className="p-6 space-y-6">
+        <div className={`${ADMIN_PAGE_PAD} space-y-6`}>
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                        {t('widgets.title')}
-                    </h1>
-                    <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                    <AdminPageTitle>{t('widgets.title')}</AdminPageTitle>
+                    <AdminPageSubtitle>
                         {layoutFilter === 'all' && layouts.length > 1
                             ? t('widgets.subtitleAll', {
                                   widgets: scopedEntries.length,
@@ -785,7 +784,7 @@ export function AdminWidgets() {
                                   layouts: layouts.length,
                               })
                             : t('widgets.subtitle', { widgets: scopedEntries.length, tabs: tabCount })}
-                    </p>
+                    </AdminPageSubtitle>
                 </div>
                 <div className="flex items-center gap-2">
                     {layouts.length > 1 && (
