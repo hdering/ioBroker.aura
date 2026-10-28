@@ -1565,9 +1565,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 show: echartShowXAxis,
                 color: onCanvasMuted,
                 fontSize: 10,
-                // Monthly bars over several years put a label at every month start — echarts drops
-                // the ones that would collide instead of overprinting them.
-                hideOverlap: !!axisBucket,
+                // Monthly bars over several years put a label at every month start, and a narrow
+                // chart has no room for the default tick count — echarts drops the labels that
+                // would collide instead of overprinting them (#869).
+                hideOverlap: true,
                 formatter: axisBucket ? (v: number) => bucketAxisLabel(v, axisBucket, dateLocale) : null,
             },
             axisTick: { show: echartShowXAxis },
