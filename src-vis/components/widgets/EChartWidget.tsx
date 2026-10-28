@@ -258,6 +258,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // not a second set of numbers eating widget width (issue #541). Master switch still wins.
     const echartShowYAxisRight = echartShowYAxis && ((o.echartShowYAxisRight as boolean | undefined) ?? true);
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
+    const echartXLabelCount = o.echartXLabelCount as number | undefined;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     // Charts whose values, axes and time span keep changing look broken while echarts morphs
     // one state into the next, so the animation can be switched off entirely (issue #574).
@@ -1574,6 +1575,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             axisTick: { show: echartShowXAxis },
             axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
             splitLine: { show: false },
+            // A target, not an exact count — echarts still snaps the ticks to round times (#869).
+            // Written as 5 (its default) when unset, since setOption merges an omitted key.
+            splitNumber: echartXLabelCount && echartXLabelCount > 0 ? echartXLabelCount : 5,
             // Ticks have to land ON the bucket grid, or the formatter above finds nothing to label:
             // a two-bar yearly chart would otherwise get month ticks, none of them a January.
             minInterval: axisBucket ? bucketAxisMinInterval(axisBucket) : 0,

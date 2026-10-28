@@ -137,6 +137,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     const isComparison = echartMode === 'comparison';
     const isJson = echartMode === 'json';
+    const echartXLabelCount = o.echartXLabelCount as number | undefined;
     const jsonTimeAxis = (o.echartJsonTimeAxis as boolean | undefined) ?? false;
     const echartShowYAxisRight = (o.echartShowYAxisRight as boolean | undefined) ?? true;
     // The right-axis switch only means something once a series actually sits on that axis.
@@ -466,7 +467,34 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 />
             ) : undefined,
         },
-        { key: 'echartShowXAxis', label: t('echart.showXAxis') },
+        {
+            key: 'echartShowXAxis',
+            label: t('echart.showXAxis'),
+            children:
+                echartMode === 'timeseries' ? (
+                    <>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.xLabelCount')}
+                        </label>
+                        <input
+                            type="number"
+                            min={1}
+                            max={24}
+                            value={echartXLabelCount ?? ''}
+                            placeholder={t('echart.xLabelCountAuto')}
+                            onChange={(e) => {
+                                const n = Math.round(Number(e.target.value));
+                                setO({ echartXLabelCount: e.target.value && n >= 1 ? Math.min(24, n) : undefined });
+                            }}
+                            className="w-20 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
+                            style={inputStyle}
+                        />
+                        <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.xLabelCountHint')}
+                        </p>
+                    </>
+                ) : undefined,
+        },
         { key: 'echartShowGridLines', label: t('echart.gridLines') },
         {
             key: 'echartNowLine',

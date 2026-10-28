@@ -1457,6 +1457,12 @@ export const WIDGET_OPTION_NOTES = {
         echartNowLineColor: { description: 'Farbe der Jetzt-Linie (Hex oder CSS-Variable), Standard #ef4444.' },
         echartAnimation: { description: 'Übergänge animieren.' },
         echartShowXAxis: { description: 'X-Achse anzeigen.' },
+        echartXLabelCount: {
+            description:
+                'Nur Zeitreihe: ungefähre Zahl der Beschriftungen auf der Zeitachse (1–24, leer = automatisch, ' +
+                'ECharts-Standard 5). Richtwert — die Ticks rasten auf runde Zeiten ein; sich überschneidende ' +
+                'Beschriftungen fallen ohnehin weg. Für schmale Diagramme z. B. 3.',
+        },
         echartShowYAxis: { description: 'Linke Y-Achse anzeigen.' },
         echartShowYAxisRight: { description: 'Rechte Y-Achse anzeigen.' },
         echartLeftUnit: { description: 'Einheit der linken Y-Achse.' },
