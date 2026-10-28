@@ -2878,32 +2878,52 @@ export function CustomCellEditor({
                                             className="text-[11px] mb-1 block"
                                             style={{ color: 'var(--text-secondary)' }}
                                         >
-                                            Große Anzeige (optional)
+                                            Große Anzeige
                                         </label>
-                                        <div className="flex gap-1">
-                                            <input
-                                                type="text"
-                                                value={cell.circleValueDp ?? ''}
-                                                onChange={(e) =>
-                                                    onChange({ circleValueDp: e.target.value || undefined })
-                                                }
-                                                placeholder="z.B. Isttemperatur-Datenpunkt"
-                                                className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                                style={inputSty}
-                                            />
-                                            <button
-                                                onClick={() => onOpenDpPicker('circleValueDp')}
-                                                className="text-xs px-2 py-1.5 rounded-lg shrink-0"
-                                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-                                            >
-                                                <Database size={12} />
-                                            </button>
-                                        </div>
-                                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                            Dieser Wert steht groß im Knopf, der aktuelle Eintrag klein darunter. Leer =
-                                            der Eintrag ist groß.
+                                        <select
+                                            value={cell.circlePrimary === 'dp' ? 'dp' : 'entry'}
+                                            onChange={(e) =>
+                                                onChange({
+                                                    circlePrimary: e.target.value === 'dp' ? 'dp' : undefined,
+                                                })
+                                            }
+                                            className={inputCls}
+                                            style={inputSty}
+                                        >
+                                            <option value="entry">Gewählter Eintrag</option>
+                                            <option value="dp">Anderer Datenpunkt (z. B. Isttemperatur)</option>
+                                        </select>
+                                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                            {cell.circlePrimary === 'dp'
+                                                ? 'Der Wert dieses Datenpunkts steht groß im Knopf, der gewählte Eintrag klein darunter. Geschaltet wird weiter der Datenpunkt oben.'
+                                                : 'Der gewählte Eintrag steht groß im Knopf.'}
                                         </p>
-                                        {cell.circleValueDp && (
+                                    </div>
+                                    {cell.circlePrimary === 'dp' && (
+                                        <div className="aura-select-circle-value-dp">
+                                            <div className="flex gap-1">
+                                                <input
+                                                    type="text"
+                                                    value={cell.circleValueDp ?? ''}
+                                                    onChange={(e) =>
+                                                        onChange({ circleValueDp: e.target.value || undefined })
+                                                    }
+                                                    placeholder="Datenpunkt für die große Anzeige"
+                                                    className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                                    style={inputSty}
+                                                />
+                                                <button
+                                                    onClick={() => onOpenDpPicker('circleValueDp')}
+                                                    className="text-xs px-2 py-1.5 rounded-lg shrink-0"
+                                                    style={{
+                                                        background: 'var(--accent)',
+                                                        color: '#fff',
+                                                        border: 'none',
+                                                    }}
+                                                >
+                                                    <Database size={12} />
+                                                </button>
+                                            </div>
                                             <div className="grid grid-cols-3 gap-2 mt-1">
                                                 <div>
                                                     <label
@@ -2966,8 +2986,8 @@ export function CustomCellEditor({
                                                     />
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
                                     <div className="grid grid-cols-3 gap-2">
                                         {(
                                             [

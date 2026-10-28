@@ -1852,7 +1852,8 @@ function SelectCellView({
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
     // Circle display: a second datapoint may take the large line (#864) — only
     // subscribed in that mode, an empty id is a no-op.
-    const bigRef = cell.selectDisplay === 'circle' ? (cell.circleValueDp?.trim() ?? '') : '';
+    const bigRef =
+        cell.selectDisplay === 'circle' && cell.circlePrimary === 'dp' ? (cell.circleValueDp?.trim() ?? '') : '';
     const { value: bigRaw } = useDatapoint(bigRef);
     const cond = useCellConditionStyle(cell, value);
     // The JSON datapoint is only subscribed in that mode — an empty id is a no-op.
