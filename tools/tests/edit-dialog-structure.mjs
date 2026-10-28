@@ -147,6 +147,7 @@ const OWN_SECTIONS = ['chips'];
 const NONE = ['button', 'image', 'html', 'mirror'];
 /** Types with sections of their own (SECTIONED_EDIT_TYPES); the rest get "Einstellungen". */
 const SECTIONED = [
+    'image',
     'knob',
     'dimmer',
     'stateimage',

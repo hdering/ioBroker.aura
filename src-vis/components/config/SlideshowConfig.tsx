@@ -217,7 +217,6 @@ export function SlideshowConfig({ config, onConfigChange }: Props) {
                 <p className="text-[10px] -mt-1" style={hintSty}>
                     {t('slideshow.cfg.controlsHint')}
                 </p>
-                <FillTabToggle config={config} set={set} />
             </ConfigSection>
 
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
@@ -253,6 +252,7 @@ export function SlideshowConfig({ config, onConfigChange }: Props) {
                     options={SLIDESHOW_CAPTIONS.map((id) => ({ id, label: t(`slideshow.caption.${id}`) }))}
                     onChange={(v) => set({ showCaption: v === 'none' ? undefined : v })}
                 />
+                <FillTabToggle config={config} set={set} />
             </ConfigSection>
 
             <ConfigSection title={t('slideshow.cfg.videoSection')} sectionKey="video">

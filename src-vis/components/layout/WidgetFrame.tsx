@@ -457,6 +457,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
 // the types get their sections
 // (C:projects	oolsplanswidget-dialog-sichtbare-felder-und-abschnitte.md).
 const SECTIONED_EDIT_TYPES = new Set<WidgetType>([
+    'image',
     'knob',
     'dimmer',
     'stateimage',
@@ -14012,175 +14013,187 @@ function WidgetFrameInner({
                                     ];
                                     return (
                                         <>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Bild-URL, base64, SVG oder lokale Datei{' '}
-                                                    <span style={{ opacity: 0.6 }}>
-                                                        (https://… · data:image/… · &lt;svg…&gt; · Datei-Picker)
-                                                    </span>
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={imageUrl}
-                                                        onChange={(e) => set({ imageUrl: e.target.value || undefined })}
-                                                        placeholder="https://…/bild.jpg oder base64-String"
-                                                        className={`flex-1 ${iCls} font-mono min-w-0`}
-                                                        style={iSty}
-                                                    />
-                                                    <button
-                                                        onClick={() => setImageFilePicker(true)}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                        title="Lokale Datei vom Server wählen"
+                                            <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        <FolderOpen size={13} />
-                                                    </button>
-                                                </div>
-                                                {imageUrl.startsWith('aura-file:') && (
-                                                    <p
-                                                        className="text-[10px] mt-1 truncate"
-                                                        style={{ color: 'var(--accent)' }}
-                                                    >
-                                                        {imageUrl.slice('aura-file:'.length).split('/').pop()}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Datenpunkt{' '}
-                                                    <span style={{ opacity: 0.6 }}>
-                                                        (base64, URL oder SVG-Markup, überschreibt Bild-URL)
-                                                    </span>
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="text"
-                                                        value={(o.imageDatapoint as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            set({ imageDatapoint: e.target.value || undefined })
-                                                        }
-                                                        placeholder="z.B. cameras.0.snapshot"
-                                                        className={`flex-1 ${iCls} font-mono min-w-0`}
-                                                        style={iSty}
-                                                    />
-                                                    <button
-                                                        onClick={() => setPickerTarget('image_dp')}
-                                                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                        title="Aus ioBroker wählen"
-                                                    >
-                                                        <Database size={13} />
-                                                    </button>
-                                                </div>
-                                                <ImagePathHint className="mt-1.5" />
-                                            </div>
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-2 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Bildgröße
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    {FIT_OPTIONS.map(({ value, label }) => (
-                                                        <button
-                                                            key={value}
-                                                            onClick={() => set({ fit: value })}
-                                                            className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
-                                                            style={{
-                                                                background:
-                                                                    fit === value ? 'var(--accent)' : 'var(--app-bg)',
-                                                                color: fit === value ? '#fff' : 'var(--text-secondary)',
-                                                                border: `1px solid ${fit === value ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                            }}
-                                                        >
-                                                            {label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <CwColorField
-                                                label="Hintergrund (leer = transparent)"
-                                                value={o.imageBackground as string | undefined}
-                                                swatchFallback="#ffffff"
-                                                resetTitle="Hintergrund entfernen"
-                                                onChange={(v) => set({ imageBackground: v })}
-                                            />
-                                            {((imageUrl && !imageUrl.startsWith('data:')) || !!o.imageDatapoint) && (
-                                                <>
-                                                    <div>
-                                                        <label
-                                                            className="text-[11px] mb-1 block"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            Aktualisierungsintervall{' '}
-                                                            <span style={{ opacity: 0.6 }}>(Sek., 0 = kein)</span>
-                                                        </label>
+                                                        Bild-URL, base64, SVG oder lokale Datei{' '}
+                                                        <span style={{ opacity: 0.6 }}>
+                                                            (https://… · data:image/… · &lt;svg…&gt; · Datei-Picker)
+                                                        </span>
+                                                    </label>
+                                                    <div className="flex gap-1">
                                                         <input
-                                                            type="number"
-                                                            min={0}
-                                                            value={refreshSeconds}
+                                                            type="text"
+                                                            value={imageUrl}
                                                             onChange={(e) =>
-                                                                set({
-                                                                    refreshInterval:
-                                                                        Number(e.target.value) || undefined,
-                                                                })
+                                                                set({ imageUrl: e.target.value || undefined })
                                                             }
-                                                            className={iCls}
+                                                            placeholder="https://…/bild.jpg oder base64-String"
+                                                            className={`flex-1 ${iCls} font-mono min-w-0`}
                                                             style={iSty}
                                                         />
-                                                    </div>
-                                                    <div>
-                                                        <label
-                                                            className="text-[11px] mb-1 block"
-                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        <button
+                                                            onClick={() => setImageFilePicker(true)}
+                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                            title="Lokale Datei vom Server wählen"
                                                         >
-                                                            Neu laden bei Änderung von{' '}
-                                                            <span style={{ opacity: 0.6 }}>(Datenpunkt)</span>
-                                                        </label>
-                                                        <div className="flex gap-1">
+                                                            <FolderOpen size={13} />
+                                                        </button>
+                                                    </div>
+                                                    {imageUrl.startsWith('aura-file:') && (
+                                                        <p
+                                                            className="text-[10px] mt-1 truncate"
+                                                            style={{ color: 'var(--accent)' }}
+                                                        >
+                                                            {imageUrl.slice('aura-file:'.length).split('/').pop()}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Datenpunkt{' '}
+                                                        <span style={{ opacity: 0.6 }}>
+                                                            (base64, URL oder SVG-Markup, überschreibt Bild-URL)
+                                                        </span>
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        <input
+                                                            type="text"
+                                                            value={(o.imageDatapoint as string) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({ imageDatapoint: e.target.value || undefined })
+                                                            }
+                                                            placeholder="z.B. cameras.0.snapshot"
+                                                            className={`flex-1 ${iCls} font-mono min-w-0`}
+                                                            style={iSty}
+                                                        />
+                                                        <button
+                                                            onClick={() => setPickerTarget('image_dp')}
+                                                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                            title="Aus ioBroker wählen"
+                                                        >
+                                                            <Database size={13} />
+                                                        </button>
+                                                    </div>
+                                                    <ImagePathHint className="mt-1.5" />
+                                                </div>
+                                                {((imageUrl && !imageUrl.startsWith('data:')) ||
+                                                    !!o.imageDatapoint) && (
+                                                    <>
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Aktualisierungsintervall{' '}
+                                                                <span style={{ opacity: 0.6 }}>(Sek., 0 = kein)</span>
+                                                            </label>
                                                             <input
-                                                                type="text"
-                                                                value={(o.reloadDp as string) ?? ''}
+                                                                type="number"
+                                                                min={0}
+                                                                value={refreshSeconds}
                                                                 onChange={(e) =>
-                                                                    set({ reloadDp: e.target.value || undefined })
+                                                                    set({
+                                                                        refreshInterval:
+                                                                            Number(e.target.value) || undefined,
+                                                                    })
                                                                 }
-                                                                placeholder="z.B. 0_userdata.0.snapshotSaved"
-                                                                className={`flex-1 ${iCls} font-mono min-w-0`}
+                                                                className={iCls}
                                                                 style={iSty}
                                                             />
-                                                            <button
-                                                                onClick={() => setPickerTarget('image_reloadDp')}
-                                                                className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                                                style={{
-                                                                    background: 'var(--app-bg)',
-                                                                    color: 'var(--text-secondary)',
-                                                                    border: '1px solid var(--app-border)',
-                                                                }}
-                                                                title="Aus ioBroker wählen"
-                                                            >
-                                                                <Database size={13} />
-                                                            </button>
                                                         </div>
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                Neu laden bei Änderung von{' '}
+                                                                <span style={{ opacity: 0.6 }}>(Datenpunkt)</span>
+                                                            </label>
+                                                            <div className="flex gap-1">
+                                                                <input
+                                                                    type="text"
+                                                                    value={(o.reloadDp as string) ?? ''}
+                                                                    onChange={(e) =>
+                                                                        set({ reloadDp: e.target.value || undefined })
+                                                                    }
+                                                                    placeholder="z.B. 0_userdata.0.snapshotSaved"
+                                                                    className={`flex-1 ${iCls} font-mono min-w-0`}
+                                                                    style={iSty}
+                                                                />
+                                                                <button
+                                                                    onClick={() => setPickerTarget('image_reloadDp')}
+                                                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                                    style={{
+                                                                        background: 'var(--app-bg)',
+                                                                        color: 'var(--text-secondary)',
+                                                                        border: '1px solid var(--app-border)',
+                                                                    }}
+                                                                    title="Aus ioBroker wählen"
+                                                                >
+                                                                    <Database size={13} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </ConfigSection>
+                                            <ConfigSection title={t('cfg.section.look')} sectionKey="look">
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-2 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Bildgröße
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {FIT_OPTIONS.map(({ value, label }) => (
+                                                            <button
+                                                                key={value}
+                                                                onClick={() => set({ fit: value })}
+                                                                className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                                                style={{
+                                                                    background:
+                                                                        fit === value
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                    color:
+                                                                        fit === value
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                    border: `1px solid ${fit === value ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                }}
+                                                            >
+                                                                {label}
+                                                            </button>
+                                                        ))}
                                                     </div>
-                                                </>
-                                            )}
-                                            <FillTabToggle config={config} set={set} />
+                                                </div>
+                                                <CwColorField
+                                                    label="Hintergrund (leer = transparent)"
+                                                    value={o.imageBackground as string | undefined}
+                                                    swatchFallback="#ffffff"
+                                                    resetTitle="Hintergrund entfernen"
+                                                    onChange={(v) => set({ imageBackground: v })}
+                                                />
+                                                <FillTabToggle config={config} set={set} />
+                                            </ConfigSection>
                                         </>
                                     );
                                 })()}
@@ -14876,6 +14889,7 @@ function WidgetFrameInner({
                                                         );
                                                     })}
                                                     <EmbedMobileHeightField options={o} onChange={set} />
+                                                    <FillTabToggle config={config} set={set} />
                                                 </>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
@@ -14886,7 +14900,6 @@ function WidgetFrameInner({
                                                         sty={iSty}
                                                         hasClickAction={hasClickAction}
                                                     />
-                                                    <FillTabToggle config={config} set={set} />
                                                 </>
                                             </ConfigSection>
                                         </>

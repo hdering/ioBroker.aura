@@ -2,7 +2,7 @@
 //
 // Laufzeit: Ein Widget mit fillTab liegt als Overlay über dem ganzen Tab, nicht
 // im Raster — seine Kachel ist so groß wie der Tab-Bereich.
-// Editor: Der Schalter steht bei allen drei Typen unter „Verhalten“, ist im Tab mit
+// Editor: Der Schalter steht bei allen drei Typen unter „Optik“, ist im Tab mit
 // nur diesem Widget bedienbar, mit weiteren Widgets gesperrt.
 //
 //   AURA_IOBROKER_URL=http://127.0.0.1:9 npx vite --port 5199
@@ -109,7 +109,7 @@ for (const { type } of TYPES) {
     );
 }
 
-// Editor: toggle present under „Verhalten“, enabled alone, disabled next to another widget.
+// Editor: toggle present under „Optik“, enabled alone, disabled next to another widget.
 await page.evaluate(() => window.__auraShot.setEditMode(true));
 const toggleState = async (id) => {
     const tile = page.locator(`.aura-widget-${id}`).first();
@@ -122,7 +122,13 @@ const toggleState = async (id) => {
     await page.evaluate(() => window.__auraShot.unfoldSections());
     await page.waitForTimeout(300);
     const btn = page.locator('[data-aura-fill-tab] button').first();
-    const state = (await btn.count()) ? { disabled: await btn.isDisabled(), btn } : null;
+    const state = (await btn.count())
+        ? {
+              disabled: await btn.isDisabled(),
+              section: await btn.evaluate((el) => el.closest('details')?.querySelector('summary')?.innerText.trim()),
+              btn,
+          }
+        : null;
     if (!state && process.env.DEBUG)
         console.log(
             await page.evaluate(
@@ -152,6 +158,7 @@ for (const { type } of TYPES) {
     await goto(type);
     const alone = await toggleState(`w-${type}`);
     check(`${type}: Schalter bedienbar als einziges Widget`, alone.state?.disabled === false);
+    check(`${type}: Schalter unter Optik`, /^optik$/i.test(alone.state?.section ?? ''), alone.state?.section);
     if (alone.state) {
         await alone.state.btn.click();
         await page.waitForTimeout(200);

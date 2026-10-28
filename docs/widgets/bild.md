@@ -37,10 +37,15 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | ----------------- | --------- | ----------------------------------------------------- |
 | `imageUrl`        | —         | Bild-URL, lokale Datei, Base64 oder SVG               |
 | `imageDatapoint`  | —         | Datenpunkt mit URL/Base64/SVG; jedes Schreiben lädt neu |
-| `fit`             | `contain` | `none` · `contain` · `width` · `height`               |
-| `imageBackground` | —         | Hintergrundfarbe hinter dem Bild (leer = transparent) |
 | `refreshInterval` | `0`       | Sekunden zwischen Reloads (`0` = aus)                 |
 | `reloadDp`        | —         | Trigger-DP: jedes Schreiben lädt das Bild neu         |
+
+### Optik
+
+| Option            | Standard  |                                                       |
+| ----------------- | --------- | ----------------------------------------------------- |
+| `fit`             | `contain` | `none` · `contain` · `width` · `height`               |
+| `imageBackground` | —         | Hintergrundfarbe hinter dem Bild (leer = transparent) |
 | `fillTab`         | `false`   | Tab ausfüllen: Bild füllt den ganzen Tab (nur als einziges Widget im Tab) |
 
 ### Anzeige
