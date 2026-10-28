@@ -31,6 +31,8 @@ import { formatYTick } from '../../utils/chartFormat';
 import { samplePreviewHistory } from '../../utils/sampleChartData';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+import { useChartNav } from '../../hooks/useChartNav';
+import { ChartNavBar } from './ChartNavBar';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -114,37 +116,45 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const showGridLines = o.showGridLines === true;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, TrendingUp);
 
-    // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
-    const [activeRange, setActiveRange] = useState<ChartTimeRange>(startRange);
-    const [activeCustomVal, setActiveCustomVal] = useState<number>(startVal);
-    const [activeCustomUnit, setActiveCustomUnit] = useState<RangeUnit>(startUnit);
-
-    // Reset when admin config changes
-    useEffect(() => {
-        setActiveRange(startRange);
-        setActiveCustomVal(startVal);
-        setActiveCustomUnit(startUnit);
-    }, [startRange, startVal, startUnit]);
+    // ── Frontend-local range selection + paging (‹ › ⇥ 📅, issue #871) ──
+    const nav = useChartNav({
+        startRange,
+        startCustomValue: startVal,
+        startCustomUnit: startUnit,
+        lockRange,
+        paging: o.dayNav === true,
+        startOnCurrent: o.dayNavDefault === true,
+        anchor: o.navAnchor === 'start' ? 'start' : 'end',
+        group: typeof o.navGroup === 'string' ? o.navGroup.trim() : '',
+        dateDp: (o.navDateDp as string | undefined) ?? '',
+        rangeDp: (o.navRangeDp as string | undefined) ?? '',
+        commandDp: (o.navCommandDp as string | undefined) ?? '',
+    });
+    const activeRange = nav.range as ChartTimeRange;
+    const activeCustomVal = nav.customValue;
+    const activeCustomUnit = nav.customUnit;
+    const navWindow = nav.window;
 
     // Calendar months/years: the span only changes with the date, so this stays stable between
     // renders and does not refetch on its own.
     const activeCustomMs = activeRange === 'custom' ? unitSpanMs(activeCustomVal, activeCustomUnit) : undefined;
     const activeKey = rangeKey(activeRange, activeCustomVal, activeCustomUnit);
 
-    const effectiveRangeMs =
-        activeCustomMs ??
-        (
-            {
-                '1h': 3_600_000,
-                '6h': 21_600_000,
-                '24h': 86_400_000,
-                '7d': 604_800_000,
-                '30d': 2_592_000_000,
-                '1y': 31_536_000_000,
-                total: TOTAL_FLOOR_MS,
-            } as Record<string, number>
-        )[activeRange] ??
-        86_400_000;
+    const effectiveRangeMs = navWindow
+        ? navWindow.end - navWindow.start
+        : (activeCustomMs ??
+          (
+              {
+                  '1h': 3_600_000,
+                  '6h': 21_600_000,
+                  '24h': 86_400_000,
+                  '7d': 604_800_000,
+                  '30d': 2_592_000_000,
+                  '1y': 31_536_000_000,
+                  total: TOTAL_FLOOR_MS,
+              } as Record<string, number>
+          )[activeRange] ??
+          86_400_000);
 
     // Auto-detected instance picked at runtime (only relevant when autoHistory and no
     // configured instance). useChartHistory falls back to its first detected adapter on its
@@ -152,7 +162,15 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const [pickedInstance, setPickedInstance] = useState<string | undefined>(undefined);
     const effInstance = historyInstance ?? (autoHistory ? pickedInstance : undefined);
 
-    const raw = useChartHistory(config.datapoint, effInstance, activeRange, connected, subscribe, activeCustomMs);
+    const raw = useChartHistory(
+        config.datapoint,
+        effInstance,
+        activeRange,
+        connected,
+        subscribe,
+        activeCustomMs,
+        navWindow,
+    );
 
     // Default the picker to the first adapter once several are detected.
     useEffect(() => {
@@ -284,13 +302,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
                             }}
-                            onClick={() => {
-                                setActiveRange(c.range);
-                                if (c.range === 'custom') {
-                                    setActiveCustomVal(c.value ?? 24);
-                                    setActiveCustomUnit(c.unit ?? 'h');
-                                }
-                            }}
+                            onClick={() => nav.selectChip(c)}
                         >
                             {c.label}
                         </button>
@@ -298,6 +310,13 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 })}
             </div>
         ) : null;
+
+    // Paging bar, next to the chips — only where there is a history to page through.
+    const navBar = nav.paging && hasResolvedInstance ? <ChartNavBar nav={nav} chips={chipList} /> : null;
+    // While paging the axis frames the window itself, so an empty stretch shows as empty.
+    const xDomain: [number | string, number | string] = navWindow
+        ? [navWindow.start, navWindow.end]
+        : ['dataMin', 'dataMax'];
 
     // ── CARD ─────────────────────────────────────────────────────────────────
     if (layout === 'card') {
@@ -348,10 +367,11 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                         </div>
                     </div>
                 </div>
-                {(rangeSelector || adapterPicker) && (
+                {(rangeSelector || adapterPicker || navBar) && (
                     <div className="mb-1.5 flex items-center gap-1 flex-wrap">
                         {rangeSelector}
                         {adapterPicker}
+                        {navBar && <div className="ml-auto">{navBar}</div>}
                     </div>
                 )}
                 <div className="flex-1" style={{ minHeight: 1 }}>
@@ -375,13 +395,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                         width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
                                         tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact, numFmt)}
                                     />
-                                    <XAxis
-                                        dataKey="t"
-                                        type="number"
-                                        domain={['dataMin', 'dataMax']}
-                                        scale="time"
-                                        hide
-                                    />
+                                    <XAxis dataKey="t" type="number" domain={xDomain} scale="time" hide />
                                     <Tooltip
                                         contentStyle={tooltipStyle}
                                         labelFormatter={(label) => formatLabel(Number(label))}
@@ -470,10 +484,11 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 </div>
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            {(rangeSelector || adapterPicker) && (
+            {(rangeSelector || adapterPicker || navBar) && (
                 <div className="mb-1 flex items-center gap-1 flex-wrap">
                     {rangeSelector}
                     {adapterPicker}
+                    {navBar && <div className="ml-auto">{navBar}</div>}
                 </div>
             )}
             <div className="flex-1" style={{ minHeight: 1 }}>
@@ -494,7 +509,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                 <XAxis
                                     dataKey="t"
                                     type="number"
-                                    domain={['dataMin', 'dataMax']}
+                                    domain={xDomain}
                                     scale="time"
                                     hide={!showXAxis}
                                     tickFormatter={(ts) => formatTick(ts, effectiveRangeMs)}

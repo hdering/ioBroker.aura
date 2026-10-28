@@ -22,6 +22,7 @@ import { counterFetchStep, counterIncrease, deltaFetchCount } from './useMultiSe
 // Moved next to `bucketDeltas` so the advanced chart's period value can share them (issue #749).
 export { counterFetchStep, counterIncrease } from './useMultiSeriesData';
 import type { EChartTimeRange } from './useMultiSeriesData';
+import { unitSpanMs, type RangeUnit } from '../utils/rangeChips';
 import type { ioBrokerState } from '../types';
 import type { NumberFormat } from '../utils/formatValue';
 
@@ -68,11 +69,9 @@ const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
     total: TOTAL_FLOOR_MS,
 };
 
-function getRangeMs(range: EChartTimeRange, customVal?: number, customUnit?: 'h' | 'd'): number {
-    if (range === 'custom') {
-        const val = customVal ?? 24;
-        return Math.max(1, val) * (customUnit === 'd' ? 86_400_000 : 3_600_000);
-    }
+function getRangeMs(range: EChartTimeRange, customVal?: number, customUnit?: RangeUnit): number {
+    // Weeks, calendar months and years like the advanced chart (issue #871).
+    if (range === 'custom') return unitSpanMs(customVal ?? 24, customUnit ?? 'h');
     return RANGE_MS[range];
 }
 
@@ -113,8 +112,14 @@ export function useEnergyBalanceValues(
     connected: boolean,
     subscribe: (id: string, cb: (state: ioBrokerState) => void) => () => void,
     customVal?: number,
-    customUnit?: 'h' | 'd',
+    customUnit?: RangeUnit,
+    /** Absolute window while paging (issue #871); omitted = rolling up to now. */
+    window?: { start: number; end: number } | null,
 ): Map<string, EnergyValueResult> {
+    const winStart = window?.start;
+    const winEnd = window?.end;
+    // A window that ended in the past does not move: no refresh tick, no live 'last' updates.
+    const winClosed = winEnd !== undefined && winEnd <= Date.now();
     const [results, setResults] = useState<Map<string, EnergyValueResult>>(new Map());
     // Runtime-resolved history instance per entry (for entries without an explicit one).
     const [resolvedInstances, setResolvedInstances] = useState<Record<string, string | null>>({});
@@ -128,7 +133,8 @@ export function useEnergyBalanceValues(
     }, []);
 
     const depKey = JSON.stringify(entries.map((e) => [e.id, e.datapointId, e.historyInstance, e.aggregate ?? 'last']));
-    const rangeMs = getRangeMs(range, customVal, customUnit);
+    const rangeMs =
+        winStart !== undefined && winEnd !== undefined ? winEnd - winStart : getRangeMs(range, customVal, customUnit);
 
     // ── Auto-detect a history adapter for entries without an explicit instance ──
     useEffect(() => {
@@ -157,12 +163,12 @@ export function useEnergyBalanceValues(
 
     // ── Periodic refresh so the trailing window keeps moving ────────────────────
     useEffect(() => {
-        if (!connected || entries.length === 0) return;
+        if (!connected || entries.length === 0 || winClosed) return;
         const interval = rangeMs <= 3_600_000 ? 60_000 : rangeMs <= 86_400_000 ? 300_000 : 900_000;
         const id = globalThis.setInterval(() => setRefreshTick((t) => t + 1), interval);
         return () => clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [depKey, connected, rangeMs]);
+    }, [depKey, connected, rangeMs, winClosed]);
 
     // ── Fetch + reduce one value per entry ──────────────────────────────────────
     useEffect(() => {
@@ -216,8 +222,9 @@ export function useEnergyBalanceValues(
                 return;
             }
 
-            const end = Date.now();
-            const start = end - rangeMs;
+            // A paged window that reaches into the future is fetched up to now.
+            const end = winEnd !== undefined ? Math.min(winEnd, Date.now()) : Date.now();
+            const start = winStart ?? end - rangeMs;
             const isCounter = mode === 'consumption';
             const step = isCounter ? counterFetchStep(rangeMs) : getStepForMs(rangeMs);
             getHistoryDirect(e.datapointId, {
@@ -261,7 +268,7 @@ export function useEnergyBalanceValues(
                 });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [depKey, instanceKey, connected, rangeMs, refreshTick]);
+    }, [depKey, instanceKey, connected, rangeMs, refreshTick, winStart, winEnd]);
 
     // ── Live updates: for 'last' reflect the new value instantly; other modes wait for
     //    the next refresh tick (a single point can't re-derive a range aggregate). ──

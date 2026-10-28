@@ -24,11 +24,14 @@ import { AuraIcon } from '../common/AuraIcon';
 import { useT } from '../../i18n';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
+import { RangeChipsEditor } from './RangeChipsEditor';
+import { ChartNavSettings, PLAIN_NAV_KEYS } from './chart/ChartNavSettings';
+import { parseRangeChips, RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 
 // Presets offered for the configured (default) time range.
-const DEFAULT_RANGES: EChartTimeRange[] = ['1h', '24h', '7d', '30d', 'custom'];
+const DEFAULT_RANGES: EChartTimeRange[] = ['1h', '24h', '7d', '30d', '1y', 'custom'];
 // Presets the admin can expose in the frontend range selector.
-const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
+const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'custom'];
 const AGGREGATES: { id: EnergyAggregate; label: string }[] = [
     { id: 'last', label: 'Letzter Wert' },
     { id: 'delta', label: 'Differenz (Ende − Start)' },
@@ -692,8 +695,13 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
 
     const range = o.range ?? '24h';
     const lockRange = o.lockRange === true;
-    const presetFrontendRanges = FRONTEND_RANGES.filter((r) => r !== 'custom');
+    // Default selection without `1y`, like the widget — existing widgets keep their chips.
+    const presetFrontendRanges = FRONTEND_RANGES.filter((r) => r !== 'custom' && r !== '1y');
     const visibleRanges = o.visibleRanges && o.visibleRanges.length > 0 ? o.visibleRanges : presetFrontendRanges;
+    // Own chips (#871) supersede the preset toggles.
+    const hasOwnChips = parseRangeChips(o.rangeChips).length > 0;
+    const customVal = o.rangeCustomValue ?? 24;
+    const customUnit: RangeUnit = o.rangeCustomUnit ?? 'h';
     const toggleVisibleRange = (r: EChartTimeRange) => {
         const next = visibleRanges.includes(r)
             ? visibleRanges.filter((x) => x !== r)
@@ -868,19 +876,22 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                     style={inputStyle}
                                 />
                                 <select
-                                    value={o.rangeCustomUnit ?? 'h'}
-                                    onChange={(e) => setO({ rangeCustomUnit: e.target.value as 'h' | 'd' })}
+                                    value={customUnit}
+                                    onChange={(e) => setO({ rangeCustomUnit: e.target.value as RangeUnit })}
                                     className="text-[11px] rounded px-2 py-1 focus:outline-none"
                                     style={inputStyle}
                                 >
-                                    <option value="h">Stunden</option>
-                                    <option value="d">Tage</option>
+                                    {RANGE_UNITS.map((u) => (
+                                        <option key={u} value={u}>
+                                            {t(`rangeChips.unit.${u}`)}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         )}
 
                         {/* Which ranges the frontend selector offers (hidden while locked) */}
-                        {!lockRange && (
+                        {!lockRange && !hasOwnChips && (
                             <div className="mt-2">
                                 <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                     Sichtbare Zeitbereiche im Frontend
@@ -908,6 +919,16 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                             </div>
                         )}
 
+                        {!lockRange && (
+                            <RangeChipsEditor
+                                value={o.rangeChips}
+                                defaults={visibleRanges.map((r) =>
+                                    r === 'custom' ? rangeKey('custom', customVal, customUnit) : r,
+                                )}
+                                onChange={(next) => setO({ rangeChips: next })}
+                            />
+                        )}
+
                         <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                             <input
                                 type="checkbox"
@@ -919,6 +940,11 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                                 Zeitraum im Frontend sperren
                             </span>
                         </label>
+                        <ChartNavSettings
+                            o={o as unknown as Record<string, unknown>}
+                            set={(p) => setO(p as Partial<EnergyBalanceOptions>)}
+                            keys={PLAIN_NAV_KEYS}
+                        />
                     </div>
                 </SubGroup>
             </ConfigSection>

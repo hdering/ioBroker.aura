@@ -9534,6 +9534,16 @@
           "description": "Farbe der Mittelwertlinie.",
           "color": true
         },
+        "dayNav": {
+          "type": "boolean",
+          "default": false,
+          "description": "Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, 7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. ⇥ springt auf den aktuellen Zeitraum, ein zweiter Klick darauf kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt\" ist Blättern ausgegraut."
+        },
+        "dayNavDefault": {
+          "type": "boolean",
+          "default": false,
+          "description": "Startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00) statt auf dem rollenden. Setzt dayNav voraus."
+        },
         "historyInstance": {
           "type": "string",
           "description": "History-Adapterinstanz, z. B. \"history.0\" oder \"influxdb.0\"."
@@ -9565,6 +9575,38 @@
           "type": "boolean",
           "default": false,
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten."
+        },
+        "navAnchor": {
+          "type": "string",
+          "enum": [
+            "end",
+            "start"
+          ],
+          "default": "end",
+          "description": "Was das gewählte Datum beim Blättern ist: \"end\" (Standard) = letzter Tag des Fensters (7 Tage bis zum Datum), \"start\" = erster Tag (7 Tage ab dem Datum). Setzt dayNav voraus."
+        },
+        "navCommandDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optionaler Befehls-Datenpunkt (nur lesen, setzt dayNav voraus): \"prev\", \"next\", \"today\", \"now\" (auch -1/1). Jede Aktualisierung zählt, auch derselbe Wert; der Wert beim Laden wird ignoriert, das Widget setzt den DP nicht zurück.",
+          "datapoint": true
+        },
+        "navDateDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
+          "datapoint": true
+        },
+        "navGroup": {
+          "type": "string",
+          "default": "",
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp."
+        },
+        "navRangeDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips (\"6h\", \"24h\", \"7d\", \"1M\", \"total\"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.",
+          "datapoint": true
         },
         "rangeChips": {
           "type": "array",
@@ -11505,7 +11547,7 @@
         "echartDayNav": {
           "type": "boolean",
           "default": false,
-          "description": "Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, 7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. Ein zweiter Klick auf das leuchtende ⇥ (zum aktuellen Zeitraum) kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt\" ist Blättern ausgegraut."
+          "description": "Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, 7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. ⇥ springt auf den aktuellen Zeitraum, ein zweiter Klick darauf kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt\" ist Blättern ausgegraut."
         },
         "echartDayNavDefault": {
           "type": "boolean",
@@ -11587,7 +11629,7 @@
         "echartNavGroup": {
           "type": "string",
           "default": "",
-          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, blättern alle. Nur im selben Browser; geräteübergreifend über echartNavDateDp/echartNavRangeDp."
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über echartNavDateDp/echartNavRangeDp."
         },
         "echartNavRangeDp": {
           "type": "string",
@@ -11898,6 +11940,16 @@
           "description": "Visual style of each bar's composition. Default 'bars' (100%-stacked bar).",
           "default": "bars"
         },
+        "dayNav": {
+          "type": "boolean",
+          "description": "Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, 7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. ⇥ springt auf den aktuellen Zeitraum, ein zweiter Klick darauf kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt\" ist Blättern ausgegraut.",
+          "default": false
+        },
+        "dayNavDefault": {
+          "type": "boolean",
+          "description": "Startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00) statt auf dem rollenden. Setzt dayNav voraus.",
+          "default": false
+        },
         "iconSize": {
           "type": "number",
           "default": 18,
@@ -11937,6 +11989,38 @@
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten.",
           "default": false
         },
+        "navAnchor": {
+          "type": "string",
+          "enum": [
+            "end",
+            "start"
+          ],
+          "description": "Was das gewählte Datum beim Blättern ist: \"end\" (Standard) = letzter Tag des Fensters (7 Tage bis zum Datum), \"start\" = erster Tag (7 Tage ab dem Datum). Setzt dayNav voraus.",
+          "default": "end"
+        },
+        "navCommandDp": {
+          "type": "string",
+          "description": "Optionaler Befehls-Datenpunkt (nur lesen, setzt dayNav voraus): \"prev\", \"next\", \"today\", \"now\" (auch -1/1). Jede Aktualisierung zählt, auch derselbe Wert; der Wert beim Laden wird ignoriert, das Widget setzt den DP nicht zurück.",
+          "default": "",
+          "datapoint": true
+        },
+        "navDateDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
+          "default": "",
+          "datapoint": true
+        },
+        "navGroup": {
+          "type": "string",
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp.",
+          "default": ""
+        },
+        "navRangeDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips (\"6h\", \"24h\", \"7d\", \"1M\", \"total\"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.",
+          "default": "",
+          "datapoint": true
+        },
         "percentFontSize": {
           "type": "number",
           "description": "Schriftgröße der Prozentwerte in Segmenten und Tortenstücken in px. Leer = 11 (bei Torte/Donut relativ zur Diagrammgröße)."
@@ -11952,14 +12036,18 @@
           "default": "24h",
           "description": "Zeitraum, über den die Einträge aggregiert werden. Im Frontend umschaltbar (visibleRanges), solange lockRange aus ist."
         },
+        "rangeChips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Eigene Zeitraum-Chips wie im erweiterten Diagramm, z. B. [\"1M\", \"3M=Quartal\", \"12M\"]; ersetzt visibleRanges. \"total\" wird hier nicht angeboten."
+        },
         "rangeCustomUnit": {
           "type": "string",
-          "enum": [
-            "h",
-            "d"
-          ],
-          "default": "h",
-          "description": "Einheit von rangeCustomValue: \"h\" = Stunden, \"d\" = Tage."
+          "ref": "RangeUnit",
+          "description": "Einheit von rangeCustomValue: m (Minuten), h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre).",
+          "default": "h"
         },
         "rangeCustomValue": {
           "type": "number",
@@ -12021,7 +12109,7 @@
             "type": "string",
             "ref": "EChartTimeRange"
           },
-          "description": "Which presets the frontend range selector offers (default: all presets)."
+          "description": "Welche eingebauten Zeiträume der Umschalter anbietet (\"1y\" nur, wenn hier gesetzt). Wirkungslos, sobald rangeChips gesetzt ist."
         }
       }
     },

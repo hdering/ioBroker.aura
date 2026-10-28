@@ -133,11 +133,21 @@ Ein gemeinsamer Zeitraum für alle Gruppen und Einträge.
 
 | Option             | Standard     |                                                 |
 | ------------------ | ------------ | ----------------------------------------------- |
-| `range`            | `24h`        | `1h` · `6h` · `24h` · `7d` · `30d` · `custom`   |
+| `range`            | `24h`        | `1h` · `6h` · `24h` · `7d` · `30d` · `1y` · `custom` |
 | `rangeCustomValue` | `24`         | nur bei `custom`                                |
-| `rangeCustomUnit`  | `h`          | `h` · `d`, nur bei `custom`                     |
-| `visibleRanges`    | alle Presets | Welche Presets der Frontend-Umschalter anbietet |
+| `rangeCustomUnit`  | `h`          | `m` · `h` · `d` · `w` · `M` · `y`, nur bei `custom` |
+| `visibleRanges`    | `1h`–`30d`   | Welche Presets der Frontend-Umschalter anbietet (`1y` nur auf Wunsch) |
+| `rangeChips`       | —            | Eigene Zeitraum-Chips wie im [Diagramm](./diagramm.md#verlauf), z. B. `["1M","3M=Quartal","12M"]`; ohne `total` |
 | `lockRange`        | `false`      | Umschalter im Frontend ausblenden               |
+| `dayNav`                  | `false`  | Blättern im Frontend (‹ › ⇥ 📅) — Schritt = aktiver Zeitraum-Chip |
+| `dayNavDefault`           | `false`  | Beim Laden auf den aktuellen Zeitraum stellen      |
+| `navAnchor`               | `end`    | Gewähltes Datum ist `end` = letzter Tag · `start` = erster Tag |
+| `navGroup`                | —        | Kopplungsgruppe, auch mit dem erweiterten und dem einfachen Diagramm |
+| `navRangeDp`              | —        | Zeitraum-Datenpunkt, lesen + schreiben (`7d`, `1M` …) |
+| `navDateDp`               | —        | Datum-Datenpunkt, lesen + schreiben (`YYYY-MM-DD`, ms) |
+| `navCommandDp`            | —        | Befehls-Datenpunkt: `prev` · `next` · `today` · `now` |
+
+Blättern zeigt z. B. den Verbrauch je Woche oder Monat: ‹ › springen um den aktiven Zeitraum, 📅 wählt den Tag. Blättern und Koppeln wie im [Diagramm (erweitert)](./diagramm-erweitert.md#verlauf) — gleicher Gruppenname koppelt auch über die Diagramm-Typen hinweg.
 
 ## Beispiele
 

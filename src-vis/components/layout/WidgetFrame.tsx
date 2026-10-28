@@ -76,6 +76,7 @@ import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { FillStatusSection } from '../config/FillStatusSection';
 import { StatusDpField } from '../config/StatusDpField';
+import { ChartNavSettings, PLAIN_NAV_KEYS } from '../config/chart/ChartNavSettings';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import {
     interactionModeChoices,
@@ -1679,6 +1680,8 @@ function ChartHistoryConfig({
                                     {t('wf.history.lockRange')}
                                 </span>
                             </label>
+                            {/* Blättern + Kopplung (#871) — nur das Diagramm, das Klima-Widget hat keine Leiste */}
+                            {config.type === 'chart' && <ChartNavSettings o={o} set={set} keys={PLAIN_NAV_KEYS} />}
                         </div>
                     </SubGroup>
                 )}

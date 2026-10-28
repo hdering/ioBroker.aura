@@ -264,7 +264,71 @@ const CIRCLE_NOTES = {
 };
 
 /** Per-widget prose for a key the generator already found. */
+/**
+ * Paging + linking options of the chart widgets (issue #871) — the same behaviour under each
+ * widget's own keys (echart: echart-prefixed, chart/energiebilanz: plain).
+ */
+function navNotes(k) {
+    return {
+        [k.paging]: {
+            description:
+                'Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, ' +
+                '7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. ⇥ springt auf den ' +
+                'aktuellen Zeitraum, ein zweiter Klick darauf kehrt zum rollenden Zeitraum bis jetzt zurück. Bei ' +
+                '„Gesamt" ist Blättern ausgegraut.',
+        },
+        [k.startOnCurrent]: {
+            description: `Startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00) statt auf dem rollenden. Setzt ${k.paging} voraus.`,
+        },
+        [k.anchor]: {
+            type: 'string',
+            enum: ['end', 'start'],
+            default: 'end',
+            description:
+                'Was das gewählte Datum beim Blättern ist: "end" (Standard) = letzter Tag des Fensters (7 Tage bis zum Datum), ' +
+                `"start" = erster Tag (7 Tage ab dem Datum). Setzt ${k.paging} voraus.`,
+        },
+        [k.group]: {
+            type: 'string',
+            default: '',
+            description:
+                'Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, ' +
+                'blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; ' +
+                `geräteübergreifend über ${k.dateDp}/${k.rangeDp}.`,
+        },
+        [k.dateDp]: {
+            description:
+                `Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt ${k.paging} voraus). Werte: "YYYY-MM-DD" ` +
+                `(Tag, nach ${k.anchor} eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), ` +
+                'leer/0/"now" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).',
+        },
+        [k.rangeDp]: {
+            description:
+                'Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips ("6h", "24h", "7d", ' +
+                '"1M", "total"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.',
+        },
+        [k.commandDp]: {
+            description:
+                `Optionaler Befehls-Datenpunkt (nur lesen, setzt ${k.paging} voraus): "prev", "next", "today", "now" ` +
+                '(auch -1/1). Jede Aktualisierung zählt, auch derselbe Wert; der Wert beim Laden wird ignoriert, ' +
+                'das Widget setzt den DP nicht zurück.',
+        },
+    };
+}
+const PLAIN_NAV = {
+    paging: 'dayNav',
+    startOnCurrent: 'dayNavDefault',
+    anchor: 'navAnchor',
+    group: 'navGroup',
+    dateDp: 'navDateDp',
+    rangeDp: 'navRangeDp',
+    commandDp: 'navCommandDp',
+};
+
 export const WIDGET_OPTION_NOTES = {
+    chart: {
+        ...navNotes(PLAIN_NAV),
+    },
     group: {
         autoShrink: {
             description:
@@ -1382,7 +1446,20 @@ export const WIDGET_OPTION_NOTES = {
                 'Zeitraum, über den die Einträge aggregiert werden. Im Frontend umschaltbar (visibleRanges), solange lockRange aus ist.',
         },
         rangeCustomValue: { description: 'Länge des Zeitraums bei range "custom".' },
-        rangeCustomUnit: { description: 'Einheit von rangeCustomValue: "h" = Stunden, "d" = Tage.' },
+        rangeCustomUnit: {
+            description:
+                'Einheit von rangeCustomValue: m (Minuten), h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre).',
+        },
+        rangeChips: {
+            description:
+                'Eigene Zeitraum-Chips wie im erweiterten Diagramm, z. B. ["1M", "3M=Quartal", "12M"]; ersetzt visibleRanges. ' +
+                '"total" wird hier nicht angeboten.',
+        },
+        visibleRanges: {
+            description:
+                'Welche eingebauten Zeiträume der Umschalter anbietet ("1y" nur, wenn hier gesetzt). Wirkungslos, sobald rangeChips gesetzt ist.',
+        },
+        ...navNotes(PLAIN_NAV),
         showTotals: { description: 'Summe der Gruppe neben ihrem Titel anzeigen.' },
         showPercent: { description: 'Anteil in Prozent in den Segmenten anzeigen.' },
         legendFormat: { description: 'Inhalt jeder Legendenzeile: Symbol, Name und/oder Wert.' },
@@ -1414,48 +1491,15 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Welche eingebauten Zeiträume der Umschalter anbietet. Wirkungslos, sobald rangeChips gesetzt ist.',
         },
-        echartDayNav: {
-            description:
-                'Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, ' +
-                '7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. Ein zweiter Klick auf das ' +
-                'leuchtende ⇥ (zum aktuellen Zeitraum) kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt" ist Blättern ausgegraut.',
-        },
-        echartDayNavDefault: {
-            description:
-                'Startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00) statt auf dem rollenden. Setzt echartDayNav voraus.',
-        },
-        echartNavAnchor: {
-            type: 'string',
-            enum: ['end', 'start'],
-            default: 'end',
-            description:
-                'Was das gewählte Datum beim Blättern ist: "end" (Standard) = letzter Tag des Fensters (7 Tage bis zum Datum), ' +
-                '"start" = erster Tag (7 Tage ab dem Datum). Setzt echartDayNav voraus.',
-        },
-        echartNavGroup: {
-            type: 'string',
-            default: '',
-            description:
-                'Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, ' +
-                'blättern alle. Nur im selben Browser; geräteübergreifend über echartNavDateDp/echartNavRangeDp.',
-        },
-        echartNavDateDp: {
-            description:
-                'Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt echartDayNav voraus). Werte: "YYYY-MM-DD" ' +
-                '(Tag, nach echartNavAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), ' +
-                'leer/0/"now" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).',
-        },
-        echartNavRangeDp: {
-            description:
-                'Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips ("6h", "24h", "7d", ' +
-                '"1M", "total"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.',
-        },
-        echartNavCommandDp: {
-            description:
-                'Optionaler Befehls-Datenpunkt (nur lesen, setzt echartDayNav voraus): "prev", "next", "today", "now" ' +
-                '(auch -1/1). Jede Aktualisierung zählt, auch derselbe Wert; der Wert beim Laden wird ignoriert, ' +
-                'das Widget setzt den DP nicht zurück.',
-        },
+        ...navNotes({
+            paging: 'echartDayNav',
+            startOnCurrent: 'echartDayNavDefault',
+            anchor: 'echartNavAnchor',
+            group: 'echartNavGroup',
+            dateDp: 'echartNavDateDp',
+            rangeDp: 'echartNavRangeDp',
+            commandDp: 'echartNavCommandDp',
+        }),
         echartShowCurrent: { description: 'Aktuellen Wert je Reihe über dem Diagramm anzeigen.' },
         echartCurrentFrom: {
             description:

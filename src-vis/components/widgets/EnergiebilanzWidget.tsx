@@ -7,7 +7,7 @@
  * `useEnergyBalanceValues`), matching the "Diagramm (erweitert)" data model. The two-sided
  * Produktion/Verbrauch reference layout is simply the N=2 case (legendSide left + right).
  */
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -19,11 +19,15 @@ import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import type { EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { useEnergyBalanceValues, type EnergyEntry } from '../../hooks/useEnergyBalanceValues';
 import { AuraIcon } from '../common/AuraIcon';
+import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
+import { useChartNav } from '../../hooks/useChartNav';
+import { ChartNavBar } from './ChartNavBar';
 
 /** Presets offered by the frontend range selector (custom handled separately). */
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
-/** Full ordered set of frontend-selectable ranges (used to normalise the config list). */
-const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
+/** Full ordered set of frontend-selectable ranges (used to normalise the config list). `1y` is
+ *  offered but not on by default, so existing widgets do not grow a chip (issue #871). */
+const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'custom'];
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -75,7 +79,24 @@ export interface EnergyBalanceOptions {
     numberFormat?: NumberFormat;
     range?: EChartTimeRange;
     rangeCustomValue?: number;
-    rangeCustomUnit?: 'h' | 'd';
+    /** Unit of the own range: m, h, d, w, M (calendar months), y (calendar years). */
+    rangeCustomUnit?: RangeUnit;
+    /** Own range chips (`"1M"`, `"3M=Quartal"`, `"12M"`) — replace visibleRanges, like the advanced chart. */
+    rangeChips?: string[];
+    /** Paging ‹ › ⇥ 📅 through the active range (issue #871). */
+    dayNav?: boolean;
+    /** Open on the current window instead of the rolling one. Needs dayNav. */
+    dayNavDefault?: boolean;
+    /** The picked date is the window's 'end' (default) or 'start'. */
+    navAnchor?: 'end' | 'start';
+    /** Link group: charts with the same name share range and date. */
+    navGroup?: string;
+    /** Date datapoint (read + write). */
+    navDateDp?: string;
+    /** Range datapoint (read + write). */
+    navRangeDp?: string;
+    /** Command datapoint: prev, next, today, now. */
+    navCommandDp?: string;
     /** Which presets the frontend range selector offers (default: all presets). */
     visibleRanges?: EChartTimeRange[];
     /** Hide the frontend range selector and pin the configured range. Default false. */
@@ -206,12 +227,46 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
             ? FRONTEND_RANGES.filter((r) => cfgVisibleRanges.includes(r))
             : PRESET_RANGES;
 
-    const [activeRange, setActiveRange] = useState<EChartTimeRange>(cfgRange);
-    // Reset the frontend selection whenever the admin config changes.
-    useEffect(() => {
-        setActiveRange(cfgRange);
-    }, [cfgRange]);
-    const range = lockRange ? cfgRange : activeRange;
+    // Own chips (issue #871) replace the preset toggles, same notation as the advanced chart.
+    // `total` is left out: it would need the recording start probed per entry first.
+    const userChips = parseRangeChips(o.rangeChips).filter((c) => c.range !== 'total');
+    const chipList: RangeChip[] =
+        userChips.length > 0
+            ? userChips
+            : visibleRanges.map((r) =>
+                  r === 'custom'
+                      ? {
+                            key: rangeKey('custom', cfgCustomVal, cfgCustomUnit),
+                            range: 'custom' as const,
+                            value: cfgCustomVal,
+                            unit: cfgCustomUnit,
+                            label: rangeLabel(cfgCustomVal, cfgCustomUnit),
+                        }
+                      : { key: r, range: r, label: RANGE_LABELS[r] },
+              );
+    // A configured default that is not among the own chips would leave no chip lit — start on
+    // the first one instead.
+    const startChip =
+        !lockRange &&
+        userChips.length > 0 &&
+        !userChips.some((c) => c.key === rangeKey(cfgRange, cfgCustomVal, cfgCustomUnit))
+            ? userChips[0]
+            : null;
+    // Active range + paging (‹ › ⇥ 📅), linked through the group and the datapoints.
+    const nav = useChartNav({
+        startRange: startChip?.range ?? cfgRange,
+        startCustomValue: startChip?.value ?? cfgCustomVal,
+        startCustomUnit: startChip?.unit ?? cfgCustomUnit,
+        lockRange,
+        paging: o.dayNav === true,
+        startOnCurrent: o.dayNavDefault === true,
+        anchor: o.navAnchor === 'start' ? 'start' : 'end',
+        group: typeof o.navGroup === 'string' ? o.navGroup.trim() : '',
+        dateDp: o.navDateDp ?? '',
+        rangeDp: o.navRangeDp ?? '',
+        commandDp: o.navCommandDp ?? '',
+    });
+    const range = nav.range;
     // Honor the shared "Darstellung" appearance controls (icon, hide icon, icon size, align).
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 18;
@@ -247,8 +302,9 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
         range,
         connected,
         subscribe,
-        cfgCustomVal,
-        cfgCustomUnit,
+        nav.customValue,
+        nav.customUnit,
+        nav.window,
     );
 
     const getValue = (entryId: string): number | null =>
@@ -291,28 +347,31 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                 </div>
             )}
 
-            {!lockRange && visibleRanges.length > 0 && (
-                <div className="nodrag shrink-0 mb-1 flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
-                    {visibleRanges.map((r) => {
-                        const active = range === r;
-                        const label =
-                            r === 'custom'
-                                ? `${cfgCustomVal} ${cfgCustomUnit === 'd' ? 'Tage' : 'Std'}`
-                                : RANGE_LABELS[r];
-                        return (
-                            <button
-                                key={r}
-                                className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
-                                style={{
-                                    background: active ? 'var(--accent)' : 'var(--app-border)',
-                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                }}
-                                onClick={() => setActiveRange(r)}
-                            >
-                                {label}
-                            </button>
-                        );
-                    })}
+            {((!lockRange && chipList.length > 0) || nav.paging) && (
+                <div className="shrink-0 mb-1 flex items-center justify-between gap-2 min-w-0">
+                    {!lockRange && chipList.length > 0 ? (
+                        <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
+                            {chipList.map((c) => {
+                                const active = nav.chipKey === c.key;
+                                return (
+                                    <button
+                                        key={c.key}
+                                        className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-border)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                        }}
+                                        onClick={() => nav.selectChip(c)}
+                                    >
+                                        {c.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <span />
+                    )}
+                    {nav.paging && <ChartNavBar nav={nav} chips={chipList} />}
                 </div>
             )}
 

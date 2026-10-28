@@ -949,7 +949,8 @@ const MIN_NOTES = {
     energiebilanz: [
         'gemessen mit EINEM Balken aus zwei Einträgen. Die Balken werden in die Karte eingepasst, nicht ' +
             'gestapelt (gemessen 1→224, 2→288, 4→306 px) — für mehrere Balken die Höhe am Ergebnis prüfen',
-        'Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf',
+        'Zeitbereichs-Umschalter (visibleRanges/rangeChips) und eine umbrechende Legende kommen oben drauf; die ' +
+            'Blätter-Leiste (dayNav) sitzt in derselben Zeile, bei lockRange bildet sie sie allein',
         'gemessen mit den Standard-Schriftgrößen. Größere barTitleFontSize/totalFontSize/legendFontSize ' +
             'machen Titel und Legende höher - die Höhe dann am Ergebnis prüfen',
     ],

@@ -63,6 +63,15 @@ Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeiche
 | `historyRangeCustomUnit`  | `h`      | `m` · `h` · `d` · `w` · `M` · `y`, nur bei `custom` |
 | `lockRange`               | `false`  | Zeitraum-Umschalter im Frontend ausblenden    |
 | `rangeChips`              | —        | Eigene Zeitraum-Chips, siehe unten            |
+| `dayNav`                  | `false`  | Blättern im Frontend (‹ › ⇥ 📅) — Schritt = aktiver Zeitraum-Chip |
+| `dayNavDefault`           | `false`  | Beim Laden auf den aktuellen Zeitraum stellen      |
+| `navAnchor`               | `end`    | Gewähltes Datum ist `end` = letzter Tag · `start` = erster Tag |
+| `navGroup`                | —        | Kopplungsgruppe, auch mit dem erweiterten Diagramm und der Verteilung |
+| `navRangeDp`              | —        | Zeitraum-Datenpunkt, lesen + schreiben (`7d`, `1M` …) |
+| `navDateDp`               | —        | Datum-Datenpunkt, lesen + schreiben (`YYYY-MM-DD`, ms) |
+| `navCommandDp`            | —        | Befehls-Datenpunkt: `prev` · `next` · `today` · `now` |
+
+Blättern und Koppeln wie im [Diagramm (erweitert)](./diagramm-erweitert.md#verlauf) — gleicher Gruppenname koppelt auch über die Diagramm-Typen hinweg.
 
 **Eigene Zeitraum-Chips** (`rangeChips`) ersetzen die eingebauten Chips im Frontend. Im Editor: **Eigene Liste anlegen**.
 

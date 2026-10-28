@@ -79,7 +79,8 @@ const mount = async (widgets, states = {}) => {
         },
         { widgets, states },
     );
-    await page.waitForFunction((n) => document.querySelectorAll('[_echarts_instance_]').length >= n, widgets.length, {
+    const echarts = widgets.filter((w) => w.type === 'echart').length;
+    await page.waitForFunction((n) => document.querySelectorAll('[_echarts_instance_]').length >= n, echarts, {
         timeout: 20000,
     });
     await page.waitForTimeout(900);
@@ -206,6 +207,93 @@ await mount(
     const rangeW = writes.filter((x) => x.id === 'test.nav.range').map((x) => x.val);
     check('◀ writes the new end day', dateW[0] === iso(midnight(10)), JSON.stringify(dateW));
     check('the chip writes its token', rangeW.at(-1) === '30d', JSON.stringify(rangeW));
+}
+
+// ── Across widget types: advanced, simple and distribution chart in one group ──────────────
+const simple = (id, y, opts = {}) => ({
+    id,
+    type: 'chart',
+    title: id,
+    datapoint: 'demo.power',
+    layout: 'default',
+    gridPos: { x: 0, y, w: 12, h: 8 },
+    options: { historyInstance: 'history.0', historyRange: '24h', ...opts },
+});
+const distribution = (id, y, opts = {}) => ({
+    id,
+    type: 'energiebilanz',
+    title: id,
+    datapoint: '',
+    layout: 'default',
+    gridPos: { x: 0, y, w: 12, h: 10 },
+    options: {
+        range: '24h',
+        visibleRanges: ['24h', '7d', '30d'],
+        bars: [
+            {
+                id: 'b1',
+                title: 'Verbrauch',
+                entries: [{ id: 'e1', datapointId: 'demo.power', aggregate: 'average', historyInstance: 'history.0' }],
+            },
+        ],
+        ...opts,
+    },
+});
+await mount([
+    chart('mix-e', 0, { echartNavGroup: 'mix' }),
+    simple('mix-c', 9, { dayNav: true, navGroup: 'mix' }),
+    distribution('mix-d', 18, { dayNav: true, navGroup: 'mix' }),
+]);
+{
+    const label = (n) => item(n).locator('[data-testid="echart-nav-date"]').innerText();
+    check(
+        'the simple chart offers the paging bar',
+        (await item(1).locator('[data-testid="echart-nav"]').count()) === 1,
+    );
+    check(
+        'the distribution offers the paging bar',
+        (await item(2).locator('[data-testid="echart-nav"]').count()) === 1,
+    );
+    await click(0, chip('7 Tage'));
+    await click(0, '[data-testid="echart-nav-prev"]');
+    const want = await label(0);
+    check('simple chart shows the same window', (await label(1)) === want, `${await label(1)} vs ${want}`);
+    check('distribution shows the same window', (await label(2)) === want, `${await label(2)} vs ${want}`);
+    check(
+        'and both light the 7-Tage chip',
+        (
+            await item(1)
+                .locator(chip('7 Tage'))
+                .evaluate((el) => el.style.background)
+        ).includes('accent') &&
+            (
+                await item(2)
+                    .locator(chip('7 Tage'))
+                    .evaluate((el) => el.style.background)
+            ).includes('accent'),
+    );
+    // Paging from the distribution moves the others too.
+    await click(2, '[data-testid="echart-nav-prev"]');
+    const w = await windowOf(0);
+    check(
+        '◀ in the distribution steps the advanced chart',
+        w?.[0] === midnight(20) && w?.[1] === midnight(13),
+        fmtWin(w),
+    );
+    await click(1, '[data-testid="echart-nav-today"]');
+    check('⇥ in the simple chart brings all to the current week', (await label(0)) === (await label(2)));
+}
+
+// ── Distribution: own chips with calendar months ───────────────────────────────────────────
+await mount([distribution('dist-m', 0, { dayNav: true, dayNavDefault: true, rangeChips: ['1M', '3M=Quartal'] })]);
+{
+    const text = await item(0).locator('[data-testid="echart-nav-date"]').innerText();
+    const now = new Date();
+    const from = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate() + 1);
+    const p = (x) => String(x).padStart(2, '0');
+    const want = `${p(from.getDate())}.${p(from.getMonth() + 1)}.`;
+    check('1M chip: the window is a calendar month up to today', text.startsWith(want), `${text} (want ${want}…)`);
+    check('the own chips replace the presets', (await item(0).locator(chip('Quartal')).count()) === 1);
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

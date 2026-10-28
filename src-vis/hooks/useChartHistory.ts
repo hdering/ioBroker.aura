@@ -70,7 +70,13 @@ export function useChartHistory(
     connected: boolean,
     subscribe: (id: string, cb: (state: ioBrokerState) => void) => () => void,
     customRangeMs?: number, // nur wenn timeRange === 'custom'
+    /** Absolute window while paging (issue #871); omitted = rolling up to now. */
+    window?: { start: number; end: number } | null,
 ) {
+    const winStart = window?.start;
+    const winEnd = window?.end;
+    // A window that ended in the past neither grows nor moves: no refresh, no live points.
+    const winClosed = winEnd !== undefined && winEnd <= Date.now();
     const [adapters, setAdapters] = useState<DetectedAdapter[]>([]);
     const [history, setHistory] = useState<ChartDataPoint[]>([]);
     const [current, setCurrent] = useState<number | null>(null);
@@ -91,15 +97,17 @@ export function useChartHistory(
 
     // ── Periodischer Refresh damit das Zeitfenster nicht einfriert ───────────
     useEffect(() => {
-        if (!datapointId || !effectiveInstance || !connected) return;
+        if (!datapointId || !effectiveInstance || !connected || winClosed) return;
         const rangeMs =
-            timeRange === 'custom'
-                ? (customRangeMs ?? 86_400_000)
-                : RANGE_MS[timeRange as Exclude<ChartTimeRange, 'custom'>];
+            winStart !== undefined && winEnd !== undefined
+                ? winEnd - winStart
+                : timeRange === 'custom'
+                  ? (customRangeMs ?? 86_400_000)
+                  : RANGE_MS[timeRange as Exclude<ChartTimeRange, 'custom'>];
         const interval = rangeMs <= 3_600_000 ? 60_000 : rangeMs <= 86_400_000 ? 300_000 : 900_000;
         const id = globalThis.setInterval(() => setRefreshTick((t) => t + 1), interval);
         return () => clearInterval(id);
-    }, [datapointId, effectiveInstance, connected, timeRange, customRangeMs]);
+    }, [datapointId, effectiveInstance, connected, timeRange, customRangeMs, winStart, winEnd, winClosed]);
 
     // ── 1. Verfügbare Adapter aus Objekt-Metadaten ermitteln ──────────────────
     useEffect(() => {
@@ -131,9 +139,15 @@ export function useChartHistory(
     useEffect(() => {
         if (!datapointId || !effectiveInstance || !connected) return;
         setLoading(true);
-        const rangeMs = timeRange === 'custom' ? (customRangeMs ?? 86_400_000) : RANGE_MS[timeRange];
-        const end = Date.now();
-        const start = end - rangeMs;
+        const windowed = winStart !== undefined && winEnd !== undefined;
+        const rangeMs = windowed
+            ? winEnd - winStart
+            : timeRange === 'custom'
+              ? (customRangeMs ?? 86_400_000)
+              : RANGE_MS[timeRange];
+        // A paged window that reaches into the future is fetched up to now — there is nothing later.
+        const end = windowed ? Math.min(winEnd, Date.now()) : Date.now();
+        const start = windowed ? winStart : end - rangeMs;
         const step = getStep(rangeMs);
         getHistoryDirect(datapointId, {
             instance: effectiveInstance,
@@ -163,7 +177,7 @@ export function useChartHistory(
             .catch(() => {
                 if (mountedRef.current) setLoading(false);
             });
-    }, [datapointId, effectiveInstance, timeRange, customRangeMs, connected, refreshTick]);
+    }, [datapointId, effectiveInstance, timeRange, customRangeMs, connected, refreshTick, winStart, winEnd]);
 
     // ── 4. Live-Updates abonnieren ────────────────────────────────────────────
     useEffect(() => {
@@ -173,9 +187,11 @@ export function useChartHistory(
             if (typeof state.val !== 'number') return;
             const val = state.val as number;
             setCurrent(val);
+            // A paged window only takes live readings while it is still open.
+            if (winEnd !== undefined && state.ts >= winEnd) return;
             if (effectiveInstance) {
                 setHistory((prev) => {
-                    const cutoff = Date.now() - cutoffMs;
+                    const cutoff = winStart ?? Date.now() - cutoffMs;
                     const trimmed = prev.filter((p) => p.t >= cutoff);
                     const tail = trimmed.length > 0 ? trimmed[trimmed.length - 1].t : -Infinity;
                     if (tail === state.ts) return trimmed;
@@ -190,7 +206,7 @@ export function useChartHistory(
             }
         });
         return unsub;
-    }, [datapointId, connected, subscribe, effectiveInstance, timeRange, customRangeMs]);
+    }, [datapointId, connected, subscribe, effectiveInstance, timeRange, customRangeMs, winStart, winEnd]);
 
     return { adapters, history, current, loading };
 }
