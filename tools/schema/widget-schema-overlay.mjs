@@ -1416,9 +1416,9 @@ export const WIDGET_OPTION_NOTES = {
         },
         echartDayNav: {
             description:
-                'Blättern im Frontend (◀ Heute ▶ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, ' +
+                'Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, ' +
                 '7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. Ein zweiter Klick auf das ' +
-                'leuchtende „Heute" kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt" ist Blättern ausgegraut.',
+                'leuchtende ⇥ (zum aktuellen Zeitraum) kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt" ist Blättern ausgegraut.',
         },
         echartDayNavDefault: {
             description:

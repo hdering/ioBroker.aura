@@ -379,7 +379,7 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `lockRange`              | `false`  | Zeitraum-Umschalter im Frontend ausblenden                                        |
 | `echartVisibleRanges`    | alle     | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]`  |
 | `rangeChips`             | —        | Eigene Zeitraum-Chips, ersetzt `echartVisibleRanges`, z. B. `["1M","3M","12M","total"]` |
-| `echartDayNav`           | `false`  | Blättern im Frontend (◀ Heute ▶ 📅) — Schritt = aktiver Zeitraum-Chip             |
+| `echartDayNav`           | `false`  | Blättern im Frontend (‹ › ⇥ 📅) — Schritt = aktiver Zeitraum-Chip                 |
 | `echartDayNavDefault`    | `false`  | Beim Laden auf den aktuellen Zeitraum stellen (24 Std: heute 00:00–24:00)          |
 | `echartNavAnchor`        | `end`    | Gewähltes Datum ist `end` = letzter Tag des Fensters · `start` = erster Tag       |
 | `echartNavGroup`         | —        | Kopplungsgruppe: gleiche Namen blättern gemeinsam (im selben Browser)             |
@@ -403,10 +403,10 @@ Blättern (`echartDayNav`):
 
 | Aktion               | Wirkung                                                                                  |
 | -------------------- | ---------------------------------------------------------------------------------------- |
-| ◀ / ▶                | ein Fenster des aktiven Chips zurück/vor: `24 Std` = Tag, `7 Tage` = Woche, `1M` = Monat |
+| ‹ / ›                | ein Fenster des aktiven Chips zurück/vor: `24 Std` = Tag, `7 Tage` = Woche, `1M` = Monat |
 | Zeitraum-Chip        | wechselt den Zeitraum, das gewählte Datum bleibt                                        |
 | 📅 Datum             | springt auf den Tag; Anzeige `Mo 27.10.` bzw. `21.10.–27.10.`                          |
-| **Heute**            | aktuelles Fenster; zweiter Klick auf das leuchtende **Heute** = rollend bis jetzt         |
+| ⇥                    | aktuelles Fenster; zweiter Klick auf das leuchtende ⇥ = rollend bis jetzt                 |
 | ▶ grau               | das nächste Fenster begänne in der Zukunft                                                |
 | `Gesamt`             | nichts zu blättern, Knöpfe ausgegraut                                                    |
 

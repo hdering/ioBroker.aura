@@ -1,6 +1,6 @@
 import ReactECharts from 'echarts-for-react';
 import { useRef, useState, useEffect } from 'react';
-import { BarChart2, CalendarDays, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
+import { ArrowRightToLine, BarChart2, CalendarDays, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useResolvedColors } from '../../hooks/useResolvedColors';
 import {
@@ -1810,6 +1810,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         };
         return `${first.toLocaleDateString(loc, opts)}–${last.toLocaleDateString(loc, opts)}`;
     })();
+    // What one arrow step is, for the tooltips: the active chip's caption ("7 Tage", "Quartal").
+    const navStep =
+        chipList.find((c) => c.key === chipKey)?.label ??
+        (activeSpan ? rangeLabel(activeSpan.value, activeSpan.unit) : '');
     // …and jump straight to a date instead of stepping there (issue #594). The picked day becomes
     // the reference point by the anchor: the window ends with that day, or starts on it.
     const pickDay = (iso: string) => {
@@ -1832,7 +1836,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 <button
                     className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
                     style={navBtnStyle(false)}
-                    title={t('echart.dayPrevTitle')}
+                    title={t('echart.dayPrevTitle', { step: navStep })}
+                    aria-label={t('echart.dayPrevTitle', { step: navStep })}
                     disabled={navOff}
                     data-testid="echart-nav-prev"
                     onClick={() => runNavCommand('prev', 'user')}
@@ -1841,23 +1846,29 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 </button>
                 <button
                     className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
-                    style={navBtnStyle(onToday)}
-                    title={onToday ? t('echart.navLiveTitle') : t('echart.dayTodayTitle')}
-                    disabled={navOff}
-                    data-testid="echart-nav-today"
-                    onClick={() => runNavCommand(onToday ? 'now' : 'today', 'user')}
-                >
-                    {t('echart.today')}
-                </button>
-                <button
-                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
                     style={navBtnStyle(false)}
-                    title={t('echart.dayNextTitle')}
+                    title={t('echart.dayNextTitle', { step: navStep })}
+                    aria-label={t('echart.dayNextTitle', { step: navStep })}
                     disabled={!canStepForward(navRef, activeSpan, navAnchor)}
                     data-testid="echart-nav-next"
                     onClick={() => runNavCommand('next', 'user')}
                 >
                     <ChevronRight size={12} />
+                </button>
+                {/* ⇥ rather than "Heute": the arrows step by the chip, so a day word would read as
+                    yesterday/tomorrow on a week or a month. Lit on the current window; a second
+                    click returns to the rolling range. */}
+                <button
+                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
+                    style={navBtnStyle(onToday)}
+                    title={onToday ? t('echart.navLiveTitle') : t('echart.dayTodayTitle')}
+                    aria-label={onToday ? t('echart.navLiveTitle') : t('echart.dayTodayTitle')}
+                    aria-pressed={onToday}
+                    disabled={navOff}
+                    data-testid="echart-nav-today"
+                    onClick={() => runNavCommand(onToday ? 'now' : 'today', 'user')}
+                >
+                    <ArrowRightToLine size={12} />
                 </button>
                 {/* The date is the picker's trigger — a field of its own would not fit the header on
                     a narrow widget. The input has to stay rendered for showPicker(), so it is

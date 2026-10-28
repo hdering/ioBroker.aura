@@ -77,7 +77,9 @@ const spanDays = async () => {
     return (max - min) / 86400000;
 };
 const clickRange = async (label) => {
-    await widget.locator(`button:text-is("${label}")`).click();
+    // "Heute" is the ⇥ button since #871 — an icon, found by its test id.
+    const sel = label === 'Heute' ? '[data-testid="echart-nav-today"]' : `button:text-is("${label}")`;
+    await widget.locator(sel).click();
     await page.waitForTimeout(900);
 };
 const near = (v, want, tol) => Math.abs(v - want) <= tol;
@@ -196,7 +198,7 @@ const mountFresh = async (id, opts) => {
     );
 
     const todayActive = await widget
-        .locator('button:text-is("Heute")')
+        .locator('[data-testid="echart-nav-today"]')
         .evaluate((el) => getComputedStyle(el).backgroundColor);
     const border = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent'));
     check('"Heute" is marked as the active button', todayActive !== 'rgba(0, 0, 0, 0)', `${todayActive} vs ${border}`);
@@ -220,7 +222,7 @@ const mountFresh = async (id, opts) => {
         pinned !== null && pinned.min === null && pinned.max === null,
         JSON.stringify(pinned),
     );
-    check('and no day controls are offered', (await widget.locator('button:text-is("Heute")').count()) === 0);
+    check('and no day controls are offered', (await widget.locator('[data-testid="echart-nav-today"]').count()) === 0);
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
