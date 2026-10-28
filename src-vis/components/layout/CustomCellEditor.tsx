@@ -2890,13 +2890,13 @@ export function CustomCellEditor({
                                             className={inputCls}
                                             style={inputSty}
                                         >
-                                            <option value="entry">Gewählter Eintrag</option>
+                                            <option value="entry">Wert der Auswahl (Datenpunkt oben)</option>
                                             <option value="dp">Anderer Datenpunkt (z. B. Isttemperatur)</option>
                                         </select>
                                         <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                                             {cell.circlePrimary === 'dp'
-                                                ? 'Der Wert dieses Datenpunkts steht groß im Knopf, der gewählte Eintrag klein darunter. Geschaltet wird weiter der Datenpunkt oben.'
-                                                : 'Der gewählte Eintrag steht groß im Knopf.'}
+                                                ? 'Der Wert dieses Datenpunkts steht groß im Knopf, der Wert der Auswahl klein darunter. Geschaltet wird weiter der Datenpunkt oben.'
+                                                : 'Der Wert des Datenpunkts oben steht groß im Knopf.'}
                                         </p>
                                     </div>
                                     {cell.circlePrimary === 'dp' && (

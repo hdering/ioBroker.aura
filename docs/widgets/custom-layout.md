@@ -158,7 +158,7 @@ Das [Auswahlfeld](./auswahlfeld)-Widget als Zelle — mit denselben Einträgen, 
 | `circleDirection` | `auto` | `auto` · `full` · `top` · `right` · `bottom` · `left` |
 | `circleItemSize` | `48` | px |
 | `circleKeepOpen` | `false` | nach Auswahl offen bleiben |
-| `circlePrimary` | `entry` | nur `circle`, „Große Anzeige“: `entry` = gewählter Eintrag groß · `dp` = Wert von `circleValueDp` groß (z. B. Isttemperatur), Eintrag klein darunter |
+| `circlePrimary` | `entry` | nur `circle`, „Große Anzeige“: `entry` = Wert der Auswahl (Datenpunkt oben) groß · `dp` = Wert von `circleValueDp` groß (z. B. Isttemperatur), Wert der Auswahl klein darunter |
 | `circleValueDp` | — | nur bei `circlePrimary: dp`; Format über `prefix` · `suffix` · `decimals` |
 
 ![](./assets/custom-layout/select-circle.png)

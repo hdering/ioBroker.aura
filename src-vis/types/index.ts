@@ -445,7 +445,7 @@ export interface CustomCell {
     circleDirection?: 'auto' | 'full' | 'top' | 'right' | 'bottom' | 'left'; // 'select' cell in circle display: where the menu fans out — 'auto' full circle when it fits, else the half with the most room (default)
     circleItemSize?: number; // 'select' cell in circle display: diameter of the entries in px (default 48)
     circleKeepOpen?: boolean; // 'select' cell in circle display: stay open after an entry was picked (− / + always keep it open)
-    circlePrimary?: 'entry' | 'dp'; // 'select' cell in circle display: what the button shows large — 'entry' the selected entry (default), 'dp' the value of circleValueDp (e.g. the measured temperature while the select writes the setpoint) with the entry small below (#864)
+    circlePrimary?: 'entry' | 'dp'; // 'select' cell in circle display: what the button shows large — 'entry' the value of the select's own datapoint, i.e. the matching entry (default), 'dp' the value of circleValueDp (e.g. the measured temperature while the select writes the setpoint) with the entry small below (#864)
     circleValueDp?: string; // 'select' cell in circle display with circlePrimary 'dp': datapoint shown large in the button, formatted with the cell's decimals / prefix / suffix (#864)
     entryDisplay?: 'icon' | 'icon-text' | 'text'; // 'select' cell: how the current entry is shown (default 'text')
     // last-change display (for value-bearing cells)
