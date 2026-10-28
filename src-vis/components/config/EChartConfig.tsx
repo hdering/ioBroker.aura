@@ -23,6 +23,7 @@ import { DatapointManagerField } from './list/DatapointManagerField';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { Unavailable } from './Unavailable';
+import { StatusDpField } from './StatusDpField';
 import type { ManagedEntry } from './list/EntryListItem';
 import { ChartModePanel, type EChartMode } from './chart/ChartModePanel';
 import { ChartFormatPanel } from './chart/ChartFormatPanel';
@@ -850,7 +851,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                     {t('echart.dayNavToggle')}
                                 </span>
                             </label>
-                            {dayNav && (
+                            <Unavailable reason={dayNav ? undefined : t('echart.navNeedsPaging')}>
                                 <label className="flex items-center gap-2 mt-2 ml-5 cursor-pointer select-none">
                                     <input
                                         type="checkbox"
@@ -862,7 +863,73 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                         {t('echart.dayNavDefaultToggle')}
                                     </span>
                                 </label>
-                            )}
+                                <div className="flex items-center gap-2 mt-2 ml-5">
+                                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('echart.navAnchor')}
+                                    </span>
+                                    <select
+                                        value={o.echartNavAnchor === 'start' ? 'start' : 'end'}
+                                        onChange={(e) =>
+                                            setO({ echartNavAnchor: e.target.value === 'start' ? 'start' : undefined })
+                                        }
+                                        className={`${inputCls} flex-1 min-w-0`}
+                                        style={inputStyle}
+                                    >
+                                        <option value="end">{t('echart.navAnchorEnd')}</option>
+                                        <option value="start">{t('echart.navAnchorStart')}</option>
+                                    </select>
+                                </div>
+                            </Unavailable>
+                            <div className="mt-3">
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('echart.navGroup')}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={(o.echartNavGroup as string | undefined) ?? ''}
+                                    onChange={(e) => setO({ echartNavGroup: e.target.value || undefined })}
+                                    placeholder="z.B. energie"
+                                    className={`${inputCls} w-full`}
+                                    style={inputStyle}
+                                />
+                                <p
+                                    className="text-[10px] mt-1"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                >
+                                    {t('echart.navGroupHint')}
+                                </p>
+                            </div>
+                            <p className="text-[11px] mt-3 mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.navDpsTitle')}
+                            </p>
+                            <div className="flex flex-col gap-2">
+                                <StatusDpField
+                                    label={t('echart.navRangeDp')}
+                                    hint={t('echart.navRangeDpHint')}
+                                    placeholder="0_userdata.0.chart.range"
+                                    value={o.echartNavRangeDp as string | undefined}
+                                    onChange={(id) => setO({ echartNavRangeDp: id })}
+                                />
+                                <Unavailable
+                                    reason={dayNav ? undefined : t('echart.navNeedsPaging')}
+                                    className="flex flex-col gap-2"
+                                >
+                                    <StatusDpField
+                                        label={t('echart.navDateDp')}
+                                        hint={t('echart.navDateDpHint')}
+                                        placeholder="0_userdata.0.chart.date"
+                                        value={o.echartNavDateDp as string | undefined}
+                                        onChange={(id) => setO({ echartNavDateDp: id })}
+                                    />
+                                    <StatusDpField
+                                        label={t('echart.navCommandDp')}
+                                        hint={t('echart.navCommandDpHint')}
+                                        placeholder="0_userdata.0.chart.command"
+                                        value={o.echartNavCommandDp as string | undefined}
+                                        onChange={(id) => setO({ echartNavCommandDp: id })}
+                                    />
+                                </Unavailable>
+                            </div>
                         </div>
                     </Unavailable>
                 </SubGroup>

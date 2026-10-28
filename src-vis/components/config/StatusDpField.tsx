@@ -17,11 +17,13 @@ const fieldSty = {
 export function StatusDpField({
     value,
     onChange,
+    label = 'Status-Datenpunkt (optional)',
     placeholder = 'z.B. mqtt.1.device.stat.VALUE',
     hint = 'Separater Status-DP für Geräte, die Befehl und Rückmeldung trennen (z.B. Tasmota: cmnd.* schreibt, stat.* meldet). Angezeigt wird dann der Wert von hier – geschrieben wird weiter auf den Hauptdatenpunkt. Leer = Hauptdatenpunkt.',
 }: {
     value: string | undefined;
     onChange: (id: string | undefined) => void;
+    label?: string;
     placeholder?: string;
     hint?: string;
 }) {
@@ -29,7 +31,7 @@ export function StatusDpField({
     return (
         <div>
             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                Status-Datenpunkt (optional)
+                {label}
             </label>
             <div className="flex gap-1">
                 <input

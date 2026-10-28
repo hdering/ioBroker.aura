@@ -575,6 +575,93 @@
       ]
     },
     {
+      "id": "diagramme-koppeln",
+      "title": "Mehrere Diagramme gemeinsam blättern",
+      "when": "Mehrere Verlaufsdiagramme sollen immer denselben Zeitraum und dasselbe Datum zeigen, oder ein Taster/Skript soll blättern.",
+      "instead": "getrennten Diagrammen, in denen der Nutzer jeden Zeitraum einzeln umstellt",
+      "notes": [
+        "echartDayNav schaltet das Blättern ein; ◀/▶ springen um die Länge des aktiven Chips, ein Chip-Wechsel behält das Datum.",
+        "Gleicher echartNavGroup-Name in allen Diagrammen koppelt sie im selben Browser — ohne Datenpunkt.",
+        "Geräteübergreifend: dieselben echartNavDateDp und echartNavRangeDp in allen Diagrammen (Zeichenketten-DPs, z. B. unter 0_userdata.0). Datum \"YYYY-MM-DD\", Zeitraum \"24h\"/\"7d\"/\"1M\"/\"total\".",
+        "Ein Taster oder Skript blättert über echartNavCommandDp: \"prev\", \"next\", \"today\", \"now\".",
+        "echartNavAnchor \"start\" macht das Datum zum ersten Tag des Fensters statt zum letzten."
+      ],
+      "widgets": [
+        {
+          "id": "w-koppeln-strom",
+          "type": "echart",
+          "title": "Strom",
+          "datapoint": "%dp.stromzaehler%",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 5
+          },
+          "options": {
+            "echartMode": "timeseries",
+            "echartRange": "24h",
+            "echartVisibleRanges": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "echartDayNav": true,
+            "echartNavGroup": "verlauf",
+            "autoHistoryInstance": true,
+            "echartSeries": [
+              {
+                "id": "s-1",
+                "name": "Strom",
+                "datapointId": "%dp.stromzaehler%",
+                "chartType": "bar",
+                "color": "var(--accent-green)",
+                "aggregate": "delta",
+                "deltaBucket": "auto",
+                "yAxisIndex": 0
+              }
+            ]
+          }
+        },
+        {
+          "id": "w-koppeln-temp",
+          "type": "echart",
+          "title": "Außentemperatur",
+          "datapoint": "%dp.aussentemperatur%",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 5,
+            "w": 12,
+            "h": 5
+          },
+          "options": {
+            "echartMode": "timeseries",
+            "echartRange": "24h",
+            "echartVisibleRanges": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "echartDayNav": true,
+            "echartNavGroup": "verlauf",
+            "autoHistoryInstance": true,
+            "echartSeries": [
+              {
+                "id": "s-1",
+                "name": "Außen",
+                "datapointId": "%dp.aussentemperatur%",
+                "chartType": "line",
+                "color": "var(--accent)",
+                "yAxisIndex": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "vorjahr",
       "title": "Verbrauch mit Vorjahreswerten daneben",
       "when": "Monats- oder Tagesverbrauch soll mit demselben Zeitraum des Vorjahres verglichen werden.",

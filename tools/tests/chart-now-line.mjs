@@ -31,8 +31,6 @@ await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 })
 await page.evaluate(() => window.__auraShot.unfoldSections());
 await page.evaluate(() => window.__auraShot.enableHistory(true));
 
-const PREV_TITLE = 'Einen Tag zurück';
-
 let n = 0;
 /** Renders one chart and returns its mark lines once the series are in. */
 async function render(options, values) {
@@ -111,7 +109,7 @@ const near = (x) => typeof x === 'number' && Math.abs(x - Date.now()) < 120_000;
     check('no extra series for the line', series?.length === 1, JSON.stringify(series?.map((x) => x.name)));
 
     // Yesterday does not contain "now".
-    await page.locator(`.react-grid-item button[title="${PREV_TITLE}"]`).click();
+    await page.locator(`.react-grid-item [data-testid="echart-nav-prev"]`).click();
     await page.waitForTimeout(900);
     const past = await page.evaluate(() => window.__auraShot.chartMarkLines());
     check('no line on a past day', Array.isArray(past) && past.length === 0, JSON.stringify(past));

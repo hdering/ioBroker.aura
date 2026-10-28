@@ -379,8 +379,13 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `lockRange`              | `false`  | Zeitraum-Umschalter im Frontend ausblenden                                        |
 | `echartVisibleRanges`    | alle     | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]`  |
 | `rangeChips`             | —        | Eigene Zeitraum-Chips, ersetzt `echartVisibleRanges`, z. B. `["1M","3M","12M","total"]` |
-| `echartDayNav`           | `false`  | Tages-Navigation im Frontend (◀ Heute ▶ 📅) — einzelne Kalendertage durchblättern |
-| `echartDayNavDefault`    | `false`  | Beim Laden auf den heutigen Tag stellen (00:00–24:00), setzt `echartDayNav` voraus |
+| `echartDayNav`           | `false`  | Blättern im Frontend (◀ Heute ▶ 📅) — Schritt = aktiver Zeitraum-Chip             |
+| `echartDayNavDefault`    | `false`  | Beim Laden auf den aktuellen Zeitraum stellen (24 Std: heute 00:00–24:00)          |
+| `echartNavAnchor`        | `end`    | Gewähltes Datum ist `end` = letzter Tag des Fensters · `start` = erster Tag       |
+| `echartNavGroup`         | —        | Kopplungsgruppe: gleiche Namen blättern gemeinsam (im selben Browser)             |
+| `echartNavRangeDp`       | —        | Zeitraum-Datenpunkt, lesen + schreiben: `6h` · `24h` · `7d` · `1M` · `total`    |
+| `echartNavDateDp`        | —        | Datum-Datenpunkt, lesen + schreiben: `YYYY-MM-DD`, ms, leer = bis jetzt           |
+| `echartNavCommandDp`     | —        | Befehls-Datenpunkt, nur lesen: `prev` · `next` · `today` · `now`                |
 | `autoHistoryInstance`    | `false`  | History-Instanz je Serie automatisch erkennen                                     |
 
 Live-Wert am rechten Rand:
@@ -392,13 +397,35 @@ Live-Wert am rechten Rand:
 
 Ein einzelner Messwert ist kein Tagesminimum und keine Tagessumme — angehängt würde er die Linie am Rand auf den aktuellen Wert ziehen.
 
-Die Tages-Navigation zeigt neben ◀ Heute ▶ das aktive Datum. Ein Klick darauf öffnet die
-Datumsauswahl des Browsers und springt direkt auf den gewählten Tag — Tage in der Zukunft sind
-gesperrt, ◀ und ▶ laufen danach von dort weiter.
+Blättern (`echartDayNav`):
 
-Mit `echartDayNavDefault` startet das Widget so, als wäre **Heute** gedrückt: Achse 00:00–24:00 des
-laufenden Tages, jeden Tag neu. Die Zeitraum-Knöpfe verlassen den Tagesmodus wie bisher; zusammen
-mit `lockRange` bleibt nur die Tages-Navigation übrig — ein reines Tagesdiagramm.
+![](./assets/diagramm-erweitert/bsp-blaettern.png)
+
+| Aktion               | Wirkung                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------- |
+| ◀ / ▶                | ein Fenster des aktiven Chips zurück/vor: `24 Std` = Tag, `7 Tage` = Woche, `1M` = Monat |
+| Zeitraum-Chip        | wechselt den Zeitraum, das gewählte Datum bleibt                                        |
+| 📅 Datum             | springt auf den Tag; Anzeige `Mo 27.10.` bzw. `21.10.–27.10.`                          |
+| **Heute**            | aktuelles Fenster; zweiter Klick auf das leuchtende **Heute** = rollend bis jetzt         |
+| ▶ grau               | das nächste Fenster begänne in der Zukunft                                                |
+| `Gesamt`             | nichts zu blättern, Knöpfe ausgegraut                                                    |
+
+| `echartNavAnchor` | Datum 03.10., `7 Tage`        | Datum 03.10., `24 Std` |
+| ----------------- | ----------------------------- | ---------------------- |
+| `end`             | 27.09. 00:00 – 04.10. 00:00   | 03.10. 00:00–24:00     |
+| `start`           | 03.10. 00:00 – 10.10. 00:00   | 03.10. 00:00–24:00     |
+
+Koppeln:
+
+| Weg                                              | Reichweite                     |
+| ------------------------------------------------ | ------------------------------ |
+| gleiches `echartNavGroup`                        | alle Diagramme im Browser-Tab  |
+| gleiche `echartNavDateDp` + `echartNavRangeDp`   | alle Geräte                    |
+| `echartNavCommandDp` (Taster, Skript)            | jedes Diagramm, das ihn liest  |
+
+Datenpunkte: Das Widget schreibt nur bei Bedienung (Zahl-DP: ms, sonst `YYYY-MM-DD`). Der Befehls-DP reagiert auf jede Aktualisierung, auch auf denselben Wert; der Wert beim Laden zählt nicht, zurückgesetzt wird nichts.
+
+Mit `lockRange` bleibt nur das Blättern übrig — ein reines Tagesdiagramm.
 
 `rangeChips` nimmt Kürzel aus Zahl + Einheit: `m` (Minute) · `h` · `d` · `w` · `M` (Kalendermonat) · `y` (Kalenderjahr) oder `total`, eigene Beschriftung nach `=` (`3M=Quartal`). Liegt `echartRange` nicht in der Liste, startet das Diagramm mit dem ersten Chip. Im Editor: **Eigene Liste anlegen**.
 

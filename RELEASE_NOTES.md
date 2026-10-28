@@ -15,3 +15,4 @@
 - Universal widget - a select cell shown as circle menu can show a second datapoint large in the button (e.g. the measured temperature), with the selected entry small below (#864)
 - Image and slideshow - new option "Fill tab" like the iFrame: the widget covers the whole tab area, e.g. as a photo frame on a wall tablet; "Fill tab" now also works in popup views, where the widget fills the fullscreen popup or the set popup size (#865)
 - Universal widget - slider cell gets an optional status datapoint like the slider widget: the position and value come from it, dragging still writes the main datapoint (#866)
+- Advanced chart - paging steps by the selected range (day, week, month …) and switching the range keeps the browsed date; the picked date can be the end or the start of the window; charts with the same link group page together, and optional datapoints set or report date and range or page from a script/button (prev, next, today, now) (#871)

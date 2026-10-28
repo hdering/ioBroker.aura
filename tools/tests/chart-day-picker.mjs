@@ -118,7 +118,7 @@ const pick = async (value) => {
 // ── ◀ carries on from the picked day rather than from today ──────────────────
 {
     const target = daysAgo(4);
-    await page.locator('.react-grid-item button[title="Einen Tag zurück"]').click();
+    await page.locator('.react-grid-item [data-testid="echart-nav-prev"]').click();
     await page.waitForTimeout(400);
     check(
         '◀ steps on from the picked day',
@@ -129,7 +129,7 @@ const pick = async (value) => {
 
 // ── "Heute" returns, and the field follows it ────────────────────────────────
 {
-    await page.locator('.react-grid-item button[title="Zum aktuellen Tag"]').click();
+    await page.locator('.react-grid-item [data-testid="echart-nav-today"]').click();
     await page.waitForTimeout(400);
     check('Heute returns to today', (await field.inputValue()) === iso(new Date()), await field.inputValue());
 }

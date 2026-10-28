@@ -88,6 +88,7 @@ const fresh7 = await spanDays();
 check('a fresh 7-day view frames about a week', near(fresh7, 7, 2), `${fresh7.toFixed(2)} d`);
 
 // ── Day mode pins one calendar day ───────────────────────────────────────────
+await clickRange('24 Std');
 await clickRange('Heute');
 const today = await spanDays();
 check('"Heute" pins the axis to a single day', near(today, 1, 0.1), `${today.toFixed(2)} d`);
@@ -107,7 +108,10 @@ check('30 Tage is wider than 7 Tage, not identical to it', back30 > back7 + 5, `
 check('and frames about a month', near(back30, 30, 6), `${back30.toFixed(2)} d`);
 
 // ── The same for a picked date, which is the other way into day mode ─────────
+// Since #871 a chip keeps the browsed date, so the day is picked on 24 Std, and the way back to the
+// rolling range is a second click on the lit "Heute".
 {
+    await clickRange('24 Std');
     const field = widget.locator('input[type="date"]');
     const target = new Date();
     target.setHours(0, 0, 0, 0);
@@ -125,6 +129,9 @@ check('and frames about a month', near(back30, 30, 6), `${back30.toFixed(2)} d`)
     await clickRange('7 Tage');
     const afterPick = await spanDays();
     check('7 Tage after "Datum wählen" frames a week again', near(afterPick, fresh7, 1.5), `${afterPick.toFixed(2)} d`);
+
+    await clickRange('Heute');
+    await clickRange('Heute');
 }
 
 // The option itself must say so — an omitted key is what left the stale pin behind.

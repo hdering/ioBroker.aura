@@ -207,7 +207,7 @@ function pvSeriesCfg(extra = {}) {
     ];
 }
 
-async function shot(file, { widget, history, values, wait = 1600 }) {
+async function shot(file, { widget, history, values, wait = 1600, act }) {
     if (ONLY && !ONLY.has(file)) return;
     // Own widget id per shot: same id means React keeps the chart mounted, and echarts
     // MERGES the new option into the old one — the previous shot's extra series and its
@@ -226,6 +226,8 @@ async function shot(file, { widget, history, values, wait = 1600 }) {
     // The chart module loads lazily: the first shot of a run (all of them with --only) would
     // otherwise capture an empty card.
     await page.waitForSelector(`.aura-widget-${id} canvas`, { timeout: 30000 });
+    // Clicks in the widget before the picture (paging, chip switches).
+    if (act) await act(page.locator(`.aura-widget-${id}`).first());
     await page.waitForTimeout(wait);
     await page
         .locator(`.aura-widget-${id}`)
@@ -388,6 +390,39 @@ for (const [file, aggregate, title] of [
         }),
         history: tempHistory,
         values: { [DP_TEMP]: { val: outdoorTemp(now), unit: '°C' } },
+    });
+
+    // Paging by the active chip (#871): one week back from the current one.
+    await shot('bsp-blaettern', {
+        widget: chart(
+            'Außentemperatur',
+            [
+                {
+                    id: 't1',
+                    name: 'Außen',
+                    datapointId: DP_TEMP,
+                    chartType: 'line',
+                    color: '#3b82f6',
+                    historyInstance: 'history.0',
+                    yAxisIndex: 0,
+                    lineWidth: 1,
+                },
+            ],
+            {
+                lockRange: false,
+                echartRange: '7d',
+                echartVisibleRanges: ['24h', '7d', '30d'],
+                echartDayNav: true,
+                echartDayNavDefault: true,
+                echartLeftUnit: '°C',
+                echartShowCurrent: false,
+            },
+        ),
+        history: tempHistory,
+        values: { [DP_TEMP]: { val: outdoorTemp(now), unit: '°C' } },
+        act: async (w) => {
+            await w.locator('[data-testid="echart-nav-prev"]').click();
+        },
     });
 }
 

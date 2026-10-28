@@ -738,15 +738,16 @@ function installScreenshotApi(): void {
          *  reserve and the right-axis switch only exist in the rendered option — on the canvas
          *  they are pixels, and pixels are not what a test should assert on (issue #541).
          *  `xExtent` is the time window the x axis really frames: `setOption` merges, so a
-         *  min/max the option no longer carries can still be pinning it (issue #594). */
-        chartAxes(): {
+         *  min/max the option no longer carries can still be pinning it (issue #594).
+         *  `index` picks the n-th chart on the page (linked charts, issue #871). */
+        chartAxes(index = 0): {
             grid: unknown;
             yAxis: unknown;
             xAxis: unknown;
             legend: unknown;
             xExtent: [number, number] | null;
         } | null {
-            const el = document.querySelector('[_echarts_instance_]');
+            const el = document.querySelectorAll('[_echarts_instance_]')[index];
             const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
             if (!inst) return null;
             // A chart that has just been mounted (or replaced by one with a new widget id) can

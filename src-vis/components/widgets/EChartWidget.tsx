@@ -47,7 +47,35 @@ import { axisIsBoolean, axisIsZeroBased, axisValueLabels, gridLineAxis, parseVal
 import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
-import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
+import {
+    parseRangeChips,
+    parseRangeToken,
+    rangeKey,
+    rangeLabel,
+    type RangeChip,
+    type RangeUnit,
+} from '../../utils/rangeChips';
+import {
+    canStepForward,
+    dayOfRef,
+    dayStart,
+    formatNavDate,
+    isDaySpan,
+    isoDay,
+    isTodayRef,
+    navSpan,
+    navWindow,
+    normalizeRef,
+    parseNavCommand,
+    parseNavDate,
+    refFromDay,
+    stepRef,
+    switchRef,
+    todayRef,
+    type NavAnchor,
+    type NavCommand,
+} from '../../utils/chartNav';
+import { useChartNavStore } from '../../store/chartNavStore';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -438,37 +466,160 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const [activeCustomVal, setActiveCustomVal] = useState<number>(startCustomVal);
     const [activeCustomUnit, setActiveCustomUnit] = useState<RangeUnit>(startCustomUnit);
 
-    // ── Day navigation (◀ Heute ▶): view a single calendar day, step day by day ──
-    // null = normal rolling-range mode; number = offset in days from today (0 = today, -1 = yesterday …)
+    // ── Paging (◀ Heute ▶, issue #871): browse the active range window by window ──
+    // `navRef` is the window's reference point (see utils/chartNav): null = rolling up to now,
+    // otherwise the instant the window ends at (anchor `end`) or starts from (anchor `start`).
     const dayNav = o.echartDayNav === true;
-    // Opening straight on today's day window is opt-in, so an existing chart keeps its rolling range.
-    const [dayOffset, setDayOffset] = useState<number | null>(dayNav && o.echartDayNavDefault === true ? 0 : null);
-    const dayWindow = (() => {
-        if (!dayNav || dayOffset === null) return null;
-        const d = new Date();
-        d.setHours(0, 0, 0, 0);
-        d.setDate(d.getDate() + dayOffset);
-        const e = new Date(d);
-        e.setDate(e.getDate() + 1);
-        return { start: d.getTime(), end: e.getTime() };
-    })();
+    const navAnchor: NavAnchor = o.echartNavAnchor === 'start' ? 'start' : 'end';
+    const navGroup = typeof o.echartNavGroup === 'string' ? o.echartNavGroup.trim() : '';
+    const activeSpan = navSpan(activeRange, activeCustomVal, activeCustomUnit);
+    // Opening straight on today's window is opt-in, so an existing chart keeps its rolling range.
+    const [navRef, setNavRef] = useState<number | null>(() => {
+        const span = navSpan(startRange, startCustomVal, startCustomUnit);
+        return dayNav && o.echartDayNavDefault === true && span ? todayRef(span, navAnchor) : null;
+    });
+    const dayWindow = dayNav && navRef !== null && activeSpan ? navWindow(activeSpan, navRef, navAnchor) : null;
     const dayInputRef = useRef<HTMLInputElement>(null);
+    const chipKey = rangeKey(activeRange, activeCustomVal, activeCustomUnit);
+    // The selection as of the last `navigate`, ahead of the next render: on mount the date and the
+    // range datapoint both apply in one commit, and the second must build on the first.
+    const navNow = useRef({ ref: navRef, chip: chipKey });
+    navNow.current = { ref: navRef, chip: chipKey };
 
-    // Reset frontend selection when the admin config changes. Deliberately without `dayOffset`:
-    // day mode is its own selection and must survive a range change, and the start-on-today
+    // Reset frontend selection when the admin config changes. Deliberately without `navRef`:
+    // the browsed date is its own selection and must survive a range change, and the start-on-today
     // option below would be pulled back to the rolling range on the very first run.
     useEffect(() => {
         setActiveRange(startRange);
         setActiveCustomVal(startCustomVal);
         setActiveCustomUnit(startCustomUnit);
+        // Ahead of the next render, like `navigate` — the datapoint effects below may build on it.
+        navNow.current = { ...navNow.current, chip: rangeKey(startRange, startCustomVal, startCustomUnit) };
     }, [startRange, startCustomVal, startCustomUnit]);
 
-    // Only the two day-nav options themselves move the day mode — so toggling them in the editor
-    // shows immediately, while browsing to another day afterwards is left alone.
+    // Only the two day-nav options themselves move the paging mode — so toggling them in the editor
+    // shows immediately, while browsing to another date afterwards is left alone.
     const dayNavDefault = dayNav && o.echartDayNavDefault === true;
     useEffect(() => {
-        setDayOffset(dayNavDefault ? 0 : null);
-    }, [dayNavDefault]);
+        const span = navSpan(startRange, startCustomVal, startCustomUnit);
+        const ref = dayNavDefault && span ? todayRef(span, navAnchor) : null;
+        setNavRef(ref);
+        navNow.current = { ...navNow.current, ref };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dayNavDefault, navAnchor]);
+
+    // Linked paging: the group store (same browser) and the optional datapoints (any device).
+    const navDateId = dayNav ? ((o.echartNavDateDp as string | undefined) ?? '').trim() : '';
+    const navRangeId = ((o.echartNavRangeDp as string | undefined) ?? '').trim();
+    const navCmdId = dayNav ? ((o.echartNavCommandDp as string | undefined) ?? '').trim() : '';
+    const navDateDp = useDatapoint(navDateId);
+    const navRangeDp = useDatapoint(navRangeId);
+    const navCmdDp = useDatapoint(navCmdId);
+    // Values this widget wrote itself: their echo must not be applied — by the time it arrives
+    // the chart may already stand on a newer selection.
+    const ownWrites = useRef(new Set<string>());
+    const publishNav = useChartNavStore((s) => s.publish);
+    const groupNav = useChartNavStore((s) => (navGroup ? s.groups[navGroup] : undefined));
+
+    /**
+     * The one way the selection changes. `user` = clicked in this widget: tell the group and write
+     * the datapoints. `dp` = a datapoint moved it: tell the group, but write nothing back.
+     * `group` = another linked chart moved it: just follow.
+     */
+    const navigate = (chip: RangeChip | null, ref: number | null, origin: 'user' | 'dp' | 'group') => {
+        const nextChip = chip && !lockRange ? chip : null;
+        if (nextChip) {
+            setActiveRange(nextChip.range);
+            if (nextChip.range === 'custom') {
+                setActiveCustomVal(nextChip.value ?? 24);
+                setActiveCustomUnit(nextChip.unit ?? 'h');
+            }
+        }
+        const nextRef = dayNav ? ref : null;
+        setNavRef(nextRef);
+        const key = nextChip?.key ?? navNow.current.chip;
+        navNow.current = { ref: nextRef, chip: key };
+        if (origin !== 'group' && navGroup) publishNav(navGroup, { chip: key, ref: nextRef });
+        if (origin !== 'user') return;
+        if (navDateId) {
+            const v = formatNavDate(nextRef, navAnchor, typeof navDateDp.value === 'number');
+            if (String(v) !== String(navDateDp.value ?? '')) {
+                ownWrites.current.add(`d:${v}`);
+                navDateDp.setValue(v);
+            }
+        }
+        if (navRangeId && key !== String(navRangeDp.value ?? '')) {
+            ownWrites.current.add(`r:${key}`);
+            navRangeDp.setValue(key);
+        }
+    };
+
+    /** A chip change keeps the browsed date — today's window stays today's window. */
+    const spanOf = (key: string) => {
+        const c = parseRangeToken(key);
+        return c ? navSpan(c.range, c.value, c.unit) : null;
+    };
+    const switchChip = (c: RangeChip, origin: 'user' | 'dp' | 'group') => {
+        const { ref, chip } = navNow.current;
+        const to = navSpan(c.range, c.value, c.unit);
+        navigate(c, ref !== null && to ? switchRef(ref, spanOf(chip), to, navAnchor) : ref, origin);
+    };
+
+    const runNavCommand = (cmd: NavCommand, origin: 'user' | 'dp') => {
+        if (cmd === 'now') return navigate(null, null, origin);
+        const { ref, chip } = navNow.current;
+        const span = spanOf(chip);
+        if (!span) return;
+        if (cmd === 'today') return navigate(null, todayRef(span, navAnchor), origin);
+        if (cmd === 'next' && !canStepForward(ref, span, navAnchor)) return;
+        navigate(null, stepRef(ref, span, cmd === 'prev' ? -1 : 1, navAnchor), origin);
+    };
+
+    // Follow the group — including the state it already has when this chart mounts (a popup copy).
+    useEffect(() => {
+        if (!groupNav) return;
+        const now = navNow.current;
+        if (groupNav.chip === now.chip && groupNav.ref === now.ref) return;
+        const chip = parseRangeToken(groupNav.chip);
+        navigate(chip && chip.key !== now.chip ? chip : null, groupNav.ref, 'group');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [groupNav]);
+
+    useEffect(() => {
+        const raw = navDateDp.value;
+        if (ownWrites.current.delete(`d:${raw}`)) return;
+        const ref = parseNavDate(raw, navAnchor);
+        if (ref === undefined || ref === navNow.current.ref) return;
+        const span = spanOf(navNow.current.chip);
+        navigate(null, ref !== null && span ? normalizeRef(ref, span, navAnchor) : ref, 'dp');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navDateDp.value, navAnchor]);
+
+    useEffect(() => {
+        const raw = navRangeDp.value;
+        if (ownWrites.current.delete(`r:${raw}`)) return;
+        const chip = parseRangeToken(raw);
+        if (!chip || chip.key === navNow.current.chip) return;
+        switchChip(chip, 'dp');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navRangeDp.value]);
+
+    // Commands react to every update (ts), also to the same value twice. The state found on mount
+    // is history, not a command. Linked charts share one command datapoint: the first claims it
+    // and steps the group, the others follow the group.
+    const navCmdSeen = useRef<{ id: string; ts: number } | null>(null);
+    useEffect(() => {
+        const st = navCmdDp.state;
+        if (!st || !navCmdId) return;
+        const seen = navCmdSeen.current;
+        navCmdSeen.current = { id: navCmdId, ts: st.ts };
+        if (!seen || seen.id !== navCmdId || seen.ts === st.ts) return;
+        const cmd = parseNavCommand(st.val);
+        if (!cmd) return;
+        if (navGroup && !useChartNavStore.getState().claimCommand(navGroup, `${navCmdId}@${st.ts}`)) return;
+        runNavCommand(cmd, 'dp');
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [navCmdDp.state]);
 
     // Popup charts opened from a value-display widget carry no history instance to inherit.
     // Detect the adapter per series from its resolved datapoint — auto-select the sole one,
@@ -1611,8 +1762,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // instead of wrapping the day-nav into a second row.
             <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
                 {chipList.map((c) => {
-                    const active =
-                        dayOffset === null && rangeKey(activeRange, activeCustomVal, activeCustomUnit) === c.key;
+                    const active = chipKey === c.key;
                     return (
                         <button
                             key={c.key}
@@ -1621,14 +1771,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
                             }}
-                            onClick={() => {
-                                setDayOffset(null);
-                                setActiveRange(c.range);
-                                if (c.range === 'custom') {
-                                    setActiveCustomVal(c.value ?? 24);
-                                    setActiveCustomUnit(c.unit ?? 'h');
-                                }
-                            }}
+                            onClick={() => switchChip(c, 'user')}
                         >
                             {c.label}
                         </button>
@@ -1637,46 +1780,72 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             </div>
         ) : null;
 
-    // Day navigation (◀ Heute ▶) — step through single calendar days, "Heute" returns to the current day.
+    // Paging (◀ Heute ▶) — steps by the active chip; "Heute" shows the current window, a second
+    // click on the lit "Heute" goes back to the rolling range up to now. `Gesamt` has no window to
+    // page through, so the controls grey out rather than disappear.
     const navBtnStyle = (active: boolean): React.CSSProperties => ({
         background: active ? 'var(--accent)' : 'var(--app-border)',
         color: active ? '#fff' : 'var(--text-secondary)',
     });
-    // …and jump straight to a date instead of stepping there (issue #594). `dayOffset` stays the one
-    // source of truth, so a picked date is only turned into its distance from today. Rounded, because
-    // the two DST switch days are 23 and 25 hours long.
-    const isoDay = (ms: number): string => {
-        const d = new Date(ms);
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    };
-    const midnight = (d: Date): number => {
-        const x = new Date(d);
-        x.setHours(0, 0, 0, 0);
-        return x.getTime();
-    };
+    const onToday = isTodayRef(navRef, activeSpan, navAnchor);
+    const navOff = !activeSpan;
+    // The browsed window: one day as "Mo 27.10.", several as "21.10.–27.10.", hours with their time.
+    const navLabel = (() => {
+        if (!dayWindow || !activeSpan) return null;
+        const loc = t('echart.dateLocale');
+        const first = new Date(dayWindow.start);
+        const last = new Date(dayWindow.end - 1);
+        if (!isDaySpan(activeSpan)) {
+            const hm = (d: Date) => d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
+            return `${first.toLocaleDateString(loc, { day: '2-digit', month: '2-digit' })} ${hm(first)}–${hm(new Date(dayWindow.end))}`;
+        }
+        if (dayStart(first.getTime()) === dayStart(last.getTime())) {
+            return first.toLocaleDateString(loc, { weekday: 'short', day: '2-digit', month: '2-digit' });
+        }
+        const year = new Date().getFullYear();
+        const opts: Intl.DateTimeFormatOptions = {
+            day: '2-digit',
+            month: '2-digit',
+            ...(first.getFullYear() !== year || last.getFullYear() !== year ? { year: '2-digit' } : {}),
+        };
+        return `${first.toLocaleDateString(loc, opts)}–${last.toLocaleDateString(loc, opts)}`;
+    })();
+    // …and jump straight to a date instead of stepping there (issue #594). The picked day becomes
+    // the reference point by the anchor: the window ends with that day, or starts on it.
     const pickDay = (iso: string) => {
-        if (!iso) return;
+        if (!iso || !activeSpan) return;
         const [y, m, d] = iso.split('-').map(Number);
         if (!y || !m || !d) return;
-        const picked = midnight(new Date(y, m - 1, d));
-        setDayOffset(Math.min(0, Math.round((picked - midnight(new Date())) / 86_400_000)));
+        navigate(
+            null,
+            normalizeRef(refFromDay(new Date(y, m - 1, d).getTime(), navAnchor), activeSpan, navAnchor),
+            'user',
+        );
     };
     const dayNavControls =
         dayNav && hasHistory ? (
-            <div className="flex items-center gap-1 shrink-0">
+            <div
+                className="flex items-center gap-1 shrink-0"
+                data-testid="echart-nav"
+                title={navOff ? t('echart.navTotalHint') : undefined}
+            >
                 <button
-                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
                     style={navBtnStyle(false)}
                     title={t('echart.dayPrevTitle')}
-                    onClick={() => setDayOffset((prev) => (prev ?? 0) - 1)}
+                    disabled={navOff}
+                    data-testid="echart-nav-prev"
+                    onClick={() => runNavCommand('prev', 'user')}
                 >
                     <ChevronLeft size={12} />
                 </button>
                 <button
-                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
-                    style={navBtnStyle(dayOffset === 0)}
-                    title={t('echart.dayTodayTitle')}
-                    onClick={() => setDayOffset(0)}
+                    className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
+                    style={navBtnStyle(onToday)}
+                    title={onToday ? t('echart.navLiveTitle') : t('echart.dayTodayTitle')}
+                    disabled={navOff}
+                    data-testid="echart-nav-today"
+                    onClick={() => runNavCommand(onToday ? 'now' : 'today', 'user')}
                 >
                     {t('echart.today')}
                 </button>
@@ -1684,8 +1853,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40"
                     style={navBtnStyle(false)}
                     title={t('echart.dayNextTitle')}
-                    disabled={dayOffset === null || dayOffset >= 0}
-                    onClick={() => setDayOffset((prev) => (prev !== null && prev < 0 ? prev + 1 : prev))}
+                    disabled={!canStepForward(navRef, activeSpan, navAnchor)}
+                    data-testid="echart-nav-next"
+                    onClick={() => runNavCommand('next', 'user')}
                 >
                     <ChevronRight size={12} />
                 </button>
@@ -1699,23 +1869,20 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         className="nodrag absolute bottom-0 left-0 w-0 h-0 p-0 border-0 opacity-0 pointer-events-none"
                         tabIndex={-1}
                         aria-hidden
-                        value={dayWindow ? isoDay(dayWindow.start) : ''}
+                        value={dayWindow && navRef !== null ? isoDay(dayOfRef(navRef, navAnchor)) : ''}
                         max={isoDay(Date.now())}
                         onChange={(e) => pickDay(e.target.value)}
                     />
                     <button
-                        className="nodrag flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap hover:opacity-80 transition-opacity"
+                        className="nodrag flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap hover:opacity-80 transition-opacity disabled:opacity-40"
                         style={navBtnStyle(false)}
                         title={t('echart.dayPickTitle')}
+                        disabled={navOff}
+                        data-testid="echart-nav-date"
                         onClick={() => openNativePicker(dayInputRef.current)}
                     >
                         <CalendarDays size={12} />
-                        {dayWindow &&
-                            new Date(dayWindow.start).toLocaleDateString(t('echart.dateLocale'), {
-                                weekday: 'short',
-                                day: '2-digit',
-                                month: '2-digit',
-                            })}
+                        {navLabel}
                     </button>
                 </span>
             </div>

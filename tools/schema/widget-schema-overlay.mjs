@@ -1414,10 +1414,47 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Welche eingebauten Zeiträume der Umschalter anbietet. Wirkungslos, sobald rangeChips gesetzt ist.',
         },
-        echartDayNav: { description: 'Blättern zwischen einzelnen Tagen erlauben.' },
+        echartDayNav: {
+            description:
+                'Blättern im Frontend (◀ Heute ▶ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, ' +
+                '7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. Ein zweiter Klick auf das ' +
+                'leuchtende „Heute" kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt" ist Blättern ausgegraut.',
+        },
         echartDayNavDefault: {
             description:
-                'Startet das Diagramm auf dem heutigen Tag (00:00–24:00) statt auf dem rollenden Zeitraum. Setzt echartDayNav voraus.',
+                'Startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00) statt auf dem rollenden. Setzt echartDayNav voraus.',
+        },
+        echartNavAnchor: {
+            type: 'string',
+            enum: ['end', 'start'],
+            default: 'end',
+            description:
+                'Was das gewählte Datum beim Blättern ist: "end" (Standard) = letzter Tag des Fensters (7 Tage bis zum Datum), ' +
+                '"start" = erster Tag (7 Tage ab dem Datum). Setzt echartDayNav voraus.',
+        },
+        echartNavGroup: {
+            type: 'string',
+            default: '',
+            description:
+                'Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, ' +
+                'blättern alle. Nur im selben Browser; geräteübergreifend über echartNavDateDp/echartNavRangeDp.',
+        },
+        echartNavDateDp: {
+            description:
+                'Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt echartDayNav voraus). Werte: "YYYY-MM-DD" ' +
+                '(Tag, nach echartNavAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), ' +
+                'leer/0/"now" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).',
+        },
+        echartNavRangeDp: {
+            description:
+                'Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips ("6h", "24h", "7d", ' +
+                '"1M", "total"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.',
+        },
+        echartNavCommandDp: {
+            description:
+                'Optionaler Befehls-Datenpunkt (nur lesen, setzt echartDayNav voraus): "prev", "next", "today", "now" ' +
+                '(auch -1/1). Jede Aktualisierung zählt, auch derselbe Wert; der Wert beim Laden wird ignoriert, ' +
+                'das Widget setzt den DP nicht zurück.',
         },
         echartShowCurrent: { description: 'Aktuellen Wert je Reihe über dem Diagramm anzeigen.' },
         echartCurrentFrom: {
