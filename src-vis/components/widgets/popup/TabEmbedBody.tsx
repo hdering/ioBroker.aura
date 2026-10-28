@@ -131,6 +131,15 @@ function cardStyleFor(w: WidgetConfig, widgetPadding: number): CSSProperties {
     };
 }
 
+/** Card chrome removed for a widget that fills a fullscreen popup edge to edge (#865). */
+const BARE_CELL_STYLE = {
+    '--aura-widget-pad': '0px',
+    padding: 0,
+    borderWidth: 0,
+    borderRadius: 0,
+    boxShadow: 'none',
+} as CSSProperties;
+
 // ── Condition evaluation ──────────────────────────────────────────────────────
 
 /**
@@ -168,11 +177,14 @@ function PopupWidgetCell({
     onConfigChange,
     autoHeight = false,
     onMeasure,
+    bare = false,
 }: {
     w: WidgetConfig;
     cond: ConditionResult;
     widgetPadding: number;
     onConfigChange: (next: WidgetConfig) => void;
+    /** Edge to edge: no card frame, corners, shadow or inner padding (fullscreen fill tab). */
+    bare?: boolean;
     /** True when this cell should render its widget at natural height (auto-height popup). */
     autoHeight?: boolean;
     /** Reports the cell's natural (content-driven) pixel height so the parent can grow the grid row-count. */
@@ -258,6 +270,7 @@ function PopupWidgetCell({
                 // when the content needs more, so loading steps inside the slot stay invisible.
                 ...(autoHeight ? { minHeight: '100%' } : {}),
                 ...cardStyleFor(w, widgetPadding),
+                ...(bare ? BARE_CELL_STYLE : {}),
                 ...cond.cssVars,
                 ...(clickAction && !cond.disabled ? { cursor: 'pointer' } : {}),
                 ...(cond.hidden ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
@@ -332,6 +345,8 @@ interface Props {
     /** The dialog has a size of its own (fullscreen or a set width/height): a fill-tab
      *  widget stretches to it. Otherwise it keeps its designed size. */
     fill?: boolean;
+    /** Fullscreen: a fill-tab widget runs edge to edge — no popup padding, no card frame. */
+    edgeToEdge?: boolean;
 }
 
 export function TabEmbedBody({
@@ -340,6 +355,7 @@ export function TabEmbedBody({
     dpOverride,
     padding = DEFAULT_POPUP_PADDING,
     fill = false,
+    edgeToEdge = false,
 }: Props) {
     const view = usePopupConfigStore((s) => s.views.find((v) => v.id === viewId));
     const updateWidgetInView = usePopupConfigStore((s) => s.updateWidgetInView);
@@ -439,23 +455,25 @@ export function TabEmbedBody({
     if (fillOrig) {
         const w = widgets[0];
         const rows = w.gridPos.h ?? 3;
-        const designedH = rows * cellSize + (rows - 1) * MARGIN + 2 * padding;
+        const pad = edgeToEdge ? 0 : padding;
+        const designedH = rows * cellSize + (rows - 1) * MARGIN + 2 * pad;
         return (
             <SharedTemplateContext.Provider value="instance">
                 <div
                     className={fill ? 'w-full h-full box-border' : 'box-border'}
-                    style={{ padding, minWidth: fill ? undefined : naturalMinWidth, minHeight: designedH }}
+                    style={{ padding: pad, minWidth: fill ? undefined : naturalMinWidth, minHeight: designedH }}
                     data-aura-popup-fill=""
                 >
                     <div style={{ display: 'none' }}>
                         <ConditionProbe w={w} onResult={onCondResult} />
                     </div>
-                    <div style={{ height: fill ? '100%' : designedH - 2 * padding }}>
+                    <div style={{ height: fill ? '100%' : designedH - 2 * pad }}>
                         <ContentAutoHeightBlockedContext.Provider value={true}>
                             <PopupWidgetCell
                                 w={w}
                                 cond={conds[w.id] ?? EMPTY_COND}
                                 widgetPadding={widgetPadding}
+                                bare={edgeToEdge}
                                 onConfigChange={(next) => {
                                     const patch = mergedOptionsPatch(fillOrig, w, next);
                                     if (patch) updateWidgetInView(view.id, fillOrig.id, { options: patch });

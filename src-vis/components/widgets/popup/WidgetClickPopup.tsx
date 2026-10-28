@@ -330,6 +330,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
                         dpOverride={action.dp}
                         padding={padding}
                         fill={fillBody}
+                        edgeToEdge={fullscreen && viewFills}
                     />
                 );
             default:

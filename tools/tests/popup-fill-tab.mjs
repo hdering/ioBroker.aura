@@ -85,19 +85,30 @@ async function open(options, widgets) {
         const cell = document.querySelector('[data-aura-click-popup] [data-aura-popup-widget]');
         if (!cell) return null;
         const r = cell.getBoundingClientRect();
+        const cs = getComputedStyle(cell);
         return {
+            x: Math.round(r.left),
+            y: Math.round(r.top),
             w: Math.round(r.width),
             h: Math.round(r.height),
+            pad: parseFloat(cs.paddingLeft),
+            border: parseFloat(cs.borderLeftWidth),
+            radius: parseFloat(cs.borderTopLeftRadius),
             fill: !!document.querySelector('[data-aura-click-popup] [data-aura-popup-fill]'),
         };
     });
 }
 
-// 1. Fullscreen: the widget covers the screen up to the popup padding.
+// 1. Fullscreen: the widget runs edge to edge — no popup padding, no card frame.
 const full = await open({ popupFullscreen: true }, [image('pw-a', { fillTab: true })]);
 check(
-    'Vollbild: Widget füllt den Bildschirm',
-    !!full && full.fill && near(full.w, 1280 - 2 * PAD) && near(full.h, 900 - 2 * PAD),
+    'Vollbild: Widget füllt den Bildschirm randlos',
+    !!full && full.fill && full.x === 0 && full.y === 0 && near(full.w, 1280) && near(full.h, 900),
+    JSON.stringify(full),
+);
+check(
+    'Vollbild: ohne Rahmen, Ecken und Innenabstand',
+    !!full && full.pad === 0 && full.border === 0 && full.radius === 0,
     JSON.stringify(full),
 );
 
