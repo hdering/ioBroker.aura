@@ -13930,6 +13930,7 @@ function WidgetFrameInner({
                                                             <option value="contain">Contain (einpassen)</option>
                                                         </select>
                                                     </div>
+                                                    <FillTabToggle config={config} set={set} />
                                                 </>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">

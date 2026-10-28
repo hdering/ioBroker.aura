@@ -1,5 +1,5 @@
 /**
- * FillTabToggle — "Fill tab" switch for embed-like widgets (iframe, image, slideshow).
+ * FillTabToggle — "Fill tab" switch for embed-like widgets (iframe, image, slideshow, camera).
  * The Dashboard renders a `fillTab` widget as an overlay over the whole tab area, a
  * popup view stretches it over the popup body (#865). Either way it only makes sense
  * as the single widget there: greyed out while others share the tab or view.

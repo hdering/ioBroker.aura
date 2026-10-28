@@ -2052,6 +2052,7 @@ export const EXTRA_OPTIONS = {
                 'Sperrschicht über den Stream, die ganze Fläche löst die Klick-Aktion aus; "content" (Standard) lässt die ' +
                 'Player-Seite bedienbar. "contentOnly" ist veraltet — nicht setzen.',
         },
+        ...FILL_TAB_OPTION,
     },
     shutter: {
         // Read in utils/shutterCommand, shared with the popup and group actions.
