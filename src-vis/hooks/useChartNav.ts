@@ -10,10 +10,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useDatapoint } from './useDatapoint';
 import type { EChartTimeRange } from './useMultiSeriesData';
 import { useChartNavStore } from '../store/chartNavStore';
-import { parseRangeToken, rangeKey, type RangeChip, type RangeUnit } from '../utils/rangeChips';
+import { chipKeyOf, parseRangeToken, rangeKey, type RangeChip, type RangeUnit } from '../utils/rangeChips';
 import {
     canStepForward,
     formatNavDate,
+    futureHorizon,
     isTodayRef,
     navSpan,
     navWindow,
@@ -26,6 +27,9 @@ import {
     todayRef,
     type NavAnchor,
     type NavCommand,
+    type NavCurrent,
+    type NavFuture,
+    type NavLimits,
     type NavSpan,
     type NavWindow,
 } from '../utils/chartNav';
@@ -35,6 +39,8 @@ export interface ChartNavOptions {
     startRange: EChartTimeRange;
     startCustomValue: number;
     startCustomUnit: RangeUnit;
+    /** Lead token of the start chip (`36h`), when it names one. */
+    startLead?: string;
     /** The range is pinned to the configuration — chips from a group or datapoint are ignored. */
     lockRange: boolean;
     /** Paging on (‹ › ⇥ 📅). Without it the window always rolls up to now. */
@@ -42,6 +48,12 @@ export interface ChartNavOptions {
     /** Open on the current window instead of the rolling one. */
     startOnCurrent: boolean;
     anchor: NavAnchor;
+    /** How far ‹ › 📅 may go into the future (forecasts); default none. */
+    future?: NavFuture;
+    /** Newest recorded point for `future: data` — undefined while unknown. */
+    newest?: number | null;
+    /** What ⇥ calls the current window. */
+    current?: NavCurrent;
     group: string;
     dateDp: string;
     rangeDp: string;
@@ -52,7 +64,9 @@ export interface ChartNav {
     range: EChartTimeRange;
     customValue: number;
     customUnit: RangeUnit;
-    /** Token of the active range (`24h`, `7d`, `3M`) — what a chip is matched by. */
+    /** Lead token of the active chip (`36h`), undefined when the chip names none. */
+    lead: string | undefined;
+    /** Token of the active range (`24h`, `7d`, `3M`, `2d+36h`) — what a chip is matched by. */
     chipKey: string;
     span: NavSpan | null;
     paging: boolean;
@@ -64,6 +78,8 @@ export interface ChartNav {
     /** The window is the current one (⇥ lit). */
     onCurrent: boolean;
     canNext: boolean;
+    /** Latest instant a window may start at — now, or the forecast horizon (Infinity = open). */
+    horizon: number;
     selectChip: (c: RangeChip) => void;
     command: (cmd: NavCommand) => void;
     /** A calendar day from the date field (`YYYY-MM-DD`). */
@@ -73,18 +89,24 @@ export interface ChartNav {
 type Origin = 'user' | 'dp' | 'group';
 
 export function useChartNav(opts: ChartNavOptions): ChartNav {
-    const { startRange, startCustomValue, startCustomUnit, lockRange, paging, anchor, group } = opts;
+    const { startRange, startCustomValue, startCustomUnit, startLead, lockRange, paging, anchor, group } = opts;
+    /** Limits as of this moment — the horizon moves with the clock. */
+    const lim = (): NavLimits => ({
+        horizon: futureHorizon(opts.future ?? { kind: 'none' }, opts.newest),
+        current: opts.current,
+    });
 
     const [range, setRange] = useState<EChartTimeRange>(startRange);
     const [customValue, setCustomValue] = useState<number>(startCustomValue);
     const [customUnit, setCustomUnit] = useState<RangeUnit>(startCustomUnit);
+    const [lead, setLead] = useState<string | undefined>(startLead);
     const span = navSpan(range, customValue, customUnit);
     // Opening straight on the current window is opt-in, so an existing chart keeps its rolling range.
     const [ref, setRef] = useState<number | null>(() => {
         const s = navSpan(startRange, startCustomValue, startCustomUnit);
-        return paging && opts.startOnCurrent && s ? todayRef(s, anchor) : null;
+        return paging && opts.startOnCurrent && s ? todayRef(s, anchor, Date.now(), lim()) : null;
     });
-    const chipKey = rangeKey(range, customValue, customUnit);
+    const chipKey = chipKeyOf(rangeKey(range, customValue, customUnit), lead);
     // The selection as of the last `navigate`, ahead of the next render: on mount the date and the
     // range datapoint both apply in one commit, and the second must build on the first.
     const now = useRef({ ref, chip: chipKey });
@@ -96,19 +118,23 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         setRange(startRange);
         setCustomValue(startCustomValue);
         setCustomUnit(startCustomUnit);
-        now.current = { ...now.current, chip: rangeKey(startRange, startCustomValue, startCustomUnit) };
-    }, [startRange, startCustomValue, startCustomUnit]);
+        setLead(startLead);
+        now.current = {
+            ...now.current,
+            chip: chipKeyOf(rangeKey(startRange, startCustomValue, startCustomUnit), startLead),
+        };
+    }, [startRange, startCustomValue, startCustomUnit, startLead]);
 
     // Only the paging options themselves move the paging mode — so toggling them in the editor
     // shows immediately, while browsing to another date afterwards is left alone.
     const startOnCurrent = paging && opts.startOnCurrent;
     useEffect(() => {
         const s = navSpan(startRange, startCustomValue, startCustomUnit);
-        const r = startOnCurrent && s ? todayRef(s, anchor) : null;
+        const r = startOnCurrent && s ? todayRef(s, anchor, Date.now(), lim()) : null;
         setRef(r);
         now.current = { ...now.current, ref: r };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [startOnCurrent, anchor]);
+    }, [startOnCurrent, anchor, opts.current]);
 
     const dateId = paging ? opts.dateDp.trim() : '';
     const rangeId = opts.rangeDp.trim();
@@ -135,6 +161,7 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
                 setCustomValue(nextChip.value ?? 24);
                 setCustomUnit(nextChip.unit ?? 'h');
             }
+            setLead(nextChip.lead);
         }
         const r = paging ? nextRef : null;
         setRef(r);
@@ -164,7 +191,11 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
     const switchChip = (c: RangeChip, origin: Origin) => {
         const cur = now.current;
         const to = navSpan(c.range, c.value, c.unit);
-        navigate(c, cur.ref !== null && to ? switchRef(cur.ref, spanOf(cur.chip), to, anchor) : cur.ref, origin);
+        navigate(
+            c,
+            cur.ref !== null && to ? switchRef(cur.ref, spanOf(cur.chip), to, anchor, Date.now(), lim()) : cur.ref,
+            origin,
+        );
     };
 
     const command = (cmd: NavCommand, origin: Origin) => {
@@ -172,9 +203,10 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         const cur = now.current;
         const s = spanOf(cur.chip);
         if (!s) return;
-        if (cmd === 'today') return navigate(null, todayRef(s, anchor), origin);
-        if (cmd === 'next' && !canStepForward(cur.ref, s, anchor)) return;
-        navigate(null, stepRef(cur.ref, s, cmd === 'prev' ? -1 : 1, anchor), origin);
+        const l = lim();
+        if (cmd === 'today') return navigate(null, todayRef(s, anchor, Date.now(), l), origin);
+        if (cmd === 'next' && !canStepForward(cur.ref, s, anchor, Date.now(), l)) return;
+        navigate(null, stepRef(cur.ref, s, cmd === 'prev' ? -1 : 1, anchor, Date.now(), l), origin);
     };
 
     // Follow the group — including the state it already has when this chart mounts (a popup copy).
@@ -193,7 +225,7 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         const r = parseNavDate(raw, anchor);
         if (r === undefined || r === now.current.ref) return;
         const s = spanOf(now.current.chip);
-        navigate(null, r !== null && s ? normalizeRef(r, s, anchor) : r, 'dp');
+        navigate(null, r !== null && s ? normalizeRef(r, s, anchor, Date.now(), lim()) : r, 'dp');
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [dateDp.value, anchor]);
 
@@ -227,21 +259,27 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         range,
         customValue,
         customUnit,
+        lead,
         chipKey,
         span,
         paging,
         anchor,
         ref,
         window: paging && ref !== null && span ? navWindow(span, ref, anchor) : null,
-        onCurrent: isTodayRef(ref, span, anchor),
-        canNext: canStepForward(ref, span, anchor),
+        onCurrent: isTodayRef(ref, span, anchor, Date.now(), lim()),
+        canNext: canStepForward(ref, span, anchor, Date.now(), lim()),
+        horizon: Math.max(Date.now(), lim().horizon ?? 0),
         selectChip: (c) => switchChip(c, 'user'),
         command: (cmd) => command(cmd, 'user'),
         pickDay: (iso) => {
             if (!iso || !span) return;
             const [y, m, d] = iso.split('-').map(Number);
             if (!y || !m || !d) return;
-            navigate(null, normalizeRef(refFromDay(new Date(y, m - 1, d).getTime(), anchor), span, anchor), 'user');
+            navigate(
+                null,
+                normalizeRef(refFromDay(new Date(y, m - 1, d).getTime(), anchor), span, anchor, Date.now(), lim()),
+                'user',
+            );
         },
     };
 }

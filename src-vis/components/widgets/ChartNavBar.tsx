@@ -101,7 +101,7 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
                     tabIndex={-1}
                     aria-hidden
                     value={nav.window && nav.ref !== null ? isoDay(dayOfRef(nav.ref, nav.anchor)) : ''}
-                    max={isoDay(Date.now())}
+                    max={Number.isFinite(nav.horizon) ? isoDay(nav.horizon) : undefined}
                     onChange={(e) => nav.pickDay(e.target.value)}
                 />
                 <button

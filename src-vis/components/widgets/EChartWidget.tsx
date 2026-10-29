@@ -7,6 +7,7 @@ import {
     useMultiSeriesData,
     useDatapointMeta,
     useAutoHistoryInstances,
+    useHistoryNewest,
     rangeToMs,
     parseTimeLabel,
     seriesTimeShift,
@@ -49,6 +50,7 @@ import { HistoryErrorNote } from './HistoryErrorNote';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
 import { useChartNav } from '../../hooks/useChartNav';
+import { parseLead, parseNavFuture } from '../../utils/chartNav';
 import { ChartNavBar } from './ChartNavBar';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
@@ -425,16 +427,37 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                       : []),
               ];
     // A configured default that is not among the user's chips would leave no chip lit — start on
-    // the first one instead. A locked range keeps its configured window regardless.
+    // the first one instead. A locked range keeps its configured window regardless. A chip with a
+    // lead (`2d+36h`) still counts as the configured `2d` and brings its lead along.
+    const cfgKey = rangeKey(cfgRange, cfgCustomVal, cfgCustomUnit);
     const startChip =
-        !lockRange &&
-        userChips.length > 0 &&
-        !userChips.some((c) => c.key === rangeKey(cfgRange, cfgCustomVal, cfgCustomUnit))
-            ? userChips[0]
+        !lockRange && userChips.length > 0
+            ? (userChips.find((c) => rangeKey(c.range, c.value, c.unit) === cfgKey) ?? userChips[0])
             : null;
     const startRange = startChip?.range ?? cfgRange;
     const startCustomVal = startChip?.value ?? cfgCustomVal;
     const startCustomUnit = startChip?.unit ?? cfgCustomUnit;
+
+    // Forecasts (points after now, written with their own timestamps) — time series only.
+    const isTimeseries = echartMode === 'timeseries';
+    const navFuture = isTimeseries ? parseNavFuture(o.echartNavFuture) : ({ kind: 'none' } as const);
+    const navCurrent = isTimeseries && o.echartNavCurrent === 'starts-today' ? 'starts-today' : 'contains-now';
+
+    // Popup charts opened from a value-display widget carry no history instance to inherit.
+    // Detect the adapter per series from its resolved datapoint — auto-select the sole one,
+    // or offer a selection field when several exist.
+    const autoHistory = o.autoHistoryInstance === true;
+    const { resolved, setPicked } = useAutoHistoryInstances(echartSeries, autoHistory);
+    const historySeries = echartSeries.map((s) => ({
+        ...s,
+        historyInstance: s.historyInstance ?? resolved[s.id]?.instance,
+    }));
+    // ▶ runs up to the newest forecast point — found by a probe of its own.
+    const newest = useHistoryNewest(
+        historySeries,
+        navFuture.kind === 'data' && o.echartDayNav === true && echartMode === 'timeseries',
+        connected,
+    );
 
     // Active range + paging (‹ › ⇥ 📅, issue #871), linked through the group and the datapoints.
     const nav = useChartNav({
@@ -445,6 +468,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         paging: o.echartDayNav === true,
         startOnCurrent: o.echartDayNavDefault === true,
         anchor: o.echartNavAnchor === 'start' ? 'start' : 'end',
+        startLead: startChip?.lead,
+        future: navFuture,
+        newest,
+        current: navCurrent,
         group: typeof o.echartNavGroup === 'string' ? o.echartNavGroup.trim() : '',
         dateDp: (o.echartNavDateDp as string | undefined) ?? '',
         rangeDp: (o.echartNavRangeDp as string | undefined) ?? '',
@@ -456,12 +483,19 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const dayNav = nav.paging;
     // The absolute window while paging — every series is pinned to it.
     const dayWindow = nav.window;
-
-    // Popup charts opened from a value-display widget carry no history instance to inherit.
-    // Detect the adapter per series from its resolved datapoint — auto-select the sole one,
-    // or offer a selection field when several exist.
-    const autoHistory = o.autoHistoryInstance === true;
-    const { resolved, setPicked } = useAutoHistoryInstances(echartSeries, autoHistory);
+    // Lead of the rolling window into the future: the chip's own (`2d+36h`), else the global one.
+    const leadMs =
+        isTimeseries && !dayWindow && activeRange !== 'total'
+            ? (parseLead(nav.lead ?? (o.echartRangeLead as string | undefined)) ?? 0)
+            : 0;
+    // The rolling window with lead, framed exactly — the axis must not end at the newest point.
+    const leadWindow = (() => {
+        if (leadMs <= 0) return null;
+        const end = Date.now() + leadMs;
+        return { start: end - rangeToMs(activeRange, activeCustomVal, activeCustomUnit), end };
+    })();
+    // Points after now are data, not artefacts — the fetch neither stops at now nor trims them.
+    const futureOn = isTimeseries && (navFuture.kind !== 'none' || leadMs > 0 || navCurrent === 'starts-today');
 
     /**
      * Where a series takes its data from, with the mode having the last word. The JSON mode reads
@@ -486,6 +520,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         // Day mode pins all series to one absolute calendar-day window.
         historyStart: dayWindow?.start,
         historyEnd: dayWindow?.end,
+        historyLead: leadMs > 0 ? leadMs : undefined,
+        historyFuture: futureOn || undefined,
     }));
 
     const hasHistory = effectiveSeries.some((s) => !!s.historyInstance);
@@ -624,10 +660,16 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (dayWindow) {
             return [
                 [dayWindow.start, 0],
-                [Math.min(dayWindow.end, now), 0],
+                [futureOn ? dayWindow.end : Math.min(dayWindow.end, now), 0],
             ];
         }
         const val = current ?? 0;
+        if (leadWindow) {
+            return [
+                [leadWindow.start, val],
+                [now, val],
+            ];
+        }
         // `total` reports its floor (decades) rather than a real span — framing a flat line across
         // it would stretch the x axis over 20 empty years. With no records there is no recording
         // start to show anyway, so fall back to a day.
@@ -1395,7 +1437,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
      * delta bars gets no reserve to compensate in the first place.
      */
     const rollingAxisMax = (() => {
-        if (dayWindow || !axisBucket) return null;
+        if (dayWindow || leadWindow || !axisBucket) return null;
         let dataMin = Infinity;
         let dataMax = -Infinity;
         let lastBucket = -Infinity;
@@ -1413,8 +1455,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     })();
 
     // The x span the axis shows: the framed day, or the data stretched to the bucket reserve.
-    const nowLineExtent = dayWindow
-        ? { min: dayWindow.start, max: dayWindow.end }
+    const framed = dayWindow ?? leadWindow;
+    const nowLineExtent = framed
+        ? { min: framed.start, max: framed.end }
         : tooltipExtent && { min: tooltipExtent.min, max: Math.max(tooltipExtent.max, rollingAxisMax ?? -Infinity) };
 
     const seriesList = echartSeries.map((s, idx) => {
@@ -1579,8 +1622,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // Written unconditionally — `setOption` MERGES, so a key that is merely omitted keeps
             // the value of the previous option. Leaving day mode for a rolling range would then
             // stay framed on that one day and hide every other bar (issue #594).
-            min: dayWindow ? dayWindow.start : null,
-            max: dayWindow ? dayWindow.end : rollingAxisMax,
+            min: framed ? framed.start : null,
+            max: framed ? framed.end : rollingAxisMax,
         },
         yAxis: [leftAxis, rightAxis],
         series: withNowLine(seriesList, nowWithin(nowLineExtent)),

@@ -85,6 +85,17 @@ export interface EChartSeriesConfig {
     historyStart?: number;
     historyEnd?: number;
     /**
+     * Lead of the rolling window into the future, in ms (forecasts) — set by the widget. The window
+     * keeps its length and ends this far after now: `2d` with 36 h lead = now − 12 h … now + 36 h.
+     */
+    historyLead?: number;
+    /**
+     * The window may reach into the future and points after now are data (a forecast written with
+     * its own timestamps) — set by the widget. An absolute window is not cut at now, and the live
+     * value is never appended behind such points.
+     */
+    historyFuture?: boolean;
+    /**
      * getHistory aggregation for stepped fetches (default `average`). `minmax` keeps the real
      * extreme points with their true timestamps — right for sparsely change-logged datapoints
      * (e.g. daily rain counters), where bucket averages smear resets and dropped empty buckets
@@ -539,6 +550,74 @@ async function probeHistoryStart(id: string, instance: string, end: number): Pro
     } catch {
         return null;
     }
+}
+
+/** How far ahead the newest-point probe looks — more than any forecast runs. */
+const NEWEST_PROBE_AHEAD_MS = 2 * 366 * 86_400_000;
+
+/**
+ * Timestamp of the newest record AFTER now — the end of a forecast written with its own
+ * timestamps (`echartNavFuture: data`). null when nothing lies in the future. Asked with
+ * `returnNewestEntries`, but the newest of the rows is taken either way: an adapter that ignores
+ * the flag still returns the window's rows, and a forecast fits well into the count.
+ */
+async function probeHistoryNewest(id: string, instance: string, now: number): Promise<number | null> {
+    try {
+        const entries = await getHistoryDirect(id, {
+            instance,
+            start: now,
+            end: now + NEWEST_PROBE_AHEAD_MS,
+            aggregate: 'none',
+            count: 5000,
+            returnNewestEntries: true,
+            removeBorderValues: true,
+        });
+        const newest = entries.reduce((m, e) => (chartNumber(e.val) !== null && e.ts > m ? e.ts : m), -Infinity);
+        return Number.isFinite(newest) && newest > now ? newest : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Newest future record over all history series (see `probeHistoryNewest`), re-read every 15 min
+ * so a forecast the script extends moves the limit along. `undefined` while the first answer is
+ * pending or when `enabled` is off; null when no series reaches past now.
+ */
+export function useHistoryNewest(
+    series: EChartSeriesConfig[],
+    enabled: boolean,
+    connected: boolean,
+): number | null | undefined {
+    const [newest, setNewest] = useState<number | null | undefined>(undefined);
+    const targets = enabled ? series.filter((s) => !!s.datapointId && !!s.historyInstance && s.source !== 'json') : [];
+    const key = JSON.stringify(targets.map((s) => [s.datapointId, s.historyInstance]));
+    const [tick, setTick] = useState(0);
+    useEffect(() => {
+        if (!enabled || !connected) return;
+        const id = globalThis.setInterval(() => setTick((t) => t + 1), 900_000);
+        return () => clearInterval(id);
+    }, [enabled, connected]);
+    useEffect(() => {
+        if (!enabled || !connected || targets.length === 0) {
+            setNewest(undefined);
+            return;
+        }
+        let alive = true;
+        const now = Date.now();
+        Promise.all(targets.map((s) => probeHistoryNewest(s.datapointId, s.historyInstance as string, now))).then(
+            (all) => {
+                if (!alive) return;
+                const found = all.filter((v): v is number => v !== null);
+                setNewest(found.length > 0 ? Math.max(...found) : null);
+            },
+        );
+        return () => {
+            alive = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key, enabled, connected, tick]);
+    return newest;
 }
 
 export interface DeltaSeries {
@@ -1180,6 +1259,8 @@ export function useMultiSeriesData(
             s.historyRange === 'custom' ? s.historyRangeCustomUnit : undefined,
             s.historyStart,
             s.historyEnd,
+            s.historyLead,
+            s.historyFuture,
             s.aggregate,
             // The RESOLVED bucket, so an `auto` series refetches when the window change moves it
             // into a different bucket.
@@ -1588,7 +1669,11 @@ export function useMultiSeriesData(
                             const liveNum = chartNumber(state?.val);
                             const liveVal = liveNum !== null ? seriesValue(s, liveNum) : null;
                             let outData = data;
-                            const appendLive = !bucketOnlyRef.current.has(s.id);
+                            // Points after now are a forecast: the live value appended behind them
+                            // would close the curve with a jump back to the present.
+                            const tNow = Date.now();
+                            const past = s.historyFuture ? data.filter((p) => p[0] <= tNow) : data;
+                            const appendLive = !bucketOnlyRef.current.has(s.id) && past.length === data.length;
                             if (
                                 appendLive &&
                                 liveVal !== null &&
@@ -1597,7 +1682,7 @@ export function useMultiSeriesData(
                             ) {
                                 outData = [...data, [Date.now(), liveVal]];
                             }
-                            const current = liveVal ?? (data.length > 0 ? data[data.length - 1][1] : null);
+                            const current = liveVal ?? (past.length > 0 ? past[past.length - 1][1] : null);
                             setResultsMap((prev) => {
                                 const next = new Map(prev);
                                 next.set(s.id, { data: outData, current, loading: false });
@@ -1644,7 +1729,12 @@ export function useMultiSeriesData(
             }
 
             const rangeMs = hasAbsWindow ? (s.historyEnd as number) - (s.historyStart as number) : getRangeMs(s);
-            const end = hasAbsWindow ? Math.min(s.historyEnd as number, now) : now;
+            // A forecast window reads on into the future; everything else stops at now.
+            const end = hasAbsWindow
+                ? s.historyFuture
+                    ? (s.historyEnd as number)
+                    : Math.min(s.historyEnd as number, now)
+                : now + (s.historyLead ?? 0);
             // Rolling windows open on the shared bucket edge, so the delta bars and the plain
             // series start at the same instant (issue #598).
             const windowStart = hasAbsWindow ? (s.historyStart as number) : rollingWindowStart(series, rangeMs, end);
@@ -1784,10 +1874,17 @@ export function useMultiSeriesData(
                             const cutoff =
                                 typeof s.historyStart === 'number'
                                     ? s.historyStart
-                                    : rollingWindowStart(series, getRangeMs(s), Date.now());
+                                    : rollingWindowStart(series, getRangeMs(s), Date.now() + (s.historyLead ?? 0));
                             const trimmed = existing.data.filter((p) => p[0] >= cutoff);
                             const tail = trimmed.length > 0 ? trimmed[trimmed.length - 1][0] : -Infinity;
-                            if (tail === state.ts) {
+                            if (s.historyFuture && tail > state.ts) {
+                                // Later points are the forecast, not an artefact: the reading goes
+                                // in at its place and they stay.
+                                newData = [
+                                    ...trimmed.filter((p) => p[0] !== state.ts),
+                                    [state.ts, val] as [number, number],
+                                ].sort((a, b) => a[0] - b[0]);
+                            } else if (tail === state.ts) {
                                 newData = trimmed;
                             } else if (tail > state.ts) {
                                 // A point already stamped LATER than the reading that just arrived

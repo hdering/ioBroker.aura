@@ -16,6 +16,10 @@ export interface ChartNavKeys {
     dateDp: string;
     rangeDp: string;
     commandDp: string;
+    /** Forecast keys — only the advanced chart has them. */
+    future?: string;
+    current?: string;
+    lead?: string;
 }
 
 /** Option keys of the simple and the distribution chart. */
@@ -38,21 +42,29 @@ export const ECHART_NAV_KEYS: ChartNavKeys = {
     dateDp: 'echartNavDateDp',
     rangeDp: 'echartNavRangeDp',
     commandDp: 'echartNavCommandDp',
+    future: 'echartNavFuture',
+    current: 'echartNavCurrent',
+    lead: 'echartRangeLead',
 };
 
 export function ChartNavSettings({
     o,
     set,
     keys,
+    forecastUnavailable,
 }: {
     o: Record<string, unknown>;
     set: (patch: Record<string, unknown>) => void;
     keys: ChartNavKeys;
+    /** Why the forecast settings do not apply (another chart mode), undefined when they do. */
+    forecastUnavailable?: string;
 }) {
     const t = useT();
     const paging = o[keys.paging] === true;
     const needsPaging = paging ? undefined : t('echart.navNeedsPaging');
     const str = (k: string) => (o[k] as string | undefined) ?? undefined;
+    const future = keys.future ? (str(keys.future) ?? '').trim() : '';
+    const futureKind = future === '' || future === 'none' ? 'none' : future === 'data' ? 'data' : 'fixed';
     return (
         <div data-testid="chart-nav-settings">
             <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
@@ -93,6 +105,88 @@ export function ChartNavSettings({
                     </select>
                 </div>
             </Unavailable>
+            {keys.future && keys.current && keys.lead && (
+                <Unavailable reason={forecastUnavailable}>
+                    <p className="text-[11px] mt-3 mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.forecastTitle')}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.rangeLead')}
+                        </span>
+                        <input
+                            type="text"
+                            value={str(keys.lead) ?? ''}
+                            onChange={(e) => set({ [keys.lead as string]: e.target.value.trim() || undefined })}
+                            placeholder="36h"
+                            className={`${inputCls} w-20`}
+                            style={inputStyle}
+                            data-testid="chart-nav-lead"
+                        />
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {t('echart.rangeLeadHint')}
+                    </p>
+                    <Unavailable reason={needsPaging}>
+                        <div className="flex items-center gap-2 mt-2">
+                            <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.navFuture')}
+                            </span>
+                            <select
+                                value={futureKind}
+                                onChange={(e) =>
+                                    set({
+                                        [keys.future as string]:
+                                            e.target.value === 'none'
+                                                ? undefined
+                                                : e.target.value === 'data'
+                                                  ? 'data'
+                                                  : '7d',
+                                    })
+                                }
+                                className={`${inputCls} flex-1 min-w-0`}
+                                style={inputStyle}
+                                data-testid="chart-nav-future"
+                            >
+                                <option value="none">{t('echart.navFutureNone')}</option>
+                                <option value="data">{t('echart.navFutureData')}</option>
+                                <option value="fixed">{t('echart.navFutureFixed')}</option>
+                            </select>
+                            {futureKind === 'fixed' && (
+                                <input
+                                    type="text"
+                                    value={future}
+                                    onChange={(e) =>
+                                        set({ [keys.future as string]: e.target.value.trim() || undefined })
+                                    }
+                                    placeholder="16d"
+                                    className={`${inputCls} w-16`}
+                                    style={inputStyle}
+                                />
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                            <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.navCurrent')}
+                            </span>
+                            <select
+                                value={o[keys.current] === 'starts-today' ? 'starts-today' : 'contains-now'}
+                                onChange={(e) =>
+                                    set({
+                                        [keys.current as string]:
+                                            e.target.value === 'starts-today' ? 'starts-today' : undefined,
+                                    })
+                                }
+                                className={`${inputCls} flex-1 min-w-0`}
+                                style={inputStyle}
+                            >
+                                <option value="contains-now">{t('echart.navCurrentNow')}</option>
+                                <option value="starts-today">{t('echart.navCurrentToday')}</option>
+                            </select>
+                        </div>
+                    </Unavailable>
+                </Unavailable>
+            )}
             <div className="mt-3">
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {t('echart.navGroup')}

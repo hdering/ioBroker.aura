@@ -838,7 +838,14 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                     {t('echart.lockRangeToggle')}
                                 </span>
                             </label>
-                            <ChartNavSettings o={o} set={setO} keys={ECHART_NAV_KEYS} />
+                            <ChartNavSettings
+                                o={o}
+                                set={setO}
+                                keys={ECHART_NAV_KEYS}
+                                forecastUnavailable={
+                                    echartMode === 'timeseries' ? undefined : t('echart.forecastNeedsTimeseries')
+                                }
+                            />
                         </div>
                     </Unavailable>
                 </SubGroup>

@@ -162,4 +162,82 @@ check('commands', () => {
     assert.equal(nav.parseNavCommand(true), null);
 });
 
+// ── Forecasts: windows in the future ──────────────────────────────────────────────────────────
+
+check('without a horizon nothing changes: ▶ off from rolling and from today', () => {
+    for (const anchor of ['end', 'start']) {
+        assert.equal(nav.canStepForward(null, WEEK, anchor, NOW), false);
+        assert.equal(nav.canStepForward(nav.todayRef(WEEK, anchor, NOW), WEEK, anchor, NOW), false);
+        assert.equal(nav.canStepForward(null, WEEK, anchor, NOW, { horizon: NOW }), false);
+    }
+});
+
+check('fixed horizon: ▶ pages into the future up to the limit', () => {
+    const f = nav.parseNavFuture('16d');
+    assert.deepEqual(f, { kind: 'fixed', span: { value: 16, unit: 'd' } });
+    const lim = { horizon: nav.futureHorizon(f, undefined, NOW) };
+    // From rolling: the window after today's.
+    let ref = nav.stepRef(null, DAY, 1, 'start', NOW, lim);
+    assert.equal(win(nav.navWindow(DAY, ref, 'start')), '2025-10-29 00:00 → 2025-10-30 00:00');
+    let steps = 1;
+    while (nav.canStepForward(ref, DAY, 'start', NOW, lim)) {
+        ref = nav.stepRef(ref, DAY, 1, 'start', NOW, lim);
+        steps++;
+    }
+    // The last window starts before now + 16 d (13 Nov 14:30): 13 Nov.
+    assert.equal(win(nav.navWindow(DAY, ref, 'start')), '2025-11-13 00:00 → 2025-11-14 00:00');
+    assert.equal(steps, 16);
+    // Back still works as before.
+    assert.equal(nav.stepRef(ref, DAY, -1, 'start', NOW, lim), at(2025, 11, 12));
+});
+
+check('data horizon: ▶ while a point lies past the window end', () => {
+    const f = nav.parseNavFuture('data');
+    const newest = at(2025, 11, 2, 12); // last forecast point: 2 Nov 12:00
+    const lim = { horizon: nav.futureHorizon(f, newest, NOW) };
+    // Window 1 Nov – 2 Nov holds no point past its end? It ends 2 Nov 00:00, the point is later.
+    assert.equal(nav.canStepForward(at(2025, 11, 1), DAY, 'start', NOW, lim), true);
+    // Window 2 Nov holds the last point — nothing behind it.
+    assert.equal(nav.canStepForward(at(2025, 11, 2), DAY, 'start', NOW, lim), false);
+    // No future data at all = no future.
+    assert.equal(nav.futureHorizon(f, null, NOW), NOW);
+    // Unknown yet: any future window is accepted (a date datapoint on mount).
+    assert.equal(nav.futureHorizon(f, undefined, NOW), Infinity);
+    assert.equal(nav.futureHorizon(nav.parseNavFuture('none'), newest, NOW), NOW);
+    assert.equal(nav.parseNavFuture('x').kind, 'none');
+});
+
+check('picked day / datapoint date in the future: kept below the horizon, else today', () => {
+    const lim = { horizon: at(2025, 11, 13, 14, 30) };
+    assert.equal(nav.normalizeRef(at(2025, 11, 5), WEEK, 'start', NOW, lim), at(2025, 11, 5));
+    assert.equal(nav.normalizeRef(at(2025, 11, 20), WEEK, 'start', NOW, lim), nav.todayRef(WEEK, 'start', NOW, lim));
+    // Without a horizon the old rule: a future start falls back to today.
+    assert.equal(nav.normalizeRef(at(2025, 11, 5), WEEK, 'start', NOW), nav.todayRef(WEEK, 'start', NOW));
+});
+
+check('current window "starts-today": today and the days after it', () => {
+    const lim = { current: 'starts-today' };
+    const two = nav.navSpan('custom', 2, 'd');
+    for (const anchor of ['end', 'start']) {
+        const ref = nav.todayRef(two, anchor, NOW, lim);
+        assert.equal(win(nav.navWindow(two, ref, anchor)), '2025-10-28 00:00 → 2025-10-30 00:00');
+        assert.ok(nav.isTodayRef(ref, two, anchor, NOW, lim));
+        const w = nav.todayRef(WEEK, anchor, NOW, lim);
+        assert.equal(win(nav.navWindow(WEEK, w, anchor)), '2025-10-28 00:00 → 2025-11-04 00:00');
+    }
+    const h = nav.todayRef(SIX_H, 'start', NOW, lim);
+    assert.equal(win(nav.navWindow(SIX_H, h, 'start')), '2025-10-28 14:00 → 2025-10-28 20:00');
+    // A chip switch keeps "today" today under the same rule.
+    const ref = nav.switchRef(nav.todayRef(two, 'start', NOW, lim), two, WEEK, 'start', NOW, lim);
+    assert.equal(ref, nav.todayRef(WEEK, 'start', NOW, lim));
+});
+
+check('lead tokens', () => {
+    assert.equal(nav.parseLead('36h', NOW), 36 * 3_600_000);
+    assert.equal(nav.parseLead('0h', NOW), 0);
+    assert.equal(nav.parseLead('1d', NOW), 86_400_000);
+    assert.equal(nav.parseLead('', NOW), null);
+    assert.equal(nav.parseLead(undefined, NOW), null);
+});
+
 console.log(`chart-nav-logic: ${n} checks passed`);

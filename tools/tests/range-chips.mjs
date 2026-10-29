@@ -109,4 +109,20 @@ check('months and years count back on the calendar', () => {
     assert.equal(unitSpanMs(3, 'M', now), unitSpanMs(3, 'M', now + 3_600_000));
 });
 
+check('a lead into the future rides on the chip (2d+36h)', () => {
+    const c = parseRangeToken('2d+36h');
+    assert.equal(c.key, '2d+36h');
+    assert.equal(c.lead, '36h');
+    assert.equal(c.range, 'custom');
+    assert.equal(c.value, 2);
+    assert.equal(c.label, '2 Tage');
+    assert.equal(parseRangeToken('24h + 12h=Prognose').key, '24h+12h');
+    assert.equal(parseRangeToken('24h + 12h=Prognose').range, '24h');
+    assert.equal(parseRangeToken('24h + 12h=Prognose').label, 'Prognose');
+    assert.equal(parseRangeToken('2d+x'), null);
+    // The same range with and without lead are two chips.
+    assert.equal(parseRangeChips(['2d', '2d+36h']).length, 2);
+    assert.equal(parseRangeToken('2d').lead, undefined);
+});
+
 console.log(`range-chips: ${n} checks passed`);

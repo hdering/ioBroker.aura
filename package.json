@@ -95,6 +95,7 @@
     "test:mcp": "node tools/tests/mcp.mjs",
     "test:chart-gallery": "node tools/tests/chart-gallery.mjs",
     "test:chart-nav": "node tools/tests/chart-nav.mjs",
+    "test:chart-forecast": "node tools/tests/chart-forecast.mjs",
     "test:slider-scale": "node tools/tests/slider-scale.mjs",
     "test:dual-color": "node tools/tests/dual-color.mjs",
     "test:color-binding": "node tools/tests/color-binding.mjs",

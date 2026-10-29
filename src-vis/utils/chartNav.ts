@@ -27,6 +27,56 @@ export interface NavWindow {
 
 export type NavCommand = 'prev' | 'next' | 'today' | 'now';
 
+/**
+ * What the "current" window is: the one that ends with today / the current hour (`contains-now`,
+ * the default — right for consumption), or the one that STARTS today / at the current hour
+ * (`starts-today` — right for a forecast, where today and the days after it matter).
+ */
+export type NavCurrent = 'contains-now' | 'starts-today';
+
+/**
+ * How far forward the windows may go. `horizon` is the latest instant a window may START at — by
+ * default now, so a window never starts in the future. A forecast chart raises it to the last
+ * forecast point or a fixed lead (`echartNavFuture`).
+ */
+export interface NavLimits {
+    horizon?: number;
+    current?: NavCurrent;
+}
+
+/** `echartNavFuture`: no future (default), up to the newest recorded point, or a fixed lead. */
+export type NavFuture = { kind: 'none' } | { kind: 'data' } | { kind: 'fixed'; span: NavSpan };
+
+/** Reads `none` / `data` / `16d` (number + unit like a range chip). Anything else = `none`. */
+export function parseNavFuture(raw: unknown): NavFuture {
+    if (typeof raw !== 'string') return { kind: 'none' };
+    const s = raw.trim();
+    if (/^data$/i.test(s)) return { kind: 'data' };
+    const m = /^(\d{1,4})\s*(m|h|d|w|M|y)$/.exec(s);
+    if (m && Number(m[1]) > 0) return { kind: 'fixed', span: { value: Number(m[1]), unit: m[2] as RangeUnit } };
+    return { kind: 'none' };
+}
+
+/**
+ * The horizon for `parseNavFuture`'s result. `data` takes the newest recorded point; while that is
+ * still unknown (`undefined`, probe pending) any future window is accepted, so a date set from a
+ * datapoint on mount is not thrown back to today before the probe has answered.
+ */
+export function futureHorizon(f: NavFuture, newest: number | null | undefined, now: number = Date.now()): number {
+    if (f.kind === 'fixed') return shiftBy(now, f.span.value, f.span.unit);
+    if (f.kind === 'data') return newest === undefined ? Infinity : Math.max(now, newest ?? now);
+    return now;
+}
+
+/** A lead token (`36h`; `0h` = none) → ms, or null when it is not one. */
+export function parseLead(raw: unknown, now: number = Date.now()): number | null {
+    if (typeof raw !== 'string') return null;
+    const m = /^(\d{1,4})\s*(m|h|d|w|M|y)$/.exec(raw.trim());
+    if (!m) return null;
+    const n = Number(m[1]);
+    return n === 0 ? 0 : shiftBy(now, n, m[2] as RangeUnit) - now;
+}
+
 const MINUTE = 60_000;
 const HOUR = 3_600_000;
 
@@ -78,6 +128,10 @@ function hourCeil(ms: number): number {
     return Math.ceil(ms / HOUR) * HOUR;
 }
 
+function hourFloor(ms: number): number {
+    return Math.floor(ms / HOUR) * HOUR;
+}
+
 /**
  * `ms` moved by `n` units. Days and weeks count calendar days (DST-safe), months and years
  * calendar months; a day that does not exist in the target month clamps to its last day —
@@ -109,15 +163,26 @@ export function navWindow(span: NavSpan, ref: number, anchor: NavAnchor): NavWin
 /**
  * The "today" reference point: the window that ends with today (day spans) or with the current
  * hour (shorter spans) — whatever the anchor, so "Heute" shows the current period either way.
+ * With `current: 'starts-today'` it is the window that STARTS today / at the current hour instead.
  */
-export function todayRef(span: NavSpan, anchor: NavAnchor, now: number = Date.now()): number {
+export function todayRef(span: NavSpan, anchor: NavAnchor, now: number = Date.now(), lim: NavLimits = {}): number {
+    if (lim.current === 'starts-today') {
+        const start = isDaySpan(span) ? dayStart(now) : hourFloor(now);
+        return anchor === 'start' ? start : shiftBy(start, span.value, span.unit);
+    }
     const end = isDaySpan(span) ? dayCeil(now + 1) : hourCeil(now + 1);
     return anchor === 'start' ? shiftBy(end, -span.value, span.unit) : end;
 }
 
 /** Whether `ref` IS today's window for this span. */
-export function isTodayRef(ref: number | null, span: NavSpan | null, anchor: NavAnchor, now = Date.now()): boolean {
-    return ref !== null && span !== null && ref === todayRef(span, anchor, now);
+export function isTodayRef(
+    ref: number | null,
+    span: NavSpan | null,
+    anchor: NavAnchor,
+    now = Date.now(),
+    lim: NavLimits = {},
+): boolean {
+    return ref !== null && span !== null && ref === todayRef(span, anchor, now, lim);
 }
 
 /** Reference point of a picked calendar day (local midnight of `dayMs`'s date). */
@@ -131,15 +196,26 @@ export function dayOfRef(ref: number, anchor: NavAnchor): number {
     return anchor === 'start' ? dayStart(ref) : dayStart(ref - 1);
 }
 
+/** Latest instant a window may start at. */
+function horizonOf(lim: NavLimits, now: number): number {
+    return Math.max(now, lim.horizon ?? now);
+}
+
 /**
  * `ref` fitted to a (new) span. Day spans snap to a day boundary, so stepping hours and then
- * switching to a week does not leave an 18:00–18:00 window. A window has to start in the past —
- * one that would start after now falls back to today's window. It may END in the future: today's
- * day runs to midnight, and "7 days from yesterday" is a fair thing to pick.
+ * switching to a week does not leave an 18:00–18:00 window. A window has to start in the past (or
+ * before the forecast horizon) — one that would start later falls back to today's window. It may
+ * END in the future: today's day runs to midnight, and "7 days from yesterday" is a fair thing to pick.
  */
-export function normalizeRef(ref: number, span: NavSpan, anchor: NavAnchor, now: number = Date.now()): number {
+export function normalizeRef(
+    ref: number,
+    span: NavSpan,
+    anchor: NavAnchor,
+    now: number = Date.now(),
+    lim: NavLimits = {},
+): number {
     const snapped = isDaySpan(span) ? (anchor === 'start' ? dayStart(ref) : dayCeil(ref)) : ref;
-    return navWindow(span, snapped, anchor).start > now ? todayRef(span, anchor, now) : snapped;
+    return navWindow(span, snapped, anchor).start > horizonOf(lim, now) ? todayRef(span, anchor, now, lim) : snapped;
 }
 
 /**
@@ -152,20 +228,32 @@ export function switchRef(
     to: NavSpan,
     anchor: NavAnchor,
     now: number = Date.now(),
+    lim: NavLimits = {},
 ): number {
-    if (from && isTodayRef(ref, from, anchor, now)) return todayRef(to, anchor, now);
-    return normalizeRef(ref, to, anchor, now);
+    if (from && isTodayRef(ref, from, anchor, now, lim)) return todayRef(to, anchor, now, lim);
+    return normalizeRef(ref, to, anchor, now, lim);
 }
 
-/** Can ▶ move on? Only while the next window still starts in the past. */
-export function canStepForward(ref: number | null, span: NavSpan | null, anchor: NavAnchor, now = Date.now()): boolean {
-    if (ref === null || span === null) return false;
-    return navWindow(span, shiftBy(ref, span.value, span.unit), anchor).start <= now;
+/**
+ * Can ▶ move on? Only while the next window still starts in the past — or, with a forecast
+ * horizon, before it. From the rolling window (`ref === null`) the step starts at today's window;
+ * without a horizon the window after today's always starts in the future, so ▶ stays off there.
+ */
+export function canStepForward(
+    ref: number | null,
+    span: NavSpan | null,
+    anchor: NavAnchor,
+    now = Date.now(),
+    lim: NavLimits = {},
+): boolean {
+    if (span === null) return false;
+    const base = ref ?? todayRef(span, anchor, now, lim);
+    return navWindow(span, shiftBy(base, span.value, span.unit), anchor).start <= horizonOf(lim, now);
 }
 
 /**
  * One step back (`dir = -1`) or forward (`+1`). From the rolling window a step back lands on the
- * window before today's; a step forward never lands on a window that starts in the future.
+ * window before today's; a step forward never lands on a window that starts past the horizon.
  */
 export function stepRef(
     ref: number | null,
@@ -173,10 +261,11 @@ export function stepRef(
     dir: -1 | 1,
     anchor: NavAnchor,
     now: number = Date.now(),
+    lim: NavLimits = {},
 ): number {
-    const base = ref ?? todayRef(span, anchor, now);
-    if (dir > 0 && !canStepForward(base, span, anchor, now)) return base;
-    return normalizeRef(shiftBy(base, dir * span.value, span.unit), span, anchor, now);
+    const base = ref ?? todayRef(span, anchor, now, lim);
+    if (dir > 0 && !canStepForward(base, span, anchor, now, lim)) return base;
+    return normalizeRef(shiftBy(base, dir * span.value, span.unit), span, anchor, now, lim);
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');

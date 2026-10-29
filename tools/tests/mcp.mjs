@@ -132,6 +132,28 @@ check('an option the widget never reads is a warning, not silence', () => {
     assert.ok(hasWarning(res, /bleibt wirkungslos/));
 });
 
+check('forecast options outside the time series mode are a warning', () => {
+    const chart = (options) => ({
+        id: 'c-1',
+        type: 'echart',
+        title: 'Prognose',
+        datapoint: '0_userdata.0.Wetter.Verlauf.Temp_Prognose',
+        gridPos: { x: 0, y: 0, w: 8, h: 6 },
+        options,
+    });
+    const ts = validateWidget(
+        chart({ echartNavFuture: 'data', echartRangeLead: '36h', echartNavCurrent: 'starts-today' }),
+        schema,
+    );
+    assert.deepEqual(ts.errors, []);
+    assert.ok(!hasWarning(ts, /wirkt nur bei echartMode/));
+    const cmp = validateWidget(
+        chart({ echartMode: 'comparison', echartNavFuture: '16d', rangeChips: ['2d+36h', '7d'] }),
+        schema,
+    );
+    assert.ok(hasWarning(cmp, /echartNavFuture, rangeChips \(\+Vorlauf\) wirkt nur bei echartMode "timeseries"/));
+});
+
 check('a wrong type on an option the widget DOES read stays an error', () => {
     const res = validateWidget({ ...OK_SWITCH, options: { showTitle: 'ja' } }, schema);
     assert.ok(hasError(res, /Option "showTitle": string übergeben, erwartet boolean/));

@@ -1504,6 +1504,45 @@ export const WIDGET_OPTION_NOTES = {
             rangeDp: 'echartNavRangeDp',
             commandDp: 'echartNavCommandDp',
         }),
+        rangeChips: {
+            description:
+                'Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + ' +
+                'Einheit (m = Minute, h, d, w, M = Monat, y = Jahr; Groß-/Kleinschreibung zählt) oder "total", optional ' +
+                'mit eigener Beschriftung nach "=": ["1M", "3M=Quartal", "12M", "total"]. Ein "+" hängt einen Vorlauf in ' +
+                'die Zukunft an (nur Zeitreihe, Prognosen): "2d+36h=Prognose" = rollend jetzt − 12 h bis jetzt + 36 h; ' +
+                'überschreibt echartRangeLead für diesen Chip ("+0h" = ohne). Steht der Standard-Zeitraum nicht in der ' +
+                'Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips.',
+        },
+        echartRangeLead: {
+            type: 'string',
+            default: '',
+            description:
+                'Prognosen (nur echartMode "timeseries"): Vorlauf des rollenden Zeitraums in die Zukunft, Kürzel wie ' +
+                'rangeChips ("36h", "1d"). Die Länge bleibt, das Fenster endet so weit nach jetzt: Chip "2d" + "36h" = ' +
+                'jetzt − 12 h bis jetzt + 36 h; die Abfrage liest bis dorthin, die Achse endet dort (Jetzt-Linie mittendrin, ' +
+                'echartNowLine). Gilt für Chips ohne eigenes "+…". Leer = endet bei jetzt. Die Prognosewerte müssen mit ' +
+                'eigenem Zeitstempel im History-Adapter liegen (storeState).',
+        },
+        echartNavFuture: {
+            type: 'string',
+            default: 'none',
+            description:
+                'Prognosen (nur echartMode "timeseries", setzt echartDayNav voraus): wie weit ‹ › und Datum in die ' +
+                'Zukunft dürfen. "none" (Standard) = nie über jetzt hinaus; "data" = › bleibt aktiv, solange eine Reihe ' +
+                'einen Punkt hinter dem Fensterende hat (eigene Abfrage des neuesten Zeitstempels, alle 15 min); ' +
+                'Zahl + Einheit wie "16d" = feste Grenze ab jetzt. Kalender und echartNavDateDp nehmen dann ebenfalls ' +
+                'Fenster in der Zukunft an. Abfrage und Achse enden nicht mehr bei jetzt.',
+        },
+        echartNavCurrent: {
+            type: 'string',
+            enum: ['contains-now', 'starts-today'],
+            default: 'contains-now',
+            description:
+                'Was ⇥ (aktueller Zeitraum) zeigt (nur echartMode "timeseries", setzt echartDayNav voraus): ' +
+                '"contains-now" (Standard, für Verbrauch) = das Fenster, das mit heute endet (2d = gestern + heute); ' +
+                '"starts-today" (für Prognosen) = das Fenster, das heute beginnt (2d = heute + morgen, 7d = heute + 6 ' +
+                'Tage; Stunden-Chips ab der laufenden Stunde). Gilt auch für echartDayNavDefault und den Befehl "today".',
+        },
         echartShowCurrent: { description: 'Aktuellen Wert je Reihe über dem Diagramm anzeigen.' },
         echartCurrentFrom: {
             description:

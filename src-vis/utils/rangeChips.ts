@@ -5,6 +5,9 @@
  * caption after `=` (`"3M=Quartal"`). The same notation works in the editor, in the MCP schema and
  * later in a datapoint, which is why the option is a plain string list rather than objects.
  *
+ * A `+` adds a lead into the future for the rolling window of the advanced chart: `2d+36h` shows
+ * 2 days that end 36 h from now — 12 h of history and 36 h of forecast.
+ *
  * Tokens that spell one of the built-in presets resolve to that preset, so a chip list that merely
  * reorders the defaults fetches and buckets exactly like before. Everything else becomes a
  * `custom` range with value + unit.
@@ -27,12 +30,14 @@ const DAY = 86_400_000;
 const PRESET_TOKENS: Exclude<EChartTimeRange, 'custom'>[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total'];
 
 export interface RangeChip {
-    /** Normalised key without caption, e.g. `3M` — what the active chip is matched by. */
+    /** Normalised key without caption, e.g. `3M` or `2d+36h` — what the active chip is matched by. */
     key: string;
     range: EChartTimeRange;
     /** Set for `custom` only. */
     value?: number;
     unit?: RangeUnit;
+    /** Lead into the future as a token (`36h`, `0h`), only when the chip names one. */
+    lead?: string;
     label: string;
 }
 
@@ -95,12 +100,30 @@ export function rangeKey(range: EChartTimeRange, value?: number, unit?: RangeUni
     return `${Math.max(1, Math.round(value ?? 24) || 1)}${unit ?? 'h'}`;
 }
 
+/** Key of a chip with its lead — `2d+36h`; without a lead just the range key. */
+export function chipKeyOf(base: string, lead?: string): string {
+    return lead === undefined ? base : `${base}+${lead}`;
+}
+
 /** One token → chip, or null when it is not a valid range. */
 export function parseRangeToken(raw: unknown): RangeChip | null {
     if (typeof raw !== 'string') return null;
     const eq = raw.indexOf('=');
-    const body = (eq >= 0 ? raw.slice(0, eq) : raw).trim();
+    const full = (eq >= 0 ? raw.slice(0, eq) : raw).trim();
     const caption = eq >= 0 ? raw.slice(eq + 1).trim() : '';
+    const plus = full.indexOf('+');
+    const body = (plus >= 0 ? full.slice(0, plus) : full).trim();
+    let lead: string | undefined;
+    if (plus >= 0) {
+        const l = /^(\d{1,4})\s*(m|h|d|w|M|y)$/.exec(full.slice(plus + 1).trim());
+        if (!l) return null;
+        lead = `${Number(l[1])}${l[2]}`;
+    }
+    const chip = parseRangeBody(body, caption);
+    return chip && lead !== undefined ? { ...chip, key: chipKeyOf(chip.key, lead), lead } : chip;
+}
+
+function parseRangeBody(body: string, caption: string): RangeChip | null {
     if (/^(total|gesamt|all)$/i.test(body)) {
         return { key: 'total', range: 'total', label: caption || PRESET_LABELS.total };
     }

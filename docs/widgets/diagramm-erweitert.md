@@ -386,6 +386,9 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartNavRangeDp`       | —        | Zeitraum-Datenpunkt, lesen + schreiben: `6h` · `24h` · `7d` · `1M` · `total`    |
 | `echartNavDateDp`        | —        | Datum-Datenpunkt, lesen + schreiben: `YYYY-MM-DD`, ms, leer = bis jetzt           |
 | `echartNavCommandDp`     | —        | Befehls-Datenpunkt, nur lesen: `prev` · `next` · `today` · `now`                |
+| `echartRangeLead`        | —        | Prognose: rollender Zeitraum reicht so weit über jetzt hinaus, z. B. `36h`        |
+| `echartNavFuture`        | `none`   | Prognose: Blättern in die Zukunft — `none` · `data` (bis zum letzten Wert) · `16d` |
+| `echartNavCurrent`       | `contains-now` | ⇥ = Fenster, das heute endet · `starts-today` = Fenster, das heute beginnt  |
 | `autoHistoryInstance`    | `false`  | History-Instanz je Serie automatisch erkennen                                     |
 
 Live-Wert am rechten Rand:
@@ -426,6 +429,17 @@ Koppeln:
 Datenpunkte: Das Widget schreibt nur bei Bedienung (Zahl-DP: ms, sonst `YYYY-MM-DD`). Der Befehls-DP reagiert auf jede Aktualisierung, auch auf denselben Wert; der Wert beim Laden zählt nicht, zurückgesetzt wird nichts.
 
 Mit `lockRange` bleibt nur das Blättern übrig — ein reines Tagesdiagramm.
+
+Prognosen (nur Modus Zeitreihe; Werte per `storeState` mit eigenem Zeitstempel im History-Adapter):
+
+| Einstellung                                   | Wirkung                                                                 |
+| --------------------------------------------- | ----------------------------------------------------------------------- |
+| Chip `2d+36h` oder `echartRangeLead: "36h"`   | rollend jetzt − 12 h bis jetzt + 36 h; Jetzt-Linie (`echartNowLine`) bei ¼ |
+| `+0h` am Chip                                 | dieser Chip ohne Vorlauf                                                |
+| `echartNavFuture: "data"`                     | › aktiv, solange eine Reihe Punkte hinter dem Fensterende hat (Abfrage alle 15 min) |
+| `echartNavFuture: "16d"`                      | › bis 16 Tage ab jetzt                                                  |
+| `echartNavCurrent: "starts-today"`            | ⇥ bei `2d` = heute + morgen, bei `7d` = heute + 6 Tage                  |
+| eine der drei gesetzt                         | Abfrage und Achse enden nicht bei jetzt; Kalender und `echartNavDateDp` nehmen Zukunftsdaten an |
 
 `rangeChips` nimmt Kürzel aus Zahl + Einheit: `m` (Minute) · `h` · `d` · `w` · `M` (Kalendermonat) · `y` (Kalenderjahr) oder `total`, eigene Beschriftung nach `=` (`3M=Quartal`). Liegt `echartRange` nicht in der Liste, startet das Diagramm mit dem ersten Chip. Im Editor: **Eigene Liste anlegen**.
 
