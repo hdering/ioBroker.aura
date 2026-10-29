@@ -242,16 +242,17 @@ export function setOptimisticEcho(enabled: boolean): void {
     optimisticEcho = enabled;
 }
 
-// ioBroker rejects ID patterns that contain URL/query characters with
-// "Invalid pattern on subscribe". Filter them out client-side so a stale
-// URL accidentally stored in a DP-field can never crash the socket.
-// NOTE: '#' is a legitimate separator in some adapters (e.g. Shelly:
-// shelly.0.SHSW-25#XXXXXX#1.Relay0.Switch) and must NOT be filtered.
-// NOTE: a plain space is legal in ioBroker IDs (common in hand-created
-// 0_userdata.0.* objects, e.g. "...Pool.PoolPumpe Switch"), so it must NOT
-// be filtered — only the URL/query characters that break the socket are.
-function isValidStateId(id: unknown): id is string {
-    return typeof id === 'string' && id.length > 0 && !/[/?&=:]/.test(id);
+// ioBroker rejects ID patterns with forbidden characters ("Invalid pattern on
+// subscribe"). Filter them out client-side so a stale URL accidentally stored
+// in a DP-field can never crash the socket. The allowed set mirrors
+// js-controller's FORBIDDEN_CHARS — anything stricter silently drops live
+// updates for real IDs (initial getState works, stateChange never arrives):
+// '#' (Shelly), ' ' (0_userdata), ':' (lupusec, homekit-controller, #874).
+// '?' stays forbidden, which keeps it free as the JSON-path separator (dpRef).
+const FORBIDDEN_ID_CHARS = /[^._\-/ :!#$%&()+=@^{}|~*\p{Ll}\p{Lu}\p{Nd}]/u;
+
+export function isValidStateId(id: unknown): id is string {
+    return typeof id === 'string' && id.length > 0 && !FORBIDDEN_ID_CHARS.test(id) && !id.includes('://');
 }
 
 /** Fetch multiple state IDs in parallel and warm the cache. Returns when all have resolved (or 4 s timeout). */

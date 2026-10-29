@@ -3,6 +3,7 @@ import {
     getStateDirect,
     getStateFromCache,
     isStateFresh,
+    isValidStateId,
     sendToDirect,
     setStateEchoed,
     subscribeStateDirect,
@@ -19,11 +20,6 @@ import type { ioBrokerState } from '../types';
  * gatekeeping is the message source — only the frame this hook was given is heard,
  * so a foreign iframe on the same page cannot use the channel.
  */
-
-/** An id the socket layer accepts — the same characters `isValidStateId` allows. */
-function isId(v: unknown): v is string {
-    return typeof v === 'string' && v.length > 0 && !/[/?&=:]/.test(v);
-}
 
 /** ioBroker takes primitives; objects are the usual "JSON in a string" datapoint. */
 function toWritable(v: unknown): boolean | number | string {
@@ -64,12 +60,12 @@ export function useHtmlBridge(frameRef: RefObject<HTMLIFrameElement | null>, ena
                     return;
 
                 case 'setState':
-                    if (!isId(id)) return reply({ error: 'invalid datapoint id' });
+                    if (!isValidStateId(id)) return reply({ error: 'invalid datapoint id' });
                     setStateEchoed(id, toWritable(args[1]), args[2] === true);
                     return reply({ result: true });
 
                 case 'toggle': {
-                    if (!isId(id)) return reply({ error: 'invalid datapoint id' });
+                    if (!isValidStateId(id)) return reply({ error: 'invalid datapoint id' });
                     // A subscribed datapoint — the usual case, since the widget
                     // normally shows the value it toggles — needs no round trip;
                     // anything else is asked for, so the toggle never flips a
@@ -84,12 +80,12 @@ export function useHtmlBridge(frameRef: RefObject<HTMLIFrameElement | null>, ena
                 }
 
                 case 'getState':
-                    if (!isId(id)) return reply({ error: 'invalid datapoint id' });
+                    if (!isValidStateId(id)) return reply({ error: 'invalid datapoint id' });
                     void getStateDirect(id).then((st) => reply({ result: st }));
                     return;
 
                 case 'subscribe': {
-                    if (!isId(id)) return reply({ error: 'invalid datapoint id' });
+                    if (!isValidStateId(id)) return reply({ error: 'invalid datapoint id' });
                     const emit = (st: ioBrokerState | null) => st && post({ source: BRIDGE_EVENT, sub: id, state: st });
                     if (!subs.has(id)) subs.set(id, subscribeStateDirect(id, emit));
                     reply({ result: true });

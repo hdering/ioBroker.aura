@@ -7,8 +7,8 @@
  *   myadapter.0.battery?devices.0.soc      (dot notation)
  *   myadapter.0.battery?devices[0].soc     (bracket notation, equivalent)
  *
- * The separator is `?` because isValidStateId() forbids it (along with
- * whitespace and & = :), so it can never collide with a real state ID. `#`
+ * The separator is `?` because isValidStateId() forbids it (like
+ * js-controller does), so it can never collide with a real state ID. `#`
  * must NOT be used here: it is a legitimate character in some adapters
  * (e.g. Shelly: shelly.0.SHSW-25#XXXXXX#1.Relay0.Switch) — splitting on `#`
  * truncated such IDs and broke writes (state could no longer be set).
