@@ -23,6 +23,7 @@ import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { formatCustom } from '../../utils/dateValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
 import {
@@ -90,6 +91,16 @@ function plotRect(inst: unknown): { x: number; width: number } | null {
 }
 
 const DEFAULT_NOW_LINE_COLOR = '#ef4444';
+const NOW_LABEL_FONT = 11;
+const NOW_LABEL_LINE = 14;
+const NOW_LABEL_PAD_V = 2;
+/** Height of the label box — the distance that moves it from beyond the line's end onto it. */
+const NOW_LABEL_HEIGHT = NOW_LABEL_LINE + 2 * NOW_LABEL_PAD_V;
+
+/** The now line's label with `{pattern}` replaced by the current time, e.g. "jetzt {HH:mm}". */
+function formatNowLineLabel(template: string, now: number): string {
+    return template.replace(/\{([^{}]+)\}/g, (_m, pattern: string) => formatCustom(new Date(now), pattern)).trim();
+}
 
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total'];
 
@@ -237,8 +248,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // A category axis has no clock: the line goes to the category whose label contains this text
     // (e.g. "jetzt" for a payload labelled "heute 19:00", "▶ jetzt", "heute 21:00").
     const echartNowLineMatch = ((o.echartNowLineMatch as string | undefined) ?? '').trim().toLowerCase();
-    const [nowLineColor] = useResolvedColors(containerRef, [
+    // Text at the line ("jetzt", "jetzt {HH:mm}") — empty draws the bare line.
+    const echartNowLineLabel = (o.echartNowLineLabel as string | undefined) ?? '';
+    const echartNowLinePosition = o.echartNowLinePosition === 'bottom' ? 'bottom' : 'top';
+    // The label sits on the card colour so it stays readable where it crosses a curve.
+    const [nowLineColor, nowLabelBg] = useResolvedColors(containerRef, [
         (o.echartNowLineColor as string | undefined) || DEFAULT_NOW_LINE_COLOR,
+        'var(--widget-bg, var(--app-bg))',
     ]);
 
     // Comparison mode names its bars on the x axis, so it only draws a legend when asked to (issue #742).
@@ -562,11 +578,28 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const withNowLine = <S extends object>(series: S[], at: number | string | null): S[] => {
         if (series.length === 0) return series;
         const show = echartNowLine && at !== null;
+        const text = formatNowLineLabel(echartNowLineLabel, nowTs);
         const markLine = {
             silent: true,
             symbol: 'none',
             animation: false,
-            label: { show: false },
+            // 'end' is the top of a vertical line, 'start' the bottom. A negative distance pulls the
+            // box from beyond the line's end back inside the grid, so it neither needs room above
+            // the plot nor covers the x axis labels.
+            label: text
+                ? {
+                      show: true,
+                      formatter: () => text,
+                      position: echartNowLinePosition === 'bottom' ? 'start' : 'end',
+                      distance: -NOW_LABEL_HEIGHT,
+                      color: nowLineColor ?? DEFAULT_NOW_LINE_COLOR,
+                      fontSize: NOW_LABEL_FONT,
+                      lineHeight: NOW_LABEL_LINE,
+                      padding: [NOW_LABEL_PAD_V, 5],
+                      borderRadius: 3,
+                      backgroundColor: nowLabelBg ?? 'transparent',
+                  }
+                : { show: false },
             lineStyle: { color: nowLineColor ?? DEFAULT_NOW_LINE_COLOR, width: 1.5, type: 'solid' },
             data: show ? [{ xAxis: at }] : [],
         };

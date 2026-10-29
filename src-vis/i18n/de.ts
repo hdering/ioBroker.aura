@@ -2239,6 +2239,12 @@ export const de = {
     'echart.nowLineMatchHit': 'Linie bei „{label}“',
     'echart.nowLineMatchMiss': 'Keine Beschriftung enthält „{text}“ — keine Linie.',
     'echart.nowLineMatchPick': 'Aus den Daten wählen …',
+    'echart.nowLineLabel': 'Beschriftung an der Linie',
+    'echart.nowLineLabelPlaceholder': 'z. B. jetzt {HH:mm}',
+    'echart.nowLineLabelHint':
+        'Leer = keine Beschriftung. {HH:mm}, {dd.MM.} usw. werden durch die aktuelle Zeit ersetzt.',
+    'echart.nowLinePosTop': 'oben',
+    'echart.nowLinePosBottom': 'unten',
     'echart.areaOpacity': 'Flächen-Deckkraft: {value} %',
     'echart.areaOpacityAuto': 'Flächen-Deckkraft: Auto ({value} %)',
     'echart.animation': 'Animation',

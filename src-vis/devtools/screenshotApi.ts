@@ -792,18 +792,34 @@ function installScreenshotApi(): void {
         },
 
         /** Vertical mark lines of the chart on screen (the "now" line): x value and colour each. */
-        chartMarkLines(): { x: unknown; color: unknown }[] | null {
+        chartMarkLines(): { x: unknown; color: unknown; label: string | null; position: unknown }[] | null {
             const el = document.querySelector('[_echarts_instance_]');
             const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
             if (!inst) return null;
+            type MarkLineLabel = { show?: boolean; formatter?: unknown; position?: unknown };
             const opt = inst.getOption() as
-                | { series?: { markLine?: { data?: { xAxis?: unknown }[]; lineStyle?: { color?: unknown } } }[] }
+                | {
+                      series?: {
+                          markLine?: {
+                              data?: { xAxis?: unknown }[];
+                              lineStyle?: { color?: unknown };
+                              label?: MarkLineLabel;
+                          };
+                      }[];
+                  }
                 | undefined;
             if (!opt) return null;
+            const labelOf = (l: MarkLineLabel | undefined) =>
+                l?.show && typeof l.formatter === 'function' ? String((l.formatter as () => unknown)()) : null;
             return (opt.series ?? []).flatMap((s) =>
                 (s.markLine?.data ?? [])
                     .filter((d) => d.xAxis !== undefined)
-                    .map((d) => ({ x: d.xAxis, color: s.markLine?.lineStyle?.color })),
+                    .map((d) => ({
+                        x: d.xAxis,
+                        color: s.markLine?.lineStyle?.color,
+                        label: labelOf(s.markLine?.label),
+                        position: s.markLine?.label?.position,
+                    })),
             );
         },
 

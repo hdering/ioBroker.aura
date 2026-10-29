@@ -1579,6 +1579,17 @@ export const WIDGET_OPTION_NOTES = {
                 'Leer = keine Linie auf der Kategorie-Achse.',
         },
         echartNowLineColor: { description: 'Farbe der Jetzt-Linie (Hex oder CSS-Variable), Standard #ef4444.' },
+        echartNowLineLabel: {
+            description:
+                'Beschriftung an der Jetzt-Linie, z. B. "jetzt" oder "jetzt {HH:mm}" — {…} ist ein Datumsmuster ' +
+                '(HH, mm, dd, MM, yyyy) und wird durch die aktuelle Zeit ersetzt. In der Linienfarbe, 11 px, auf der ' +
+                'Kartenfarbe, innerhalb der Zeichenfläche. Leer (Standard) = keine Beschriftung. Gilt auch für die ' +
+                'Kategorie-Achse (echartNowLineMatch).',
+        },
+        echartNowLinePosition: {
+            description:
+                'Wo die Beschriftung der Jetzt-Linie steht: "top" (Standard, oberes Ende) oder "bottom" (unteres Ende).',
+        },
         echartAnimation: { description: 'Übergänge animieren.' },
         echartShowXAxis: { description: 'X-Achse anzeigen.' },
         echartXLabelCount: {

@@ -151,6 +151,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const nowLineByLabel = isJson && !jsonTimeAxis;
     const echartNowLineMatch = (o.echartNowLineMatch as string | undefined) ?? '';
     const echartNowLineColor = (o.echartNowLineColor as string | undefined) || '#ef4444';
+    const echartNowLineLabel = (o.echartNowLineLabel as string | undefined) ?? '';
+    const echartNowLinePosition = (o.echartNowLinePosition as string | undefined) === 'bottom' ? 'bottom' : 'top';
     const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
     const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
     // Comparison charts have always labelled their bars — keep that as their default (issue #543).
@@ -574,6 +576,32 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             placeholder="#ef4444"
                         />
                     </div>
+                    <label className="text-[11px] mt-2 mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.nowLineLabel')}
+                    </label>
+                    <div className="flex gap-1.5">
+                        <input
+                            type="text"
+                            value={echartNowLineLabel}
+                            onChange={(e) => setO({ echartNowLineLabel: e.target.value })}
+                            className={`${inputCls} flex-1 min-w-0`}
+                            style={inputStyle}
+                            placeholder={t('echart.nowLineLabelPlaceholder')}
+                        />
+                        <select
+                            value={echartNowLinePosition}
+                            onChange={(e) => setO({ echartNowLinePosition: e.target.value })}
+                            disabled={!echartNowLineLabel.trim()}
+                            className={`${inputCls} shrink-0`}
+                            style={{ ...inputStyle, width: 'auto' }}
+                        >
+                            <option value="top">{t('echart.nowLinePosTop')}</option>
+                            <option value="bottom">{t('echart.nowLinePosBottom')}</option>
+                        </select>
+                    </div>
+                    <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.nowLineLabelHint')}
+                    </p>
                 </>
             ),
         },

@@ -127,8 +127,62 @@ const near = (x) => typeof x === 'number' && Math.abs(x - Date.now()) < 120_000;
         { 'demo.now3': 1500 },
     );
     check('default colour is red', lines?.[0]?.color === '#ef4444', JSON.stringify(lines?.[0]));
+    check('no label by default', lines?.[0]?.label === null, JSON.stringify(lines?.[0]));
     await page.screenshot({
         path: 'node_modules/.cache/chart-now-line.png',
+        clip: { x: 0, y: 0, width: 800, height: 400 },
+    });
+}
+
+// ── 3b. Label: "{HH:mm}" becomes the current time, painted inside the plot ────
+{
+    const hhmm = () => {
+        const d = new Date();
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    };
+    const before = hhmm();
+    const lines = await render(
+        {
+            echartDayNav: true,
+            echartDayNavDefault: true,
+            echartNowLine: true,
+            echartNowLineLabel: 'jetzt {HH:mm}',
+            echartSeries: historySeries('demo.now3b'),
+        },
+        { 'demo.now3b': 1500 },
+    );
+    const label = lines?.[0]?.label;
+    check(
+        'label replaces {HH:mm} with the time',
+        label === `jetzt ${before}` || label === `jetzt ${hhmm()}`,
+        JSON.stringify(lines?.[0]),
+    );
+    check('label sits at the top by default', lines?.[0]?.position === 'end', JSON.stringify(lines?.[0]));
+    const texts = await page.evaluate(() => window.__auraShot.chartTexts());
+    check('the label is painted', !!texts?.includes(label), JSON.stringify(texts?.slice(0, 12)));
+    await page.screenshot({
+        path: 'node_modules/.cache/chart-now-line-label-top.png',
+        clip: { x: 0, y: 0, width: 800, height: 400 },
+    });
+
+    const bottom = await render(
+        {
+            echartDayNav: true,
+            echartDayNavDefault: true,
+            echartNowLine: true,
+            echartNowLineLabel: 'jetzt',
+            echartNowLinePosition: 'bottom',
+            echartSeries: historySeries('demo.now3c'),
+        },
+        { 'demo.now3c': 1500 },
+    );
+    check(
+        'bottom puts the label at the line start',
+        bottom?.[0]?.label === 'jetzt' && bottom?.[0]?.position === 'start',
+        JSON.stringify(bottom?.[0]),
+    );
+    await page.screenshot({
+        path: 'node_modules/.cache/chart-now-line-label-bottom.png',
         clip: { x: 0, y: 0, width: 800, height: 400 },
     });
 }
@@ -160,6 +214,18 @@ const near = (x) => typeof x === 'number' && Math.abs(x - Date.now()) < 120_000;
         { 'demo.weather': payload },
     );
     check('category axis: line at the matching label', lines?.[0]?.x === '▶ jetzt', JSON.stringify(lines));
+
+    const labelled = await render(
+        {
+            echartMode: 'json',
+            echartNowLine: true,
+            echartNowLineMatch: 'JETZT',
+            echartNowLineLabel: 'jetzt',
+            echartSeries: series,
+        },
+        { 'demo.weather': payload },
+    );
+    check('category axis: the label shows too', labelled?.[0]?.label === 'jetzt', JSON.stringify(labelled));
 
     const none = await render(
         { echartMode: 'json', echartNowLine: true, echartSeries: series },

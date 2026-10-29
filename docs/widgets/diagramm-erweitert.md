@@ -158,6 +158,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartNowLine`          | `false`                                   | senkrechte Linie bei der aktuellen Uhrzeit, wenn „jetzt“ im gezeigten Zeitraum liegt (Tagesansicht heute, Prognosen); Kategorie-Achse: `echartNowLineMatch` |
 | `echartNowLineMatch`     | leer                                      | JSON-Modus ohne Zeitachse: Linie bei der ersten Kategorie, deren Beschriftung diesen Text enthält (z. B. `jetzt`)                                          |
 | `echartNowLineColor`     | `#ef4444`                                 | Farbe der Jetzt-Linie                                                                                                                                      |
+| `echartNowLineLabel`     | leer                                      | Beschriftung an der Jetzt-Linie, z. B. `jetzt` oder `jetzt {HH:mm}` (`{…}` = Datumsmuster der aktuellen Zeit); leer = keine                                |
+| `echartNowLinePosition`  | `top`                                     | Beschriftung oben (`top`) oder unten (`bottom`) an der Linie                                                                                               |
 | `decimals`               | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung — Vorgabe für alle Serien, je Serie überschreibbar                         |
 | `numberFormat`           | globale Einstellung                       | 1000er-Trennzeichen: `plain` · `de` · `en` · `space` · `apostrophe` — Vorgabe für alle Serien, je Serie überschreibbar                                     |
 
