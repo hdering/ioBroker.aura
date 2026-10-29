@@ -46,6 +46,7 @@ const { createSayitBridge, SAYIT_PREFIX } = require('./lib/sayitBridge');
 const { createAnnouncements } = require('./lib/announcements');
 const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
+const { createTtsProxy } = require('./lib/ttsProxy');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -201,6 +202,7 @@ const SPEECH_RESULT_STATES = {
     muted: 'muted',
     skipped: 'skipped (display off or queue full)',
     interrupted: 'interrupted',
+    unsupported: 'unsupported (no voice in this browser, online voice off)',
     error: 'error',
 };
 
@@ -1731,6 +1733,8 @@ class Aura extends utils.Adapter {
         const adapterIcons = createAdapterIcons({ source: ioBrokerIconSource(this), log: this.log });
         // RSS/Atom feeds of the news widget (#854), fetched and cached server-side.
         const feedProxy = createFeedProxy({ log: this.log });
+        // Online voice for devices without speechSynthesis (Fully / Android WebView, #834).
+        const ttsProxy = createTtsProxy({ log: this.log, enabled: () => this.config.speechOnlineTts !== false });
 
         const handler = (req, res) => {
             let parsedUrl;
@@ -1762,6 +1766,9 @@ class Aura extends utils.Adapter {
                 return;
             }
             if (feedProxy.handle(req, res, parsedUrl)) {
+                return;
+            }
+            if (ttsProxy.handle(req, res, parsedUrl)) {
                 return;
             }
 
@@ -3266,6 +3273,12 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        // Objects of older versions miss newer results (`unsupported`).
+        const lastResult = await this.getObjectAsync(`${base}.speech.lastResult`);
+        const known = lastResult?.common?.states;
+        if (known && typeof known === 'object' && Object.keys(SPEECH_RESULT_STATES).some((k) => !(k in known))) {
+            await this.extendObjectAsync(`${base}.speech.lastResult`, { common: { states: SPEECH_RESULT_STATES } });
+        }
         await this.setObjectNotExistsAsync(`${base}.speech.muted`, {
             type: 'state',
             common: {

@@ -14,7 +14,7 @@ import { ServerClock, claimAnnouncement } from '../utils/speechClaim';
  * settings it plays with, and what it reports back to ioBroker.
  *
  *   clients.<id>.speech.playing     true while an announcement plays
- *   clients.<id>.speech.lastResult  played / blocked / muted / skipped / interrupted / error
+ *   clients.<id>.speech.lastResult  played / blocked / muted / skipped / interrupted / unsupported / error
  *
  * The SpeechOutput component feeds the device settings in and owns the
  * datapoint subscriptions; messages reach `announce` through setMessageSpeaker.

@@ -579,6 +579,36 @@
       "lg": 4,
       "xl": 4
     },
+    "_speechHeader": {
+      "type": "header",
+      "text": {
+        "en": "Speech output",
+        "de": "Sprachausgabe"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "speechOnlineTts": {
+      "type": "checkbox",
+      "label": {
+        "en": "Online voice for devices without a voice of their own",
+        "de": "Online-Stimme für Geräte ohne eigene Stimme"
+      },
+      "help": {
+        "en": "Some browsers cannot speak text, e.g. Fully Kiosk (Android WebView). They then get the announcement as an MP3 from Aura's server, which fetches it from Google Translate. The text is sent to Google; requires internet. Off: such devices report speech.lastResult = unsupported.",
+        "de": "Manche Browser können keinen Text sprechen, z. B. Fully Kiosk (Android-WebView). Sie bekommen die Ansage dann als MP3 vom Aura-Server, der sie bei Google Translate abruft. Der Text geht an Google; braucht Internet. Aus: solche Geräte melden speech.lastResult = unsupported."
+      },
+      "default": true,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
     "_securityHeader": {
       "type": "header",
       "text": {

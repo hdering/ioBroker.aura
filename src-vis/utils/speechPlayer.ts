@@ -1,3 +1,4 @@
+import { auraUrl } from './basePath';
 import { pickVoice, splitSpeechText, type SpeechRequest, type SpeechResult } from './speech';
 
 /**
@@ -16,8 +17,11 @@ import { pickVoice, splitSpeechText, type SpeechRequest, type SpeechResult } fro
  * a late one is reported `skipped` instead of "Es hat geklingelt" an hour on.
  */
 
-/** `expired`: it only got to start after its deadline and was stopped at once. */
-export type PlayOutcome = 'ended' | 'blocked' | 'interrupted' | 'error' | 'expired';
+/**
+ * `expired`: it only got to start after its deadline and was stopped at once.
+ * `unsupported`: no voice in this browser and the server's online voice is off.
+ */
+export type PlayOutcome = 'ended' | 'blocked' | 'interrupted' | 'error' | 'expired' | 'unsupported';
 
 export interface SpeechBackend {
     speak(
@@ -217,16 +221,20 @@ function loadVoices(synth: SpeechSynthesis, timeoutMs = 1500): Promise<SpeechSyn
     });
 }
 
+/** speechSynthesis errors that mean "no voice here", not "this sentence failed". */
+const NO_VOICE_ERRORS = new Set(['synthesis-unavailable', 'language-unavailable', 'voice-unavailable']);
+
 export function browserSpeechBackend(): SpeechBackend {
     let audio: HTMLAudioElement | null = null;
     let finishAudio: ((o: PlayOutcome) => void) | null = null;
     let cancelled = false;
 
+    /** `unavailable`: the engine has no voice to speak with — the online voice takes over. */
     const speakChunk = (synth: SpeechSynthesis, u: SpeechSynthesisUtterance, chars: number, deadline?: number) =>
-        new Promise<PlayOutcome>((resolve) => {
+        new Promise<PlayOutcome | 'unavailable'>((resolve) => {
             let settled = false;
             const guard: { id?: ReturnType<typeof setTimeout> } = {};
-            const settle = (o: PlayOutcome) => {
+            const settle = (o: PlayOutcome | 'unavailable') => {
                 if (settled) return;
                 settled = true;
                 clearTimeout(guard.id);
@@ -243,6 +251,7 @@ export function browserSpeechBackend(): SpeechBackend {
                 const err = (e as SpeechSynthesisErrorEvent).error;
                 if (err === 'not-allowed') settle('blocked');
                 else if (err === 'interrupted' || err === 'canceled') settle('interrupted');
+                else if (NO_VOICE_ERRORS.has(err)) settle('unavailable');
                 else settle('error');
             };
             // Some engines never fire `end` (Chrome on Android after a voice
@@ -257,28 +266,101 @@ export function browserSpeechBackend(): SpeechBackend {
             synth.speak(u);
         });
 
+    const playUrl = (url: string, volume: number, deadline?: number) =>
+        new Promise<PlayOutcome>((resolve) => {
+            const a = new Audio();
+            audio = a;
+            let settled = false;
+            const settle = (o: PlayOutcome) => {
+                if (settled) return;
+                settled = true;
+                finishAudio = null;
+                if (audio === a) audio = null;
+                a.onended = a.onerror = a.onplaying = null;
+                resolve(o);
+            };
+            finishAudio = settle;
+            a.preload = 'auto';
+            a.volume = Math.max(0, Math.min(1, volume / 100));
+            a.onended = () => settle('ended');
+            a.onerror = () => settle('error');
+            // A background tab may hold the sound back until it is shown.
+            a.onplaying = () => {
+                if (deadline && Date.now() > deadline) {
+                    a.pause();
+                    settle('expired');
+                }
+            };
+            a.src = url;
+            a.play().catch((e: unknown) => {
+                const name = (e as { name?: string })?.name;
+                if (name === 'NotAllowedError') settle('blocked');
+                else if (name === 'AbortError') settle('interrupted');
+                else settle('error');
+            });
+        });
+
+    /**
+     * No voice in this browser (Fully Kiosk / Android WebView): the server turns
+     * each piece into an MP3 (lib/ttsProxy.js), played like a sound file. Voice,
+     * rate and pitch do not apply there.
+     */
+    const speakOnline = async (
+        chunks: string[],
+        lang: string,
+        opts: { volume: number; deadline?: number },
+    ): Promise<PlayOutcome> => {
+        const urlOf = (chunk: string) =>
+            auraUrl(`/speech/tts?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(chunk)}`);
+        for (let i = 0; i < chunks.length; i++) {
+            if (cancelled) return 'interrupted';
+            const url = urlOf(chunks[i]);
+            // Warm the server's cache for the next piece while this one plays.
+            if (chunks[i + 1]) void fetch(urlOf(chunks[i + 1])).catch(() => {});
+            const o = await playUrl(url, opts.volume, opts.deadline);
+            if (o === 'error') {
+                // A 403 is the instance option, not a broken file.
+                const status = await fetch(url, { method: 'HEAD' }).then(
+                    (r) => r.status,
+                    () => 0,
+                );
+                return status === 403 ? 'unsupported' : 'error';
+            }
+            if (o !== 'ended') return cancelled ? 'interrupted' : o;
+        }
+        return 'ended';
+    };
+
     return {
         async speak(text, opts) {
-            const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
-            if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return 'error';
             cancelled = false;
-            const lang = opts.lang || document.documentElement.lang || navigator.language;
+            const lang =
+                opts.lang ||
+                (typeof document !== 'undefined' ? document.documentElement.lang : '') ||
+                (typeof navigator !== 'undefined' ? navigator.language : '') ||
+                'de';
             const chunks = splitSpeechText(text);
             if (!chunks.length) return 'ended';
+            const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined;
+            if (!synth || typeof SpeechSynthesisUtterance === 'undefined') return speakOnline(chunks, lang, opts);
             // getVoices() is synchronous when the list is there; only the very first
             // announcement may wait for it — and must not, if it is already late for
             // the gesture (the voice is a nicety, the gesture is not).
             const voices = synth.getVoices().length ? synth.getVoices() : await loadVoices(synth);
+            // An engine without a single voice (Android WebView, Firefox on Linux
+            // without speech-dispatcher) cannot speak at all.
+            if (!voices.length) return speakOnline(chunks, lang, opts);
             const voice = pickVoice(voices, { voice: opts.voice, lang });
-            for (const chunk of chunks) {
+            for (let i = 0; i < chunks.length; i++) {
                 if (cancelled) return 'interrupted';
-                const u = new SpeechSynthesisUtterance(chunk);
+                const u = new SpeechSynthesisUtterance(chunks[i]);
                 u.lang = voice?.lang ?? lang;
                 if (voice) u.voice = voice;
                 u.volume = Math.max(0, Math.min(1, opts.volume / 100));
                 if (opts.rate) u.rate = opts.rate;
                 if (opts.pitch !== undefined) u.pitch = opts.pitch;
-                const o = await speakChunk(synth, u, chunk.length, opts.deadline);
+                const o = await speakChunk(synth, u, chunks[i].length, opts.deadline);
+                if (o === 'unavailable') return speakOnline(chunks.slice(i), lang, opts);
                 if (o !== 'ended') return cancelled ? 'interrupted' : o;
             }
             return 'ended';
@@ -286,38 +368,7 @@ export function browserSpeechBackend(): SpeechBackend {
 
         play(url, volume, deadline) {
             cancelled = false;
-            return new Promise<PlayOutcome>((resolve) => {
-                const a = new Audio();
-                audio = a;
-                let settled = false;
-                const settle = (o: PlayOutcome) => {
-                    if (settled) return;
-                    settled = true;
-                    finishAudio = null;
-                    if (audio === a) audio = null;
-                    a.onended = a.onerror = a.onplaying = null;
-                    resolve(o);
-                };
-                finishAudio = settle;
-                a.preload = 'auto';
-                a.volume = Math.max(0, Math.min(1, volume / 100));
-                a.onended = () => settle('ended');
-                a.onerror = () => settle('error');
-                // A background tab may hold the sound back until it is shown.
-                a.onplaying = () => {
-                    if (deadline && Date.now() > deadline) {
-                        a.pause();
-                        settle('expired');
-                    }
-                };
-                a.src = url;
-                a.play().catch((e: unknown) => {
-                    const name = (e as { name?: string })?.name;
-                    if (name === 'NotAllowedError') settle('blocked');
-                    else if (name === 'AbortError') settle('interrupted');
-                    else settle('error');
-                });
-            });
+            return playUrl(url, volume, deadline);
         },
 
         cancel() {

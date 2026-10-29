@@ -44,6 +44,10 @@ function makeAdapter() {
     a.setObjectNotExistsAsync = async (id, obj) => {
         if (!objects.has(rel(id))) objects.set(rel(id), obj);
     };
+    a.extendObjectAsync = async (id, patch) => {
+        const cur = objects.get(rel(id)) || { common: {}, native: {} };
+        objects.set(rel(id), { ...cur, common: { ...cur.common, ...patch.common } });
+    };
     a.setStateAsync = async (id, value) => {
         states.set(rel(id), value);
     };
@@ -65,10 +69,23 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         assert.strictEqual(vol.min, 0);
         assert.strictEqual(vol.max, 100);
         const res = a._objects.get('clients.tablet.speech.lastResult').common.states;
-        for (const r of ['played', 'blocked', 'muted', 'skipped', 'interrupted', 'error']) {
+        for (const r of ['played', 'blocked', 'muted', 'skipped', 'interrupted', 'unsupported', 'error']) {
             assert.ok(res[r], `lastResult offers ${r}`);
         }
         console.log('✓ clients.<id>.speech.* is created with sane definitions');
+    }
+
+    {
+        // lastResult of an older version lacks `unsupported` (Fully without a voice).
+        const a = makeAdapter();
+        a._objects.set('clients.old.speech.lastResult', {
+            type: 'state',
+            common: { type: 'string', states: { played: 'played', error: 'error' } },
+            native: {},
+        });
+        await a._ensureSpeechDps('old');
+        assert.ok(a._objects.get('clients.old.speech.lastResult').common.states.unsupported);
+        console.log('✓ an old lastResult object learns the unsupported result');
     }
 
     {

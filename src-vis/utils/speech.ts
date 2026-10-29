@@ -14,9 +14,17 @@ import type { MessageTarget } from '../types';
  * No browser API in here, so the parsing is testable under node.
  */
 
-export type SpeechResult = 'played' | 'blocked' | 'muted' | 'skipped' | 'interrupted' | 'error';
+export type SpeechResult = 'played' | 'blocked' | 'muted' | 'skipped' | 'interrupted' | 'unsupported' | 'error';
 
-export const SPEECH_RESULTS: SpeechResult[] = ['played', 'blocked', 'muted', 'skipped', 'interrupted', 'error'];
+export const SPEECH_RESULTS: SpeechResult[] = [
+    'played',
+    'blocked',
+    'muted',
+    'skipped',
+    'interrupted',
+    'unsupported',
+    'error',
+];
 
 export interface SpeechRequest {
     /** Spoken by speechSynthesis. Exactly one of text / file is set. */

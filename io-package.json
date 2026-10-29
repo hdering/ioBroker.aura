@@ -231,6 +231,7 @@
     "statusHistoryDays": 730,
     "updateNotify": false,
     "updateNotifyAck": true,
+    "speechOnlineTts": true,
     "mcpEnabled": false,
     "mcpToken": "",
     "mcpMode": "read",

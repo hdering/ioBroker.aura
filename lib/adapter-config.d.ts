@@ -30,6 +30,7 @@ declare global {
             statusHistoryDays: number;
             updateNotify: boolean;
             updateNotifyAck: boolean;
+            speechOnlineTts: boolean;
             mcpEnabled: boolean;
             mcpToken: string;
             mcpMode: string;

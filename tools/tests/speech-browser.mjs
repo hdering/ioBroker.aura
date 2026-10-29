@@ -1,7 +1,9 @@
 // The real browser backend of the speech output (issue #834) in Chromium:
 // autoplay refused → `blocked`, the announcement waits, a tap plays it; with
 // autoplay allowed (Fully Kiosk setting / --autoplay-policy flag) it plays at once.
-// Plus: two tabs of one browser (one device) play an announcement only once.
+// Plus: two tabs of one browser (one device) play an announcement only once, and
+// a browser without speechSynthesis (Fully / Android WebView) speaks text
+// through the server's online voice (/speech/tts), or reports `unsupported`.
 //
 //   node tools/tests/speech-browser.mjs
 //
@@ -50,6 +52,27 @@ claimAnnouncement(key).then((won) => { document.title = won ? 'won' : 'lost'; })
 });
 const claimJs = claimBuild.outputFiles[0].text;
 
+// No voice: the Android WebView has no speechSynthesis at all.
+const SENTENCE = 'Die Waschmaschine im Keller ist fertig und kann ausgeräumt werden';
+const noVoiceBuild = await build({
+    stdin: {
+        contents: `import { SpeechQueue, browserSpeechBackend } from './src-vis/utils/speechPlayer.ts';
+Object.defineProperty(window, 'speechSynthesis', { value: undefined, configurable: true });
+const log = [];
+const show = (e) => { log.push(e); document.title = log.join(); };
+const q = new SpeechQueue(browserSpeechBackend(), { onResult: show });
+const text = Array(4).fill(${JSON.stringify(SENTENCE)}).join('. ') + '.';
+q.enqueue({ req: { text, lang: 'de-DE' }, volume: 80, queuedAt: Date.now() });`,
+        resolveDir: process.cwd(),
+        loader: 'ts',
+    },
+    bundle: true,
+    format: 'iife',
+    write: false,
+    logLevel: 'warning',
+});
+const noVoiceJs = noVoiceBuild.outputFiles[0].text;
+
 /** 0.3 s of a 440 Hz tone, 8 kHz mono 8-bit. */
 function wav() {
     const n = 2400;
@@ -71,13 +94,33 @@ function wav() {
 }
 const sound = wav();
 
+const online = { enabled: true, texts: [], langs: new Set() };
 const server = http.createServer((req, res) => {
+    if (req.url.startsWith('/speech/tts')) {
+        const q = new URL(req.url, 'http://x').searchParams;
+        if (!online.enabled) {
+            res.writeHead(403);
+            res.end();
+            return;
+        }
+        if (req.method === 'GET') {
+            online.texts.push(q.get('text'));
+            online.langs.add(q.get('lang'));
+        }
+        res.writeHead(200, { 'Content-Type': 'audio/wav' });
+        res.end(req.method === 'HEAD' ? undefined : sound);
+        return;
+    }
     if (req.url.startsWith('/gong.wav')) {
         res.writeHead(200, { 'Content-Type': 'audio/wav' });
         res.end(sound);
         return;
     }
     res.writeHead(200, { 'Content-Type': 'text/html' });
+    if (req.url.startsWith('/novoice')) {
+        res.end(`<!doctype html><html><head><title></title></head><body><script>${noVoiceJs}</script></body></html>`);
+        return;
+    }
     if (req.url.startsWith('/claim')) {
         res.end(`<!doctype html><html><head><title></title></head><body><script>${claimJs}</script></body></html>`);
         return;
@@ -151,6 +194,28 @@ async function open(policy) {
     const page = await other.newPage();
     await page.goto(`${base}claim?key=aura.0.speech.say@42`);
     check('another device plays the same announcement too', (await titleAfter(page, (x) => x.length > 0)) === 'won');
+    await browser.close();
+}
+
+// ── No voice in the browser (Fully Kiosk) ───────────────────────────────────
+{
+    const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+    const page = await browser.newPage();
+    await page.goto(`${base}novoice`);
+    const log = await titleAfter(page, (t) => t.length > 0, 10000);
+    check('text without a browser voice is played via the online voice', log === 'played', log);
+    const distinct = [...new Set(online.texts)];
+    check(
+        'it is fetched piece by piece, each at most 200 characters',
+        distinct.length === 2 && distinct.every((t) => t.length <= 200) && distinct.join(' ').includes(SENTENCE),
+        distinct.map((t) => t.length).join(),
+    );
+    check('the language goes along', online.langs.size === 1 && online.langs.has('de-DE'), [...online.langs].join());
+
+    online.enabled = false;
+    await page.goto(`${base}novoice?off`);
+    const off = await titleAfter(page, (t) => t.length > 0, 10000);
+    check('online voice switched off: unsupported, not error', off === 'unsupported', off);
     await browser.close();
 }
 

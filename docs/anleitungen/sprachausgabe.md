@@ -19,7 +19,7 @@ Der Datenpunkt leert sich nach der Übernahme von selbst.
 
 | Inhalt | |
 | --- | --- |
-| `Guten Morgen` | Text, gesprochen von der Stimme des Browsers |
+| `Guten Morgen` | Text, gesprochen von der Stimme des Browsers (ohne eigene Stimme: [Online-Stimme](#online-stimme)) |
 | `/sayit.0/tts.mp3`, `0_userdata.0/gong.mp3`, `https://…/gong.mp3` | Datei abspielen (`.mp3` · `.wav` · `.ogg` …) |
 | `80;Es hat geklingelt` | Lautstärke;Text wie bei SayIt — auch `80;gong.mp3` |
 | `{"text": "…", …}` | JSON, siehe unten |
@@ -68,7 +68,22 @@ setState('aura.0.speech.say', JSON.stringify({
 | `muted` | Gerät stumm geschaltet |
 | `skipped` | Display aus (`onlyVisible`), älter als 10 Minuten oder Warteschlange voll |
 | `interrupted` | Von einer Ansage mit `interrupt` abgebrochen |
-| `error` | Datei nicht ladbar oder keine Sprachausgabe im Browser |
+| `unsupported` | Browser ohne eigene Stimme, [Online-Stimme](#online-stimme) ausgeschaltet |
+| `error` | Datei nicht ladbar, Online-Stimme nicht erreichbar (kein Internet) |
+
+## Online-Stimme
+
+Manche Browser haben keine eigene Stimme, z. B. **Fully Kiosk** (Android-WebView). Sounddateien spielen sie ab, Text nicht. Für solche Geräte holt der Aura-Server die Ansage als MP3 bei Google Translate und das Gerät spielt sie ab wie eine Datei.
+
+| | |
+| --- | --- |
+| Einstellung | Instanz-Einstellungen → **Sprachausgabe** → **Online-Stimme für Geräte ohne eigene Stimme** (Standard: an) |
+| Voraussetzung | Internet am ioBroker-Server |
+| Datenschutz | Der Ansagetext geht an Google |
+| Nicht wirksam | `voice`, `rate`, `pitch` |
+| Ausgeschaltet | `speech.lastResult` = `unsupported` |
+
+Geräte mit eigener Stimme (Chrome, Edge, Safari, Android-Chrome) nutzen weiterhin ihre eigene.
 
 ## Autoplay
 
