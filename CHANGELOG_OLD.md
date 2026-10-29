@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.82.10 (2026-10-14)
+- 🌟 **New feature:** Popups - optional countdown in a corner of the popup (top/bottom, left/right) showing the seconds until it closes automatically
+
 ## 0.82.9 (2026-10-14)
 - Advanced chart - the current-time line on a category axis now shows which label it hits, warns when none matches and offers the labels from the data to pick from
 - MCP - the per-widget "last change" display options are now part of the widget schema; three false validator warnings are gone (frame options called ineffective, universal widget with a custom grid but no defId, JSON chart on a string datapoint)
