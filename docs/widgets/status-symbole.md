@@ -33,7 +33,7 @@ Eigene Symbole in der Statuszeile eines Geräte-Widgets, neben Batterie, Erreich
 
 ## Wert statt Symbol
 
-**Anzeige → Wert** (oder Knopf „Eigener Wert“): Der Datenpunkt steht als kleine Pille in der Statuszeile, z. B. `21,5 °C`, in jeder der vier Ecken.
+**Eigener Eintrag → Anzeige: Wert**: Der Datenpunkt steht als kleine Pille in der Statuszeile, z. B. `21,5 °C`, in jeder der vier Ecken.
 
 | Feld | Bedeutung | Leer = |
 |---|---|---|

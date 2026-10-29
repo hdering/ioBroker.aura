@@ -189,13 +189,6 @@ function ItemFields({ item, onChange }: { item: StatusItem; onChange: (patch: Pa
     return (
         <div className="p-3 space-y-2.5" style={{ background: 'var(--app-bg)' }}>
             {row(
-                t('statusItems.datapoint'),
-                <>
-                    {dpField('dp', t('cond.datapointId'))}
-                    <JsonPathButton value={item.dp} onChange={(ref) => onChange({ dp: ref })} size={11} />
-                </>,
-            )}
-            {row(
                 t('statusItems.display'),
                 <select
                     value={item.display ?? 'symbol'}
@@ -206,6 +199,13 @@ function ItemFields({ item, onChange }: { item: StatusItem; onChange: (patch: Pa
                     <option value="symbol">{t('statusItems.displaySymbol')}</option>
                     <option value="value">{t('statusItems.displayValue')}</option>
                 </select>,
+            )}
+            {row(
+                t('statusItems.datapoint'),
+                <>
+                    {dpField('dp', t('cond.datapointId'))}
+                    <JsonPathButton value={item.dp} onChange={(ref) => onChange({ dp: ref })} size={11} />
+                </>,
             )}
             {asValue && (
                 <>
@@ -507,17 +507,6 @@ export function StatusItemsEditor({
                     }}
                 >
                     <Plus size={13} /> {t('statusItems.add')}
-                </button>
-                <button
-                    onClick={() => addItem({ id: newItemId(), dp: '', display: 'value' })}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-xl hover:opacity-80"
-                    style={{
-                        background: 'var(--app-surface)',
-                        color: 'var(--accent)',
-                        border: '1px dashed color-mix(in srgb, var(--accent) 33%, transparent)',
-                    }}
-                >
-                    <Plus size={13} /> {t('statusItems.addValue')}
                 </button>
                 <button
                     onClick={() =>

@@ -586,13 +586,15 @@ check(
     !opts?.statusItems && !(opts?.statusOrder ?? []).includes(added?.id),
     JSON.stringify({ items: opts?.statusItems, order: opts?.statusOrder }),
 );
-await page.locator('button:has-text("Eigener Wert")').click();
+await page.locator('button:has-text("Eigener Eintrag")').click();
 await page.waitForTimeout(400);
+await page.locator('select:has(option[value="value"])').last().selectOption('value');
+await page.waitForTimeout(300);
 await page.locator('input[placeholder="°C"]').fill('kWh');
 await page.waitForTimeout(400);
 opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), edId);
 check(
-    'editor: "Eigener Wert" adds a value entry with its unit',
+    'editor: "Eigener Eintrag" + Anzeige Wert stores a value entry with its unit',
     opts?.statusItems?.length === 1 && opts.statusItems[0].display === 'value' && opts.statusItems[0].unit === 'kWh',
     JSON.stringify(opts?.statusItems),
 );

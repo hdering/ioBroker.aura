@@ -1939,7 +1939,7 @@ export const de = {
     'statusItems.orderHint':
         'Reihenfolge von links nach rechts. Feste Symbole erscheinen, sobald ihr Datenpunkt gesetzt ist.',
     'statusItems.empty': 'Noch keine Symbole – Datenpunkt oben eintragen oder ein eigenes Symbol anlegen.',
-    'statusItems.add': 'Eigenes Symbol',
+    'statusItems.add': 'Eigener Eintrag',
     'statusItems.addMotionLock': 'Vorlage: Bewegungsmelder gesperrt',
     'statusItems.fixed': 'fest',
     'statusItems.fixedBattery': 'Batterie',
@@ -1975,7 +1975,6 @@ export const de = {
     'statusItems.display': 'Anzeige',
     'statusItems.displaySymbol': 'Symbol',
     'statusItems.displayValue': 'Wert',
-    'statusItems.addValue': 'Eigener Wert',
     'statusItems.decimals': 'Nachkomma',
     'statusItems.decimalsAuto': 'auto',
     'statusItems.unit': 'Einheit',
