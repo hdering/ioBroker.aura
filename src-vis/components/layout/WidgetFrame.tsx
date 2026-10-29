@@ -17933,7 +17933,7 @@ function WidgetFrameInner({
                                                                 {(
                                                                     [
                                                                         { label: 'HM / Standard (0=zu)', val: false },
-                                                                        { label: 'HmIP (0=auf)', val: true },
+                                                                        { label: 'Umgekehrt (0=auf)', val: true },
                                                                     ] as const
                                                                 ).map(({ label, val }) => (
                                                                     <button
@@ -17957,8 +17957,8 @@ function WidgetFrameInner({
                                                                 ))}
                                                             </div>
                                                             <p className="text-[10px]" style={hint}>
-                                                                HM Classic / Z-Wave: 0 = geschlossen, 100 = offen. HmIP
-                                                                / manche Zigbee-Adapter: umgekehrt.
+                                                                HM Classic / Z-Wave: 0 = geschlossen, 100 = offen. HmIP,
+                                                                KNX und manche Zigbee-Adapter: umgekehrt.
                                                             </p>
                                                         </div>
                                                     )}

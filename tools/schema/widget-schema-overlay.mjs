@@ -748,7 +748,7 @@ export const WIDGET_OPTION_NOTES = {
         closeDp: { description: 'Nur controlMode "taster": Datenpunkt für "Zu", bekommt true.' },
         stopDp: { description: 'Datenpunkt für "Stopp".' },
         actualPositionDp: { description: 'Datenpunkt der Ist-Position, wenn er vom Soll-DP abweicht.' },
-        invertPosition: { description: '0 % bedeutet offen statt geschlossen.' },
+        invertPosition: { description: '0 % bedeutet offen statt geschlossen (HmIP, KNX, manche Zigbee-Aktoren).' },
         tiltDp: { description: 'Datenpunkt für die Lamellenstellung.' },
         actualTiltDp: { description: 'Datenpunkt der Ist-Lamellenstellung.' },
         activityDp: { description: 'Datenpunkt, der meldet, ob der Rollladen gerade fährt.' },

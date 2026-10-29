@@ -18161,7 +18161,7 @@
         },
         "invertPosition": {
           "type": "boolean",
-          "description": "0 % bedeutet offen statt geschlossen."
+          "description": "0 % bedeutet offen statt geschlossen (HmIP, KNX, manche Zigbee-Aktoren)."
         },
         "moveDownValue": {
           "type": "string",

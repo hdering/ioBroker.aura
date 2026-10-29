@@ -10,3 +10,4 @@
 - Datapoints with a colon (or other characters ioBroker allows, like & = /) in their ID now update live instead of only after a page reload (#874)
 - Speech output - devices whose browser has no voice of its own (e.g. Fully Kiosk on Android) now speak text announcements through an online voice served by Aura; can be switched off in the instance settings, then speech.lastResult reports unsupported (#834)
 - Status symbols - an own status entry can now show its datapoint as a value (number with unit or text with bindings) instead of an icon, in any corner of the widget; optional highlight rule with comparisons like >30 (#875)
+- Shutter - the position inversion option ("Actuator convention") is no longer labelled as HmIP-only; the hint now also names KNX actuators where 0 % means open (#876)
