@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.97.0",
+    "auraVersion": "0.97.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -11704,10 +11704,18 @@
           "description": "Farbe der Jetzt-Linie (Hex oder CSS-Variable), Standard #ef4444.",
           "color": true
         },
+        "echartNowLineLabel": {
+          "type": "string",
+          "default": "",
+          "description": "Beschriftung an der Jetzt-Linie, z. B. \"jetzt\" oder \"jetzt {HH:mm}\" — {…} ist ein Datumsmuster (HH, mm, dd, MM, yyyy) und wird durch die aktuelle Zeit ersetzt. In der Linienfarbe, 11 px, auf der Kartenfarbe, innerhalb der Zeichenfläche. Leer (Standard) = keine Beschriftung. Gilt auch für die Kategorie-Achse (echartNowLineMatch)."
+        },
         "echartNowLineMatch": {
           "type": "string",
           "default": "",
           "description": "Nur JSON-Modus ohne Zeitachse: Text, den die Beschriftung der „aktuellen“ Kategorie enthält (Groß/klein egal, erste Fundstelle) — z. B. \"jetzt\" bei Labels wie \"heute 19:00\", \"▶ jetzt\". Leer = keine Linie auf der Kategorie-Achse."
+        },
+        "echartNowLinePosition": {
+          "description": "Wo die Beschriftung der Jetzt-Linie steht: \"top\" (Standard, oberes Ende) oder \"bottom\" (unteres Ende)."
         },
         "echartPeriodPlacement": {
           "type": "string",
