@@ -84,7 +84,11 @@ export const KEY_DESCRIPTIONS = {
     statusItems:
         'Eigene Status-Symbole in derselben Zeile wie batteryDp/windowDp (unten rechts): je ein Datenpunkt, ' +
         'Icon und Farbe für aktiv/inaktiv, optional action "toggle" = Klick aufs Symbol schreibt den Gegenwert ' +
-        '(ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe.',
+        '(ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe. ' +
+        'display "value" zeigt statt des Symbols den Wert als kleine Pille (decimals, unit oder text mit ' +
+        '{dp}-Bindung, z. B. "{dp;round(0)} W"); activeValues ist dann eine Hervorhebungsregel, auch ' +
+        'mit Vergleichen (">30", "<=5", "!=0"), leer = nie hervorgehoben. So steht ein Zahl-/Textwert in der ' +
+        'Ecke von statusPosition, auch unten (die headerItems haben nur Plätze oben).',
     statusPosition:
         'Ecke der Statuszeile (Status-Badges und statusItems) in den Standard-Layouts: bottom-right (Standard), ' +
         'bottom-left, top-right, top-left. Im Layout custom steht die Zeile dort, wo die Zelle status-badges liegt; ' +

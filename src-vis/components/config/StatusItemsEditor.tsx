@@ -59,6 +59,7 @@ function ItemFields({ item, onChange }: { item: StatusItem; onChange: (patch: Pa
     const t = useT();
     const [pickFor, setPickFor] = useState<PickFor | null>(null);
     const [iconFor, setIconFor] = useState<IconFor | null>(null);
+    const asValue = item.display === 'value';
     // An empty text field stores nothing, so the runtime default applies.
     const text = (key: keyof StatusItem) => (v: string) => onChange({ [key]: v === '' ? undefined : v });
 
@@ -123,7 +124,7 @@ function ItemFields({ item, onChange }: { item: StatusItem; onChange: (patch: Pa
     // The default colour shows as the picked one, like the built-in symbols; ↺ goes back to it.
     const colorField = (key: 'color' | 'colorInactive', active: boolean) => {
         const own = item[key] || undefined;
-        const dflt = STATUS_ITEM_COLOR_HEX[active ? 'active' : 'inactive'];
+        const dflt = STATUS_ITEM_COLOR_HEX[active ? 'active' : asValue ? 'value' : 'inactive'];
         return (
             <>
                 <ColorPicker
@@ -159,7 +160,15 @@ function ItemFields({ item, onChange }: { item: StatusItem; onChange: (patch: Pa
         return (
             <div className="space-y-1.5 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
                 <p className="text-[10px] font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {t(active ? 'statusItems.active' : 'statusItems.inactive')}
+                    {t(
+                        asValue
+                            ? active
+                                ? 'statusItems.highlighted'
+                                : 'statusItems.normal'
+                            : active
+                              ? 'statusItems.active'
+                              : 'statusItems.inactive',
+                    )}
                 </p>
                 {row(t('statusItems.icon'), iconButton(iconKey))}
                 {row(t('statusItems.color'), colorField(colorKey, active))}
@@ -187,13 +196,71 @@ function ItemFields({ item, onChange }: { item: StatusItem; onChange: (patch: Pa
                 </>,
             )}
             {row(
-                t('statusItems.activeValues'),
+                t('statusItems.display'),
+                <select
+                    value={item.display ?? 'symbol'}
+                    onChange={(e) => onChange({ display: e.target.value === 'value' ? 'value' : undefined })}
+                    className={`${cls} flex-1`}
+                    style={inputStyle}
+                >
+                    <option value="symbol">{t('statusItems.displaySymbol')}</option>
+                    <option value="value">{t('statusItems.displayValue')}</option>
+                </select>,
+            )}
+            {asValue && (
+                <>
+                    {row(
+                        t('statusItems.decimals'),
+                        <input
+                            type="number"
+                            min={0}
+                            max={6}
+                            value={item.decimals ?? ''}
+                            onChange={(e) =>
+                                onChange({
+                                    decimals: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)),
+                                })
+                            }
+                            placeholder={t('statusItems.decimalsAuto')}
+                            className={`${cls} w-20`}
+                            style={inputStyle}
+                        />,
+                    )}
+                    {row(
+                        t('statusItems.unit'),
+                        <input
+                            type="text"
+                            value={item.unit ?? ''}
+                            onChange={(e) => text('unit')(e.target.value)}
+                            placeholder="°C"
+                            disabled={!!item.text?.trim()}
+                            title={item.text?.trim() ? t('statusItems.unitByText') : undefined}
+                            className={`${cls} w-20 disabled:opacity-40`}
+                            style={inputStyle}
+                        />,
+                    )}
+                    {row(
+                        t('statusItems.text'),
+                        <input
+                            type="text"
+                            value={item.text ?? ''}
+                            onChange={(e) => text('text')(e.target.value)}
+                            placeholder="{dp;round(0)} W"
+                            title={t('statusItems.textHint')}
+                            className={`${cls} flex-1 font-mono min-w-0`}
+                            style={inputStyle}
+                        />,
+                    )}
+                </>
+            )}
+            {row(
+                t(asValue ? 'statusItems.highlightValues' : 'statusItems.activeValues'),
                 <input
                     type="text"
                     value={item.activeValues ?? ''}
                     onChange={(e) => text('activeValues')(e.target.value)}
-                    placeholder="true,1"
-                    title={t('statusItems.activeValuesHint')}
+                    placeholder={asValue ? '>30' : 'true,1'}
+                    title={t(asValue ? 'statusItems.highlightValuesHint' : 'statusItems.activeValuesHint')}
                     className={`${cls} flex-1 font-mono min-w-0`}
                     style={inputStyle}
                 />,
@@ -215,8 +282,12 @@ function ItemFields({ item, onChange }: { item: StatusItem; onChange: (patch: Pa
                     style={inputStyle}
                 >
                     <option value="always">{t('statusItems.showAlways')}</option>
-                    <option value="active">{t('statusItems.showActive')}</option>
-                    <option value="inactive">{t('statusItems.showInactive')}</option>
+                    <option value="active">
+                        {t(asValue ? 'statusItems.showHighlighted' : 'statusItems.showActive')}
+                    </option>
+                    <option value="inactive">
+                        {t(asValue ? 'statusItems.showNormal' : 'statusItems.showInactive')}
+                    </option>
                 </select>,
             )}
             {row(
@@ -436,6 +507,17 @@ export function StatusItemsEditor({
                     }}
                 >
                     <Plus size={13} /> {t('statusItems.add')}
+                </button>
+                <button
+                    onClick={() => addItem({ id: newItemId(), dp: '', display: 'value' })}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs rounded-xl hover:opacity-80"
+                    style={{
+                        background: 'var(--app-surface)',
+                        color: 'var(--accent)',
+                        border: '1px dashed color-mix(in srgb, var(--accent) 33%, transparent)',
+                    }}
+                >
+                    <Plus size={13} /> {t('statusItems.addValue')}
                 </button>
                 <button
                     onClick={() =>

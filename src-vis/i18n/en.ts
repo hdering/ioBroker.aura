@@ -1956,6 +1956,24 @@ export const en: Record<TranslationKey, string> = {
     'statusItems.offValue': 'Value → inactive',
     'statusItems.valueHint':
         'Empty = true/false (1/0 on numeric datapoints). Asks first when the widget has "Confirmation" switched on.',
+    'statusItems.display': 'Display',
+    'statusItems.displaySymbol': 'Symbol',
+    'statusItems.displayValue': 'Value',
+    'statusItems.addValue': 'Own value',
+    'statusItems.decimals': 'Decimals',
+    'statusItems.decimalsAuto': 'auto',
+    'statusItems.unit': 'Unit',
+    'statusItems.unitByText': 'Part of the own text',
+    'statusItems.text': 'Text',
+    'statusItems.textHint':
+        'Empty = value + unit. {dp} is the value of this entry, also {dp;round(0)} or other datapoints like {0_userdata.0.x}.',
+    'statusItems.highlightValues': 'Highlight at',
+    'statusItems.highlightValuesHint':
+        'Comma-separated: values or comparisons like >30, <=5, !=0 (decimal point). Empty = never highlighted.',
+    'statusItems.highlighted': 'Highlighted',
+    'statusItems.normal': 'Normal',
+    'statusItems.showHighlighted': 'Only when highlighted',
+    'statusItems.showNormal': 'Only when normal',
     'statusItems.motionLockLabel': 'Motion sensor locked',
     'statusItems.motionLockLabelInactive': 'Motion sensor active',
 

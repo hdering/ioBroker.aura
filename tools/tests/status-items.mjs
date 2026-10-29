@@ -134,6 +134,56 @@ check(
     await titles(),
 );
 
+// ── Value display (#875) ─────────────────────────────────────────────────────
+// Global defaults: decimals 2 as a maximum, number format 'plain'.
+const pill = () =>
+    page.evaluate(() => {
+        const el = document.querySelector('[data-aura-status-row] [data-aura-status-value]');
+        return el ? { text: el.textContent, color: window.getComputedStyle(el).color } : null;
+    });
+const val = (patch = {}) => item({ display: 'value', icon: undefined, iconInactive: undefined, ...patch });
+
+await show(() => ({ statusItems: [val({ unit: '°C' })] }), { MOT: 21.456 });
+check('value: datapoint plus unit', (await pill())?.text === '21.46 °C', JSON.stringify(await pill()));
+await show(() => ({ statusItems: [val({ unit: '°C', decimals: 0 })] }), { MOT: 21.456 });
+check('value: own decimals', (await pill())?.text === '21 °C', JSON.stringify(await pill()));
+await show(() => ({ statusItems: [val({ unit: 'x', text: '{dp;round(0)} W' })] }), { MOT: 1234.6 });
+check(
+    'value: own text with {dp} binding, unit unused',
+    (await pill())?.text === '1235 W',
+    JSON.stringify(await pill()),
+);
+await show(() => ({ statusItems: [val()] }), { MOT: 'Eco' });
+check('value: a string passes through', (await pill())?.text === 'Eco', JSON.stringify(await pill()));
+
+const RED = 'rgb(255, 0, 0)';
+await show(() => ({ statusItems: [val({ activeValues: '>30', color: '#ff0000' })] }), { MOT: 35 });
+check('value: rule >30 highlights 35', (await pill())?.color === RED, JSON.stringify(await pill()));
+await show(() => ({ statusItems: [val({ activeValues: '>30', color: '#ff0000' })] }), { MOT: 25 });
+check('value: rule >30 leaves 25 normal', (await pill())?.color !== RED, JSON.stringify(await pill()));
+await show(() => ({ statusItems: [val({ color: '#ff0000' })] }), { MOT: 1 });
+check(
+    'value: no rule = never highlighted (1 is no "active")',
+    (await pill())?.color !== RED,
+    JSON.stringify(await pill()),
+);
+
+await show(() => ({ statusItems: [val()], statusBadgesAlertOnly: true }), { MOT: 5 });
+check('value: alert-only keeps a value without rule', (await pill())?.text === '5', JSON.stringify(await pill()));
+await show(() => ({ statusItems: [val({ activeValues: '>30' })], statusBadgesAlertOnly: true }), { MOT: 5 });
+check('value: alert-only hides a value below its rule', (await pill()) === null, JSON.stringify(await pill()));
+
+await show(() => ({ statusItems: [val({ unit: 'W' })], statusPosition: 'bottom-left' }), { MOT: 7 });
+const corner = await page.evaluate(() => {
+    const row = document.querySelector('[data-aura-status-row]');
+    return row ? { left: row.style.left, bottom: row.style.bottom } : null;
+});
+check(
+    'value: sits in the statusPosition corner',
+    (await pill())?.text === '7 W' && corner?.left === '0px' && corner?.bottom === '0px',
+    JSON.stringify(corner),
+);
+
 // ── Toggle ───────────────────────────────────────────────────────────────────
 const sym = () => page.locator('[data-aura-status-item="si-mot"]').first();
 
@@ -535,6 +585,16 @@ check(
     'editor: delete removes the symbol and its order key',
     !opts?.statusItems && !(opts?.statusOrder ?? []).includes(added?.id),
     JSON.stringify({ items: opts?.statusItems, order: opts?.statusOrder }),
+);
+await page.locator('button:has-text("Eigener Wert")').click();
+await page.waitForTimeout(400);
+await page.locator('input[placeholder="°C"]').fill('kWh');
+await page.waitForTimeout(400);
+opts = await page.evaluate((id) => window.__auraShot.widgetOptions(id), edId);
+check(
+    'editor: "Eigener Wert" adds a value entry with its unit',
+    opts?.statusItems?.length === 1 && opts.statusItems[0].display === 'value' && opts.statusItems[0].unit === 'kWh',
+    JSON.stringify(opts?.statusItems),
 );
 await page.keyboard.press('Escape');
 await page.keyboard.press('Escape');

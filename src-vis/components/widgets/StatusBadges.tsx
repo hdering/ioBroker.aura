@@ -2,7 +2,11 @@ import { Fragment, useRef, useState } from 'react';
 import { Battery, BatteryLow, Lock, LockOpen, Wifi, WifiOff } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
-import { useTemplateValues } from '../../hooks/useTemplateValues';
+import { useTemplateStates } from '../../hooks/useTemplateValues';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { useT } from '../../i18n';
+import { formatNum } from '../../utils/formatValue';
+import { isValueItem, matchesValueRule, statusItemValueRefs, statusItemValueText } from '../../utils/statusItemValue';
 import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import { splitDpRef } from '../../utils/dpRef';
 import { typedActionValue } from '../../utils/statusOverview';
@@ -164,7 +168,7 @@ export function StatusDot({ color, title, children }: { color: string; title?: s
 const ITEM_ACTIVE_DEFAULT = 'true,1';
 const ITEM_ACTIVE_COLOR = 'var(--accent, #3b82f6)';
 /** Default colours of an own symbol as plain hex — what the editor's colour picker shows as preselected. */
-export const STATUS_ITEM_COLOR_HEX = { active: '#3b82f6', inactive: '#22c55e' } as const;
+export const STATUS_ITEM_COLOR_HEX = { active: '#3b82f6', inactive: '#22c55e', value: '#94a3b8' } as const;
 
 /** The value a toggle writes: the own setting typed ("true" → true, "1" → 1), else
  *  true/false — or 1/0 when the datapoint currently holds a number. */
@@ -175,16 +179,56 @@ export function statusItemWriteValue(item: StatusItem, active: boolean, current:
     return !active;
 }
 
+/** Text colour of a value entry that is not highlighted. */
+const ITEM_VALUE_COLOR = 'var(--text-secondary, #94a3b8)';
+
+/** A value entry (display 'value', #875): the same tinted shape as StatusDot, stretched to a pill. */
+export function StatusValuePill({
+    color,
+    title,
+    icon,
+    text,
+}: {
+    color: string;
+    title?: string;
+    icon?: string;
+    text: string;
+}) {
+    return (
+        <span
+            title={title}
+            className="flex items-center gap-0.5 rounded-full whitespace-nowrap tabular-nums"
+            style={{
+                height: DOT_SIZE,
+                padding: '0 6px',
+                flexShrink: 0,
+                fontSize: 10,
+                lineHeight: 1,
+                color,
+                background: `color-mix(in srgb, ${color} 14%, var(--app-surface))`,
+                border: `1px solid color-mix(in srgb, ${color} 40%, transparent)`,
+            }}
+            data-aura-status-value
+        >
+            {icon && <AuraIcon icon={icon} width={11} height={11} style={{ color }} />}
+            {text}
+        </span>
+    );
+}
+
 function StatusItemSymbol({
     item,
     active,
     current,
+    valueText,
     confirm,
     confirmText,
 }: {
     item: StatusItem;
     active: boolean;
     current: unknown;
+    /** Display 'value': the rendered text; undefined for a glyph. */
+    valueText?: string;
     confirm: boolean;
     confirmText: string;
 }) {
@@ -193,7 +237,8 @@ function StatusItemSymbol({
     const anchorRef = useRef<HTMLButtonElement>(null);
     const [pending, setPending] = useState(false);
 
-    const color = active ? item.color || ITEM_ACTIVE_COLOR : item.colorInactive || STATUS_BADGE_OK_COLOR;
+    const inactiveColor = valueText !== undefined ? ITEM_VALUE_COLOR : STATUS_BADGE_OK_COLOR;
+    const color = active ? item.color || ITEM_ACTIVE_COLOR : item.colorInactive || inactiveColor;
     const icon = active ? item.icon : item.iconInactive || item.icon;
     const title = (active ? item.label : item.labelInactive) || undefined;
     const glyph = icon ? (
@@ -201,11 +246,14 @@ function StatusItemSymbol({
     ) : (
         <span className="rounded-full" style={{ width: 6, height: 6, background: color }} />
     );
-    const dot = (
-        <StatusDot color={color} title={title}>
-            {glyph}
-        </StatusDot>
-    );
+    const dot =
+        valueText !== undefined ? (
+            <StatusValuePill color={color} title={title} icon={icon} text={valueText} />
+        ) : (
+            <StatusDot color={color} title={title}>
+                {glyph}
+            </StatusDot>
+        );
     if (item.action !== 'toggle') return dot;
 
     const write = () => {
@@ -245,7 +293,7 @@ function StatusItemSymbol({
                     else write();
                 }}
             >
-                {/* A finger-sized target around the 18 px symbol. */}
+                {/* A finger-sized target around the 18 px symbol (pill). */}
                 <span aria-hidden className="absolute" style={{ inset: -7 }} />
                 {dot}
             </button>
@@ -306,8 +354,12 @@ export function useStatusSymbols(config: WidgetConfig): { symbols: StatusSymbol[
     const { value: windowVal } = useDatapoint(windowDpId);
 
     const items = statusItemsOf(opts.statusItems as StatusItem[] | undefined);
-    const itemRefs = items.length ? [...new Set(items.map((it) => it.dp))] : NO_REFS;
-    const itemValues = useTemplateValues(itemRefs);
+    const itemRefs = items.length
+        ? [...new Set(items.flatMap((it) => (isValueItem(it) ? statusItemValueRefs(it) : [it.dp])))]
+        : NO_REFS;
+    const itemStates = useTemplateStates(itemRefs);
+    const { defaultDecimals, numberFormat } = useGlobalSettingsStore();
+    const t = useT();
 
     // ── battery ────────────────────────────────────────────────────────────────
     const battMode = (opts.batteryMode as 'boolean' | 'percent') ?? 'boolean';
@@ -404,11 +456,19 @@ export function useStatusSymbols(config: WidgetConfig): { symbols: StatusSymbol[
     // ── own symbols ────────────────────────────────────────────────────────────
     const confirm = opts.confirmAction === true;
     const confirmText = (opts.confirmText as string) ?? '';
+    const num = (v: number, d: number) => formatNum(v, d, numberFormat);
+    const valueFmt = { formatNum: num, defaultDecimals, ops: { formatNum: num, decimals: defaultDecimals, t } };
     for (const it of items) {
-        const current = itemValues[it.dp];
-        const active = matchesValues(current, it.activeValues?.trim() ? it.activeValues : ITEM_ACTIVE_DEFAULT);
-        // "Nur bei Alarm" reads an always-shown own symbol as a warning while active.
-        const show = it.show ?? (alertOnly ? 'active' : 'always');
+        const current = itemStates[it.dp]?.val ?? null;
+        const asValue = isValueItem(it);
+        // A value entry is highlighted only by its own rule, which may compare numbers.
+        const active = asValue
+            ? matchesValueRule(current, it.activeValues)
+            : matchesValues(current, it.activeValues?.trim() ? it.activeValues : ITEM_ACTIVE_DEFAULT);
+        // "Nur bei Alarm" reads an always-shown own symbol as a warning while active —
+        // a value without a highlight rule is no warning, it just stays.
+        const canAlert = !asValue || !!it.activeValues?.trim();
+        const show = it.show ?? (alertOnly && canAlert ? 'active' : 'always');
         if ((show === 'active' && !active) || (show === 'inactive' && active)) continue;
         nodes.set(
             it.id,
@@ -417,6 +477,7 @@ export function useStatusSymbols(config: WidgetConfig): { symbols: StatusSymbol[
                 item={it}
                 active={active}
                 current={current}
+                valueText={asValue ? statusItemValueText(it, itemStates, valueFmt) : undefined}
                 confirm={confirm}
                 confirmText={confirmText}
             />,

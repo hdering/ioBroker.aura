@@ -210,7 +210,7 @@
         "type": "object",
         "ref": "StatusItem"
       },
-      "description": "Eigene Status-Symbole in derselben Zeile wie batteryDp/windowDp (unten rechts): je ein Datenpunkt, Icon und Farbe für aktiv/inaktiv, optional action \"toggle\" = Klick aufs Symbol schreibt den Gegenwert (ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe."
+      "description": "Eigene Status-Symbole in derselben Zeile wie batteryDp/windowDp (unten rechts): je ein Datenpunkt, Icon und Farbe für aktiv/inaktiv, optional action \"toggle\" = Klick aufs Symbol schreibt den Gegenwert (ohne die Kachel mitzuschalten). Beispiel: Bewegungsmelder-Sperre an einer Lampe. display \"value\" zeigt statt des Symbols den Wert als kleine Pille (decimals, unit oder text mit {dp}-Bindung, z. B. \"{dp;round(0)} W\"); activeValues ist dann eine Hervorhebungsregel, auch mit Vergleichen (\">30\", \"<=5\", \"!=0\"), leer = nie hervorgehoben. So steht ein Zahl-/Textwert in der Ecke von statusPosition, auch unten (die headerItems haben nur Plätze oben)."
     },
     "batteryMode": {
       "type": "string",
@@ -517,13 +517,33 @@
           "description": "datapoint whose value decides active/inactive (may carry a JSON path)",
           "datapoint": true
         },
+        "display": {
+          "type": "string",
+          "enum": [
+            "symbol",
+            "value"
+          ],
+          "description": "'value': show the datapoint's value as text instead of a glyph (#875); empty = symbol"
+        },
         "activeValues": {
           "type": "string",
-          "description": "comma-separated values meaning \"active\"; empty = 'true,1'"
+          "description": "comma-separated values meaning \"active\"; empty = 'true,1'. Display 'value': highlight rule, also '>30', '<=5', '!=0'; empty = never highlighted"
+        },
+        "decimals": {
+          "type": "number",
+          "description": "display 'value': fixed decimals; empty = the global default as a maximum"
+        },
+        "unit": {
+          "type": "string",
+          "description": "display 'value': appended after a space (only without own text)"
+        },
+        "text": {
+          "type": "string",
+          "description": "display 'value': own text with bindings, '{dp}' = this entry's value — '{dp;round(0)} W', '{0_userdata.0.x} / {dp}'"
         },
         "icon": {
           "type": "string",
-          "description": "Iconify id while active, e.g. 'mdi:motion-sensor-off'; empty = a plain dot"
+          "description": "Iconify id while active, e.g. 'mdi:motion-sensor-off'; empty = a plain dot (display 'value': no icon before the text)"
         },
         "iconInactive": {
           "type": "string",
@@ -536,7 +556,7 @@
         },
         "colorInactive": {
           "type": "string",
-          "description": "colour while inactive; empty = the green OK colour of the status row"
+          "description": "colour while inactive; empty = the green OK colour of the status row (display 'value': var(--text-secondary))"
         },
         "label": {
           "type": "string",

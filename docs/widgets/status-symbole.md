@@ -31,6 +31,19 @@ Eigene Symbole in der Statuszeile eines Geräte-Widgets, neben Batterie, Erreich
 | Custom-Layout | Zelle **Aktion / Icon** → „Status-Badges (alle)“ oder „Eigenes Symbol: …“ einzeln |
 | Vorlage | „Vorlage: Bewegungsmelder gesperrt“ legt Icons, Tooltips und Umschalten an |
 
+## Wert statt Symbol
+
+**Anzeige → Wert** (oder Knopf „Eigener Wert“): Der Datenpunkt steht als kleine Pille in der Statuszeile, z. B. `21,5 °C`, in jeder der vier Ecken.
+
+| Feld | Bedeutung | Leer = |
+|---|---|---|
+| Nachkomma | feste Nachkommastellen | globale Einstellung als Höchstwert |
+| Einheit | hinter dem Wert | – |
+| Text | eigener Text mit Bindungen, `{dp}` = Wert dieses Eintrags: `{dp;round(0)} W`, `{0_userdata.0.x} / {dp}` | Wert + Einheit |
+| Hervorheben bei | Werte oder Vergleiche: `>30`, `<=5`, `!=0`, `Eco` | nie hervorgehoben |
+| Symbol / Farbe / Tooltip | je Zustand „Hervorgehoben“ / „Normal“; Symbol steht vor dem Wert | Akzentfarbe / Textfarbe |
+| Anzeigen | Immer · Nur wenn hervorgehoben · Nur wenn normal | Immer („Nur bei Alarm“ blendet nur Werte mit Regel aus) |
+
 Widgets: Schalter, Dimmer, Füllstandsanzeige, RGB-Licht, Thermostat, Raumklima, Rollladen, Fensterkontakt, Binärsensor, Zustandsbild, Wert, Schieberegler, Drehknopf, Auswahl, Datumswähler, Mediaplayer, Klimasteuerung, Alarmanlage, Button, Kamera, Gauge, Energiefluss (evcc), Kalender, Müllabfuhr, Müllabfuhr-Zeitplan, Karte, HTML, Universal-Widget.
 
 Bei den letzten zwölf sitzt die Statuszeile immer auf der Karte, auch im Custom-Layout.

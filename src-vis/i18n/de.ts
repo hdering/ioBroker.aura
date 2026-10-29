@@ -1972,6 +1972,24 @@ export const de = {
     'statusItems.offValue': 'Wert → inaktiv',
     'statusItems.valueHint':
         'Leer = true/false (bei Zahlen-Datenpunkten 1/0). Fragt nach, wenn das Widget „Bestätigung“ eingeschaltet hat.',
+    'statusItems.display': 'Anzeige',
+    'statusItems.displaySymbol': 'Symbol',
+    'statusItems.displayValue': 'Wert',
+    'statusItems.addValue': 'Eigener Wert',
+    'statusItems.decimals': 'Nachkomma',
+    'statusItems.decimalsAuto': 'auto',
+    'statusItems.unit': 'Einheit',
+    'statusItems.unitByText': 'Steht im eigenen Text',
+    'statusItems.text': 'Text',
+    'statusItems.textHint':
+        'Leer = Wert + Einheit. {dp} ist der Wert dieses Eintrags, auch {dp;round(0)} oder andere Datenpunkte wie {0_userdata.0.x}.',
+    'statusItems.highlightValues': 'Hervorheben bei',
+    'statusItems.highlightValuesHint':
+        'Kommagetrennt: Werte oder Vergleiche wie >30, <=5, !=0 (Dezimalpunkt). Leer = nie hervorgehoben.',
+    'statusItems.highlighted': 'Hervorgehoben',
+    'statusItems.normal': 'Normal',
+    'statusItems.showHighlighted': 'Nur wenn hervorgehoben',
+    'statusItems.showNormal': 'Nur wenn normal',
     'statusItems.motionLockLabel': 'Bewegungsmelder gesperrt',
     'statusItems.motionLockLabelInactive': 'Bewegungsmelder aktiv',
 

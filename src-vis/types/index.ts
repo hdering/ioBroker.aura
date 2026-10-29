@@ -1118,11 +1118,15 @@ export type StatusPosition = 'bottom-right' | 'bottom-left' | 'top-right' | 'top
 export interface StatusItem {
     id: string; // unique within the widget; also the key in statusOrder
     dp: string; // datapoint whose value decides active/inactive (may carry a JSON path)
-    activeValues?: string; // comma-separated values meaning "active"; empty = 'true,1'
-    icon?: string; // Iconify id while active, e.g. 'mdi:motion-sensor-off'; empty = a plain dot
+    display?: 'symbol' | 'value'; // 'value': show the datapoint's value as text instead of a glyph (#875); empty = symbol
+    activeValues?: string; // comma-separated values meaning "active"; empty = 'true,1'. Display 'value': highlight rule, also '>30', '<=5', '!=0'; empty = never highlighted
+    decimals?: number; // display 'value': fixed decimals; empty = the global default as a maximum
+    unit?: string; // display 'value': appended after a space (only without own text)
+    text?: string; // display 'value': own text with bindings, '{dp}' = this entry's value — '{dp;round(0)} W', '{0_userdata.0.x} / {dp}'
+    icon?: string; // Iconify id while active, e.g. 'mdi:motion-sensor-off'; empty = a plain dot (display 'value': no icon before the text)
     iconInactive?: string; // Iconify id while inactive; empty = icon
     color?: string; // colour while active (CSS, var(--token)); empty = var(--accent)
-    colorInactive?: string; // colour while inactive; empty = the green OK colour of the status row
+    colorInactive?: string; // colour while inactive; empty = the green OK colour of the status row (display 'value': var(--text-secondary))
     label?: string; // tooltip while active
     labelInactive?: string; // tooltip while inactive
     show?: 'always' | 'active' | 'inactive'; // when the symbol shows; empty = always (statusBadgesAlertOnly reads it as 'active')
