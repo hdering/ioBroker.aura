@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-27",
+    "measured": "2026-10-30",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1834,6 +1834,26 @@
         }
       },
       "modifiers": [
+        {
+          "key": "subtitle",
+          "label": "Untertitel (eine Zeile)",
+          "when": {
+            "all": [
+              {
+                "path": "subtitle",
+                "nonEmpty": true
+              },
+              {
+                "path": "showSubtitle",
+                "not": false
+              }
+            ]
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        },
         {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
