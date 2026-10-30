@@ -1675,9 +1675,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Frontend range selector — shown when at least one series has history and not locked.
     const rangeSelector =
         hasHistory && !lockRange ? (
-            // nowrap + horizontal scroll: keeps the chips on one line next to the
-            // day-nav controls; on very narrow widgets the chips scroll (swipe)
-            // instead of wrapping the day-nav into a second row.
+            // The chips stay on one line; where they do not fit beside the paging bar, the bar
+            // wraps into a row of its own, and only then do too many chips scroll (swipe).
             <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
                 {chipList.map((c) => {
                     const active = nav.chipKey === c.key;
@@ -1734,9 +1733,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 </div>
             )}
             {(rangeSelector || dayNavControls) && (
-                <div className="shrink-0 mb-1 flex items-center justify-between gap-2 min-w-0">
+                <div className="shrink-0 mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0">
                     {rangeSelector ?? <span />}
-                    {dayNavControls}
+                    {dayNavControls && <div className="ml-auto">{dayNavControls}</div>}
                 </div>
             )}
             {periodRow.length > 0 && (

@@ -348,7 +348,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
             )}
 
             {((!lockRange && chipList.length > 0) || nav.paging) && (
-                <div className="shrink-0 mb-1 flex items-center justify-between gap-2 min-w-0">
+                <div className="shrink-0 mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0">
                     {!lockRange && chipList.length > 0 ? (
                         <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
                             {chipList.map((c) => {
@@ -371,7 +371,11 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     ) : (
                         <span />
                     )}
-                    {nav.paging && <ChartNavBar nav={nav} chips={chipList} />}
+                    {nav.paging && (
+                        <div className="ml-auto">
+                            <ChartNavBar nav={nav} chips={chipList} />
+                        </div>
+                    )}
                 </div>
             )}
 

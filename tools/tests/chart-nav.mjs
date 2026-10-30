@@ -146,23 +146,45 @@ await mount([chart('nav-a', 0)]);
     );
 }
 
-// ── The arrows stay put: the date button does not change its width while paging ────────────
+// ── The arrows stay put while paging ───────────────────────────────────────────────────────
 // The bar sits on the right; a date button that widens on the first ◀ (rolling → a window) or
-// shrinks with a shorter weekday moved ◀ ▶ away from under the pointer.
-for (const range of ['24 Std', '7 Tage', '6 Std']) {
-    await mount([chart('nav-steady', 0)]);
-    await click(0, chip(range));
-    const xs = async () =>
-        item(0)
-            .locator('[data-testid="echart-nav-prev"], [data-testid="echart-nav-next"]')
-            .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().x)));
-    const seen = [await xs()];
-    for (const sel of ['prev', 'prev', 'prev', 'next', 'prev', 'prev', 'prev', 'prev']) {
-        await click(0, `[data-testid="echart-nav-${sel}"]`);
-        seen.push(await xs());
+// shrinks with a shorter weekday moved ◀ ▶ away from under the pointer. On a narrow widget the
+// bar takes a row of its own — already before the first ◀, not because of the date it brings.
+const steady = async (label, w) => {
+    for (const range of ['24 Std', '7 Tage', '6 Std']) {
+        await mount([{ ...chart('nav-steady', 0), gridPos: { x: 0, y: 0, w, h: 8 } }]);
+        await click(0, chip(range));
+        const pos = async () =>
+            item(0)
+                .locator('[data-testid="echart-nav-prev"], [data-testid="echart-nav-next"]')
+                .evaluateAll((els) =>
+                    els.map((el) => {
+                        const r = el.getBoundingClientRect();
+                        return `${Math.round(r.x)},${Math.round(r.y)}`;
+                    }),
+                );
+        const seen = [await pos()];
+        for (const sel of ['prev', 'prev', 'prev', 'next', 'prev', 'prev', 'prev', 'prev']) {
+            await click(0, `[data-testid="echart-nav-${sel}"]`);
+            seen.push(await pos());
+        }
+        const moved = seen.some((p) => p.join() !== seen[0].join());
+        check(`${label}, ${range}: ◀ ▶ stay in place while paging`, !moved, JSON.stringify(seen));
     }
-    const moved = seen.some((p) => p[0] !== seen[0][0] || p[1] !== seen[0][1]);
-    check(`${range}: ◀ ▶ stay in place while paging`, !moved, JSON.stringify(seen));
+};
+await steady('wide', 12);
+await steady('narrow', 3);
+{
+    // The narrow chart puts the bar below the chips instead of squeezing them away.
+    const rows = await item(0).evaluate((el) => {
+        const nav = el.querySelector('[data-testid="echart-nav"]')?.getBoundingClientRect();
+        const chipBtn = [...el.querySelectorAll('button')].find((b) => b.textContent === '24 Std');
+        const c = chipBtn?.getBoundingClientRect();
+        return nav && c
+            ? { chipsBottom: Math.round(c.bottom), navTop: Math.round(nav.top), chipW: Math.round(c.width) }
+            : null;
+    });
+    check('narrow: the bar wraps below the chips', !!rows && rows.navTop >= rows.chipsBottom, JSON.stringify(rows));
 }
 
 // ── Anchor "start": a picked day starts the window ─────────────────────────────────────────
