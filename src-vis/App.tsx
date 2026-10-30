@@ -49,8 +49,8 @@ import { useIdleStateDp, restartIdleState } from './hooks/useIdleStateDp';
 import { useT } from './i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { tabletBandActive } from './utils/flowOrder';
-import { deriveHeaderItems } from './utils/menuItems';
-import type { Section, Tab } from './store/dashboardStore';
+import { deriveHeaderItems, resolveMenuWidget } from './utils/menuItems';
+import type { MenuItemContent, Section, Tab } from './store/dashboardStore';
 
 import { discardPendingRam, isScreenshotMode, setFrontendReadOnly } from './store/persistManager';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
@@ -457,6 +457,31 @@ export default function App() {
         [tabs],
     );
 
+    // Datapoints of the navigation chromes (header, tab bar, section menu). They live
+    // outside tab.widgets, so without this they would only be fetched once their
+    // element mounts — queued behind the whole prefetch burst.
+    const navDatapoints = useMemo((): string[] => {
+        const tabBar = resolveTabBarSettings(
+            resolveTabBarSettings(frontend.tabBar, layout?.settings?.tabBar),
+            section?.settings?.tabBar,
+        );
+        const items: MenuItemContent[] = [
+            ...deriveHeaderItems(effectiveSettings),
+            ...(tabBar.items ?? []),
+            ...(effectiveSettings.layoutDrawerItems ?? []),
+        ];
+        const ids = new Set<string>();
+        for (const it of items) {
+            if (it.type === 'datapoint' && it.datapointId) ids.add(baseDpId(it.datapointId));
+            if (it.type === 'widget') {
+                const w = resolveMenuWidget(it, allLayouts)?.widget;
+                if (w?.datapoint) ids.add(baseDpId(w.datapoint));
+                if (w?.options) collectOptionDps(w.options, ids);
+            }
+        }
+        return [...ids];
+    }, [effectiveSettings, frontend.tabBar, layout?.settings?.tabBar, section?.settings?.tabBar, allLayouts]);
+
     // ── Local active tab state (frontend only — doesn't affect admin editor)
     // URL slug takes priority; fall back to defaultTabId or first tab
     const [activeTabId, setActiveTabId] = useState<string>(() => {
@@ -477,13 +502,14 @@ export default function App() {
     useEffect(() => {
         if (!connected || prefetchDoneRef.current || !activeTabId) return;
         prefetchDoneRef.current = true;
-        const activeIds = datapointsForTab(activeTabId);
+        // Navigation chromes are visible on every tab — warm them with the active tab.
+        const activeIds = [...navDatapoints, ...datapointsForTab(activeTabId)];
         prefetchStates(activeIds).then(() => {
             // After active tab is warm, silently prefetch remaining tabs
             const otherIds = tabs.filter((t) => t.id !== activeTabId).flatMap((t) => datapointsForTab(t.id));
             if (otherIds.length > 0) void prefetchStates(otherIds);
         });
-    }, [connected, activeTabId, datapointsForTab, tabs]);
+    }, [connected, activeTabId, datapointsForTab, navDatapoints, tabs]);
 
     // Reset active tab when the layout's tabs change (e.g. after ioBroker config
     // rehydration). Depend on layout.tabs (not just layout.id) because the loaded
