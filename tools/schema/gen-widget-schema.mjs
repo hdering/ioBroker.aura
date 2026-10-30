@@ -102,10 +102,16 @@ async function loadRegistry() {
 function customFromLayout(reg, type) {
     const out = {};
     const patches = {};
+    const withStatus = {};
     for (const layout of reg.getAvailableLayouts(type)) {
         const grid = reg.buildCustomGridFromLayout({ type, options: {} }, layout);
         if (!grid) continue;
         out[layout] = grid;
+        // The same grid for a widget with status DPs: the editor then adds a
+        // 'status-badges' cell. Built with the default options it has none, and a
+        // model that took that grid lost every status symbol without a word.
+        const status = reg.buildCustomGridFromLayout({ type, options: { batteryDp: 'x' } }, layout);
+        if (status && JSON.stringify(status) !== JSON.stringify(grid)) withStatus[layout] = status;
         // Options the preset sets besides the grid (e.g. the knob's dialStyle).
         const patch = reg.customGridOptionPatch({ type, options: {} }, layout);
         if (patch) patches[layout] = patch;
@@ -113,6 +119,7 @@ function customFromLayout(reg, type) {
     if (!Object.keys(out).length) return {};
     return {
         customFromLayout: out,
+        ...(Object.keys(withStatus).length ? { customFromLayoutWithStatus: withStatus } : {}),
         ...(Object.keys(patches).length ? { customFromLayoutOptions: patches } : {}),
     };
 }

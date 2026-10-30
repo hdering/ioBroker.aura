@@ -162,6 +162,37 @@ check('a card that sizes itself to its content is marked as such', () => {
     if (mobile.kurz.autoBox) throw new Error('a list keeps its configured box in the stack');
 });
 
+await page.setViewportSize({ width: 1600, height: 1200 });
+// Reported from use: a framed header with a subtitle at h=2 (font scale 1.3, padding
+// 8) came back "nichts abgeschnitten" — its block is centred and spills into the
+// padding on both sides without scrolling anything.
+const header = (id, h, y) => ({
+    id,
+    type: 'header',
+    title: 'Heizung',
+    datapoint: '',
+    layout: 'framed',
+    gridPos: { x: 0, y, w: 20, h },
+    options: { subtitle: 'Erdgeschoss, alle Räume' },
+});
+await page.evaluate(({ widgets, grid }) => window.__auraShot.showWidgets(widgets, { editMode: false, ...grid }), {
+    widgets: [header('eng', 2, 0), header('weit', 4, 10)],
+    grid: { ...GRID, fontScale: 1.3, widgetPadding: 8 },
+});
+await page.waitForTimeout(400);
+const heads = Object.fromEntries((await page.evaluate(() => window.__auraShot.rendered())).map((m) => [m.id, m]));
+check('content that spills into the padding is reported, though nothing scrolls', () => {
+    const m = heads.eng;
+    if (!m) throw new Error('not measured');
+    if (m.scrolls) throw new Error(`a header does not scroll: ${JSON.stringify(m)}`);
+    if (!(m.edgePx > 3 || m.cutPx > 3)) throw new Error(`overhang not detected: ${JSON.stringify(m)}`);
+});
+check('the same header with room has no overhang', () => {
+    const m = heads.weit;
+    if (!m) throw new Error('not measured');
+    if (m.edgePx || m.cutPx) throw new Error(`false overhang: ${JSON.stringify(m)}`);
+});
+
 await browser.close();
 console.log(failures ? `render-report: ${failures} check(s) failed` : 'render-report: all checks passed');
 process.exit(failures ? 1 : 0);

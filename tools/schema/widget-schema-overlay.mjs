@@ -2194,7 +2194,13 @@ export const EXTRA_OPTIONS = {
             description:
                 'Zweite Zeile unter dem Titel, in jedem Stil. Darf Bindings enthalten — {0_userdata.0.Temp}, ' +
                 '{id;round(0)}, {{ a + b }} sowie die Kontextvariablen {view} / {wname} (siehe docs/widgets/bindings.md). ' +
-                'Das Widget hat keinen eigenen Datenpunkt, {dp} gibt es hier also nicht.',
+                'Das Widget hat keinen eigenen Datenpunkt, {dp} gibt es hier also nicht. Zählt zur Höhe: eine ' +
+                'Textzeile mehr, bei langem Text mehrere (aura_measure schätzt den Umbruch aus der Länge).',
+        },
+        icon: {
+            description:
+                'Symbol vor dem Titel. Leer = das Standardsymbol der Überschrift („H2“, lucide Heading2) — ' +
+                'ohne Symbol showIcon: false setzen.',
         },
         showAccent: {
             description:

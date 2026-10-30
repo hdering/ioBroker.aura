@@ -61,10 +61,11 @@ export function iconCell(extra: Partial<CustomCell> = {}): CustomCell {
     return { type: 'component', componentKey: 'icon', align: 'left', valign: 'middle', allowOverflow: true, ...extra };
 }
 
-/** Battery / reach DPs configured and the badges not switched off? */
+/** Battery / reach / window / lock DPs or own status symbols configured, and the badges not switched off? */
 export function hasStatusBadges(o: Opts): boolean {
     if (o.showStatusBadges === false) return false;
-    return !!(o.batteryDp || o.unreachDp || o.lockDp || o.windowDp);
+    const items = Array.isArray(o.statusItems) && o.statusItems.length > 0;
+    return !!(o.batteryDp || o.unreachDp || o.lockDp || o.windowDp || items);
 }
 
 /**

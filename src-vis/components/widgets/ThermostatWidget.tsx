@@ -779,7 +779,13 @@ export function ThermostatWidget({ config }: WidgetProps) {
     // ── DIAL (Rundskala) ──────────────────────────────────────────────────────
     if (layout === 'dial') {
         return (
-            <div className="aura-widget-row flex flex-col h-full min-h-0 gap-1" style={{ position: 'relative' }}>
+            <div
+                className="aura-widget-row flex flex-col h-full min-h-0 gap-1"
+                style={{ position: 'relative' }}
+                // No title row of its own (the title is drawn in the scale): header items
+                // get a row above the dial from the frame instead of lying on it.
+                data-aura-header-above=""
+            >
                 <div className="flex-1 min-h-0 flex items-center justify-center">{renderDial()}</div>
                 {showPresets && presets.length > 0 && (
                     <div className="flex justify-center">

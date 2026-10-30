@@ -1062,6 +1062,23 @@ const MIN_MODIFIERS = {
             options: { selectSize: 'lg' },
         },
     ],
+    // The subtitle is a line of its own under the title, and the measured header has
+    // none. Reported from use: a framed header with a subtitle was answered "h=2 ist
+    // das Minimum" and rendered with title and subtitle glued to the card edges.
+    // One line; aura_measure estimates a wrap from the text length on top.
+    header: [
+        {
+            key: 'subtitle',
+            label: 'Untertitel (eine Zeile)',
+            when: {
+                all: [
+                    { path: 'subtitle', nonEmpty: true },
+                    { path: 'showSubtitle', not: false },
+                ],
+            },
+            options: { subtitle: 'Untertitel' },
+        },
+    ],
     slider: [
         {
             key: 'showScale',

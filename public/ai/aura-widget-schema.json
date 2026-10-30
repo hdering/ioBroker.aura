@@ -8394,6 +8394,195 @@
           ]
         }
       },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 4,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 12,
+              "bold": true,
+              "align": "right",
+              "valign": "middle",
+              "bg": "color-mix(in srgb, var(--aura-state-color, var(--accent)) 13%, transparent)",
+              "bgMode": "content"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 20,
+              "bold": true,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "customGridComponents": [
         "battery-icon",
         "icon",
@@ -9934,6 +10123,73 @@
           ]
         }
       },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 3,
+          "rows": 3,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "main-values",
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2,
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "secondary-values",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "20px",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "customGridComponents": [
         "actual",
         "battery-icon",
@@ -11412,6 +11668,263 @@
           ]
         }
       },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 4,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "field",
+              "fieldKey": "level",
+              "valign": "middle",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "align": "left",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "control",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "level-slider",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "colSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ],
+          "rowSizes": [
+            "20px",
+            "1fr",
+            "auto",
+            "2px",
+            "auto"
+          ]
+        },
+        "compact": {
+          "cols": 4,
+          "rows": 4,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "field",
+              "fieldKey": "level",
+              "valign": "middle",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "align": "right"
+            },
+            {
+              "type": "component",
+              "componentKey": "control",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "level-slider-sm",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "colSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 7,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "field",
+              "fieldKey": "level",
+              "valign": "middle",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-threshold-color, var(--aura-state-color, var(--accent)))",
+              "align": "center"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "level-slider",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "control",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "4px",
+            "auto",
+            "4px",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "customGridComponents": [
         "battery-icon",
         "control",
@@ -12570,6 +13083,313 @@
               "align": "center",
               "valign": "middle"
             }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto"
+          ]
+        }
+      },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 4,
+          "rows": 3,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--text-secondary)"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "label",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "select",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "20px",
+            "1fr",
+            "30px"
+          ]
+        },
+        "compact": {
+          "cols": 5,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--text-secondary)"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "label",
+              "align": "right",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "select",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 6,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "label-lg",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "select",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "2px",
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 6,
+          "rows": 3,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "accent-bar",
+              "align": "left",
+              "valign": "middle",
+              "rowSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "label-lg",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "select",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "8px",
+            "4px",
+            "24px",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "20px",
+            "1fr",
+            "30px"
+          ]
+        },
+        "circle": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "circle-menu",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto"
           ],
           "rowSizes": [
             "1fr",
@@ -14140,7 +14960,7 @@
         "subtitle": {
           "type": "string",
           "default": "",
-          "description": "Zweite Zeile unter dem Titel, in jedem Stil. Darf Bindings enthalten — {0_userdata.0.Temp}, {id;round(0)}, {{ a + b }} sowie die Kontextvariablen {view} / {wname} (siehe docs/widgets/bindings.md). Das Widget hat keinen eigenen Datenpunkt, {dp} gibt es hier also nicht."
+          "description": "Zweite Zeile unter dem Titel, in jedem Stil. Darf Bindings enthalten — {0_userdata.0.Temp}, {id;round(0)}, {{ a + b }} sowie die Kontextvariablen {view} / {wname} (siehe docs/widgets/bindings.md). Das Widget hat keinen eigenen Datenpunkt, {dp} gibt es hier also nicht. Zählt zur Höhe: eine Textzeile mehr, bei langem Text mehrere (aura_measure schätzt den Umbruch aus der Länge)."
         },
         "subtitleColor": {
           "type": "string",
@@ -15539,6 +16359,155 @@
           ]
         }
       },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "dial",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "22px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "18px",
+            "1fr"
+          ]
+        },
+        "knob-scale": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "dial",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "22px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "18px",
+            "1fr"
+          ]
+        },
+        "knob-endless": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "dial",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "22px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "18px",
+            "1fr"
+          ]
+        }
+      },
       "customFromLayoutOptions": {
         "default": {
           "dialStyle": "bogen"
@@ -15972,6 +16941,344 @@
           "colSizes": [
             "24px",
             "1fr"
+          ],
+          "rowSizes": [
+            "20px",
+            "2px",
+            "24px",
+            "0px",
+            "1fr"
+          ]
+        }
+      },
+      "customFromLayoutWithStatus": {
+        "light-all": {
+          "cols": 3,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "tabs-all",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2,
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "20px",
+            "2px",
+            "24px",
+            "0px",
+            "1fr"
+          ]
+        },
+        "light-brightness": {
+          "cols": 3,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "tabs-brightness",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2,
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "20px",
+            "2px",
+            "24px",
+            "0px",
+            "1fr"
+          ]
+        },
+        "light-color": {
+          "cols": 3,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "tabs-color",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2,
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "20px",
+            "2px",
+            "24px",
+            "0px",
+            "1fr"
+          ]
+        },
+        "light-temperature": {
+          "cols": 3,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "tabs-temperature",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2,
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
           ],
           "rowSizes": [
             "20px",
@@ -17027,6 +18334,70 @@
             },
             {
               "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "player",
+              "align": "left",
+              "valign": "top",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto"
+          ]
+        },
+        "compact": {
+          "cols": 1,
+          "rows": 3,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "player-compact",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
             }
           ],
           "rowSizes": [
@@ -18223,6 +19594,271 @@
           ]
         }
       },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 3,
+          "rows": 6,
+          "cells": [
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "field",
+              "fieldKey": "movingArrow",
+              "valign": "middle",
+              "fontSize": 10,
+              "color": "var(--accent-yellow)",
+              "align": "right"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "viz",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-col",
+              "align": "center",
+              "valign": "top",
+              "rowSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "field",
+              "fieldKey": "status",
+              "valign": "bottom",
+              "fontSize": 11,
+              "color": "var(--aura-moving-color, var(--text-secondary))",
+              "align": "left"
+            },
+            {
+              "type": "field",
+              "fieldKey": "position",
+              "valign": "bottom",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "align": "right"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "slider",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto",
+            "auto"
+          ],
+          "rowSizes": [
+            "16px",
+            "2px",
+            "1fr",
+            "0px",
+            "auto",
+            "21px"
+          ]
+        },
+        "compact": {
+          "cols": 6,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "field",
+              "fieldKey": "position",
+              "valign": "middle",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-threshold-color, var(--aura-moving-color, var(--text-primary)))",
+              "align": "right"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-row",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 7,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-up-min",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "field",
+              "fieldKey": "position",
+              "valign": "middle",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "align": "center",
+              "allowOverflow": true
+            },
+            {
+              "type": "field",
+              "fieldKey": "movingArrow",
+              "valign": "middle",
+              "fontSize": 10,
+              "color": "var(--accent-yellow)",
+              "align": "center"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-stop-min",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-down-min",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "20px",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        },
+        "circle": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "circle-menu",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto"
+          ]
+        }
+      },
       "customGridComponents": [
         "battery-icon",
         "btn-col",
@@ -18572,6 +20208,84 @@
           "colSizes": [
             "24px",
             "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "28px",
+            "4px",
+            "1fr"
+          ]
+        }
+      },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 4,
+          "rows": 3,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--text-primary)",
+              "allowOverflow": true,
+              "align": "right",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "slider",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 3,
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
             "auto"
           ],
           "rowSizes": [
@@ -19064,6 +20778,195 @@
             },
             {
               "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "52px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 4,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 12,
+              "bold": true,
+              "align": "right",
+              "valign": "middle",
+              "bg": "color-mix(in srgb, var(--aura-state-color, var(--accent)) 13%, transparent)",
+              "bgMode": "content"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "52px",
+            "1fr",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 20,
+              "bold": true,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
             }
           ],
           "rowSizes": [
@@ -20013,6 +21916,158 @@
           ]
         }
       },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 4,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "toggle-lg",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon-button",
+              "align": "center",
+              "valign": "middle",
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 4,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-primary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "toggle-lg",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ]
+        }
+      },
       "customGridComponents": [
         "battery-icon",
         "icon",
@@ -20506,6 +22561,354 @@
               "align": "center",
               "valign": "middle"
             }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto"
+          ]
+        }
+      },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 4,
+          "rows": 4,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-icon",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "suffix": "°C",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-state-color, var(--accent))",
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-plus",
+              "align": "center",
+              "valign": "bottom",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "actual-line",
+              "align": "left",
+              "valign": "top",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-minus",
+              "align": "center",
+              "valign": "top",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "presets",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 3
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr",
+            "1fr",
+            "auto"
+          ]
+        },
+        "compact": {
+          "cols": 7,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "suffix": "°C",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-state-color, var(--accent))",
+              "align": "right",
+              "valign": "middle"
+            },
+            {
+              "type": "field",
+              "fieldKey": "actualSlash",
+              "fontSize": 12,
+              "color": "var(--aura-actual-color, var(--text-secondary))",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-minus",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 24
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-plus",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 24
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 2,
+          "rows": 7,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "suffix": "°C",
+              "fontSize": 20,
+              "bold": true,
+              "color": "var(--aura-state-color, var(--accent))",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "field",
+              "fieldKey": "actualLine",
+              "fontSize": 12,
+              "color": "var(--aura-actual-color, var(--text-secondary))",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-minus-round",
+              "align": "right",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "btn-plus-round",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true,
+              "fontSize": 32
+            },
+            {
+              "type": "component",
+              "componentKey": "presets",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "1fr"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        },
+        "dial": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "dial",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "presets",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto"
+          ]
+        },
+        "circle": {
+          "cols": 2,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "circle-menu",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto"
           ],
           "rowSizes": [
             "1fr",
@@ -21590,6 +23993,249 @@
           ]
         }
       },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--text-secondary)"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "left",
+              "valign": "bottom",
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 5,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "accent-bar",
+              "align": "left",
+              "valign": "middle",
+              "rowSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon-card",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "left",
+              "valign": "bottom",
+              "color": "var(--aura-value-color, var(--text-primary))",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "8px",
+            "4px",
+            "24px",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "compact": {
+          "cols": 4,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon-compact",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-primary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "right",
+              "valign": "middle",
+              "color": "var(--aura-value-color, var(--text-primary))"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 4,
+          "rows": 4,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "fontSize": 20,
+              "align": "right",
+              "valign": "bottom",
+              "color": "var(--aura-state-color, var(--accent))",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle",
+              "colSpan": 4
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
       "customGridComponents": [
         "accent-bar",
         "battery-icon",
@@ -22140,6 +24786,196 @@
             },
             {
               "type": "empty"
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ]
+        }
+      },
+      "customFromLayoutWithStatus": {
+        "default": {
+          "cols": 3,
+          "rows": 2,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "left",
+              "valign": "middle"
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 16,
+              "bold": true,
+              "align": "left",
+              "valign": "bottom",
+              "colSpan": 2
+            },
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "24px",
+            "1fr",
+            "auto"
+          ],
+          "rowSizes": [
+            "auto",
+            "1fr"
+          ]
+        },
+        "card": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true,
+              "color": "var(--aura-card-icon, var(--aura-state-color, var(--accent)))"
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--aura-card-title, var(--text-primary))",
+              "align": "center",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-card-label, var(--aura-state-color, var(--accent)))",
+              "fontSize": 12,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "rowSizes": [
+            "1fr",
+            "auto",
+            "auto",
+            "auto",
+            "1fr"
+          ],
+          "bg": "var(--aura-card-bg, var(--app-bg))",
+          "borderColor": "var(--aura-card-border, var(--aura-state-color, var(--accent)))"
+        },
+        "compact": {
+          "cols": 4,
+          "rows": 1,
+          "cells": [
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "left",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "title",
+              "fontSize": 14,
+              "color": "var(--text-primary)",
+              "align": "left",
+              "valign": "middle",
+              "bold": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 12,
+              "bold": true,
+              "align": "right",
+              "valign": "middle",
+              "bg": "color-mix(in srgb, var(--aura-state-color, var(--accent)) 13%, transparent)",
+              "bgMode": "content"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
+            }
+          ],
+          "colSizes": [
+            "30px",
+            "1fr",
+            "auto",
+            "auto"
+          ]
+        },
+        "minimal": {
+          "cols": 1,
+          "rows": 5,
+          "cells": [
+            {
+              "type": "empty"
+            },
+            {
+              "type": "component",
+              "componentKey": "icon",
+              "align": "center",
+              "valign": "middle",
+              "allowOverflow": true
+            },
+            {
+              "type": "value",
+              "color": "var(--aura-state-color, var(--accent))",
+              "fontSize": 20,
+              "bold": true,
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "title",
+              "fontSize": 12,
+              "color": "var(--text-secondary)",
+              "align": "center",
+              "valign": "middle"
+            },
+            {
+              "type": "component",
+              "componentKey": "status-badges",
+              "align": "right",
+              "valign": "bottom",
+              "allowOverflow": true
             }
           ],
           "rowSizes": [

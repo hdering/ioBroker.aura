@@ -59,6 +59,18 @@ export interface RenderedWidget {
     reservePx?: number;
     /** Entries a fill probe put in (maxRows + 1, long names) — absent otherwise. */
     filled?: number;
+    /**
+     * How far visible content reaches past the card's INNER edge (height minus
+     * padding), in px, top or bottom. Nothing scrolls there: a centred block that
+     * is too tall spills into the padding on both sides and reads as "fits" to the
+     * scroll check. Absent where everything sits inside.
+     */
+    edgePx?: number;
+    /**
+     * How far content is cut off: past the card's own edge, or hidden by an
+     * `overflow: hidden` box inside it. Absent where nothing is cut.
+     */
+    cutPx?: number;
 }
 
 export interface RenderReport {
@@ -167,6 +179,102 @@ function clippedTextInside(card: HTMLElement): number {
     return n;
 }
 
+/** Leaf content worth checking: text, a symbol, an image, a control. */
+const CONTENT_TAGS = new Set(['svg', 'img', 'canvas', 'video', 'input', 'select', 'textarea', 'button']);
+
+function hasOwnText(el: Element): boolean {
+    for (const n of Array.from(el.childNodes)) {
+        if (n.nodeType === Node.TEXT_NODE && n.textContent?.trim()) return true;
+    }
+    return false;
+}
+
+/** The box of one content element, an inline text cut down to its line height. */
+function contentBox(el: Element, cs: CSSStyleDeclaration): { top: number; bottom: number } | null {
+    const r = el.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return null;
+    // An inline element measures its glyph area, which a tight line height
+    // (leading-none) is smaller than — that is not content in the padding.
+    const lh = parseFloat(cs.lineHeight);
+    if (cs.display === 'inline' && Number.isFinite(lh) && lh < r.height) {
+        const inset = (r.height - lh) / 2;
+        return { top: r.top + inset, bottom: r.bottom - inset };
+    }
+    return { top: r.top, bottom: r.bottom };
+}
+
+/**
+ * Content that reaches into the card's padding or is cut off, vertically.
+ *
+ * The scroll check only sees a scroll area that overflows. Reported from use: a
+ * framed header at h=2 with a subtitle came back "nichts abgeschnitten" — its
+ * block is centred in the card, too tall for it, and spills into the padding top
+ * and bottom without scrolling anything; elsewhere content vanishes under an
+ * `overflow: hidden` box. Compared here: the content's top and bottom with the
+ * card's inner edge (border box minus border and padding), and with the box that
+ * clips it.
+ *
+ * Left out on purpose: absolutely positioned layers (status badges in the
+ * corner, edit overlays — they belong in the corner), the inside of scroll areas
+ * (scrollInside counts those), boxes collapsed to nothing (a folded section),
+ * and nested widgets (measured on their own). Tolerance 3 px (see `round`).
+ */
+function edgeInside(card: HTMLElement): { edge: number; cut: number } {
+    const frame = card.classList.contains('aura-widget') ? card : card.querySelector<HTMLElement>('.aura-widget');
+    if (!frame) return { edge: 0, cut: 0 };
+    const fr = frame.getBoundingClientRect();
+    const fcs = getComputedStyle(frame);
+    const innerTop = fr.top + (parseFloat(fcs.borderTopWidth) || 0) + (parseFloat(fcs.paddingTop) || 0);
+    const innerBottom = fr.bottom - (parseFloat(fcs.borderBottomWidth) || 0) - (parseFloat(fcs.paddingBottom) || 0);
+    let edge = 0;
+    let cut = 0;
+    const walk = (el: Element, clipTop: number, clipBottom: number) => {
+        for (const child of Array.from(el.children)) {
+            if (child instanceof HTMLElement && child.dataset.auraWidget !== undefined) continue;
+            const cs = getComputedStyle(child);
+            if (cs.display === 'none' || cs.visibility === 'hidden' || cs.position === 'absolute') continue;
+            if (cs.position === 'fixed' || parseFloat(cs.opacity) === 0) continue;
+            const tag = child.tagName.toLowerCase();
+            const isContent = CONTENT_TAGS.has(tag) || hasOwnText(child);
+            const scrolls = cs.overflowY === 'auto' || cs.overflowY === 'scroll';
+            if (isContent || scrolls) {
+                const box = contentBox(child, cs);
+                if (box) {
+                    // What still shows of it, and how much a clipping box hides.
+                    const hidden = Math.max(clipTop - box.top, box.bottom - clipBottom, 0);
+                    const top = Math.max(box.top, clipTop);
+                    const bottom = Math.min(box.bottom, clipBottom);
+                    if (bottom > top) {
+                        edge = Math.max(edge, innerTop - top, bottom - innerBottom);
+                    }
+                    cut = Math.max(cut, hidden);
+                }
+            }
+            // A symbol, a control or a scroll area is one thing — nothing inside it
+            // is checked separately (scrollInside answers for the scroll area).
+            if (CONTENT_TAGS.has(tag) || scrolls) continue;
+            let top = clipTop;
+            let bottom = clipBottom;
+            if (cs.overflowY === 'hidden' || cs.overflowY === 'clip') {
+                const r = child.getBoundingClientRect();
+                // Folded to nothing (an accordion, a collapsed row): hidden on purpose.
+                if (r.height < 1) continue;
+                top = Math.max(top, r.top);
+                bottom = Math.min(bottom, r.bottom);
+            }
+            walk(child, top, bottom);
+        }
+    };
+    // The card itself does not clip (overflow visible), so content past its own
+    // edge spills onto the neighbours: counted as cut off from the card.
+    walk(frame, fr.top, fr.bottom);
+    // A text line box carries half its leading above and below the glyphs: a title
+    // with leading-tight stands up to ~3 px past a box it visibly fits (the bare
+    // header at h=1). Below that it is not a finding.
+    const round = (v: number) => (v > 3 ? Math.round(v) : 0);
+    return { edge: round(edge), cut: round(cut) };
+}
+
 /**
  * Measure every widget of one rendered tab.
  *
@@ -194,6 +302,7 @@ export function measureRenderedWidgets(root: ParentNode, kind: 'tab' | 'popup' =
         const px = Math.round(el.getBoundingClientRect().height);
         const { hidden, reserve } = px > 0 ? scrollInside(el) : { hidden: 0, reserve: null };
         const clipX = px > 0 ? clippedTextInside(el) : 0;
+        const { edge, cut } = px > 0 ? edgeInside(el) : { edge: 0, cut: 0 };
         // A fill probe marks the widgets it actually filled (utils/probeContext.tsx).
         const filledEl = el.querySelector<HTMLElement>('[data-aura-probe-filled]');
         const filled = filledEl ? Number(filledEl.dataset.auraProbeFilled) || 0 : 0;
@@ -212,6 +321,8 @@ export function measureRenderedWidgets(root: ParentNode, kind: 'tab' | 'popup' =
             // is whatever the content made it.
             autoBox: el.dataset.auraAutoBox !== undefined ? el.dataset.auraAutoBox === '1' : !el.style.height,
             ...(clipX ? { clipX } : {}),
+            ...(edge ? { edgePx: edge } : {}),
+            ...(cut ? { cutPx: cut } : {}),
         });
     }
     return out;
@@ -227,7 +338,8 @@ export function reportSignature(report: RenderReport): string {
         report.gridWidth ?? 0,
         report.fill ? 'fill' : '',
         ...report.widgets.map(
-            (w) => `${w.id}:${w.px}:${w.contentPx}:${w.scrolls ? 1 : 0}:${w.clipX ?? 0}:${w.reservePx ?? ''}`,
+            (w) =>
+                `${w.id}:${w.px}:${w.contentPx}:${w.scrolls ? 1 : 0}:${w.clipX ?? 0}:${w.reservePx ?? ''}:${w.edgePx ?? 0}:${w.cutPx ?? 0}`,
         ),
     ].join('|');
 }

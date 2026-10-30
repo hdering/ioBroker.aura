@@ -8,3 +8,6 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Shutter - the actuator convention (0 % = open) can now be set in the up/down and push-button control modes too (#876)
 - Datapoints shown in the header, tab bar and section menu now load together with the active tab instead of last
+- Thermostat - header items in the dial layout get a row of their own above the scale instead of overlapping it on narrow cards
+- Thermostat and other widgets - switching to the custom layout keeps the status symbols when only own status items are configured
+- AI assistant (MCP) - height checks now count the header subtitle and report content that reaches into the card padding or is cut off without scrolling; the custom layout template carries the status badges cell

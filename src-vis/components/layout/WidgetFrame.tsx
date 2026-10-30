@@ -1485,23 +1485,37 @@ function ChartHistoryConfig({
 
     const isTemplate = !!dp?.includes('{{');
 
+    // The auto-pick below answers asynchronously. By then the widget can have changed
+    // under the open editor (an MCP write turned the climate widget into a thermostat):
+    // writing the render-time `config` back would put historyInstance — and every
+    // other stale option — onto a widget that does not read it. So: only the latest
+    // config, only while mounted, only for the same datapoint.
+    const latestConfig = useRef(config);
+    latestConfig.current = config;
     useEffect(() => {
         if (!dp || isTemplate) {
             setAdapters([]);
             return;
         }
+        let alive = true;
         setChecking(true);
         getObjectDirect(dp)
             .then((obj) => {
+                if (!alive) return;
                 const custom = obj?.common?.custom;
                 const detected = custom ? detectHistoryAdapters(custom as Record<string, { enabled?: boolean }>) : [];
                 setAdapters(detected);
                 setChecking(false);
-                if (detected.length === 1 && !o.historyInstance) {
-                    set({ historyInstance: detected[0].instance });
+                const cur = latestConfig.current;
+                const curOpts = cur.options ?? {};
+                if (detected.length === 1 && !curOpts.historyInstance && cur.datapoint === dp) {
+                    onConfigChange({ ...cur, options: { ...curOpts, historyInstance: detected[0].instance } });
                 }
             })
-            .catch(() => setChecking(false));
+            .catch(() => alive && setChecking(false));
+        return () => {
+            alive = false;
+        };
     }, [dp]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const selectedInstance = o.historyInstance as string | undefined;
@@ -7658,7 +7672,12 @@ function WidgetFrameInner({
                 return r.width > 0 && r.height > 0;
             });
             let next: { top: number; height: number; tile: boolean } | null = null;
-            if (titleEl) {
+            // A body with no free first line at all (the thermostat's round scale,
+            // title inside it) asks for the row above itself: laid over it, a value
+            // on r1-right lands on the scale of a narrow card.
+            if (host.querySelector('[data-aura-header-above]')) {
+                next = { top: 0, height: 0, tile: true };
+            } else if (titleEl) {
                 const r = titleEl.getBoundingClientRect();
                 next = {
                     top: Math.round(r.top - hostBox.top),

@@ -1077,6 +1077,12 @@ veraltet mit jedem CSS-Commit, und nichts sagt es. Der Weg jetzt:
    (`notDrawnReason`: Bedingung mit Reflow, Fill-Tab-Overlay, oder gar nichts
    gezeichnet). `aura_measure` sagt am Ende seiner Antwort, ob es für diesen Tab
    eine echte Messung gibt.
+5. Neben dem Scrollen misst `edgeInside` (renderReport.ts), ob sichtbarer Inhalt über die
+   innere Kante der Karte (Höhe minus Innenabstand) ragt (`edgePx`) oder außerhalb der Karte
+   bzw. unter einem `overflow: hidden`-Kasten liegt (`cutPx`). Ein mittig gesetzter Block, der
+   zu hoch ist, scrollt nicht und stand früher als „nichts abgeschnitten“ da. Absolut
+   positionierte Ebenen (Status-Badges, Editor-Overlays), Scrollflächen-Inneres und
+   verschachtelte Widgets zählen nicht; unter 4 px ist es Zeilenabstand, kein Befund.
 
 ### Der Tab, den niemand offen hat
 

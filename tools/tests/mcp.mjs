@@ -1859,6 +1859,56 @@ check('a chart is judged by the height it is readable at, with the hard one name
     assert.ok(!/BRAUCHBAREN Mindesthöhe/.test(renderMeasure([g], { grid: GRID, metrics: plainMetrics })));
 });
 
+check('a header subtitle counts toward the height, and a long one wraps', () => {
+    // Reported from use: framed + subtitle at h=2 was answered "knapp, h=2 ist das
+    // Minimum", and the browser showed title and subtitle glued to the card edges.
+    const sub = {
+        key: 'subtitle',
+        when: {
+            all: [
+                { path: 'subtitle', nonEmpty: true },
+                { path: 'showSubtitle', not: false },
+            ],
+        },
+        basePx: 20,
+    };
+    const metrics = (mods) => ({
+        $meta: { reference: { fontScale: 1, widgetPaddingPx: 16 }, usablePlotPx: 140 },
+        counted: {},
+        minimum: {
+            header: {
+                minPx: 22,
+                fontScalePx: 20,
+                variants: { framed: { minPx: 32, usablePx: 54, fontScalePx: 20 } },
+                ...(mods ? { modifiers: mods } : {}),
+            },
+        },
+    });
+    const header = (options, w = 12) => ({
+        id: 'h',
+        type: 'header',
+        title: 'Heizung',
+        layout: 'framed',
+        gridPos: { x: 0, y: 0, w, h: 2 },
+        options,
+    });
+    const one = measureWidget(header({ subtitle: 'Erdgeschoss' }), { metrics: metrics([sub]), grid: GRID });
+    assert.equal(one.requiredPx, 74, 'usable 54 + one subtitle line');
+    assert.equal(one.verdict, 'zu klein');
+    assert.equal(one.needRows, 3);
+    assert.match(one.basis, /eine Zeile/);
+    const off = measureWidget(header({ subtitle: 'Erdgeschoss', showSubtitle: false }), {
+        metrics: metrics([sub]),
+        grid: GRID,
+    });
+    assert.equal(off.requiredPx, 54, 'a hidden subtitle costs nothing');
+    const long = measureWidget(header({ subtitle: 'x'.repeat(120) }, 8), { metrics: metrics([sub]), grid: GRID });
+    assert.ok(long.requiredPx > one.requiredPx, 'a wrapping subtitle adds its lines');
+    assert.match(long.basis, /bricht geschätzt in \d Zeilen um/);
+    // Without a measurement on file the widget's own line says so.
+    const old = measureWidget(header({ subtitle: 'Erdgeschoss' }), { metrics: metrics(null), grid: GRID });
+    assert.match(old.basis, /Untertitel NICHT eingerechnet/);
+});
 check('a framed header is measured as the card it is, not as a bare heading', () => {
     // Reported from use: aura_measure answered „braucht 28 px, Minimum h=2“ for
     // every header — including `framed`, which is the one style that sits in a
@@ -3533,6 +3583,33 @@ check('aura_widget_schema customFrom prints the preset grid', () => {
     assert.equal(grid.cells.length, grid.cols * grid.rows);
     assert.ok(grid.cells.some((c) => c.componentKey === 'dial'));
     assert.match(t, /## gauge: keine Vorlage für „dial“/);
+    // Reported from use: the grid had no 'status-badges' cell, and a thermostat with
+    // batteryDp/windowDp/statusItems lost every symbol in layout custom.
+    const s = t.match(/DIESES Raster nehmen[^\n]*\n(\{.*\})/);
+    assert.ok(s, 'the grid with the status cell is printed too');
+    assert.ok(JSON.parse(s[1]).cells.some((c) => c.componentKey === 'status-badges'));
+});
+check('layout custom with status options but no status-badges cell is a warning', () => {
+    const w = (cells, extra = {}) => ({
+        id: 't1',
+        type: 'thermostat',
+        title: 'Heizung',
+        datapoint: 'a.0.set',
+        layout: 'custom',
+        gridPos: { x: 0, y: 0, w: 10, h: 8 },
+        options: {
+            batteryDp: 'a.0.bat',
+            statusItems: [{ id: 's1', dp: 'a.0.x' }],
+            customGrid: { cols: 1, rows: cells.length, cells },
+            ...extra,
+        },
+    });
+    const dial = { type: 'component', componentKey: 'dial' };
+    const badges = { type: 'component', componentKey: 'status-badges' };
+    const warned = (r) => r.warnings.some((x) => /keine Zelle "status-badges"/.test(x));
+    assert.ok(warned(validateWidget(w([dial]), schema)), 'symbols would vanish without a word');
+    assert.ok(!warned(validateWidget(w([dial, badges]), schema)));
+    assert.ok(!warned(validateWidget(w([dial], { showStatusBadges: false }), schema)), 'switched off on purpose');
 });
 
 // ── Answer size ──────────────────────────────────────────────────────────────
@@ -7402,6 +7479,26 @@ check('the render report keeps reserve and fill through the adapter', () => {
     assert.equal(r.entry.widgets[0].filled, 11);
     const plain = renderReportEntry({ tabId: 't', widgets: [{ id: 'a', type: 'x', px: 1 }] });
     assert.ok(!('fill' in plain.entry) && !('reservePx' in plain.entry.widgets[0]));
+});
+check('aura_rendered reports content in the padding or cut off, not only scrolling', () => {
+    // Reported from use: a framed header at h=2 whose centred block spills into the
+    // padding came back "Inhalt ≤ 48 px (nichts abgeschnitten)".
+    const r = renderReportEntry({
+        tabId: 't',
+        widgets: [{ id: 'h', type: 'header', rows: 2, px: 48, contentPx: 48, edgePx: 7, cutPx: 0 }],
+    });
+    assert.equal(r.entry.widgets[0].edgePx, 7, 'kept through the adapter');
+    assert.ok(!('cutPx' in r.entry.widgets[0]));
+    const out = renderedOf([
+        { id: 'h', type: 'header', rows: 2, px: 50, contentPx: 50, scrolls: false, edgePx: 7 },
+        { id: 'c', type: 'value', rows: 3, px: 80, contentPx: 80, scrolls: false, cutPx: 5 },
+        { id: 'ok', type: 'switch', rows: 2, px: 50, contentPx: 50, scrolls: false },
+    ]);
+    assert.match(out, /h \(header, h=2\): .*RAGT 7 px IN DEN RAND.*mindestens h=3/);
+    assert.match(out, /c \(value, h=3\): .*ABGESCHNITTEN: 5 px/);
+    assert.match(out, /ok \(switch, h=2\): .*nichts abgeschnitten/);
+    assert.ok(!/h \(header, h=2\): .*nichts abgeschnitten/.test(out));
+    assert.match(out, /2 Widget\(s\) scrollen nicht, aber ihr Inhalt ragt/);
 });
 
 check('an autolist with filters and no entries gets a hint, one with entries does not', () => {
