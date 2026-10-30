@@ -2169,7 +2169,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.forecastNeedsTimeseries': 'Time series mode only',
     'echart.rangeLead': 'Rolling lead',
     'echart.rangeLeadHint':
-        'The rolling range reaches this far past now, e.g. 2 days + 36h = 12 h back, 36 h ahead. Per chip: 2d+36h.',
+        'How far the rolling range reaches past now; its length stays the same: 2 days with lead 36h = 12 h back to 36 h ahead. Empty = ends at now. Applies to all chips; a lead per chip is set in the widget JSON (rangeChips: "2d+36h", none: "2d+0h").',
     'echart.navFuture': 'Paging into the future',
     'echart.navFutureNone': 'no',
     'echart.navFutureData': 'up to the last value',
@@ -2177,6 +2177,20 @@ export const en: Record<TranslationKey, string> = {
     'echart.navCurrent': 'Current period (⇥)',
     'echart.navCurrentNow': 'ends today',
     'echart.navCurrentToday': 'starts today',
+    'echart.forecastHint':
+        'For datapoints a script fills with timestamped values in the future (weather, power price, PV forecast). Without these settings every chart ends at now.',
+    'echart.navAnchorEndHint':
+        'The date picked in the calendar is the last day of the period (e.g. 7 days: the week up to it).',
+    'echart.navAnchorStartHint':
+        'The date picked in the calendar is the first day of the period (e.g. 7 days: the week from it).',
+    'echart.navFutureNoneHint': '› stops at the current period.',
+    'echart.navFutureDataHint':
+        '› keeps paging while a series still has values after the end of the period — i.e. up to the last forecast day.',
+    'echart.navFutureFixedHint': '› pages at most this far past now, e.g. 16d = 16 days, 48h = 48 hours.',
+    'echart.navCurrentNowHint':
+        'On load and with ⇥ the chart shows the period that ends today (7 days: the last 7 days up to today).',
+    'echart.navCurrentTodayHint':
+        'On load and with ⇥ the chart shows the period that starts today (7 days: today and the 6 following) — suited to forecasts.',
     'echart.dateLocale': 'en-GB',
     'echart.moveUp': 'Move up',
     'echart.moveDown': 'Move down',

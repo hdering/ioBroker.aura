@@ -2188,7 +2188,7 @@ export const de = {
     'echart.forecastNeedsTimeseries': 'Nur im Modus Zeitreihe',
     'echart.rangeLead': 'Vorlauf rollend',
     'echart.rangeLeadHint':
-        'Der rollende Zeitraum reicht so weit über jetzt hinaus, z. B. 2 Tage + 36h = 12 Std zurück, 36 Std voraus. Je Chip: 2d+36h.',
+        'So weit reicht der rollende Zeitraum über jetzt hinaus, seine Länge bleibt gleich: 2 Tage mit Vorlauf 36h = 12 Std zurück bis 36 Std voraus. Leer = endet bei jetzt. Gilt für alle Chips; einen eigenen Vorlauf je Chip gibt es in der Widget-JSON (rangeChips: "2d+36h", ohne: "2d+0h").',
     'echart.navFuture': 'Blättern in die Zukunft',
     'echart.navFutureNone': 'nein',
     'echart.navFutureData': 'bis zum letzten Wert',
@@ -2196,6 +2196,21 @@ export const de = {
     'echart.navCurrent': 'Aktueller Zeitraum (⇥)',
     'echart.navCurrentNow': 'endet heute',
     'echart.navCurrentToday': 'beginnt heute',
+    'echart.forecastHint':
+        'Für Datenpunkte, in die ein Skript Werte mit Zeitstempel in der Zukunft schreibt (Wetter, Strompreis, PV-Prognose). Ohne diese Einstellungen endet jedes Diagramm bei jetzt.',
+    'echart.navAnchorEndHint':
+        'Das im Kalender gewählte Datum ist der letzte Tag des Zeitraums (z. B. 7 Tage: die Woche bis dahin).',
+    'echart.navAnchorStartHint':
+        'Das im Kalender gewählte Datum ist der erste Tag des Zeitraums (z. B. 7 Tage: die Woche ab dann).',
+    'echart.navFutureNoneHint': '› hält beim aktuellen Zeitraum an.',
+    'echart.navFutureDataHint':
+        '› blättert weiter, solange eine Serie nach dem Ende des Zeitraums noch Werte hat — also bis zum letzten Prognosetag.',
+    'echart.navFutureFixedHint':
+        '› blättert höchstens so weit über jetzt hinaus, z. B. 16d = 16 Tage, 48h = 48 Stunden.',
+    'echart.navCurrentNowHint':
+        'Beim Laden und mit ⇥ wird der Zeitraum gezeigt, der mit heute endet (7 Tage: die letzten 7 Tage bis heute).',
+    'echart.navCurrentTodayHint':
+        'Beim Laden und mit ⇥ wird der Zeitraum gezeigt, der heute beginnt (7 Tage: heute und die 6 folgenden) — passend für Prognosen.',
     'echart.dateLocale': 'de-DE',
     'echart.moveUp': 'Nach oben',
     'echart.moveDown': 'Nach unten',

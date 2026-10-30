@@ -47,6 +47,18 @@ export const ECHART_NAV_KEYS: ChartNavKeys = {
     lead: 'echartRangeLead',
 };
 
+/** Small explanation under a setting. */
+function Hint({ children, className = '' }: { children: string; className?: string }) {
+    return (
+        <p
+            className={`text-[10px] mt-1 leading-tight ${className}`}
+            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+        >
+            {children}
+        </p>
+    );
+}
+
 export function ChartNavSettings({
     o,
     set,
@@ -104,12 +116,16 @@ export function ChartNavSettings({
                         <option value="start">{t('echart.navAnchorStart')}</option>
                     </select>
                 </div>
+                <Hint className="ml-5">
+                    {o[keys.anchor] === 'start' ? t('echart.navAnchorStartHint') : t('echart.navAnchorEndHint')}
+                </Hint>
             </Unavailable>
             {keys.future && keys.current && keys.lead && (
                 <Unavailable reason={forecastUnavailable}>
                     <p className="text-[11px] mt-3 mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.forecastTitle')}
                     </p>
+                    <Hint>{t('echart.forecastHint')}</Hint>
                     <div className="flex items-center gap-2 mt-1">
                         <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                             {t('echart.rangeLead')}
@@ -124,9 +140,7 @@ export function ChartNavSettings({
                             data-testid="chart-nav-lead"
                         />
                     </div>
-                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        {t('echart.rangeLeadHint')}
-                    </p>
+                    <Hint>{t('echart.rangeLeadHint')}</Hint>
                     <Unavailable reason={needsPaging}>
                         <div className="flex items-center gap-2 mt-2">
                             <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
@@ -165,6 +179,13 @@ export function ChartNavSettings({
                                 />
                             )}
                         </div>
+                        <Hint>
+                            {futureKind === 'data'
+                                ? t('echart.navFutureDataHint')
+                                : futureKind === 'fixed'
+                                  ? t('echart.navFutureFixedHint')
+                                  : t('echart.navFutureNoneHint')}
+                        </Hint>
                         <div className="flex items-center gap-2 mt-2">
                             <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                 {t('echart.navCurrent')}
@@ -184,6 +205,11 @@ export function ChartNavSettings({
                                 <option value="starts-today">{t('echart.navCurrentToday')}</option>
                             </select>
                         </div>
+                        <Hint>
+                            {o[keys.current] === 'starts-today'
+                                ? t('echart.navCurrentTodayHint')
+                                : t('echart.navCurrentNowHint')}
+                        </Hint>
                     </Unavailable>
                 </Unavailable>
             )}

@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Advanced chart - optional label at the now line (e.g. "now {HH:mm}"), at the top or bottom of the line
+- Advanced chart - short explanations under the paging and forecast settings in the editor
