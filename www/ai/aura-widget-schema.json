@@ -10,6 +10,7 @@
       "options accepts the keys under widgets.<type>.options plus every key listed in widgets.<type>.commonOptions (defined once under commonOptions).",
       "layout must be one of widgets.<type>.layouts; omit it for \"default\".",
       "For layout \"custom\", widgets.<type>.customFromLayout.<layout> (where present) is the grid the editor builds from that fixed layout — start from it as options.customGrid and add or change rows; its cells name the fields and components the widget provides.",
+      "widgets.<type>.customGridComponents lists every componentKey a cell of type \"component\" may name (plus \"status-item:<id>\" for own status symbols); any other key renders an empty cell.",
       "An option marked \"datapoint\": true must be an existing ioBroker state id — never invent one.",
       "Names referenced as \"ref\" are defined under types.",
       "A missing \"description\" means the key is only documented by its name, type and default.",
@@ -2680,7 +2681,12 @@
           "description": "Texts in place of values, typed as `0=An; 1=Aus` (issue #718) — in the tooltip, the value labels, the current-value block and, when every series on the axis agrees, on the axis. Unset = the datapoint's own `common.states`, as long as the series is not converted (ƒx)."
         },
         "yAxisIndex": {
-          "tsType": "0 | 1"
+          "type": "number",
+          "description": "Y axis the series is plotted against: 0 = left, 1 = right. 2 and up only work with further axes added through `echartJsonExtra` (a full `yAxis` array); such an axis has no widget unit, so the series wants its own `unit`."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit of this series' numbers in the tooltip, the value labels, the current-value block and the period value — wins over the unit of its axis (`echartLeftUnit`/`echartRightUnit`). Empty string = no unit at all. Unset = the axis unit."
         },
         "lineWidth": {
           "type": "number"
@@ -8387,6 +8393,12 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "icon",
+        "reach-icon",
+        "status-badges"
+      ],
       "conditionSlots": [
         "icon",
         "title",
@@ -8571,6 +8583,9 @@
           ]
         }
       },
+      "customGridComponents": [
+        "icon"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -8916,6 +8931,16 @@
           ]
         }
       },
+      "customGridComponents": [
+        "cal-icon",
+        "count",
+        "events-agenda",
+        "events-list",
+        "icon",
+        "next-event",
+        "next-row",
+        "refresh"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -9643,7 +9668,16 @@
         "navGroup": {
           "type": "string",
           "default": "",
-          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp."
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum (nur das Datum: navGroupMode \"date\") — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp."
+        },
+        "navGroupMode": {
+          "type": "string",
+          "enum": [
+            "all",
+            "date"
+          ],
+          "default": "all",
+          "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
         },
         "navRangeDp": {
           "type": "string",
@@ -9899,6 +9933,24 @@
           ]
         }
       },
+      "customGridComponents": [
+        "actual",
+        "battery-icon",
+        "btn-minus",
+        "btn-plus",
+        "chart",
+        "circle-menu",
+        "comfort-badge",
+        "icon",
+        "main-values",
+        "metrics",
+        "presets",
+        "range-chips",
+        "reach-icon",
+        "secondary-values",
+        "status-badges",
+        "window-icon"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -10426,6 +10478,13 @@
           ]
         }
       },
+      "customGridComponents": [
+        "city-icon",
+        "icon",
+        "sunrise-icon",
+        "sunset-icon",
+        "week-icon"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -10667,6 +10726,18 @@
           ]
         }
       },
+      "customGridComponents": [
+        "controls",
+        "digits",
+        "digits-fill",
+        "digits-inline",
+        "icon",
+        "presets",
+        "primary-sm",
+        "progress",
+        "step",
+        "stop-sm"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -11340,6 +11411,17 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "control",
+        "icon",
+        "level-slider",
+        "level-slider-sm",
+        "reach-icon",
+        "slider",
+        "status-badges",
+        "toggle"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -11517,6 +11599,9 @@
         "default",
         "custom"
       ],
+      "customGridComponents": [
+        "chart"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -11686,7 +11771,16 @@
         "echartNavGroup": {
           "type": "string",
           "default": "",
-          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über echartNavDateDp/echartNavRangeDp."
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum (nur das Datum: echartNavGroupMode \"date\") — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über echartNavDateDp/echartNavRangeDp."
+        },
+        "echartNavGroupMode": {
+          "type": "string",
+          "enum": [
+            "all",
+            "date"
+          ],
+          "default": "all",
+          "description": "Was die Kopplungsgruppe (echartNavGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
         },
         "echartNavRangeDp": {
           "type": "string",
@@ -12082,8 +12176,17 @@
         },
         "navGroup": {
           "type": "string",
-          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp.",
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum (nur das Datum: navGroupMode \"date\") — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp.",
           "default": ""
+        },
+        "navGroupMode": {
+          "type": "string",
+          "enum": [
+            "all",
+            "date"
+          ],
+          "default": "all",
+          "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
         },
         "navRangeDp": {
           "type": "string",
@@ -12473,6 +12576,17 @@
           ]
         }
       },
+      "customGridComponents": [
+        "accent-bar",
+        "battery-icon",
+        "circle-menu",
+        "icon",
+        "label",
+        "label-lg",
+        "reach-icon",
+        "select",
+        "status-badges"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -12891,6 +13005,18 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-view",
+        "compact-row",
+        "consumption-view",
+        "flow-diagram",
+        "flow-row",
+        "header",
+        "loadpoints",
+        "loadpoints-compact",
+        "production-view",
+        "tariff"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -14530,6 +14656,11 @@
           ]
         }
       },
+      "customGridComponents": [
+        "button",
+        "button-wide",
+        "icon"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -14967,6 +15098,12 @@
           ]
         }
       },
+      "customGridComponents": [
+        "icon",
+        "input",
+        "input-row",
+        "submit"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -15412,6 +15549,13 @@
           "dialStyle": "endless"
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "dial",
+        "icon",
+        "reach-icon",
+        "status-badges"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -15837,6 +15981,24 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "brightness",
+        "color",
+        "effects",
+        "icon",
+        "power",
+        "presets",
+        "reach-icon",
+        "status",
+        "status-badges",
+        "tabs-all",
+        "tabs-brightness",
+        "tabs-color",
+        "tabs-temperature",
+        "temperature",
+        "title"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -16873,6 +17035,23 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "chips",
+        "cover",
+        "mute",
+        "next",
+        "play-pause",
+        "player",
+        "player-compact",
+        "prev",
+        "reach-icon",
+        "repeat",
+        "shuffle",
+        "status-badges",
+        "stop",
+        "volume-slider"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -18043,6 +18222,30 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "btn-col",
+        "btn-down",
+        "btn-down-min",
+        "btn-row",
+        "btn-stop",
+        "btn-stop-min",
+        "btn-tilt",
+        "btn-tilt-close",
+        "btn-tilt-open",
+        "btn-up",
+        "btn-up-min",
+        "circle-menu",
+        "icon",
+        "presets",
+        "reach-icon",
+        "slider",
+        "status-badges",
+        "tilt-slider-h",
+        "tilt-slider-v",
+        "viz",
+        "window-icon"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -18377,6 +18580,14 @@
           ]
         }
       },
+      "customGridComponents": [
+        "actions",
+        "battery-icon",
+        "icon",
+        "reach-icon",
+        "slider",
+        "status-badges"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -18863,6 +19074,12 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "icon",
+        "reach-icon",
+        "status-badges"
+      ],
       "conditionSlots": [
         "icon",
         "title",
@@ -19795,6 +20012,15 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "icon",
+        "icon-button",
+        "reach-icon",
+        "status-badges",
+        "toggle",
+        "toggle-lg"
+      ],
       "conditionSlots": [
         "icon",
         "title",
@@ -20286,6 +20512,22 @@
           ]
         }
       },
+      "customGridComponents": [
+        "actual-line",
+        "battery-icon",
+        "btn-minus",
+        "btn-minus-round",
+        "btn-plus",
+        "btn-plus-round",
+        "circle-menu",
+        "dial",
+        "icon",
+        "presets",
+        "reach-icon",
+        "status-badges",
+        "status-icon",
+        "window-icon"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -20604,6 +20846,17 @@
           ]
         }
       },
+      "customGridComponents": [
+        "add",
+        "event-list",
+        "events",
+        "events-compact",
+        "icon",
+        "master",
+        "master-sm",
+        "status",
+        "status-line"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -21336,6 +21589,15 @@
           ]
         }
       },
+      "customGridComponents": [
+        "accent-bar",
+        "battery-icon",
+        "icon",
+        "icon-card",
+        "icon-compact",
+        "reach-icon",
+        "status-badges"
+      ],
       "conditionSlots": [
         "icon",
         "title",
@@ -21513,6 +21775,38 @@
           ]
         }
       },
+      "customGridComponents": [
+        "current",
+        "current-big",
+        "current-line",
+        "forecast",
+        "icon",
+        "tempBar0",
+        "tempBar1",
+        "tempBar2",
+        "tempBar3",
+        "tempBar4",
+        "tempBar5",
+        "tempBar6",
+        "tempBarOnly0",
+        "tempBarOnly1",
+        "tempBarOnly2",
+        "tempBarOnly3",
+        "tempBarOnly4",
+        "tempBarOnly5",
+        "tempBarOnly6",
+        "title-row",
+        "warnings",
+        "weather-icon",
+        "weather-icon-day-0",
+        "weather-icon-day-1",
+        "weather-icon-day-2",
+        "weather-icon-day-3",
+        "weather-icon-day-4",
+        "weather-icon-day-5",
+        "weather-icon-day-6",
+        "weather-icon-tomorrow"
+      ],
       "conditionSlots": [
         "icon",
         "title"
@@ -21856,6 +22150,13 @@
           ]
         }
       },
+      "customGridComponents": [
+        "battery-icon",
+        "icon",
+        "lock-icon",
+        "reach-icon",
+        "status-badges"
+      ],
       "conditionSlots": [
         "icon",
         "title",

@@ -584,7 +584,10 @@
         "Vorlauf im rollenden Zeitraum: Chip \"2d+36h\" (oder global echartRangeLead \"36h\") = jetzt − 12 h bis jetzt + 36 h.",
         "echartNowLine zeigt, wo die Prognose beginnt; echartNowLineLabel \"jetzt {HH:mm}\" beschriftet sie.",
         "echartNavFuture \"data\" lässt › bis zum letzten Prognosepunkt blättern; \"16d\" = feste Grenze.",
-        "echartNavCurrent \"starts-today\" + echartNavAnchor \"start\": ⇥ zeigt heute und die folgenden Tage."
+        "echartNavCurrent \"starts-today\" + echartNavAnchor \"start\": ⇥ zeigt heute und die folgenden Tage.",
+        "Gemessene Reihe ohne Punkte im Fenster (reine Zukunft): keine Linie, Legendeneintrag ausgegraut.",
+        "Stunden- und Tagesdiagramm koppeln: gleiche echartNavGroup + echartNavGroupMode \"date\" — beide blättern gemeinsam, jedes behält seine Chips.",
+        "Dritte y-Achse: vollständiges yAxis-Array in echartJsonExtra, Reihe mit yAxisIndex 2 und eigener series.unit (sonst kein Einheitstext im Tooltip)."
       ],
       "widgets": [
         {
