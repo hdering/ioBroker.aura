@@ -7,7 +7,7 @@
  * `useEnergyBalanceValues`), matching the "Diagramm (erweitert)" data model. The two-sided
  * Produktion/Verbrauch reference layout is simply the N=2 case (legendSide left + right).
  */
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState, type CSSProperties, type RefCallback } from 'react';
 import { PieChart as PieChartIcon } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -639,6 +639,30 @@ function sectorPath(cx: number, cy: number, rOuter: number, rInner: number, star
     return `M ${xo0} ${yo0} A ${rOuter} ${rOuter} 0 ${large} 1 ${xo1} ${yo1} L ${xi1} ${yi1} A ${rInner} ${rInner} 0 ${large} 0 ${xi0} ${yi0} Z`;
 }
 
+// The pie is as tall as its row (capped at `size`) and as wide as it is tall. WebKit
+// (every iOS browser) gives an svg with height:100% + width:auto + aspect-ratio inside a
+// shrink-to-fit box a width of 0, so the pie vanished there (#877). Measure the box's
+// height and size the svg in px; the CSS form only bridges the first paint.
+function usePieSvgStyle(size: number): [RefCallback<HTMLDivElement>, CSSProperties] {
+    const [height, setHeight] = useState(0);
+    const ro = useRef<ResizeObserver | null>(null);
+    const ref = useCallback((el: HTMLDivElement | null) => {
+        ro.current?.disconnect();
+        ro.current = null;
+        if (!el) return;
+        const read = () => setHeight(el.getBoundingClientRect().height);
+        read();
+        ro.current = new ResizeObserver(read);
+        ro.current.observe(el);
+    }, []);
+    const side = Math.floor(Math.min(height, size));
+    const style: CSSProperties =
+        side > 0
+            ? { width: side, height: side, flexShrink: 0 }
+            : { height: '100%', maxHeight: size, width: 'auto', aspectRatio: '1 / 1' };
+    return [ref, style];
+}
+
 function PieChart({
     items,
     total,
@@ -660,6 +684,7 @@ function PieChart({
     size?: number;
     fontSize?: number;
 }) {
+    const [boxRef, svgStyle] = usePieSvgStyle(size);
     const R = 46;
     const cx = 50;
     const cy = 50;
@@ -714,11 +739,8 @@ function PieChart({
 
     if (total <= 0) {
         return (
-            <div className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
-                <svg
-                    viewBox="0 0 100 100"
-                    style={{ height: '100%', maxHeight: size, width: 'auto', aspectRatio: '1 / 1' }}
-                >
+            <div ref={boxRef} className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" style={svgStyle}>
                     <circle
                         cx={cx}
                         cy={cy}
@@ -779,8 +801,8 @@ function PieChart({
     }
 
     return (
-        <div className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
-            <svg viewBox={viewBox} style={{ height: '100%', maxHeight: size, width: 'auto', aspectRatio: '1 / 1' }}>
+        <div ref={boxRef} className="self-stretch min-h-0 shrink-0 flex items-center justify-center">
+            <svg viewBox={viewBox} style={svgStyle}>
                 {laid.map((s) => {
                     const c = s.c;
                     // A single full-circle segment: draw a ring/disc (an arc from 0 to 2π is degenerate).

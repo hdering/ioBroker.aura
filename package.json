@@ -334,6 +334,7 @@
     "test:energy-bar": "node tools/tests/energy-balance-bar.mjs",
     "test:energy-font-sizes": "node tools/tests/energy-font-sizes.mjs",
     "test:energy-counter": "node tools/tests/energy-counter-increase.mjs",
+    "test:energy-pie-webkit": "node tools/tests/energy-pie-webkit.mjs",
     "test:chart-period": "node tools/tests/chart-period-value.mjs",
     "test:chart-period-ui": "node tools/tests/chart-period-value-ui.mjs",
     "test:map-style": "node tools/tests/map-style-chips.mjs",

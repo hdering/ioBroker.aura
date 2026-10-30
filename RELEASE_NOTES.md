@@ -14,3 +14,4 @@
 - Advanced chart - a series without any point in the shown window (e.g. measured values on a forecast-only day) no longer draws a flat line at 0; its legend entry stays, greyed out
 - Charts - link groups can share the date only (navGroupMode / echartNavGroupMode "date"): linked charts page together while each keeps its own range
 - Advanced chart - custom layout: the chart itself is a cell component ("Diagram"), so buttons and texts can be placed around it; chart cells can mirror charts from popup views and say why a chart is not shown
+- Energy balance - pie and donut charts show up on iPhone and iPad again (Safari, Firefox and every other iOS browser) (#877)
