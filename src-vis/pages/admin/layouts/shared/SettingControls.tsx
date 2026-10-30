@@ -2,7 +2,7 @@
 // (Header, Layout menu, Behavior). Extracted from the former FrontendSection so the
 // pieces can live on different admin pages without duplicating the markup.
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { OVERRIDE_COLOR, OVERRIDE_TINT } from './scopeBands';
 
 export function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
@@ -20,6 +20,49 @@ export function Toggle({ value, onChange }: { value: boolean; onChange: (v: bool
 }
 
 /** The orange override bar + tint a control gets when this scope sets its own value. */
+// Number field that lets values below `min` pass while typing ("1" on the way to "120"):
+// the text is kept as a draft, in-range values are taken immediately and the rest is
+// clamped when the field is left (#878, same trap as #860).
+export function ClampedNumberInput({
+    value,
+    min,
+    max,
+    onChange,
+    className,
+    style,
+}: {
+    value: number;
+    min: number;
+    max: number;
+    onChange: (v: number) => void;
+    className?: string;
+    style?: React.CSSProperties;
+}) {
+    const [draft, setDraft] = useState<string | null>(null);
+    return (
+        <input
+            type="number"
+            min={min}
+            max={max}
+            value={draft ?? value}
+            onChange={(e) => {
+                const raw = e.target.value;
+                setDraft(raw);
+                const n = Number(raw);
+                if (raw !== '' && Number.isInteger(n) && n >= min && n <= max) onChange(n);
+            }}
+            onBlur={() => {
+                if (draft === null) return;
+                const n = Math.round(Number(draft));
+                if (draft !== '' && Number.isFinite(n)) onChange(Math.min(max, Math.max(min, n)));
+                setDraft(null);
+            }}
+            className={className}
+            style={style}
+        />
+    );
+}
+
 export const OVERRIDE_ROW_STYLE: React.CSSProperties = {
     boxShadow: `inset 3px 0 0 ${OVERRIDE_COLOR}`,
     paddingLeft: 12,

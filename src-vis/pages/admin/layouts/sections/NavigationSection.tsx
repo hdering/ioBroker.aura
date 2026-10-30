@@ -1,5 +1,5 @@
 import { useT } from '../../../../i18n';
-import { ToggleRow, OVERRIDE_ROW_STYLE } from '../shared/SettingControls';
+import { ToggleRow, OVERRIDE_ROW_STYLE, ClampedNumberInput } from '../shared/SettingControls';
 import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
@@ -65,12 +65,11 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
                         {t('settings.frontend.idleReturnDelay')}
                     </p>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="number"
+                        <ClampedNumberInput
                             min={5}
                             max={3600}
                             value={delay ?? 30}
-                            onChange={(e) => set('idleReturnDelay', Math.max(5, parseInt(e.target.value) || 30))}
+                            onChange={(v) => set('idleReturnDelay', v)}
                             className="w-20 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
                             style={{
                                 background: 'var(--app-bg)',
@@ -118,12 +117,11 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
                         {t('settings.frontend.idleStateDelay')}
                     </p>
                     <div className="flex items-center gap-2">
-                        <input
-                            type="number"
+                        <ClampedNumberInput
                             min={5}
                             max={86400}
                             value={idleDelay ?? 120}
-                            onChange={(e) => set('idleStateDelay', Math.max(5, parseInt(e.target.value) || 120))}
+                            onChange={(v) => set('idleStateDelay', v)}
                             className="w-20 text-sm rounded-lg px-2.5 py-1.5 focus:outline-none"
                             style={{
                                 background: 'var(--app-bg)',
