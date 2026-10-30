@@ -17923,45 +17923,45 @@ function WidgetFrameInner({
                                                         </div>
                                                     )}
 
-                                                    {/* Aktor-Konvention – nur Position-Modus */}
-                                                    {controlMode === 'position' && (
-                                                        <div>
-                                                            <label className="text-[11px] block mb-1" style={hint}>
-                                                                Aktor-Konvention
-                                                            </label>
-                                                            <div className="flex gap-1 mb-1">
-                                                                {(
-                                                                    [
-                                                                        { label: 'HM / Standard (0=zu)', val: false },
-                                                                        { label: 'Umgekehrt (0=auf)', val: true },
-                                                                    ] as const
-                                                                ).map(({ label, val }) => (
-                                                                    <button
-                                                                        key={String(val)}
-                                                                        onClick={() => setO({ invertPosition: val })}
-                                                                        className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                                                                        style={{
-                                                                            background:
-                                                                                (o.invertPosition ?? false) === val
-                                                                                    ? 'var(--accent)'
-                                                                                    : 'var(--app-bg)',
-                                                                            color:
-                                                                                (o.invertPosition ?? false) === val
-                                                                                    ? '#fff'
-                                                                                    : 'var(--text-secondary)',
-                                                                            border: '1px solid var(--app-border)',
-                                                                        }}
-                                                                    >
-                                                                        {label}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                            <p className="text-[10px]" style={hint}>
-                                                                HM Classic / Z-Wave: 0 = geschlossen, 100 = offen. HmIP,
-                                                                KNX und manche Zigbee-Adapter: umgekehrt.
-                                                            </p>
+                                                    {/* Aktor-Konvention – alle Modi: auch Fahr-/Taster-Modus zeigt und regelt die Position (#876) */}
+                                                    <div>
+                                                        <label className="text-[11px] block mb-1" style={hint}>
+                                                            Aktor-Konvention
+                                                        </label>
+                                                        <div className="flex gap-1 mb-1">
+                                                            {(
+                                                                [
+                                                                    { label: 'HM / Standard (0=zu)', val: false },
+                                                                    { label: 'Umgekehrt (0=auf)', val: true },
+                                                                ] as const
+                                                            ).map(({ label, val }) => (
+                                                                <button
+                                                                    key={String(val)}
+                                                                    onClick={() => setO({ invertPosition: val })}
+                                                                    className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                                                    style={{
+                                                                        background:
+                                                                            (o.invertPosition ?? false) === val
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                        color:
+                                                                            (o.invertPosition ?? false) === val
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                        border: '1px solid var(--app-border)',
+                                                                    }}
+                                                                >
+                                                                    {label}
+                                                                </button>
+                                                            ))}
                                                         </div>
-                                                    )}
+                                                        <p className="text-[10px]" style={hint}>
+                                                            HM Classic / Z-Wave: 0 = geschlossen, 100 = offen. HmIP, KNX
+                                                            und manche Zigbee-Adapter: umgekehrt.
+                                                            {controlMode !== 'position' &&
+                                                                ' Gilt für Anzeige und Positions-Regler, nicht für die Auf/Ab-Befehle.'}
+                                                        </p>
+                                                    </div>
                                                 </>
                                                 <SubGroup title="Lamellen / Neigung">
                                                     <div>
