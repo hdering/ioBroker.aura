@@ -3522,20 +3522,41 @@ export function CustomCellEditor({
                             Vertikale Ausrichtung
                         </label>
                         <div className="flex gap-1">
-                            {(['top', 'middle', 'bottom'] as const).map((v) => {
+                            {(['top', 'middle', 'bottom', 'baseline'] as const).map((v) => {
                                 const active = (cell.valign ?? 'middle') === v;
+                                // Only horizontal text has a baseline to share with its row neighbours (#879).
+                                const noBaseline =
+                                    v === 'baseline' &&
+                                    (!CONTENT_BG_TYPES.has(cell.type) ||
+                                        (!!cell.textDirection && cell.textDirection !== 'horizontal'));
                                 return (
                                     <button
                                         key={v}
                                         onClick={() => onChange({ valign: v })}
+                                        disabled={noBaseline && !active}
+                                        title={
+                                            v !== 'baseline'
+                                                ? undefined
+                                                : noBaseline
+                                                  ? 'Nur für waagerechten Text – wirkt hier wie „Unten“'
+                                                  : 'Unten, Schriftlinie mit allen „Schriftlinie“-Zellen derselben Zeile gleich (z. B. Wert und Einheit in verschiedenen Größen). Die Zelle ist dann nur so groß wie ihr Inhalt.'
+                                        }
                                         className="flex-1 text-[10px] py-1 rounded"
                                         style={{
                                             background: active ? 'var(--accent)' : 'var(--app-bg)',
                                             color: active ? '#fff' : 'var(--text-secondary)',
                                             border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            opacity: noBaseline ? 0.45 : undefined,
+                                            cursor: noBaseline && !active ? 'not-allowed' : undefined,
                                         }}
                                     >
-                                        {v === 'top' ? 'Oben' : v === 'middle' ? 'Mitte' : 'Unten'}
+                                        {v === 'top'
+                                            ? 'Oben'
+                                            : v === 'middle'
+                                              ? 'Mitte'
+                                              : v === 'bottom'
+                                                ? 'Unten'
+                                                : 'Schriftlinie'}
                                     </button>
                                 );
                             })}

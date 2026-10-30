@@ -20,3 +20,4 @@
 - Energy balance - pie and donut charts show up on iPhone and iPad again (Safari, Firefox and every other iOS browser) (#877)
 - Popup editor - "New widget" opens the same dialog as the dashboard editor (search, templates, datapoint detection, recently used, presets), with {{dp}} prefilled; the type dropdown is gone
 - Layouts - Navigation: the idle and auto-return delays accept typed values again instead of jumping to the minimum on the first digit (#878)
+- Custom layout - new vertical alignment "Baseline" for text cells: cells of one row sit on the same text line, e.g. a large value next to a smaller unit (#879)

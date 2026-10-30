@@ -106,6 +106,15 @@ Gilt für `title` · `value` · `unit` · `text` · `field` · `dp` · `state-te
 
 ![](./assets/custom-layout/text-direction.png)
 
+| Vertikale Ausrichtung (`valign`) | |
+| --- | --- |
+| `top` · `middle` · `bottom` | Oben · Mitte (Standard) · Unten |
+| `baseline` | Schriftlinie — unten, alle `baseline`-Zellen einer Zeile auf derselben Schriftlinie |
+
+`baseline` gilt für waagrechten Text (`title` · `value` · `unit` · `text` · `field` · `dp` · `state-text` · `lastchange`), sonst wie `bottom`. Die Zelle ist dann nur so hoch wie ihr Inhalt — ein Hintergrund „Ganze Zelle“ deckt nur den Inhalt ab.
+
+![](./assets/custom-layout/valign-baseline.png)
+
 Die Balkenfarbe von `progress` und `slider` (mit `barStyle`) ist `color`, sonst die Akzentfarbe. Eine zutreffende
 Zell-Bedingung mit `color` färbt den Balken mit — `bg` färbt dagegen die ganze Zelle, nie den Balken.
 

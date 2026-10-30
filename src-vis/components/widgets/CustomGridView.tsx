@@ -236,7 +236,11 @@ function cellTextStyle(cell: CustomCell, defaultColor: string, cond?: CellCondRe
         fontWeight: bold ? 'bold' : undefined,
         fontStyle: italic ? 'italic' : undefined,
         color: cond?.color || cell.color || defaultColor,
-        overflow: wrap || cell.allowOverflow ? 'visible' : 'hidden',
+        // clip keeps the text's own baseline visible to a 'baseline' cell (#879).
+        overflow: wrap || cell.allowOverflow ? 'visible' : effectiveValign(cell) === 'baseline' ? 'clip' : 'hidden',
+        // A clipped flex item keeps min-width:auto (only scroll containers drop it), so
+        // without the 0 a long text widens past its cell and the ellipsis never shows.
+        minWidth: effectiveValign(cell) === 'baseline' ? 0 : undefined,
         textOverflow: wrap || cell.allowOverflow ? undefined : 'ellipsis',
         whiteSpace: wrap ? 'normal' : 'nowrap',
         wordBreak: wrap ? 'break-word' : undefined,
@@ -268,22 +272,31 @@ function cellWrapStyle(cell: CustomCell, index: number, cols: number, rows: numb
     const colSpan = Math.max(1, Math.min(cell.colSpan ?? 1, cols + 1 - col));
     const rowSpan = Math.max(1, Math.min(cell.rowSpan ?? 1, rows + 1 - row));
     const wrap = cell.wrap === true;
+    const valign = effectiveValign(cell);
+    const baseline = valign === 'baseline';
     // When wrap is on we must keep overflow visible (otherwise the wrapped
     // lines get clipped) and top-align so the cell grows downward predictably.
     return {
         display: 'flex',
-        overflow: wrap || cell.allowOverflow ? 'visible' : 'hidden',
-        alignItems: wrap
-            ? cell.valign === 'bottom'
-                ? 'flex-end'
-                : cell.valign === 'middle'
-                  ? 'center'
-                  : 'flex-start'
-            : cell.valign === 'top'
-              ? 'flex-start'
-              : cell.valign === 'bottom'
-                ? 'flex-end'
-                : 'center',
+        // clip, not hidden: a hidden box is a scroll container and the grid then
+        // takes its bottom edge as baseline instead of the text's (#879).
+        overflow: wrap || cell.allowOverflow ? 'visible' : baseline ? 'clip' : 'hidden',
+        alignItems: baseline
+            ? 'last baseline'
+            : wrap
+              ? valign === 'bottom'
+                  ? 'flex-end'
+                  : valign === 'middle'
+                    ? 'center'
+                    : 'flex-start'
+              : valign === 'top'
+                ? 'flex-start'
+                : valign === 'bottom'
+                  ? 'flex-end'
+                  : 'center',
+        // Baseline cells of one row share the bottom-most text line; the cell then
+        // hugs its content instead of stretching over the row.
+        ...(baseline ? { alignSelf: 'last baseline', maxHeight: '100%', minHeight: 0 } : null),
         justifyContent: cell.align === 'left' ? 'flex-start' : cell.align === 'right' ? 'flex-end' : 'center',
         padding: '2px',
         gridRow: rowSpan > 1 ? `${row} / span ${rowSpan}` : row,
@@ -310,6 +323,13 @@ function hugsContent(cell: CustomCell): boolean {
     return cell.bgMode === 'content' && CONTENT_BG_TYPES.has(cell.type);
 }
 
+/** Vertical alignment as rendered: 'baseline' only works on horizontal text cells, the rest sit at the bottom (#879). */
+function effectiveValign(cell: CustomCell): NonNullable<CustomCell['valign']> {
+    const valign = cell.valign ?? 'middle';
+    if (valign !== 'baseline') return valign;
+    return CONTENT_BG_TYPES.has(cell.type) && !isVerticalText(cell) ? 'baseline' : 'bottom';
+}
+
 /** Text cells set to run vertically (#734) — the same text-like types that may hug their background. */
 function isVerticalText(cell: CustomCell): boolean {
     return !!cell.textDirection && cell.textDirection !== 'horizontal' && CONTENT_BG_TYPES.has(cell.type);
@@ -321,7 +341,7 @@ function isVerticalText(cell: CustomCell): boolean {
  * clockwise layout turned by 180°, so its start ends up at the bottom.
  */
 function verticalStart(cell: CustomCell): 'start' | 'end' | 'center' {
-    const valign = cell.valign ?? 'middle';
+    const valign = effectiveValign(cell);
     if (valign === 'middle') return 'center';
     const top = cell.textDirection === 'vertical-ccw' ? 'end' : 'start';
     return valign === 'top' ? top : top === 'start' ? 'end' : 'start';

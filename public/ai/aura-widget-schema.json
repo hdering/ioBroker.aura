@@ -1668,7 +1668,7 @@
         "valign": {
           "type": "string",
           "ref": "CustomCellValign",
-          "description": "default: 'middle'"
+          "description": "default: 'middle'. 'baseline' sits at the bottom like 'bottom' but lines the text baseline up with every other 'baseline' cell of the same grid row (e.g. a 40 px value next to an 18 px unit); text cells only (title/value/unit/text/field/dp/state-text/lastchange), other cells and vertical text treat it as 'bottom'. The cell then hugs its content, so a cell-wide bg only covers the content"
         },
         "allowOverflow": {
           "type": "boolean",
@@ -2307,7 +2307,8 @@
       "enum": [
         "top",
         "middle",
-        "bottom"
+        "bottom",
+        "baseline"
       ]
     },
     "CellPopupOptions": {

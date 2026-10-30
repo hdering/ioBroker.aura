@@ -220,6 +220,7 @@
     "test:custom-grid-lines": "node tools/tests/custom-grid-lines.mjs",
     "test:custom-grid-overlay": "node tools/tests/custom-grid-overlay.mjs",
     "test:custom-grid-text-direction": "node tools/tests/custom-grid-text-direction.mjs",
+    "test:custom-grid-baseline": "node tools/tests/custom-grid-baseline.mjs",
     "test:tablet-order-ui": "node tools/tests/tablet-order-panel.mjs",
     "test:flow-band-cols": "node tools/tests/flow-band-cols-logic.mjs",
     "test:mobile-embed": "node tools/tests/mobile-embed-aspect.mjs",

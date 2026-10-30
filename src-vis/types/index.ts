@@ -317,7 +317,7 @@ export type CustomCellType =
     // Embedded chart (#838)
     | 'widget';
 export type CustomCellAlign = 'left' | 'center' | 'right';
-export type CustomCellValign = 'top' | 'middle' | 'bottom';
+export type CustomCellValign = 'top' | 'middle' | 'bottom' | 'baseline';
 
 export interface CustomCell {
     type: CustomCellType;
@@ -344,7 +344,7 @@ export interface CustomCell {
     bgMode?: 'cell' | 'content'; // where `bg` sits: 'cell' fills the whole grid cell (default), 'content' hugs the text as a label (title/value/unit/text/field/dp/state-text/lastchange cells; others always fill the cell)
     conditions?: CellConditionRule[]; // per-cell conditional formatting (Universal Widget) — reacts to the cell's own or a foreign DP value
     align?: CustomCellAlign; // default: 'left'
-    valign?: CustomCellValign; // default: 'middle'
+    valign?: CustomCellValign; // default: 'middle'. 'baseline' sits at the bottom like 'bottom' but lines the text baseline up with every other 'baseline' cell of the same grid row (e.g. a 40 px value next to an 18 px unit); text cells only (title/value/unit/text/field/dp/state-text/lastchange), other cells and vertical text treat it as 'bottom'. The cell then hugs its content, so a cell-wide bg only covers the content
     allowOverflow?: boolean; // allow text to overflow into adjacent cells
     wrap?: boolean; // wrap long text onto multiple lines instead of ellipsis (default false)
     textDirection?: 'horizontal' | 'vertical-cw' | 'vertical-ccw' | 'stacked'; // text cells (title/value/unit/text/field/dp/state-text/lastchange): 'vertical-cw' turned 90° clockwise (reads top to bottom), 'vertical-ccw' 90° counter-clockwise (reads bottom to top), 'stacked' upright letters one below the other; default 'horizontal'. Vertical text needs cell height (rowSpan or a taller row); align/valign stay physical (left/right, top/bottom of the cell)
