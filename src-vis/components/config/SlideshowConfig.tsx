@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { FolderOpen } from 'lucide-react';
 import { ConfigSection } from './ConfigSection';
 import { DatapointPicker } from './DatapointPicker';
+import { StatusDpField } from './StatusDpField';
 import { FillTabToggle } from './FillTabToggle';
 import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetConfig } from '../../types';
@@ -164,6 +165,13 @@ export function SlideshowConfig({ config, onConfigChange }: Props) {
                         {t('slideshow.cfg.folderHint')}
                     </p>
                 </div>
+                <StatusDpField
+                    label={t('slideshow.cfg.folderDp')}
+                    hint={t('slideshow.cfg.folderDpHint')}
+                    placeholder="0_userdata.0.diashow.ordner"
+                    value={o.folderDp as string | undefined}
+                    onChange={(id) => set({ folderDp: id })}
+                />
                 <Check
                     checked={o.recursive === true}
                     onChange={(v) => set({ recursive: v || undefined })}

@@ -93,6 +93,7 @@ Die Diashow merkt sich das zuletzt gezeigte Bild und macht beim nächsten Ruhezu
 | Option | Standard | |
 | --- | --- | --- |
 | `folder` | – | absoluter Pfad des Ordners |
+| `folderDp` | – | Datenpunkt mit Ordnerpfad; nicht leer = gilt statt `folder` (z. B. Album per Timer/Skript wechseln) |
 | `recursive` | `false` | Unterordner einbeziehen (bis 6 Ebenen, max. 5000 Dateien) |
 | `order` | `random` | siehe oben |
 | `intervalSec` | `10` | Anzeigedauer je Bild in Sekunden |

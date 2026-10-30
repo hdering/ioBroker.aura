@@ -18,6 +18,7 @@ import type { WidgetProps } from '../../types';
 import { auraUrl } from '../../utils/basePath';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
+import { useDatapoint } from '../../hooks/useDatapoint';
 import { useSpeechStore } from '../../store/speechStore';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import {
@@ -211,7 +212,13 @@ function layerAnim(transition: SlideshowTransition, role: Role, dir: 1 | -1): { 
 export function SlideshowWidget({ config, editMode }: WidgetProps) {
     const t = useT();
     const o = config.options ?? {};
-    const folder = ((o.folder as string | undefined) ?? '').trim();
+    // A datapoint may name the folder instead (#880): a script or timer switches the
+    // album by writing a path. Empty or not a string = the fixed folder.
+    const { value: dpFolder } = useDatapoint(((o.folderDp as string | undefined) ?? '').trim());
+    const folder = (
+        (typeof dpFolder === 'string' && dpFolder.trim()) ||
+        ((o.folder as string | undefined) ?? '')
+    ).trim();
     const recursive = o.recursive === true;
     const order = (o.order as SlideshowOrder | undefined) ?? SLIDESHOW_DEFAULTS.order;
     const intervalMs = Math.max(2, Number(o.intervalSec) || SLIDESHOW_DEFAULTS.intervalSec) * 1000;

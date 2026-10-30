@@ -1181,7 +1181,13 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Absoluter Ordnerpfad auf dem Rechner des Adapters, z. B. "/media/usb/fotos". Muss unterhalb eines der ' +
                 'freigegebenen Wurzelverzeichnisse der Instanz liegen (Instanzeinstellung fsRoots), sonst zeigt das Widget ' +
-                '„nicht freigegeben“. Kein aura-file:-Präfix, kein Datenpunkt.',
+                '„nicht freigegeben“. Kein aura-file:-Präfix, kein Datenpunkt (dafür folderDp).',
+        },
+        folderDp: {
+            type: 'string',
+            description:
+                'Optionaler Datenpunkt (String), dessen Wert den Ordnerpfad liefert – gleiche Regeln wie folder. ' +
+                'Hat er einen nicht leeren Wert, gilt er statt folder; so wechselt ein Skript oder Timer das Album (#880). Leer = folder.',
         },
         recursive: { description: 'Unterordner mit einlesen (bis 6 Ebenen, höchstens 5000 Dateien).' },
         order: {

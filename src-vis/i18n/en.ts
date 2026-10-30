@@ -1646,6 +1646,9 @@ export const en: Record<TranslationKey, string> = {
     'slideshow.cfg.pickFolder': 'Choose a folder on the server',
     'slideshow.cfg.folderHint':
         'Absolute path below a shared folder (instance settings → Allowed root folders), e.g. a USB drive or a mounted NAS.',
+    'slideshow.cfg.folderDp': 'Folder from datapoint (optional)',
+    'slideshow.cfg.folderDpHint':
+        'If the datapoint holds a folder path, that folder is shown — a script or timer can switch the album this way. Empty = folder above.',
     'slideshow.cfg.recursive': 'Include subfolders',
     'slideshow.cfg.order': 'Order',
     'slideshow.order.random': 'Random',

@@ -1660,6 +1660,9 @@ export const de = {
     'slideshow.cfg.pickFolder': 'Ordner auf dem Server wählen',
     'slideshow.cfg.folderHint':
         'Absoluter Pfad unterhalb eines freigegebenen Verzeichnisses (Instanzeinstellungen → Erlaubte Wurzelverzeichnisse), z. B. eine USB-Platte oder ein eingehängtes NAS.',
+    'slideshow.cfg.folderDp': 'Ordner aus Datenpunkt (optional)',
+    'slideshow.cfg.folderDpHint':
+        'Enthält der Datenpunkt einen Ordnerpfad, wird dieser gezeigt – so kann ein Skript oder Timer das Album wechseln. Leer = Ordner oben.',
     'slideshow.cfg.recursive': 'Unterordner einbeziehen',
     'slideshow.cfg.order': 'Reihenfolge',
     'slideshow.order.random': 'Zufällig',
