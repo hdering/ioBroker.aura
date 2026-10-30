@@ -216,10 +216,13 @@ export function DimmerWidget({ config }: WidgetProps) {
                 width: '100%',
                 height: `${barSize}%`,
                 background: 'color-mix(in srgb, var(--light-on, var(--accent-yellow)) 20%, var(--app-bg))',
+                // Without touch-action the browser takes a finger drag as page scroll and cancels the pointer.
+                touchAction: 'pan-y',
             }}
             onPointerDown={onBarPointerDown}
             onPointerMove={onBarPointerMove}
             onPointerUp={handleSliderRelease}
+            onPointerCancel={handleSliderRelease}
         >
             <div
                 className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
@@ -377,7 +380,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                                 (isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)'),
                         }}
                     >
-                        {level}%
+                        {displayLevel}%
                     </span>
                 )}
                 {showSlider && (barStyle ? <div style={{ height: 40, width: '100%' }}>{barTrack}</div> : slider)}
@@ -426,7 +429,7 @@ export function DimmerWidget({ config }: WidgetProps) {
                 {showValue && (
                     <div className="flex justify-between items-center">
                         <span className="aura-widget-value text-xl font-bold" style={{ color: valueColor }}>
-                            {level}%
+                            {displayLevel}%
                         </span>
                         {showToggle ? toggleBtn : stateDot}
                     </div>

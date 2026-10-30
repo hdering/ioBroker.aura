@@ -161,10 +161,13 @@ export function SliderWidget({ config }: WidgetProps) {
                 width: isVertical ? `${barSize}%` : '100%',
                 height: isVertical ? '100%' : `${barSize}%`,
                 background: `color-mix(in srgb, ${sliderColor} 20%, var(--app-bg))`,
+                // Without touch-action the browser takes a finger drag as page scroll and cancels the pointer.
+                touchAction: readOnly ? undefined : isVertical ? 'pan-x' : 'pan-y',
             }}
             onPointerDown={readOnly ? undefined : onBarPointerDown}
             onPointerMove={readOnly ? undefined : onBarPointerMove}
             onPointerUp={readOnly ? undefined : onSliderRelease}
+            onPointerCancel={readOnly ? undefined : onSliderRelease}
         >
             {/* Fill */}
             {isVertical ? (

@@ -1174,6 +1174,8 @@ export function SliderControl({
                 width: '100%',
                 height: barHeight,
                 background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+                // Without touch-action the browser takes a finger drag as page scroll and cancels the pointer.
+                touchAction: readOnly ? undefined : 'pan-y',
             }}
             onPointerDown={
                 readOnly
@@ -1191,6 +1193,7 @@ export function SliderControl({
                       }
             }
             onPointerUp={readOnly ? undefined : release}
+            onPointerCancel={readOnly ? undefined : release}
         >
             <div
                 className="absolute top-0 left-0 bottom-0 rounded-full"

@@ -230,6 +230,7 @@
     "test:bar-value": "node tools/tests/bar-value.mjs",
     "test:fill-status-logic": "node tools/tests/fill-status-logic.mjs",
     "test:knob-touch": "node tools/tests/knob-touch.mjs",
+    "test:bar-slider-touch": "node tools/tests/bar-slider-touch.mjs",
     "test:dp-scale": "node tools/tests/dp-scale.mjs",
     "test:dp-range": "node tools/tests/dp-range-adopt.mjs",
     "test:dp-picker-tree": "node tools/tests/dp-picker-tree.mjs",

@@ -144,6 +144,8 @@ function BrightnessBar({ value, min, max, accent, maxSize, onChange, onCommit }:
                 maxWidth: maxSize ?? 220,
                 background: 'color-mix(in srgb, var(--app-bg) 70%, transparent)',
                 border: '1px solid var(--app-border)',
+                // Without touch-action the browser takes a finger drag as page scroll and cancels the pointer.
+                touchAction: 'pan-x',
             }}
             onPointerDown={(e) => {
                 e.currentTarget.setPointerCapture(e.pointerId);
@@ -153,6 +155,7 @@ function BrightnessBar({ value, min, max, accent, maxSize, onChange, onCommit }:
                 if (e.buttons & 1) setFromPointer(e);
             }}
             onPointerUp={onCommit}
+            onPointerCancel={onCommit}
         >
             <div
                 className="absolute left-0 right-0 bottom-0 transition-[height] duration-75"
@@ -245,6 +248,7 @@ function ColorWheel({ hue, sat, style, maxSize, onChange, onCommit }: ColorWheel
                     style={{
                         background: `conic-gradient(from 0deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)`,
                         boxShadow: 'inset 0 0 0 1px var(--app-border)',
+                        touchAction: 'none',
                     }}
                     onPointerDown={(e) => {
                         e.currentTarget.setPointerCapture(e.pointerId);
@@ -254,6 +258,7 @@ function ColorWheel({ hue, sat, style, maxSize, onChange, onCommit }: ColorWheel
                         if (e.buttons & 1) setFromPointer(e);
                     }}
                     onPointerUp={onCommit}
+                    onPointerCancel={onCommit}
                 >
                     {style === 'disc' && (
                         <div
@@ -321,6 +326,7 @@ function CTSlider({ kelvin, min, max, maxSize, onChange, onCommit }: CTSliderPro
                 maxWidth: maxSize ?? 220,
                 background: `linear-gradient(to top, ${kelvinToHex(min)}, ${kelvinToHex((min + max) / 2)}, ${kelvinToHex(max)})`,
                 border: '1px solid var(--app-border)',
+                touchAction: 'pan-x',
             }}
             onPointerDown={(e) => {
                 e.currentTarget.setPointerCapture(e.pointerId);
@@ -330,6 +336,7 @@ function CTSlider({ kelvin, min, max, maxSize, onChange, onCommit }: CTSliderPro
                 if (e.buttons & 1) setFromPointer(e);
             }}
             onPointerUp={onCommit}
+            onPointerCancel={onCommit}
         >
             <div
                 className="absolute left-0 right-0 h-0.5 pointer-events-none"

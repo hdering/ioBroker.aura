@@ -1020,10 +1020,13 @@ function SliderCellView({
                 width: isVertical ? `${barSize}%` : '100%',
                 height: isVertical ? '100%' : `${barSize}%`,
                 background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+                // Without touch-action the browser takes a finger drag as page scroll and cancels the pointer.
+                touchAction: isVertical ? 'pan-x' : 'pan-y',
             }}
             onPointerDown={onBarPointerDown}
             onPointerMove={onBarPointerMove}
             onPointerUp={() => setPending(null)}
+            onPointerCancel={() => setPending(null)}
         >
             {isVertical ? (
                 <div
