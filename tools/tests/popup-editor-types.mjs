@@ -3,12 +3,13 @@
 //   AURA_IOBROKER_URL=http://127.0.0.1:9 npx vite --port 5199
 //   AURA_BASE=http://localhost:5199 node tools/tests/popup-editor-types.mjs
 //
-// The popup editor's "add" picker is derived from WIDGET_REGISTRY, so a new type shows
-// up by itself. This test holds that in place: every type of the generated widget
-// schema has to be offered, and every offered type has to land in the view and render
-// in the editor without an error. It also checks the toolbar wraps instead of pushing
-// the page sideways — a wide toolbar scrolled the canvas, and the widget just added
-// landed out of sight.
+// The popup editor adds widgets through the same "+ Neues Widget" dialog as a tab, and that
+// dialog is derived from DP_TEMPLATES + WIDGET_REGISTRY, so a new type shows up by itself.
+// This test holds that in place: every type of the generated widget schema has to be
+// offered, and every offered type has to land in the view (with {{dp}} prefilled) and
+// render in the editor without an error. It also checks the toolbar wraps instead of
+// pushing the page sideways — a wide toolbar scrolled the canvas, and the widget just
+// added landed out of sight.
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -41,19 +42,26 @@ const reset = () => page.evaluate((id) => window.__auraShot.popupViews([{ id, na
 await reset();
 await page.waitForTimeout(800);
 
-const picker = page
-    .locator('select')
-    .filter({ has: page.locator('option[value="value"]') })
-    .first();
-const offered = await picker.evaluate((el) => [...el.options].map((o) => o.value));
+const addBtn = page.getByRole('button', { name: 'Neues Widget', exact: true }).first();
+const dialogTile = (type) => page.locator(`[data-widget-type="${type}"]`).first();
+const closeDialog = async () => {
+    if (await page.locator('[data-widget-type]').count()) await page.keyboard.press('Escape');
+};
+
+await addBtn.click();
+await dialogTile('value').waitFor({ timeout: 10000 });
+const offered = await page.evaluate(() => [
+    ...new Set([...document.querySelectorAll('[data-widget-type]')].map((el) => el.dataset.widgetType)),
+]);
+await closeDialog();
+check('alte Typ-Auswahlliste ist weg', (await page.locator('select option[value="value"]').count()) === 0);
 
 // Deprecated types (registry `hidden`) stay out of every add picker on purpose.
 const missing = Object.entries(schema.widgets)
     .filter(([t, def]) => !def.deprecated && !offered.includes(t))
     .map(([t]) => t);
-check('jeder Schema-Typ steht in der Auswahl', missing.length === 0, missing.join(', '));
+check('jeder Schema-Typ steht im Dialog', missing.length === 0, missing.join(', '));
 
-const addBtn = page.getByRole('button', { name: 'Widget', exact: true }).first();
 const scrolledAside = () =>
     page.evaluate(() =>
         [...document.querySelectorAll('main, .aura-scroll')].some((n) => n.scrollWidth > n.clientWidth + 2),
@@ -65,9 +73,10 @@ for (const type of offered) {
     await reset();
     await page.waitForTimeout(150);
     pageErrors = [];
-    await picker.selectOption(type);
     await addBtn.click();
+    await dialogTile(type).dblclick();
     await page.waitForTimeout(500);
+    await closeDialog();
     const stored = await page.evaluate((id) => window.__auraShot.popupViewWidgets(id) ?? [], VIEW_ID);
     const shown = await page.evaluate((t) => {
         const el = document.querySelector(`.aura-widget-type-${t}`);
@@ -81,6 +90,7 @@ for (const type of offered) {
     const why = [];
     if (stored.length !== 1 || stored[0].type !== type)
         why.push(`gespeichert: ${JSON.stringify(stored.map((w) => w.type))}`);
+    if (type === 'value' && stored[0]?.datapoint !== '{{dp}}') why.push(`Datenpunkt: ${stored[0]?.datapoint}`);
     if (!shown) why.push('nicht gerendert');
     else if (!shown.visible) why.push('außerhalb des Sichtbereichs');
     else if (shown.unknown) why.push('unbekannter Typ');

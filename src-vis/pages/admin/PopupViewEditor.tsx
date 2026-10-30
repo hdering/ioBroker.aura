@@ -15,6 +15,7 @@ import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { WidgetFrame } from '../../components/layout/WidgetFrame';
 import { popupViewFillWidget } from '../../components/widgets/popup/TabEmbedBody';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
+import { ManualWidgetDialog } from '../../components/config/ManualWidgetDialog';
 import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
 import { BackgroundImageField } from '../../components/config/BackgroundImageField';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/common/BackgroundImageLayer';
@@ -31,9 +32,9 @@ import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { buildPopupSubMap, resolvePopupWidget } from '../../utils/popupPlaceholders';
 import { useDpNameVars } from '../../hooks/useDpNameVars';
 import { findPopupPreviewTriggers } from '../../utils/popupPreviewTriggers';
-import { WIDGET_REGISTRY, ALL_POPUP_PLACEHOLDER_KEYS } from '../../widgetRegistry';
+import { WIDGET_BY_TYPE, ALL_POPUP_PLACEHOLDER_KEYS } from '../../widgetRegistry';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
-import type { WidgetConfig, WidgetType } from '../../types';
+import type { WidgetConfig } from '../../types';
 
 const DEFAULT_MARGIN = 10;
 
@@ -101,12 +102,6 @@ const PLACEHOLDER_SCENARIOS: { value: string; field: string; result: string }[] 
 /** Option-based placeholders (everything beyond the core DP vars), listed as plain chips. */
 const OPTION_PLACEHOLDER_KEYS = ALL_POPUP_PLACEHOLDER_KEYS.filter((k) => !['dp', 'parent', 'name'].includes(k));
 
-/** Widget types for the "add" dropdown, sorted alphabetically by label so the list
- *  stays ordered automatically as new widgets are registered. */
-const SORTED_WIDGET_REGISTRY = WIDGET_REGISTRY.filter((m) => !m.hidden).sort((a, b) =>
-    a.label.localeCompare(b.label, 'de'),
-);
-
 export function PopupViewEditor() {
     const { viewId } = useParams<{ viewId: string }>();
     const navigate = useNavigate();
@@ -156,7 +151,7 @@ export function PopupViewEditor() {
 
     const cols = containerWidth > 0 ? Math.max(2, Math.floor((containerWidth - MARGIN) / (snapX + MARGIN))) : 12;
 
-    const [addType, setAddType] = useState<WidgetType>(SORTED_WIDGET_REGISTRY[0]?.type as WidgetType);
+    const [showAdd, setShowAdd] = useState(false);
     const [showPlaceholders, setShowPlaceholders] = useState(false);
     const [showImport, setShowImport] = useState(false);
 
@@ -242,18 +237,15 @@ export function PopupViewEditor() {
         });
     };
 
-    const handleAddWidget = () => {
-        const meta = WIDGET_REGISTRY.find((m) => m.type === addType);
-        const widget: WidgetConfig = {
-            id: `pw-${Date.now()}`,
-            type: addType,
-            title: '',
-            datapoint: '{{dp}}',
-            // The type's own default size, as on a tab — a fixed 6×4 squeezed large widgets (slideshow, charts).
-            gridPos: { x: 0, y: 9999, w: meta?.defaultW ?? 6, h: meta?.defaultH ?? 4 },
-            options: { ...(meta?.popupDefaults ?? {}) },
-        };
-        addWidgetToView(viewId, widget);
+    // Widgets come from the same "+ Neues Widget" dialog as on a tab, with {{dp}} prefilled.
+    // The type's popup placeholders (e.g. setpointDp: '{{dp}}') fill whatever the dialog left empty.
+    const handleAddWidget = (widget: WidgetConfig) => {
+        const meta = WIDGET_BY_TYPE[widget.type];
+        const options: Record<string, unknown> = { ...widget.options };
+        for (const [k, v] of Object.entries(meta?.popupDefaults ?? {})) {
+            if (options[k] === undefined || options[k] === '') options[k] = v;
+        }
+        addWidgetToView(viewId, { ...widget, id: `pw-${Date.now()}`, options });
     };
 
     return (
@@ -418,28 +410,12 @@ export function PopupViewEditor() {
                             }}
                         />
                     </label>
-                    <select
-                        value={addType}
-                        onChange={(e) => setAddType(e.target.value as WidgetType)}
-                        className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        {SORTED_WIDGET_REGISTRY.map((m) => (
-                            <option key={m.type} value={m.type}>
-                                {m.label}
-                            </option>
-                        ))}
-                    </select>
                     <button
-                        onClick={handleAddWidget}
+                        onClick={() => setShowAdd(true)}
                         className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
                         style={{ background: 'var(--accent)', color: '#fff' }}
                     >
-                        <Plus size={12} /> Widget
+                        <Plus size={12} /> Neues Widget
                     </button>
                     <button
                         onClick={() => setShowImport(true)}
@@ -724,6 +700,13 @@ export function PopupViewEditor() {
                         setShowPreviewPicker(false);
                     }}
                     onClose={() => setShowPreviewPicker(false)}
+                />
+            )}
+            {showAdd && (
+                <ManualWidgetDialog
+                    datapointDefault="{{dp}}"
+                    onAdd={handleAddWidget}
+                    onClose={() => setShowAdd(false)}
                 />
             )}
             {showImport && (
