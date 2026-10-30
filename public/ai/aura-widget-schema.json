@@ -10848,7 +10848,7 @@
       "hint": "Restzeit hh:mm:ss mit Start/Pause/Stopp und ±-Tasten — läuft im Adapter weiter und schaltet am Ende einen Datenpunkt; zeigt wahlweise die Restzeit eines fremden Datenpunkts (z. B. mytime)",
       "defaultSize": {
         "w": 6,
-        "h": 4
+        "h": 5
       },
       "layouts": [
         "default",
@@ -14511,7 +14511,7 @@
       "hint": "Zahlenwert als Tachonadel/Kreisbogen visualisieren",
       "defaultSize": {
         "w": 8,
-        "h": 5
+        "h": 7
       },
       "layouts": [
         "default"
@@ -15342,7 +15342,7 @@
       "hint": "HTTP GET/POST-Anfrage per Klick auslösen (z.B. Webhook)",
       "defaultSize": {
         "w": 8,
-        "h": 3
+        "h": 5
       },
       "layouts": [
         "default",
