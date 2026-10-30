@@ -329,8 +329,11 @@ await mount([
 await mount([distribution('dist-m', 0, { dayNav: true, dayNavDefault: true, rangeChips: ['1M', '3M=Quartal'] })]);
 {
     const text = await item(0).locator('[data-testid="echart-nav-date"]').innerText();
-    const now = new Date();
-    const from = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate() + 1);
+    // The window ends at tomorrow 00:00 and starts one month before, a day the previous month
+    // lacks clamped to its last day (chartNav.shiftBy): on 30.10. that is 30.09., not 01.10.
+    const end = new Date(midnight(-1));
+    const lastOfPrev = new Date(end.getFullYear(), end.getMonth(), 0).getDate();
+    const from = new Date(end.getFullYear(), end.getMonth() - 1, Math.min(end.getDate(), lastOfPrev));
     const p = (x) => String(x).padStart(2, '0');
     const want = `${p(from.getDate())}.${p(from.getMonth() + 1)}.`;
     check('1M chip: the window is a calendar month up to today', text.startsWith(want), `${text} (want ${want}…)`);
