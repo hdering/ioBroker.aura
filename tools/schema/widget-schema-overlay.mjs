@@ -296,9 +296,19 @@ function navNotes(k) {
             type: 'string',
             default: '',
             description:
-                'Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum — blättert man in einem, ' +
+                `Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum (nur das Datum: ${k.groupMode} "date") — blättert man in einem, ` +
                 'blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; ' +
                 `geräteübergreifend über ${k.dateDp}/${k.rangeDp}.`,
+        },
+        [k.groupMode]: {
+            type: 'string',
+            enum: ['all', 'date'],
+            default: 'all',
+            description:
+                `Was die Kopplungsgruppe (${k.group}) teilt: "all" (Standard) = Zeitraum-Chip und Datum, "date" = nur das ` +
+                'Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe ' +
+                '(z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ' +
+                'ein Diagramm mit "date" übernimmt keinen fremden Chip.',
         },
         [k.dateDp]: {
             description:
@@ -324,6 +334,7 @@ const PLAIN_NAV = {
     startOnCurrent: 'dayNavDefault',
     anchor: 'navAnchor',
     group: 'navGroup',
+    groupMode: 'navGroupMode',
     dateDp: 'navDateDp',
     rangeDp: 'navRangeDp',
     commandDp: 'navCommandDp',
@@ -1500,6 +1511,7 @@ export const WIDGET_OPTION_NOTES = {
             startOnCurrent: 'echartDayNavDefault',
             anchor: 'echartNavAnchor',
             group: 'echartNavGroup',
+            groupMode: 'echartNavGroupMode',
             dateDp: 'echartNavDateDp',
             rangeDp: 'echartNavRangeDp',
             commandDp: 'echartNavCommandDp',

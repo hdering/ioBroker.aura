@@ -127,6 +127,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
         startOnCurrent: o.dayNavDefault === true,
         anchor: o.navAnchor === 'start' ? 'start' : 'end',
         group: typeof o.navGroup === 'string' ? o.navGroup.trim() : '',
+        groupMode: o.navGroupMode === 'date' ? 'date' : 'all',
         dateDp: (o.navDateDp as string | undefined) ?? '',
         rangeDp: (o.navRangeDp as string | undefined) ?? '',
         commandDp: (o.navCommandDp as string | undefined) ?? '',

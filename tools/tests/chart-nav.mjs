@@ -226,6 +226,27 @@ await mount([chart('nav-g1', 0, { echartNavGroup: 'energie' }), chart('nav-g2', 
     );
 }
 
+// ── Link group sharing the date only: each chart keeps its own range ───────────────────────
+await mount([
+    chart('nav-d1', 0, { echartRange: '24h', echartNavGroup: 'wetter', echartNavGroupMode: 'date' }),
+    chart('nav-d2', 9, { echartRange: '7d', echartNavGroup: 'wetter', echartNavGroupMode: 'date' }),
+]);
+{
+    await click(0, '[data-testid="echart-nav-prev"]');
+    let a = await windowOf(0);
+    let b = await windowOf(1);
+    check('date only: chart 1 on yesterday', a?.[0] === midnight(1) && a?.[1] === midnight(0), fmtWin(a));
+    check('chart 2 pages along, keeping its week', b?.[0] === midnight(7) && b?.[1] === midnight(0), fmtWin(b));
+    await click(1, '[data-testid="echart-nav-prev"]');
+    a = await windowOf(0);
+    b = await windowOf(1);
+    check('a week back in chart 2', b?.[0] === midnight(14) && b?.[1] === midnight(7), fmtWin(b));
+    check('moves chart 1 to the day that week ends on', a?.[0] === midnight(8) && a?.[1] === midnight(7), fmtWin(a));
+    await click(0, chip('6 Std'));
+    b = await windowOf(1);
+    check('a chip in chart 1 leaves chart 2 its range', !!b && b[1] - b[0] >= 6 * 86_400_000, fmtWin(b));
+}
+
 // ── Datapoints: read on mount, written on use ──────────────────────────────────────────────
 await mount(
     [

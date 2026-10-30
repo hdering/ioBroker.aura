@@ -236,6 +236,75 @@ await mount(chart('fc-plain', { echartDayNav: true, echartRange: '24h' }));
     check('and ▶ stays off there', await item().locator(next).isDisabled());
 }
 
+// ── A measured series next to the forecast: own unit, third axis, nothing in a future window ──
+{
+    const RAIN = 'test.fc.rain';
+    const rain = forecast.filter(([ts]) => ts <= now0).map(([ts], i) => [ts, (i % 5) * 0.4]);
+    const w = chart('fc-mixed', {
+        echartDayNav: true,
+        echartRange: '24h',
+        echartNavAnchor: 'start',
+        echartNavFuture: 'data',
+        echartLeftUnit: '°C',
+        echartJsonExtra: JSON.stringify({
+            yAxis: [{ type: 'value' }, { type: 'value', show: false }, { type: 'value', position: 'right' }],
+        }),
+    });
+    w.options.echartSeries.push({
+        id: 's2',
+        name: 'Regen',
+        datapointId: RAIN,
+        chartType: 'line',
+        historyInstance: 'influxdb.0',
+        aggregate: 'none',
+        yAxisIndex: 2,
+        unit: 'mm',
+    });
+    await page.evaluate(
+        ({ widget, FC, RAIN, forecast, rain }) => {
+            const states = { [FC]: 12, [RAIN]: 0.4 };
+            window.__auraShot.mock(states);
+            window.__auraShot.mockServerState(states);
+            window.__auraShot.enableHistory(true);
+            window.__auraShot.mockHistory({ [FC]: forecast, [RAIN]: rain });
+            window.__auraShot.showWidgets([widget]);
+        },
+        { widget: w, FC, RAIN, forecast, rain },
+    );
+    await page.waitForFunction(() => document.querySelectorAll('[_echarts_instance_]').length >= 1, null, {
+        timeout: 20000,
+    });
+    await page.waitForTimeout(1200);
+    // Hover the plot: the rain row reads in its own unit, not in the left axis' °C.
+    const box = await item().locator('[_echarts_instance_]').boundingBox();
+    await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
+    await page.waitForTimeout(400);
+    const tip = await page.evaluate(
+        () =>
+            [...document.querySelectorAll('[_echarts_instance_] div')]
+                .map((d) => d.textContent ?? '')
+                .find((tx) => tx.includes('Regen')) ?? '',
+    );
+    check('the series unit wins in the tooltip', /Regen:\s*[\d,.]+\s*mm/.test(tip) && !/Regen:[^°]*°C/.test(tip), tip);
+    await page.mouse.move(5, 5);
+    // Two days ahead: the rain series has no point there.
+    await click(next);
+    await click(next);
+    const all = await page.evaluate(() => window.__auraShot.chartSeries());
+    const rainS = all?.find((x) => x.name === 'Regen');
+    check('a series without points in a future window draws no line', rainS?.points === 0, JSON.stringify(rainS?.ys));
+    const legend = (await page.evaluate(() => window.__auraShot.chartAxes(0)))?.legend;
+    const entry = legend?.data?.find((d) => d.name === 'Regen');
+    check('its legend entry stays, greyed out', !!entry && entry.itemStyle?.opacity < 1, JSON.stringify(entry));
+    await click('[data-testid="echart-nav-prev"]');
+    await click('[data-testid="echart-nav-prev"]');
+    await click('[data-testid="echart-nav-prev"]');
+    const back = (await page.evaluate(() => window.__auraShot.chartAxes(0)))?.legend?.data?.find(
+        (d) => d.name === 'Regen',
+    );
+    check('and comes back once the window has points', back?.itemStyle?.opacity === 1, JSON.stringify(back));
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

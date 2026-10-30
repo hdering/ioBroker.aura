@@ -67,6 +67,7 @@ Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeiche
 | `dayNavDefault`           | `false`  | Beim Laden auf den aktuellen Zeitraum stellen      |
 | `navAnchor`               | `end`    | Gewähltes Datum ist `end` = letzter Tag · `start` = erster Tag |
 | `navGroup`                | —        | Kopplungsgruppe, auch mit dem erweiterten Diagramm und der Verteilung |
+| `navGroupMode`            | `all`    | `date` = nur das Datum koppeln, jedes Diagramm behält seinen Zeitraum |
 | `navRangeDp`              | —        | Zeitraum-Datenpunkt, lesen + schreiben (`7d`, `1M` …) |
 | `navDateDp`               | —        | Datum-Datenpunkt, lesen + schreiben (`YYYY-MM-DD`, ms) |
 | `navCommandDp`            | —        | Befehls-Datenpunkt: `prev` · `next` · `today` · `now` |

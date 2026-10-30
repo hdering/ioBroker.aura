@@ -14,7 +14,7 @@
 /** The bits of a series config that decide whether and where it stacks, and how it is drawn. */
 export interface StackableSeries {
     stack?: boolean;
-    yAxisIndex?: 0 | 1;
+    yAxisIndex?: number;
     chartType?: 'line' | 'bar' | 'area' | 'scatter';
     lineWidth?: number;
     stackOutline?: boolean;

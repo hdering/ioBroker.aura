@@ -2241,6 +2241,8 @@ Stelle, an der ein Modell die Felder/Komponenten eines Widgets für das Raster s
 | --- | --- |
 | Kreismenü | Komponente `circle-menu` bei Thermostat, Rollladen, Auswahlfeld und Raumklima (`targetControl`); Preset von `layout: 'circle'` = diese Zelle (`customGridPresets/circle.ts`) |
 | Freies Kreismenü | Zelle `select` mit `selectDisplay: 'circle'`, optional `circleStep` + `min`/`max`; Rezept `zelle-kreismenue` |
-| Diagramm | Zellentyp `widget`: Spiegel eines Diagramm-Widgets über `embedWidgetId` (chart/echart/echartsPreset); Rendering über `EmbeddedWidget` (wie das Spiegel-Widget). Eigenes Diagramm in der Zelle wieder entfernt — zu viele Editor-Ebenen |
+| Diagramm | Zellentyp `widget`: Spiegel eines Diagramm-Widgets über `embedWidgetId` (chart/echart/echartsPreset) aus Tabs oder Popup-Ansichten (Popup = Vorlage, `{{dp}}` bleibt leer); Rendering über `EmbeddedWidget` (wie das Spiegel-Widget). Selbst-Spiegel und gegenseitige Spiegel zeigen einen Hinweis (`MirrorChainContext`), `aura_validate` warnt beim Selbst-Spiegel |
+| Eigenes Diagramm | echart im Layout `custom`: Komponente `chart` = die Diagrammfläche samt Chips und Blätterleiste, ohne Titel/Icon (`EChartWidget` rendert dafür `EChartBody` mit Layout default) |
+| Komponenten-Schlüssel | `utils/customGridComponents.ts` (Editor-Auswahl) → Schema `widgets.<typ>.customGridComponents` (+ Schlüssel aus `customFromLayout`); `aura_validate` warnt bei unbekanntem `componentKey` |
 | Raumklima | `targetControl`, `minTemp`/`maxTemp`/`step`/`presets`; Rezepte `raumklima-soll`, `geraet-mit-verlauf`; Metrik-Modifier `targetControl` |
 | Tests | `climate-setpoint.mjs`, `select-cell-circle.mjs`, `custom-cell-chart.mjs` (Browser), `custom-grid-presets-logic.mjs` |

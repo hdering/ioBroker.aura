@@ -137,11 +137,40 @@ function boundValue(v: boolean | number | string | null | undefined): number | u
     return undefined;
 }
 
-export function EChartWidget({ config, editMode }: WidgetProps) {
+/**
+ * The advanced chart. In layout "custom" the grid comes first and the chart is one of its
+ * components (`chart`): the plot with its range chips and paging bar, without title and icon —
+ * the grid places those itself, next to buttons and texts of its own.
+ */
+export function EChartWidget(props: WidgetProps) {
+    const { config } = props;
+    if ((config.layout ?? 'default') !== 'custom') return <EChartBody {...props} />;
+    const plot: WidgetProps['config'] = {
+        ...config,
+        layout: 'default',
+        options: { ...config.options, showTitle: false, showIcon: false },
+    };
+    return (
+        <CustomGridView
+            config={config}
+            value=""
+            extraComponents={{
+                chart: (
+                    <div
+                        className="aura-cell-chart w-full h-full min-w-0 min-h-0"
+                        style={{ position: 'relative', alignSelf: 'stretch' }}
+                    >
+                        <EChartBody {...props} config={plot} />
+                    </div>
+                ),
+            }}
+        />
+    );
+}
+
+function EChartBody({ config, editMode }: WidgetProps) {
     const { subscribe, getState, connected } = useIoBroker();
     const t = useT();
-
-    const layout = config.layout ?? 'default';
 
     const o = config.options ?? {};
     const showTitle = o.showTitle !== false;
@@ -261,6 +290,17 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? o.echartMode !== 'comparison';
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
+    /**
+     * Unit a series' numbers carry: its own `unit` first, then the one of its axis. An axis beyond
+     * the right one (`yAxisIndex` 2+, axes added through echartJsonExtra) has no unit of the widget
+     * — borrowing the left axis' "°C" for a rain series in mm would be wrong.
+     */
+    const unitFor = (s: EChartSeriesConfig | undefined, axisUnit?: string): string => {
+        if (s?.unit !== undefined) return s.unit;
+        if (axisUnit !== undefined) return axisUnit;
+        const axis = s?.yAxisIndex ?? 0;
+        return axis === 0 ? echartLeftUnit : axis === 1 ? echartRightUnit : '';
+    };
     const echartLeftMin = o.echartLeftMin as number | string | undefined;
     const echartLeftMax = o.echartLeftMax as number | string | undefined;
     const echartRightMin = o.echartRightMin as number | string | undefined;
@@ -489,6 +529,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         newest,
         current: navCurrent,
         group: typeof o.echartNavGroup === 'string' ? o.echartNavGroup.trim() : '',
+        groupMode: o.echartNavGroupMode === 'date' ? 'date' : 'all',
         dateDp: (o.echartNavDateDp as string | undefined) ?? '',
         rangeDp: (o.echartNavRangeDp as string | undefined) ?? '',
         commandDp: (o.echartNavCommandDp as string | undefined) ?? '',
@@ -662,8 +703,6 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
               }
             : undefined;
 
-    if (layout === 'custom') return <CustomGridView config={config} value="" />;
-
     const allLoading = echartSeries.length > 0 && echartSeries.every((s) => seriesDataMap.get(s.id)?.loading);
     // A JSON series fills `points`, never `data` — both count as "there is something to draw",
     // or a timeseries chart fed only by JSON payloads would claim to have no data (issue #595).
@@ -688,16 +727,22 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     //   • day mode: flat zero — the browsed day simply had nothing to log (e.g. no rain);
     //   • rolling range: flat at the current value — a change-logged datapoint that
     //     didn't change in the window has been constant at its live value the whole time.
+    // Either way the line stops at now: a series without records has nothing to say about the
+    // future, so a window lying wholly ahead (forecast paging) draws no line at all — a measured
+    // series would otherwise sit there as a flat 0 next to the forecast.
     const flatLineData = (current: number | null): [number, number][] => {
         const now = Date.now();
         if (dayWindow) {
+            const end = Math.min(dayWindow.end, now);
+            if (end <= dayWindow.start) return [];
             return [
                 [dayWindow.start, 0],
-                [futureOn ? dayWindow.end : Math.min(dayWindow.end, now), 0],
+                [end, 0],
             ];
         }
         const val = current ?? 0;
         if (leadWindow) {
+            if (now <= leadWindow.start) return [];
             return [
                 [leadWindow.start, val],
                 [now, val],
@@ -803,7 +848,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         const v = periodValues[idx];
         if (v === null) return null;
         const cfg = echartSeries[idx];
-        const unit = (cfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+        const unit = unitFor(cfg);
         return `${fmtSeries(v, cfg)}${unit ? ` ${unit}` : ''}`;
     };
     const periodInLegend = echartShowLegend && echartPeriodPlacement === 'legend';
@@ -936,7 +981,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         .map((s, idx) => ({
             value: seriesCurrent(idx, s.id),
             color: colorAt(idx),
-            unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+            unit: unitFor(s),
             // Kept around so the block can format each number the way its series asks for.
             series: s,
         }))
@@ -949,6 +994,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         const firstSeries = echartSeries[0];
         const gaugeValue = seriesCurrent(0, firstSeries?.id ?? '') ?? 0;
         const gaugeColor = colorAt(0);
+        const gaugeUnit = unitFor(firstSeries, echartLeftUnit);
 
         const gaugeOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
@@ -970,8 +1016,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     pointer: { show: true, length: '60%', width: 4 },
                     itemStyle: { color: gaugeColor },
                     detail: {
-                        formatter: (v: number) =>
-                            `${fmtSeries(v, firstSeries)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`,
+                        formatter: (v: number) => `${fmtSeries(v, firstSeries)}${gaugeUnit ? ` ${gaugeUnit}` : ''}`,
                         color: onCanvasText,
                         fontSize: 16,
                         offsetCenter: [0, '70%'],
@@ -1048,7 +1093,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             stack: 'comparison',
             itemStyle: { color: colorAt(idx) },
             data: values.map((v, i) => (i === idx ? v : null)),
-            label: valueLabel(echartLeftUnit, { series: s }),
+            label: valueLabel(unitFor(s, echartLeftUnit), { series: s }),
             labelLayout: valueLabelLayout,
         }));
         const compLegendNames = echartSeries.map((s) => s.name);
@@ -1073,7 +1118,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     if (!p) return '';
                     const dispVal =
                         typeof p.value === 'number' ? fmtSeries(p.value, echartSeries[p.seriesIndex]) : p.value;
-                    return `${p.marker} ${p.seriesName}: <b>${dispVal}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}</b>`;
+                    const unit = unitFor(echartSeries[p.seriesIndex], echartLeftUnit);
+                    return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? ` ${unit}` : ''}</b>`;
                 },
             },
             legend: echartShowLegend
@@ -1247,7 +1293,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 showSymbol: labelSymbols(s),
                 // Above a stacked bar sits the next segment, so its label moves into the bar; on a
                 // stacked line "inside" is the point itself, which is no better than "top".
-                label: valueLabel((s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit, {
+                label: valueLabel(unitFor(s), {
                     inside: !!s.stack && s.chartType === 'bar',
                     share: s.stack ? (i: number) => jsonShares[idx]?.[i] ?? null : undefined,
                     series: s,
@@ -1277,7 +1323,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 return {
                     value: tail,
                     color: colorAt(idx),
-                    unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+                    unit: unitFor(s),
                     series: s,
                 };
             })
@@ -1310,7 +1356,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     const shareOf = tooltipShare(rows);
                     const lines = rows.map((p) => {
                         const seriesCfg = echartSeries[p.seriesIndex];
-                        const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+                        const unit = unitFor(seriesCfg);
                         return `${p.marker} ${p.seriesName}: <b>${fmtWithUnit(
                             p.num as number,
                             seriesCfg,
@@ -1516,7 +1562,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             showSymbol: labelSymbols(s),
             // Above a stacked bar sits the next segment, so its label moves into the bar; on a
             // stacked line "inside" is the point itself, which is no better than "top".
-            label: valueLabel((s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit, {
+            label: valueLabel(unitFor(s), {
                 inside: !!s.stack && s.chartType === 'bar',
                 share: s.stack ? (i: number) => shares[idx]?.[i] ?? null : undefined,
                 series: s,
@@ -1531,6 +1577,20 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
     // Measured with the period values appended, or the grid would not clear a legend they wrap.
     const legendNames = seriesList.map((ser) => legendLabel(String(ser.name ?? '')));
+    // A series with no point in the window (a measured series on a pure forecast window) keeps its
+    // legend entry, greyed out — it is configured, it just has nothing here. Written always: the
+    // merging setOption would keep a greyed entry once the series has points again.
+    const legendData = seriesList
+        .map((ser, idx) => ({
+            name: String(ser.name ?? ''),
+            empty: (alignedData[idx]?.length ?? 0) === 0 && !seriesDataMap.get(echartSeries[idx]?.id ?? '')?.loading,
+        }))
+        .filter((e, i, all) => all.findIndex((x) => x.name === e.name) === i)
+        .map((e) =>
+            e.empty
+                ? { name: e.name, itemStyle: { opacity: 0.35 }, textStyle: { color: onCanvasMuted, opacity: 0.5 } }
+                : { name: e.name, itemStyle: { opacity: 1 }, textStyle: { color: onCanvasMuted, opacity: 1 } },
+        );
 
     const option: Record<string, unknown> = {
         backgroundColor: 'transparent',
@@ -1557,8 +1617,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 // reading "null" is noise, the series simply has nothing at this moment.
                 const shown = hasStack ? items.filter((p) => typeof p.value?.[1] === 'number') : items;
                 if (!shown.length) return '';
-                const unitOf = (idx: number) =>
-                    (echartSeries[idx]?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+                const unitOf = (idx: number) => unitFor(echartSeries[idx]);
                 const shareOf = tooltipShare(shown.map((p) => ({ seriesIndex: p.seriesIndex, num: p.value[1] })));
                 const lines = shown.map((p) => {
                     const unit = unitOf(p.seriesIndex);
@@ -1618,6 +1677,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                   show: true,
                   textStyle: { color: onCanvasMuted, fontSize: 11 },
                   top: LEGEND_TOP,
+                  data: legendData,
                   // Written as null when unused — setOption merges, an omitted key would keep the old one.
                   formatter: periodLegendTexts.size > 0 ? legendLabel : null,
               }

@@ -27,6 +27,7 @@ import { CircleMenu, type CircleMenuItem } from './CircleMenu';
 import { EmbeddedWidget } from './EmbeddedWidget';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { EMBED_MIRROR_TYPES } from '../../utils/embedCell';
+import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { HtmlSelect } from '../common/HtmlSelect';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, Minus, Plus, Send } from 'lucide-react';
@@ -2117,9 +2118,13 @@ function SelectCellView({
     );
 }
 
+/** Ids of the charts mirrored around this point — two charts mirroring each other would nest forever. */
+const MirrorChainContext = React.createContext<readonly string[]>([]);
+
 /**
  * A chart inside the cell (#838): a mirror of a chart widget of the dashboard
- * (`embedWidgetId`). The chart fills the cell.
+ * (`embedWidgetId`) — from a tab, or else from a popup view. The chart fills the cell.
+ * A popup chart is mirrored as its template: `{{dp}}` placeholders in it do not resolve.
  */
 function WidgetCellView({
     cell,
@@ -2146,7 +2151,18 @@ function WidgetCellView({
                 }
         return undefined;
     });
+    const popupSource = usePopupConfigStore((st) => {
+        if (!mirrorId || source) return undefined;
+        for (const v of st.views) {
+            const w = v.widgets.find((x) => x.id === mirrorId);
+            if (w) return { viewId: v.id, widget: w };
+        }
+        return undefined;
+    });
     const updateWidget = useDashboardStore((st) => st.updateWidget);
+    const updateWidgetInView = usePopupConfigStore((st) => st.updateWidgetInView);
+    const chain = React.useContext(MirrorChainContext);
+    const target = source ?? popupSource?.widget;
 
     const wrap: React.CSSProperties = { ...cellWrapStyle(cell, index, cols, rows), alignItems: 'stretch' };
     const notice = (text: string) => (
@@ -2161,19 +2177,27 @@ function WidgetCellView({
     );
 
     if (!mirrorId) return notice('Diagramm wählen');
-    if (mirrorId === host.id || !source) return notice('Diagramm nicht gefunden');
-    if (!EMBED_MIRROR_TYPES.has(source.type)) return notice('Kein Diagramm');
+    if (mirrorId === host.id) return notice('Ein Diagramm kann sich nicht selbst spiegeln');
+    if (chain.includes(mirrorId)) return notice('Diagramme spiegeln sich gegenseitig');
+    if (!target) return notice(`Diagramm ${mirrorId} nicht gefunden (gesucht in Tabs und Popup-Ansichten)`);
+    if (!EMBED_MIRROR_TYPES.has(target.type)) return notice('Kein Diagramm');
     return (
         <div className={`aura-custom-cell-${index}`} style={wrap}>
             <div className="aura-cell-chart w-full h-full min-w-0 min-h-0" style={{ position: 'relative' }}>
-                <EmbeddedWidget
-                    target={source}
-                    gridPos={host.gridPos}
-                    isolateHeader
-                    // The mirrored chart keeps its edits on the source.
-                    onOptionsChange={(options) => updateWidget(source.id, { options })}
-                    unknownType={notice(`Unbekannter Typ ${source.type}`)}
-                />
+                <MirrorChainContext.Provider value={[...chain, host.id, mirrorId]}>
+                    <EmbeddedWidget
+                        target={target}
+                        gridPos={host.gridPos}
+                        isolateHeader
+                        // The mirrored chart keeps its edits on the source.
+                        onOptionsChange={(options) =>
+                            popupSource && !source
+                                ? updateWidgetInView(popupSource.viewId, target.id, { options })
+                                : updateWidget(target.id, { options })
+                        }
+                        unknownType={notice(`Unbekannter Typ ${target.type}`)}
+                    />
+                </MirrorChainContext.Provider>
             </div>
         </div>
     );

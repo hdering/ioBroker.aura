@@ -48,7 +48,18 @@ export interface EChartSeriesConfig {
      * = the datapoint's own `common.states`, as long as the series is not converted (ƒx).
      */
     valueLabels?: string;
-    yAxisIndex?: 0 | 1;
+    /**
+     * Y axis the series is plotted against: 0 = left, 1 = right. 2 and up only work with further
+     * axes added through `echartJsonExtra` (a full `yAxis` array); such an axis has no widget unit,
+     * so the series wants its own `unit`.
+     */
+    yAxisIndex?: number;
+    /**
+     * Unit of this series' numbers in the tooltip, the value labels, the current-value block and the
+     * period value — wins over the unit of its axis (`echartLeftUnit`/`echartRightUnit`). Empty
+     * string = no unit at all. Unset = the axis unit.
+     */
+    unit?: string;
     lineWidth?: number;
     /**
      * Stack this series onto the other stacked series of its y axis (issue #541) — e.g. battery

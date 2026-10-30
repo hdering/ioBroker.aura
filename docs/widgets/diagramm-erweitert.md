@@ -132,6 +132,11 @@ Tacho-Anzeige des aktuellen Werts der ersten Serie (Widget-Layout `gauge`). Skal
 
 Frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
 
+| Zelle                                     | Inhalt                                                        |
+| ----------------------------------------- | ------------------------------------------------------------- |
+| Aktion / Icon → **Diagramm** (`chart`)   | die Diagrammfläche samt Zeitraum-Chips und Blättern, ohne Titel |
+| Diagramm (`widget`, `embedWidgetId`)     | ein anderes Diagramm-Widget aus einem Tab oder einer Popup-Ansicht |
+
 ## Einstellungen
 
 Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
@@ -172,7 +177,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].name`          | `Serie N`    | Name in Legende/Tooltip                                                                                                                                                                                            |
 | `echartSeries[].chartType`     | `line`       | `line` · `area` · `bar` · `scatter`                                                                                                                                                                                |
 | `echartSeries[].color`         | Palette      | Linien-/Balkenfarbe: `var(--accent-green)` wie überall sonst (das Widget löst das Token auf, bevor es ans Canvas geht — das Diagramm folgt also dem Theme) oder ein fester Wert wie `#eab308`. Ohne Angabe die nächste Farbe der Palette. |
-| `echartSeries[].yAxisIndex`    | `0`          | `0` = links, `1` = rechte Y-Achse                                                                                                                                                                                  |
+| `echartSeries[].yAxisIndex`    | `0`          | `0` = links, `1` = rechte Y-Achse; ab `2` nur mit eigenen Achsen in `echartJsonExtra` (vollständiges `yAxis`-Array)                                                                                                |
+| `echartSeries[].unit`          | —            | Einheit der Serie in Tooltip, Werten und Aktuell-Anzeige — vor der Einheit ihrer Achse; `""` = ohne Einheit                                                                                                         |
 | `echartSeries[].smooth`        | `true`       | geglättete Linie (nur Linie/Fläche)                                                                                                                                                                                |
 | `echartSeries[].step`          | boolescher DP: `true`, sonst `false` | Treppenkurve — jeder Wert gilt bis zum nächsten (nur Linie/Fläche, ersetzt `smooth`) |
 | `echartSeries[].valueLabels`   | `common.states` des DP | Texte statt Zahlen, z. B. `0=An; 1=Aus` — im Tooltip, an den Werten und im aktuellen Wert; an der Achse, wenn alle Serien darauf dieselben Texte haben. Leer = Texte aus `common.states` (nicht bei ƒx-Umrechnung) |
@@ -385,6 +391,7 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartDayNavDefault`    | `false`  | Beim Laden auf den aktuellen Zeitraum stellen (24 Std: heute 00:00–24:00)          |
 | `echartNavAnchor`        | `end`    | Gewähltes Datum ist `end` = letzter Tag des Fensters · `start` = erster Tag       |
 | `echartNavGroup`         | —        | Kopplungsgruppe: gleiche Namen blättern gemeinsam (im selben Browser)             |
+| `echartNavGroupMode`     | `all`    | `all` = Datum und Zeitraum-Chip gemeinsam · `date` = nur das Datum, jedes Diagramm behält seinen Zeitraum |
 | `echartNavRangeDp`       | —        | Zeitraum-Datenpunkt, lesen + schreiben: `6h` · `24h` · `7d` · `1M` · `total`    |
 | `echartNavDateDp`        | —        | Datum-Datenpunkt, lesen + schreiben: `YYYY-MM-DD`, ms, leer = bis jetzt           |
 | `echartNavCommandDp`     | —        | Befehls-Datenpunkt, nur lesen: `prev` · `next` · `today` · `now`                |

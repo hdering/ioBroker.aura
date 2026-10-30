@@ -154,6 +154,45 @@ check('forecast options outside the time series mode are a warning', () => {
     assert.ok(hasWarning(cmp, /echartNavFuture, rangeChips \(\+Vorlauf\) wirkt nur bei echartMode "timeseries"/));
 });
 
+check('custom grid: unknown component and self mirror are warnings', () => {
+    const chart = (cells) => ({
+        id: 'c-1',
+        type: 'echart',
+        title: 'Wetter',
+        layout: 'custom',
+        gridPos: { x: 0, y: 0, w: 8, h: 6 },
+        options: { customGrid: { cols: 1, rows: cells.length, cells } },
+    });
+    const ok = validateWidget(chart([{ type: 'title' }, { type: 'component', componentKey: 'chart' }]), schema);
+    assert.deepEqual(ok.warnings, []);
+    const typo = validateWidget(chart([{ type: 'component', componentKey: 'plot' }]), schema);
+    assert.ok(hasWarning(typo, /echart liefert keine Komponente "plot".*Bekannt: "chart"/));
+    const self = validateWidget(chart([{ type: 'widget', embedWidgetId: 'c-1' }]), schema);
+    assert.ok(hasWarning(self, /embedWidgetId ist das Widget selbst/));
+    // Runtime keys: own status symbols and the calendar's per-event components.
+    const climate = validateWidget(
+        {
+            id: 'k-1',
+            type: 'climate',
+            title: 'Bad',
+            layout: 'custom',
+            gridPos: { x: 0, y: 0, w: 4, h: 4 },
+            options: {
+                customGrid: {
+                    cols: 2,
+                    rows: 1,
+                    cells: [
+                        { type: 'component', componentKey: 'status-item:abc' },
+                        { type: 'component', componentKey: 'presets' },
+                    ],
+                },
+            },
+        },
+        schema,
+    );
+    assert.ok(!hasWarning(climate, /liefert keine Komponente/));
+});
+
 check('a wrong type on an option the widget DOES read stays an error', () => {
     const res = validateWidget({ ...OK_SWITCH, options: { showTitle: 'ja' } }, schema);
     assert.ok(hasError(res, /Option "showTitle": string übergeben, erwartet boolean/));

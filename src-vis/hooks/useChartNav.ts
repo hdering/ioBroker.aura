@@ -55,6 +55,11 @@ export interface ChartNavOptions {
     /** What ⇥ calls the current window. */
     current?: NavCurrent;
     group: string;
+    /**
+     * What the link group shares: `all` (default) = range chip and date, `date` = only the date —
+     * every chart keeps its own range and shows its window around the date the group stands on.
+     */
+    groupMode?: 'all' | 'date';
     dateDp: string;
     rangeDp: string;
     commandDp: string;
@@ -213,6 +218,17 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
     useEffect(() => {
         if (!groupState) return;
         const cur = now.current;
+        if (opts.groupMode === 'date') {
+            // Only the date: fit the group's reference point to this chart's own span — today's
+            // window stays today's window, an hour chart's day lands in a week chart's week.
+            const s = spanOf(cur.chip);
+            const r =
+                groupState.ref !== null && s
+                    ? switchRef(groupState.ref, spanOf(groupState.chip), s, anchor, Date.now(), lim())
+                    : groupState.ref;
+            if (r !== cur.ref) navigate(null, r, 'group');
+            return;
+        }
         if (groupState.chip === cur.chip && groupState.ref === cur.ref) return;
         const chip = parseRangeToken(groupState.chip);
         navigate(chip && chip.key !== cur.chip ? chip : null, groupState.ref, 'group');

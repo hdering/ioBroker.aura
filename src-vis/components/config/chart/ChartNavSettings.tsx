@@ -13,6 +13,7 @@ export interface ChartNavKeys {
     startOnCurrent: string;
     anchor: string;
     group: string;
+    groupMode: string;
     dateDp: string;
     rangeDp: string;
     commandDp: string;
@@ -28,6 +29,7 @@ export const PLAIN_NAV_KEYS: ChartNavKeys = {
     startOnCurrent: 'dayNavDefault',
     anchor: 'navAnchor',
     group: 'navGroup',
+    groupMode: 'navGroupMode',
     dateDp: 'navDateDp',
     rangeDp: 'navRangeDp',
     commandDp: 'navCommandDp',
@@ -39,6 +41,7 @@ export const ECHART_NAV_KEYS: ChartNavKeys = {
     startOnCurrent: 'echartDayNavDefault',
     anchor: 'echartNavAnchor',
     group: 'echartNavGroup',
+    groupMode: 'echartNavGroupMode',
     dateDp: 'echartNavDateDp',
     rangeDp: 'echartNavRangeDp',
     commandDp: 'echartNavCommandDp',
@@ -228,6 +231,28 @@ export function ChartNavSettings({
                 <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                     {t('echart.navGroupHint')}
                 </p>
+                <Unavailable reason={(str(keys.group) ?? '').trim() ? undefined : t('echart.navGroupModeNeedsGroup')}>
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.navGroupMode')}
+                        </span>
+                        <select
+                            value={o[keys.groupMode] === 'date' ? 'date' : 'all'}
+                            onChange={(e) => set({ [keys.groupMode]: e.target.value === 'date' ? 'date' : undefined })}
+                            className={`${inputCls} flex-1 min-w-0`}
+                            style={inputStyle}
+                            data-testid="chart-nav-group-mode"
+                        >
+                            <option value="all">{t('echart.navGroupModeAll')}</option>
+                            <option value="date">{t('echart.navGroupModeDate')}</option>
+                        </select>
+                    </div>
+                    <Hint>
+                        {o[keys.groupMode] === 'date'
+                            ? t('echart.navGroupModeDateHint')
+                            : t('echart.navGroupModeAllHint')}
+                    </Hint>
+                </Unavailable>
             </div>
             <p className="text-[11px] mt-3 mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>
                 {t('echart.navDpsTitle')}

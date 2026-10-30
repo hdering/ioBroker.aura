@@ -91,6 +91,7 @@ export interface EnergyBalanceOptions {
     navAnchor?: 'end' | 'start';
     /** Link group: charts with the same name share range and date. */
     navGroup?: string;
+    navGroupMode?: 'all' | 'date';
     /** Date datapoint (read + write). */
     navDateDp?: string;
     /** Range datapoint (read + write). */
@@ -262,6 +263,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
         startOnCurrent: o.dayNavDefault === true,
         anchor: o.navAnchor === 'start' ? 'start' : 'end',
         group: typeof o.navGroup === 'string' ? o.navGroup.trim() : '',
+        groupMode: o.navGroupMode === 'date' ? 'date' : 'all',
         dateDp: o.navDateDp ?? '',
         rangeDp: o.navRangeDp ?? '',
         commandDp: o.navCommandDp ?? '',

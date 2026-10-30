@@ -338,6 +338,24 @@ export function ChartSeriesDetail({
                         </div>
                     </div>
 
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.seriesUnit')}
+                        </label>
+                        <input
+                            type="text"
+                            value={s.unit ?? ''}
+                            onChange={(e) => update({ unit: e.target.value || undefined })}
+                            placeholder={t('echart.seriesUnitPlaceholder')}
+                            className={`${inputCls} w-full`}
+                            style={inputStyle}
+                            data-testid="echart-series-unit"
+                        />
+                        <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.seriesUnitHint')}
+                        </p>
+                    </div>
+
                     {s.chartType !== 'scatter' && (
                         <div>
                             <div className="flex items-center justify-between">

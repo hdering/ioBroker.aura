@@ -62,6 +62,7 @@ async function loadRegistry() {
             `export { WIDGET_REGISTRY, WIDGET_GROUPS, DEFAULT_CONDITION_SLOTS } from ${JSON.stringify(path.join(SRC, 'widgetRegistry').replace(/\\/g, '/'))};`,
             `export { getAvailableLayouts } from ${JSON.stringify(path.join(SRC, 'utils/widgetLayouts').replace(/\\/g, '/'))};`,
             `export { buildCustomGridFromLayout, customGridOptionPatch } from ${JSON.stringify(path.join(SRC, 'utils/customGridPresets').replace(/\\/g, '/'))};`,
+            `export { COMPONENT_OPTIONS } from ${JSON.stringify(path.join(SRC, 'utils/customGridComponents').replace(/\\/g, '/'))};`,
         ].join('\n'),
     );
 
@@ -114,6 +115,23 @@ function customFromLayout(reg, type) {
         customFromLayout: out,
         ...(Object.keys(patches).length ? { customFromLayoutOptions: patches } : {}),
     };
+}
+
+/**
+ * Every `componentKey` a component cell of the type's custom grid can name: the cell editor's
+ * choices plus whatever the editor's own grids use. aura_validate warns about any other key — such
+ * a cell stays empty without a word.
+ */
+function customGridComponents(reg, type, fromLayout) {
+    const keys = new Set((reg.COMPONENT_OPTIONS[type] ?? []).map((o) => o.key));
+    for (const grid of Object.values(fromLayout.customFromLayout ?? {})) {
+        for (const cell of grid.cells ?? []) {
+            if (cell?.type === 'component' && cell.componentKey) {
+                keys.add(cell.componentKey);
+            }
+        }
+    }
+    return keys.size ? { customGridComponents: [...keys].sort() } : {};
 }
 
 // ── 2. Type normalisation ─────────────────────────────────────────────────────
@@ -821,6 +839,7 @@ async function build() {
             defaultSize: { w: meta.defaultW, h: meta.defaultH },
             layouts: reg.getAvailableLayouts(type),
             ...customFromLayout(reg, type),
+            ...customGridComponents(reg, type, customFromLayout(reg, type)),
             conditionSlots: meta.conditionSlots ?? reg.DEFAULT_CONDITION_SLOTS,
             ...(meta.popupDefaults ? { popupOptionKeys: Object.keys(meta.popupDefaults) } : {}),
             commonOptions: common,
@@ -847,6 +866,8 @@ async function build() {
                 'For layout "custom", widgets.<type>.customFromLayout.<layout> (where present) is the grid the editor ' +
                     'builds from that fixed layout — start from it as options.customGrid and add or change rows; its ' +
                     'cells name the fields and components the widget provides.',
+                'widgets.<type>.customGridComponents lists every componentKey a cell of type "component" may name ' +
+                    '(plus "status-item:<id>" for own status symbols); any other key renders an empty cell.',
                 'An option marked "datapoint": true must be an existing ioBroker state id — never invent one.',
                 'Names referenced as "ref" are defined under types.',
                 'A missing "description" means the key is only documented by its name, type and default.',

@@ -7,7 +7,7 @@
 
 /** The bits of a series these rules read. */
 export interface AxisSeries {
-    yAxisIndex?: 0 | 1;
+    yAxisIndex?: number;
     stack?: boolean;
     chartType?: string;
     aggregate?: string;

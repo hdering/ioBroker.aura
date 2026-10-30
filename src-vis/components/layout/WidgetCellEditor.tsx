@@ -1,10 +1,12 @@
 /**
  * Editor of the custom grid's 'widget' cell (#838): picks an existing chart
- * widget of the dashboard and shows it here, its settings stay on that widget.
+ * widget of the dashboard — on a tab or in a popup view — and shows it here,
+ * its settings stay on that widget.
  */
 import { useMemo } from 'react';
 import type { CustomCell, WidgetConfig } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
+import { BUILTIN_VIEW_IDS, usePopupConfigStore } from '../../store/popupConfigStore';
 import { mirrorableCharts } from '../../utils/embedCell';
 import { useT } from '../../i18n';
 
@@ -28,6 +30,7 @@ export function WidgetCellEditor({
 }) {
     const t = useT();
     const layouts = useDashboardStore((s) => s.layouts);
+    const views = usePopupConfigStore((s) => s.views);
     const charts = useMemo(() => {
         const out: { w: WidgetConfig; where: string }[] = [];
         for (const l of layouts)
@@ -35,8 +38,11 @@ export function WidgetCellEditor({
                 for (const tab of sec.tabs)
                     for (const w of mirrorableCharts(tab.widgets, hostId))
                         out.push({ w, where: layouts.length > 1 ? `${l.name} › ${tab.name}` : tab.name });
+        // The built-in views are templates for any datapoint — nothing to mirror.
+        for (const v of views.filter((x) => !BUILTIN_VIEW_IDS.has(x.id)))
+            for (const w of mirrorableCharts(v.widgets, hostId)) out.push({ w, where: `Popup › ${v.name}` });
         return out;
-    }, [layouts, hostId]);
+    }, [layouts, views, hostId]);
 
     return (
         <div className="aura-widget-cell-editor">
@@ -59,7 +65,8 @@ export function WidgetCellEditor({
             <p className="text-[10px] mt-1" style={hint}>
                 {charts.length === 0
                     ? 'Im Dashboard gibt es noch kein Diagramm-Widget.'
-                    : 'Zeigt das Diagramm hier noch einmal; Änderungen daran gelten für das Original.'}
+                    : 'Zeigt das Diagramm hier noch einmal; Änderungen daran gelten für das Original. ' +
+                      'Ein Diagramm aus einem Popup wird als Vorlage gezeigt — {{dp}}-Platzhalter darin bleiben leer.'}
             </p>
         </div>
     );

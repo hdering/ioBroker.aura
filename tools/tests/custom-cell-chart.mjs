@@ -129,7 +129,10 @@ check(
     (await cellText()) ?? '',
 );
 await show([host({ type: 'widget', embedWidgetId: 'w-ccc-host' })]);
-check('mirror of the host itself is refused', ((await cellText()) ?? '').includes('nicht gefunden'));
+check(
+    'mirror of the host itself is refused and says why',
+    ((await cellText()) ?? '').includes('nicht selbst spiegeln'),
+);
 await show([host({ type: 'widget', embedWidgetId: 'nope' })]);
 check('missing source is named', ((await cellText()) ?? '').includes('nicht gefunden'));
 await show([
@@ -137,6 +140,77 @@ await show([
     { id: 'w-ccc-val', type: 'value', title: 'Wert', datapoint: 'demo.temp', gridPos: { x: 0, y: 7, w: 4, h: 2 } },
 ]);
 check('a non-chart source is refused', ((await cellText()) ?? '').includes('Kein Diagramm'));
+
+// A chart that lives in a popup view can be mirrored too.
+await page.evaluate(
+    ([src]) =>
+        window.__auraShot.popupViews([
+            {
+                id: 'pv-ccc',
+                name: 'Wetter',
+                widgets: [{ ...src, id: 'w-ccc-popup', gridPos: { x: 0, y: 0, w: 12, h: 6 } }],
+            },
+        ]),
+    [source],
+);
+await show([host({ type: 'widget', embedWidgetId: 'w-ccc-popup' })]);
+{
+    const b = await chartBox();
+    check('a chart from a popup view is mirrored', !!b && b.w > 100 && b.h > 60, JSON.stringify(b));
+}
+// Two charts mirroring each other end in a notice, not in endless nesting.
+const echartHost = (id, other) => ({
+    id,
+    type: 'echart',
+    title: id,
+    layout: 'custom',
+    gridPos: { x: 0, y: id.endsWith('a') ? 0 : 7, w: 14, h: 6 },
+    options: { ...CHART_OPTIONS, customGrid: { cols: 1, rows: 1, cells: [{ type: 'widget', embedWidgetId: other }] } },
+});
+await show([echartHost('w-ccc-a', 'w-ccc-b'), echartHost('w-ccc-b', 'w-ccc-a')]);
+check(
+    'mutual mirrors stop with a notice',
+    ((await page.locator('.aura-widget-w-ccc-a').textContent()) ?? '').includes('gegenseitig'),
+    (await page.locator('.aura-widget-w-ccc-a').textContent()) ?? '',
+);
+
+// ── The advanced chart's own plot as a component of its custom grid ──────────
+await show([
+    {
+        id: 'w-ccc-own',
+        type: 'echart',
+        title: 'Eigenes',
+        layout: 'custom',
+        gridPos: { x: 0, y: 0, w: 14, h: 7 },
+        options: {
+            ...CHART_OPTIONS,
+            customGrid: {
+                cols: 2,
+                rows: 2,
+                rowSizes: ['auto', '1fr'],
+                colSizes: ['1fr', 'auto'],
+                cells: [
+                    { type: 'title' },
+                    { type: 'text', text: 'RECHTS' },
+                    { type: 'component', componentKey: 'chart', colSpan: 2 },
+                ],
+            },
+        },
+    },
+]);
+{
+    const b = await page.evaluate(() => {
+        const cell = document.querySelector('.aura-widget-w-ccc-own .aura-custom-cell-2');
+        const el = cell?.querySelector('[_echarts_instance_]');
+        if (!cell || !el) return null;
+        const c = cell.getBoundingClientRect();
+        const r = el.getBoundingClientRect();
+        return { cw: c.width, ch: c.height, w: r.width, h: r.height, text: cell.textContent };
+    });
+    check('component "chart" draws the own plot in its cell', !!b && b.w >= b.cw * 0.8 && b.h > 80, JSON.stringify(b));
+    check('the plot carries no second title', !!b && !b.text.includes('Eigenes'), b?.text ?? '');
+}
+if (SHOT_DIR) await page.locator('.aura-widget-w-ccc-own').screenshot({ path: `${SHOT_DIR}/cell-chart-own.png` });
 
 // ── Editor ───────────────────────────────────────────────────────────────────
 await page.evaluate(() => window.__auraShot.unfoldSections());
@@ -169,9 +243,10 @@ check('cell type "Diagramm" is offered and set', (await opts()).customGrid.cells
 const optionValues = await dlg
     .locator('.aura-widget-cell-editor select option')
     .evaluateAll((els) => els.map((e) => e.value));
+// The popup view seeded above counts as well; the host itself never.
 check(
-    'mirror picker lists chart widgets only',
-    JSON.stringify(optionValues) === '["","w-ccc-source"]',
+    'mirror picker lists chart widgets only, popup views included',
+    JSON.stringify(optionValues) === '["","w-ccc-source","w-ccc-popup"]',
     JSON.stringify(optionValues),
 );
 await dlg.locator('.aura-widget-cell-editor select').selectOption('w-ccc-source');
