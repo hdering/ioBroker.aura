@@ -249,7 +249,8 @@ export function PopupViewEditor() {
             type: addType,
             title: '',
             datapoint: '{{dp}}',
-            gridPos: { x: 0, y: 9999, w: 6, h: 4 },
+            // The type's own default size, as on a tab — a fixed 6×4 squeezed large widgets (slideshow, charts).
+            gridPos: { x: 0, y: 9999, w: meta?.defaultW ?? 6, h: meta?.defaultH ?? 4 },
             options: { ...(meta?.popupDefaults ?? {}) },
         };
         addWidgetToView(viewId, widget);
@@ -260,7 +261,7 @@ export function PopupViewEditor() {
             <div className="flex flex-col h-full">
                 {/* Toolbar */}
                 <div
-                    className="flex items-center gap-3 px-4 py-3 shrink-0"
+                    className="flex flex-wrap items-center gap-3 px-4 py-3 shrink-0"
                     style={{ borderBottom: '1px solid var(--app-border)', background: 'var(--app-surface)' }}
                 >
                     <button
@@ -455,7 +456,7 @@ export function PopupViewEditor() {
 
                 {/* Preview datapoint — what {{dp}} resolves to while editing */}
                 <div
-                    className="flex items-center gap-2 px-4 py-2 shrink-0 text-[11px]"
+                    className="flex flex-wrap items-center gap-2 px-4 py-2 shrink-0 text-[11px]"
                     style={{
                         borderBottom: '1px solid var(--app-border)',
                         background: 'var(--app-surface)',

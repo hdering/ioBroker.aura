@@ -1047,3 +1047,20 @@ input[type='range']::-moz-range-thumb {
     flex-direction: column;
     gap: 4px;
 }
+
+/*
+ * Popup views render each widget in a WidgetFrame, like a tab (TabEmbedBody).
+ * Auto-height cell: the card fills its grid cell while the cell measures the
+ * content inside it. Edge to edge (fullscreen fill tab, #865): no card at all.
+ */
+[data-aura-auto-box='1'] > .aura-widget {
+    flex: 1 0 auto;
+    height: auto;
+}
+.aura-popup-bare > .aura-widget {
+    --aura-widget-pad: 0px !important;
+    padding: 0 !important;
+    border-width: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}

@@ -80,7 +80,8 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 const settle = () => page.waitForTimeout(350);
 const popups = () => page.locator('[data-aura-click-popup]').count();
-const cell = (id) => page.locator(`[data-aura-popup-widget="${id}"]`).last();
+// The card inside the cell: popup views render each widget in a WidgetFrame.
+const cell = (id) => page.locator(`[data-aura-popup-widget="${id}"] > .aura-widget`).last();
 const hash = () => page.evaluate(() => location.hash);
 
 async function start() {

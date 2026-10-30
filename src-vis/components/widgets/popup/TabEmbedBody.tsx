@@ -1,54 +1,23 @@
-import {
-    Suspense,
-    useCallback,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-    type CSSProperties,
-    type MouseEvent,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import { AlertTriangle } from 'lucide-react';
 import { DEFAULT_POPUP_PADDING, usePopupConfigStore } from '../../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../../hooks/useEffectiveSettings';
 import { useConditionStyle, type ConditionResult } from '../../../hooks/useConditionStyle';
 import { widgetSourceCtx } from '../../../utils/conditionSources';
-import { getWidgetMap } from '../widgetMap';
-import { useDualResolved } from '../../../hooks/useDualResolved';
-import { useColorBindings } from '../../../hooks/useColorBindings';
-import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import { ContentAutoHeightBlockedContext } from '../../../hooks/useContentAutoHeight';
 import { supportsAutoHeight } from '../../../utils/autoHeight';
 import { buildPopupSubMap, popupMainDp, resolvePopupWidget } from '../../../utils/popupPlaceholders';
 import { useDpNameVars } from '../../../hooks/useDpNameVars';
-import { useResolvedTitle } from '../DynamicTitle';
-import type { ClickAction, WidgetConfig, WidgetCondition } from '../../../types';
-import { useDashboardStore } from '../../../store/dashboardStore';
-import { useRunNavigationAction } from '../../../contexts/PopupLayerContext';
-import { isInteractiveTarget } from '../../../utils/interactiveTargets';
-import { WidgetClickPopup } from './WidgetClickPopup';
+import type { WidgetConfig, WidgetCondition } from '../../../types';
+import { WidgetFrame } from '../../layout/WidgetFrame';
 import { SharedTemplateContext } from '../../../contexts/RenderTransformContext';
-import { PROBE_SKIP_TYPES, ProbeBox, useIsProbe } from '../../../utils/probeContext';
 
 const DEFAULT_MARGIN = 10;
 
 // Stable empty reference so useConditionStyle doesn't re-subscribe every render.
 const NO_CONDITIONS: WidgetCondition[] = [];
-
-// Default verdict for a widget whose probe hasn't reported yet (visible).
-const EMPTY_COND: ConditionResult = {
-    cssVars: {},
-    set: {},
-    bold: false,
-    italic: false,
-    parts: {},
-    effect: null,
-    hidden: false,
-    reflow: false,
-    disabled: false,
-};
 
 /**
  * Build an `options` patch for persisting an in-popup widget edit (e.g. adding a
@@ -90,56 +59,6 @@ function mergedOptionsPatch(
 
 // ── Card styling ────────────────────────────────────────────────────────────────
 
-/** Widget types that carry their own chrome / fill their box, so the popup card
- *  wrapper must not add padding (mirrors WidgetFrame's isNoPad set). */
-const NO_PAD_TYPES = new Set(['header', 'group', 'devicecard', 'panels', 'iframe', 'map', 'echartsPreset']);
-
-/**
- * Card background/border/radius for a popup-view widget, mirroring WidgetFrame so
- * embedded widgets look identical to the dashboard. Popup views render bare widgets
- * (no WidgetFrame), so without this every widget would appear transparent regardless
- * of its own `transparent` option. A widget that opts into transparency keeps it.
- */
-function cardStyleFor(w: WidgetConfig, widgetPadding: number): CSSProperties {
-    const isTransparent = !!w.options?.transparent;
-    // Same as in WidgetFrame: content that bleeds into the card padding needs to
-    // know how much of it there actually is (see .aura-bleed-* in index.css).
-    const padVar = {
-        '--aura-widget-pad': `${NO_PAD_TYPES.has(w.type) ? 0 : widgetPadding}px`,
-    } as CSSProperties;
-    if (isTransparent) {
-        const strength = Math.max(0, Math.min(100, Number(w.options?.transparency ?? 100)));
-        return {
-            ...padVar,
-            background:
-                strength >= 100
-                    ? 'transparent'
-                    : `color-mix(in srgb, var(--widget-bg) ${100 - strength}%, transparent)`,
-        };
-    }
-    const isButton = w.type === 'button';
-    return {
-        ...padVar,
-        background: isButton ? 'var(--button-bg, var(--widget-bg))' : 'var(--widget-bg)',
-        borderRadius: 'var(--widget-radius)',
-        boxShadow: 'var(--widget-shadow)',
-        backdropFilter: 'var(--widget-backdrop)',
-        borderWidth: 'var(--widget-border-width)',
-        borderStyle: 'solid',
-        borderColor: isButton ? 'var(--button-border, var(--widget-border))' : 'var(--widget-border)',
-        padding: NO_PAD_TYPES.has(w.type) ? undefined : widgetPadding,
-    };
-}
-
-/** Card chrome removed for a widget that fills a fullscreen popup edge to edge (#865). */
-const BARE_CELL_STYLE = {
-    '--aura-widget-pad': '0px',
-    padding: 0,
-    borderWidth: 0,
-    borderRadius: 0,
-    boxShadow: 'none',
-} as CSSProperties;
-
 // ── Condition evaluation ──────────────────────────────────────────────────────
 
 /**
@@ -163,25 +82,48 @@ function ConditionProbe({ w, onResult }: { w: WidgetConfig; onResult: (id: strin
 
 // ── Per-widget cell ───────────────────────────────────────────────────────────
 
+const NO_REMOVE = () => undefined;
+
 /**
- * Renders one popup-view widget bare (no WidgetFrame). The condition verdict is
- * evaluated by ConditionProbe and passed in via `cond`, so this component only
- * applies the visual effect (style vars, pulse/blink, in-place hide). Reflow-hidden
- * widgets are removed from the grid by the parent, so this cell only ever sees the
- * in-place (non-reflow) hide case.
+ * Content height of a frame in auto-height mode, where the card is stretched to its
+ * grid cell: the bottom of its last in-flow child plus the card's own bottom padding
+ * and border. The card's own height would report the stretch instead.
+ */
+function naturalHeight(frame: HTMLElement): number {
+    const top = frame.getBoundingClientRect().top;
+    let bottom = top;
+    const visit = (el: Element) => {
+        for (const c of Array.from(el.children)) {
+            const cs = getComputedStyle(c);
+            if (cs.display === 'contents') {
+                visit(c);
+                continue;
+            }
+            if (cs.display === 'none' || cs.position === 'absolute' || cs.position === 'fixed') continue;
+            bottom = Math.max(bottom, c.getBoundingClientRect().bottom + (parseFloat(cs.marginBottom) || 0));
+        }
+    };
+    visit(frame);
+    const fs = getComputedStyle(frame);
+    return Math.ceil(bottom - top + (parseFloat(fs.paddingBottom) || 0) + (parseFloat(fs.borderBottomWidth) || 0));
+}
+
+/**
+ * Renders one popup-view widget in a WidgetFrame, exactly as on a tab: card, own
+ * title/icon look, header items, status row, conditions, style overrides and the
+ * click action all come from the frame, so a popup can no longer fall behind the
+ * tab (and matches the popup editor, which renders the same frame). Reflow-hidden
+ * widgets are removed from the grid by the parent (ConditionProbe); everything a
+ * condition does in place is the frame's.
  */
 function PopupWidgetCell({
     w,
-    cond,
-    widgetPadding,
     onConfigChange,
     autoHeight = false,
     onMeasure,
     bare = false,
 }: {
     w: WidgetConfig;
-    cond: ConditionResult;
-    widgetPadding: number;
     onConfigChange: (next: WidgetConfig) => void;
     /** Edge to edge: no card frame, corners, shadow or inner padding (fullscreen fill tab). */
     bare?: boolean;
@@ -190,133 +132,32 @@ function PopupWidgetCell({
     /** Reports the cell's natural (content-driven) pixel height so the parent can grow the grid row-count. */
     onMeasure?: (id: string, px: number) => void;
 }) {
-    const wm = getWidgetMap();
-    // A probe render of the popup (aura_rendered) must not start a camera stream or
-    // load a foreign page — same rule as WidgetFrame, which this cell bypasses.
-    const isProbe = useIsProbe();
-    const Widget = isProbe && PROBE_SKIP_TYPES.has(w.type) ? ProbeBox : wm[w.type as keyof typeof wm];
-    // A "reload widget" condition rule reaches popup-view widgets too — ConditionProbe
-    // evaluates them under the same widget id (issue #537).
-    const refreshNonce = useWidgetRefreshNonce(w.id);
-    // `[[dp]]` tokens in the title resolve here, at the render boundary, so every
-    // widget type gets them without wiring anything up itself. Edits are persisted
-    // against the pre-substitution original (see the caller), so the resolved value
-    // never leaks back into the stored view.
-    const resolvedTitle = useResolvedTitle(w.title);
-    // Light/dark colour pairs are collapsed here for the same reason: this cell
-    // renders the widget without a WidgetFrame, which is where that normally
-    // happens (#689).
-    const dualRendered = useDualResolved(resolvedTitle === w.title ? w : { ...w, title: resolvedTitle });
-    // Colours bound to a datapoint (#747) — after the pair, so a bound half works too.
-    const { value: rendered, restore: restoreColorBindings } = useColorBindings(dualRendered);
-
-    // Click action (issue #829). The bare cell has no WidgetFrame, which is where
-    // a widget's action normally runs, so it is handled here. Only an action set on
-    // the widget itself counts: the admin's per-type defaults would turn every
-    // dimmer inside the built-in dimmer popup into a trigger for that same popup.
-    const stored = rendered.options?.clickAction as ClickAction | undefined;
-    const clickAction = stored && stored.kind !== 'none' ? stored : null;
-    const runNavigation = useRunNavigationAction();
-    const [popupOpen, setPopupOpen] = useState(false);
-    const onCellClick = (e: MouseEvent) => {
-        if (!clickAction || cond.disabled) return;
-        // A nested popup's backdrop click bubbles back here through the React tree.
-        if (popupOpen) return;
-        if (isInteractiveTarget(e.target, e.currentTarget as HTMLElement)) return;
-        e.stopPropagation();
-        if (!runNavigation(clickAction)) setPopupOpen(true);
-    };
-
-    const effectClass =
-        cond.effect === 'pulse'
-            ? 'animate-pulse'
-            : cond.effect === 'blink'
-              ? 'animate-[blink_1s_step-end_infinite]'
-              : '';
-
-    // In auto-height mode, observe the content's natural height plus the cell's own padding
-    // and border, and report it up. The cell itself fills at least its grid slot, so it
-    // can't be measured: it would never report less than the slot and could not shrink
-    // back after growing. Kept off entirely otherwise so fixed-height cells carry no
-    // observer overhead.
     const cellRef = useRef<HTMLDivElement | null>(null);
-    const contentRef = useRef<HTMLDivElement | null>(null);
     useEffect(() => {
         if (!autoHeight || !onMeasure) return;
-        const cell = cellRef.current;
-        const content = contentRef.current;
-        if (!cell || !content) return;
-        const report = () => {
-            const cs = getComputedStyle(cell);
-            const chrome =
-                parseFloat(cs.paddingTop) +
-                parseFloat(cs.paddingBottom) +
-                parseFloat(cs.borderTopWidth) +
-                parseFloat(cs.borderBottomWidth);
-            onMeasure(w.id, Math.ceil(content.offsetHeight + (chrome || 0)));
-        };
+        const frame = cellRef.current?.querySelector<HTMLElement>(':scope > .aura-widget');
+        if (!frame) return;
+        const report = () => onMeasure(w.id, naturalHeight(frame));
         report();
+        // The card itself does not shrink below its cell, so watch what is inside it too.
         const ro = new ResizeObserver(report);
-        ro.observe(content);
+        ro.observe(frame);
+        for (const c of Array.from(frame.querySelectorAll(':scope > *, :scope > [style*="contents"] > *')))
+            ro.observe(c);
         return () => ro.disconnect();
     }, [autoHeight, onMeasure, w.id]);
 
     return (
         <div
             ref={cellRef}
-            className={`box-border ${autoHeight ? '' : 'h-full overflow-hidden'} ${effectClass}`}
-            style={{
-                // Auto height: fill the grid slot like in the editor and grow past it only
-                // when the content needs more, so loading steps inside the slot stay invisible.
-                ...(autoHeight ? { minHeight: '100%' } : {}),
-                ...cardStyleFor(w, widgetPadding),
-                ...(bare ? BARE_CELL_STYLE : {}),
-                ...cond.cssVars,
-                ...(clickAction && !cond.disabled ? { cursor: 'pointer' } : {}),
-                ...(cond.hidden ? { visibility: 'hidden', pointerEvents: 'none' } : {}),
-            }}
+            className={`box-border ${autoHeight ? 'flex flex-col' : 'h-full'} ${bare ? 'aura-popup-bare' : ''}`}
+            style={autoHeight ? { minHeight: '100%' } : undefined}
             data-aura-popup-widget={w.id}
-            // Read by utils/renderReport.ts when a probe measures the popup view.
             data-aura-widget-type={w.type}
             data-aura-widget-rows={w.gridPos.h ?? 3}
             data-aura-auto-box={autoHeight ? '1' : '0'}
-            onClick={onCellClick}
         >
-            {/* Wraps only the content so auto-height mode can measure it apart from the cell. */}
-            <div ref={contentRef} className={autoHeight ? 'flow-root' : 'h-full'}>
-                {Widget ? (
-                    <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                        <Widget
-                            key={`r${refreshNonce}`}
-                            config={rendered}
-                            editMode={false}
-                            onConfigChange={(next) => onConfigChange(restoreColorBindings(next, w))}
-                        />
-                    </Suspense>
-                ) : (
-                    <div
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs h-full"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        <AlertTriangle size={13} />
-                        Unbekannter Typ: {w.type}
-                    </div>
-                )}
-            </div>
-            {popupOpen && clickAction && (
-                <WidgetClickPopup
-                    widget={rendered}
-                    action={clickAction}
-                    onClose={() => setPopupOpen(false)}
-                    allWidgets={useDashboardStore
-                        .getState()
-                        .layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)))}
-                />
-            )}
+            <WidgetFrame config={w} editMode={false} onRemove={NO_REMOVE} onConfigChange={onConfigChange} />
         </div>
     );
 }
@@ -378,7 +219,6 @@ export function TabEmbedBody({
     const cellSize = settings.gridRowHeight ?? 60;
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 60;
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
-    const widgetPadding = settings.widgetPadding ?? 16;
 
     // Auto height: the popup dialog has no explicit pixel height, so content-driven
     // widgets grow the grid to fit their full content instead of scrolling in a fixed cell.
@@ -426,7 +266,11 @@ export function TabEmbedBody({
             roRef.current = null;
         }
         if (!el) return;
-        setContainerWidth(el.clientWidth);
+        // The content width, as the observer reports it below — clientWidth includes the
+        // padding, and the grid shrank by it one frame after mounting (a chart sized itself
+        // to the first, wider cell and kept that width).
+        const cs = getComputedStyle(el);
+        setContainerWidth(Math.floor(el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)));
         const ro = new ResizeObserver(([entry]) => {
             setContainerWidth(Math.floor(entry.contentRect.width));
         });
@@ -487,8 +331,6 @@ export function TabEmbedBody({
                         <ContentAutoHeightBlockedContext.Provider value={true}>
                             <PopupWidgetCell
                                 w={w}
-                                cond={conds[w.id] ?? EMPTY_COND}
-                                widgetPadding={widgetPadding}
                                 bare={edgeToEdge}
                                 onConfigChange={(next) => {
                                     const patch = mergedOptionsPatch(fillOrig, w, next);
@@ -593,8 +435,6 @@ export function TabEmbedBody({
                                         <ContentAutoHeightBlockedContext.Provider value={true}>
                                             <PopupWidgetCell
                                                 w={w}
-                                                cond={conds[w.id] ?? EMPTY_COND}
-                                                widgetPadding={widgetPadding}
                                                 autoHeight={cellAuto}
                                                 onMeasure={onMeasure}
                                                 onConfigChange={(next) => {

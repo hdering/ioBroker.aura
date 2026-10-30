@@ -1,17 +1,12 @@
-import { Suspense, useMemo } from 'react';
-import type { CSSProperties } from 'react';
+import { useCallback, useMemo } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
 import { getWidgetMap } from '../widgetMap';
 import { useDashboardStore } from '../../../store/dashboardStore';
 import { useConfigStore } from '../../../store/configStore';
-import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
-import { useResolvedTitle } from '../DynamicTitle';
 import { DEFAULT_POPUP_PADDING } from '../../../store/popupConfigStore';
-import { resolveDualDeep, restoreDualDeep } from '../../../utils/dualColor';
 import { stripRenderOverrides } from '../../../utils/conditionSet';
-import { useColorBindings } from '../../../hooks/useColorBindings';
-import { useIsDarkTheme } from '../../../contexts/BrightnessContext';
+import { WidgetFrame } from '../../layout/WidgetFrame';
 
 interface Props {
     widget: WidgetConfig;
@@ -23,6 +18,11 @@ interface Props {
     fill?: boolean;
 }
 
+/** An embedded widget is shown at least this large (its longer side, aspect kept). */
+const EMBED_MIN_PX = 500;
+
+const NO_REMOVE = () => undefined;
+
 export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_POPUP_PADDING, fill = false }: Props) {
     // By id, not updateWidget: the target may sit on any tab, not the store's active one (#731).
     const updateWidgetById = useDashboardStore((s) => s.updateWidgetById);
@@ -31,18 +31,33 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
     const gridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
     const targetId = action.widgetId;
     const target: WidgetConfig = targetId ? (allWidgets.find((w) => w.id === targetId) ?? widget) : widget;
-    // `[[dp]]` in the title resolves at every render boundary (same as WidgetFrame).
-    const resolvedTitle = useResolvedTitle(target.title);
-    // Follows the *source* widget's reload rules — this is the same widget, embedded.
-    // Read before the early returns below so the hook order stays stable (issue #537).
-    const refreshNonce = useWidgetRefreshNonce(target.id);
-    // Light/dark colour pairs (#689): the embed renders the widget without a
-    // WidgetFrame, which is where they are normally collapsed. Also read before
-    // the early returns, for the same hook-order reason.
-    const dark = useIsDarkTheme();
-    // Then the colours bound to a datapoint (#747), on the half that applies.
-    const dualTarget = useMemo(() => resolveDualDeep(target, dark), [target, dark]);
-    const { value: boundTarget, restore: restoreColorBindings } = useColorBindings(dualTarget);
+    // A widget whose click action shows itself would open the same popup again on
+    // every click inside it — that action is the popup the user is already looking at.
+    const shown = useMemo(() => {
+        const own = target.options?.clickAction as ClickAction | undefined;
+        if (own?.kind !== 'popup-widget' || (own.widgetId && own.widgetId !== target.id)) return target;
+        return { ...target, options: { ...target.options, clickAction: { kind: 'none' } as ClickAction } };
+    }, [target]);
+
+    // The frame hands back the config it was given with dual colours, colour bindings
+    // and render overrides already restored (#689, #747). Persist only options — the
+    // widget's real dashboard position must not change. The trigger may arrive resolved
+    // (device card, #845) — strip that against the stored widget so no `{{parent}}` is
+    // overwritten.
+    const persist = useCallback(
+        (next: WidgetConfig) => {
+            const stored = allWidgets.find((w) => w.id === target.id);
+            const restored =
+                shown === target
+                    ? next
+                    : { ...next, options: { ...next.options, clickAction: target.options?.clickAction } };
+            updateWidgetById(target.id, {
+                options: (stored && stored !== target ? stripRenderOverrides(restored, stored, target) : restored)
+                    .options,
+            });
+        },
+        [allWidgets, target, shown, updateWidgetById],
+    );
 
     if (targetId && !allWidgets.find((w) => w.id === targetId)) {
         return (
@@ -58,9 +73,7 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
     }
 
     const wm = getWidgetMap();
-    const Widget = wm[target.type as keyof typeof wm];
-
-    if (!Widget) {
+    if (!wm[target.type as keyof typeof wm]) {
         return (
             <div
                 className="flex flex-col items-center justify-center h-48 gap-2"
@@ -72,95 +85,49 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
         );
     }
 
-    const embedConfig: WidgetConfig = {
-        ...boundTarget,
-        title: resolvedTitle,
-        gridPos: { x: 0, y: 0, w: 6, h: 6 },
-    };
-
-    // Honour the click-action's configured popup size so the embedded widget fills
-    // the popup instead of collapsing to the 500px default. The outer popup shell
-    // (WidgetClickPopup) already clamps its own box to popupWidth/Height; we subtract
-    // a little chrome (scrollbar gutter + header) so no extra scrollbar appears.
-    const popupWidth = widget.options?.popupWidth as number | undefined;
-    const popupHeight = widget.options?.popupHeight as number | undefined;
-
-    // Without an explicit popup size, fall back to the target widget's own designed
-    // pixel size (grid columns/rows × dashboard pitch) instead of a flat 500px box.
-    // This keeps wide widgets — notably groups, whose column count is derived from
-    // the rendered width — from re-squeezing their children when no popupWidth is set.
-    // Small widgets still get the comfortable 500px minimum via max().
-    const EMBED_PAD = 2 * padding; // this box's own padding on both sides
-    const naturalW = target.gridPos.w * (cellSize + gridGap) - gridGap + EMBED_PAD;
-    const naturalH = target.gridPos.h * (cellSize + gridGap) - gridGap + EMBED_PAD;
-
-    // A widget that opts into transparency (e.g. a group used purely as a click-action
-    // container) must keep its transparent look inside the popup too. Without this the
-    // wrapper's opaque --widget-bg + border overrides it, unlike the dashboard/tab view
-    // (mirrors cardStyleFor in TabEmbedBody).
-    const isTransparent = !!target.options?.transparent;
-    const strength = isTransparent ? Math.max(0, Math.min(100, Number(target.options?.transparency ?? 100))) : 100;
-    const cardStyle: CSSProperties = isTransparent
-        ? {
-              background:
-                  strength >= 100
-                      ? 'transparent'
-                      : `color-mix(in srgb, var(--widget-bg) ${100 - strength}%, transparent)`,
-          }
-        : {
-              background: 'var(--widget-bg)',
-              borderRadius: 'var(--widget-radius)',
-              border: '1px solid var(--app-border)',
-          };
-
-    const persist = (next: WidgetConfig) => {
-        // Persist only options — embedConfig overrides gridPos for the
-        // popup layout, so writing the whole config back would clobber
-        // the widget's real dashboard position. restoreDualDeep puts
-        // the light/dark pairs back: the body spreads the RESOLVED
-        // config, so without it the other half would be lost (#689).
-        // The trigger may arrive resolved (device card, #845) — strip that
-        // against the stored widget so no `{{parent}}` gets overwritten.
-        const restored = restoreDualDeep(restoreColorBindings(next, target), target);
-        const stored = allWidgets.find((w) => w.id === target.id);
-        updateWidgetById(target.id, {
-            options: (stored && stored !== target ? stripRenderOverrides(restored, stored, target) : restored).options,
-        });
-    };
+    // The same WidgetFrame as on the tab: card, own title/icon look, header items,
+    // status row, conditions and style overrides all come with it.
+    const frame = <WidgetFrame config={shown} editMode={false} onRemove={NO_REMOVE} onConfigChange={persist} />;
 
     // Fullscreen (WidgetClickPopup only sets this for a widget without a content height):
     // the widget is the screen — no designed box, padding or card frame around it.
     if (fill) {
         return (
-            <div
-                className="w-full h-full overflow-auto"
-                style={{ background: isTransparent ? cardStyle.background : 'var(--widget-bg)' }}
-                data-aura-popup-fill=""
-            >
-                <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                    <Widget key={`r${refreshNonce}`} config={embedConfig} editMode={false} onConfigChange={persist} />
-                </Suspense>
+            <div className="w-full h-full overflow-auto aura-popup-bare" data-aura-popup-fill="">
+                {frame}
             </div>
         );
     }
 
+    // Honour the click-action's configured popup size so the embedded widget fills
+    // the popup. The outer popup shell (WidgetClickPopup) already clamps its own box to
+    // popupWidth/Height; we subtract a little chrome (scrollbar gutter + header) so no
+    // extra scrollbar appears.
+    const popupWidth = widget.options?.popupWidth as number | undefined;
+    const popupHeight = widget.options?.popupHeight as number | undefined;
+
+    // Without an explicit popup size: the widget's designed pixel size (grid columns/
+    // rows × dashboard pitch), scaled up — aspect kept — until its longer side reaches
+    // EMBED_MIN_PX. Forcing both sides to the minimum turned a wide, flat widget into a
+    // square and broke its layout (media player: the cover filled the box and pushed
+    // title and controls out of it).
+    const naturalW = target.gridPos.w * (cellSize + gridGap) - gridGap;
+    const naturalH = target.gridPos.h * (cellSize + gridGap) - gridGap;
+    const scale = Math.max(1, EMBED_MIN_PX / Math.max(naturalW, naturalH, 1));
+    const boxW = Math.round(naturalW * scale) + 2 * padding;
+    const boxH = Math.round(naturalH * scale) + 2 * padding;
+
     return (
         <div
+            className="box-border"
             style={{
-                width: popupWidth
-                    ? `min(calc(100vw - 40px), ${popupWidth - 24}px)`
-                    : `min(90vw, ${Math.max(500, naturalW)}px)`,
-                height: popupHeight
-                    ? `min(calc(85vh - 56px), ${popupHeight - 40}px)`
-                    : `min(85vh, ${Math.max(500, naturalH)}px)`,
+                width: popupWidth ? `min(calc(100vw - 40px), ${popupWidth - 24}px)` : `min(90vw, ${boxW}px)`,
+                height: popupHeight ? `min(calc(85vh - 56px), ${popupHeight - 40}px)` : `min(85vh, ${boxH}px)`,
                 padding,
                 overflow: 'auto',
-                ...cardStyle,
             }}
         >
-            <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                <Widget key={`r${refreshNonce}`} config={embedConfig} editMode={false} onConfigChange={persist} />
-            </Suspense>
+            {frame}
         </div>
     );
 }
