@@ -439,15 +439,37 @@ function rewriteHtml(html, baseUrl, base = '/') {
         `var rh=rw(h);` +
         `if(rh!==h){e.preventDefault();location.href=rh;}` +
         `},false);` +
-        `document.addEventListener('submit',function(e){` +
+        // Bubble phase on window: a single-page app (Angular, React …) that handles
+        // the submit itself has called preventDefault by now — leave it alone (#881).
+        // A GET submission replaces the action's query, which would drop `?url=`,
+        // so the target URL is assembled here and navigated to directly.
+        `window.addEventListener('submit',function(e){` +
+        `if(e.defaultPrevented)return;` +
         `var form=e.target;` +
         `if(!form||form.tagName!=='FORM')return;` +
+        `var sb=e.submitter||null;` +
+        `var meth=((sb&&sb.getAttribute('formmethod'))||form.getAttribute('method')||'get').toLowerCase();` +
+        `if(meth==='dialog')return;` +
         `var act=form.getAttribute('action')||'';` +
-        `if(act.indexOf(pp)===0)return;` +
         `var abs=form.action;` +
+        `if(act.indexOf(pp)===0){` +
+        `if(meth!=='get')return;` +
+        `abs=new URL(form.action).searchParams.get('url');` +
+        `if(!abs)return;` +
+        `}` +
+        `if(meth==='get'){` +
+        `var fd;try{fd=new FormData(form,sb);}catch(x){fd=new FormData(form);}` +
+        `var t=new URL(abs,location.href);` +
+        `t.search=new URLSearchParams(fd).toString();` +
+        `var dest=rw(t.toString());` +
+        `e.preventDefault();` +
+        `var tg=form.getAttribute('target');` +
+        `if(tg&&tg!=='_self')window.open(dest,tg);else location.href=dest;` +
+        `return;` +
+        `}` +
         `var rh=rw(abs);` +
         `if(rh!==abs){e.preventDefault();form.setAttribute('action',rh);form.submit();}` +
-        `},true);` +
+        `},false);` +
         `try{` +
         `function rwAttr(el,a){var v=el.getAttribute&&el.getAttribute(a);if(v){var r=rw(v);if(r!==v)el.setAttribute(a,r);}}` +
         `function rwTree(n){` +
