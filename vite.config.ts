@@ -328,6 +328,12 @@ const base = process.env.VITE_BASE ?? './';
 export default defineConfig({
   base,
   plugins: [react(), ioBrokerDevPlugin()],
+  // When this bundle was built. The package version stays the same between releases
+  // (a GitHub install of main is still 0.98.0), so it cannot tell an old bundle in a
+  // browser that never reloaded from the current one — the render report names both.
+  define: {
+    __AURA_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC'),
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,

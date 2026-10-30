@@ -14922,14 +14922,12 @@
         "fullscreenScreen",
         "fullscreenWidget",
         "headerItems",
-        "icon",
         "iconColor",
         "iconPlace",
         "iconSize",
         "lastChangeDatapoint",
         "lastChangePosition",
         "lastChangeSource",
-        "showIcon",
         "showLastChange",
         "showTitle",
         "styleOverride",
@@ -14947,10 +14945,19 @@
           "description": "Farbe des Strichs. Leer = --header-accent aus dem Theme.",
           "color": true
         },
+        "icon": {
+          "type": "string",
+          "description": "Symbol vor dem Titel (Lucide-Name, Iconify-ID oder iob:<adapter>/<pfad>). Leer = das Standardsymbol der Überschrift: „H2“ (lucide Heading2), in jedem Stil. Ohne Symbol: showIcon: false."
+        },
         "showAccent": {
           "type": "boolean",
           "default": true,
           "description": "Strich anzeigen: der Akzentbalken links (default, card, compact, framed) bzw. die Trennlinie rechts vom Titel (minimal). Im Stil default zeichnet ihn nur ein linksbündiger Titel."
+        },
+        "showIcon": {
+          "type": "boolean",
+          "default": true,
+          "description": "Symbol vor dem Titel zeigen. Ohne eigenes icon ist das „H2“ (Heading2) — false blendet es aus."
         },
         "showSubtitle": {
           "type": "boolean",

@@ -21,6 +21,7 @@
 import { sendToDirect } from '../hooks/useIoBroker';
 import { NS } from './namespace';
 import { useConnectionStore } from '../store/connectionStore';
+import { version as bundledVersion } from '../../package.json';
 
 export interface RenderedWidget {
     id: string;
@@ -345,6 +346,22 @@ export function reportSignature(report: RenderReport): string {
 }
 
 /**
+ * Which frontend measured. Reported from use: a browser that had the bundle from
+ * before the edge check still answered "nichts abgeschnitten" for a header spilling
+ * into the padding, and nothing in the answer said that this browser could not see
+ * it. The package version does not tell (it stays the same between releases), the
+ * build time does. `checks` is what this walk can see:
+ *   1 = scrolling and sideways truncation, 2 = also content in the padding or cut off
+ *   (edgePx / cutPx).
+ */
+export const RENDER_CHECKS = 2;
+const FRONTEND = {
+    version: bundledVersion,
+    build: typeof __AURA_BUILD__ !== 'undefined' ? __AURA_BUILD__ : '',
+    checks: RENDER_CHECKS,
+};
+
+/**
  * Fire-and-forget one report to the adapter.
  *
  * A tab that has not painted yet measures zero everywhere; since zero-height
@@ -357,5 +374,10 @@ export function sendRenderReport(report: RenderReport): void {
         return;
     }
     const { clientId, clientName } = useConnectionStore.getState();
-    void sendToDirect(NS, 'renderReport', { ...report, client: clientId, clientName, ts: Date.now() }, 10000);
+    void sendToDirect(
+        NS,
+        'renderReport',
+        { ...report, frontend: FRONTEND, client: clientId, clientName, ts: Date.now() },
+        10000,
+    );
 }

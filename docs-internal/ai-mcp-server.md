@@ -1083,6 +1083,12 @@ veraltet mit jedem CSS-Commit, und nichts sagt es. Der Weg jetzt:
    zu hoch ist, scrollt nicht und stand früher als „nichts abgeschnitten“ da. Absolut
    positionierte Ebenen (Status-Badges, Editor-Overlays), Scrollflächen-Inneres und
    verschachtelte Widgets zählen nicht; unter 4 px ist es Zeilenabstand, kein Befund.
+6. Jeder Bericht trägt `frontend: { version, build, checks }` (`RENDER_CHECKS` in
+   renderReport.ts, Build-Zeit aus `define.__AURA_BUILD__` in vite.config.ts). Die
+   package-Version bleibt zwischen Releases gleich, ein Browser mit altem Bundle lädt
+   deshalb nicht von selbst neu. Misst eine Oberfläche ohne Randprüfung (`checks` < 2),
+   sagt `aura_rendered` das je Tab und schreibt statt „nichts abgeschnitten“ nur „nichts
+   scrollt“; liegt die Schätzung über der Karte, gilt dort die Schätzung.
 
 ### Der Tab, den niemand offen hat
 

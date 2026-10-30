@@ -1090,6 +1090,18 @@ const MIN_MODIFIERS = {
             options: { showScale: true },
         },
     ],
+    // The dial layout has no title row (the title is in the scale), so header items
+    // on row 1 get a row of their own above it — measured in "dial", against "dial".
+    // The scale shrinks into whatever is left; the row takes ~24 px from it.
+    thermostat: [
+        {
+            key: 'dialHeaderRow',
+            label: 'Kopfzeile über der Skala (headerItems auf r1-* im Layout dial)',
+            layout: 'dial',
+            when: { path: 'headerItems[].slot', startsWith: 'r1-' },
+            options: { headerItems: [{ id: 'm-r1', source: 'text', text: '55 %', slot: 'r1-right' }] },
+        },
+    ],
     // The volume presets (25/50/75/100 %) are part of the measured baseline;
     // switching them off takes their row away again (#708) — a negative delta.
     mediaplayer: [
@@ -2100,23 +2112,44 @@ for (const type of Object.keys(schema.widgets)) {
         { ...HEADER_ROW2_MODIFIER, options: { headerItems: [HEADER_ROW2_ITEM] } },
     ]) {
         const opts = { ...(OPTIONS_FOR[type] ?? {}), ...mod.options };
-        const on = await requiredPx(type, { cols, options: opts });
-        const onHigh = await requiredPx(type, { cols, options: opts, fontScale: SCALE_HIGH });
+        // A modifier bound to one layout is measured in that layout, against that
+        // layout's own number without the option — not against the default layout.
+        const layoutOf = mod.layout ? { layout: mod.layout } : {};
+        let base = r.px;
+        let baseSlope = fontScalePx;
+        if (mod.layout) {
+            const b = await requiredPx(type, { cols, ...layoutOf, options: OPTIONS_FOR[type] ?? {} });
+            const bHigh = await requiredPx(type, {
+                cols,
+                ...layoutOf,
+                options: OPTIONS_FOR[type] ?? {},
+                fontScale: SCALE_HIGH,
+            });
+            if (b.error || bHigh.error) {
+                console.warn(`  ${type}/${mod.key}: ${b.error || bHigh.error}`);
+                continue;
+            }
+            base = b.px;
+            baseSlope = (bHigh.px - b.px) / SCALE_SPAN;
+        }
+        const on = await requiredPx(type, { cols, ...layoutOf, options: opts });
+        const onHigh = await requiredPx(type, { cols, ...layoutOf, options: opts, fontScale: SCALE_HIGH });
         if (on.error || onHigh.error) {
             console.warn(`  ${type}/${mod.key}: ${on.error || onHigh.error}`);
             continue;
         }
-        const addPx = on.px - r.px;
+        const addPx = on.px - base;
         // The extra row grows with the font scale too — its own slope, on top of
         // the type's. Denoised the same way: below a pixel over the measured span
         // it is fit noise, not a factor to plan with.
-        const addSlope = denoiseSlope((onHigh.px - on.px) / SCALE_SPAN - fontScalePx);
+        const addSlope = denoiseSlope((onHigh.px - on.px) / SCALE_SPAN - baseSlope);
         results[type].modifiers = [
             ...(results[type].modifiers || []),
             {
                 key: mod.key,
                 label: mod.label,
                 when: mod.when,
+                ...(mod.layout ? { layouts: [mod.layout] } : {}),
                 basePx: addPx,
                 ...(addSlope ? { fontScalePx: { basePx: addSlope } } : {}),
             },

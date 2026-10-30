@@ -2272,6 +2272,21 @@
       "atWidthPx": 200,
       "modifiers": [
         {
+          "key": "dialHeaderRow",
+          "label": "Kopfzeile über der Skala (headerItems auf r1-* im Layout dial)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r1-"
+          },
+          "layouts": [
+            "dial"
+          ],
+          "basePx": 24,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        },
+        {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
           "when": {

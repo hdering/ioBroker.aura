@@ -1909,6 +1909,31 @@ check('a header subtitle counts toward the height, and a long one wraps', () => 
     const old = measureWidget(header({ subtitle: 'Erdgeschoss' }), { metrics: metrics(null), grid: GRID });
     assert.match(old.basis, /Untertitel NICHT eingerechnet/);
 });
+check('the thermostat dial charges its own header row, other layouts do not', () => {
+    // The dial has no title row: header items on row 1 get a row above the scale,
+    // which takes ~24 px from it. In the default layout they sit in the title row.
+    const at = (layout, slot) =>
+        measureWidget(
+            {
+                id: 't',
+                type: 'thermostat',
+                title: 'Heizung',
+                datapoint: 'a.0.set',
+                layout,
+                gridPos: { x: 0, y: 0, w: 10, h: 8 },
+                options: { headerItems: [{ id: 'h1', source: 'dp', dp: 'a.0.hum', slot }] },
+            },
+            { metrics: METRICS, grid: GRID },
+        );
+    const plain = measureWidget(
+        { id: 't', type: 'thermostat', layout: 'dial', gridPos: { x: 0, y: 0, w: 10, h: 8 }, options: {} },
+        { metrics: METRICS, grid: GRID },
+    );
+    const dial = at('dial', 'r1-right');
+    assert.ok(dial.requiredPx > plain.requiredPx, 'the row above the scale is charged');
+    assert.match(dial.basis, /Kopfzeile über der Skala/);
+    assert.ok(!/Kopfzeile über der Skala/.test(at('default', 'r1-right').basis), 'not outside the dial');
+});
 check('a framed header is measured as the card it is, not as a bare heading', () => {
     // Reported from use: aura_measure answered „braucht 28 px, Minimum h=2“ for
     // every header — including `framed`, which is the one style that sits in a
@@ -5442,6 +5467,7 @@ adapter.states['info.rendered'] = JSON.stringify({
             gridWidth: 1270,
             presentation: { fontScale: 1.3, widgetPadding: 16 },
             grid: { rowHeight: 20, gap: 10, snapX: 20 },
+            frontend: { version: '0.98.0', build: '2026-10-30 16:40 UTC', checks: 2 },
             widgets: [{ id: 'stack-a', type: 'switch', rows: 8, px: 230, contentPx: 230, scrolls: false, clipX: 2 }],
         },
     },
@@ -7424,6 +7450,7 @@ const renderedOf = (widgets, extra) =>
                     grid: { rowHeight: 20, gap: 10, snapX: 20 },
                     widgets,
                     hidden: [],
+                    frontend: { version: '0.98.0', build: '2026-10-30 16:40 UTC', checks: 2 },
                     ...(extra || {}),
                 },
                 estimates: {
@@ -7435,6 +7462,47 @@ const renderedOf = (widgets, extra) =>
         ],
         { now: 2000 },
     );
+check('a bundle without the edge check never answers "nichts abgeschnitten"', () => {
+    // Reported from use: a framed header needing 70 px at 48 px, measured by a browser
+    // still running the old bundle, came back "Inhalt ≤ 48 px (nichts abgeschnitten)".
+    const run = (frontend) =>
+        renderRendered(
+            [
+                {
+                    report: {
+                        tabId: 't',
+                        tab: 'Heizung (neu)',
+                        ts: 1000,
+                        viewport: { w: 1280, h: 799 },
+                        presentation: { fontScale: 1.3, widgetPadding: 8 },
+                        grid: { rowHeight: 20, gap: 10, snapX: 20 },
+                        widgets: [
+                            { id: 'w-kh-header', type: 'header', rows: 2, px: 48, contentPx: 48, scrolls: false },
+                        ],
+                        hidden: [],
+                        ...(frontend ? { frontend } : {}),
+                    },
+                    estimates: { 'w-kh-header': { px: 70, cls: 'content', runtime: false, maxRows: 0 } },
+                    configured: [],
+                },
+            ],
+            { now: 2000 },
+        );
+    const old = run(null);
+    const line = old.split('\n').find((l) => l.startsWith('- w-kh-header'));
+    assert.ok(line && !/nichts abgeschnitten/.test(line), `an old bundle cannot prove that: ${line}`);
+    assert.match(old, /OHNE RANDPRÜFUNG/);
+    assert.match(old, /70 px Bedarf — 22 px mehr als die Karte hat.*h=3/);
+    assert.match(old, /Browser neu laden/);
+    const cur = run({ version: '0.98.0', build: '2026-10-30 17:05 UTC', checks: 2 });
+    assert.match(cur, /Gemessen von Oberfläche 0\.98\.0, Build 2026-10-30 17:05 UTC \(mit Randprüfung\)/);
+    const r = renderReportEntry({
+        tabId: 't',
+        frontend: { version: '0.98.0', build: '2026-10-30 17:05 UTC', checks: 2 },
+        widgets: [{ id: 'a', type: 'x', px: 1 }],
+    });
+    assert.deepEqual(r.entry.frontend, { version: '0.98.0', build: '2026-10-30 17:05 UTC', checks: 2 });
+});
 check('aura_rendered names the reserve and calls a runtime list a snapshot', () => {
     const out = renderedOf([
         { id: 'so', type: 'statusoverview', rows: 6, px: 170, contentPx: 170, scrolls: false, reservePx: 3 },

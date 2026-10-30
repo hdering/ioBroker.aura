@@ -344,6 +344,20 @@ export const WIDGET_OPTION_NOTES = {
     chart: {
         ...navNotes(PLAIN_NAV),
     },
+    // The shared wording says "Standard-Icon des Typs", which reads like "none" for a
+    // section title — reported from use as a surprise "H2" symbol.
+    header: {
+        icon: {
+            description:
+                'Symbol vor dem Titel (Lucide-Name, Iconify-ID oder iob:<adapter>/<pfad>). Leer = das ' +
+                'Standardsymbol der Überschrift: „H2“ (lucide Heading2), in jedem Stil. Ohne Symbol: ' +
+                'showIcon: false.',
+        },
+        showIcon: {
+            description:
+                'Symbol vor dem Titel zeigen. Ohne eigenes icon ist das „H2“ (Heading2) — false blendet es aus.',
+        },
+    },
     group: {
         autoShrink: {
             description:
@@ -2196,11 +2210,6 @@ export const EXTRA_OPTIONS = {
                 '{id;round(0)}, {{ a + b }} sowie die Kontextvariablen {view} / {wname} (siehe docs/widgets/bindings.md). ' +
                 'Das Widget hat keinen eigenen Datenpunkt, {dp} gibt es hier also nicht. Zählt zur Höhe: eine ' +
                 'Textzeile mehr, bei langem Text mehrere (aura_measure schätzt den Umbruch aus der Länge).',
-        },
-        icon: {
-            description:
-                'Symbol vor dem Titel. Leer = das Standardsymbol der Überschrift („H2“, lucide Heading2) — ' +
-                'ohne Symbol showIcon: false setzen.',
         },
         showAccent: {
             description:
