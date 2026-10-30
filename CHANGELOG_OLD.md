@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.83.1 (2026-10-16)
+- Icons whose name contains a number (e.g. trash, table, layers, bar chart) were requested under a wrong name, so they never showed and logged "icon cache — fetch failed" without internet access ([#787](https://github.com/hdering/ioBroker.aura/issues/787))
+- Messages - a message closed by a script (messages.dismiss) stayed open when another message was sent in the same moment, e.g. an error followed by its all-clear
+
 ## 0.83.0 (2026-10-15)
 - Web adapter extension - with socket.io, the web adapter's WebSocket listeners are no longer re-wired; Aura only adds its own for /aura/ ([#784](https://github.com/hdering/ioBroker.aura/issues/784))
 - 🌟 **New feature:** Timer - holiday and vacation days can be picked with a date picker in the frontend (special-days button next to the add-event button, labelled with the current or next special day) and are written to the holiday / vacation datapoint; flag datapoints are only shown ([#785](https://github.com/hdering/ioBroker.aura/issues/785))
