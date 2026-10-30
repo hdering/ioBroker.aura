@@ -9,3 +9,4 @@
 - Advanced chart - optional label at the now line (e.g. "now {HH:mm}"), at the top or bottom of the line
 - Advanced chart - short explanations under the paging and forecast settings in the editor
 - Dimmer, slider, light and input bar sliders can be dragged with a finger again on phones and tablets; the dimmer shows the percentage while dragging in every layout
+- Charts - paging bar: the date now sits before the arrows, so ‹ › no longer move away from under the pointer while paging

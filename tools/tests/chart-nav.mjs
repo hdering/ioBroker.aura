@@ -146,6 +146,25 @@ await mount([chart('nav-a', 0)]);
     );
 }
 
+// ── The arrows stay put: the date button does not change its width while paging ────────────
+// The bar sits on the right; a date button that widens on the first ◀ (rolling → a window) or
+// shrinks with a shorter weekday moved ◀ ▶ away from under the pointer.
+for (const range of ['24 Std', '7 Tage', '6 Std']) {
+    await mount([chart('nav-steady', 0)]);
+    await click(0, chip(range));
+    const xs = async () =>
+        item(0)
+            .locator('[data-testid="echart-nav-prev"], [data-testid="echart-nav-next"]')
+            .evaluateAll((els) => els.map((el) => Math.round(el.getBoundingClientRect().x)));
+    const seen = [await xs()];
+    for (const sel of ['prev', 'prev', 'prev', 'next', 'prev', 'prev', 'prev', 'prev']) {
+        await click(0, `[data-testid="echart-nav-${sel}"]`);
+        seen.push(await xs());
+    }
+    const moved = seen.some((p) => p[0] !== seen[0][0] || p[1] !== seen[0][1]);
+    check(`${range}: ◀ ▶ stay in place while paging`, !moved, JSON.stringify(seen));
+}
+
 // ── Anchor "start": a picked day starts the window ─────────────────────────────────────────
 await mount([chart('nav-start', 0, { echartNavAnchor: 'start', echartRange: '7d' })]);
 {

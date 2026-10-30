@@ -1,8 +1,8 @@
 /**
- * Paging bar of the chart widgets (issue #871): ‹ › step by the active chip, ⇥ jumps to the current
- * window (lit there; a second click returns to the rolling range), the date button shows the window
- * and opens the browser's date picker. `Gesamt` has no window to page through, so the controls grey
- * out rather than disappear. State and logic: hooks/useChartNav.
+ * Paging bar of the chart widgets (issue #871): the date button shows the window and opens the
+ * browser's date picker, ‹ › step by the active chip, ⇥ jumps to the current window (lit there; a
+ * second click returns to the rolling range). `Gesamt` has no window to page through, so the controls
+ * grey out rather than disappear. State and logic: hooks/useChartNav.
  */
 import { useRef } from 'react';
 import { ArrowRightToLine, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -54,6 +54,34 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
             data-testid="echart-nav"
             title={off ? t('echart.navTotalHint') : undefined}
         >
+            {/* The date comes first: the bar sits on the right, so a caption that changes its width
+                (none while rolling, then "Mi 29.10.", then "Di 28.10.") grows to the left and the
+                arrows stay under the pointer. It is the picker's trigger — a field of its own would
+                not fit the header on a narrow widget. The input has to stay rendered for
+                showPicker(), so it is collapsed rather than hidden, and sits under its button. */}
+            <span className="relative inline-flex items-center mr-1">
+                <input
+                    ref={inputRef}
+                    type="date"
+                    className="nodrag absolute bottom-0 left-0 w-0 h-0 p-0 border-0 opacity-0 pointer-events-none"
+                    tabIndex={-1}
+                    aria-hidden
+                    value={nav.window && nav.ref !== null ? isoDay(dayOfRef(nav.ref, nav.anchor)) : ''}
+                    max={Number.isFinite(nav.horizon) ? isoDay(nav.horizon) : undefined}
+                    onChange={(e) => nav.pickDay(e.target.value)}
+                />
+                <button
+                    className={`${btnCls} flex items-center gap-1 whitespace-nowrap`}
+                    style={btnStyle(false)}
+                    title={t('echart.dayPickTitle')}
+                    disabled={off}
+                    data-testid="echart-nav-date"
+                    onClick={() => openNativePicker(inputRef.current)}
+                >
+                    <CalendarDays size={12} />
+                    {label}
+                </button>
+            </span>
             <button
                 className={btnCls}
                 style={btnStyle(false)}
@@ -90,32 +118,6 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
             >
                 <ArrowRightToLine size={12} />
             </button>
-            {/* The date is the picker's trigger — a field of its own would not fit the header on
-                a narrow widget. The input has to stay rendered for showPicker(), so it is
-                collapsed rather than hidden, and sits under the button it belongs to. */}
-            <span className="relative inline-flex items-center ml-1">
-                <input
-                    ref={inputRef}
-                    type="date"
-                    className="nodrag absolute bottom-0 left-0 w-0 h-0 p-0 border-0 opacity-0 pointer-events-none"
-                    tabIndex={-1}
-                    aria-hidden
-                    value={nav.window && nav.ref !== null ? isoDay(dayOfRef(nav.ref, nav.anchor)) : ''}
-                    max={Number.isFinite(nav.horizon) ? isoDay(nav.horizon) : undefined}
-                    onChange={(e) => nav.pickDay(e.target.value)}
-                />
-                <button
-                    className={`${btnCls} flex items-center gap-1 whitespace-nowrap`}
-                    style={btnStyle(false)}
-                    title={t('echart.dayPickTitle')}
-                    disabled={off}
-                    data-testid="echart-nav-date"
-                    onClick={() => openNativePicker(inputRef.current)}
-                >
-                    <CalendarDays size={12} />
-                    {label}
-                </button>
-            </span>
         </div>
     );
 }
