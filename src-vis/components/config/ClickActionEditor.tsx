@@ -386,7 +386,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                                 <Database size={13} />
                             </button>
                         </div>
-                        <ImagePathHint className="mt-1.5" />
+                        <ImagePathHint className="mt-1.5" values={[action.url]} />
                     </div>
                     <div>
                         <label className={labelCls} style={labelStyle}>

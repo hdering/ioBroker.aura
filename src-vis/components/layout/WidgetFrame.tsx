@@ -11922,7 +11922,7 @@ function WidgetFrameInner({
                                                                 onChange={(v) => set({ [optKey]: v })}
                                                             />
                                                         ))}
-                                                        <ImagePathHint />
+                                                        <ImagePathHint values={[o.onImage, o.offImage]} />
                                                         <div>
                                                             <div className="flex items-center justify-between mb-1">
                                                                 <label
@@ -14118,7 +14118,7 @@ function WidgetFrameInner({
                                                             <Database size={13} />
                                                         </button>
                                                     </div>
-                                                    <ImagePathHint className="mt-1.5" />
+                                                    <ImagePathHint className="mt-1.5" values={[imageUrl]} />
                                                 </div>
                                                 {((imageUrl && !imageUrl.startsWith('data:')) ||
                                                     !!o.imageDatapoint) && (
@@ -18791,7 +18791,7 @@ function WidgetFrameInner({
                                                                 }}
                                                             />
                                                         )}
-                                                        <ImagePathHint />
+                                                        <ImagePathHint values={[currentBase64]} />
 
                                                         {currentBase64 && (
                                                             <div className="flex items-center gap-2">
@@ -19163,7 +19163,7 @@ function WidgetFrameInner({
                                                                 }}
                                                             />
                                                         )}
-                                                        <ImagePathHint />
+                                                        <ImagePathHint values={[currentBase64]} />
 
                                                         {currentBase64 && (
                                                             <div className="flex items-center gap-2">

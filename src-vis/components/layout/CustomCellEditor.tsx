@@ -696,7 +696,7 @@ export function CustomCellEditor({
                                 Logos ohne externen Server. Bei gesetztem Datenpunkt dient dies als Fallback.
                             </p>
                         )}
-                        <ImagePathHint className="mt-1.5" />
+                        <ImagePathHint className="mt-1.5" values={[cell.imageUrl]} />
                     </div>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -1268,7 +1268,7 @@ export function CustomCellEditor({
                                             placeholder={slot === 'falseImage' ? 'leer = wie AN' : undefined}
                                         />
                                     ))}
-                                    <ImagePathHint />
+                                    <ImagePathHint values={[cell.trueImage, cell.falseImage]} />
                                     <div>
                                         <div className="flex items-center justify-between mb-1">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

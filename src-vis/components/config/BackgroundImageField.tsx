@@ -121,7 +121,7 @@ export function BackgroundImageField({ value, onChange, label, inheritLabel }: P
             {building && <BgPaintBuilder value={src} onChange={(css) => patch({ src: css })} />}
             {!active && !building && (
                 <>
-                    <ImagePathHint />
+                    <ImagePathHint values={[src]} />
                     <p className="text-[10px] leading-snug" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                         {t('bgImage.cssHint')}
                     </p>

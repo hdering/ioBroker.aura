@@ -505,7 +505,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                             </div>
                                         );
                                     })}
-                                    <ImagePathHint />
+                                    <ImagePathHint values={[entry.onImage, entry.offImage]} />
                                     <p
                                         className="text-[9px] leading-tight"
                                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
@@ -1676,7 +1676,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                         : 'Noch keine Werte. „Hinzufügen“ für eine Taste.'}
                                 </p>
                             )}
-                            <ImagePathHint />
+                            <ImagePathHint values={presets.map((p) => p.image)} />
                         </>
                     )}
                 </div>
@@ -1921,7 +1921,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                         Ohne Vergleich gilt Gleichheit. Mit Vergleich wird die Zeile zum Bereich (z. B. ≥ 30) — die
                         erste passende Zeile gewinnt, also von eng nach weit sortieren.
                     </p>
-                    <ImagePathHint />
+                    <ImagePathHint values={stateMaps.map((s) => s.image)} />
                     {stateMaps.length === 0 && (
                         <p className="text-[9px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
                             {'z.B. Drehgriffkontakt: 0 → Geschlossen, 1 → Gekippt, 2 → Offen'}

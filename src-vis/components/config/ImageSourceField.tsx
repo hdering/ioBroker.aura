@@ -57,7 +57,7 @@ export function ImageSourceField({ label, value, onChange, placeholder }: Props)
                     onClick={() => fileRef.current?.click()}
                     className={iconBtnCls}
                     style={{ ...fieldStyle, color: 'var(--text-secondary)' }}
-                    title="Bild vom PC hochladen (wird als Base64 gespeichert)"
+                    title="Bild vom PC hochladen (wird als Base64 in der Konfiguration gespeichert – große Bilder lieber als Datei vom Server)"
                 >
                     <Upload size={13} />
                 </button>
