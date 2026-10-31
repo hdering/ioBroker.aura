@@ -64,6 +64,10 @@ export function NameDisplayFields({
                 {'{{parent2}}'} (eine Ebene höher) / {'{{dp}}'} / {'{{name}}'} setzen die ID der Zeile ein. Beispiel:{' '}
                 {'„[[{{parent}}.DeviceName]]“'}.
             </p>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                Objektnamen: {'{{dpname}}'} = Name des Datenpunkts, {'{{parentname}}'} / {'{{parent2name}}'} … = Name
+                des Kanals bzw. Geräts darüber. Beispiel: {'„{{parent2name}} – {{dpname}}“'}.
+            </p>
             {inline ? (
                 <div className="mt-3">
                     <Suspense

@@ -575,6 +575,8 @@ Dialog **Datenpunkte verwalten** → Tab **Namen**. Ein Muster für alle Zeilen;
 | `<Name>`                             | vollständiger Name                                                                                          |
 | `<ID>`                               | vollständige Datenpunkt-ID                                                                                  |
 | `{{parent}}` · `{{parent2}}` · `{{dp}}` · `{{name}}` | ID-Bausteine der Zeile, wie in der [zweiten Zeile](./dynamische-liste#zweite-zeile-zusatzliche-datenpunkte) |
+| `{{dpname}}`                         | `common.name` des Datenpunkts                                                                               |
+| `{{parentname}}` · `{{parent2name}}` … | `common.name` von `{{parent}}` · `{{parent2}}` …, z. B. Kanal- bzw. Gerätename                            |
 | `[[id]]`                             | **Wert** dieses Datenpunkts, live                                                                           |
 
 Steht der Anzeigename in einem eigenen Datenpunkt, kombiniert man beides:
@@ -584,6 +586,7 @@ Steht der Anzeigename in einem eigenen Datenpunkt, kombiniert man beides:
 | `[[{{parent}}.DeviceName]]`           | Wert des Nachbar-Datenpunkts `DeviceName` je Zeile |
 | `Steckdose [[{{parent}}.DeviceName]]` | mit festem Text davor                              |
 | `[[shared.0.Ort]] <DPName>`           | absolute ID — derselbe Wert in jeder Zeile         |
+| `{{parent2name}} – {{dpname}}`        | Gerätename und Datenpunktname aus den Objekten     |
 
 Ein `[[…]]` ohne Wert fällt auf den normalen Namen zurück. `nameFilters` (Button **Namens-Filter**) schneidet die `<…>`-Platzhalter zurecht, mit Vorschau; Regeln auf **Ergebnis** laufen auf dem fertigen Label — also erst nachdem `[[…]]` seinen Wert hat.
 

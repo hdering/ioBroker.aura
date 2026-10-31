@@ -14,7 +14,7 @@
         "entryDisplay setzt die Darstellung für alle Zeilen; displayType \"auto\" wählt pro Datenpunkt Schalter, Regler oder Wert.",
         "rowConditions gilt für JEDE Zeile. Ein leerer clause-datapoint meint den Wert der Zeile selbst, sonst darf die Klausel {{parent}} / {{dp}} / {{name}} benutzen und wird pro Zeile aufgelöst.",
         "subDpTemplate hängt an jede Zeile eine zweite Zeile — hier der Batteriestand, versteckt wo es ihn nicht gibt.",
-        "namePattern kürzt die Beschriftung; Platzhalter sind <Raum> <Gerät> <DPName> <Name> <ID>."
+        "namePattern kürzt die Beschriftung; Platzhalter sind <Raum> <Gerät> <DPName> <Name> <ID>, dazu die Objektnamen {{dpname}} / {{parentname}} / {{parent2name}} … (common.name)."
       ],
       "widgets": [
         {

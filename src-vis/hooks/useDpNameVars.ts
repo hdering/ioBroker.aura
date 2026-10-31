@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getObjectDirect } from './useIoBroker';
 import { useConfigStore } from '../store/configStore';
 import { dpVarMap } from '../utils/popupPlaceholders';
@@ -53,4 +53,55 @@ export function useDpNameVars(dpId: string): Record<string, string> {
     }, [dpId, lang]);
 
     return state.key === key ? state.vars : EMPTY;
+}
+
+/** True when a text uses one of the name tokens (`{{dpname}}`, `{{parent2name}}` …). */
+export function hasDpNameToken(text: string | undefined): boolean {
+    return !!text && /\{\{(?:dp|parent\d*)name\}\}/i.test(text);
+}
+
+/**
+ * The name tokens of many datapoints at once (#888), for the name pattern of the lists
+ * and the status overview: row id → token → name. Loads only while `pattern` uses a name
+ * token — a list without one never asks for an object. Objects shared by several rows
+ * (the device above many channels) are asked for once; getObjectDirect caches them.
+ */
+export function useDpNameVarsList(ids: string[], pattern: string | undefined): Record<string, Record<string, string>> {
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de');
+    const active = hasDpNameToken(pattern);
+    const idKey = active ? ids.join('\n') : '';
+    const key = idKey ? `${lang}|${idKey}` : '';
+    const [state, setState] = useState<{ key: string; names: Record<string, string> }>({ key: '', names: EMPTY });
+
+    useEffect(() => {
+        if (!idKey) return;
+        let alive = true;
+        const own = `${lang}|${idKey}`;
+        const objIds = new Set(idKey.split('\n').flatMap((id) => dpNameTokenIds(id).map(([, objId]) => objId)));
+        for (const objId of objIds) {
+            void getObjectDirect(objId).then((obj) => {
+                const name = objectNameText(obj?.common?.name, lang);
+                if (!alive || !name) return;
+                setState((prev) => ({
+                    key: own,
+                    names: { ...(prev.key === own ? prev.names : EMPTY), [objId]: name },
+                }));
+            });
+        }
+        return () => {
+            alive = false;
+        };
+    }, [idKey, lang]);
+
+    const names = state.key === key ? state.names : EMPTY;
+    return useMemo(() => {
+        if (!key) return {};
+        const out: Record<string, Record<string, string>> = {};
+        for (const id of idKey.split('\n')) {
+            const vars: Record<string, string> = {};
+            for (const [token, objId] of dpNameTokenIds(id)) if (names[objId]) vars[token] = names[objId];
+            out[id] = vars;
+        }
+        return out;
+    }, [key, idKey, names]);
 }

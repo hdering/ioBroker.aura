@@ -12,6 +12,7 @@ import {
     type NameSource,
 } from '../../utils/nameFilter';
 import { useDpTokenResolver } from '../widgets/DynamicTitle';
+import { useDpNameVarsList } from '../../hooks/useDpNameVars';
 
 /**
  * Rule-list editor for a widget's name pattern. Each rule reshapes one token value
@@ -209,10 +210,16 @@ export function NameFilterEditor({ rules, pattern, samples, sampleTotal, onChang
         const token = field === 'Gerät' ? 'Ger(?:ä|ae)t' : field;
         return !new RegExp(`<${token}>`, 'i').test(effectivePattern);
     };
+    // The object names behind `{{parentname}}` & co. (#888), loaded as in the widget.
+    const nameVars = useDpNameVarsList(
+        samples.map((s) => s.id),
+        pattern,
+    );
+    const withNames = (s: NameSource): NameSource => (nameVars[s.id] ? { ...s, nameVars: nameVars[s.id] } : s);
     const rawPreview = useMemo(
-        () => samples.map((s) => ({ id: s.id, before: s.name, after: formatItemName(s, pattern, rules) })),
+        () => samples.map((s) => ({ id: s.id, before: s.name, after: formatItemName(withNames(s), pattern, rules) })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [samples, pattern, rulesKey],
+        [samples, pattern, rulesKey, nameVars],
     );
     // The widget resolves `[[dp]]` tokens live and only then runs the 'Ergebnis' rules —
     // the preview mirrors both steps, otherwise a pattern like `[[{{parent}}.DeviceName]]`
@@ -226,7 +233,8 @@ export function NameFilterEditor({ rules, pattern, samples, sampleTotal, onChang
     // Compared on the FINISHED label (not memoised, so it follows the live values): an
     // 'Ergebnis' rule on a `[[dp]]` pattern only bites after the value is in, and would
     // otherwise be reported as dead.
-    const label = (s: NameSource, rs: NameFilterRule[]) => finish(formatItemName(s, pattern, rs), s.name, rs);
+    const label = (s: NameSource, rs: NameFilterRule[]) =>
+        finish(formatItemName(withNames(s), pattern, rs), s.name, rs);
     const ineffective = rules.map((r, i) => {
         if (r.disabled || !samples.length) return false;
         const without = rules.map((x, j) => (j === i ? { ...x, disabled: true } : x));

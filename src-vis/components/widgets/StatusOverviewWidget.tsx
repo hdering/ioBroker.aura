@@ -99,6 +99,7 @@ import { useProbeFill, PROBE_FILL_NAME } from '../../utils/probeContext';
 import { formatItemName, finishItemName, hasLiveToken } from '../../utils/nameFilter';
 import { useDpTokenResolver } from './DynamicTitle';
 import { useRowPopup } from '../../hooks/useRowPopup';
+import { useDpNameVarsList } from '../../hooks/useDpNameVars';
 
 /** Per-category icon + label used in section headers and rows. */
 const CATEGORY_META: Record<CategoryKey, { Icon: LucideIcon; label: string }> = {
@@ -788,8 +789,14 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     // values. The resolver is a hook, so it has to run above the layout branches below —
     // it collects the raw labels of every item and subscribes to them in one go.
     // The fill probe's long name is the point of it — a name pattern must not shorten it.
+    const nameVars = useDpNameVarsList(
+        items.map((i) => i.id),
+        fillCount ? undefined : opts.namePattern,
+    );
     const rawLabel = (item: StatusItem) =>
-        fillCount ? item.name : formatItemName(item, opts.namePattern, opts.nameFilters);
+        fillCount
+            ? item.name
+            : formatItemName({ ...item, nameVars: nameVars[item.id] }, opts.namePattern, opts.nameFilters);
     const resolveDpTokens = useDpTokenResolver(items.map(rawLabel));
     const labelFor = (item: StatusItem) => {
         const raw = rawLabel(item);
@@ -1601,8 +1608,16 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [histories, cats, opts, dpById, deviceIndex, hiddenDevices]);
 
+    const nameVars = useDpNameVarsList(
+        rows.map((e) => e.id),
+        opts.namePattern,
+    );
     const rawLabel = (e: HistoryRow) =>
-        formatItemName({ id: e.id, name: e.name || e.id, room: e.room }, opts.namePattern, opts.nameFilters);
+        formatItemName(
+            { id: e.id, name: e.name || e.id, room: e.room, nameVars: nameVars[e.id] },
+            opts.namePattern,
+            opts.nameFilters,
+        );
     const resolveDpTokens = useDpTokenResolver(rows.map(rawLabel));
     const labelFor = (e: HistoryRow) => {
         const raw = rawLabel(e);

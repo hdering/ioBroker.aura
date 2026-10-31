@@ -179,6 +179,8 @@ export interface NameSource {
     id: string;
     name: string;
     room?: string;
+    /** `{{dpname}}`, `{{parentname}}` … → `common.name` of those objects (#888), see useDpNameVarsList. */
+    nameVars?: Record<string, string>;
 }
 
 /** Token values before any rule ran, keyed by field name (for editor previews). */
@@ -207,9 +209,9 @@ export function nameTokens(item: NameSource): Record<Exclude<NameFilterField, 'E
  * no picker to insert the token, and `{{Parent}}` silently staying literal is no help.
  * Unknown keys are left untouched, exactly as everywhere else.
  */
-export function substituteItemVars(text: string, id: string): string {
+export function substituteItemVars(text: string, id: string, nameVars?: Record<string, string>): string {
     if (!text.includes('{{')) return text;
-    const map = dpVarMap(id);
+    const map = nameVars ? { ...dpVarMap(id), ...nameVars } : dpVarMap(id);
     return text.replace(/\{\{(\w+)\}\}/g, (whole, key: string) => map[key.toLowerCase()] ?? whole);
 }
 
@@ -220,6 +222,8 @@ export function substituteItemVars(text: string, id: string): string {
  * Additionally the `{{dp}}`/`{{parent}}`/`{{name}}` variables of substituteItemVars, which
  * exist to build datapoint ids rather than display text — typically inside a `[[…]]` live
  * token, which this function leaves in place for the widget's live layer to resolve.
+ * The object names `{{dpname}}`/`{{parentname}}`/`{{parent2name}}` … are display text;
+ * they resolve once `item.nameVars` carries them (#888).
  * Empty pattern → the composed name unchanged, unless rules exist: then "<Name>" is assumed
  * so rules still take effect without the user also having to write a pattern.
  * Empty result → falls back to the composed name.
@@ -229,7 +233,7 @@ export function substituteItemVars(text: string, id: string): string {
  */
 export function formatItemName(item: NameSource, pattern?: string, rules?: NameFilterRule[]): string {
     const active = rules?.filter((r) => !r.disabled) ?? [];
-    const tpl = substituteItemVars(pattern || (active.length ? '<Name>' : ''), item.id);
+    const tpl = substituteItemVars(pattern || (active.length ? '<Name>' : ''), item.id, item.nameVars);
     if (!tpl) return item.name;
 
     const tok = nameTokens(item);

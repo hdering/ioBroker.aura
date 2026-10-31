@@ -20,6 +20,7 @@ import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import { useDpNameVarsList } from '../../hooks/useDpNameVars';
 import { collectEnumFilterOptions, type EnumFilterOption } from '../../utils/enumFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -1313,9 +1314,13 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // collected first and the resolver subscribes to all referenced datapoints at once.
     const baseName = (entry: AutoListEntry) =>
         applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+    const nameVars = useDpNameVarsList(
+        entries.map((e) => e.id),
+        opts.namePattern,
+    );
     const rawLabel = (entry: AutoListEntry) =>
         formatItemName(
-            { id: entry.id, name: baseName(entry), room: entry.rooms?.[0] },
+            { id: entry.id, name: baseName(entry), room: entry.rooms?.[0], nameVars: nameVars[entry.id] },
             opts.namePattern,
             opts.nameFilters,
         );

@@ -5,6 +5,7 @@ import { baseDpId, resolveDpValue, splitDpRef } from '../../utils/dpRef';
 import { fetchDatapointEntries } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
+import { useDpNameVarsList } from '../../hooks/useDpNameVars';
 import type { WidgetProps, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
 import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
@@ -967,9 +968,18 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // collected first and the resolver subscribes to all referenced datapoints at once.
     const baseName = (entry: StaticListEntry) =>
         applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+    const nameVars = useDpNameVarsList(
+        entries.map((e) => baseDpId(e.id)),
+        opts.namePattern,
+    );
     const rawLabel = (entry: StaticListEntry) =>
         formatItemName(
-            { id: entry.id, name: baseName(entry), room: resolvedRooms[entry.id]?.[0] },
+            {
+                id: entry.id,
+                name: baseName(entry),
+                room: resolvedRooms[entry.id]?.[0],
+                nameVars: nameVars[baseDpId(entry.id)],
+            },
             opts.namePattern,
             opts.nameFilters,
         );
