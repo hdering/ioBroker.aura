@@ -447,13 +447,13 @@ export function AutoDiscoveryPanel({
                         Nur relevante DPs (Auto-Sync)
                     </label>
                     <button
-                        onClick={() => onOptsChange({ filterRelevant: !(opts.filterRelevant ?? false) })}
+                        onClick={() => onOptsChange({ filterRelevant: !(opts.filterRelevant ?? true) })}
                         className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                        style={{ background: (opts.filterRelevant ?? false) ? 'var(--accent)' : 'var(--app-border)' }}
+                        style={{ background: (opts.filterRelevant ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
                     >
                         <span
                             className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                            style={{ left: (opts.filterRelevant ?? false) ? '18px' : '2px' }}
+                            style={{ left: (opts.filterRelevant ?? true) ? '18px' : '2px' }}
                         />
                     </button>
                 </div>

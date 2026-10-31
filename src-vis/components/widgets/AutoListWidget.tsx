@@ -6,7 +6,7 @@ import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { fetchDatapointEntries } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
-import { syncEntries } from '../../utils/autoListSync';
+import { stripInheritedDisplay, syncEntries } from '../../utils/autoListSync';
 import { isRelevantDp } from '../../utils/dpRelevance';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
@@ -1432,8 +1432,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         try {
             const found = await discoverDatapoints(opts);
             const filtered = (opts.filterRelevant ?? true) ? found.filter((d) => d.isRelevant) : found;
-            const next = syncEntries(entries, filtered, opts.syncRemove === true);
-            if (next.added > 0 || next.removed > 0) {
+            // The stored entries, not `entries`: those carry the list-wide display folded
+            // in, and writing that back made every row look hand-configured (#886).
+            const stored = stripInheritedDisplay(
+                (opts.entries ?? []).filter((e) => !!e?.id),
+                opts.entryDisplay as Record<string, unknown> | undefined,
+            );
+            const next = syncEntries(stored.entries, filtered, opts.syncRemove === true);
+            if (next.added > 0 || next.removed > 0 || stored.cleaned > 0) {
                 saveOpts({ entries: next.entries });
                 // Frontend only: in the editor the new entries are one more unsaved
                 // edit under the save bar — flushing here would push every other
@@ -1448,7 +1454,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         } finally {
             setSyncing(false);
         }
-    }, [opts, entries, saveOpts, editMode]);
+    }, [opts, saveOpts, editMode]);
 
     useEffect(() => {
         const timer = setInterval(runSync, syncMs);

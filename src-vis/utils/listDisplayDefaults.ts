@@ -21,7 +21,7 @@ import type { EntryControlConfig } from '../components/widgets/entryControls';
  * value conversion already has a list-level fallback of its own (options.valueFactor …,
  * applied by entryValueText) which this must not shadow.
  */
-const NOT_INHERITED = new Set([
+export const NOT_INHERITED = new Set([
     'id',
     'valueTransform',
     'valueFactor',

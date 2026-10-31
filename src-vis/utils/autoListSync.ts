@@ -2,9 +2,39 @@
  * The periodic sync of the dynamic list (autolist): merges what the filters find
  * into the stored entries. Pure, so it can be tested without the widget.
  */
+import { NOT_INHERITED } from './listDisplayDefaults';
 
 /** What a sync-added entry carries — anything beyond this is the user's own setting. */
 const SYNC_KEYS = new Set(['id', 'label', 'rooms', 'unit', 'role', 'writable']);
+
+/**
+ * Takes back what earlier versions leaked into the stored entries: the sync used to
+ * write the rows *with* the list-wide display folded in, so every entry carried
+ * `displayType`, `states` … of `entryDisplay` — counted as the user's own setting, it
+ * blocked syncRemove and froze the rows against later changes of the list-wide block
+ * (#886). A field is dropped when the entry shows the list's display type and the value
+ * equals the list's own; a row set up by hand the same way looks the same afterwards.
+ */
+export function stripInheritedDisplay<E extends object>(
+    entries: E[],
+    listDisplay?: Record<string, unknown>,
+): { entries: E[]; cleaned: number } {
+    if (!listDisplay?.displayType) return { entries, cleaned: 0 };
+    const list = listDisplay;
+    let cleaned = 0;
+    const out = entries.map((e) => {
+        const rec = e as Record<string, unknown>;
+        if (rec.displayType !== list.displayType) return e;
+        const next: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(rec)) {
+            const inherited = !NOT_INHERITED.has(k) && k in list && JSON.stringify(v) === JSON.stringify(list[k]);
+            if (!inherited) next[k] = v;
+        }
+        cleaned++;
+        return next as E;
+    });
+    return cleaned ? { entries: out, cleaned } : { entries, cleaned: 0 };
+}
 
 interface SyncEntry {
     id: string;

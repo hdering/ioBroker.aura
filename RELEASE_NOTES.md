@@ -19,3 +19,4 @@
 - Aura's web server lets the browser cache the app files and sends them compressed (5.7 MB → 1.4 MB), so the dashboard opens much faster, especially on mobile connections (#882)
 - The editor warns when an image is embedded as Base64: it is saved with the configuration and loaded by every device on every start, so larger images are better added as a file or URL (#882)
 - HTML widget - images and CSS backgrounds with ioBroker paths such as `/adapter/<name>/…` now load, like in vis and Lovelace (#885)
+- Dynamic list - "remove entries that are no longer found" works again when a list-wide display is set; the sync no longer copies that display into every entry, existing lists are cleaned up on the next sync, and the "only relevant datapoints" switch now shows its actual default (on) (#886)
