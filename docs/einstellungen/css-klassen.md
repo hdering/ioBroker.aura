@@ -81,6 +81,7 @@ Elemente aus der Einstellung „Kopfzeile“, in zwei Zeilen mit je drei Plätze
 | `.aura-header-item` | ein Element auf einem Platz |
 | `.aura-header-item-icon` | Symbol eines Elements |
 | `.aura-header-item-text` | Text eines Elements |
+| `.aura-header-item-<platz>-<index>` | ein Element nach Platz und Reihenfolge darauf, von `0` an gezählt — z. B. `.aura-header-item-r1-right-0` |
 
 ```css
 .aura-header-slot-r2-left .aura-header-item {

@@ -481,7 +481,7 @@ for (const [type, opts] of [
     await page.waitForTimeout(300);
     const opts = () => page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
     const editor = page.locator('[data-header-items-editor]');
-    const cell = (slot) => editor.locator(`[data-header-slot-add="${slot}"]`);
+    const cell = (slot) => editor.locator(`[data-header-map-slot="${slot}"]`);
 
     // Everything about title and icon lives in the header dialog (#725); Darstellung
     // only opens it, with the hint what is in there.
@@ -615,17 +615,15 @@ for (const [type, opts] of [
         JSON.stringify({ r: o?.titleRow, a: o?.titleAlign }),
     );
 
-    // A tap on a place without a picked tile still adds an item there.
+    // A tap on a place without a picked tile adds nothing — new items come from the add button.
     await cell('r1-left').click();
     await page.waitForTimeout(300);
     o = await opts();
     check(
-        'editor: the left cell adds an item on r1-left',
-        o?.headerItems?.some((h) => h.slot === 'r1-left'),
+        'editor: a tap on a cell adds no item',
+        !o?.headerItems?.some((h) => h.slot === 'r1-left') && o?.headerItems?.length === 1,
         JSON.stringify(o?.headerItems),
     );
-    await editor.locator('[data-header-item-delete]').last().click();
-    await page.waitForTimeout(300);
 
     // Title back to the middle: the side choice of a centre item.
     await editor.locator('[data-header-chip="title"]').click();

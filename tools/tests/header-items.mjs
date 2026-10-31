@@ -106,6 +106,62 @@ id = await show(
 check('list sum', (await slotText(id, 'r1-right')) === '350 W', await slotText(id, 'r1-right'));
 check('list variables in a text', (await slotText(id, 'r1-center')) === '2/3 an', await slotText(id, 'r1-center'));
 
+// HTML in text items (#883): the markup renders sanitised, images keep to the row
+// height; every item carries a class by slot and position, like the custom grid's cells.
+const SVG = encodeURIComponent(
+    "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><circle cx='100' cy='100' r='90' fill='gold'/></svg>",
+);
+const htmlPlain = await show('value', {
+    headerItems: [{ id: 'p', source: 'text', text: 'Mond', slot: 'r1-right' }],
+});
+const htmlPlainH = await height(htmlPlain);
+id = await show('value', {
+    headerItems: [
+        {
+            id: 'h',
+            source: 'text',
+            text: `<img src="data:image/svg+xml,${SVG}" onerror="window.__hdrXss=1"><b class="v">{demo.pv;round(0)}</b><script>window.__hdrXss=1</script>`,
+            slot: 'r1-right',
+        },
+        { id: 'q', source: 'dp', dp: 'demo.pv', decimals: 0, slot: 'r1-center' },
+        { id: 'q2', source: 'text', text: 'B', slot: 'r1-center' },
+    ],
+});
+const htmlItem = card(id).locator('[data-header-item="h"]');
+check('HTML item renders the image', (await htmlItem.locator('img').count()) === 1);
+check(
+    'bindings are filled inside the HTML',
+    (await htmlItem
+        .locator('b.v')
+        .innerText()
+        .catch(() => '')) === '1235',
+);
+check(
+    'scripts and event handlers are stripped',
+    (await htmlItem.locator('script').count()) === 0 &&
+        !(await htmlItem.locator('img').getAttribute('onerror')) &&
+        !(await page.evaluate(() => window.__hdrXss)),
+);
+const imgBox = await htmlItem.locator('img').boundingBox();
+check(
+    'the image keeps to the text height',
+    !!imgBox && imgBox.height > 8 && imgBox.height <= 24,
+    JSON.stringify(imgBox),
+);
+check(
+    'the HTML item does not grow the card',
+    Math.abs((await height(id)) - htmlPlainH) <= 1,
+    `${await height(id)} vs ${htmlPlainH}`,
+);
+const cls = async (itemId) => (await card(id).locator(`[data-header-item="${itemId}"]`).getAttribute('class')) ?? '';
+check('class by slot and position', (await cls('h')).includes('aura-header-item-r1-right-0'), await cls('h'));
+check(
+    '…counted per slot',
+    (await cls('q')).includes('aura-header-item-r1-center-0') &&
+        (await cls('q2')).includes('aura-header-item-r1-center-1'),
+    `${await cls('q')} | ${await cls('q2')}`,
+);
+
 // ── 2. Second row ─────────────────────────────────────────────────────────────
 const plain = await show('value', {});
 const plainH = await height(plain);
@@ -466,13 +522,17 @@ check('Darstellung offers the header editor', (await openBtn.count()) === 1);
 await openBtn.click();
 const editor = page.locator('[data-header-items-editor]');
 await editor.waitFor({ timeout: 5000 });
-await editor.locator('[data-header-slot-add="r2-center"]').click();
+await editor.locator('[data-header-map-slot="r2-center"]').click();
 await page.waitForTimeout(300);
 let opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);
+check('a tap on a slot adds nothing', !opts?.headerItems?.length, JSON.stringify(opts?.headerItems));
+await editor.locator('[data-header-item-add]').click();
+await page.waitForTimeout(300);
+opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);
 const added = opts?.headerItems?.[0];
 check(
-    'a tap on a slot adds an item there, preset to the main value',
-    added?.slot === 'r2-center' && added?.source === 'widget' && added?.widgetValue === 'main',
+    'the add button adds an item, preset to the main value',
+    added?.source === 'widget' && added?.widgetValue === 'main',
     JSON.stringify(added),
 );
 await editor.locator('[data-header-item-source]').first().selectOption('text');
@@ -507,7 +567,7 @@ check(
     'the head block sits above the slot map',
     await (async () => {
         const h = await head.boundingBox();
-        const m = await editor.locator('[data-header-slot-add="r1-left"]').boundingBox();
+        const m = await editor.locator('[data-header-map-slot="r1-left"]').boundingBox();
         return !!h && !!m && h.y + h.height <= m.y;
     })(),
 );

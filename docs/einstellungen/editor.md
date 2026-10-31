@@ -196,7 +196,7 @@ Eine Bedingung, die Titel oder Icon färbt, geht der eigenen Farbe vor. Bei der 
 | --- | --- |
 | Datenpunkt | beliebiger Datenpunkt, optional Nachkommastellen und Einheit |
 | Widget-Wert | `Hauptwert` (Einheit, Nachkommastellen und Faktor des Widgets); bei statischer und dynamischer Liste `Summe`, `Durchschnitt`, `Minimum`, `Maximum`, `Anzahl`, `Anzahl aktiv`; Thermostat `Soll`/`Ist`; Raumklima `Temperatur`, `Soll`, `Luftfeuchte`, `Luftdruck` und Zusatzwerte mit Datenpunkt; Layout `Custom` jede Zelle mit Datenpunkt (wie in der Zelle formatiert) |
-| Text | Text mit [Bindings](../widgets/bindings), z. B. `PV {0_userdata.0.pv;round(0)} W`, `{dp}`, bei Listen `{active} von {count} an` |
+| Text | Text mit [Bindings](../widgets/bindings), z. B. `PV {0_userdata.0.pv;round(0)} W`, `{dp}`, bei Listen `{active} von {count} an`; HTML wird unterstützt, z. B. `<img src="/mond/{0_userdata.0.mondphase}.png">` (Bilder so hoch wie die Schrift) |
 | Klick-Aktion | Symbol der [Klick-Aktion](#klick-aktions-symbol) auf diesem Platz statt in der Kartenecke |
 
 | Option | |
@@ -206,7 +206,7 @@ Eine Bedingung, die Titel oder Icon färbt, geht der eigenen Farbe vor. Bei der 
 | Text | Textfarbe, Schriftgröße (Standard 12 px) |
 | Nur anzeigen, wenn … | Bedingung wie bei [Markern](#marker-sichtbarkeit): leerer Datenpunkt = eigener Wert, bei Listen auch `Liste: Anzahl aktiv` usw. Ist sie nicht erfüllt, verschwindet das Element (eine leere Zeile 2 mit) |
 
-Mehrere Elemente auf einem Platz stehen nebeneinander, Reihenfolge per Pfeil. Zu lange Werte werden gekürzt, der Titel zuerst. Ein Tipp auf einen Platz in der Übersicht legt dort ein neues Element an. In Layouts ohne eigene Titelzeile (z. B. `Kompakt`, `Minimal`, `Custom`) stehen die Werte auf der Höhe des Titels, Zeile 2 unter dem Inhalt. Liegt der Titel in einer gefüllten Kachel (Schalter, Fensterkontakt, Binärsensor, Zustandsbild im Layout `Kachel`), steht Zeile 1 über der Kachel.
+Mehrere Elemente auf einem Platz stehen nebeneinander, Reihenfolge per Pfeil. Zu lange Werte werden gekürzt, der Titel zuerst. Neue Elemente über `+ Element hinzufügen`, den Platz wählt man am Element. In Layouts ohne eigene Titelzeile (z. B. `Kompakt`, `Minimal`, `Custom`) stehen die Werte auf der Höhe des Titels, Zeile 2 unter dem Inhalt. Liegt der Titel in einer gefüllten Kachel (Schalter, Fensterkontakt, Binärsensor, Zustandsbild im Layout `Kachel`), steht Zeile 1 über der Kachel.
 
 ## PIN-Schutz
 

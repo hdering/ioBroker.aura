@@ -13,10 +13,12 @@
  * places the slots into its own title row through HeaderSlotsContext.
  */
 import type { CSSProperties, ReactNode } from 'react';
+import DOMPurify from 'dompurify';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { groupBySlot, hasSecondRow, isRowTwoPlace, type RowTwoIconPlace } from '../../utils/headerItems';
 import type { ResolvedHeaderItem } from '../../hooks/useHeaderItems';
 import { useT } from '../../i18n';
+import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 
 /**
  * One item. An 'action' item is the click-action icon (issue #702) moved onto a
@@ -34,7 +36,7 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
                     e.stopPropagation();
                     onAction();
                 }}
-                className="nodrag aura-click-action-btn aura-header-item pointer-events-auto shrink-0 w-5 h-5 -my-1 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
+                className={`nodrag aura-click-action-btn aura-header-item ${item.placeClass ?? ''} pointer-events-auto shrink-0 w-5 h-5 -my-1 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity`}
                 style={{ '--aura-header-item-color': item.color || 'var(--text-secondary)' }}
                 title={t('wf.embedAction')}
                 aria-label={t('wf.embedAction')}
@@ -48,7 +50,7 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
     const ItemIcon = item.icon ? getWidgetIcon(item.icon, null) : null;
     return (
         <span
-            className="aura-header-item inline-flex items-center gap-1 min-w-0 text-xs font-medium tabular-nums"
+            className={`aura-header-item ${item.placeClass ?? ''} inline-flex items-center gap-1 min-w-0 text-xs font-medium tabular-nums`}
             style={{
                 '--aura-header-item-color': item.color || 'var(--text-primary)',
                 // Own size carries its own line-height — text-xs ships an absolute one
@@ -78,7 +80,19 @@ export function HeaderItemView({ item, onAction }: { item: ResolvedHeaderItem; o
                         style={{ '--aura-header-item-icon-color': item.iconColor }}
                     />
                 ))}
-            {item.text && <span className="aura-header-item-text truncate">{item.text}</span>}
+            {item.text &&
+                (item.html ? (
+                    // Text items take HTML. Sanitised after the bindings are filled in, so
+                    // a value cannot smuggle in a script either. Images keep to the row (index.css).
+                    <span
+                        className="aura-header-item-text truncate"
+                        dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(resolveHtmlAssets(proxifyHtmlAssets(item.text))),
+                        }}
+                    />
+                ) : (
+                    <span className="aura-header-item-text truncate">{item.text}</span>
+                ))}
         </span>
     );
 }

@@ -240,6 +240,22 @@ export function widgetValueOptions(config: WidgetConfig): WidgetValueOption[] {
     return out;
 }
 
+/**
+ * CSS class naming each item by its place, like `.aura-custom-cell-<index>` in the custom
+ * grid: slot plus position among the slot's items in the stored order, from 0 —
+ * `aura-header-item-r1-right-0`. Hidden or conditional items keep their number.
+ */
+export function headerItemPlaceClasses(items: WidgetHeaderItem[]): Map<string, string> {
+    const seen: Partial<Record<WidgetHeaderSlot, number>> = {};
+    const out = new Map<string, string>();
+    for (const item of items) {
+        const n = seen[item.slot] ?? 0;
+        seen[item.slot] = n + 1;
+        out.set(item.id, `aura-header-item-${item.slot}-${n}`);
+    }
+    return out;
+}
+
 // ── Subscriptions ─────────────────────────────────────────────────────────────
 
 const LIST_TEXT_VAR_RE = /\{(sum|avg|min|max|count|active)(?:[;}?#])/;

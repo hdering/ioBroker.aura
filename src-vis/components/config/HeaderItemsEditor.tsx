@@ -767,8 +767,8 @@ export function HeaderItemsEditor({
     const t = useT();
     const bySlot = groupBySlot(items);
     const hasValues = widgetValueOptions(config).length > 0;
-    const add = (slot: WidgetHeaderSlot = DEFAULT_HEADER_SLOT) => {
-        const item = newHeaderItem(slot, hasValues ? 'widget' : 'dp');
+    const add = () => {
+        const item = newHeaderItem(DEFAULT_HEADER_SLOT, hasValues ? 'widget' : 'dp');
         if (hasValues) item.widgetValue = widgetValueOptions(config)[0].key;
         onChange([...items, item]);
     };
@@ -809,7 +809,6 @@ export function HeaderItemsEditor({
         list.length ? (
             <span className="truncate">{list.map((it) => itemSummary(it, t, config)).join(' · ')}</span>
         ) : null;
-    const plus = <Plus size={11} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />;
 
     const chip = (kind: 'title' | 'icon') => {
         const on = kind === 'title' ? titleOn : iconOn;
@@ -930,10 +929,11 @@ export function HeaderItemsEditor({
         else if (slot === 'r1-right') parts.push(...titleGroup, summary(list), iconAt('trail'));
         else if (slot === 'r2-right') parts.push(summary(list), ...(titleGroup.length ? titleGroup : [iconAt(slot)]));
         else parts.push(...(titleGroup.length ? titleGroup : [iconAt(slot as IconPlaceKey)]), summary(list));
-        if (!list.length && !parts.some(Boolean)) parts.push(plus);
         return parts;
     };
 
+    // The map only shows the places; a tap on a cell lands a picked title or symbol
+    // there. New items come from the add button below, as everywhere else.
     const slotCell = (slot: WidgetHeaderSlot) => {
         const titleTarget = picked === 'title' && slot !== titleSlot;
         const iconTargetCell = picked === 'icon';
@@ -941,16 +941,15 @@ export function HeaderItemsEditor({
             if (titleTarget) moveTitle(slot);
             else if (iconTargetCell) moveIcon(cellIconPlace(slot));
             else if (picked) setPicked(null);
-            else add(slot);
         };
         return (
             <div
                 key={slot}
-                role="button"
-                tabIndex={0}
+                role={picked ? 'button' : undefined}
+                tabIndex={picked ? 0 : undefined}
                 onClick={act}
                 onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (picked && (e.key === 'Enter' || e.key === ' ')) {
                         e.preventDefault();
                         act();
                     }
@@ -963,13 +962,13 @@ export function HeaderItemsEditor({
                     if (titleTarget) moveTitle(slot);
                     else if (iconTargetCell) moveIcon(cellIconPlace(slot));
                 }}
-                className="min-w-0 rounded-lg px-2 py-1.5 text-left hover:opacity-80 cursor-pointer select-none"
+                className={`min-w-0 rounded-lg px-2 py-1.5 text-left select-none ${picked ? 'hover:opacity-80 cursor-pointer' : ''}`}
                 style={{
                     background: titleTarget ? 'color-mix(in srgb, var(--accent) 10%, var(--app-bg))' : 'var(--app-bg)',
                     border: `1px dashed ${titleTarget ? 'var(--accent)' : 'var(--app-border)'}`,
                 }}
-                title={titleTarget ? t('hdr.chip.titleHere') : picked ? undefined : t('hdr.addHere')}
-                data-header-slot-add={slot}
+                title={titleTarget ? t('hdr.chip.titleHere') : undefined}
+                data-header-map-slot={slot}
                 data-title-target={titleTarget ? '' : undefined}
             >
                 <span className="block text-[9px] uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>

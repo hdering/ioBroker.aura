@@ -17,6 +17,7 @@ import {
     extraValueFor,
     extraValueText,
     headerConditionRefs,
+    headerItemPlaceClasses,
     headerItemPasses,
     headerSourceCtx,
     fmtNumber,
@@ -42,6 +43,10 @@ export interface ResolvedHeaderItem {
     /** Slot 'r1-center' beside a centred title: left or right of it. */
     titleSide?: 'before' | 'after';
     text: string;
+    /** Source 'text': the text may hold HTML — the view sanitises it. */
+    html?: boolean;
+    /** Class naming the item by slot and position: 'aura-header-item-r1-right-0'. */
+    placeClass?: string;
     icon?: string;
     iconSize?: number;
     iconColor?: string;
@@ -121,6 +126,7 @@ export function useHeaderItems(
                 ops: { formatNum: fmt.formatNum, decimals: defaultDecimals, t },
             });
 
+        const places = headerItemPlaceClasses(headerItems(config.options));
         const values = items.some((i) => i.clauses?.length) ? conditionValues(states, ctx) : null;
         const out: ResolvedHeaderItem[] = [];
         for (const item of items) {
@@ -133,6 +139,7 @@ export function useHeaderItems(
                     titleSide: item.titleSide,
                     text: '',
                     color: item.color,
+                    placeClass: places.get(item.id),
                     action: true,
                     ActionIcon: actionIcon,
                 });
@@ -154,6 +161,8 @@ export function useHeaderItems(
                 slot: item.slot,
                 titleSide: item.titleSide,
                 text,
+                html: item.source === 'text',
+                placeClass: places.get(item.id),
                 icon: item.icon,
                 iconSize: item.iconSize,
                 iconColor: item.iconColor,

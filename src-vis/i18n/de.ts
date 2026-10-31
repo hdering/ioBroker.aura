@@ -3251,16 +3251,13 @@ export const de = {
     'hdr.title': 'Kopfzeile',
     'hdr.editEmpty': 'Werte hinzufügen…',
     'hdr.editCount': 'Bearbeiten… ({n})',
-    'hdr.mapHint':
-        'Tipp auf einen Platz legt dort ein neues Element an. Mehrere Elemente je Platz stehen nebeneinander.',
+    'hdr.mapHint': 'Mehrere Elemente je Platz stehen nebeneinander; den Platz wählst du am Element.',
     'hdr.empty': 'Noch keine Elemente in der Kopfzeile.',
     'hdr.add': 'Element hinzufügen',
-    'hdr.addHere': 'Neues Element auf diesem Platz',
     'hdr.foldHint':
         'Aufgeklappt stehen die Elemente in der Titelzeile des Widgets, eingeklappt in der Kopfzeile. In Layouts ohne eigene Titelzeile stehen sie auf der Höhe des Titels, Zeile 2 unter dem Inhalt.',
     'hdr.slot.r1-left': 'Zeile 1 links',
-    'hdr.mapHintTiles':
-        'Tipp auf einen Platz legt dort ein neues Element an. Titel und Icon antippen oder ziehen, um sie zu verschieben.',
+    'hdr.mapHintTiles': 'Titel und Icon antippen oder ziehen, um sie zu verschieben.',
     'hdr.pickHint.title': 'Titel verschieben: einen Platz antippen. In Zeile 2 wird die Karte eine Zeile höher.',
     'hdr.pickHint.icon': 'Icon verschieben: eine der markierten Stellen antippen.',
     'hdr.chip.title': 'Titel',
@@ -3313,9 +3310,10 @@ export const de = {
     'hdr.pickDp': 'Datenpunkt wählen',
     'hdr.insertDp': 'Datenpunkt einfügen',
     'hdr.textPlaceholder': 'z. B. PV {0_userdata.0.pv;round(0)} W',
-    'hdr.textHint': 'Platzhalter wie bei Markern: {id}, {id;round(1)}, {dp} = eigener Wert, {{ a + b }}.',
+    'hdr.textHint':
+        'Platzhalter wie bei Markern: {id}, {id;round(1)}, {dp} = eigener Wert, {{ a + b }}. HTML wird unterstützt.',
     'hdr.textHintList':
-        'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste, auch als {sum;round(0)}.',
+        'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste, auch als {sum;round(0)}. HTML wird unterstützt.',
     'hdr.icon': 'Icon',
     'hdr.iconSize': 'Größe',
     'hdr.color': 'Farbe',

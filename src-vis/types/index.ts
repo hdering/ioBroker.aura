@@ -1093,7 +1093,7 @@ export interface WidgetHeaderItem {
     widgetValue?: string;
     /** source 'text': free text with the same bindings as a marker label — '{0_userdata.0.pv;round(0)} W',
      *  '{dp}' for the widget's own value, '{{ a + b }}'; list widgets also offer {sum} {avg} {min} {max}
-     *  {count} {active}. */
+     *  {count} {active}. HTML is supported (sanitised), e.g. '<img src="/moon/{0_userdata.0.moon}.png">'. */
     text?: string;
     icon?: string; // optional Iconify id / Lucide name before the text
     iconColor?: string; // icon colour (CSS, var(--token), light-dark pair); default = color

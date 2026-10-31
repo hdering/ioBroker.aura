@@ -52,6 +52,15 @@ iframe {
 :where(.aura-header-item-icon) {
     color: var(--aura-header-item-icon-color);
 }
+/* HTML in header text items (#883): images stay at about the text height unless the own CSS says otherwise. */
+:where(.aura-header-item-text img) {
+    max-height: 1.6em;
+    width: auto;
+}
+/* Inline in the text flow — Tailwind's preflight makes every img a block. */
+.aura-header-item-text img {
+    display: inline-block;
+}
 :where(.aura-group-header) {
     color: var(--text-secondary);
 }
