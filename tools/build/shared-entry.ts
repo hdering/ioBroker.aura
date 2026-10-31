@@ -45,3 +45,6 @@ export {
     deviceModelsAbove,
 } from '../../src-vis/utils/batteryLogic';
 export { BATTERY_LIBRARY, SNAPSHOT_DATE, SOURCE_VERSION } from '../../src-vis/data/batteryLibrary';
+// Dynamische Liste: the periodic sync runs in the adapter (lib/autoListSync.js, #893).
+export { discoverFromRows, hasDiscoveryFilter } from '../../src-vis/utils/autoListDiscovery';
+export { autoListSyncRound } from '../../src-vis/utils/autoListSync';

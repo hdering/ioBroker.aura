@@ -205,7 +205,7 @@ Neben Raum und Funktion steht jede selbst angelegte enum-Kategorie zur Auswahl (
 | `excludeIdPatterns` | — | auszuschließende ID-Muster |
 | `excludeIds` | — | einzeln ausgeschlossene IDs |
 | `filterRelevant` | `true` | nur Widget-relevante Rollen/Typen übernehmen |
-| `syncIntervalMin` | `5` | Sync-Intervall in Minuten |
+| `syncIntervalMin` | `5` | Sync-Intervall in Minuten — der Adapter sucht, auch ohne offenen Browser |
 
 ### Klick auf Zeile
 

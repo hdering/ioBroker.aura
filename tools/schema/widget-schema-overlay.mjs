@@ -186,7 +186,8 @@ export const KEY_DESCRIPTIONS = {
     sortBy2: 'Zweiter Sortierschlüssel bei Gleichstand.',
     sortOrder: 'Sortierrichtung: asc oder desc.',
     sortOrder2: 'Sortierrichtung des zweiten Schlüssels.',
-    syncIntervalMin: 'Abstand in Minuten, in dem die Liste neu nach passenden Datenpunkten sucht.',
+    syncIntervalMin:
+        'Abstand in Minuten, in dem der Adapter die gespeicherte Liste neu nach passenden Datenpunkten durchsucht und neue Treffer in die Konfiguration schreibt — auch ohne offenen Browser.',
     groupByRoom: 'Zeilen nach Raum gruppieren.',
 
     // ── Zeilen-Popup (Listen, Statusübersicht) ───────────────────────────────

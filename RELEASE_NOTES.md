@@ -21,3 +21,4 @@
 - HTML widget - images and CSS backgrounds with ioBroker paths such as `/adapter/<name>/…` now load, like in vis and Lovelace (#885)
 - Dynamic list - "remove entries that are no longer found" works again when a list-wide display is set; the sync no longer copies that display into every entry, existing lists are cleaned up on the next sync, and the "only relevant datapoints" switch now shows its actual default (on) (#886)
 - Widget management - the search now also finds datapoints used inside widget options, e.g. the series of the advanced chart, custom-grid cells, background images and the widgets inside groups, panels and device cards (also by their title); rows without a main datapoint show the first one they use (#887)
+- Dynamic list - the periodic search for new datapoints now runs in the adapter, so lists stay up to date even when no browser has them open, and several open devices no longer each save the dashboard (#893)

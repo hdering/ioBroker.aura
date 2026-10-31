@@ -93,3 +93,34 @@ export function syncEntries<E extends SyncEntry>(
         removed: entries.length - kept.length,
     };
 }
+
+interface SyncOptions {
+    entries?: SyncEntry[];
+    entryDisplay?: unknown;
+    filterRelevant?: boolean;
+    syncRemove?: boolean;
+}
+
+/**
+ * One whole sync round over what the filters found: drops the leaked list-wide display
+ * (#886), adds the new hits and — with `syncRemove` — takes out the vanished ones.
+ * `changed` false = nothing to write. Shared by the widget and the adapter (#893).
+ */
+export function autoListSyncRound<E extends SyncEntry>(
+    opts: SyncOptions,
+    found: (FoundDp & { isRelevant?: boolean })[],
+): { entries: E[]; added: number; removed: number; cleaned: number; changed: boolean } {
+    const filtered = (opts.filterRelevant ?? true) ? found.filter((d) => d.isRelevant) : found;
+    // The stored entries, not the rendered ones: those carry the list-wide display folded
+    // in, and writing that back made every row look hand-configured (#886).
+    const stored = stripInheritedDisplay(
+        ((opts.entries ?? []) as E[]).filter((e) => !!e?.id),
+        opts.entryDisplay as Record<string, unknown> | undefined,
+    );
+    const next = syncEntries(stored.entries, filtered, opts.syncRemove === true);
+    return {
+        ...next,
+        cleaned: stored.cleaned,
+        changed: next.added > 0 || next.removed > 0 || stored.cleaned > 0,
+    };
+}

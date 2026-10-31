@@ -49,6 +49,7 @@ const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
+const { createAutoListSync } = require('./lib/autoListSync');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -943,6 +944,10 @@ class Aura extends utils.Adapter {
         this._mediaLibrary = undefined;
         /** @type {ReturnType<typeof createStatusDiscovery> | undefined} Statusübersicht discovery, see statusDiscover */
         this._statusDiscovery = undefined;
+        /** @type {ReturnType<typeof createAutoListSync> | undefined} dynamic list sync, see _initAutoListSync */
+        this._autoListSync = undefined;
+        /** @type {any} */
+        this._autoListTimer = null;
         /** @type {Record<string, number> | undefined} see _initConfigRevision */
         this._configRevision = undefined;
     }
@@ -4522,6 +4527,11 @@ class Aura extends utils.Adapter {
         // to lists.<widgetId>, computed here so a report is right with no browser open.
         await this._initWidgetPublish();
 
+        // ── Dynamische Liste: periodic sync (#893, lib/autoListSync.js) ─────────
+        // Searches the autolist filters in the adapter's own rhythm and writes the
+        // entries once, instead of every open browser doing it on its own.
+        this._initAutoListSync();
+
         // ── Live log relay for AdapterLogsWidget ───────────────────────────────────
         // The iobroker.web socket exposed to the frontend cannot deliver `requireLog`
         // events to anonymous users, so we collect logs here. The widget polls
@@ -5801,6 +5811,36 @@ class Aura extends utils.Adapter {
         return true;
     }
 
+    /** Dynamic lists: the sync engine and its once-a-minute tick (each widget has its own interval). */
+    _initAutoListSync() {
+        const stateOf = {
+            dashboard: 'config.dashboard',
+            groupDefs: 'config.group-defs',
+            popupConfig: 'config.popup-config',
+        };
+        this._autoListSync = createAutoListSync({
+            log: this.log,
+            getObjectView: (type, startkey, endkey) => this.getObjectViewAsync('system', type, { startkey, endkey }),
+            readConfig: async () => {
+                /** @type {Record<string, unknown>} */
+                const out = {};
+                for (const [key, stateId] of Object.entries(stateOf)) {
+                    const st = await this.getStateAsync(stateId);
+                    out[key] = st ? st.val : null;
+                }
+                return out;
+            },
+            writeConfig: async (key, raw) => {
+                await this.setStateAsync(stateOf[key], { val: raw, ack: true });
+            },
+        });
+        // The first round a little after the start, when the rest has settled.
+        this._autoListTimer = this.setTimeout(() => {
+            this._autoListTimer = this.setInterval(() => this._autoListSync.tick(), 60 * 1000);
+            this._autoListSync.tick();
+        }, 30 * 1000);
+    }
+
     /** Dashboard saved → read again, a little later (an editor saves in bursts). */
     _schedulePublishWidgets() {
         if (!this._publish) {
@@ -6050,6 +6090,17 @@ class Aura extends utils.Adapter {
                 });
                 const m = msg.message || {};
                 reply(await this._statusDiscovery.discover(m.opts, m.overrides));
+                return;
+            }
+
+            // Dynamische Liste: does the adapter sync this widget — and with `now`, sync it at once (#893).
+            if (msg.command === 'autolistSync') {
+                if (!this._autoListSync) {
+                    reply({ ok: false, error: 'not ready' });
+                    return;
+                }
+                const m = msg.message || {};
+                reply(await this._autoListSync.request(m.widgetId, m.now === true));
                 return;
             }
 
@@ -6706,6 +6757,12 @@ class Aura extends utils.Adapter {
             }
             this._sayit?.stop();
             this._statusDiscovery?.stop();
+            if (this._autoListTimer) {
+                // Either handle — the start timeout or the interval behind it.
+                this.clearTimeout(this._autoListTimer);
+                this.clearInterval(this._autoListTimer);
+                this._autoListTimer = null;
+            }
             this._announcements?.stop();
             this._mediaLibrary?.flush().catch(() => {});
             if (this._timerInterval) {

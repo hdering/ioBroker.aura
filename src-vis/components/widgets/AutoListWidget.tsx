@@ -3,23 +3,24 @@ import { RefreshCw, List } from 'lucide-react';
 import type { WidgetProps, ioBrokerObject, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
 import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
-import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { getObjectViewDirect, sendToDirect, useIoBroker } from '../../hooks/useIoBroker';
+import { NS } from '../../utils/namespace';
 import { fetchDatapointEntries } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
-import { stripInheritedDisplay, syncEntries } from '../../utils/autoListSync';
-import { isRelevantDp } from '../../utils/dpRelevance';
+import { autoListSyncRound } from '../../utils/autoListSync';
+import {
+    discoverFromRows,
+    hasDiscoveryFilter,
+    resolveName,
+    withAliases,
+    type AutoListDiscoveryOptions,
+    type DiscoveredDp,
+} from '../../utils/autoListDiscovery';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
-import {
-    buildEnumMemberIndex,
-    collectEnumFilterOptions,
-    enumIdsForObject,
-    matchesEnumFilter,
-    splitEnumFilter,
-    type EnumFilterOption,
-} from '../../utils/enumFilter';
+import { collectEnumFilterOptions, type EnumFilterOption } from '../../utils/enumFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
@@ -273,39 +274,7 @@ export interface AutoListOptions
     // Group action options (groupSwitch, groupActionType, …) come from GroupActionConfigOpts.
 }
 
-export interface DiscoveredDp {
-    id: string;
-    name: string;
-    role?: string;
-    type?: string;
-    unit?: string;
-    write?: boolean;
-    rooms: string[];
-    /** true if the role/type matches a known widget pattern */
-    isRelevant: boolean;
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-/**
- * Match id against a pattern that is either:
- *   - plain text  → case-insensitive substring match
- *   - /regex/flags → RegExp test (default flag: i)
- */
-export function matchesIdPattern(id: string, pattern: string): boolean {
-    const p = pattern.trim();
-    if (p.startsWith('/')) {
-        const lastSlash = p.lastIndexOf('/');
-        const body = p.slice(1, lastSlash > 0 ? lastSlash : undefined);
-        const flags = lastSlash > 0 ? p.slice(lastSlash + 1) : 'i';
-        try {
-            return new RegExp(body, flags || 'i').test(id);
-        } catch {
-            return false;
-        }
-    }
-    return id.toLowerCase().includes(p.toLowerCase());
-}
 
 /** true = value counts as "active" (on / > 0) — the polarity the row controls render. */
 function isActive(val: ioBrokerState['val']): boolean {
@@ -336,11 +305,7 @@ function ownSubDps(entry: AutoListEntry): EntrySubDp[] {
     return (entry.subDps ?? []).filter((s) => !!s?.id || isStampSub(s));
 }
 
-export function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
-    if (!name) return fallback;
-    if (typeof name === 'string') return name;
-    return name.de ?? name.en ?? Object.values(name)[0] ?? fallback;
-}
+export { hasDiscoveryFilter, matchesIdPattern, resolveName, type DiscoveredDp } from '../../utils/autoListDiscovery';
 
 type ViewRow = { id: string; value: ioBrokerObject };
 
@@ -353,16 +318,9 @@ type ViewRow = { id: string; value: ioBrokerObject };
 async function viewWithAliases(type: 'state' | 'channel' | 'device'): Promise<ViewRow[]> {
     const [plain, aliases] = await Promise.all([
         getObjectViewDirect(type),
-        getObjectViewDirect(type, 'alias.', 'alias.\u9999'),
+        getObjectViewDirect(type, 'alias.', 'alias.香'),
     ]);
-    const seen = new Set(plain.rows.map((r) => r.id));
-    const out = [...plain.rows];
-    for (const row of aliases.rows) {
-        if (seen.has(row.id)) continue;
-        seen.add(row.id);
-        out.push(row);
-    }
-    return out;
+    return withAliases(plain.rows, aliases.rows) as ViewRow[];
 }
 
 export async function loadFilterOptions(): Promise<{
@@ -405,193 +363,50 @@ export async function loadFilterOptions(): Promise<{
     };
 }
 
-/** True when the stored filter makes the periodic sync re-add matching datapoints. */
-export function hasDiscoveryFilter(
-    opts: Pick<
-        AutoListOptions,
-        | 'filterRoles'
-        | 'filterIdPattern'
-        | 'filterRooms'
-        | 'filterFuncs'
-        | 'filterEnums'
-        | 'filterTypes'
-        | 'filterAdapters'
-    >,
-): boolean {
-    return !!(
-        opts.filterRoles ||
-        opts.filterIdPattern ||
-        opts.filterRooms ||
-        opts.filterFuncs ||
-        opts.filterEnums ||
-        opts.filterTypes ||
-        opts.filterAdapters
-    );
+/** The filter options that decide what the search finds — a change asks the adapter again. */
+function discoveryKey(opts: AutoListDiscoveryOptions): string {
+    const { filterRoles, filterIdPattern, filterRooms, filterFuncs, filterEnums, filterTypes, filterAdapters } = opts;
+    return JSON.stringify([
+        filterRoles,
+        filterIdPattern,
+        filterRooms,
+        filterFuncs,
+        filterEnums,
+        filterTypes,
+        filterAdapters,
+    ]);
 }
 
-export async function discoverDatapoints(
-    opts: Pick<
-        AutoListOptions,
-        | 'filterRoles'
-        | 'filterIdPattern'
-        | 'filterRooms'
-        | 'filterFuncs'
-        | 'filterEnums'
-        | 'filterTypes'
-        | 'excludeIdPatterns'
-        | 'excludeIds'
-        | 'filterAdapters'
-    >,
-): Promise<DiscoveredDp[]> {
-    const [stateRows, channelRows, deviceRows, enumResult] = await Promise.all([
+/**
+ * Asks the adapter whether it syncs this list (lib/autoListSync.js, #893) — with `now`,
+ * to sync it at once. null = no usable answer; an adapter that never answered (older
+ * version) is not asked again in this page, so the next list does not wait as well.
+ */
+let adapterSyncFailed = false;
+async function askAdapterSync(widgetId: string, now: boolean): Promise<{ managed: boolean; changed?: boolean } | null> {
+    if (adapterSyncFailed || !widgetId) return null;
+    const res = await sendToDirect<{ ok?: boolean; managed?: boolean; changed?: boolean }>(
+        NS,
+        'autolistSync',
+        { widgetId, now },
+        15000,
+    );
+    if (!res || typeof res !== 'object' || '__timeout' in res) {
+        if (res && typeof res === 'object') adapterSyncFailed = true;
+        return null;
+    }
+    if (!res.ok) return null;
+    return { managed: res.managed === true, changed: res.changed };
+}
+
+export async function discoverDatapoints(opts: AutoListDiscoveryOptions): Promise<DiscoveredDp[]> {
+    const [states, channels, devices, enumResult] = await Promise.all([
         viewWithAliases('state'),
         viewWithAliases('channel'),
         viewWithAliases('device'),
-        getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
+        getObjectViewDirect('enum', 'enum.', 'enum.香'),
     ]);
-
-    // Build parent name map (channels override devices when both exist)
-    const parentNames = new Map<string, string>();
-    for (const { id, value: obj } of [...deviceRows, ...channelRows]) {
-        if (!obj?.common?.name) continue;
-        const n = resolveName(obj.common.name as string | Record<string, string>, '');
-        if (n) parentNames.set(id, n);
-    }
-
-    // Build memberId → { rooms, funcs } map.
-    // IMPORTANT: index by each member ID so we can do parent-path traversal below.
-    // This mirrors useDatapointList which checks the state ID AND all parent paths,
-    // because ioBroker adapters often assign rooms/functions to channels or devices,
-    // not to individual state objects.
-    const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
-    for (const { value: obj } of enumResult.rows) {
-        if (!obj?.common?.members?.length) continue;
-        const isRoom = obj._id.startsWith('enum.rooms.');
-        const isFunc = obj._id.startsWith('enum.functions.');
-        if (!isRoom && !isFunc) continue;
-        const label = resolveName(obj.common.name, obj._id.split('.').pop() ?? obj._id);
-        for (const memberId of obj.common.members) {
-            if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
-            const e = enumMap.get(memberId)!;
-            if (isRoom) e.rooms.push(label);
-            else e.funcs.push(label);
-        }
-    }
-
-    // Custom categories (enum.floors & co.) get their own index: they are matched by
-    // enum id, and their members are usually rooms rather than states, so membership
-    // has to be resolved through the nested enums (see utils/enumFilter).
-    const enumFilter = splitEnumFilter(opts.filterEnums);
-    const customEnumIndex = enumFilter.length ? buildEnumMemberIndex(enumResult.rows.map((r) => r.value)) : null;
-
-    // Role filter: exact match (same as DatapointPicker) with OR semantics for multiple values.
-    const roleFilter = (opts.filterRoles ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const idPatterns = (opts.filterIdPattern ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const roomFilter = (opts.filterRooms ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const funcFilter = (opts.filterFuncs ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const typeFilter = (opts.filterTypes ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const adapterFilter = (opts.filterAdapters ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const excludePats = (opts.excludeIdPatterns ?? '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-    const excludeIdsSet = new Set<string>(opts.excludeIds ?? []);
-
-    return stateRows
-        .filter(({ id, value: obj }) => {
-            // Malformed rows (missing common) exist in some user DBs - drop them so
-            // the mapper below can dereference common safely.
-            if (!obj?.common) return false;
-            const role = obj.common.role ?? '';
-            if (roleFilter.length > 0 && !roleFilter.includes(role)) return false;
-            if (idPatterns.length > 0 && !idPatterns.some((p) => matchesIdPattern(id, p))) return false;
-            if (adapterFilter.length > 0) {
-                const prefix = id.split('.').slice(0, 2).join('.');
-                if (!adapterFilter.includes(prefix)) return false;
-            }
-            const type = (obj.common.type as string | undefined) ?? '';
-            if (typeFilter.length > 0 && !typeFilter.includes(type)) return false;
-            if (excludeIdsSet.has(id)) return false;
-            if (excludePats.some((p) => matchesIdPattern(id, p))) return false;
-
-            // Traverse the state ID and all parent paths to find room/func memberships.
-            // e.g. for "hm-rpc.0.ABC.1.STATE" check:
-            //   hm-rpc.0.ABC.1.STATE → hm-rpc.0.ABC.1 → hm-rpc.0.ABC → hm-rpc.0
-            if (roomFilter.length > 0 || funcFilter.length > 0) {
-                const parts = id.split('.');
-                const roomsSet = new Set<string>();
-                const funcsSet = new Set<string>();
-                for (let i = parts.length; i >= 2; i--) {
-                    const e = enumMap.get(parts.slice(0, i).join('.'));
-                    if (e) {
-                        e.rooms.forEach((r) => roomsSet.add(r));
-                        e.funcs.forEach((f) => funcsSet.add(f));
-                    }
-                }
-                if (roomFilter.length > 0 && !roomFilter.some((r) => roomsSet.has(r))) return false;
-                if (funcFilter.length > 0 && !funcFilter.some((f) => funcsSet.has(f))) return false;
-            }
-            if (customEnumIndex && !matchesEnumFilter(enumFilter, enumIdsForObject(id, customEnumIndex))) return false;
-            return true;
-        })
-        .map(({ id, value: obj }) => {
-            // Build rooms array via parent-path traversal (same logic as filter above)
-            const parts = id.split('.');
-            const roomsSet = new Set<string>();
-            for (let i = parts.length; i >= 2; i--) {
-                const e = enumMap.get(parts.slice(0, i).join('.'));
-                if (e) e.rooms.forEach((r) => roomsSet.add(r));
-            }
-            const role = obj.common.role as string | undefined;
-            const type = obj.common.type as string | undefined;
-            const stateName = resolveName(obj.common.name as string | Record<string, string>, '');
-            let parentName = '';
-            for (let i = parts.length - 1; i >= 2; i--) {
-                const pName = parentNames.get(parts.slice(0, i).join('.'));
-                if (pName) {
-                    parentName = pName;
-                    break;
-                }
-            }
-            let name: string;
-            if (parentName && stateName && parentName !== stateName) {
-                name = `${parentName} › ${stateName}`;
-            } else if (stateName) {
-                name = stateName;
-            } else if (parentName) {
-                name = `${parentName} › ${parts[parts.length - 1]}`;
-            } else {
-                name = parts[parts.length - 1] ?? id;
-            }
-            return {
-                id,
-                name,
-                role,
-                type,
-                unit: (obj.common.unit as string | undefined) || undefined,
-                write: obj.common.write !== false ? undefined : false,
-                rooms: [...roomsSet],
-                isRelevant: isRelevantDp(role, type),
-            };
-        });
+    return discoverFromRows({ states, channels, devices, enums: enumResult.rows }, opts);
 }
 
 // ── Value display: row variant ────────────────────────────────────────────────
@@ -1426,40 +1241,62 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         return () => unsubs.forEach((u) => u());
     }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // The adapter syncs the stored list in its own rhythm (#893). Asked once per widget
+    // and filter: true = leave it to the adapter, false = it does not hold this list
+    // (unsaved, PIN-protected view, older adapter) — sync here as before. null = asking.
+    const [adapterSyncs, setAdapterSyncs] = useState<boolean | null>(null);
+    const filterKey = hasDiscoveryFilter(opts) ? discoveryKey(opts) : '';
+    useEffect(() => {
+        if (!filterKey) return;
+        let live = true;
+        askAdapterSync(config.id, false).then((r) => {
+            if (live) setAdapterSyncs(r?.managed === true);
+        });
+        return () => {
+            live = false;
+        };
+    }, [config.id, filterKey]);
+
+    const runLocalSync = useCallback(async () => {
+        const found = await discoverDatapoints(opts);
+        const next = autoListSyncRound<AutoListEntry>(opts, found);
+        if (next.changed) {
+            saveOpts({ entries: next.entries });
+            // Frontend only: in the editor the new entries are one more unsaved
+            // edit under the save bar — flushing here would push every other
+            // unsaved change along with them.
+            if (!editMode) {
+                saveAll();
+                // Scoped: the frontend must not push its theme/groups/popup-config
+                // copy along with a dashboard edit.
+                saveToIoBroker({ only: ['aura-dashboard'] });
+            }
+        }
+    }, [opts, saveOpts, editMode]);
+
+    // "Sync now" and the first search of an empty list. Outside the editor the adapter
+    // does it on the stored list and the new entries come in with the config; the
+    // editor searches its own (possibly unsaved) filters.
     const runSync = useCallback(async () => {
         if (!hasDiscoveryFilter(opts)) return;
         setSyncing(true);
         try {
-            const found = await discoverDatapoints(opts);
-            const filtered = (opts.filterRelevant ?? true) ? found.filter((d) => d.isRelevant) : found;
-            // The stored entries, not `entries`: those carry the list-wide display folded
-            // in, and writing that back made every row look hand-configured (#886).
-            const stored = stripInheritedDisplay(
-                (opts.entries ?? []).filter((e) => !!e?.id),
-                opts.entryDisplay as Record<string, unknown> | undefined,
-            );
-            const next = syncEntries(stored.entries, filtered, opts.syncRemove === true);
-            if (next.added > 0 || next.removed > 0 || stored.cleaned > 0) {
-                saveOpts({ entries: next.entries });
-                // Frontend only: in the editor the new entries are one more unsaved
-                // edit under the save bar — flushing here would push every other
-                // unsaved change along with them.
-                if (!editMode) {
-                    saveAll();
-                    // Scoped: the frontend must not push its theme/groups/popup-config
-                    // copy along with a dashboard edit.
-                    saveToIoBroker({ only: ['aura-dashboard'] });
-                }
+            if (!editMode && adapterSyncs !== false) {
+                const r = await askAdapterSync(config.id, true);
+                setAdapterSyncs(r?.managed === true);
+                if (r?.managed) return;
             }
+            await runLocalSync();
         } finally {
             setSyncing(false);
         }
-    }, [opts, saveOpts, editMode]);
+    }, [opts, editMode, adapterSyncs, config.id, runLocalSync]);
 
     useEffect(() => {
-        const timer = setInterval(runSync, syncMs);
+        if (adapterSyncs !== false || !filterKey) return;
+        const timer = setInterval(() => runLocalSync().catch(() => {}), syncMs);
         return () => clearInterval(timer);
-    }, [runSync, syncMs]);
+    }, [adapterSyncs, filterKey, runLocalSync, syncMs]);
 
     // A list written with filters but no entries (aura_add_widget over the MCP, a
     // copied config) would say "Noch keine Datenpunkte" until the first interval —
