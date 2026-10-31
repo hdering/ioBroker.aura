@@ -6844,6 +6844,11 @@ function WidgetFrameInner({
     // Badges (overlay indicators) — stable reference like conditions above
     const badges = (baseConfig.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
     const resolvedBadges = useBadges(badges, sourceCtx);
+    // The editors work on the stored clauses, not the resolved ones: inside a device card
+    // or the popup-view preview `{{dp}}` would otherwise show as the real datapoint and be
+    // written back as such on the next edit (#894).
+    const rawConditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
+    const rawBadges = (config.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
 
     // Register/release this widget in the panel coordinator.
     // NOTE: do NOT clean the reflow-hidden registry here — when a widget moves
@@ -22225,7 +22230,7 @@ function WidgetFrameInner({
             {openPanel === 'conditions' && (
                 <CenteredModal title="Bedingungen" onClose={() => openPanelFor(null)} wide>
                     <ConditionEditor
-                        conditions={conditions}
+                        conditions={rawConditions}
                         sourceCtx={sourceCtx}
                         slots={conditionSlots}
                         current={{
@@ -22243,7 +22248,7 @@ function WidgetFrameInner({
             {openPanel === 'badges' && (
                 <CenteredModal title={t('wf.menu.badges')} onClose={() => openPanelFor(null)} wide>
                     <BadgeEditor
-                        badges={badges}
+                        badges={rawBadges}
                         sourceCtx={sourceCtx}
                         onChange={(next) => onConfigChange({ ...config, options: { ...config.options, badges: next } })}
                     />
