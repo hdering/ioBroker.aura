@@ -11,6 +11,8 @@ import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { useConfigStore } from '../../store/configStore';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { collectWidgetDpIds } from '../../utils/dpOptionKeys';
+import { collectGroupChildren } from '../../utils/groupTypes';
+import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { unpublishCountdownForWidget } from '../../utils/publishCountdown';
@@ -47,8 +49,25 @@ interface WidgetEntry {
     section: Section;
     tab: Tab;
     pathLabel: string;
-    /** Every DP the widget references (main + options), for search and the row. */
+    /** Every DP the widget references (main + options + group children), for search and the row. */
     dpIds: string[];
+    /** Titles of the group children (nested groups included), for search. */
+    childTitles: string[];
+}
+
+/**
+ * DPs and child titles of one widget. Group / panels / device-card children live
+ * in the groupDefsStore, so a search for a child's DP finds its group. Device-card
+ * placeholders (`{{dp}}…`) are no real ids and stay out.
+ */
+function widgetSearchData(config: WidgetConfig, defs: Record<string, WidgetConfig[]>) {
+    const children = collectGroupChildren(config, defs);
+    const dpIds = new Set(collectWidgetDpIds(config));
+    for (const child of children) {
+        for (const dp of collectWidgetDpIds(child)) if (!dp.includes('{{')) dpIds.add(dp);
+    }
+    const childTitles = children.map((c) => c.title?.trim()).filter((t): t is string => !!t);
+    return { dpIds: [...dpIds], childTitles };
 }
 
 // ── Inline edit form ──────────────────────────────────────────────────────────
@@ -711,6 +730,7 @@ export function AdminWidgets() {
     const t = useT();
     const { updateWidgetInLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
     const layouts = useDashboardStore((s) => s.layouts);
+    const groupDefs = useGroupDefsStore((s) => s.defs);
     const [showSizes, setShowSizes] = useState(false);
     const [search, setSearch] = useState('');
     // Bumped on each summary-chip click so the matching TypeSection opens + scrolls.
@@ -734,12 +754,12 @@ export function AdminWidgets() {
                         .filter(Boolean)
                         .join(' / ');
                     for (const config of tab.widgets)
-                        out.push({ config, layout, section, tab, pathLabel, dpIds: collectWidgetDpIds(config) });
+                        out.push({ config, layout, section, tab, pathLabel, ...widgetSearchData(config, groupDefs) });
                 }
             }
         }
         return out;
-    }, [layouts]);
+    }, [layouts, groupDefs]);
 
     // Scope of the counters and the list: all layouts or a single one.
     const scopedEntries = useMemo(
@@ -760,6 +780,7 @@ export function AdminWidgets() {
             (e) =>
                 e.config.title.toLowerCase().includes(q) ||
                 e.dpIds.some((dp) => dp.toLowerCase().includes(q)) ||
+                e.childTitles.some((title) => title.toLowerCase().includes(q)) ||
                 e.tab.name.toLowerCase().includes(q) ||
                 e.section.name.toLowerCase().includes(q) ||
                 e.layout.name.toLowerCase().includes(q) ||

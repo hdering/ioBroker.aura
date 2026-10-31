@@ -19,3 +19,25 @@ export function hostsGroupDef<T extends Pick<WidgetConfig, 'type' | 'options'>>(
 ): w is T & { options: NonNullable<T['options']> & { defId: string } } {
     return !!w && DEF_HOST_TYPES.has(w.type) && typeof w.options?.defId === 'string' && !!w.options.defId;
 }
+
+/**
+ * Every child of a group / panels / device card, nested groups included
+ * (depth-first). Each def is visited once, so shared or cyclic defs are safe.
+ */
+export function collectGroupChildren(
+    widget: Pick<WidgetConfig, 'type' | 'options'>,
+    defs: Record<string, WidgetConfig[]>,
+): WidgetConfig[] {
+    const out: WidgetConfig[] = [];
+    const visited = new Set<string>();
+    const walk = (w: Pick<WidgetConfig, 'type' | 'options'>): void => {
+        if (!hostsGroupDef(w) || visited.has(w.options.defId)) return;
+        visited.add(w.options.defId);
+        for (const child of defs[w.options.defId] ?? []) {
+            out.push(child);
+            walk(child);
+        }
+    };
+    walk(widget);
+    return out;
+}
