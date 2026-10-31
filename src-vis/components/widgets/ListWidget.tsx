@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { List, Power } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect, subscribeDpValue } from '../../hooks/useIoBroker';
 import { baseDpId, resolveDpValue, splitDpRef } from '../../utils/dpRef';
-import { ensureDatapointCache } from '../../hooks/useDatapointList';
+import { fetchDatapointEntries } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import type { WidgetProps, ioBrokerState, ElementConditionRule } from '../../types';
@@ -917,14 +917,18 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                       setStates((prev) => ({ ...prev, [ref]: s }));
                   }),
         );
-        ensureDatapointCache().then((cache) => {
-            const updates: Record<string, string> = {};
-            for (const e of entries.filter((en) => !en.label)) {
-                const found = cache.find((c) => c.id === baseDpId(e.id));
-                if (found?.name) updates[e.id] = found.name;
-            }
-            if (Object.keys(updates).length > 0) setResolvedNames((prev) => ({ ...prev, ...updates }));
-        });
+        // Only the unlabelled entries, and only their objects — not the whole object DB (#882).
+        const unlabelled = entries.filter((en) => !en.label);
+        if (unlabelled.length > 0) {
+            void fetchDatapointEntries(unlabelled.map((e) => baseDpId(e.id))).then((found) => {
+                const updates: Record<string, string> = {};
+                for (const e of unlabelled) {
+                    const name = found.get(baseDpId(e.id))?.name;
+                    if (name) updates[e.id] = name;
+                }
+                if (Object.keys(updates).length > 0) setResolvedNames((prev) => ({ ...prev, ...updates }));
+            });
+        }
         return () => unsubs.forEach((u) => u());
     }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 

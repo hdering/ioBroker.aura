@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { getObjectViewDirect } from './useIoBroker';
+import type { ObjectViewResult } from '../types';
+import { getObjectDirect, getObjectViewDirect, whenStateReadsIdle } from './useIoBroker';
 
 export interface DatapointEntry {
     id: string;
@@ -31,8 +32,19 @@ export interface DatapointEntry {
 
 // Module-level cache – survives component mount/unmount
 let cache: DatapointEntry[] | null = null;
+let cacheById: Map<string, DatapointEntry> = new Map();
 let cacheTime = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// Entries resolved one by one (fetchDatapointEntries) while the full list is not
+// loaded – the display side only needs the datapoints it shows (#882).
+let partialById: Map<string, DatapointEntry> = new Map();
+
+function setCache(entries: DatapointEntry[]): void {
+    cache = entries;
+    cacheById = new Map(entries.map((e) => [e.id, e]));
+    cacheTime = Date.now();
+}
 
 // Names of the channel/device objects above the states. loadAll() reads these rows
 // anyway (to compose the "Kanal › State" display name) – keeping them lets structural
@@ -42,6 +54,8 @@ let deviceIds: Set<string> = new Set();
 
 export function invalidateDatapointCache() {
     cache = null;
+    cacheById = new Map();
+    partialById = new Map();
     cacheTime = 0;
     objectNames = new Map();
     deviceIds = new Set();
@@ -68,14 +82,24 @@ export function lookupDeviceName(id: string): string | null {
 
 let loadInProgress: Promise<DatapointEntry[]> | null = null;
 
+export interface EnsureDatapointCacheOptions {
+    /**
+     * Display-side caller (a widget in the dashboard, not the editor): waits until the
+     * visible values are in before the load starts, so they don't queue behind tens of
+     * MB of objects, and takes an older list instead of reloading it after the TTL (#882).
+     */
+    background?: boolean;
+}
+
 /** Ensures the cache is populated. Returns the entries (from cache or fresh load). */
-export async function ensureDatapointCache(): Promise<DatapointEntry[]> {
-    if (cache && !isCacheStale()) return cache;
+export async function ensureDatapointCache(opts?: EnsureDatapointCacheOptions): Promise<DatapointEntry[]> {
+    if (cache && (opts?.background || !isCacheStale())) return cache;
     if (loadInProgress) return loadInProgress;
-    loadInProgress = loadAll()
+    // Callers arriving during the wait join this promise, so the load still runs once.
+    loadInProgress = (opts?.background ? whenStateReadsIdle() : Promise.resolve())
+        .then(() => loadAll())
         .then((entries) => {
-            cache = entries;
-            cacheTime = Date.now();
+            setCache(entries);
             loadInProgress = null;
             return entries;
         })
@@ -92,14 +116,91 @@ export function isCacheStale(): boolean {
 
 /** Synchronous name lookup from the in-memory cache. Returns null if not loaded yet. */
 export function lookupDatapointName(id: string): string | null {
-    if (!cache || !id) return null;
-    return cache.find((e) => e.id === id)?.name ?? null;
+    return lookupDatapointEntry(id)?.name ?? null;
 }
 
 /** Synchronous full-entry lookup from the in-memory cache. Returns null if not loaded yet. */
 export function lookupDatapointEntry(id: string): DatapointEntry | null {
-    if (!cache || !id) return null;
-    return cache.find((e) => e.id === id) ?? null;
+    if (!id) return null;
+    return cacheById.get(id) ?? partialById.get(id) ?? null;
+}
+
+/**
+ * Adapters that log datapoint values. ioBroker marks them with `common.type: 'storage'`
+ * in their instance object, so the list below is only the fallback for instances that
+ * were not read (e.g. a disabled one). Other adapters use `common.custom` as well –
+ * iot for the Alexa smart names, for instance – and must not count as "history".
+ */
+const KNOWN_LOGGING_ADAPTERS = new Set(['history', 'influxdb', 'sql']);
+
+// Enum rows for fetchDatapointEntries – one small read (enum.*), shared by every caller.
+let enumRowsPromise: Promise<EnumRow[]> | null = null;
+type EnumRow = Awaited<ReturnType<typeof getObjectViewDirect>>['rows'][number];
+
+/**
+ * Entries for just these datapoints, without loading the whole object DB (#882).
+ * Reads each datapoint and its parents with getObject (cached per session) and, with
+ * `rooms`, the enums. From the full list when that is loaded anyway. `active` stays
+ * unset and `logging` only knows the history adapters by name – both are picker
+ * matters. Ids without an object are left out.
+ */
+export async function fetchDatapointEntries(
+    ids: string[],
+    opts?: { rooms?: boolean },
+): Promise<Map<string, DatapointEntry>> {
+    const out = new Map<string, DatapointEntry>();
+    const unique = [...new Set(ids.filter(Boolean))];
+    const missing: string[] = [];
+    for (const id of unique) {
+        const hit = cacheById.get(id) ?? (opts?.rooms ? undefined : partialById.get(id));
+        if (hit) out.set(id, hit);
+        else missing.push(id);
+    }
+    if (missing.length === 0) return out;
+
+    const parentIds = new Set<string>();
+    for (const id of missing) {
+        const parts = id.split('.');
+        for (let i = parts.length - 1; i >= 2; i--) parentIds.add(parts.slice(0, i).join('.'));
+    }
+    if (opts?.rooms && !enumRowsPromise) {
+        enumRowsPromise = getObjectViewDirect('enum', 'enum.', 'enum.香').then(
+            (r) => r.rows,
+            () => {
+                enumRowsPromise = null;
+                return [];
+            },
+        );
+    }
+    const [objs, parents, enumRows] = await Promise.all([
+        Promise.all(missing.map((id) => getObjectDirect(id))),
+        Promise.all([...parentIds].map(async (id) => [id, await getObjectDirect(id)] as const)),
+        opts?.rooms ? enumRowsPromise! : Promise.resolve([] as EnumRow[]),
+    ]);
+
+    // Same rule as loadAll: only device and channel objects name a datapoint.
+    const parentNames = new Map<string, string>();
+    for (const [id, obj] of parents) {
+        if (!obj || (obj.type !== 'device' && obj.type !== 'channel')) continue;
+        const n = resolveName(obj.common?.name, '');
+        if (n) parentNames.set(id, n);
+    }
+    const enumMap = buildEnumMap(enumRows);
+    missing.forEach((id, i) => {
+        const obj = objs[i];
+        if (!obj?.common) return;
+        const entry = buildEntry(
+            id,
+            obj.common as StateCommon,
+            parentNames,
+            enumMap,
+            (instanceId) => KNOWN_LOGGING_ADAPTERS.has(instanceId.replace(/\.\d+$/, '')),
+            undefined,
+        );
+        partialById.set(id, entry);
+        out.set(id, entry);
+    });
+    return out;
 }
 
 function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
@@ -133,14 +234,6 @@ export function normalizeStates(raw: unknown): Record<string, string> | undefine
     }
     return Object.keys(out).length ? out : undefined;
 }
-
-/**
- * Adapters that log datapoint values. ioBroker marks them with `common.type: 'storage'`
- * in their instance object, so the list below is only the fallback for instances that
- * were not read (e.g. a disabled one). Other adapters use `common.custom` as well –
- * iot for the Alexa smart names, for instance – and must not count as "history".
- */
-const KNOWN_LOGGING_ADAPTERS = new Set(['history', 'influxdb', 'sql']);
 
 async function loadAll(): Promise<DatapointEntry[]> {
     const [stateResult, aliasStateResult, channelResult, deviceResult, enumResult, instanceResult] = await Promise.all([
@@ -187,21 +280,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
     objectNames = parentNames;
     deviceIds = new Set(deviceResult.rows.map((r) => r.id));
 
-    // Build memberId → { rooms, funcs } map from enums
-    const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
-    for (const { value: obj } of enumResult.rows) {
-        if (!obj?.common?.members?.length) continue;
-        const isRoom = obj._id.startsWith('enum.rooms.');
-        const isFunc = obj._id.startsWith('enum.functions.');
-        if (!isRoom && !isFunc) continue;
-        const label = resolveName(obj.common.name, obj._id.split('.').pop() ?? obj._id);
-        for (const memberId of obj.common.members) {
-            if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
-            const e = enumMap.get(memberId)!;
-            if (isRoom) e.rooms.push(label);
-            else e.funcs.push(label);
-        }
-    }
+    const enumMap = buildEnumMap(enumResult.rows);
 
     return stateResult.rows
         .filter((row) => {
@@ -223,63 +302,95 @@ async function loadAll(): Promise<DatapointEntry[]> {
             // the prefix check above would always mark them inactive. Treat the scene
             // namespace as active so scene DPs are selectable and shown by default.
             const active = enabledPrefixes.has(prefix) || prefix.startsWith('scene.');
-            // Check state ID and all parent paths (channel, device) – enum members
-            // can reference any level of the object hierarchy, not just states directly.
-            const parts = row.id.split('.');
-            const roomsSet = new Set<string>();
-            const funcsSet = new Set<string>();
-            for (let i = parts.length; i >= 2; i--) {
-                const e = enumMap.get(parts.slice(0, i).join('.'));
-                if (e) {
-                    e.rooms.forEach((r) => roomsSet.add(r));
-                    e.funcs.forEach((f) => funcsSet.add(f));
-                }
-            }
-
-            const common = row.value.common;
-            // Compose name: closest parent (channel preferred over device) › state name
-            const stateName = resolveName(common.name, '');
-            let parentName = '';
-            for (let i = parts.length - 1; i >= 2; i--) {
-                const pName = parentNames.get(parts.slice(0, i).join('.'));
-                if (pName) {
-                    parentName = pName;
-                    break;
-                }
-            }
-            let name: string;
-            if (parentName && stateName && parentName !== stateName) {
-                name = `${parentName} › ${stateName}`;
-            } else if (stateName) {
-                name = stateName;
-            } else if (parentName) {
-                name = `${parentName} › ${parts[parts.length - 1]}`;
-            } else {
-                name = parts[parts.length - 1] ?? row.id;
-            }
-
-            const custom = common.custom ?? {};
-            const logging = Object.entries(custom)
-                .filter(([id, cfg]) => cfg?.enabled === true && isLoggingInstance(id))
-                .map(([id]) => id);
-
-            return {
-                id: row.id,
-                name,
-                type: common.type,
-                unit: common.unit,
-                role: common.role,
-                states: normalizeStates(common.states),
-                write: common.write !== false ? undefined : false,
-                min: typeof common.min === 'number' ? common.min : undefined,
-                max: typeof common.max === 'number' ? common.max : undefined,
-                step: typeof common.step === 'number' ? common.step : undefined,
-                rooms: [...roomsSet],
-                funcs: [...funcsSet],
-                logging,
-                active,
-            };
+            return buildEntry(row.id, row.value.common, parentNames, enumMap, isLoggingInstance, active);
         });
+}
+
+type StateCommon = ObjectViewResult['rows'][number]['value']['common'];
+type EnumMap = Map<string, { rooms: string[]; funcs: string[] }>;
+
+/** memberId → { rooms, funcs } from the enum rows (rooms and functions only). */
+function buildEnumMap(rows: ObjectViewResult['rows']): EnumMap {
+    const enumMap: EnumMap = new Map();
+    for (const { value: obj } of rows) {
+        if (!obj?.common?.members?.length) continue;
+        const isRoom = obj._id.startsWith('enum.rooms.');
+        const isFunc = obj._id.startsWith('enum.functions.');
+        if (!isRoom && !isFunc) continue;
+        const label = resolveName(obj.common.name, obj._id.split('.').pop() ?? obj._id);
+        for (const memberId of obj.common.members) {
+            if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
+            const e = enumMap.get(memberId)!;
+            if (isRoom) e.rooms.push(label);
+            else e.funcs.push(label);
+        }
+    }
+    return enumMap;
+}
+
+function buildEntry(
+    id: string,
+    common: StateCommon,
+    parentNames: Map<string, string>,
+    enumMap: EnumMap,
+    isLoggingInstance: (instanceId: string) => boolean,
+    active: boolean | undefined,
+): DatapointEntry {
+    // Check state ID and all parent paths (channel, device) – enum members
+    // can reference any level of the object hierarchy, not just states directly.
+    const parts = id.split('.');
+    const roomsSet = new Set<string>();
+    const funcsSet = new Set<string>();
+    for (let i = parts.length; i >= 2; i--) {
+        const e = enumMap.get(parts.slice(0, i).join('.'));
+        if (e) {
+            e.rooms.forEach((r) => roomsSet.add(r));
+            e.funcs.forEach((f) => funcsSet.add(f));
+        }
+    }
+
+    // Compose name: closest parent (channel preferred over device) › state name
+    const stateName = resolveName(common.name, '');
+    let parentName = '';
+    for (let i = parts.length - 1; i >= 2; i--) {
+        const pName = parentNames.get(parts.slice(0, i).join('.'));
+        if (pName) {
+            parentName = pName;
+            break;
+        }
+    }
+    let name: string;
+    if (parentName && stateName && parentName !== stateName) {
+        name = `${parentName} › ${stateName}`;
+    } else if (stateName) {
+        name = stateName;
+    } else if (parentName) {
+        name = `${parentName} › ${parts[parts.length - 1]}`;
+    } else {
+        name = parts[parts.length - 1] ?? id;
+    }
+
+    const custom = common.custom ?? {};
+    const logging = Object.entries(custom)
+        .filter(([instanceId, cfg]) => cfg?.enabled === true && isLoggingInstance(instanceId))
+        .map(([instanceId]) => instanceId);
+
+    return {
+        id,
+        name,
+        type: common.type,
+        unit: common.unit,
+        role: common.role,
+        states: normalizeStates(common.states),
+        write: common.write !== false ? undefined : false,
+        min: typeof common.min === 'number' ? common.min : undefined,
+        max: typeof common.max === 'number' ? common.max : undefined,
+        step: typeof common.step === 'number' ? common.step : undefined,
+        rooms: [...roomsSet],
+        funcs: [...funcsSet],
+        logging,
+        active,
+    };
 }
 
 export function useDatapointList() {
@@ -294,8 +405,7 @@ export function useDatapointList() {
         setLoading(true);
         try {
             const entries = await loadAll();
-            cache = entries;
-            cacheTime = Date.now();
+            setCache(entries);
             setDatapoints(entries);
         } finally {
             setLoading(false);

@@ -4,7 +4,7 @@ import type { WidgetProps, ioBrokerObject, ioBrokerState, ElementConditionRule }
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
 import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
-import { ensureDatapointCache } from '../../hooks/useDatapointList';
+import { fetchDatapointEntries } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { syncEntries } from '../../utils/autoListSync';
 import { isRelevantDp } from '../../utils/dpRelevance';
@@ -1299,10 +1299,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             return;
         }
         let cancelled = false;
-        ensureDatapointCache()
-            .then((cache) => {
+        fetchDatapointEntries(templateIdKey.split(','))
+            .then((byId) => {
                 if (cancelled) return;
-                const byId = new Map(cache.map((c) => [c.id, c]));
                 const meta: Record<string, { unit?: string }> = {};
                 for (const id of templateIdKey.split(',')) {
                     const found = byId.get(id);
@@ -1406,11 +1405,15 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 setStates((prev) => ({ ...prev, [id]: s }));
             }),
         );
-        ensureDatapointCache().then((cache) => {
+        // The rows' own objects plus the enums — not the whole object DB (#882).
+        void fetchDatapointEntries(
+            entries.map((e) => e.id),
+            { rooms: true },
+        ).then((byId) => {
             const nameUpdates: Record<string, string> = {};
             const roomUpdates: Record<string, string[]> = {};
             for (const e of entries) {
-                const found = cache.find((c) => c.id === e.id);
+                const found = byId.get(e.id);
                 if (!found) continue;
                 if (!e.label && found.name) nameUpdates[e.id] = found.name;
                 // Resolve rooms live so grouping reflects current enum assignments even when

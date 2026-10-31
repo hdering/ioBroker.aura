@@ -382,7 +382,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         let cancelled = false;
         setDiscovered(false);
         setBatteryGateDone(false);
-        ensureDatapointCache().then((cache) => {
+        ensureDatapointCache({ background: true }).then((cache) => {
             if (cancelled) return;
             const wantLevel = latchEnabled(opts, 'battery');
             const run = (isBatteryDevice?: (deviceId: string) => boolean) => {
@@ -1544,7 +1544,7 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
     useEffect(() => {
         if (!needCache) return;
         let cancelled = false;
-        ensureDatapointCache().then((cache) => {
+        ensureDatapointCache({ background: true }).then((cache) => {
             if (!cancelled) setDpById(new Map(cache.map((d) => [d.id, d])));
         });
         return () => {

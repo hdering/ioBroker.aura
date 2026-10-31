@@ -200,6 +200,63 @@ export function __devSetGetState(fn: typeof devGetState): void {
     devGetState = fn;
 }
 
+// ── Value reads in flight (#882) ───────────────────────────────────────────────
+// A bulk object read (the whole object DB is tens of MB on a large install) sent
+// together with the first getState round-trips makes the values queue behind it —
+// on a mobile link for many seconds. Bulk readers on the display side therefore
+// wait for whenStateReadsIdle() before they ask.
+let stateReadsInFlight = 0;
+let stateReadsSettledAt = 0;
+const stateReadIdleWaiters = new Set<() => void>();
+
+function stateReadStarted(): void {
+    stateReadsInFlight++;
+}
+
+function stateReadDone(): void {
+    stateReadsInFlight = Math.max(0, stateReadsInFlight - 1);
+    if (stateReadsInFlight === 0) {
+        stateReadsSettledAt = Date.now();
+        stateReadIdleWaiters.forEach((fn) => fn());
+    }
+}
+
+/**
+ * Resolves once no getState is in flight and none has started for `quietMs` —
+ * widgets mount in waves, so one empty moment is not the end of the first values.
+ * Gives up after `maxWaitMs`, so a datapoint that never answers cannot block a
+ * bulk reader for good.
+ */
+export function whenStateReadsIdle(quietMs = 300, maxWaitMs = 5000): Promise<void> {
+    return new Promise((resolve) => {
+        const started = Date.now();
+        let timer: ReturnType<typeof globalThis.setTimeout> | undefined;
+        // eslint-disable-next-line prefer-const -- assigned below, finish needs it first
+        let check: () => void;
+        const finish = () => {
+            stateReadIdleWaiters.delete(check);
+            if (timer !== undefined) globalThis.clearTimeout(timer);
+            resolve();
+        };
+        check = () => {
+            if (timer !== undefined) globalThis.clearTimeout(timer);
+            const left = maxWaitMs - (Date.now() - started);
+            if (left <= 0) return finish();
+            if (stateReadsInFlight > 0) {
+                timer = globalThis.setTimeout(finish, left);
+                return;
+            }
+            const quietFor = Date.now() - stateReadsSettledAt;
+            if (quietFor >= quietMs) return finish();
+            timer = globalThis.setTimeout(check, Math.min(quietMs - quietFor, left));
+        };
+        stateReadIdleWaiters.add(check);
+        // First look one frame later: the widgets of the first paint send their reads
+        // from effects that run after the caller's effect may already have asked.
+        globalThis.setTimeout(check, 50);
+    });
+}
+
 // DEV-only write log. Records what a control actually sent (id + value) so a
 // Playwright test can assert the converted raw value — e.g. that a slat slider
 // at 40 % writes 0.4 on a 0…1 datapoint — instead of inferring it from the DOM.
@@ -276,8 +333,10 @@ export function prefetchStates(ids: string[], onProgress?: (loaded: number, tota
                         return;
                     }
                 }
+                stateReadStarted();
                 getSocket().emit('getState', id, (_err: unknown, state: ioBrokerState | null) => {
                     if (state) cacheState(id, state);
+                    stateReadDone();
                     onProgress?.(++loaded, total);
                     resolve();
                 });
@@ -542,6 +601,8 @@ function createSocket(url: string): IoBrokerSocket {
         // now needs confirming — even for subscriptions that outlive the drop (the
         // non-hook `subscribeStateDirect` consumers, which don't watch `connected`).
         maintained.clear();
+        // Reads lost with the socket never answer — don't let them hold back bulk readers.
+        stateReadsInFlight = 0;
         console.log(
             '%c Aura %c disconnected ',
             'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
@@ -991,8 +1052,10 @@ export function getStateDirect(id: string): Promise<ioBrokerState | null> {
         }
     }
     return new Promise((resolve) => {
+        stateReadStarted();
         getSocket().emit('getState', id, (_err: unknown, state: ioBrokerState | null) => {
             if (state) cacheState(id, state);
+            stateReadDone();
             resolve(state ?? null);
         });
     });

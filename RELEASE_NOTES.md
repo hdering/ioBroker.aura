@@ -14,3 +14,4 @@
 - Gauge, HTTP action and Countdown - new widgets start one or two rows taller, so their content no longer reaches into the card edge or gets cut off
 - iFrame - with the proxy enabled, searching in single-page apps such as Paperless-ngx no longer ends in "Missing url parameter"; plain search forms keep their input too (#881)
 - Slideshow - the folder can now come from a datapoint, so a script or timer can switch the album (#880)
+- Dashboard values appear right away instead of after the whole object database has loaded; widgets only read the objects of the datapoints they show, which matters most on large installations and mobile connections (#882)

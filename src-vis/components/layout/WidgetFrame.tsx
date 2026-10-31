@@ -7420,11 +7420,15 @@ function WidgetFrameInner({
     // Candidates for the group-action target checklist (config UI).
     const groupActionType = (config.options?.groupActionType ?? 'switch') as GroupActionType;
     // Warm the datapoint cache so list entries without an explicit label show
-    // their resolved name (same as the list) instead of the bare DP-id tail.
+    // their resolved name (same as the list) instead of the bare DP-id tail. Only the
+    // checklist in the editor needs it — in the dashboard this read of the whole object
+    // DB used to hold back the first values of every widget (#882).
+    const needsDpNames = editMode && (config.type === 'list' || config.type === 'autolist');
     const [dpCacheReady, setDpCacheReady] = useState(false);
     useEffect(() => {
+        if (!needsDpNames) return;
         void ensureDatapointCache().then(() => setDpCacheReady(true));
-    }, []);
+    }, [needsDpNames]);
     const groupActionCandidates = isGroupType(config.type)
         ? groupGroupCandidates(groupChildren, groupActionType, (t) => WIDGET_BY_TYPE[t as WidgetType]?.label)
         : config.type === 'list' || config.type === 'autolist'
