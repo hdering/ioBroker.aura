@@ -2961,6 +2961,8 @@ export const de = {
     'menu.source.layout': 'Aktuelles Layout',
     'menu.source.all': 'Alle Layouts',
     'menu.showSearch': 'Suchfeld',
+    'menu.showHidden': 'Ausgeblendete anzeigen',
+    'menu.showHidden.hint': 'Auch Bereiche und Tabs auflisten, die in der Tab-Leiste ausgeblendet sind',
     'menu.searchPlaceholder': 'Tab suchen…',
     'menu.noMatch': 'Keine Treffer',
     'menu.groupTitle': 'Gruppen-Titel',

@@ -4727,7 +4727,10 @@ function MenuEditPanel({
     const layout = useActiveLayout();
     const section = useActiveSection();
     // The overview lists sections too — de-selecting one drops its whole group.
-    const rawItems = (menuMode === 'tab' ? (section?.tabs ?? []) : (layout?.sections ?? [])).filter((it) => !it.hidden);
+    const showHidden = o.showHidden === true;
+    const rawItems = (menuMode === 'tab' ? (section?.tabs ?? []) : (layout?.sections ?? [])).filter(
+        (it) => showHidden || !it.hidden,
+    );
     const MODE_LABEL = {
         section: 'menu.mode.section',
         tab: 'menu.mode.tab',
@@ -10850,6 +10853,12 @@ function WidgetFrameInner({
                                 fields.push(
                                     // The search field exists in the overview only, the labels everywhere else.
                                     { key: 'showSearch', label: t('menu.showSearch'), def: false, hidden: !overview },
+                                    {
+                                        key: 'showHidden',
+                                        label: t('menu.showHidden'),
+                                        hint: t('menu.showHidden.hint'),
+                                        def: false,
+                                    },
                                     { key: 'showIcons', label: t('menu.showIcons') },
                                     { key: 'showLabels', label: t('menu.showLabels'), hidden: overview },
                                 );

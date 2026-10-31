@@ -1977,7 +1977,13 @@ export const WIDGET_OPTION_NOTES = {
         hiddenItems: {
             description:
                 'Abgewählte Einträge (IDs, Slugs werden ebenfalls erkannt): Bereiche bei "section" und "overview" (dort entfällt die ganze Gruppe), ' +
-                'Tabs bei "tab". Als hidden markierte Bereiche/Tabs fehlen ohnehin.',
+                'Tabs bei "tab". Als hidden markierte Bereiche/Tabs fehlen, außer showHidden ist an.',
+        },
+        showHidden: {
+            description:
+                'Auch als hidden markierte Bereiche und Tabs auflisten (alle Modi). Typisch: Raum-Tabs aus der ' +
+                'Tab-Leiste ausblenden und nur über ein Menü auf einem Übersichts-Tab erreichbar machen (#892). ' +
+                'Ausgeblendete Layouts bleiben bei menuSource "all" weg.',
         },
         variant: {
             enum: ['hbar', 'vlist', 'grid', 'pills'],

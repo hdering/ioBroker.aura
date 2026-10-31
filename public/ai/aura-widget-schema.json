@@ -18782,7 +18782,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Abgewählte Einträge (IDs, Slugs werden ebenfalls erkannt): Bereiche bei \"section\" und \"overview\" (dort entfällt die ganze Gruppe), Tabs bei \"tab\". Als hidden markierte Bereiche/Tabs fehlen ohnehin."
+          "description": "Abgewählte Einträge (IDs, Slugs werden ebenfalls erkannt): Bereiche bei \"section\" und \"overview\" (dort entfällt die ganze Gruppe), Tabs bei \"tab\". Als hidden markierte Bereiche/Tabs fehlen, außer showHidden ist an."
         },
         "iconSize": {
           "type": "number",
@@ -18821,6 +18821,11 @@
             "all"
           ],
           "description": "Nur bei menuMode \"overview\": \"layout\" = Bereiche des aktuellen Layouts, \"all\" = zusätzlich die Bereiche aller anderen Layouts, je Layout mit dessen Namen als Überschrift."
+        },
+        "showHidden": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auch als hidden markierte Bereiche und Tabs auflisten (alle Modi). Typisch: Raum-Tabs aus der Tab-Leiste ausblenden und nur über ein Menü auf einem Übersichts-Tab erreichbar machen (#892). Ausgeblendete Layouts bleiben bei menuSource \"all\" weg."
         },
         "showIcons": {
           "type": "boolean",

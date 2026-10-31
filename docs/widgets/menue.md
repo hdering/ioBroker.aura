@@ -24,7 +24,7 @@ Tab-Menü (`menuMode: tab`):
 
 ![](./assets/menue/mode-overview.png)
 
-Als `hidden` markierte Bereiche und Tabs erscheinen nie. Ein Wechsel des Menü-Typs setzt die Auswahl der Menüpunkte zurück.
+Als `hidden` markierte Bereiche und Tabs erscheinen nur mit `showHidden: true` (Schalter „Ausgeblendete anzeigen“) — so lassen sich z. B. Raum-Tabs aus der Tab-Leiste nehmen und nur über ein Menü auf einem Übersichts-Tab öffnen. Ein Wechsel des Menü-Typs setzt die Auswahl der Menüpunkte zurück.
 
 ### Übersicht (`overview`)
 

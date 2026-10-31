@@ -2937,6 +2937,8 @@ export const en: Record<TranslationKey, string> = {
     'menu.source.layout': 'Current layout',
     'menu.source.all': 'All layouts',
     'menu.showSearch': 'Search field',
+    'menu.showHidden': 'Show hidden',
+    'menu.showHidden.hint': 'Also list sections and tabs that are hidden in the tab bar',
     'menu.searchPlaceholder': 'Search tab…',
     'menu.noMatch': 'No matches',
     'menu.groupTitle': 'Group title',

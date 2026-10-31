@@ -94,6 +94,10 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
     // Overview mode (#669): every section of the layout with its tabs as chips.
     const menuSource = (o.menuSource as MenuSource) ?? 'layout';
     const showSearch = o.showSearch === true;
+    // Hidden sections/tabs only drop out of the tab bar — the menu can still list them,
+    // e.g. room tabs reachable from an overview tab only (#892).
+    const showHidden = o.showHidden === true;
+    const isListed = (it: Section | Tab) => showHidden || !it.hidden;
     const groupTitle = (o.groupTitle as GroupTitle) ?? 'iconName';
     const chipSize = (o.chipSize as ChipSize) ?? 'md';
 
@@ -161,7 +165,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
         disabled: (it as Tab).disabled,
     });
     const rawItems: (Section | Tab)[] = menuMode === 'tab' ? (section?.tabs ?? []) : (layout?.sections ?? []);
-    const items: MenuItem[] = rawItems.filter((it) => !it.hidden && !isDeselected(it)).map(toItem);
+    const items: MenuItem[] = rawItems.filter((it) => isListed(it) && !isDeselected(it)).map(toItem);
 
     // ── Overview groups (#669) ────────────────────────────────────────────────
     // One group per visible section; `hiddenItems` de-selects whole sections here.
@@ -175,7 +179,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                   .filter((l) => !l.hidden)
                   .flatMap((l) =>
                       l.sections
-                          .filter((sec) => !sec.hidden && !isDeselected(sec))
+                          .filter((sec) => isListed(sec) && !isDeselected(sec))
                           .map((sec): OverviewGroup => {
                               const sectionHit = !needle || sec.name.toLowerCase().includes(needle);
                               return {
@@ -186,7 +190,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                                   multiSection: l.sections.length > 1,
                                   section: toItem(sec),
                                   items: sec.tabs
-                                      .filter((tb) => !tb.hidden)
+                                      .filter(isListed)
                                       .map(toItem)
                                       .filter((it) => sectionHit || it.name.toLowerCase().includes(needle)),
                               };
