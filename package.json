@@ -434,6 +434,7 @@
     "test:editor-lock": "node tools/tests/editor-widget-lock.mjs",
     "test:editor-lock-sweep": "node tools/tests/editor-widget-lock-sweep.mjs",
     "test:html-api": "node tools/tests/html-api.mjs",
+    "test:html-auto-height": "node tools/tests/html-auto-height.mjs",
     "test:html-template-dblclick": "node tools/tests/html-template-dblclick.mjs",
     "test:iframe-zoom": "node tools/tests/iframe-zoom.mjs",
     "test:iframe-zoom-ui": "node tools/tests/iframe-zoom-ui.mjs",

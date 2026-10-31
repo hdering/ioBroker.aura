@@ -1265,6 +1265,8 @@ export const de = {
     'dash.autoHeightLocked': 'Höhe folgt dem Inhalt – abschaltbar unter Darstellung.',
     'wf.edit.autoHeightHint':
         'Das Widget wird so hoch wie sein Inhalt, statt eine feste Höhe zu füllen. Die eingestellte Höhe wird dann überschrieben und lässt sich nicht mehr manuell ändern.',
+    'wf.edit.autoHeightNoScripts':
+        'Die Sandbox erlaubt keine Skripte – das HTML kann seine Höhe nicht melden. Bei eigenen Sandbox-Flags allow-scripts ergänzen.',
     'wf.edit.defaultCollapsed': 'Standardmäßig eingeklappt',
     'wf.edit.defaultCollapsedHint':
         'Das Widget zeigt zunächst nur Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach. Ausgeklappt sitzt der Einklapp-Knopf in der gewählten Ecke.',

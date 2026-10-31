@@ -51,7 +51,8 @@ import { setDragBridge, getTabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows, withContentHeights } from '../../utils/groupLayout';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
-import { supportsAutoHeight } from '../../utils/autoHeight';
+import { htmlCanReportHeight, supportsAutoHeight } from '../../utils/autoHeight';
+import { Unavailable } from '../config/Unavailable';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { WidgetWriteLockContext, useWidgetWriteLock } from '../../hooks/widgetWriteLock';
@@ -10043,7 +10044,13 @@ function WidgetFrameInner({
                                     {/* Fit height to content (utils/autoHeight AUTO_HEIGHT_TYPES). In a
                                         group too: the group sizes the child from it (#741). */}
                                     {supportsAutoHeight(config.type, config.layout) && (
-                                        <>
+                                        <Unavailable
+                                            reason={
+                                                config.type === 'html' && !htmlCanReportHeight(o)
+                                                    ? t('wf.edit.autoHeightNoScripts')
+                                                    : undefined
+                                            }
+                                        >
                                             <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                             <div className="flex items-center justify-between">
                                                 <label
@@ -10071,7 +10078,7 @@ function WidgetFrameInner({
                                             <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                                                 {t('wf.edit.autoHeightHint')}
                                             </p>
-                                        </>
+                                        </Unavailable>
                                     )}
                                     {/* Collapsible widget (issue #676). A group keeps the chevron in
                                         its own header; every other type folds to a frame header and

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Code2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
@@ -9,14 +9,20 @@ import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbo
 import { iframeScrollingAttr, resolveHtmlInteractionMode } from '../../utils/iframeInteraction';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
-import { injectBridge, sandboxAllowsScripts } from '../../utils/htmlBridge';
+import { BRIDGE_SIZE, injectBridge, injectSizeReporter, sandboxAllowsScripts } from '../../utils/htmlBridge';
 import { useHtmlBridge } from '../../hooks/useHtmlBridge';
+import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import { extractJsonPath } from '../../utils/dpRef';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import type { WidgetProps } from '../../types';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+
+/** Cap for a reported content height — a runaway page must not stretch the grid endlessly. */
+const MAX_CONTENT_H = 20000;
+/** Frame height under autoHeight until the document has reported (the browser's iframe default). */
+const INITIAL_CONTENT_H = 150;
 
 export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const opts = config.options ?? {};
@@ -38,6 +44,11 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const iconSize = (opts.iconSize as number) || 20;
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Code2);
+    // "Höhe automatisch an Inhalt anpassen" (#884): the frame reports its document
+    // height (utils/htmlBridge SIZE_SCRIPT), the iframe takes it, and the root's
+    // height goes to the Dashboard like the list widgets' (utils/autoHeight).
+    const { fit, measureRef } = useContentAutoHeight(config);
+    const [contentH, setContentH] = useState<number | null>(null);
 
     const { value: dpValue } = useDatapoint(htmlDatapoint);
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
@@ -82,11 +93,25 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
             ops: { formatNum: (v, d) => formatNum(v, d, numFmt), decimals, t },
         });
         const withAssets = resolveHtmlAssets(filled);
-        return apiEnabled ? injectBridge(withAssets) : withAssets;
+        const withApi = apiEnabled ? injectBridge(withAssets) : withAssets;
+        return fit ? injectSizeReporter(withApi) : withApi;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawHtml, tokenStates, mainValue, mainDp, decimals, numFmt, specials, apiEnabled, t]);
+    }, [rawHtml, tokenStates, mainValue, mainDp, decimals, numFmt, specials, apiEnabled, fit, t]);
 
     const frameRef = useRef<HTMLIFrameElement>(null);
+    // Only this widget's own frame is heard — same gate as the bridge.
+    useEffect(() => {
+        if (!fit) return;
+        const onMessage = (ev: MessageEvent) => {
+            const win = frameRef.current?.contentWindow;
+            if (!win || ev.source !== win) return;
+            const d = ev.data as { source?: unknown; h?: unknown } | null;
+            if (!d || d.source !== BRIDGE_SIZE || typeof d.h !== 'number' || !Number.isFinite(d.h)) return;
+            setContentH(Math.min(MAX_CONTENT_H, Math.max(0, Math.round(d.h))));
+        };
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, [fit]);
     // The frame's own script can write datapoints through `window.aura`. In a
     // locked editor it must not — the bridge stays closed, so a page that writes
     // on load leaves the house alone while the dashboard is being built. (#655)
@@ -102,7 +127,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
 
     if (!html) {
         return (
-            <div className="aura-widget-row flex flex-col h-full">
+            <div ref={measureRef} className={`aura-widget-row flex flex-col ${fit ? '' : 'h-full'}`}>
                 <HeaderGroup>
                     {(showTitle || showIcon) && (
                         <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -130,7 +155,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                     <HeaderSlotsRow2 />
                 </HeaderGroup>
                 <div
-                    className="flex flex-col items-center justify-center flex-1 gap-2"
+                    className={`flex flex-col items-center justify-center ${fit ? 'py-4' : 'flex-1'} gap-2`}
                     style={{ color: 'var(--text-secondary)' }}
                 >
                     <WidgetIcon size={32} strokeWidth={1} />
@@ -141,7 +166,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     }
 
     return (
-        <div className="aura-widget-row flex flex-col h-full">
+        <div ref={measureRef} className={`aura-widget-row flex flex-col ${fit ? '' : 'h-full'}`}>
             <HeaderGroup>
                 {(showTitle || showIcon) && (
                     <TitleRow align={titleAlign} className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
@@ -168,14 +193,14 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            <div className="relative flex-1 min-h-0 flex flex-col">
+            <div className={`relative flex flex-col ${fit ? '' : 'flex-1 min-h-0'}`}>
                 <iframe
                     ref={frameRef}
                     srcDoc={html}
                     sandbox={sandboxAttr}
                     title={config.title || 'HTML'}
-                    className="aura-widget-value aura-frame-neutral flex-1 min-h-0 w-full block"
-                    style={{ border: 'none' }}
+                    className={`aura-widget-value aura-frame-neutral w-full block ${fit ? '' : 'flex-1 min-h-0'}`}
+                    style={{ border: 'none', ...(fit ? { height: contentH ?? INITIAL_CONTENT_H } : null) }}
                     // A blocked frame cannot be scrolled — its scrollbar would be dead chrome.
                     scrolling={scrollable ? iframeScrollingAttr(interactionMode) : 'no'}
                 />

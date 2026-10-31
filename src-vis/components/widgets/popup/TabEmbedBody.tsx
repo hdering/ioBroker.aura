@@ -7,7 +7,7 @@ import { useConditionStyle, type ConditionResult } from '../../../hooks/useCondi
 import { widgetSourceCtx } from '../../../utils/conditionSources';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import { ContentAutoHeightBlockedContext } from '../../../hooks/useContentAutoHeight';
-import { supportsAutoHeight } from '../../../utils/autoHeight';
+import { followsPopupAutoHeight } from '../../../utils/autoHeight';
 import { buildPopupSubMap, popupMainDp, resolvePopupWidget } from '../../../utils/popupPlaceholders';
 import { useDpNameVars } from '../../../hooks/useDpNameVars';
 import type { WidgetConfig, WidgetCondition } from '../../../types';
@@ -186,7 +186,7 @@ export function popupViewFillWidget(
  * content (lists, device controls) keep their designed size.
  */
 export function fillsFullscreenPopup(w: WidgetConfig): boolean {
-    return !supportsAutoHeight(w.type, w.layout);
+    return !followsPopupAutoHeight(w);
 }
 
 interface Props {
@@ -357,7 +357,7 @@ export function TabEmbedBody({
     // Whether a given widget grows to its measured content height (auto dialog + a type
     // with a natural content height, utils/autoHeight). Fill-type widgets (charts,
     // gauges, maps …) have no intrinsic height and keep their designed grid height.
-    const isAutoCell = (w: WidgetConfig) => autoPopupHeight && supportsAutoHeight(w.type, w.layout);
+    const isAutoCell = (w: WidgetConfig) => autoPopupHeight && followsPopupAutoHeight(w);
 
     // react-grid-layout compacts only vertically, so a widget placed at x>0 in the editor
     // keeps its empty leading columns at runtime and hugs the right edge. Two-step fix:

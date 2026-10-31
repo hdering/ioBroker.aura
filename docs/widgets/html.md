@@ -31,6 +31,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `interactionMode` | `content` | `action` · `content` — wie beim [iFrame](./iframe.md#interaktion-vs-klick-aktion); `action` macht die ganze Fläche zur Klick-Fläche |
 | `mobileHeight` | `aspect` | Höhe auf dem Handy: `aspect` (Desktop-Seitenverhältnis) · `rows` (Zeilenhöhe, z. B. Grafana) · `px` |
 | `mobileHeightPx` | `300` | feste Höhe in px bei `mobileHeight: px` |
+| `autoHeight` | `false` | Höhe folgt dem HTML, auch auf dem Handy (statt `mobileHeight`) — siehe [Höhe an Inhalt anpassen](../einstellungen/editor#hohe-an-inhalt-anpassen) |
 
 ### Platzhalter
 

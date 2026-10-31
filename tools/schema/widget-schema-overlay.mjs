@@ -59,7 +59,8 @@ export const KEY_DESCRIPTIONS = {
     autoHeight:
         'Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird ' +
         'dann ignoriert – auch als Kind einer Gruppe, die dann mitwächst. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count). Adapter-Logs: ' +
-        'Höhe wächst bis visibleLimit Zeilen.',
+        'Höhe wächst bis visibleLimit Zeilen. HTML: das Dokument im iframe meldet seine Höhe selbst (auch bei ' +
+        'htmlApi false), braucht eine Sandbox mit Skripten; hat Vorrang vor mobileHeight.',
     confirmAction: 'Vor dem Schalten eine Rückfrage anzeigen.',
     confirmText: 'Text der Rückfrage. Leer = Standardtext.',
     batteryDp: 'Datenpunkt für den Batteriestatus (Badge in der Ecke).',
@@ -2198,7 +2199,7 @@ export const EXTRA_OPTIONS = {
     },
     image: { ...FILL_TAB_OPTION },
     slideshow: { ...FILL_TAB_OPTION },
-    html: { ...HTML_INTERACTION_MODE_OPTION, ...EMBED_MOBILE_HEIGHT_OPTIONS },
+    html: { ...HTML_INTERACTION_MODE_OPTION, ...EMBED_MOBILE_HEIGHT_OPTIONS, ...AUTO_HEIGHT_OPTION },
     calendar: {
         ...AUTO_HEIGHT_OPTION,
         // Read inside getMultiDayMode(options), i.e. through a parameter rather

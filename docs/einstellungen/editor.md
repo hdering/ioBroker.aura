@@ -117,6 +117,7 @@ Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfah
 | Kalender | ✓ (nicht Layout `Custom`) |
 | Meldungen | ✓ (nicht Layout `Anzahl`) |
 | Adapter-Logs | ✓ — wächst bis `Sichtbare Zeilen` |
+| HTML | ✓ — das HTML meldet seine Höhe selbst; nicht bei eigenen Sandbox-Flags ohne `allow-scripts` |
 | alle anderen | — (Inhalt skaliert mit der Kachel) |
 
 Nicht für Widgets innerhalb einer Gruppe. Im Editor zeigt der Ziehgriff beim Vergrößern einen Hinweis.

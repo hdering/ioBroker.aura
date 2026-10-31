@@ -27,6 +27,8 @@ export const BRIDGE_CALL = 'aura:call';
 export const BRIDGE_REPLY = 'aura:reply';
 /** Host → frame: a subscribed datapoint changed. */
 export const BRIDGE_EVENT = 'aura:event';
+/** Frame → host: the document's content height in px (`autoHeight`, #884). */
+export const BRIDGE_SIZE = 'aura:size';
 
 export type BridgeMethod = 'hello' | 'setState' | 'toggle' | 'getState' | 'subscribe' | 'unsubscribe' | 'sendTo';
 
@@ -68,6 +70,33 @@ const BRIDGE_SCRIPT = [
     '})();',
 ].join('');
 
+/**
+ * Size reporter for `autoHeight` (#884): the host cannot read into a sandboxed
+ * frame, so the document measures itself and posts its height on every change —
+ * a new datapoint value, a late image, a narrower screen. Independent of
+ * `window.aura`, so it also runs with `htmlApi: false`.
+ *
+ * The height of the root element, not `scrollHeight`: that one never drops below
+ * the frame's own height, so the tile could grow but never shrink again. A
+ * horizontal scrollbar is added on top, else it would steal the last pixels and
+ * bring a vertical one along. A page that pins `html` to `height:100%` simply
+ * keeps the height it has.
+ */
+const SIZE_SCRIPT = [
+    '(function(){',
+    'var last=-1,d=document.documentElement;',
+    'function m(){if(!d)return;',
+    'var h=Math.ceil(d.getBoundingClientRect().height)+Math.max(0,window.innerHeight-d.clientHeight);',
+    "if(h!==last){last=h;parent.postMessage({source:'aura:size',h:h},'*');}}",
+    // Not before the body is parsed: this runs from <head>, where the document is
+    // still empty — a 0 posted on every srcDoc reload would make the tile flicker.
+    'function start(){if(window.ResizeObserver){var ro=new ResizeObserver(m);ro.observe(d);',
+    'if(document.body)ro.observe(document.body);}m();}',
+    "if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();",
+    "window.addEventListener('load',m);window.addEventListener('resize',m);",
+    '})();',
+].join('');
+
 const DOCTYPE_RE = /^\s*<!doctype[^>]*>/i;
 // The tag name must end at the `>` or at a space — otherwise `<header>` would
 // pass as a `<head>` and the script would land in the middle of the page.
@@ -80,7 +109,16 @@ const HTML_RE = /<html(?:\s[^>]*)?>/i;
  * every layout that relies on the standard box model.
  */
 export function injectBridge(html: string): string {
-    const tag = `<script>${BRIDGE_SCRIPT}</script>`;
+    return injectScript(html, BRIDGE_SCRIPT);
+}
+
+/** Put the `autoHeight` size reporter into the frame (see SIZE_SCRIPT). */
+export function injectSizeReporter(html: string): string {
+    return injectScript(html, SIZE_SCRIPT);
+}
+
+function injectScript(html: string, script: string): string {
+    const tag = `<script>${script}</script>`;
     for (const re of [HEAD_RE, DOCTYPE_RE, HTML_RE]) {
         const m = re.exec(html);
         if (m) {

@@ -1254,6 +1254,8 @@ export const en: Record<TranslationKey, string> = {
     'dash.autoHeightLocked': 'Height follows the content – turn it off under Darstellung.',
     'wf.edit.autoHeightHint':
         'The widget grows as tall as its content instead of filling a fixed height. The set height is then overridden and can no longer be changed by hand.',
+    'wf.edit.autoHeightNoScripts':
+        'The sandbox does not allow scripts – the HTML cannot report its height. Add allow-scripts to the custom sandbox flags.',
     'wf.edit.defaultCollapsed': 'Collapsed by default',
     'wf.edit.defaultCollapsedHint':
         'The widget initially shows only icon and title; a tap expands the content and the widgets below move up. While expanded, the fold button sits in the chosen corner.',
