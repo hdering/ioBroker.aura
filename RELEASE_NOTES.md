@@ -16,3 +16,4 @@
 - Slideshow - the folder can now come from a datapoint, so a script or timer can switch the album (#880)
 - Dashboard values appear right away instead of after the whole object database has loaded; widgets only read the objects of the datapoints they show, and the status overview gets its datapoints from the adapter instead of downloading every object — which matters most on large installations and mobile connections (#882)
 - The dashboard no longer downloads its whole configuration again every 30 seconds and after every reconnect; it only reads what changed, which saves a lot of traffic on mobile connections (#882)
+- HTML widget - images and CSS backgrounds with ioBroker paths such as `/adapter/<name>/…` now load, like in vis and Lovelace (#885)

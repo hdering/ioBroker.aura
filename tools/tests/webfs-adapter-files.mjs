@@ -137,6 +137,23 @@ const svg = '<svg xmlns="http://www.w3.org/2000/svg"><circle r="1"/></svg>';
     eq('an unknown extension keeps the reported mime', odd.res.headers['Content-Type'], 'application/x-odd');
 }
 
+// ── 5. Which requests are answered on the web adapter's behalf (#885) ───────
+{
+    const { webFsPath } = main;
+    const icon = '/adapter/openmeteo-notify/icons/basmilius_animated/wmo_00.svg';
+    eq('/webfs/… loses its prefix', webFsPath(`/webfs${icon}`), icon);
+    eq('a bare /adapter/… is answered as it is', webFsPath(icon), icon);
+    eq('/webfs alone is the web root', webFsPath('/webfs'), '/');
+    eq('/webfsx is not /webfs', webFsPath('/webfsx/a'), null);
+    eq('/adapter-icons/… stays its own route', webFsPath('/adapter-icons/sets'), null);
+    eq('a bare /vis.0/… is not served', webFsPath('/vis.0/main/img.png'), null);
+    eq('a bare /<adapter>.admin/… is not served', webFsPath('/sonos.admin/x.png'), null);
+    check(
+        'the bare path parses as an adapter asset',
+        parseAdapterAssetPath(webFsPath(icon))?.adapter === 'openmeteo-notify',
+    );
+}
+
 // ── 4. Anything the file store cannot answer falls back to the proxy ────────
 {
     const asset = { adapter: 'foo', file: 'missing.svg' };

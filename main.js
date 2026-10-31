@@ -685,6 +685,25 @@ const MIME_TYPES = {
 };
 
 /**
+ * The web path a request asks Aura to answer on the web adapter's behalf:
+ * `/webfs/<path>` → `/<path>`, and a bare `/adapter/<name>/…` as it is. The
+ * latter is what free HTML carries — an adapter's weather HTML in a state with
+ * `url("/adapter/openmeteo-notify/icons/…")` in its CSS — and what vis, vis-2
+ * and Lovelace serve from their own origin. Rewriting every such path inside
+ * HTML, CSS and scripts cannot be done reliably, so the server answers it.
+ * Other web-adapter roots (`/vis.0/…`, `/<adapter>.admin/…`) stay under
+ * `/webfs`: an instance's storage can hold config files. (#885)
+ *
+ * @param {string} pathname request path, still percent-encoded
+ * @returns {string|null} the web path, or null when the request is not one of these
+ */
+function webFsPath(pathname) {
+    if (pathname === '/webfs' || pathname.startsWith('/webfs/')) return pathname.slice('/webfs'.length) || '/';
+    if (pathname.startsWith('/adapter/')) return pathname;
+    return null;
+}
+
+/**
  * `/adapter/<name>/<file>` is the ioBroker web adapter's mapping onto the file
  * storage of `<name>.admin` — that is where adapters keep the graphics they
  * publish as relative paths in states (pirate-weather's weather icons are the
@@ -2144,15 +2163,17 @@ class Aura extends utils.Adapter {
             // image DPs to `/webfs/…`, hitting aura's origin. `/adapter/<name>/…`
             // is answered from the file storage directly (see serveAdapterAsset),
             // everything else is piped to the socket backend (default :8082).
+            // A bare `/adapter/<name>/…` is answered the same way, for free HTML
+            // that references adapter files directly (see webFsPath, #885).
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
-            const isWebFs = pathname === '/webfs' || pathname.startsWith('/webfs/');
+            const webfsPath = webFsPath(pathname);
+            const isWebFs = webfsPath !== null;
             if (isWebFs || webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
                 // Strip the `/webfs` prefix so the backend receives the real web path.
-                const backendPath = isWebFs ? req.url.slice('/webfs'.length) || '/' : req.url;
+                const backendPath = pathname.startsWith('/webfs') ? req.url.slice('/webfs'.length) || '/' : req.url;
                 // Adapter assets live in the objects DB, which aura can read on its
                 // own — no detour over the web adapter, and no dependency on the
                 // configured socket port pointing at a file-serving instance (#519).
-                const webfsPath = pathname.slice('/webfs'.length);
                 const asset = isWebFs && req.method === 'GET' ? parseAdapterAssetPath(webfsPath) : null;
                 // Sound files of an instance's storage (SayIt's tts.mp3, #834) likewise.
                 const audio = isWebFs && req.method === 'GET' && !asset ? parseStorageAudioPath(webfsPath) : null;
@@ -6679,6 +6700,7 @@ if (require.main !== module) {
     module.exports = (options) => new Aura(options);
     module.exports.sanitizeClientId = sanitizeClientId;
     module.exports.parseAdapterAssetPath = parseAdapterAssetPath;
+    module.exports.webFsPath = webFsPath;
     module.exports.parseStorageAudioPath = parseStorageAudioPath;
     module.exports.requestBase = requestBase;
     module.exports.rewriteHtml = rewriteHtml;

@@ -88,6 +88,45 @@ const eq = (name, got, want) => check(name, got === want, `got ${JSON.stringify(
     check('inline svg element untouched', out.includes('<svg viewBox="0 0 1 1">'));
 }
 
+// ── 5. CSS url() and srcset: root-absolute paths go to /webfs (#885) ────────
+{
+    // openmeteo-notify's weather HTML, as it lands in its htmlDatapoint.
+    const icon = '/adapter/openmeteo-notify/icons/basmilius_animated/wmo_00.svg';
+    eq(
+        'url("…") in a style block',
+        resolveHtmlAssets(`<style>.i{background-image: url("${icon}");}</style>`),
+        `<style>.i{background-image: url("/webfs${icon}");}</style>`,
+    );
+    eq(
+        'url(&quot;…&quot;) in a style attribute',
+        resolveHtmlAssets(`<div style="background:url(&quot;${icon}&quot;)"></div>`),
+        `<div style="background:url(&quot;/webfs${icon}&quot;)"></div>`,
+    );
+    eq(
+        "url('…') and url(…) unquoted",
+        resolveHtmlAssets(`url('/a/b.png') url(/c.png)`),
+        `url('/webfs/a/b.png') url(/webfs/c.png)`,
+    );
+    eq('url(#gradient) stays', resolveHtmlAssets('<path fill="url(#g)"/>'), '<path fill="url(#g)"/>');
+    eq('relative url() stays', resolveHtmlAssets('url(img/a.png)'), 'url(img/a.png)');
+    eq(
+        'data: url() stays',
+        resolveHtmlAssets('url("data:image/png;base64,AAAA")'),
+        'url("data:image/png;base64,AAAA")',
+    );
+    eq('protocol-relative url() stays', resolveHtmlAssets('url(//cdn.x/a.png)'), 'url(//cdn.x/a.png)');
+    eq('aura-local url() stays', resolveHtmlAssets('url(/webfs/a.png)'), 'url(/webfs/a.png)');
+    check(
+        'aura-file: in url()',
+        resolveHtmlAssets('url(aura-file:/opt/a.png)').includes('/fs/read?path=%2Fopt%2Fa.png'),
+    );
+    eq(
+        'srcset: absolute candidates rewritten, others kept',
+        resolveHtmlAssets('<img srcset="/a.png 1x, b.png 2x, https://x/c.png 3x">'),
+        '<img srcset="/webfs/a.png 1x, b.png 2x, https://x/c.png 3x">',
+    );
+}
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
 if (failed.length) process.exit(1);

@@ -13,12 +13,36 @@ export function resolveAssetUrl(value: string): string {
  * value widget's HTML template or a JSON table's HTML cell can reference files
  * from the ioBroker file system with the same `aura-file:` syntax used by the
  * image picker — no IP/port dependency. (issue #465)
+ *
+ * `srcset` candidates and CSS `url(…)` (in `<style>` blocks and `style`
+ * attributes, also with `&quot;` quotes) are rewritten too, but only for
+ * root-absolute paths and `aura-file:` — relative values and `url(#gradient)`
+ * references stay as they are. The server answers a bare `/adapter/…` itself,
+ * so this matters mostly for an Aura behind a reverse proxy with a base path,
+ * where the frame's `/adapter/…` would leave Aura's path entirely. (#885)
  */
 export function resolveHtmlAssets(html: string): string {
-    return html.replace(/(\ssrc\s*=\s*)(["'])([^"']+)\2/gi, (m, pre, q, url) => {
-        const resolved = resolveImageSource(url);
-        return resolved ? `${pre}${q}${resolved}${q}` : m;
-    });
+    return html
+        .replace(/(\ssrc\s*=\s*)(["'])([^"']+)\2/gi, (m, pre, q, url) => {
+            const resolved = resolveImageSource(url);
+            return resolved ? `${pre}${q}${resolved}${q}` : m;
+        })
+        .replace(/(\ssrcset\s*=\s*)(["'])([^"']+)\2/gi, (_m, pre, q, list: string) => {
+            const candidates = list.split(',').map((c) => {
+                const m = /^(\s*)(\S+)(.*)$/s.exec(c);
+                return m && isRewritablePath(m[2]) ? `${m[1]}${resolveImageSource(m[2])}${m[3]}` : c;
+            });
+            return `${pre}${q}${candidates.join(',')}${q}`;
+        })
+        .replace(/\burl\(\s*(&quot;|&#0*39;|["']|)([^"'()\s]+?)\1\s*\)/gi, (m, q, url: string) =>
+            isRewritablePath(url) ? `url(${q}${resolveImageSource(url)}${q})` : m,
+        );
+}
+
+/** A value in `srcset` or CSS `url()` that would miss Aura's own routes:
+ *  root-absolute (`/adapter/…`, not `//host/…`) or an `aura-file:` reference. */
+function isRewritablePath(v: string): boolean {
+    return (v.startsWith('/') && !v.startsWith('//')) || v.startsWith('aura-file:');
 }
 
 /**
