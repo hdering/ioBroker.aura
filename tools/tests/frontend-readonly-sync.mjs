@@ -45,6 +45,7 @@ const stubPlugin = {
                 export const setStateDirectAsync = async () => {};
                 export const setStateDirect = () => {};
                 export const subscribeStateDirect = () => () => {};
+                export const revalidateItself = () => {};
                 export const getStateDirect = async (id) => {
                     const v = globalThis.__remote.get(id);
                     return v === undefined ? null : { val: v, ack: true };

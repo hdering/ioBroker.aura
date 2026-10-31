@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { getStateDirect, subscribeStateDirect } from './useIoBroker';
+import { getStateDirect, getStateFromCache, revalidateItself, subscribeStateDirect } from './useIoBroker';
+import { NS } from '../utils/namespace';
 import { useDashboardStore } from '../store/dashboardStore';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
 import { hydrateWidgetPresets } from '../store/widgetPresetsStore';
@@ -114,8 +115,10 @@ export function useConfigSync(
 
     // 1. Subscribe to each state — immediate push on stateChange
     useEffect(() => {
-        const unsubs = (Object.entries(IOBROKER_STATE_MAP) as [SyncStoreKey, string][]).map(([key, stateId]) =>
-            subscribeStateDirect(stateId, (state) => {
+        const unsubs = (Object.entries(IOBROKER_STATE_MAP) as [SyncStoreKey, string][]).map(([key, stateId]) => {
+            // The config load and the poll below read these — not the reconnect pass.
+            revalidateItself(stateId);
+            return subscribeStateDirect(stateId, (state) => {
                 if (!state?.val || !configLoaded.current) return;
                 if (!ignoreDirty && isPendingInThisTab(key)) return;
                 const incoming = String(state.val);
@@ -138,20 +141,32 @@ export function useConfigSync(
                     // have a base to stand on.
                     invalidateHistoryKey(key);
                 }
-            }),
-        );
+            });
+        });
         return () => unsubs.forEach((u) => u());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // 2. Polling every 30 s — fallback for HTTPS/proxy setups.
+    // 2. Polling every 30 s — fallback for HTTPS/proxy setups, and the catch-up after
+    //    a reconnect. Asks the adapter's info.configRevision (the ts of each config
+    //    state, a few bytes) and reads only the states that changed: a full read was
+    //    the whole config.dashboard every 30 s on every device (#882). Without the
+    //    revision (older adapter) every key is read as before.
     //    group-defs excluded from polling (large, RAM-only, subscription is sufficient).
     const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const poll = useCallback(() => {
+    const poll = useCallback(async () => {
         if (!configLoaded.current) return;
+        const revision = parseRevision((await getStateDirect(`${NS}.info.configRevision`))?.val);
         const pollKeys = (Object.keys(IOBROKER_STATE_MAP) as SyncStoreKey[])
             .filter((k) => k !== 'aura-group-defs' && k !== 'aura-widget-presets')
-            .filter((k) => ignoreDirty || !isPendingInThisTab(k));
+            .filter((k) => ignoreDirty || !isPendingInThisTab(k))
+            .filter((k) => {
+                if (!revision) return true;
+                const id = IOBROKER_STATE_MAP[k];
+                const ts = revision[id.slice(NS.length + 1)];
+                return ts !== undefined && ts !== getStateFromCache(id)?.ts;
+            });
+        if (pollKeys.length === 0) return;
         Promise.all(
             pollKeys.map((key) =>
                 getStateDirect(IOBROKER_STATE_MAP[key]).then((state) => {
@@ -178,12 +193,17 @@ export function useConfigSync(
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    const wasConnected = useRef(false);
     useEffect(() => {
         if (pollingRef.current) clearInterval(pollingRef.current);
         if (!connected) {
             pollingRef.current = null;
             return;
         }
+        // Back online: whatever changed meanwhile (the reconnect pass skips these).
+        // Not on the first connect — the config load reads everything then.
+        if (wasConnected.current) void poll();
+        wasConnected.current = true;
         pollingRef.current = globalThis.setInterval(poll, 30_000);
         return () => {
             if (pollingRef.current) {
@@ -192,4 +212,17 @@ export function useConfigSync(
             }
         };
     }, [connected, poll]);
+}
+
+/** info.configRevision → { 'config.dashboard': ts, … }; null when missing or garbled. */
+function parseRevision(val: unknown): Record<string, number> | null {
+    if (typeof val !== 'string' || !val) return null;
+    try {
+        const parsed = JSON.parse(val) as unknown;
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+            ? (parsed as Record<string, number>)
+            : null;
+    } catch {
+        return null;
+    }
 }

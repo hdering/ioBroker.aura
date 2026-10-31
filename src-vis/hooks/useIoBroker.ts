@@ -206,6 +206,8 @@ export function __devSetGetState(fn: typeof devGetState): void {
 // on a mobile link for many seconds. Bulk readers on the display side therefore
 // wait for whenStateReadsIdle() before they ask.
 let stateReadsInFlight = 0;
+// getStateChecked reads still waiting for their answer, by id (see there).
+const checkedReads = new Map<string, Promise<{ ok: boolean; state: ioBrokerState | null }>>();
 let stateReadsSettledAt = 0;
 const stateReadIdleWaiters = new Set<() => void>();
 
@@ -384,6 +386,16 @@ function getInitialUrl(): string {
 let currentUrl = getInitialUrl();
 
 /**
+ * States whose owner re-reads them itself after a reconnect — the config states
+ * (useConfigSync): config.dashboard can be megabytes, and the reconnect pass would
+ * download it next to the config load (#882).
+ */
+const ownRevalidation = new Set<string>();
+export function revalidateItself(id: string): void {
+    ownRevalidation.add(id);
+}
+
+/**
  * Re-fetch every state we have ever cached and push the fresh value into the
  * cache + any live subscribers.
  *
@@ -400,7 +412,9 @@ let currentUrl = getInitialUrl();
  * giant burst at a socket that has just come up.
  */
 function revalidateStates(s: IoBrokerSocket): void {
-    const ids = [...new Set([...subscribers.keys(), ...stateCache.keys()])].filter(isValidStateId);
+    const ids = [...new Set([...subscribers.keys(), ...stateCache.keys()])].filter(
+        (id) => isValidStateId(id) && !ownRevalidation.has(id),
+    );
     if (ids.length === 0) return;
     const CHUNK = 50;
     const emitChunk = (from: number): void => {
@@ -603,6 +617,8 @@ function createSocket(url: string): IoBrokerSocket {
         maintained.clear();
         // Reads lost with the socket never answer — don't let them hold back bulk readers.
         stateReadsInFlight = 0;
+        // …and a config read must ask again after the reconnect, not wait forever.
+        checkedReads.clear();
         console.log(
             '%c Aura %c disconnected ',
             'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
@@ -1066,6 +1082,11 @@ export function getStateDirect(id: string): Promise<ioBrokerState | null> {
  * `ok: false` when the socket answered with an error or not at all within
  * timeoutMs. The config load needs that distinction — a read that failed while
  * the adapter restarted must not count as "this config is empty" (#800).
+ *
+ * A read that timed out keeps running: the next call for the same id waits for
+ * that answer instead of asking again. On a slow link a multi-MB config takes
+ * longer than the timeout, and every retry used to start another full download
+ * on top of the one still arriving (#882).
  */
 export function getStateChecked(id: string, timeoutMs = 10000): Promise<{ ok: boolean; state: ioBrokerState | null }> {
     if (devGetState) {
@@ -1075,23 +1096,26 @@ export function getStateChecked(id: string, timeoutMs = 10000): Promise<{ ok: bo
             return Promise.resolve({ ok: true, state: handled });
         }
     }
+    let read = checkedReads.get(id);
+    if (!read) {
+        read = new Promise<{ ok: boolean; state: ioBrokerState | null }>((resolve) => {
+            getSocket().emit('getState', id, (err: unknown, state: ioBrokerState | null) => {
+                if (err) {
+                    resolve({ ok: false, state: null });
+                    return;
+                }
+                if (state) cacheState(id, state);
+                resolve({ ok: true, state: state ?? null });
+            });
+        }).finally(() => checkedReads.delete(id));
+        checkedReads.set(id, read);
+    }
+    const pending = read;
     return new Promise((resolve) => {
-        let settled = false;
-        const timer = globalThis.setTimeout(() => {
-            if (settled) return;
-            settled = true;
-            resolve({ ok: false, state: null });
-        }, timeoutMs);
-        getSocket().emit('getState', id, (err: unknown, state: ioBrokerState | null) => {
-            if (settled) return;
-            settled = true;
+        const timer = globalThis.setTimeout(() => resolve({ ok: false, state: null }), timeoutMs);
+        void pending.then((r) => {
             globalThis.clearTimeout(timer);
-            if (err) {
-                resolve({ ok: false, state: null });
-                return;
-            }
-            if (state) cacheState(id, state);
-            resolve({ ok: true, state: state ?? null });
+            resolve(r);
         });
     });
 }

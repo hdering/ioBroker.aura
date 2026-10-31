@@ -858,6 +858,8 @@ class Aura extends utils.Adapter {
         this._mediaLibrary = undefined;
         /** @type {ReturnType<typeof createStatusDiscovery> | undefined} Statusübersicht discovery, see statusDiscover */
         this._statusDiscovery = undefined;
+        /** @type {Record<string, number> | undefined} see _initConfigRevision */
+        this._configRevision = undefined;
     }
 
     // State-based calendar fetch: frontend writes {id, url, ttl?} to calendar.request,
@@ -1073,6 +1075,9 @@ class Aura extends utils.Adapter {
 
         // Any config state: remember the value; a write without ack saves the
         // previous one first (see onReady). Falls through to the handlers below.
+        if (id.startsWith(`${this.namespace}.config.`) && state) {
+            this._bumpConfigRevision(id.slice(this.namespace.length + 1), state.ts);
+        }
         if (id.startsWith(`${this.namespace}.config.`) && state && this._configGuard) {
             const saved = await this._configGuard
                 .onChange(id, state)
@@ -4295,6 +4300,7 @@ class Aura extends utils.Adapter {
         for (const short of Object.keys(CONFIG_KEYS)) {
             if (short !== 'config.dashboard') this.subscribeStates(short);
         }
+        await this._initConfigRevision();
         // Also completes the object tree of every known client (navigate.*, popup.*,
         // messages.*) and syncs the per-layout message datapoints.
         await this._syncNavigateTargets();
@@ -5231,6 +5237,44 @@ class Aura extends utils.Adapter {
     // ── Statusübersicht: remembered hints ───────────────────────────────────────
     // Glue between the status.* states and lib/statusLatch.js: the engine owns the
     // entries, this section only reads and writes ioBroker.
+
+    /**
+     * info.configRevision = { "config.dashboard": ts, … } of the synced config states.
+     * The frontend polls this instead of the states: config.dashboard can be megabytes,
+     * and a poll every 30 s on every device downloaded all of it each time (#882).
+     */
+    async _initConfigRevision() {
+        await this.setObjectNotExistsAsync('info.configRevision', {
+            type: 'state',
+            common: {
+                name: 'Last change of each config state (for the frontend sync)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: false,
+                def: '{}',
+            },
+            native: {},
+        });
+        /** @type {Record<string, number>} */
+        const revision = {};
+        for (const short of Object.keys(CONFIG_KEYS)) {
+            const st = await this.getStateAsync(short).catch(() => null);
+            if (st) revision[short] = st.ts;
+        }
+        this._configRevision = revision;
+        await this.setStateAsync('info.configRevision', { val: JSON.stringify(revision), ack: true });
+    }
+
+    /**
+     * @param {string} short  e.g. "config.dashboard"
+     * @param {number} ts  the state's new timestamp
+     */
+    _bumpConfigRevision(short, ts) {
+        if (!this._configRevision || !(short in CONFIG_KEYS) || this._configRevision[short] === ts) return;
+        this._configRevision[short] = ts;
+        this.setState('info.configRevision', { val: JSON.stringify(this._configRevision), ack: true });
+    }
 
     async _initStatusLatch() {
         this._statusSubscribed = new Set();
