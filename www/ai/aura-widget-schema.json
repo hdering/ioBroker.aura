@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.98.0",
+    "auraVersion": "0.99.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1420,7 +1420,7 @@
         },
         "text": {
           "type": "string",
-          "description": "source 'text': free text with the same bindings as a marker label — '{0_userdata.0.pv;round(0)} W', '{dp}' for the widget's own value, '{{ a + b }}'; list widgets also offer {sum} {avg} {min} {max} {count} {active}."
+          "description": "source 'text': free text with the same bindings as a marker label — '{0_userdata.0.pv;round(0)} W', '{dp}' for the widget's own value, '{{ a + b }}'; list widgets also offer {sum} {avg} {min} {max} {count} {active}. HTML is supported (sanitised), e.g. '<img src=\"/moon/{0_userdata.0.moon}.png\">'."
         },
         "icon": {
           "type": "string",
