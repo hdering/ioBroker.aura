@@ -20,3 +20,4 @@
 - The editor warns when an image is embedded as Base64: it is saved with the configuration and loaded by every device on every start, so larger images are better added as a file or URL (#882)
 - HTML widget - images and CSS backgrounds with ioBroker paths such as `/adapter/<name>/…` now load, like in vis and Lovelace (#885)
 - Dynamic list - "remove entries that are no longer found" works again when a list-wide display is set; the sync no longer copies that display into every entry, existing lists are cleaned up on the next sync, and the "only relevant datapoints" switch now shows its actual default (on) (#886)
+- Widget management - the search now also finds datapoints used inside widget options, e.g. the series of the advanced chart, custom-grid cells or background images; rows without a main datapoint show the first one they use (#887)

@@ -10,6 +10,7 @@ import type { WidgetConfig, WidgetType, WidgetLayout } from '../../types';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { useConfigStore } from '../../store/configStore';
 import { exportWidget } from '../../utils/widgetExportImport';
+import { collectWidgetDpIds } from '../../utils/dpOptionKeys';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { unpublishCountdownForWidget } from '../../utils/publishCountdown';
@@ -46,6 +47,8 @@ interface WidgetEntry {
     section: Section;
     tab: Tab;
     pathLabel: string;
+    /** Every DP the widget references (main + options), for search and the row. */
+    dpIds: string[];
 }
 
 // ── Inline edit form ──────────────────────────────────────────────────────────
@@ -432,8 +435,13 @@ function WidgetRow({
                             {entry.pathLabel}
                         </span>
                     </div>
-                    <p className="text-xs font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
-                        {entry.config.datapoint || '—'}
+                    <p
+                        className="text-xs font-mono truncate"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title={entry.dpIds.length > 1 ? entry.dpIds.join('\n') : undefined}
+                    >
+                        {entry.config.datapoint || entry.dpIds[0] || '—'}
+                        {entry.dpIds.length > 1 && ` (+${entry.dpIds.length - 1})`}
                     </p>
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                         {entry.config.layout ?? 'default'} · {entry.config.gridPos.w}×{entry.config.gridPos.h}
@@ -725,7 +733,8 @@ export function AdminWidgets() {
                     const pathLabel = [multiLayout ? layout.name : null, multiSection ? section.name : null, tab.name]
                         .filter(Boolean)
                         .join(' / ');
-                    for (const config of tab.widgets) out.push({ config, layout, section, tab, pathLabel });
+                    for (const config of tab.widgets)
+                        out.push({ config, layout, section, tab, pathLabel, dpIds: collectWidgetDpIds(config) });
                 }
             }
         }
@@ -750,7 +759,7 @@ export function AdminWidgets() {
         return scopedEntries.filter(
             (e) =>
                 e.config.title.toLowerCase().includes(q) ||
-                e.config.datapoint.toLowerCase().includes(q) ||
+                e.dpIds.some((dp) => dp.toLowerCase().includes(q)) ||
                 e.tab.name.toLowerCase().includes(q) ||
                 e.section.name.toLowerCase().includes(q) ||
                 e.layout.name.toLowerCase().includes(q) ||
