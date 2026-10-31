@@ -1,34 +1,17 @@
 import { useState, useCallback } from 'react';
-import type { ObjectViewResult } from '../types';
+import {
+    buildDatapointEntries,
+    buildEntry,
+    buildEnumMap,
+    KNOWN_LOGGING_ADAPTERS,
+    resolveName,
+    type DatapointEntry,
+    type StateCommon,
+} from '../utils/datapointEntry';
 import { getObjectDirect, getObjectViewDirect, whenStateReadsIdle } from './useIoBroker';
 
-export interface DatapointEntry {
-    id: string;
-    name: string;
-    type?: string;
-    unit?: string;
-    role?: string;
-    write?: boolean; // false = read-only (common.write === false)
-    // common.min / max / step. Only set when the datapoint declares them, so a
-    // detector can pre-fill a widget's value range (e.g. an AV receiver's dB volume
-    // scale of -80.5…16.5) instead of falling back to the 0…100 default.
-    min?: number;
-    max?: number;
-    step?: number;
-    rooms: string[]; // labels from enum.rooms.*
-    funcs: string[]; // labels from enum.functions.*
-    logging: string[]; // enabled logging adapter IDs, e.g. ['history.0', 'influxdb.0']
-    // Value → label map from `common.states`, normalised from all three ioBroker
-    // spellings (object, array, "0:a;1:b"). Only set when the datapoint has one, so
-    // structural detectors can recognise multi-state datapoints (e.g. a rotary handle's
-    // CLOSED/TILTED/OPEN enum) without a second object read.
-    states?: Record<string, string>;
-    // false = the state's adapter instance is not enabled (disabled adapter, or an
-    // orphaned/manually-imported state with no matching instance). Hidden by default
-    // in the picker, shown when the user opts into "also show inactive". Undefined
-    // (e.g. synthetic entries) counts as active.
-    active?: boolean;
-}
+export type { DatapointEntry } from '../utils/datapointEntry';
+export { normalizeStates } from '../utils/datapointEntry';
 
 // Module-level cache – survives component mount/unmount
 let cache: DatapointEntry[] | null = null;
@@ -114,6 +97,14 @@ export function isCacheStale(): boolean {
     return cache === null || Date.now() - cacheTime > CACHE_TTL_MS;
 }
 
+/**
+ * Entries someone else resolved (the adapter's Statusübersicht discovery, #882) —
+ * kept for lookupDatapointEntry like the ones fetchDatapointEntries reads.
+ */
+export function rememberDatapointEntries(entries: DatapointEntry[]): void {
+    for (const e of entries) partialById.set(e.id, e);
+}
+
 /** Synchronous name lookup from the in-memory cache. Returns null if not loaded yet. */
 export function lookupDatapointName(id: string): string | null {
     return lookupDatapointEntry(id)?.name ?? null;
@@ -124,14 +115,6 @@ export function lookupDatapointEntry(id: string): DatapointEntry | null {
     if (!id) return null;
     return cacheById.get(id) ?? partialById.get(id) ?? null;
 }
-
-/**
- * Adapters that log datapoint values. ioBroker marks them with `common.type: 'storage'`
- * in their instance object, so the list below is only the fallback for instances that
- * were not read (e.g. a disabled one). Other adapters use `common.custom` as well –
- * iot for the Alexa smart names, for instance – and must not count as "history".
- */
-const KNOWN_LOGGING_ADAPTERS = new Set(['history', 'influxdb', 'sql']);
 
 // Enum rows for fetchDatapointEntries – one small read (enum.*), shared by every caller.
 let enumRowsPromise: Promise<EnumRow[]> | null = null;
@@ -203,40 +186,8 @@ export async function fetchDatapointEntries(
     return out;
 }
 
-function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
-    if (!name) return fallback;
-    if (typeof name === 'string') return name;
-    return name.de ?? name.en ?? Object.values(name)[0] ?? fallback;
-}
-
-/**
- * Normalises `common.states` into a value → label map. ioBroker allows three
- * spellings: an object, an array (index = value) and the legacy "0:a;1:b" string.
- * Returns undefined when the datapoint has no enum, so the cache entry stays small.
- */
-export function normalizeStates(raw: unknown): Record<string, string> | undefined {
-    const out: Record<string, string> = {};
-    if (Array.isArray(raw)) {
-        raw.forEach((label, i) => {
-            out[String(i)] = String(label);
-        });
-    } else if (typeof raw === 'string') {
-        raw.split(';').forEach((pair) => {
-            const sep = pair.indexOf(':');
-            if (sep < 1) return;
-            const key = pair.slice(0, sep).trim();
-            if (key) out[key] = pair.slice(sep + 1).trim();
-        });
-    } else if (raw && typeof raw === 'object') {
-        Object.entries(raw as Record<string, unknown>).forEach(([k, label]) => {
-            out[k.trim()] = String(label);
-        });
-    }
-    return Object.keys(out).length ? out : undefined;
-}
-
 async function loadAll(): Promise<DatapointEntry[]> {
-    const [stateResult, aliasStateResult, channelResult, deviceResult, enumResult, instanceResult] = await Promise.all([
+    const [states, aliasStates, channels, devices, enums, instances] = await Promise.all([
         getObjectViewDirect('state'),
         getObjectViewDirect('state', 'alias.', 'alias.\u9999'),
         getObjectViewDirect('channel'),
@@ -244,153 +195,17 @@ async function loadAll(): Promise<DatapointEntry[]> {
         getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
         getObjectViewDirect('instance', 'system.adapter.', 'system.adapter.\u9999'),
     ]);
-
-    // Merge alias states into stateResult (deduplicate by id)
-    const seenIds = new Set(stateResult.rows.map((r) => r.id));
-    for (const row of aliasStateResult.rows) {
-        if (!seenIds.has(row.id)) stateResult.rows.push(row);
-    }
-
-    // Build set of enabled instance prefixes: "hm-rpc.0", "history.0", …
-    const enabledPrefixes = new Set<string>();
-    // …and of every instance that stores values (history, influxdb, sql, …), so the
-    // picker's history column and filter cover all of them, disabled ones included.
-    const loggingInstances = new Set<string>();
-    for (const { id, value: obj } of instanceResult.rows) {
-        // id is "system.adapter.hm-rpc.0" → strip prefix
-        const instanceId = id.slice('system.adapter.'.length);
-        if (obj?.common?.enabled === true) enabledPrefixes.add(instanceId);
-        // An instance's common.type is the adapter category ("storage", "logic", …),
-        // not the state type the row typing assumes.
-        if ((obj?.common as { type?: string } | undefined)?.type === 'storage') loggingInstances.add(instanceId);
-    }
-    const isLoggingInstance = (instanceId: string) =>
-        loggingInstances.has(instanceId) || KNOWN_LOGGING_ADAPTERS.has(instanceId.replace(/\.\d+$/, ''));
-    // 0_userdata.0 and alias.0 are built-in ioBroker namespaces, not adapter instances
-    enabledPrefixes.add('0_userdata.0');
-    enabledPrefixes.add('alias.0');
-
-    // Build parent name map: id → resolved name (devices first, then channels so channels win)
-    const parentNames = new Map<string, string>();
-    for (const { id, value: obj } of [...deviceResult.rows, ...channelResult.rows]) {
-        if (!obj?.common?.name) continue;
-        const n = resolveName(obj.common.name, '');
-        if (n) parentNames.set(id, n);
-    }
-    objectNames = parentNames;
-    deviceIds = new Set(deviceResult.rows.map((r) => r.id));
-
-    const enumMap = buildEnumMap(enumResult.rows);
-
-    return stateResult.rows
-        .filter((row) => {
-            // Some user DBs contain malformed state rows where row.value or
-            // row.value.common is missing — filter them out here so the .map below
-            // can dereference common safely.
-            return !!row?.value?.common;
-        })
-        .map((row) => {
-            // e.g. "hm-rpc.0.ABC.STATE" → prefix "hm-rpc.0". A state belongs to an
-            // "active" instance when that prefix is an enabled adapter (or a built-in
-            // namespace). Inactive states (disabled adapters, orphaned/imported
-            // states with no instance) are kept but flagged so the picker can hide
-            // them by default.
-            const dot2 = row.id.indexOf('.', row.id.indexOf('.') + 1);
-            const prefix = dot2 !== -1 ? row.id.slice(0, dot2) : row.id;
-            // Scenes live under the "scene.<n>" namespace but the adapter is named
-            // "scenes", so there is no matching "system.adapter.scene.<n>" instance and
-            // the prefix check above would always mark them inactive. Treat the scene
-            // namespace as active so scene DPs are selectable and shown by default.
-            const active = enabledPrefixes.has(prefix) || prefix.startsWith('scene.');
-            return buildEntry(row.id, row.value.common, parentNames, enumMap, isLoggingInstance, active);
-        });
-}
-
-type StateCommon = ObjectViewResult['rows'][number]['value']['common'];
-type EnumMap = Map<string, { rooms: string[]; funcs: string[] }>;
-
-/** memberId → { rooms, funcs } from the enum rows (rooms and functions only). */
-function buildEnumMap(rows: ObjectViewResult['rows']): EnumMap {
-    const enumMap: EnumMap = new Map();
-    for (const { value: obj } of rows) {
-        if (!obj?.common?.members?.length) continue;
-        const isRoom = obj._id.startsWith('enum.rooms.');
-        const isFunc = obj._id.startsWith('enum.functions.');
-        if (!isRoom && !isFunc) continue;
-        const label = resolveName(obj.common.name, obj._id.split('.').pop() ?? obj._id);
-        for (const memberId of obj.common.members) {
-            if (!enumMap.has(memberId)) enumMap.set(memberId, { rooms: [], funcs: [] });
-            const e = enumMap.get(memberId)!;
-            if (isRoom) e.rooms.push(label);
-            else e.funcs.push(label);
-        }
-    }
-    return enumMap;
-}
-
-function buildEntry(
-    id: string,
-    common: StateCommon,
-    parentNames: Map<string, string>,
-    enumMap: EnumMap,
-    isLoggingInstance: (instanceId: string) => boolean,
-    active: boolean | undefined,
-): DatapointEntry {
-    // Check state ID and all parent paths (channel, device) – enum members
-    // can reference any level of the object hierarchy, not just states directly.
-    const parts = id.split('.');
-    const roomsSet = new Set<string>();
-    const funcsSet = new Set<string>();
-    for (let i = parts.length; i >= 2; i--) {
-        const e = enumMap.get(parts.slice(0, i).join('.'));
-        if (e) {
-            e.rooms.forEach((r) => roomsSet.add(r));
-            e.funcs.forEach((f) => funcsSet.add(f));
-        }
-    }
-
-    // Compose name: closest parent (channel preferred over device) › state name
-    const stateName = resolveName(common.name, '');
-    let parentName = '';
-    for (let i = parts.length - 1; i >= 2; i--) {
-        const pName = parentNames.get(parts.slice(0, i).join('.'));
-        if (pName) {
-            parentName = pName;
-            break;
-        }
-    }
-    let name: string;
-    if (parentName && stateName && parentName !== stateName) {
-        name = `${parentName} › ${stateName}`;
-    } else if (stateName) {
-        name = stateName;
-    } else if (parentName) {
-        name = `${parentName} › ${parts[parts.length - 1]}`;
-    } else {
-        name = parts[parts.length - 1] ?? id;
-    }
-
-    const custom = common.custom ?? {};
-    const logging = Object.entries(custom)
-        .filter(([instanceId, cfg]) => cfg?.enabled === true && isLoggingInstance(instanceId))
-        .map(([instanceId]) => instanceId);
-
-    return {
-        id,
-        name,
-        type: common.type,
-        unit: common.unit,
-        role: common.role,
-        states: normalizeStates(common.states),
-        write: common.write !== false ? undefined : false,
-        min: typeof common.min === 'number' ? common.min : undefined,
-        max: typeof common.max === 'number' ? common.max : undefined,
-        step: typeof common.step === 'number' ? common.step : undefined,
-        rooms: [...roomsSet],
-        funcs: [...funcsSet],
-        logging,
-        active,
-    };
+    const built = buildDatapointEntries({
+        states: states.rows,
+        aliasStates: aliasStates.rows,
+        channels: channels.rows,
+        devices: devices.rows,
+        enums: enums.rows,
+        instances: instances.rows,
+    });
+    objectNames = built.parentNames;
+    deviceIds = built.deviceIds;
+    return built.entries;
 }
 
 export function useDatapointList() {

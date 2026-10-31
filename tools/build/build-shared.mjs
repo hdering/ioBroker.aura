@@ -25,8 +25,9 @@ const HEADER = `/* eslint-disable */
 `;
 
 // Only these may end up in the bundle. A store, a hook or React reaching in through a
-// re-export would turn the adapter into a frontend — fail loudly instead.
-const ALLOWED = /[\\/]src-vis[\\/](utils|types)[\\/]|[\\/]tools[\\/]build[\\/]shared-entry\.ts$/;
+// re-export would turn the adapter into a frontend — fail loudly instead. data/ is the
+// battery library the Statusübersicht discovery matches against.
+const ALLOWED = /[\\/]src-vis[\\/](utils|types|data)[\\/]|[\\/]tools[\\/]build[\\/]shared-entry\.ts$/;
 
 const result = await build({
     entryPoints: [ENTRY],

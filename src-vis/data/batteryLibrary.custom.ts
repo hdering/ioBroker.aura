@@ -1,4 +1,4 @@
-import type { BatteryLibEntry } from '../utils/batteryLibrary';
+import type { BatteryLibEntry } from '../utils/batteryLogic';
 
 /**
  * Aura-owned battery-type entries — hand-maintained.

@@ -35,3 +35,13 @@ export {
     renderAnnouncementText,
     announcementPayload,
 } from '../../src-vis/utils/announcements';
+// Statusübersicht discovery in the adapter (lib/statusDiscovery.js, #882).
+export { buildDatapointEntries } from '../../src-vis/utils/datapointEntry';
+export { discoverStatusCandidates } from '../../src-vis/utils/statusOverview';
+export {
+    buildDeviceModelIndex,
+    buildBatteryLibIndex,
+    batteryDeviceTest,
+    deviceModelsAbove,
+} from '../../src-vis/utils/batteryLogic';
+export { BATTERY_LIBRARY, SNAPSHOT_DATE, SOURCE_VERSION } from '../../src-vis/data/batteryLibrary';

@@ -3,7 +3,7 @@
 // Snapshot of the Home Assistant "Battery Notes" library (MIT). Regenerate with:
 //   npm run battery-lib:update
 // Aura-owned additions/corrections go in batteryLibrary.custom.ts (they survive a re-sync).
-import type { BatteryLibEntry } from '../utils/batteryLibrary';
+import type { BatteryLibEntry } from '../utils/batteryLogic';
 
 export const SOURCE_VERSION = 1;
 export const SNAPSHOT_DATE = '2026-07-01';

@@ -47,6 +47,7 @@ const { createAnnouncements } = require('./lib/announcements');
 const { createMediaLibrary, parseRange } = require('./lib/mediaLibrary');
 const { createFeedProxy } = require('./lib/feedProxy');
 const { createTtsProxy } = require('./lib/ttsProxy');
+const { createStatusDiscovery } = require('./lib/statusDiscovery');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -855,6 +856,8 @@ class Aura extends utils.Adapter {
         this._messageHistoryQueue = Promise.resolve();
         /** @type {ReturnType<typeof createMediaLibrary> | undefined} slideshow folder lists, see /fs/media */
         this._mediaLibrary = undefined;
+        /** @type {ReturnType<typeof createStatusDiscovery> | undefined} Statusübersicht discovery, see statusDiscover */
+        this._statusDiscovery = undefined;
     }
 
     // State-based calendar fetch: frontend writes {id, url, ttl?} to calendar.request,
@@ -5906,6 +5909,18 @@ class Aura extends utils.Adapter {
                 return;
             }
 
+            // Statusübersicht: which datapoints it watches, found in the local object DB
+            // instead of the browser downloading all of it (#882).
+            if (msg.command === 'statusDiscover') {
+                this._statusDiscovery ??= createStatusDiscovery({
+                    getObjectView: (type, startkey, endkey) =>
+                        this.getObjectViewAsync('system', type, { startkey, endkey }),
+                });
+                const m = msg.message || {};
+                reply(await this._statusDiscovery.discover(m.opts, m.overrides));
+                return;
+            }
+
             if (msg.command === 'auraPing') {
                 // Connectivity check from frontend: tells widget the new handler is actually running.
                 let version = '';
@@ -6558,6 +6573,7 @@ class Aura extends utils.Adapter {
                 /* ignore */
             }
             this._sayit?.stop();
+            this._statusDiscovery?.stop();
             this._announcements?.stop();
             this._mediaLibrary?.flush().catch(() => {});
             if (this._timerInterval) {

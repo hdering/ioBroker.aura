@@ -11,7 +11,7 @@
  * StatusBadges (percent-vs-boolean battery + threshold). BATTERY sibling id fragments
  * mirror dpTemplates.BATTERY_NAMES (kept local — that const is not exported).
  */
-import type { DatapointEntry } from '../hooks/useDatapointList';
+import type { DatapointEntry } from './datapointEntry';
 import { getRoleDisplay } from './listEntryDisplay';
 import type { NameFilterRule } from './nameFilter';
 import type { RowPopupOptions } from './rowClickAction';
@@ -1107,4 +1107,66 @@ export function formatLevels(e: HistoryEntry): string | null {
 /** The command that takes a change back: "reopen:<id>@<closedAt>" on status.<cat>.cmd. */
 export function reopenCommand(e: HistoryEntry): string {
     return `reopen:${e.id}@${e.closedAt}`;
+}
+
+/** A datapoint that structurally belongs to a category; whether it alerts is decided live. */
+export interface StatusCandidate {
+    dp: DatapointEntry;
+    cat: CategoryKey;
+    /** Voltage/percent datapoint next to a boolean low-battery flag (for the latch's auto-close). */
+    level?: { id: string; unit: 'V' | '%' } | null;
+}
+
+/**
+ * The datapoints a Statusübersicht watches, from the full datapoint list. Runs in the
+ * browser and — so a phone does not download the whole object DB (#882) — in the
+ * adapter (lib/statusDiscovery.js). Without `isBatteryDevice` the HomeMatic LOWBAT gate
+ * only takes devices with a voltage datapoint.
+ */
+export function discoverStatusCandidates(
+    cache: DatapointEntry[],
+    opts: StatusOverviewOptions,
+    isBatteryDevice?: (deviceId: string) => boolean,
+): StatusCandidate[] {
+    const wantLevel = latchEnabled(opts, 'battery');
+    const hmBatterySerials = collectHmBatterySerials(cache, isBatteryDevice);
+    const found: StatusCandidate[] = [];
+    for (const dp of cache) {
+        const cat = categoryOf(dp, opts, hmBatterySerials);
+        if (!cat) continue;
+        if (!passesScope(dp, opts)) continue;
+        found.push({
+            dp,
+            cat,
+            ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
+        });
+    }
+    return dedupeHmLowbat(dedupeLights(found));
+}
+
+/** The options discoverStatusCandidates reads — all the adapter needs to discover (#882). */
+export const STATUS_DISCOVERY_KEYS = [
+    'catBattery',
+    'catWindow',
+    'catLight',
+    'catUnreach',
+    'catAlarm',
+    'includeLowbatBoolean',
+    'lightRoleScope',
+    'lightsOnlyFunction',
+    'lightIncludeDimmers',
+    'filterRooms',
+    'filterFuncs',
+    'filterAdapters',
+    'excludeIds',
+    'excludeIdPatterns',
+    'offlineExtraPatterns',
+    'offlineInvert',
+    'latchBattery',
+] as const satisfies readonly (keyof StatusOverviewOptions)[];
+
+export function discoveryOptions(opts: StatusOverviewOptions): Partial<StatusOverviewOptions> {
+    const out: Record<string, unknown> = {};
+    for (const k of STATUS_DISCOVERY_KEYS) if (opts[k] !== undefined) out[k] = opts[k];
+    return out as Partial<StatusOverviewOptions>;
 }

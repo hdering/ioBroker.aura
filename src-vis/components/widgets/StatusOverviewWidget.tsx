@@ -24,11 +24,17 @@ import {
     setStateDirectAsync,
     getStateDirect,
     getObjectDirect,
+    sendToDirect,
 } from '../../hooks/useIoBroker';
 import { useConnectionLost } from '../../hooks/useConnectionLost';
 import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
-import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
+import {
+    ensureDatapointCache,
+    fetchDatapointEntries,
+    rememberDatapointEntries,
+    type DatapointEntry,
+} from '../../hooks/useDatapointList';
 import { useConfigStore } from '../../store/configStore';
 import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 import {
@@ -38,14 +44,15 @@ import {
     resolveDeviceIdForDp,
     loadBatteryDeviceTest,
     type BatteryResolution,
+    type BatteryTypeOverride,
+    type DeviceModel,
 } from '../../utils/batteryLibrary';
 
 const EMPTY_HIDDEN: string[] = [];
 import {
-    categoryOf,
-    collectHmBatterySerials,
-    dedupeHmLowbat,
-    passesScope,
+    discoverStatusCandidates,
+    discoveryOptions,
+    STATUS_DISCOVERY_KEYS,
     evaluateItem,
     compareItems,
     isStatusLoading,
@@ -54,7 +61,6 @@ import {
     LATCH_CATEGORIES,
     latchEnabled,
     latchKind,
-    findBatteryLevelDp,
     parseLatchList,
     applyLatch,
     countsAsHint,
@@ -67,7 +73,6 @@ import {
     fillRowTemplate,
     typedActionValue,
     coerceActionValue,
-    dedupeLights,
     deviceIdFallback,
     historyCategories,
     parseHistory,
@@ -88,6 +93,7 @@ import {
     type StatusItem,
     type StatusOverviewOptions,
     type StatusRowAction,
+    type StatusCandidate,
 } from '../../utils/statusOverview';
 import { useProbeFill, PROBE_FILL_NAME } from '../../utils/probeContext';
 import { formatItemName, finishItemName, hasLiveToken } from '../../utils/nameFilter';
@@ -122,12 +128,31 @@ function formatSince(lc: number): string {
  */
 const LOADING_GRACE_MS = 20000;
 
-/** Candidate = a datapoint that structurally belongs to a category; alert state is decided live. */
-interface Candidate {
-    dp: DatapointEntry;
-    cat: CategoryKey;
-    /** Voltage/percent datapoint next to a boolean low-battery flag (for the latch's auto-close). */
-    level?: { id: string; unit: 'V' | '%' } | null;
+type Candidate = StatusCandidate;
+
+/**
+ * The adapter discovers the candidates in its own object DB (#882), so a phone loads a
+ * few kB instead of every object. null = no usable answer (older adapter, timeout) —
+ * the widget then discovers on its own. An adapter that never answered is not asked
+ * again in this page, so the next overview does not wait for the timeout as well.
+ */
+let adapterDiscoveryFailed = false;
+async function discoverOnAdapter(
+    opts: StatusOverviewOptions,
+    overrides: Record<string, BatteryTypeOverride> | undefined,
+): Promise<{ candidates: Candidate[]; devices: Map<string, DeviceModel> } | null> {
+    if (adapterDiscoveryFailed) return null;
+    const res = await sendToDirect<{ ok?: boolean; candidates?: Candidate[]; devices?: DeviceModel[] }>(
+        NS,
+        'statusDiscover',
+        { opts: discoveryOptions(opts), overrides: overrides ?? {} },
+        15000,
+    );
+    if (!res || typeof res !== 'object' || !('ok' in res) || !res.ok || !Array.isArray(res.candidates)) {
+        if (res && typeof res === 'object' && '__timeout' in res) adapterDiscoveryFailed = true;
+        return null;
+    }
+    return { candidates: res.candidates, devices: new Map((res.devices ?? []).map((d) => [d.id, d])) };
 }
 
 /** Registrations already sent in this page, per widget+category → hash (no repeat writes). */
@@ -357,62 +382,44 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
 
     // ── Discovery ────────────────────────────────────────────────────────────
     // Re-run only when the scope-relevant options change (not on every render).
-    const scopeKey = JSON.stringify([
-        opts.catBattery,
-        opts.catWindow,
-        opts.catLight,
-        opts.catUnreach,
-        opts.catAlarm,
-        opts.includeLowbatBoolean,
-        opts.lightRoleScope,
-        opts.lightsOnlyFunction,
-        opts.lightIncludeDimmers,
-        opts.filterRooms,
-        opts.filterFuncs,
-        opts.filterAdapters,
-        opts.excludeIds,
-        opts.excludeIdPatterns,
-        opts.offlineExtraPatterns,
-        opts.offlineInvert,
-        // Only decides whether the voltage neighbours are looked up — unset leaves
-        // the key exactly as it was for every existing widget.
-        ...(opts.latchBattery ? [true] : []),
-    ]);
+    const scopeKey = JSON.stringify(STATUS_DISCOVERY_KEYS.map((k) => opts[k]));
+    // Device/channel models above the candidates, when the adapter discovered them —
+    // battery type, hidden devices and row actions then need no device index of their own.
+    const [serverDevices, setServerDevices] = useState<Map<string, DeviceModel> | null>(null);
     useEffect(() => {
         let cancelled = false;
         setDiscovered(false);
         setBatteryGateDone(false);
-        ensureDatapointCache({ background: true }).then((cache) => {
+        discoverOnAdapter(opts, overrides).then((remote) => {
             if (cancelled) return;
-            const wantLevel = latchEnabled(opts, 'battery');
-            const run = (isBatteryDevice?: (deviceId: string) => boolean) => {
-                const hmBatterySerials = collectHmBatterySerials(cache, isBatteryDevice);
-                const found: Candidate[] = [];
-                for (const dp of cache) {
-                    const cat = categoryOf(dp, opts, hmBatterySerials);
-                    if (!cat) continue;
-                    if (!passesScope(dp, opts)) continue;
-                    found.push({
-                        dp,
-                        cat,
-                        ...(wantLevel && cat === 'battery' ? { level: findBatteryLevelDp(dp, cache) } : {}),
-                    });
-                }
-                setCandidates(dedupeHmLowbat(dedupeLights(found)));
+            if (remote) {
+                rememberDatapointEntries(remote.candidates.map((c) => c.dp));
+                setServerDevices(remote.devices);
+                setCandidates(remote.candidates);
                 setDiscovered(true);
-            };
-            // First pass with the voltage gate only; classic HomeMatic battery devices
-            // (no voltage, known by model) join once the device index and library are in.
-            // The second pass only adds rows, so no mains actuator flickers in.
-            run();
-            if (opts.catBattery === false) {
                 setBatteryGateDone(true);
                 return;
             }
-            loadBatteryDeviceTest(overrides).then((test) => {
+            setServerDevices(null);
+            ensureDatapointCache({ background: true }).then((cache) => {
                 if (cancelled) return;
-                if (test) run(test);
-                setBatteryGateDone(true);
+                const run = (isBatteryDevice?: (deviceId: string) => boolean) => {
+                    setCandidates(discoverStatusCandidates(cache, opts, isBatteryDevice));
+                    setDiscovered(true);
+                };
+                // First pass with the voltage gate only; classic HomeMatic battery devices
+                // (no voltage, known by model) join once the device index and library are in.
+                // The second pass only adds rows, so no mains actuator flickers in.
+                run();
+                if (opts.catBattery === false) {
+                    setBatteryGateDone(true);
+                    return;
+                }
+                loadBatteryDeviceTest(overrides).then((test) => {
+                    if (cancelled) return;
+                    if (test) run(test);
+                    setBatteryGateDone(true);
+                });
             });
         });
         return () => {
@@ -460,48 +467,49 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
             return;
         }
         let cancelled = false;
-        Promise.all([loadDeviceModelIndex(), wantBatteryTypes ? loadBatteryLibrary() : Promise.resolve(null)]).then(
-            ([index, lib]) => {
-                if (cancelled) return;
-                const info: Record<
-                    string,
-                    {
-                        deviceId: string;
-                        type: string | null;
-                        quantity: number;
-                        deviceName: string;
-                        source: BatteryResolution['source'];
-                    }
-                > = {};
-                for (const c of batteryCandidates) {
-                    if (lib) {
-                        const r = resolveBatteryType(c.dp.id, index, lib, overrides);
-                        info[c.dp.id] = {
-                            deviceId: r.deviceId,
-                            type: r.type,
-                            quantity: r.quantity,
-                            deviceName: index.get(r.deviceId)?.name || c.dp.name,
-                            source: r.source,
-                        };
-                    } else {
-                        const deviceId = resolveDeviceIdForDp(c.dp.id, index);
-                        info[c.dp.id] = {
-                            deviceId,
-                            type: null,
-                            quantity: 1,
-                            deviceName: index.get(deviceId)?.name || c.dp.name,
-                            source: null,
-                        };
-                    }
+        Promise.all([
+            serverDevices ?? loadDeviceModelIndex(),
+            wantBatteryTypes ? loadBatteryLibrary() : Promise.resolve(null),
+        ]).then(([index, lib]) => {
+            if (cancelled) return;
+            const info: Record<
+                string,
+                {
+                    deviceId: string;
+                    type: string | null;
+                    quantity: number;
+                    deviceName: string;
+                    source: BatteryResolution['source'];
                 }
-                setBatteryInfo(info);
-            },
-        );
+            > = {};
+            for (const c of batteryCandidates) {
+                if (lib) {
+                    const r = resolveBatteryType(c.dp.id, index, lib, overrides);
+                    info[c.dp.id] = {
+                        deviceId: r.deviceId,
+                        type: r.type,
+                        quantity: r.quantity,
+                        deviceName: index.get(r.deviceId)?.name || c.dp.name,
+                        source: r.source,
+                    };
+                } else {
+                    const deviceId = resolveDeviceIdForDp(c.dp.id, index);
+                    info[c.dp.id] = {
+                        deviceId,
+                        type: null,
+                        quantity: 1,
+                        deviceName: index.get(deviceId)?.name || c.dp.name,
+                        source: null,
+                    };
+                }
+            }
+            setBatteryInfo(info);
+        });
         return () => {
             cancelled = true;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [batteryCandKey, needBatteryMeta, wantBatteryTypes, overridesKey]);
+    }, [batteryCandKey, needBatteryMeta, wantBatteryTypes, overridesKey, serverDevices]);
 
     // ── Remembered hints (latch) ───────────────────────────────────────────────
     // The adapter keeps the entries (lib/statusLatch.js), so every browser shows the
@@ -666,7 +674,12 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
     const hasRowActions = (opts.rowActions?.length ?? 0) > 0;
     const [deviceIndex, setDeviceIndex] = useState<Awaited<ReturnType<typeof loadDeviceModelIndex>> | null>(null);
     useEffect(() => {
-        if (!hasRowActions) return;
+        // After the discovery: what the adapter sent covers every row.
+        if (!hasRowActions || !discovered) return;
+        if (serverDevices) {
+            setDeviceIndex(serverDevices);
+            return;
+        }
         let cancelled = false;
         loadDeviceModelIndex().then((idx) => {
             if (!cancelled) setDeviceIndex(idx);
@@ -674,7 +687,7 @@ function StatusOverviewLive({ config, editMode }: WidgetProps) {
         return () => {
             cancelled = true;
         };
-    }, [hasRowActions]);
+    }, [hasRowActions, discovered, serverDevices]);
 
     // ── Evaluate → attention items ─────────────────────────────────────────────
     const sortBy = opts.sortBy ?? 'severity';
@@ -1537,20 +1550,23 @@ function StatusHistoryLayout({ config, editMode }: WidgetProps) {
     }, [catKey]);
     const loaded = cats.every((c) => histories[c] !== undefined);
 
-    // Room/function filters need the datapoint's enums; the cache is shared and
-    // only asked when such a filter is set.
+    // Room/function filters need the datapoints' enums — only asked when such a filter
+    // is set, and only for the listed datapoints, not the whole object DB (#882).
     const needCache = !!(opts.filterRooms?.trim() || opts.filterFuncs?.trim());
+    const histIdKey = needCache
+        ? [...new Set(cats.flatMap((c) => (histories[c] ?? []).map((e) => e.id)))].sort().join(',')
+        : '';
     const [dpById, setDpById] = useState<Map<string, DatapointEntry> | null>(null);
     useEffect(() => {
-        if (!needCache) return;
+        if (!histIdKey) return;
         let cancelled = false;
-        ensureDatapointCache({ background: true }).then((cache) => {
-            if (!cancelled) setDpById(new Map(cache.map((d) => [d.id, d])));
+        fetchDatapointEntries(histIdKey.split(','), { rooms: true }).then((byId) => {
+            if (!cancelled) setDpById(byId);
         });
         return () => {
             cancelled = true;
         };
-    }, [needCache]);
+    }, [histIdKey]);
 
     // Hidden battery devices stay hidden here too.
     const [deviceIndex, setDeviceIndex] = useState<Awaited<ReturnType<typeof loadDeviceModelIndex>> | null>(null);
