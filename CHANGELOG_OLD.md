@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.83.2 (2026-10-16)
+- Popups - a web page (iFrame) popup now uses the configured width and height
+- Frontend - tapping a widget on a touch tablet no longer selects the text on the whole page
+
 ## 0.83.1 (2026-10-16)
 - Icons whose name contains a number (e.g. trash, table, layers, bar chart) were requested under a wrong name, so they never showed and logged "icon cache — fetch failed" without internet access ([#787](https://github.com/hdering/ioBroker.aura/issues/787))
 - Messages - a message closed by a script (messages.dismiss) stayed open when another message was sent in the same moment, e.g. an error followed by its all-clear
