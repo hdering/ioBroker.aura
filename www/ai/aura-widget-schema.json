@@ -7922,7 +7922,7 @@
         },
         "namePattern": {
           "type": "string",
-          "description": "Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>."
+          "description": "Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>; {{dpname}} / {{parentname}} / {{parent2name}} … = common.name des Datenpunkts bzw. der Objekte darüber (Kanal, Gerät)."
         },
         "noRoomLabel": {
           "type": "string",
@@ -17736,7 +17736,7 @@
         },
         "namePattern": {
           "type": "string",
-          "description": "Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>.",
+          "description": "Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>; {{dpname}} / {{parentname}} / {{parent2name}} … = common.name des Datenpunkts bzw. der Objekte darüber (Kanal, Gerät).",
           "default": ""
         },
         "publishCount": {
@@ -21562,7 +21562,7 @@
         },
         "namePattern": {
           "type": "string",
-          "description": "Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>."
+          "description": "Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>; {{dpname}} / {{parentname}} / {{parent2name}} … = common.name des Datenpunkts bzw. der Objekte darüber (Kanal, Gerät)."
         },
         "offlineExtraPatterns": {
           "type": "string",
