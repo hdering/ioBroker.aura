@@ -5,6 +5,7 @@ const http = require('node:http');
 const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
+const zlib = require('node:zlib');
 const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS } = require('./lib/countdowns');
 const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
@@ -762,6 +763,52 @@ function parseStorageAudioPath(p) {
 
 const WWW_DIR = path.join(__dirname, 'www');
 
+// Bundle files carry a content hash in their name (vite: name-<8 chars>.ext), so the
+// browser may keep them for good. Without any cache header it fetched all of them
+// again on every page load — megabytes on a phone (#882).
+const IMMUTABLE_ASSET = /^assets\/[^/]+-[A-Za-z0-9_-]{8}\.[a-z0-9]+$/;
+const COMPRESSIBLE = new Set(['.js', '.mjs', '.css', '.json', '.svg', '.txt', '.map', '.webmanifest']);
+/** Compressed copies, by file + encoding + size; www/ only changes with an update (restart). */
+const compressedCache = new Map();
+
+/**
+ * The encoding to answer with: brotli, else gzip, else none.
+ *
+ * @param {string} acceptEncoding the request's Accept-Encoding header
+ * @returns {'br' | 'gzip' | null} the encoding
+ */
+function pickEncoding(acceptEncoding) {
+    if (/\bbr\b/.test(acceptEncoding)) return 'br';
+    if (/\bgzip\b/.test(acceptEncoding)) return 'gzip';
+    return null;
+}
+
+/**
+ * The file compressed with this encoding, computed once per file.
+ *
+ * @param {string} abs the file's path
+ * @param {Buffer} data its content
+ * @param {'br' | 'gzip'} enc the encoding
+ * @returns {Buffer} the compressed content
+ */
+function compressed(abs, data, enc) {
+    const key = `${abs}|${enc}|${data.length}`;
+    let out = compressedCache.get(key);
+    if (!out) {
+        out =
+            enc === 'br'
+                ? zlib.brotliCompressSync(data, {
+                      params: {
+                          [zlib.constants.BROTLI_PARAM_QUALITY]: 9,
+                          [zlib.constants.BROTLI_PARAM_SIZE_HINT]: data.length,
+                      },
+                  })
+                : zlib.gzipSync(data, { level: 9 });
+        compressedCache.set(key, out);
+    }
+    return out;
+}
+
 /**
  * Where a page path that is not Aura's root sends the browser: back to the root,
  * as a RELATIVE location, so it also lands right behind a reverse proxy that
@@ -790,6 +837,7 @@ function serveStatic(
     base = '/',
     search = '',
     method = 'GET',
+    acceptEncoding = '',
 ) {
     const rel = pathname === '/' ? 'index.html' : pathname.slice(1);
     const abs = path.join(WWW_DIR, rel);
@@ -816,7 +864,8 @@ function serveStatic(
                 ? `<script>window.__AURA_SOCKET_URL__=${JSON.stringify(socketUrl)};window.__AURA_NAMESPACE__=${JSON.stringify(ns)}</script>`
                 : `<script>window.__AURA_BASE__=${JSON.stringify(base)};window.__AURA_NAMESPACE__=${JSON.stringify(ns)}</script>`;
         const html = data.toString('utf8').replace('</head>', `${injection}</head>`);
-        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        // Always asked again: it names the current bundle files.
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
         res.end(html, 'utf8');
     };
 
@@ -852,9 +901,26 @@ function serveStatic(
             serveIndex(data);
             return;
         }
-        const ct = MIME_TYPES[path.extname(abs).toLowerCase()] || 'application/octet-stream';
-        res.writeHead(200, { 'Content-Type': ct });
-        res.end(data);
+        const ext = path.extname(abs).toLowerCase();
+        const headers = {
+            'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
+            'Cache-Control': IMMUTABLE_ASSET.test(rel.replace(/\\/g, '/'))
+                ? 'public, max-age=31536000, immutable'
+                : 'public, max-age=3600',
+        };
+        /** @type {Buffer} */
+        let body = data;
+        if (COMPRESSIBLE.has(ext) && data.length > 1024) {
+            headers.Vary = 'Accept-Encoding';
+            const enc = pickEncoding(acceptEncoding);
+            if (enc) {
+                body = compressed(abs, data, enc);
+                headers['Content-Encoding'] = enc;
+            }
+        }
+        headers['Content-Length'] = body.length;
+        res.writeHead(200, headers);
+        res.end(method === 'HEAD' ? undefined : body);
     });
 }
 
@@ -2203,6 +2269,7 @@ class Aura extends utils.Adapter {
                 base,
                 parsedUrl.search,
                 req.method,
+                String(req.headers['accept-encoding'] || ''),
             );
         };
 

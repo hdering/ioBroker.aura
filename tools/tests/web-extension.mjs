@@ -498,6 +498,45 @@ function upgrade(path) {
         serveStatic('/aura/assets/x.js', res, 'h', false, '', 'aura.0', '/', '', 'GET');
     });
     eq('a missing asset stays a 404', asset, 404);
+
+    // Caching + compression (#882): hashed bundle files are kept for good and sent
+    // compressed; index.html is always asked again.
+    const serveFile = (pathname, acceptEncoding) =>
+        new Promise((resolve) => {
+            const res = {
+                writeHead(status, headers) {
+                    this.status = status;
+                    this.headers = headers ?? {};
+                },
+                end(body) {
+                    resolve({ status: this.status, headers: this.headers, body });
+                },
+            };
+            serveStatic(pathname, res, 'h', false, '', 'aura.0', '/', '', 'GET', acceptEncoding);
+        });
+    const { readdirSync, readFileSync } = await import('node:fs');
+    const { brotliDecompressSync } = await import('node:zlib');
+    const bundle = readdirSync(join(process.cwd(), 'www/assets')).find((f) => /^index-.+\.js$/.test(f));
+    const plain = readFileSync(join(process.cwd(), 'www/assets', bundle));
+    const br = await serveFile(`/assets/${bundle}`, 'gzip, deflate, br');
+    eq('bundle file: cached for a year', br.headers['Cache-Control'], 'public, max-age=31536000, immutable');
+    eq('bundle file: brotli when accepted', br.headers['Content-Encoding'], 'br');
+    eq('bundle file: decompresses to the file', brotliDecompressSync(br.body).equals(plain), true);
+    eq('bundle file: smaller than half', br.body.length < plain.length / 2, true);
+    const raw = await serveFile(`/assets/${bundle}`, '');
+    eq(
+        'bundle file: plain without Accept-Encoding',
+        [raw.headers['Content-Encoding'], raw.body.length],
+        [undefined, plain.length],
+    );
+    const idx = await serveFile('/', 'br');
+    eq('index.html: revalidated every time', idx.headers['Cache-Control'], 'no-cache');
+    const icon = await serveFile('/icon-192.png', 'br');
+    eq(
+        'unhashed file: an hour, not compressed',
+        [icon.headers['Cache-Control'], icon.headers['Content-Encoding']],
+        ['public, max-age=3600', undefined],
+    );
 }
 
 web.close();
