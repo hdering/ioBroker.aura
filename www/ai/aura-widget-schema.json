@@ -7782,7 +7782,6 @@
         },
         "filterRelevant": {
           "type": "boolean",
-          "default": true,
           "description": "Nur Datenpunkte anzeigen, die als bedienbar/relevant erkannt wurden."
         },
         "filterRoles": {
@@ -8161,12 +8160,11 @@
         "syncIntervalMin": {
           "type": "number",
           "default": 5,
-          "description": "Abstand in Minuten, in dem die Liste neu nach passenden Datenpunkten sucht."
+          "description": "Abstand in Minuten, in dem der Adapter die gespeicherte Liste neu nach passenden Datenpunkten durchsucht und neue Treffer in die Konfiguration schreibt — auch ohne offenen Browser."
         },
         "syncRemove": {
           "type": "boolean",
-          "description": "Auto-sync also removes entries the filters no longer find — only those without own settings (default false).",
-          "default": false
+          "description": "Auto-sync also removes entries the filters no longer find — only those without own settings (default false)."
         },
         "trueText": {
           "type": "string",
