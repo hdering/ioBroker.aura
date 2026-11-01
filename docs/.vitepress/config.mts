@@ -76,6 +76,7 @@ export default defineConfig({
             { text: 'Verlauf per Klick auf Listenzeile', link: '/anleitungen/verlauf-popup' },
             { text: 'Ohne Rand anzeigen', link: '/anleitungen/ohne-rand' },
             { text: 'Sprachausgabe', link: '/anleitungen/sprachausgabe' },
+            { text: 'Als App installieren', link: '/anleitungen/als-app' },
           ],
         },
       ],

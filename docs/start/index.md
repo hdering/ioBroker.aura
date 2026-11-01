@@ -154,6 +154,7 @@ Jedes Gerät öffnet die URL seines Layouts. Einstellungen → **Verbundene Ger�
 | --- | --- |
 | Layout-URL | `http://<ip>:8095/#/wohnzimmer` (Slug aus Layouts → Allgemein); das erste Layout auch unter `/` |
 | Feste Client-ID | `http://<ip>:8095/?client=wohnzimmer-tablet` oder Verbundene Geräte → ✎ – damit Skripte das Gerät gezielt steuern (`aura.0.clients.<ID>.navigate.url`) |
+| Als App | Ohne Browserleisten installieren – Chrome/Android braucht HTTPS, siehe [Als App installieren](../anleitungen/als-app) |
 | Kiosk | Vollbild-Browser auf die Layout-URL; Frontend-Design → Header → **Admin-Link im Header anzeigen** aus |
 | Rückkehr zum Standard-Tab | Frontend-Design → Navigation: nach Inaktivität zurückspringen (Wandtablet) |
 | Icons offline | Frontend-Design → Icons → **Icons für Offline-Geräte vorladen** für Geräte ohne Internet |

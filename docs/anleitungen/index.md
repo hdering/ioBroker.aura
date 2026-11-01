@@ -9,3 +9,4 @@ Schritt für Schritt zu typischen Aufgaben.
 | [Verlauf per Klick auf eine Listenzeile](./verlauf-popup) | Eine Popup-View mit Diagramm für alle Zeilen einer Liste |
 | [Ohne Rand anzeigen](./ohne-rand) | Rand links und rechts am Dashboard entfernen, z. B. am Tablet im Hochformat |
 | [Sprachausgabe](./sprachausgabe) | Texte und Töne am Tablet abspielen, SayIt-Ansagen, Meldungen vorlesen |
+| [Als App installieren](./als-app) | Ohne Browserleisten auf Handy, Tablet und PC; HTTPS-Voraussetzung, Android und iOS |
