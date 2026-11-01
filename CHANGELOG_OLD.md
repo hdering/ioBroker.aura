@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.84.0 (2026-10-17)
+- Tab bar - a menu item next to left- or right-aligned tabs now only takes its own width instead of half the bar ([#791](https://github.com/hdering/ioBroker.aura/issues/791))
+- 🌟 **New feature:** Map - show a route along the roads between two markers, with distance and travel time ([#790](https://github.com/hdering/ioBroker.aura/issues/790))
+- 🌟 **New feature:** Map - draw recorded tracks from a JSON datapoint or from the history of a position datapoint, optionally with a dot per point showing time, speed and accuracy ([#410](https://github.com/hdering/ioBroker.aura/issues/410))
+- 🌟 **New feature:** Map - day bar to browse recorded tracks day by day, chips to switch between lines, and a timeline of stays and trips with addresses under the map ([#410](https://github.com/hdering/ioBroker.aura/issues/410))
+- 🌟 **New feature:** Map - the settings are grouped into collapsible sections, and each marker, line and quick-access chip folds down to its name
+- 🌟 **New feature:** Map - a custom tile server can no longer be set up; maps that already use one keep it and can remove it in the settings
+
 ## 0.83.3 (2026-10-16)
 - Overview - timers inside groups or device cards are no longer reported as orphaned datapoints on the first visit ([#788](https://github.com/hdering/ioBroker.aura/issues/788))
 - 🌟 **New feature:** Group action - a click from the mixed state can now ask "all on or all off?" in a small popup (new option "Ask")
