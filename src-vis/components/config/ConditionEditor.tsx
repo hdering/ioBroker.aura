@@ -1472,39 +1472,38 @@ function ConditionRule({
                             </button>
                         </div>
                     )}
-                    {context !== 'tab' && (
-                        <>
-                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
-                                        {t('cond.disableWidget')}
-                                    </p>
-                                    <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('cond.disableWidgetHint')}
-                                    </p>
-                                </div>
-                                <button
-                                    data-testid="cond-disable-widget"
-                                    onClick={() =>
-                                        onChange({
-                                            ...condition,
-                                            disableWidget: condition.disableWidget ? undefined : true,
-                                        })
-                                    }
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{
-                                        background: condition.disableWidget ? 'var(--accent)' : 'var(--app-border)',
-                                    }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: condition.disableWidget ? '18px' : '2px' }}
-                                    />
-                                </button>
+                    {/* Tabs too since #889: the tab stays in the bar, greyed, and does not switch. */}
+                    <>
+                        <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                    {t(context === 'tab' ? 'cond.disableTab' : 'cond.disableWidget')}
+                                </p>
+                                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {t(context === 'tab' ? 'cond.disableTabHint' : 'cond.disableWidgetHint')}
+                                </p>
                             </div>
-                        </>
-                    )}
+                            <button
+                                data-testid="cond-disable-widget"
+                                onClick={() =>
+                                    onChange({
+                                        ...condition,
+                                        disableWidget: condition.disableWidget ? undefined : true,
+                                    })
+                                }
+                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                style={{
+                                    background: condition.disableWidget ? 'var(--accent)' : 'var(--app-border)',
+                                }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: condition.disableWidget ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                    </>
                 </div>
             )}
         </div>

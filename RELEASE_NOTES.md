@@ -13,3 +13,4 @@
 - feat: Dynamic list, list and status overview - the name pattern resolves {{dpname}}, {{parentname}}, {{parent2name}} ... to the object names, like the device card (#888)
 - feat: Menu widget - new option "Show hidden" also lists sections and tabs hidden in the tab bar, e.g. room tabs reachable only from an overview tab (#892)
 - feat: HTML widget - option "Fit height to content": the tile grows and shrinks with the HTML, e.g. a table from a datapoint, on every screen width (#884)
+- feat: Conditions - list rows, list values, custom-grid cells and tabs can now be shown disabled (greyed out, not operable) while a rule matches (#889)

@@ -346,11 +346,14 @@ export function TabBar({
     const renderTabs = () =>
         tabs.map((tab, idx) => (
             <TabConditionWrapper key={tab.id} tab={tab}>
-                {({ cssVars, bold, italic, effect, hidden }) => {
+                {({ cssVars, bold, italic, effect, hidden, disabled }) => {
                     // Frontend or readonly preview: hide disabled / hidden / condition-hidden tabs
                     // (hidden tabs stay reachable via their direct slug URL — they are only
                     //  removed from the tab bar, not from the layout)
                     if (readonly && (tab.disabled || tab.hidden || hidden)) return null;
+                    // A rule may also lock the tab: it stays in the bar, greyed, and a click
+                    // does not switch to it (issue #889). Like hiding, only in the frontend.
+                    const condLocked = readonly && disabled;
 
                     const isActive = tab.id === activeTabId;
                     const ts = tabStyle(isActive, tbSettings);
@@ -362,14 +365,15 @@ export function TabBar({
                     const isDraggingThis = dragIdx === idx;
                     const isDragTarget = dragOverIdx === idx && dragIdx !== null && dragIdx !== idx;
 
-                    const baseOpacity = isDraggingThis ? 0.4 : tab.disabled ? 0.45 : 1;
+                    const baseOpacity = isDraggingThis ? 0.4 : tab.disabled || condLocked ? 0.45 : 1;
 
                     // `aura-tab-btn`, not `aura-tab`: the tab's CONTENT container in Dashboard.tsx
                     // has carried `aura-tab` since dc3841b0, so custom CSS written for the button
                     // would have moved the dashboard along with it.
                     return (
                         <div
-                            className={`aura-tab-btn${isActive ? ' aura-tab-active' : ''} group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? underlineCls : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''}`}
+                            className={`aura-tab-btn${isActive ? ' aura-tab-active' : ''} group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? underlineCls : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''} ${condLocked ? 'aura-tab-cond-disabled' : ''}`}
+                            aria-disabled={condLocked || undefined}
                             style={{
                                 ...(cssVars as React.CSSProperties),
                                 ...ts,
@@ -411,6 +415,7 @@ export function TabBar({
                                     : undefined
                             }
                             onClick={() => {
+                                if (condLocked) return;
                                 setConfirmDeleteId(null);
                                 handleTabClick(tab.id);
                             }}

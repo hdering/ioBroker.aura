@@ -28,9 +28,18 @@ export interface TabConditionResult {
     italic: boolean;
     effect: 'pulse' | 'blink' | 'border' | null;
     hidden: boolean;
+    /** Greyed out and not clickable while a rule with `disableWidget` matches (issue #889). */
+    disabled: boolean;
 }
 
-const EMPTY_RESULT: TabConditionResult = { cssVars: {}, bold: false, italic: false, effect: null, hidden: false };
+const EMPTY_RESULT: TabConditionResult = {
+    cssVars: {},
+    bold: false,
+    italic: false,
+    effect: null,
+    hidden: false,
+    disabled: false,
+};
 
 export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditionResult {
     const { subscribe, getState } = useIoBroker();
@@ -38,7 +47,7 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
     const [result, setResult] = useState<TabConditionResult>(() => {
         if (!conditions?.length) return EMPTY_RESULT;
         const mayHide = conditions.some((c) => c.hideWidget);
-        return mayHide ? { cssVars: {}, bold: false, italic: false, effect: null, hidden: true } : EMPTY_RESULT;
+        return mayHide ? { ...EMPTY_RESULT, hidden: true } : EMPTY_RESULT;
     });
 
     useEffect(() => {
@@ -73,6 +82,7 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
             let italic = false;
             let effect: 'pulse' | 'blink' | 'border' | null = null;
             let hidden = false;
+            let disabled = false;
 
             for (const cond of conds) {
                 // A tab has no main datapoint and no list, so it passes no source
@@ -84,6 +94,7 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
                     if (cond.style.bold !== undefined) bold = cond.style.bold;
                     if (cond.style.italic !== undefined) italic = cond.style.italic;
                     if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink' | 'border';
+                    if (cond.disableWidget) disabled = true;
                 }
                 if (conditionHides(cond, matched)) hidden = true;
             }
@@ -93,10 +104,11 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
                     prev.bold === bold &&
                     prev.italic === italic &&
                     prev.hidden === hidden &&
+                    prev.disabled === disabled &&
                     JSON.stringify(prev.cssVars) === JSON.stringify(merged)
                 )
                     return prev;
-                return { cssVars: merged, bold, italic, effect, hidden };
+                return { cssVars: merged, bold, italic, effect, hidden, disabled };
             });
         };
 

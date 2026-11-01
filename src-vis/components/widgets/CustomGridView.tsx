@@ -21,6 +21,7 @@ import { cellStateActive } from '../../utils/cellState';
 import { cellBarColor } from '../../utils/cellBarColor';
 import { BarValueLabel, BAR_VALUE_EMPTY_COLOR, BAR_VALUE_FILLED_COLOR } from './BarValueLabel';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
+import { condDisabledProps } from '../../utils/condDisabled';
 import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
 import { EnumCircleContent, EnumCurrent, EnumOptionLabel, entryRenderMode, type EnumEntry } from './enumEntry';
 import { CircleMenu, type CircleMenuItem } from './CircleMenu';
@@ -490,7 +491,7 @@ function DpCellView({
     const textSty = cellTextStyle(cell, 'var(--text-primary)', cond);
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             {cond.hide ? null : cell.showLastChange ? (
                 <div
                     style={{
@@ -541,7 +542,7 @@ function LastChangeCellView({
     const textSty = { ...cellTextStyle(cell, 'var(--text-primary)', cond), ...contentBgStyle(cell, cond) };
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond, cell);
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             {!cond.hide && (
                 <span style={{ ...textSty, ...textDirBlockStyle(cell) }}>{lc ? formatLastChange(lc, fmt) : '–'}</span>
             )}
@@ -583,7 +584,7 @@ function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
         : { width: '100%', height: '100%', objectFit: cell.objectFit ?? 'contain', display: 'block' };
     return (
         <div
-            className={`aura-custom-cell-${index}`}
+            {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)}
             style={withCondBg({ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }, cond)}
         >
             <img src={src} alt="" style={imgStyle} />
@@ -717,7 +718,7 @@ function StaticCellView({
     const lc = lastChangeTs(mainState, cell.lastChangeSource);
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             {cell.showLastChange && lc ? (
                 <div
                     style={{
@@ -834,7 +835,7 @@ function SwitchCellView({
                   ? { minWidth: `calc(${uniformCh}ch + ${pad * 4}px)` }
                   : {};
         return (
-            <div className={`aura-custom-cell-${index}`} style={wrap}>
+            <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrap}>
                 <button
                     ref={btnRef}
                     onClick={handleClick}
@@ -878,7 +879,7 @@ function SwitchCellView({
         const size = cell.fontSize ?? 28;
         const image = cell.controlMode === 'image' ? (on ? cell.trueImage : cell.falseImage || cell.trueImage) : '';
         return (
-            <div className={`aura-custom-cell-${index}`} style={wrap}>
+            <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrap}>
                 <button
                     ref={btnRef}
                     onClick={handleClick}
@@ -912,7 +913,7 @@ function SwitchCellView({
     // Checkbox (issue #683): as tall as the toggle below; fontSize scales it like the icon mode.
     if (cell.controlMode === 'checkbox') {
         return (
-            <div className={`aura-custom-cell-${index}`} style={wrap}>
+            <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrap}>
                 <CheckboxControl
                     ref={btnRef}
                     onClick={handleClick}
@@ -936,7 +937,7 @@ function SwitchCellView({
         );
     }
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrap}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrap}>
             <button
                 ref={btnRef}
                 onClick={handleClick}
@@ -1163,7 +1164,7 @@ function SliderCellView({
 
     if (valuePos === 'none') {
         return (
-            <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
+            <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapStyle}>
                 <div
                     style={{
                         flex: cell.showLastChange ? 1 : undefined,
@@ -1203,7 +1204,7 @@ function SliderCellView({
     );
 
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapStyle}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapStyle}>
             <div
                 style={{
                     flex: cell.showLastChange ? 1 : undefined,
@@ -1251,7 +1252,7 @@ function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
     );
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrap} />;
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrap}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrap}>
             <button
                 onClick={onClick}
                 className="nodrag px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-85 transition-opacity"
@@ -1299,7 +1300,7 @@ function IconCellView({
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             <Icon size={size} style={{ color: cond.iconColor || cond.color || cell.color || 'var(--text-primary)' }} />
         </div>
     );
@@ -1333,7 +1334,7 @@ function StateIconCellView({
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             {cell.showLastChange ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
                     <Icon size={size} style={{ color }} />
@@ -1385,7 +1386,7 @@ function StepperCellView({
     };
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             <div className="nodrag flex flex-col items-center gap-0.5 w-full">
                 <div className="flex items-center gap-1 w-full">
                     <button
@@ -1597,7 +1598,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
     return (
         <div
             ref={containerRef}
-            className={`aura-custom-cell-${index}`}
+            {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)}
             style={columnWrap ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
             {multiline ? (
@@ -1747,7 +1748,7 @@ function ProgressCellView({
         </div>
     );
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             <div
                 style={{
                     flex: cell.showLastChange ? 1 : undefined,
@@ -1831,7 +1832,7 @@ function StateTextCellView({
     const labelBg = contentBgStyle(cell, cond);
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
-        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+        <div {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)} style={wrapSty}>
             {cell.showLastChange ? (
                 <div
                     style={{
@@ -2022,7 +2023,10 @@ function SelectCellView({
             whiteSpace: 'nowrap',
         };
         return (
-            <div className={`aura-custom-cell-${index}`} style={{ ...wrapSty, alignItems: 'stretch', padding: 2 }}>
+            <div
+                {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)}
+                style={{ ...wrapSty, alignItems: 'stretch', padding: 2 }}
+            >
                 <div className="w-full h-full min-h-0">
                     <CircleMenu
                         triggerTitle={label}
@@ -2093,7 +2097,7 @@ function SelectCellView({
     if (hideSelect) {
         return (
             <div
-                className={`aura-custom-cell-${index}`}
+                {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)}
                 style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
             >
                 {showLabel && selectedView(false)}
@@ -2104,7 +2108,7 @@ function SelectCellView({
 
     return (
         <div
-            className={`aura-custom-cell-${index}`}
+            {...condDisabledProps(cond.disable, `aura-custom-cell-${index}`)}
             style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
             <div className="flex items-center gap-1 w-full min-w-0">

@@ -204,6 +204,7 @@ Setzt eine [Bedingung](./editor) einen Effekt, landet die passende Klasse auf de
 | `.aura-cond-bold` · `.aura-cond-italic` | ganze Karte fett bzw. kursiv |
 | `.aura-cond-ring` | Rahmeneffekt |
 | `.aura-cond-disabled` · `.aura-cond-disabled-veil` | deaktivierte Karte bzw. ihre Abdeckung (Aussehen über `--widget-disabled-*`) |
+| `.aura-cond-el-disabled` · `.aura-tab-cond-disabled` | per Bedingung deaktivierte Zeile/Wert/Zelle bzw. deaktivierter Tab |
 | `.aura-cond-title-*` | Titel: `-color`, `-bold`, `-italic`, `-size`, `-hide` |
 | `.aura-cond-icon-*` | Icon: `-color`, `-hide` |
 | `.aura-cond-value-*` | Wert: `-color`, `-bold`, `-italic`, `-size`, `-hide` |

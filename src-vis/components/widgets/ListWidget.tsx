@@ -8,7 +8,15 @@ import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } fro
 import { useDpNameVarsList } from '../../hooks/useDpNameVars';
 import type { WidgetProps, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
-import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
+import {
+    condAnimation,
+    condTextStyle,
+    partOf,
+    rowDisabled,
+    rowHidden,
+    type ElementCondResult,
+} from '../../utils/rowConditions';
+import { condDisabledProps, COND_DISABLED_CONTENTS } from '../../utils/condDisabled';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
@@ -352,8 +360,14 @@ function pruneEmptySections(rows: StaticListEntry[]): StaticListEntry[] {
 }
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
+/** A value a rule disables (issue #889) keeps its place but greys out and takes no input. */
+function EntryValue(props: React.ComponentProps<typeof EntryValueBody>) {
+    const body = <EntryValueBody {...props} />;
+    if (!props.cond?.disable) return body;
+    return <span {...condDisabledProps(true, COND_DISABLED_CONTENTS)}>{body}</span>;
+}
 
-function EntryValue({
+function EntryValueBody({
     entry,
     val,
     statusVal,
@@ -1354,7 +1368,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             return (
                                 <div
                                     key={`${entry.id}#${i}`}
-                                    className="rounded-xl p-2.5 flex flex-col gap-2 relative"
+                                    {...condDisabledProps(
+                                        rowDisabled(rc),
+                                        'rounded-xl p-2.5 flex flex-col gap-2 relative',
+                                    )}
                                     style={{
                                         background: stateBg,
                                         animation: condAnimation(rc?.row),
@@ -1488,7 +1505,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             return (
                                 <div
                                     key={`${entry.id}#${i}`}
-                                    className="flex flex-col gap-1 px-2 py-1.5"
+                                    {...condDisabledProps(rowDisabled(rc), 'flex flex-col gap-1 px-2 py-1.5')}
                                     style={{
                                         background: stateBg,
                                         animation: condAnimation(rc?.row),
@@ -1749,11 +1766,13 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                                     }}
                                     title={lcText || undefined}
-                                    className={
+                                    // A chip IS its value — locking either locks the chip.
+                                    {...condDisabledProps(
+                                        rowDisabled(rc) || cValue.disable,
                                         entryFontSize
                                             ? 'flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium transition-colors hover:opacity-80'
-                                            : 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80'
-                                    }
+                                            : 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80',
+                                    )}
                                     style={{
                                         background:
                                             stateBg ??
@@ -1862,7 +1881,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         return (
                             <div
                                 key={`${entry.id}#${i}`}
-                                className="flex flex-col gap-1 px-3 py-2"
+                                {...condDisabledProps(rowDisabled(rc), 'flex flex-col gap-1 px-3 py-2')}
                                 style={{
                                     background: stateBg,
                                     animation: condAnimation(rc?.row),

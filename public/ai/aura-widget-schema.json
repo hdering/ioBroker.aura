@@ -694,7 +694,7 @@
         },
         "disableWidget": {
           "type": "boolean",
-          "description": "while the rule matches: grey the widget out and block every click and write"
+          "description": "while the rule matches: grey the widget out and block every click and write (on a tab: the tab stays in the bar, greyed, and cannot be opened)"
         }
       }
     },
@@ -2277,6 +2277,10 @@
         "hide": {
           "type": "boolean",
           "description": "blank the element (background is kept)"
+        },
+        "disable": {
+          "type": "boolean",
+          "description": "grey the element out and block its controls and clicks while the rule matches (target row / value, or a whole cell; never name or icon)"
         },
         "notify": {
           "type": "object",
@@ -4072,6 +4076,10 @@
         "hide": {
           "type": "boolean",
           "description": "blank the element (background is kept)"
+        },
+        "disable": {
+          "type": "boolean",
+          "description": "grey the element out and block its controls and clicks while the rule matches (target row / value, or a whole cell; never name or icon)"
         },
         "notify": {
           "type": "object",

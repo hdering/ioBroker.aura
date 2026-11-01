@@ -937,7 +937,7 @@ export interface WidgetCondition {
     // (i.e. hides while the condition is false).
     visibilityMode?: 'hideOnMatch' | 'showOnMatch';
     reflow?: boolean; // if hiding: remove from grid so other widgets slide up
-    disableWidget?: boolean; // while the rule matches: grey the widget out and block every click and write
+    disableWidget?: boolean; // while the rule matches: grey the widget out and block every click and write (on a tab: the tab stays in the bar, greyed, and cannot be opened)
 }
 
 // ── Conditional formatting of a single element ────────────────────────────────
@@ -983,6 +983,7 @@ export interface CellConditionRule {
     /** Same two effects the widget level offers, applied to this element alone. */
     effect?: 'none' | 'pulse' | 'blink';
     hide?: boolean; // blank the element (background is kept)
+    disable?: boolean; // grey the element out and block its controls and clicks while the rule matches (target row / value, or a whole cell; never name or icon)
     /**
      * Send a message when the rule starts matching — once per element, so a rule on
      * a list sends one message per row that triggers (issue #605). Stored as the

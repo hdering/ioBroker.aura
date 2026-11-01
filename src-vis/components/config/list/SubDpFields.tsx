@@ -511,6 +511,7 @@ export function SubDpFields({
                                         rules={sub.conditions ?? []}
                                         onChange={(next) => patch(i, { conditions: next.length ? next : undefined })}
                                         allowIconSize
+                                        noDisableReason="zweite Zeile hat kein Bedienelement"
                                         ownHint="{dp} = Wert dieses Datenpunkts; Pille umschalten für einen anderen."
                                         intro="Noch keine Regel. Regeln ändern Farbe, Icon oder Text dieses Werts."
                                     />

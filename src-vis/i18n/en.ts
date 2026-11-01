@@ -1873,6 +1873,8 @@ export const en: Record<TranslationKey, string> = {
     'cond.pushOthersHint': 'Widget is removed from the grid, others fill the space',
     'cond.disableWidget': 'Disable widget',
     'cond.disableWidgetHint': 'While the condition matches: greyed out, cannot be operated',
+    'cond.disableTab': 'Disable tab',
+    'cond.disableTabHint': 'While the condition matches: the tab stays visible, greyed out and cannot be opened',
     'cond.rules': 'Condition Rules',
     'cond.rulesHint': 'Colors change when conditions are met',
     'cond.noRules': 'No rules yet. Create a rule to get started.',

@@ -230,6 +230,27 @@ iframe {
     cursor: not-allowed;
     pointer-events: auto !important;
 }
+/* The same effect on one element — a list row, a row's value, a custom-grid cell
+   (issue #889). No veil: the element keeps its pointer events so the capture
+   handlers of condDisabledProps() catch the click, its content drops them. The
+   -contents variant wraps a value without a box of its own and greys its children. */
+.aura-cond-el-disabled,
+.aura-cond-el-disabled-contents.aura-cond-el-disabled > * {
+    filter: var(--widget-disabled-filter, grayscale(1));
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.aura-cond-el-disabled-contents {
+    display: contents;
+}
+.aura-cond-el-disabled * {
+    pointer-events: none !important;
+}
+/* A tab a rule locks: stays in the bar, greyed (opacity set inline), no switch. */
+.aura-tab-btn.aura-tab-cond-disabled {
+    cursor: not-allowed;
+    filter: var(--widget-disabled-filter, grayscale(1));
+}
 /* Connection to ioBroker lost for longer than the grace period (App.tsx sets
    data-aura-offline): every value on screen is the last one received, so the
    widgets fade to say "not live". Themes/custom CSS can tune or drop it. The

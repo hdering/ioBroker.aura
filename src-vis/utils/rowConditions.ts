@@ -35,6 +35,8 @@ export interface ElementCondResult {
     text?: string;
     effect?: 'pulse' | 'blink';
     hide?: boolean;
+    /** Greyed out and not operable (issue #889) — only read on 'row' and 'value'. */
+    disable?: boolean;
 }
 
 /** Merged effects per target. Absent target = no rule painted that part. */
@@ -111,6 +113,8 @@ function applyEffects(into: ElementCondResult, rule: ElementConditionRule): void
     if (rule.effect && rule.effect !== 'none') into.effect = rule.effect;
     // Hiding is absorbing — a later rule never brings the element back.
     if (rule.hide) into.hide = true;
+    // So is disabling: one rule that locks the element keeps it locked.
+    if (rule.disable) into.disable = true;
 }
 
 /** Does this one rule match for this element? The clause engine of a row rule,
@@ -181,8 +185,9 @@ export function evalRowRules(
  * The effect that applies to one part of the row: what the row-level rules said,
  * overlaid with what the part-specific ones said.
  *
- * `bg` and `hide` are deliberately NOT inherited from the row — a row background
- * is the row's, and hiding the row is not hiding its name.
+ * `bg`, `hide` and `disable` are deliberately NOT inherited from the row — a row
+ * background is the row's, and hiding the row is not hiding its name. A disabled
+ * row is locked as a whole by its wrapper (rowDisabled).
  */
 export function partOf(
     res: RowCondResult | undefined,
@@ -260,4 +265,9 @@ export function condTextStyle(part: ElementCondResult | undefined): {
 /** True when any rule hides the whole row. */
 export function rowHidden(res: RowCondResult | undefined): boolean {
     return !!res?.row?.hide;
+}
+
+/** True when any rule disables the whole row (issue #889). */
+export function rowDisabled(res: RowCondResult | undefined): boolean {
+    return !!res?.row?.disable;
 }

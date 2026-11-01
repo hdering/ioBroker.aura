@@ -160,6 +160,7 @@ Ausblenden ist absorbierend.
 | `bold` · `italic` | Schriftschnitt |
 | `effect` | `pulse` · `blink` — lässt das Element pulsieren bzw. blinken |
 | `hide` | Element ausblenden |
+| `disable` | Element grau und nicht bedienbar (nur `row` · `value`) |
 
 Eine Regel auf `row` gibt Textgröße, Textfarbe, Fett/Kursiv sowie Icon, Icon-Farbe und Icon-Größe an Name, Wert und
 Icon weiter; Hintergrund und Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen sie.

@@ -281,6 +281,7 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
 | Widget deaktivieren | grau hinterlegt, Bedienelemente und Klick-Aktion gesperrt, keine Schreibzugriffe; nur im Frontend |
+| Tab deaktivieren | (Tab-Bedingung) Tab bleibt in der Leiste, grau, lässt sich nicht öffnen; nur im Frontend |
 
 `Nur Rand pulsiert` lässt den Inhalt lesbar und pulst nur einen Ring um die Karte. Die **Rand-Farbe**
 steht direkt unter der Auswahl; ohne sie nimmt der Ring die Rahmenfarbe der Regel, sonst den Akzent.
@@ -354,8 +355,17 @@ Haupt-Datenpunkt des Widgets oder einen frei angegebenen.
 
 Der Regel-Dialog ist derselbe wie auf Widget-Ebene: links **Stil wenn aktiv** (Textgröße, Textfarbe,
 Hintergrund — nur bei „Ganze Zeile" —, Icon-Farbe, Fett, Kursiv) und darunter **Effekt** (`Pulsieren` · `Blinken`),
-rechts **Element** mit `Wirkt auf` und `Sichtbar` (`unverändert` · `anpassen` · `ausblenden`). Text und
+rechts **Element** mit `Wirkt auf` und `Sichtbar` (`unverändert` · `anpassen` · `deaktivieren` · `ausblenden`). Text und
 Icon erscheinen erst bei `anpassen`, damit hinter dem Wort „unverändert" nichts steht, das doch wirkt.
+
+| `deaktivieren` auf … | Wirkung |
+| --- | --- |
+| Ganze Zeile | Zeile grau; Bedienelement, Klick auf die Zeile und Tastatur gesperrt |
+| Wert | nur das Bedienelement grau und gesperrt; ein Klick auf die Zeile wirkt weiter |
+| Zelle (Custom-Layout) | Zelle grau; Bedienelement und Klick-Aktion gesperrt |
+| Name · Icon · Zweite Zeile | nicht verfügbar (ausgegraut) — kein Bedienelement |
+
+Deaktivieren ist wie Ausblenden absorbierend.
 
 Schriftschnitt und Effekt gibt es auf beiden Ebenen — nur der Umfang unterscheidet sich: Farben und
 Sichtbarkeit wirken auf der Widget-Ebene auf die ganze Karte, auf der Element-Ebene auf genau ein Teil.

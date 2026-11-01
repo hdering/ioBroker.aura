@@ -1887,6 +1887,8 @@ export const de = {
     'cond.pushOthersHint': 'Widget wird aus dem Raster entfernt, andere füllen den Platz',
     'cond.disableWidget': 'Widget deaktivieren',
     'cond.disableWidgetHint': 'Solange die Bedingung zutrifft: grau hinterlegt, nicht bedienbar',
+    'cond.disableTab': 'Tab deaktivieren',
+    'cond.disableTabHint': 'Solange die Bedingung zutrifft: Tab bleibt sichtbar, grau und lässt sich nicht öffnen',
     'cond.rules': 'Bedingungsregeln',
     'cond.rulesHint': 'Farben ändern sich wenn Bedingungen erfüllt sind',
     'cond.noRules': 'Noch keine Regeln. Erstelle eine Regel um loszulegen.',

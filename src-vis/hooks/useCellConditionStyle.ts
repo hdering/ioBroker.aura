@@ -31,6 +31,8 @@ export interface CellCondResult {
     text?: string;
     effect?: 'pulse' | 'blink';
     hide?: boolean;
+    /** Greyed out and not operable (issue #889). */
+    disable?: boolean;
 }
 
 const EMPTY: CellCondResult = {};
@@ -90,6 +92,7 @@ function evalRules(
         if (rule.text !== undefined && rule.text !== '') merged.text = rule.text;
         if (rule.effect && rule.effect !== 'none') merged.effect = rule.effect;
         if (rule.hide) merged.hide = true;
+        if (rule.disable) merged.disable = true;
     }
     return any ? merged : EMPTY;
 }

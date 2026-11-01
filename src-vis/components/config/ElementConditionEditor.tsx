@@ -91,7 +91,10 @@ function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; labe
     );
 }
 
-type Mode = 'unchanged' | 'adjust' | 'hide';
+type Mode = 'unchanged' | 'adjust' | 'disable' | 'hide';
+
+/** Name and icon are labels, not controls — only the row or its value can be locked (#889). */
+const DISABLE_TARGETS: ElementConditionTarget[] = ['row', 'value'];
 
 function RuleEditor({
     rule,
@@ -101,6 +104,7 @@ function RuleEditor({
     ownHint,
     allowIconSize,
     allowNotify,
+    noDisableReason,
     sampleDp,
     reorder,
     dragProps,
@@ -117,6 +121,8 @@ function RuleEditor({
     /** Offer the "send a message" effect — only where the row engine evaluates the
      *  rule per element and can therefore raise one message per row (issue #605). */
     allowNotify: boolean;
+    /** Set when the element has nothing to operate: "deaktivieren" is greyed out with this reason. */
+    noDisableReason?: string;
     /** A datapoint the message's `{{parent}}` & co. resolve against in the preview. */
     sampleDp?: string;
     /** Position of this rule and how to move it (issue #623). */
@@ -135,20 +141,33 @@ function RuleEditor({
     // to survive until the fields are filled, so local state is enough.
     const derivedMode: Mode = rule.hide
         ? 'hide'
-        : rule.text !== undefined || rule.icon || rule.iconSize !== undefined
-          ? 'adjust'
-          : 'unchanged';
+        : rule.disable
+          ? 'disable'
+          : rule.text !== undefined || rule.icon || rule.iconSize !== undefined
+            ? 'adjust'
+            : 'unchanged';
     const [modePick, setModePick] = useState<Mode | null>(null);
     const mode = modePick ?? derivedMode;
     const setMode = (m: Mode) => {
         setModePick(m);
         // Back to "unverändert" drops the overrides — a text left behind an
-        // untouched element would still paint.
-        if (m === 'unchanged') update({ hide: undefined, text: undefined, icon: undefined, iconSize: undefined });
-        else update({ hide: m === 'hide' ? true : undefined });
+        // untouched element would still paint. So does "deaktivieren", whose
+        // element shows what it always shows, only greyed and locked.
+        if (m === 'unchanged' || m === 'disable')
+            update({
+                hide: undefined,
+                disable: m === 'disable' ? true : undefined,
+                text: undefined,
+                icon: undefined,
+                iconSize: undefined,
+            });
+        else update({ hide: m === 'hide' ? true : undefined, disable: undefined });
     };
 
     const target = rule.target ?? 'row';
+    const disableReason =
+        noDisableReason ??
+        (targets.length > 0 && !DISABLE_TARGETS.includes(target) ? 'nur „Ganze Zeile“ oder „Wert“' : undefined);
     const paintsIcon = targets.length === 0 || target === 'row' || target === 'icon';
     const paintsText = targets.length === 0 || target !== 'icon';
     const IconPrev = rule.icon ? getWidgetIcon(rule.icon, HelpCircle) : null;
@@ -325,7 +344,15 @@ function RuleEditor({
                                 <Row label="Wirkt auf">
                                     <select
                                         value={target}
-                                        onChange={(e) => update({ target: e.target.value as ElementConditionTarget })}
+                                        onChange={(e) => {
+                                            const next = e.target.value as ElementConditionTarget;
+                                            // Name and icon cannot be locked — a lock picked for the
+                                            // row must not linger, unseen, behind the new target.
+                                            if (rule.disable && !DISABLE_TARGETS.includes(next)) {
+                                                setModePick(null);
+                                                update({ target: next, disable: undefined });
+                                            } else update({ target: next });
+                                        }}
                                         className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
                                         style={fieldStyle}
                                     >
@@ -346,9 +373,27 @@ function RuleEditor({
                                 >
                                     <option value="unchanged">unverändert</option>
                                     <option value="adjust">anpassen</option>
+                                    {/* Greyed out, not dropped, where there is nothing to operate (#889). */}
+                                    <option
+                                        value="disable"
+                                        disabled={!!disableReason}
+                                        title="Grau und nicht bedienbar, solange die Regel zutrifft"
+                                    >
+                                        {disableReason ? `deaktivieren (${disableReason})` : 'deaktivieren'}
+                                    </option>
                                     <option value="hide">ausblenden</option>
                                 </select>
                             </Row>
+                            {mode === 'disable' && (
+                                <p
+                                    className="aura-cond-disable-hint text-[9px] leading-tight"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {target === 'value'
+                                        ? 'Wert grau, das Bedienelement nimmt keine Eingabe an. Ein Klick auf die Zeile wirkt weiter.'
+                                        : 'Grau, nicht bedienbar und nicht anklickbar, solange die Regel zutrifft.'}
+                                </p>
+                            )}
                             {/* Content only once the element is actively adjusted — a field
                                 behind the word "unverändert" would change it after all. */}
                             {mode === 'adjust' && paintsText && (
@@ -530,6 +575,7 @@ export function ElementConditionEditor({
     intro,
     allowIconSize = false,
     allowNotify = false,
+    noDisableReason,
     sampleDp,
 }: {
     rules: ElementConditionRule[];
@@ -551,6 +597,8 @@ export function ElementConditionEditor({
      * different hook, so the switch would be dead there.
      */
     allowNotify?: boolean;
+    /** The element has no control: "deaktivieren" is greyed out with this reason (#889). */
+    noDisableReason?: string;
     /** Sample datapoint for the message preview: what `{{parent}}` & co. resolve to. */
     sampleDp?: string;
 }) {
@@ -589,6 +637,7 @@ export function ElementConditionEditor({
                     ownHint={hint}
                     allowIconSize={allowIconSize}
                     allowNotify={allowNotify}
+                    noDisableReason={noDisableReason}
                     sampleDp={sampleDp}
                     reorder={reorderProps(i)}
                     dragProps={itemProps(i)}
