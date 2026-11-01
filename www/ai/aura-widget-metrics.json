@@ -456,6 +456,34 @@
               ],
               "basePx": 0,
               "perItemPx": 6
+            },
+            {
+              "key": "rowDensityCompact",
+              "label": "Zeilenabstand kompakt (rowDensity: compact)",
+              "when": {
+                "path": "rowDensity",
+                "equals": "compact"
+              },
+              "notForVariants": [
+                "card",
+                "minimal"
+              ],
+              "basePx": 0,
+              "perItemPx": -4
+            },
+            {
+              "key": "rowDensityComfortable",
+              "label": "Zeilenabstand großzügig (rowDensity: comfortable)",
+              "when": {
+                "path": "rowDensity",
+                "equals": "comfortable"
+              },
+              "notForVariants": [
+                "card",
+                "minimal"
+              ],
+              "basePx": 0,
+              "perItemPx": 4
             }
           ]
         },
@@ -652,6 +680,34 @@
             "basePx": 20,
             "perItemPx": 0
           }
+        },
+        {
+          "key": "rowDensityCompact",
+          "label": "Zeilenabstand kompakt (rowDensity: compact)",
+          "when": {
+            "path": "rowDensity",
+            "equals": "compact"
+          },
+          "notForVariants": [
+            "card",
+            "minimal"
+          ],
+          "basePx": 0,
+          "perItemPx": -8
+        },
+        {
+          "key": "rowDensityComfortable",
+          "label": "Zeilenabstand großzügig (rowDensity: comfortable)",
+          "when": {
+            "path": "rowDensity",
+            "equals": "comfortable"
+          },
+          "notForVariants": [
+            "card",
+            "minimal"
+          ],
+          "basePx": 0,
+          "perItemPx": 8
         }
       ],
       "rowTypes": {
