@@ -31,6 +31,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `center` | Deutschland | `[lat, lon]` Startmittelpunkt |
 | `zoom` | `6` | Start-Zoom (1–22, ab 19 bzw. 17 bei Gelände vergrößerte Kacheln); bei `followMarkers` = max. Zoom des Auto-Fit |
 | `followMarkers` | `false` | Ansicht automatisch an alle Marker anpassen |
+| `markerSpread` | `true` | Marker am selben Ort nebeneinander statt übereinander zeichnen |
 
 ### Kartentyp umschalten
 
@@ -92,6 +93,7 @@ Pro Linie zusätzlich:
 | `color` | `lineColor` aus dem DP, sonst blau (Route) / rot (Strecke) | Linienfarbe |
 | `width` | `4` | Linienstärke in px |
 | `showPoints` | `false` | Punkt je Messung (`json`/`history`); Klick zeigt Zeit, Tempo, Genauigkeit |
+| `markerId` | — | Marker, den der Chip der Linie mit ein- und ausblendet (nur mit `lineChips`) |
 | `historyHours` | `24` | Zeitraum für `history` |
 | `maxPoints` | `500` | neueste Punkte für `history` |
 

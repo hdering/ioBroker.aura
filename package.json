@@ -347,6 +347,7 @@
     "test:map-lines": "node tools/tests/map-lines.mjs",
     "test:map-zoom": "node tools/tests/map-zoom.mjs",
     "test:map-track": "node tools/tests/map-track-logic.mjs",
+    "test:map-spread": "node tools/tests/map-marker-spread.mjs",
     "test:theme-flicker": "node tools/tests/theme-mode-flicker.mjs",
     "test:theme-scope": "node tools/tests/theme-scope.mjs",
     "test:theme-vars": "node tools/tests/theme-vars.mjs",

@@ -15,7 +15,7 @@ const bundle = join(cache, `aura-map-track-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export * from './src-vis/utils/mapTrack.ts'; export { formatPhotonAddress } from './src-vis/utils/geo.ts';",
+            "export * from './src-vis/utils/mapTrack.ts'; export * from './src-vis/utils/mapSpread.ts'; export { formatPhotonAddress } from './src-vis/utils/geo.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -257,6 +257,37 @@ const check = (name, ok, detail = '') => {
     });
     check('OSRM response parsed', r.distanceKm === 12.4 && r.durationMin === 14 && r.coords[0].join() === '52.5,13.4');
     check('NoRoute yields null', m.parseOsrmRoute({ code: 'NoRoute' }) === null);
+}
+
+// ── spreadOffsets: markers on the same spot pulled apart (#895) ─────────────
+{
+    const two = m.spreadOffsets([
+        { id: 'david', x: 100, y: 100 },
+        { id: 'tin', x: 100, y: 100 },
+    ]);
+    check(
+        'two on one spot: left and right',
+        two.david?.[0] < -10 && two.tin?.[0] > 10 && two.david[1] === 0 && two.tin[1] === 0,
+        JSON.stringify(two),
+    );
+    const apart = m.spreadOffsets([
+        { id: 'a', x: 0, y: 0 },
+        { id: 'b', x: 200, y: 0 },
+    ]);
+    check('markers far apart stay put', Object.keys(apart).length === 0, JSON.stringify(apart));
+    // A chain a–b–c (each 20 px from the next) is one spot, d on its own stays put.
+    const chain = m.spreadOffsets([
+        { id: 'a', x: 0, y: 0 },
+        { id: 'b', x: 20, y: 0 },
+        { id: 'c', x: 40, y: 0 },
+        { id: 'd', x: 300, y: 300 },
+    ]);
+    check('chain of neighbours forms one group', ['a', 'b', 'c'].every((k) => chain[k]) && !chain.d);
+    const placed = ['a', 'b', 'c'].map((k, i) => [i * 20 + chain[k][0], chain[k][1]]);
+    const minGap = Math.min(
+        ...placed.flatMap((p, i) => placed.slice(i + 1).map((q) => Math.hypot(p[0] - q[0], p[1] - q[1]))),
+    );
+    check('pins on the ring do not overlap', minGap >= 30, minGap.toFixed(1));
 }
 
 const failed = results.filter((r) => !r.ok);

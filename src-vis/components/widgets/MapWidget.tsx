@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Pane, Marker, Tooltip, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import {
+    MapContainer,
+    TileLayer,
+    Pane,
+    Marker,
+    Tooltip,
+    Polyline,
+    CircleMarker,
+    Popup,
+    useMap,
+    useMapEvents,
+} from 'react-leaflet';
 import L from 'leaflet';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
@@ -9,6 +20,7 @@ import { detectHistoryAdapters } from '../../hooks/useChartHistory';
 import { useT, type Language, type TranslationKey } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { MAX_MAP_ZOOM } from '../../utils/mapZoom';
+import { spreadOffsets } from '../../utils/mapSpread';
 import {
     extractLatLon,
     geocodeAddress,
@@ -101,6 +113,8 @@ export interface MapLine {
     maxPoints?: number;
     /** Draw a dot per recorded point; tapping it shows time, speed and accuracy. */
     showPoints?: boolean;
+    /** Marker (id from `markers`) the line chip shows and hides together with the line (#895). */
+    markerId?: string;
 }
 
 /** Corner of the line info box (name, length, travel time), or 'off'. */
@@ -179,6 +193,8 @@ interface MapOptions {
     lineChips?: boolean;
     /** Chips toggle lines independently instead of showing one line at a time. */
     lineChipsMulti?: boolean;
+    /** Pull apart markers on (almost) the same spot so each stays visible (default on, #895). */
+    markerSpread?: boolean;
     /** Timeline of stays and trips under the map, for the first visible recorded track. */
     timeline?: boolean;
     /** Timeline: a stay keeps within this many metres (default 100). */
@@ -230,13 +246,13 @@ const DEFAULT_CENTER: LatLon = [51.1657, 10.4515]; // Germany
 const DEFAULT_ZOOM = 6;
 
 /** Build an emoji/dot pin as a Leaflet divIcon (avoids broken default marker PNG paths). */
-function buildIcon(marker: MapMarker): L.DivIcon {
+function buildIcon(marker: MapMarker, offset: [number, number] = [0, 0]): L.DivIcon {
     const color = marker.color || '#2563eb';
     const inner = marker.emoji
         ? `<span style="font-size:16px;line-height:1">${marker.emoji}</span>`
         : '<span style="display:block;width:10px;height:10px;border-radius:50%;background:#fff"></span>';
     const html = `
-        <div style="
+        <div data-aura-map-marker="${marker.id.replace(/["&<>]/g, '')}" style="
             width:30px;height:30px;border-radius:50% 50% 50% 0;
             transform:rotate(-45deg);
             background:${color};
@@ -249,8 +265,9 @@ function buildIcon(marker: MapMarker): L.DivIcon {
         html,
         className: 'aura-map-pin',
         iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        tooltipAnchor: [0, -28],
+        // A spread marker (#895) draws its pin `offset` px away from its real spot.
+        iconAnchor: [15 - offset[0], 30 - offset[1]],
+        tooltipAnchor: [offset[0], offset[1] - 28],
     });
 }
 
@@ -344,12 +361,17 @@ function MarkerLayer({
     homePos,
     isHome,
     showDistance,
+    hidden,
+    offset,
     onResolve,
 }: {
     marker: MapMarker;
     homePos: LatLon | null;
     isHome: boolean;
     showDistance: boolean;
+    /** Switched off by its line's chip (#895) — still resolves, a route may start here. */
+    hidden: boolean;
+    offset?: [number, number];
     onResolve: (id: string, pos: LatLon | null) => void;
 }) {
     const pos = useResolvedPosition(marker);
@@ -360,10 +382,12 @@ function MarkerLayer({
     }, [marker.id, pos, onResolve]);
 
     // Only the visual fields affect the icon — rebuilding on every marker change is wasteful.
+    const dx = offset?.[0] ?? 0;
+    const dy = offset?.[1] ?? 0;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const icon = useMemo(() => buildIcon(marker), [marker.emoji, marker.color]);
+    const icon = useMemo(() => buildIcon(marker, [dx, dy]), [marker.emoji, marker.color, dx, dy]);
 
-    if (!pos) return null;
+    if (!pos || hidden) return null;
 
     const dist = showDistance && homePos && !isHome ? haversineKm(homePos, pos) : null;
 
@@ -1039,6 +1063,60 @@ function ResizeHandler() {
     return null;
 }
 
+/**
+ * All markers, with the ones on (almost) the same spot pulled apart (#895). Offsets are worked
+ * out in screen pixels, so they are redone on every zoom: two people a street apart share a
+ * spot in the overview and separate as soon as one zooms in.
+ */
+function MarkerLayers({
+    markers,
+    positions,
+    hidden,
+    spread,
+    homeMarkerId,
+    showDistance,
+    onResolve,
+}: {
+    markers: MapMarker[];
+    positions: Record<string, LatLon>;
+    hidden: Set<string>;
+    spread: boolean;
+    homeMarkerId?: string;
+    showDistance: boolean;
+    onResolve: (id: string, pos: LatLon | null) => void;
+}) {
+    const map = useMap();
+    const [zoom, setZoom] = useState(() => map.getZoom());
+    useMapEvents({ zoomend: () => setZoom(map.getZoom()) });
+    const offsets = useMemo<Record<string, [number, number]>>(() => {
+        if (!spread || !Number.isFinite(zoom)) return {};
+        const points = markers
+            .filter((m) => positions[m.id] && !hidden.has(m.id))
+            .map((m) => {
+                const p = map.project(positions[m.id], zoom);
+                return { id: m.id, x: p.x, y: p.y };
+            });
+        return points.length > 1 ? spreadOffsets(points) : {};
+    }, [spread, zoom, markers, positions, hidden, map]);
+    const homePos = homeMarkerId ? (positions[homeMarkerId] ?? null) : null;
+    return (
+        <>
+            {markers.map((m) => (
+                <MarkerLayer
+                    key={m.id}
+                    marker={m}
+                    homePos={homePos}
+                    isHome={m.id === homeMarkerId}
+                    showDistance={showDistance}
+                    hidden={hidden.has(m.id)}
+                    offset={offsets[m.id]}
+                    onResolve={onResolve}
+                />
+            ))}
+        </>
+    );
+}
+
 /** Auto-fits the view to all resolved markers when "follow markers" is enabled.
  *  `maxZoom`, when configured, caps how far the auto-fit zooms in (and is the
  *  target zoom for the single-marker case); undefined keeps the built-in defaults. */
@@ -1416,6 +1494,16 @@ export function MapWidget({ config, editMode }: WidgetProps) {
         [chipsMulti],
     );
     const visibleLines = lines.filter((l) => isLineVisible(l.id));
+    // A marker tied to lines (`markerId`) hides once none of its lines is shown (#895).
+    const hiddenMarkers = useMemo(() => {
+        const shown = new Map<string, boolean>();
+        if (lineChips) {
+            for (const l of lines) {
+                if (l.markerId) shown.set(l.markerId, (shown.get(l.markerId) ?? false) || isLineVisible(l.id));
+            }
+        }
+        return new Set([...shown].filter(([, on]) => !on).map(([id]) => id));
+    }, [lineChips, lines, isLineVisible]);
     const lineChipList = lines.map((l, i) => ({
         id: l.id,
         label: lineInfos[l.id]?.label || l.label || `${i + 1}`,
@@ -1424,14 +1512,15 @@ export function MapWidget({ config, editMode }: WidgetProps) {
 
     // Auto-fit covers the visible lines too: each contributes its bounding corners.
     const fitPositions = useMemo<Record<string, LatLon>>(() => {
-        const out: Record<string, LatLon> = { ...positions };
+        const out: Record<string, LatLon> = {};
+        for (const [id, pos] of Object.entries(positions)) if (!hiddenMarkers.has(id)) out[id] = pos;
         for (const [id, info] of Object.entries(lineInfos)) {
             if (!info.bounds || !isLineVisible(id)) continue;
             out[`line:${id}:sw`] = info.bounds[0];
             out[`line:${id}:ne`] = info.bounds[1];
         }
         return out;
-    }, [positions, lineInfos, isLineVisible]);
+    }, [positions, lineInfos, isLineVisible, hiddenMarkers]);
     const infoRows = visibleLines
         .map((l) => lineInfos[l.id])
         .filter((i): i is LineInfo => !!i && (i.km != null || !!i.label));
@@ -1463,7 +1552,6 @@ export function MapWidget({ config, editMode }: WidgetProps) {
         if (bounds) setFitTarget((prev) => ({ bounds, nonce: (prev?.nonce ?? 0) + 1 }));
     }, []);
 
-    const homePos = o.homeMarkerId ? (positions[o.homeMarkerId] ?? null) : null;
     // Coerce to finite values — a NaN center/zoom (e.g. from a half-edited config)
     // would put Leaflet into a broken NaN state.
     const rawCenter = o.center;
@@ -1557,16 +1645,15 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                             onInfo={onLineInfo}
                         />
                     ))}
-                    {markers.map((m) => (
-                        <MarkerLayer
-                            key={m.id}
-                            marker={m}
-                            homePos={homePos}
-                            isHome={m.id === o.homeMarkerId}
-                            showDistance={showDistance}
-                            onResolve={onResolve}
-                        />
-                    ))}
+                    <MarkerLayers
+                        markers={markers}
+                        positions={positions}
+                        hidden={hiddenMarkers}
+                        spread={o.markerSpread !== false}
+                        homeMarkerId={o.homeMarkerId}
+                        showDistance={showDistance}
+                        onResolve={onResolve}
+                    />
                 </MapContainer>
 
                 {/* Overlay chips float over the map, anchored per corner. Both groups

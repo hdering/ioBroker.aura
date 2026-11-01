@@ -1668,6 +1668,10 @@ export const WIDGET_OPTION_NOTES = {
         markers: { description: 'Die Markierungen auf der Karte.' },
         homeMarkerId: { description: 'Id der Markierung, die als Zuhause gilt.' },
         followMarkers: { description: 'Kartenausschnitt automatisch an die Markierungen anpassen.' },
+        markerSpread: {
+            description:
+                'Markierungen auf (fast) derselben Stelle nebeneinander statt übereinander zeichnen, z. B. zwei Personen zu Hause. Wird je Zoomstufe neu berechnet. Standard an; false = übereinander.',
+        },
         showDistance: { description: 'Entfernung zur Zuhause-Markierung anzeigen.' },
         quickViews: { description: 'Gespeicherte Kartenausschnitte zum Anspringen.' },
         chipsPosition: { description: 'Wo die Chips über der Karte liegen.' },
@@ -1675,7 +1679,7 @@ export const WIDGET_OPTION_NOTES = {
         styleChipsCorner: { description: 'In welcher Ecke die Stil-Umschalter liegen.' },
         lines: {
             description:
-                'Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source "route" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source "json" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; "name"/"lineColor" im Wert werden übernommen). source "history" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit.',
+                'Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source "route" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source "json" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; "name"/"lineColor" im Wert werden übernommen). source "history" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus.',
         },
         lineInfo: {
             description:
@@ -1687,7 +1691,7 @@ export const WIDGET_OPTION_NOTES = {
         },
         lineChips: {
             description:
-                'Ein Chip je Linie über der Karte (Name aus label oder den Daten). Standard: immer nur eine Linie sichtbar, Tippen wechselt – z. B. eine Strecke je Person.',
+                'Ein Chip je Linie über der Karte (Name aus label oder den Daten). Standard: immer nur eine Linie sichtbar, Tippen wechselt – z. B. eine Strecke je Person. Mit lines[].markerId schaltet der Chip auch die Markierung der Person.',
         },
         lineChipsMulti: {
             description: 'Mit lineChips: Chips schalten jede Linie einzeln ein/aus statt nur eine zu zeigen.',

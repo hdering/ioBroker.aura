@@ -4,6 +4,7 @@ import { ConfigSection, SubGroup } from './ConfigSection';
 import { useT } from '../../i18n';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { ColorPicker } from '../common/ColorPicker';
+import { Unavailable } from './Unavailable';
 import type { WidgetConfig } from '../../types';
 import { MAX_MAP_ZOOM } from '../../utils/mapZoom';
 import type {
@@ -728,6 +729,35 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                                         ))}
                                                     </select>
 
+                                                    <Unavailable
+                                                        reason={
+                                                            o.lineChips === true
+                                                                ? undefined
+                                                                : 'Nur mit „Linien per Chips umschalten“'
+                                                        }
+                                                    >
+                                                        <label className={lblCls} style={lblSty}>
+                                                            Chip schaltet auch diese Markierung
+                                                        </label>
+                                                        <select
+                                                            value={l.markerId ?? ''}
+                                                            onChange={(e) =>
+                                                                patchLine(idx, {
+                                                                    markerId: e.target.value || undefined,
+                                                                })
+                                                            }
+                                                            className={iCls}
+                                                            style={iSty}
+                                                        >
+                                                            <option value="">– keine –</option>
+                                                            {markers.map((m) => (
+                                                                <option key={m.id} value={m.id}>
+                                                                    {m.label || m.id}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </Unavailable>
+
                                                     {l.source === 'route' && (
                                                         <>
                                                             <div className="grid grid-cols-2 gap-1">
@@ -1276,6 +1306,15 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                             Ansicht automatisch auf Marker zentrieren
                         </label>
                         <Toggle value={followMarkers} onToggle={() => set({ followMarkers: !followMarkers })} />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <label className={lblCls} style={lblSty}>
+                            Marker am selben Ort nebeneinander zeigen
+                        </label>
+                        <Toggle
+                            value={o.markerSpread !== false}
+                            onToggle={() => set({ markerSpread: o.markerSpread === false ? undefined : false })}
+                        />
                     </div>
 
                     {!followMarkers && (

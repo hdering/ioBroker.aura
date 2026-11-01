@@ -6444,6 +6444,10 @@
         "showPoints": {
           "type": "boolean",
           "description": "Draw a dot per recorded point; tapping it shows time, speed and accuracy."
+        },
+        "markerId": {
+          "type": "string",
+          "description": "Marker (id from `markers`) the line chip shows and hides together with the line (#895)."
         }
       }
     },
@@ -18188,7 +18192,7 @@
         },
         "lineChips": {
           "type": "boolean",
-          "description": "Ein Chip je Linie über der Karte (Name aus label oder den Daten). Standard: immer nur eine Linie sichtbar, Tippen wechselt – z. B. eine Strecke je Person.",
+          "description": "Ein Chip je Linie über der Karte (Name aus label oder den Daten). Standard: immer nur eine Linie sichtbar, Tippen wechselt – z. B. eine Strecke je Person. Mit lines[].markerId schaltet der Chip auch die Markierung der Person.",
           "default": false
         },
         "lineChipsMulti": {
@@ -18207,12 +18211,17 @@
             "type": "object",
             "ref": "MapLine"
           },
-          "description": "Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source \"route\" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source \"json\" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; \"name\"/\"lineColor\" im Wert werden übernommen). source \"history\" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit."
+          "description": "Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source \"route\" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source \"json\" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; \"name\"/\"lineColor\" im Wert werden übernommen). source \"history\" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus."
         },
         "mapStyle": {
           "type": "string",
           "ref": "MapStyle",
           "description": "Kartenstil."
+        },
+        "markerSpread": {
+          "type": "boolean",
+          "description": "Markierungen auf (fast) derselben Stelle nebeneinander statt übereinander zeichnen, z. B. zwei Personen zu Hause. Wird je Zoomstufe neu berechnet. Standard an; false = übereinander.",
+          "default": true
         },
         "markers": {
           "type": "array",
