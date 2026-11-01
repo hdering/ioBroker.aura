@@ -101,6 +101,7 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { applyListDisplay } from '../../utils/listDisplayDefaults';
+import { compactCellPadY, standardRowPadY, type ListRowDensity } from '../../utils/listDensity';
 import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow, useHasHeaderItems } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -242,6 +243,8 @@ export interface AutoListOptions
     sumFontSize?: number;
     /** Show divider lines between list entries (standard/compact layouts). Default true. */
     showDividers?: boolean;
+    /** Row spacing in the standard/compact layouts, independent of the text size (#890). Default 'normal'. */
+    rowDensity?: ListRowDensity;
     /** Show last-change timestamp under every entry (global toggle — dynamic list has no per-DP config). */
     showEntryLastChange?: boolean;
     /** Which timestamp that line shows: 'lastChange' (lc, default) or 'lastUpdate' (ts). */
@@ -1561,6 +1564,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const globalActiveBg = opts.activeBg;
     const globalInactiveBg = opts.inactiveBg;
     const showDividers = opts.showDividers ?? true;
+    const rowPadY = standardRowPadY(opts.rowDensity);
+    const cellPadY = compactCellPadY(opts.rowDensity);
     const showEntryLastChange = !!opts.showEntryLastChange;
     const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
 
@@ -1931,7 +1936,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         // of becoming a third flex item next to label and value.
                                         <div
                                             key={entry.id}
-                                            {...condDisabledProps(rowDisabled(rc), 'flex flex-col gap-1 px-2 py-1.5')}
+                                            {...condDisabledProps(
+                                                rowDisabled(rc),
+                                                `flex flex-col gap-1 px-2 ${cellPadY}`,
+                                            )}
                                             style={{
                                                 background: stateBg,
                                                 animation: condAnimation(rc?.row),
@@ -2328,7 +2336,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     // becoming a third flex item next to label and value.
                                     <div
                                         key={entry.id}
-                                        {...condDisabledProps(rowDisabled(rc), 'flex flex-col gap-1 px-3 py-2')}
+                                        {...condDisabledProps(rowDisabled(rc), `flex flex-col gap-1 px-3 ${rowPadY}`)}
                                         style={{
                                             background: stateBg,
                                             animation: condAnimation(rc?.row),

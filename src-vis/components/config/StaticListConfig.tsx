@@ -11,6 +11,7 @@ import { isDivider, type StaticListEntry, type StaticListOptions } from '../widg
 import type { ListStat } from '../../utils/listStats';
 import { ColorField } from './list/listFieldUi';
 import { ConfigSection, SubGroup } from './ConfigSection';
+import { ListDensityField } from './ListDensityField';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { useT } from '../../i18n';
 import { DatapointPicker } from './DatapointPicker';
@@ -531,6 +532,11 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
             </ConfigSection>
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                 <SubGroup title="Darstellung">
+                    <ListDensityField
+                        layout={config.layout}
+                        value={opts.rowDensity}
+                        onChange={(v) => setOpts({ rowDensity: v })}
+                    />
                     <div>
                         <div className="flex items-center justify-between">
                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

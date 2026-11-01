@@ -90,6 +90,7 @@ import {
     type ListFilterRow,
 } from '../../utils/listFilter';
 import { effectiveSortRules, makeSortComparator, type ListSortOptions } from '../../utils/listSort';
+import { compactCellPadY, standardRowPadY, type ListRowDensity } from '../../utils/listDensity';
 import { HeaderSlotsInline, HeaderSlotsRow2, TitleRow, useHasHeaderItems } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -208,6 +209,8 @@ export interface StaticListOptions
     sumFontSize?: number;
     /** Show divider lines between list entries (standard/compact layouts). Default true. */
     showDividers?: boolean;
+    /** Row spacing in the standard/compact layouts, independent of the text size (#890). Default 'normal'. */
+    rowDensity?: ListRowDensity;
     /** Hide the frontend filter chip in the widget header. Default false. */
     hideFilterButton?: boolean;
     /** Wrap long entry labels AND text values onto multiple lines instead of truncating / overflowing. Default false. */
@@ -1207,6 +1210,8 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const globalActiveBg = opts.activeBg;
     const globalInactiveBg = opts.inactiveBg;
     const showDividers = opts.showDividers ?? true;
+    const rowPadY = standardRowPadY(opts.rowDensity);
+    const cellPadY = compactCellPadY(opts.rowDensity);
     const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
     const statsAlign = opts.sumAlign ?? 'left';
 
@@ -1505,7 +1510,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             return (
                                 <div
                                     key={`${entry.id}#${i}`}
-                                    {...condDisabledProps(rowDisabled(rc), 'flex flex-col gap-1 px-2 py-1.5')}
+                                    {...condDisabledProps(rowDisabled(rc), `flex flex-col gap-1 px-2 ${cellPadY}`)}
                                     style={{
                                         background: stateBg,
                                         animation: condAnimation(rc?.row),
@@ -1881,7 +1886,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         return (
                             <div
                                 key={`${entry.id}#${i}`}
-                                {...condDisabledProps(rowDisabled(rc), 'flex flex-col gap-1 px-3 py-2')}
+                                {...condDisabledProps(rowDisabled(rc), `flex flex-col gap-1 px-3 ${rowPadY}`)}
                                 style={{
                                     background: stateBg,
                                     animation: condAnimation(rc?.row),

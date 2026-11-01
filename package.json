@@ -185,6 +185,7 @@
     "test:carousel-label": "node tools/tests/carousel-state-label.mjs",
     "test:list-max-rows": "node tools/tests/list-max-rows.mjs",
     "test:list-row-heights": "node tools/tests/list-row-heights.mjs",
+    "test:list-row-density": "node tools/tests/list-row-density.mjs",
     "test:render-report": "node tools/tests/render-report.mjs",
     "test:render-probe": "node tools/tests/render-probe.mjs",
     "test:echart-tokens": "node tools/tests/echart-token-colors.mjs",

@@ -27,6 +27,7 @@ import { useDpDiscovery } from '../../hooks/useDpDiscovery';
 import { RowClickSection } from './RowClickSection';
 import { ColorField } from './list/listFieldUi';
 import { ConfigSection, SubGroup } from './ConfigSection';
+import { ListDensityField } from './ListDensityField';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
@@ -638,6 +639,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                             </div>
                         )}
                     </div>
+                    <ListDensityField
+                        layout={config.layout}
+                        value={opts.rowDensity}
+                        onChange={(v) => setOpts({ rowDensity: v })}
+                    />
                     <div>
                         <div className="flex items-center justify-between">
                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

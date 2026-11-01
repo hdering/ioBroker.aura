@@ -108,6 +108,9 @@ export const KEY_DESCRIPTIONS = {
         'Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>; {{dpname}} / {{parentname}} / {{parent2name}} … = common.name des Datenpunkts bzw. der Objekte darüber (Kanal, Gerät).',
     showRoom: 'Raum des Geräts mit anzeigen.',
     showCount: 'Anzahl-Chip in der Kopfzeile anzeigen.',
+    rowDensity:
+        'Zeilenabstand der Liste, unabhängig von der Schriftgröße: compact (wenig Innenabstand, für lange Listen), ' +
+        'normal (Vorgabe) oder comfortable. Wirkt nur in den Layouts Standard und "compact".',
 
     // ── Kopfzeile, Werkzeugleiste, Tabellen ──────────────────────────────────
     showHeader: 'Kopfzeile anzeigen.',

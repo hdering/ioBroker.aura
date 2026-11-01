@@ -488,6 +488,24 @@ const COUNTED = [
                 build: (n) => ({ options: { entries: listEntries(n), showTitle: false } }),
             },
             {
+                // #890: the row's vertical padding (±8 px a row), per layout — the
+                // two-column one pays it per PAIR, so it is measured there too.
+                key: 'rowDensityCompact',
+                label: 'Zeilenabstand kompakt (rowDensity: compact)',
+                when: { path: 'rowDensity', equals: 'compact' },
+                notForVariants: ['card', 'minimal'],
+                perVariant: true,
+                build: (n) => ({ options: { entries: listEntries(n), rowDensity: 'compact' } }),
+            },
+            {
+                key: 'rowDensityComfortable',
+                label: 'Zeilenabstand großzügig (rowDensity: comfortable)',
+                when: { path: 'rowDensity', equals: 'comfortable' },
+                notForVariants: ['card', 'minimal'],
+                perVariant: true,
+                build: (n) => ({ options: { entries: listEntries(n), rowDensity: 'comfortable' } }),
+            },
+            {
                 key: 'groupSwitch',
                 label: 'Gruppenschalter in der Kopfzeile (groupSwitch)',
                 when: { path: 'groupSwitch', equals: true },

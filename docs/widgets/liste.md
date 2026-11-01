@@ -609,6 +609,7 @@ Ein `[[…]]` ohne Wert fällt auf den normalen Namen zurück. `nameFilters` (Bu
 | `showId`          | `false`  | Datenpunkt-ID unter dem Label (nur `default`)     |
 | `showRoom`        | `false`  | zugeordnete Räume unter dem Label (nur `default`) |
 | `showDividers`    | `true`   | Trennlinien zwischen Einträgen                    |
+| `rowDensity`      | `normal` | Zeilenabstand: `compact` · `normal` · `comfortable` (nur `default`/`compact`) |
 | `wrapText`        | `false`  | lange Labels/Werte umbrechen statt abschneiden    |
 | `labelMinPercent` | `50`     | min. Breite des Labels in % (nur bei `wrapText`)  |
 

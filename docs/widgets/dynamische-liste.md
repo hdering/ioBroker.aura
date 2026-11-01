@@ -272,6 +272,7 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `decimals` | global | Nachkommastellen numerischer Werte |
 | `cardMinWidth` | `90` | min. Kachelbreite in px (nur `card`) |
 | `showDividers` | `true` | Trennlinien zwischen Einträgen |
+| `rowDensity` | `normal` | Zeilenabstand: `compact` · `normal` · `comfortable` (nur `default`/`compact`) |
 | `wrapText` | `false` | lange Labels/Werte umbrechen statt abschneiden |
 | `labelMinPercent` | `50` | min. Breite des Labels in % (nur bei `wrapText`) |
 

@@ -4155,6 +4155,14 @@
         "max"
       ]
     },
+    "ListRowDensity": {
+      "type": "string",
+      "enum": [
+        "compact",
+        "normal",
+        "comfortable"
+      ]
+    },
     "AutoListEntry": {
       "type": "object",
       "fields": {
@@ -7978,6 +7986,11 @@
             "ref": "ElementConditionRule"
           },
           "description": "Conditional formatting applied to EVERY row (issue #572). Clause datapoints may use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one rule work for a whole discovered list. Rules on the entry itself are applied afterwards and therefore win per field."
+        },
+        "rowDensity": {
+          "type": "string",
+          "ref": "ListRowDensity",
+          "description": "Zeilenabstand der Liste, unabhängig von der Schriftgröße: compact (wenig Innenabstand, für lange Listen), normal (Vorgabe) oder comfortable. Wirkt nur in den Layouts Standard und \"compact\"."
         },
         "rowPopupAutoCloseCountdown": {
           "type": "string",
@@ -17775,6 +17788,11 @@
             "ref": "ElementConditionRule"
           },
           "description": "Conditional formatting applied to EVERY row (issue #572). Clause datapoints may use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one rule work for a whole list. Rules on the entry itself are applied afterwards and therefore win per field."
+        },
+        "rowDensity": {
+          "type": "string",
+          "ref": "ListRowDensity",
+          "description": "Zeilenabstand der Liste, unabhängig von der Schriftgröße: compact (wenig Innenabstand, für lange Listen), normal (Vorgabe) oder comfortable. Wirkt nur in den Layouts Standard und \"compact\"."
         },
         "rowPopupAutoCloseCountdown": {
           "type": "string",
