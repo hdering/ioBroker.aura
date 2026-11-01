@@ -32,7 +32,7 @@ import { collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
 import { GROUP_GAP, groupRowHeight, groupRows, heightsForScope, withContentHeights } from '../../utils/groupLayout';
 import { ContentAutoHeightBlockedContext } from '../../hooks/useContentAutoHeight';
-import { usesContentAutoHeight } from '../../utils/autoHeight';
+import { stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
@@ -620,9 +620,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                             {sorted.map((child) => (
                                 <div
                                     key={child.id}
-                                    // An auto-height child takes its natural height in the stack.
+                                    // A nested group, an auto-height child … takes its natural
+                                    // height in the stack, as on the tab's own stack (#897).
                                     style={
-                                        usesContentAutoHeight(child)
+                                        stacksToContent(child)
                                             ? undefined
                                             : { height: child.gridPos.h * cellSize + (child.gridPos.h - 1) * gridGap }
                                     }

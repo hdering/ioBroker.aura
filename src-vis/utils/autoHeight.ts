@@ -1,6 +1,7 @@
 import type { WidgetConfig } from '../types';
 import { resolveSandboxAttr, type SandboxPreset } from './iframeSandbox';
 import { sandboxAllowsScripts } from './htmlBridge';
+import { isGroupType } from './groupTypes';
 
 /**
  * Widget types that offer "Höhe automatisch an Inhalt anpassen" (option `autoHeight`).
@@ -64,4 +65,20 @@ export function usesContentAutoHeight(w?: WidgetConfig): boolean {
  *  and before #884 it always kept its designed height there. */
 export function followsPopupAutoHeight(w: WidgetConfig): boolean {
     return w.type === 'html' ? usesContentAutoHeight(w) : supportsAutoHeight(w.type, w.layout);
+}
+
+/** Whether a widget stacked into the phone column takes its content height instead
+ *  of its stored row count. Groups and media players stack their own content; the
+ *  weather's stacking layouts top-align and would leave a tall empty gap (custom grid
+ *  needs a definite box, minimal/compact centre). Shared by the tab's mobile stack
+ *  and a group's own stack, so a nested group shows its children in full there too
+ *  instead of scrolling inside its desktop height (#897). */
+export function stacksToContent(w: WidgetConfig): boolean {
+    const layout = w.layout ?? 'default';
+    return (
+        isGroupType(w.type) ||
+        w.type === 'mediaplayer' ||
+        (w.type === 'weather' && layout !== 'custom' && layout !== 'minimal' && layout !== 'compact') ||
+        usesContentAutoHeight(w)
+    );
 }

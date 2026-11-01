@@ -19,7 +19,7 @@ import {
 import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import { WidgetFullscreenOverlay } from './WidgetFullscreenOverlay';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
-import { usesContentAutoHeight } from '../../utils/autoHeight';
+import { stacksToContent, usesContentAutoHeight } from '../../utils/autoHeight';
 import { WidgetFrame } from './WidgetFrame';
 import { TouchScrollbar } from './TouchScrollbar';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
@@ -742,24 +742,9 @@ export function Dashboard({
                                                 // (issue #513). Same source resolution as the desktop branch.
                                                 const mirrorSrc = widgetById.get(mirrorTargetWidgetId(w) ?? '');
                                                 const ew = mirrorSrc ?? w;
-                                                const wl = ew.layout ?? 'default';
-                                                // Weather's stacking layouts (default/card) top-align their
-                                                // content and let a responsive scale fill the height. On the
-                                                // wide desktop grid that scale grows to fill the box, but in the
-                                                // narrow mobile column the scale is width-bound and stays small,
-                                                // so a fixed gridPos.h box would show a tall empty gap below the
-                                                // card. Size to content instead (like group/mediaplayer). Custom
-                                                // grid needs a definite height (CustomGridView is height:100%);
-                                                // minimal/compact already center, so they keep a fixed height.
-                                                const autoHeight =
-                                                    frameCollapsedNow(w, ew) ||
-                                                    isGroupType(ew.type) ||
-                                                    ew.type === 'mediaplayer' ||
-                                                    (ew.type === 'weather' &&
-                                                        wl !== 'custom' &&
-                                                        wl !== 'minimal' &&
-                                                        wl !== 'compact') ||
-                                                    usesContentAutoHeight(ew);
+                                                // Group, media player, stacking weather layouts and content
+                                                // auto-height size to their content (utils/autoHeight).
+                                                const autoHeight = frameCollapsedNow(w, ew) || stacksToContent(ew);
                                                 // The section title draws no card and clips nothing, so with a
                                                 // small row count its text sticks out of the box above and below
                                                 // (centered). On the desktop grid that overflow is simply

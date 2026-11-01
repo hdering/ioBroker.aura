@@ -224,6 +224,7 @@
     "test:tablet-order-ui": "node tools/tests/tablet-order-panel.mjs",
     "test:flow-band-cols": "node tools/tests/flow-band-cols-logic.mjs",
     "test:mobile-embed": "node tools/tests/mobile-embed-aspect.mjs",
+    "test:mobile-nested-group": "node tools/tests/mobile-nested-group.mjs",
     "test:header-subtitle": "node tools/tests/header-subtitle.mjs",
     "test:fill-limits": "node tools/tests/fill-limits.mjs",
     "test:fill-status": "node tools/tests/fill-status.mjs",
