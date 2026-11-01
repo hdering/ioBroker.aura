@@ -42,11 +42,17 @@ export function useDatapoint(ref: string) {
         // component mounted (the load-time prefetch resolves independently), in which
         // case the initializer above saw nothing and the fetch below is skipped as
         // redundant — leaving the widget on its placeholder with a perfectly good
-        // value sitting in the cache. Keep an existing local value, it is never older.
+        // value sitting in the cache. A local value only wins when it is at least as
+        // new: after a reconnect the cache already holds the revalidated state, and
+        // that pass notified nobody (the effects had unsubscribed while offline) —
+        // keeping the local value froze the widget on its pre-disconnect state until
+        // the next stateChange, which for a rarely reporting sensor meant a stale
+        // "last update" for an hour (#900).
         const cached = getStateFromCache(id);
         setEntry((prev) => {
             if (prev.id !== id) return { id, state: cached };
-            return cached && !prev.state ? { id, state: cached } : prev;
+            if (!cached || cached === prev.state) return prev;
+            return !prev.state || (cached.ts ?? 0) > (prev.state.ts ?? 0) ? { id, state: cached } : prev;
         });
 
         // Skip the socket round-trip only when the cached value is backed by a live

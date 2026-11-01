@@ -24,6 +24,8 @@ import {
     __devSetObjectView,
     __devSetSendTo,
     __devSetGetState,
+    __devSimulateDisconnect,
+    __devSimulateReconnect,
     __devSetWriteLog,
     __devSetBlockWrites,
     __devWrites,
@@ -460,6 +462,18 @@ function installScreenshotApi(): void {
          *  real socket. Pass false to restore it. */
         mockServerState(byId: Record<string, MockValue> | false): void {
             __devSetGetState(byId === false ? null : (id) => (id in byId ? toState(byId[id]) : undefined));
+        },
+
+        /** Play a connection drop: consumers see `connected = false` and unsubscribe;
+         *  the socket stays up. Follow with simulateReconnect. */
+        simulateDisconnect(): void {
+            __devSimulateDisconnect();
+        },
+
+        /** Play the reconnect after simulateDisconnect: `byId` is what the
+         *  revalidation pass fetched, cached before the consumers re-subscribe (#900). */
+        simulateReconnect(byId: Record<string, MockValue>): void {
+            __devSimulateReconnect(Object.fromEntries(Object.entries(byId).map(([id, v]) => [id, toState(v)])));
         },
 
         /** Whether the cached value for `id` is currently considered trustworthy

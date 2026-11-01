@@ -101,7 +101,10 @@ check('subscribed value counts as fresh', freshWhileMounted === true, `isFresh=$
 // w-2 stays mounted and subscribed, so its cached value is genuinely current. A
 // second widget joining must show that same value — not re-read a server value
 // that changed without a stateChange (which cannot happen for a subscribed DP).
-await page.evaluate(([dp]) => window.__auraShot.mockServerState({ [dp]: 33 }), [DP]);
+// The fake server value carries an OLD timestamp: the frame's own last-change read
+// still drops it into the cache, and a cache entry NEWER than the local value is
+// rightly adopted (#900) — only a redundant read by the widget may show it here.
+await page.evaluate(([dp]) => window.__auraShot.mockServerState({ [dp]: { val: 33, ts: 1, lc: 1 } }), [DP]);
 await page.evaluate(
     ([w1, w2]) => window.__auraShot.showWidgets([w1, w2]),
     [widget('w-2'), { ...widget('w-3'), gridPos: { x: 3, y: 0, w: 3, h: 2 } }],

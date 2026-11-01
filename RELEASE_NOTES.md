@@ -17,3 +17,4 @@
 - fix: Group - on the phone, a group inside a group grows to show all its children instead of scrolling inside its desktop height (#897)
 - feat: Map - markers on the same spot are drawn side by side instead of on top of each other, and a line chip can show/hide the person's marker together with the track (lines[].markerId) (#895)
 - fix: Advanced chart - the tooltip lists every visible series at the hovered moment; a series without a point at exactly that time shows its last known value instead of disappearing (#898)
+- fix: Datapoints - after a dropped connection, widgets show the values fetched on reconnect instead of keeping their old ones until the next change; most visible on "last update" timestamps of rarely reporting sensors (#900)

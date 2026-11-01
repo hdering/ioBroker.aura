@@ -154,6 +154,25 @@ export function __devInjectState(id: string, state: ioBrokerState): void {
     subscribers.get(id)?.forEach((fn) => fn(state));
 }
 
+/** DEV-only: play a connection drop for the screenshot harness — every consumer
+ *  sees `connected = false` and tears its subscription down, the socket itself
+ *  stays up. Pair with __devSimulateReconnect. */
+export function __devSimulateDisconnect(): void {
+    maintained.clear();
+    notifyConnection(false);
+}
+
+/** DEV-only: the matching reconnect. `states` is what the reconnect's revalidation
+ *  pass fetched — it lands in the cache BEFORE the consumers re-subscribe, which is
+ *  how it reaches nobody live (#900). */
+export function __devSimulateReconnect(states: Record<string, ioBrokerState>): void {
+    for (const [id, state] of Object.entries(states)) {
+        cacheState(id, state);
+        subscribers.get(id)?.forEach((fn) => fn(state));
+    }
+    notifyConnection(true);
+}
+
 // DEV-only stubs for the screenshot harness. When set, the matching Direct*
 // functions short-circuit with fabricated data instead of a socket round-trip —
 // so history charts, adapter/script/log lists etc. render offline & side-effect
