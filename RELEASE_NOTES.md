@@ -8,14 +8,3 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- feat: Header items - text items support HTML (e.g. an image per moon phase); every item carries a CSS class by slot and position, e.g. .aura-header-item-r1-right-0 (#883)
-- feat: Header editor - tapping a slot in the overview no longer creates an item; use "Add item" (#883)
-- feat: Dynamic list, list and status overview - the name pattern resolves {{dpname}}, {{parentname}}, {{parent2name}} ... to the object names, like the device card (#888)
-- feat: Menu widget - new option "Show hidden" also lists sections and tabs hidden in the tab bar, e.g. room tabs reachable only from an overview tab (#892)
-- feat: HTML widget - option "Fit height to content": the tile grows and shrinks with the HTML, e.g. a table from a datapoint, on every screen width (#884)
-- feat: Conditions - list rows, list values, custom-grid cells and tabs can now be shown disabled (greyed out, not operable) while a rule matches (#889)
-- fix: Group - on the phone, a group inside a group grows to show all its children instead of scrolling inside its desktop height (#897)
-- feat: Map - markers on the same spot are drawn side by side instead of on top of each other, and a line chip can show/hide the person's marker together with the track (lines[].markerId) (#895)
-- fix: Advanced chart - the tooltip lists every visible series at the hovered moment; a series without a point at exactly that time shows its last known value instead of disappearing (#898)
-- fix: Datapoints - after a dropped connection, widgets show the values fetched on reconnect instead of keeping their old ones until the next change; most visible on "last update" timestamps of rarely reporting sensors (#900)
-- fix: iOS - Safari shows the Aura icon in the tab and on the home screen; PNG icons now sit next to the SVG one, which Safari cannot use (#899)

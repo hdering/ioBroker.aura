@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.83.3 (2026-10-16)
+- Overview - timers inside groups or device cards are no longer reported as orphaned datapoints on the first visit ([#788](https://github.com/hdering/ioBroker.aura/issues/788))
+- 🌟 **New feature:** Group action - a click from the mixed state can now ask "all on or all off?" in a small popup (new option "Ask")
+
 ## 0.83.2 (2026-10-16)
 - Popups - a web page (iFrame) popup now uses the configured width and height
 - Frontend - tapping a widget on a touch tablet no longer selects the text on the whole page
