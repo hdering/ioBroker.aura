@@ -61,6 +61,7 @@ import { useThemeStore } from '../store/themeStore';
 import {
     alignStackedSeries,
     areaOpacityFor,
+    carriedValues,
     outlineWidthFor,
     stackShares,
     type StackableSeries,
@@ -660,6 +661,12 @@ function installScreenshotApi(): void {
          *  canvas, while this is where it can actually be wrong (issue #541). */
         stackAlign(series: StackableSeries[], data: StackPoint[][]): StackPoint[][] {
             return alignStackedSeries(series, data);
+        },
+
+        /** Last known value per series for the tooltip rows echarts leaves out — it only lists
+         *  series with a point at exactly the hovered x (issue #898). */
+        carriedValues(data: StackPoint[][], ts: number, eligible: (idx: number) => boolean): (number | null)[] {
+            return carriedValues(data, ts, eligible);
         },
 
         /** Share each stacked value has of its stack total, per series and data index (issue

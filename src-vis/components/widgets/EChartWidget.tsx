@@ -38,6 +38,7 @@ import {
 import {
     alignStackedSeries,
     areaOpacityFor,
+    carriedValues,
     outlineWidthFor,
     stackIdFor,
     stackShares,
@@ -1615,7 +1616,37 @@ function EChartBody({ config, editMode }: WidgetProps) {
                 const timeStr = tooltipTimeLabel(ts, axisBucket, tooltipExtent, dateLocale);
                 // Aligning a stack pads the series that hadn't started yet with nulls \u2014 a row
                 // reading "null" is noise, the series simply has nothing at this moment.
-                const shown = hasStack ? items.filter((p) => typeof p.value?.[1] === 'number') : items;
+                const hit = hasStack ? items.filter((p) => typeof p.value?.[1] === 'number') : items;
+                // Echarts only lists the series with a point at exactly this timestamp; the others
+                // read their last known value (issue #898). Not a delta bar — that is one bucket's
+                // consumption, which does not carry over — and not a series hidden via the legend.
+                const selected: Record<string, boolean> =
+                    chartRef.current?.getEchartsInstance?.()?.getOption?.()?.legend?.[0]?.selected ?? {};
+                const listed = new Set(hit.map((p) => p.seriesIndex));
+                const carried = carriedValues(
+                    alignedData as [number, number | null][][],
+                    ts,
+                    (idx) =>
+                        !listed.has(idx) &&
+                        echartSeries[idx]?.aggregate !== 'delta' &&
+                        selected[String(seriesList[idx]?.name ?? '')] !== false,
+                );
+                const shown = [
+                    ...hit,
+                    ...carried.flatMap((v, idx) =>
+                        v === null
+                            ? []
+                            : [
+                                  {
+                                      axisValue: ts,
+                                      seriesName: String(seriesList[idx].name ?? ''),
+                                      value: [ts, v] as [number, number | null],
+                                      marker: `<span style="display:inline-block;margin-right:4px;border-radius:10px;width:10px;height:10px;background-color:${colorAt(idx)};"></span>`,
+                                      seriesIndex: idx,
+                                  },
+                              ],
+                    ),
+                ].sort((a, b) => a.seriesIndex - b.seriesIndex);
                 if (!shown.length) return '';
                 const unitOf = (idx: number) => unitFor(echartSeries[idx]);
                 const shareOf = tooltipShare(shown.map((p) => ({ seriesIndex: p.seriesIndex, num: p.value[1] })));

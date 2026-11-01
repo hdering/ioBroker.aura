@@ -80,6 +80,26 @@ function valueAt(points: StackPoint[], ts: number, cursor: { i: number }): numbe
 }
 
 /**
+ * Last known value of each series at `ts`, for the tooltip rows echarts leaves out (issue #898).
+ *
+ * On a time axis echarts' axis tooltip lists only the series that logged a point at exactly the
+ * hovered timestamp — every series fetches its own history, so hovering the moment a pump switched
+ * on drops all the temperatures although their lines run straight through it. A datapoint holds its
+ * value until it changes, so the reading at `ts` is the last one at or before it (the same carry
+ * `alignStackedSeries` uses). `null` for a series that isn't `eligible`, has not started yet, or
+ * whose last point is a gap.
+ *
+ * Expects each series sorted by timestamp.
+ */
+export function carriedValues(data: StackPoint[][], ts: number, eligible: (idx: number) => boolean): (number | null)[] {
+    return data.map((points, idx) => {
+        if (!points || !eligible(idx)) return null;
+        const v = valueAt(points, ts, { i: 0 });
+        return typeof v === 'number' && Number.isFinite(v) ? v : null;
+    });
+}
+
+/**
  * Resample the members of each stack onto their shared timeline.
  *
  * Series that don't stack, and stacks with a single member, are passed through untouched — there is

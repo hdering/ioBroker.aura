@@ -16,3 +16,4 @@
 - feat: Conditions - list rows, list values, custom-grid cells and tabs can now be shown disabled (greyed out, not operable) while a rule matches (#889)
 - fix: Group - on the phone, a group inside a group grows to show all its children instead of scrolling inside its desktop height (#897)
 - feat: Map - markers on the same spot are drawn side by side instead of on top of each other, and a line chip can show/hide the person's marker together with the track (lines[].markerId) (#895)
+- fix: Advanced chart - the tooltip lists every visible series at the hovered moment; a series without a point at exactly that time shows its last known value instead of disappearing (#898)

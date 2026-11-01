@@ -274,6 +274,7 @@
     "test:list-json-expr": "node tools/tests/list-json-expr.mjs",
     "test:chart-transform": "node tools/tests/chart-value-transform.mjs",
     "test:chart-stack": "node tools/tests/chart-stack.mjs",
+    "test:chart-tooltip-carry": "node tools/tests/chart-tooltip-carry.mjs",
     "test:chart-comparison-legend": "node tools/tests/chart-comparison-legend.mjs",
     "test:chart-stack-percent": "node tools/tests/chart-stack-percent.mjs",
     "test:chart-labels": "node tools/tests/chart-value-labels.mjs",
