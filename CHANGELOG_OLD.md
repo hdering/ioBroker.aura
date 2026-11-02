@@ -1,5 +1,18 @@
 # Changelog (older entries)
 
+## 0.85.0 (2026-10-18)
+- Map - all sections of the map settings now start folded when the settings open
+- 🌟 **New feature:** Universal Widget / Custom layout - optional vertical and/or horizontal separator lines between the grid cells, with adjustable colour and thickness ([#793](https://github.com/hdering/ioBroker.aura/issues/793))
+- 🌟 **New feature:** Device widgets - any number of own status symbols next to battery / reach / window (e.g. motion sensor locked), optionally toggled by a click, with a freely adjustable order; also placeable as single custom layout cells; the status row can sit in any corner or on the card edge so it no longer covers switches and sliders, and the fill level, air control, alarm, button, camera, gauge, evcc, calendar, trash, trash schedule, map, HTML and universal widgets show it too ([#792](https://github.com/hdering/ioBroker.aura/issues/792))
+- AI assistant (MCP) - height check now computes the status overview card grid (columns, wrapped names, the +N more line) and warns when maxRows needs more rows than fit; the browser check reports the remaining space in px, treats a 1 px overflow as scrolling and can fill runtime lists to their worst case
+- Settings - every widget dialog follows the same frame: "Visible fields" (show/hide toggles), "Datapoints", "Settings" (widget topics as sub-headings), "Look" and "Behavior", then the status datapoints; all sections start folded and look the same
+- 🌟 **New feature:** Lists - the "+ datapoint of the device" picker for the second line now shows the object ID next to the name ([#795](https://github.com/hdering/ioBroker.aura/issues/795))
+- 🌟 **New feature:** Static list - an entry can show one field of a JSON datapoint (JSON path button next to the datapoint), and the value conversion of both lists gains an "Expression" mode, e.g. `dp.objektName * 0.4 | fixed(2)` ([#794](https://github.com/hdering/ioBroker.aura/issues/794))
+- Load times - the settings no longer show a datapoint field the widget does not use
+- Settings - the layout row now shows for every widget, also where "Standard" is the only layout; the camera lists "Standard" first and calls its grid layout "Custom"; the section title picks its style under "Look"
+- AI assistant (MCP) - device card and popup children with {{dp}} / {{parent}} placeholders are no longer rejected as missing datapoints when the shared layout is changed ([#789](https://github.com/hdering/ioBroker.aura/issues/789))
+- Map - the satellite view now shows place names and borders on top of the imagery (switchable in the settings) ([#797](https://github.com/hdering/ioBroker.aura/issues/797))
+
 ## 0.84.0 (2026-10-17)
 - Tab bar - a menu item next to left- or right-aligned tabs now only takes its own width instead of half the bar ([#791](https://github.com/hdering/ioBroker.aura/issues/791))
 - 🌟 **New feature:** Map - show a route along the roads between two markers, with distance and travel time ([#790](https://github.com/hdering/ioBroker.aura/issues/790))
