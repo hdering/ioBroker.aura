@@ -1693,6 +1693,7 @@ export const en: Record<TranslationKey, string> = {
     'slideshow.transition.pageTurn': 'Page turn',
     'slideshow.transition.none': 'None',
     'slideshow.cfg.transitionMs': 'Transition time (ms)',
+    'slideshow.cfg.reducedMotionHint': 'This device asks for reduced motion – it shows a fade instead.',
     'slideshow.cfg.controls': 'Swipe / tap controls',
     'slideshow.cfg.controlsHint':
         'Swiping or tapping an edge steps, tapping the middle pauses. Turn off for a screensaver.',

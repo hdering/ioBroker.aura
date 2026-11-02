@@ -1707,6 +1707,8 @@ export const de = {
     'slideshow.transition.pageTurn': 'Umblättern',
     'slideshow.transition.none': 'Ohne',
     'slideshow.cfg.transitionMs': 'Dauer des Übergangs (ms)',
+    'slideshow.cfg.reducedMotionHint':
+        'Auf diesem Gerät ist „Bewegung reduzieren“ aktiv – hier wird stattdessen überblendet.',
     'slideshow.cfg.controls': 'Bedienung per Wischen / Tippen',
     'slideshow.cfg.controlsHint':
         'Wischen oder Tippen am Rand blättert, Tippen in die Mitte hält an. Als Bildschirmschoner ausschalten.',

@@ -1207,7 +1207,7 @@ export const WIDGET_OPTION_NOTES = {
             default: 'fadeBlack',
             description:
                 'Übergang: "fadeBlack" Schwarzblende (über die Hintergrundfarbe), "fade" Überblenden, "slide" Schieben, ' +
-                '"pageTurn" Umblättern, "none" harter Schnitt. Bei prefers-reduced-motion wird daraus ein kurzes Überblenden.',
+                '"pageTurn" Umblättern, "none" harter Schnitt. Bei prefers-reduced-motion werden "slide" und "pageTurn" zum Überblenden (gleiche Dauer); Blenden bleiben wie eingestellt.',
         },
         transitionMs: { type: 'number', default: 800, description: 'Dauer des Übergangs in ms (100–5000).' },
         fit: {

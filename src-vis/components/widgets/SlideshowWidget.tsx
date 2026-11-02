@@ -36,6 +36,13 @@ export type SlideshowCaption = 'none' | 'name' | 'date' | 'nameDate';
 export const SLIDESHOW_TRANSITIONS: SlideshowTransition[] = ['fadeBlack', 'fade', 'slide', 'pageTurn', 'none'];
 export const SLIDESHOW_CAPTIONS: SlideshowCaption[] = ['none', 'name', 'date', 'nameDate'];
 
+/** Transitions that move the picture; "reduce motion" on the device turns them into a fade (#903). */
+export const SLIDESHOW_MOVING: SlideshowTransition[] = ['slide', 'pageTurn'];
+
+export function prefersReducedMotion(): boolean {
+    return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
 export const SLIDESHOW_DEFAULTS = {
     order: 'random' as SlideshowOrder,
     intervalSec: 10,
@@ -222,18 +229,15 @@ export function SlideshowWidget({ config, editMode }: WidgetProps) {
     const recursive = o.recursive === true;
     const order = (o.order as SlideshowOrder | undefined) ?? SLIDESHOW_DEFAULTS.order;
     const intervalMs = Math.max(2, Number(o.intervalSec) || SLIDESHOW_DEFAULTS.intervalSec) * 1000;
-    const reducedMotion =
-        typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    // Fades are no motion and stay as configured, duration included; only sliding
+    // and turning pages give way to a fade when the device asks for less motion (#903).
     const configuredTransition = (o.transition as SlideshowTransition | undefined) ?? SLIDESHOW_DEFAULTS.transition;
     const transition: SlideshowTransition =
-        reducedMotion && configuredTransition !== 'none' ? 'fade' : configuredTransition;
+        SLIDESHOW_MOVING.includes(configuredTransition) && prefersReducedMotion() ? 'fade' : configuredTransition;
     const transitionMs =
         transition === 'none'
             ? 0
-            : Math.min(
-                  reducedMotion ? 300 : 5000,
-                  Math.max(100, Number(o.transitionMs) || SLIDESHOW_DEFAULTS.transitionMs),
-              );
+            : Math.min(5000, Math.max(100, Number(o.transitionMs) || SLIDESHOW_DEFAULTS.transitionMs));
     const fit = (o.fit as 'contain' | 'cover' | undefined) ?? SLIDESHOW_DEFAULTS.fit;
     const background = (o.background as string | undefined) || SLIDESHOW_DEFAULTS.background;
     const blurBackground = o.blurBackground === true;

@@ -14,7 +14,9 @@ import { useT } from '../../i18n';
 import {
     SLIDESHOW_CAPTIONS,
     SLIDESHOW_DEFAULTS,
+    SLIDESHOW_MOVING,
     SLIDESHOW_TRANSITIONS,
+    prefersReducedMotion,
     type SlideshowCaption,
     type SlideshowTransition,
 } from '../widgets/SlideshowWidget';
@@ -208,6 +210,11 @@ export function SlideshowConfig({ config, onConfigChange }: Props) {
                     options={SLIDESHOW_TRANSITIONS.map((id) => ({ id, label: t(`slideshow.transition.${id}`) }))}
                     onChange={(v) => set({ transition: v })}
                 />
+                {SLIDESHOW_MOVING.includes(transition) && prefersReducedMotion() && (
+                    <p className="text-[10px] -mt-1" style={hintSty}>
+                        {t('slideshow.cfg.reducedMotionHint')}
+                    </p>
+                )}
                 {transition !== 'none' && (
                     <NumberField
                         label={t('slideshow.cfg.transitionMs')}

@@ -362,6 +362,44 @@ await page.waitForTimeout(600);
     server.items = saved;
 }
 
+// ── transition type and time (#903) ──────────────────────────────────────────
+// The running animation of both layers during a change, as name/duration.
+async function changeAnims(id, transition, transitionMs) {
+    await mount(id, { ...BASE_OPTS, transition, transitionMs });
+    const h = await page
+        .waitForFunction(
+            (id) => {
+                const ls = [...document.querySelectorAll(`.aura-widget-${id} .aura-slideshow-layer`)];
+                if (ls.length < 2) return null;
+                return ls.map((l) => {
+                    const s = getComputedStyle(l);
+                    return `${s.animationName}/${s.animationDuration}`;
+                });
+            },
+            id,
+            { timeout: 8000, polling: 50 },
+        )
+        .catch(() => null);
+    return h ? await h.jsonValue() : [];
+}
+for (const reduce of [false, true]) {
+    await page.emulateMedia({ reducedMotion: reduce ? 'reduce' : 'no-preference' });
+    const tag = reduce ? 'reduced motion: ' : '';
+    const black = await changeAnims(`ss-tb${reduce ? 'r' : ''}`, 'fadeBlack', 3000);
+    check(
+        `${tag}fade through black keeps its kind and time`,
+        black.includes('aura-ss-fade-out/1.5s') && black.includes('aura-ss-fade-in/1.5s'),
+        black.join(' | '),
+    );
+    const slide = await changeAnims(`ss-ts${reduce ? 'r' : ''}`, 'slide', 2000);
+    check(
+        reduce ? `${tag}slide becomes a fade of the set time` : 'slide uses the set time',
+        reduce ? slide.includes('aura-ss-fade-in/2s') : slide.includes('aura-ss-slide-in-fwd/2s'),
+        slide.join(' | '),
+    );
+}
+await page.emulateMedia({ reducedMotion: 'no-preference' });
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();
