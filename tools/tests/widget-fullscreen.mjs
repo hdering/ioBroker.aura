@@ -141,9 +141,43 @@ const overlay = '[data-widget-fullscreen]';
         ifBox && ifBox.height > DESKTOP.height * 0.75 && ifBox.width > DESKTOP.width * 0.9,
         ifBox ? `${Math.round(ifBox.width)}x${Math.round(ifBox.height)}` : 'keine Box',
     );
+    // Die Kachel darunter darf nicht weiterspielen — sonst läuft der Ton doppelt (#904).
+    check('iframe: die Kachel darunter lädt ihre Seite ab', (await page.locator('iframe').count()) === 1);
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
     check('iframe: Esc schließt', (await page.locator(overlay).count()) === 0);
+    check('iframe: nach dem Schließen lädt die Kachel neu', (await page.locator('iframe').count()) === 1);
+
+    // ── 4c. Dasselbe als Kind einer Gruppe, die Gruppe im Vollbild (#904) ─────────────
+    await page.evaluate(() =>
+        window.__auraShot.groupDefs({
+            'def-fs-if': [
+                {
+                    id: 'fs-gif',
+                    type: 'iframe',
+                    title: 'Stream',
+                    datapoint: '',
+                    gridPos: { x: 0, y: 0, w: 15, h: 6 },
+                    options: { iframeUrl: 'about:blank', keepAlive: true },
+                },
+            ],
+        }),
+    );
+    await show(page, [{ ...widget('fs-grp', 'group', { defId: 'def-fs-if', fullscreenWidget: true }) }]);
+    check('gruppe: Kachel zeigt das iFrame', (await page.locator('iframe').count()) === 1);
+    await page.hover('[data-aura-widget="fs-grp"]');
+    await page.waitForTimeout(250);
+    await page.locator(btn).first().click();
+    await page.waitForTimeout(400);
+    check('gruppe: Overlay offen', (await page.locator(overlay).count()) === 1);
+    check(
+        'gruppe: nur das iFrame im Overlay läuft (auch mit keepAlive)',
+        (await page.locator('iframe').count()) === 1 && (await page.locator(`${overlay} iframe`).count()) === 1,
+        `${await page.locator('iframe').count()} iframes`,
+    );
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    check('gruppe: nach dem Schließen ist das Kachel-iFrame zurück', (await page.locator('iframe').count()) === 1);
 
     // ── 5. Geteilte Ecke mit dem Aktions-Knopf aus #527 ──────────────────────────────
     await show(page, [

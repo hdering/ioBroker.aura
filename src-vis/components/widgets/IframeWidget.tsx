@@ -21,6 +21,7 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 import { auraUrl } from '../../utils/basePath';
 import { useViewVisible } from '../../contexts/ViewVisibleContext';
 import { useInWidgetFullscreen } from '../../contexts/WidgetFullscreenContext';
+import { useIframeCoveredByFullscreen } from '../../store/fullscreenIframeStore';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -41,11 +42,14 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     // is dropped while out of sight — no background traffic — and its next
     // appearance is a fresh load of the configured URL (#65).
     const viewVisible = useViewVisible();
-    const unloaded = !keepAlive && !viewVisible;
-    const reloadOnWake = (opts.reloadOnWake as boolean) ?? false;
     // Opened fullscreen, the page is there to be used: the blocker that hands the
     // tile's clicks to the click action would only lock it (#813).
     const inFullscreen = useInWidgetFullscreen();
+    // While the overlay shows this widget, the tile underneath drops its frame —
+    // keepAlive or not — so a stream does not play twice (#904).
+    const coveredByFullscreen = useIframeCoveredByFullscreen(config.id, inFullscreen, !!url);
+    const unloaded = (!keepAlive && !viewVisible) || coveredByFullscreen;
+    const reloadOnWake = (opts.reloadOnWake as boolean) ?? false;
     const storedMode = resolveIframeInteractionMode(opts);
     const interactionMode = inFullscreen && storedMode === 'action' ? 'content' : storedMode;
     const refreshSeconds = (opts.refreshInterval as number) ?? 0;
