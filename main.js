@@ -32,6 +32,8 @@ const {
     unredactView,
     restoreView,
     stampPinLengths,
+    assignCodes,
+    stampPinCodes,
     hasPlaintextPin,
     readStateConfig,
     writeStateConfig,
@@ -1423,10 +1425,13 @@ class Aura extends utils.Adapter {
             vault: this.vault,
             log: this.log,
             restoreView: (key, content) => this._restoreProtectedView(key, content),
+            onCodesChanged: () => this._syncPinCodes(),
         });
         try {
             const st = await this.getStateAsync('config.dashboard');
             if (st && st.val) await this._enforcePinVault(st);
+            // Views stored before PINs had names get one now (old links become shared PINs).
+            await this._syncPinCodes();
         } catch (e) {
             this.log.warn(`aura: PIN vault init could not read config.dashboard — ${e.message}`);
         }
@@ -1483,7 +1488,7 @@ class Aura extends utils.Adapter {
                 p.content = data.sections[p.key].content;
             }
         }
-        const { sections, unresolved } = buildVaultSections(prot, data.sections || {});
+        const { sections, unresolved } = buildVaultSections(prot, data.sections || {}, data.codes || {});
         if (unresolved.length) {
             // A "keep the current PIN" marker pointed at a PIN the vault does not
             // know (only reachable by hand-editing the state). Never drop the view's
@@ -1493,14 +1498,41 @@ class Aura extends utils.Adapter {
             );
             for (const key of unresolved) unredactView(publicConfig, config, key);
         }
-        stampPinLengths(publicConfig, sections);
         data.sections = sections;
+        assignCodes(data);
+        stampPinLengths(publicConfig, sections);
+        stampPinCodes(publicConfig, sections);
         this.vault.save(data);
         const outValue = writeStateConfig(parsed, publicConfig, wrapped);
         await this.setStateAsync('config.dashboard', { val: JSON.stringify(outValue), ack: true });
         this.log.debug(
             `aura: config.dashboard redacted — ${Object.keys(sections).length} protected view(s) held server-side`,
         );
+    }
+
+    /**
+     * Give every protected view a named PIN and mirror it — plus the keypad digit
+     * count — onto the redacted stubs in `config.dashboard`. Runs at start (the
+     * migration of views stored before PINs had names) and after a named PIN got
+     * a new code. Writes only when something changed.
+     */
+    async _syncPinCodes() {
+        if (!this.vault) return;
+        const data = this.vault.load();
+        if (assignCodes(data)) this.vault.save(data);
+        const st = await this.getStateAsync('config.dashboard');
+        if (!st || st.val == null) return;
+        const parsed = JSON.parse(String(st.val));
+        const { config, wrapped } = readStateConfig(parsed);
+        if (!config) return;
+        const before = JSON.stringify(config);
+        stampPinLengths(config, data.sections || {});
+        stampPinCodes(config, data.sections || {});
+        if (JSON.stringify(config) === before) return;
+        await this.setStateAsync('config.dashboard', {
+            val: JSON.stringify(writeStateConfig(parsed, config, wrapped)),
+            ack: true,
+        });
     }
 
     /**

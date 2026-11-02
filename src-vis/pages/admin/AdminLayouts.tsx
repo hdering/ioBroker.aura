@@ -5,7 +5,8 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { importLayout } from '../../utils/widgetExportImport';
 import { useT } from '../../i18n';
 
-import { LayoutTree } from './layouts/manage/LayoutTree';
+import { ACCESS_CTX, LayoutTree } from './layouts/manage/LayoutTree';
+import { AccessDetail } from './layouts/manage/AccessDetail';
 import { LayoutDetail } from './layouts/manage/LayoutDetail';
 import { SectionDetail } from './layouts/manage/SectionDetail';
 import { Btn, InlinePrompt } from './layouts/manage/pieces';
@@ -31,17 +32,26 @@ export function AdminLayouts() {
 
     // ── Resolve the selection ─────────────────────────────────────────────────
     const ctxParam = searchParams.get('ctx') ?? searchParams.get('expand');
+    const isAccess = ctxParam === ACCESS_CTX;
     const asLayout = ctxParam ? layouts.find((l) => l.id === ctxParam) : undefined;
     const asSection = !asLayout && ctxParam ? findSection(layouts, ctxParam) : undefined;
     const fallback = layouts[0];
-    const selected = asLayout
-        ? { kind: 'layout' as const, layout: asLayout }
-        : asSection
-          ? { kind: 'section' as const, layout: asSection.layout, section: asSection.section }
-          : fallback
-            ? { kind: 'layout' as const, layout: fallback }
-            : null;
-    const selectedId = selected ? (selected.kind === 'layout' ? selected.layout.id : selected.section.id) : null;
+    const selected = isAccess
+        ? null
+        : asLayout
+          ? { kind: 'layout' as const, layout: asLayout }
+          : asSection
+            ? { kind: 'section' as const, layout: asSection.layout, section: asSection.section }
+            : fallback
+              ? { kind: 'layout' as const, layout: fallback }
+              : null;
+    const selectedId = isAccess
+        ? ACCESS_CTX
+        : selected
+          ? selected.kind === 'layout'
+              ? selected.layout.id
+              : selected.section.id
+          : null;
     const selectedLayoutId = selected?.layout.id ?? null;
 
     const select = useCallback(
@@ -66,13 +76,13 @@ export function AdminLayouts() {
     // Unknown / legacy ctx → normalise the URL to what is actually shown.
     useEffect(() => {
         const legacy = searchParams.has('expand');
-        const stale = !!ctxParam && !asLayout && !asSection;
+        const stale = !!ctxParam && !isAccess && !asLayout && !asSection;
         if (!legacy && !stale) return;
         const last = lastRef.current;
         const parentAlive = stale && last?.id === ctxParam && layouts.some((l) => l.id === last.layoutId);
         const target = parentAlive ? last.layoutId : selectedId;
         if (target) select(target);
-    }, [searchParams, ctxParam, asLayout, asSection, selectedId, select, layouts]);
+    }, [searchParams, ctxParam, isAccess, asLayout, asSection, selectedId, select, layouts]);
 
     // ── Create / import ───────────────────────────────────────────────────────
     const createdSince = (before: Set<string>) => useDashboardStore.getState().layouts.find((l) => !before.has(l.id));
@@ -150,7 +160,9 @@ export function AdminLayouts() {
             <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4">
                 <LayoutTree layouts={layouts} selectedId={selectedId} onSelect={select} />
                 <div className="min-w-0">
-                    {selected?.kind === 'section' ? (
+                    {isAccess ? (
+                        <AccessDetail />
+                    ) : selected?.kind === 'section' ? (
                         <SectionDetail
                             key={selected.section.id}
                             layout={selected.layout}

@@ -35,6 +35,11 @@ interface ApiJson {
     content?: unknown;
     pinRelock?: UnlockResult['pinRelock'];
     unlockToken?: string;
+    id?: string;
+    name?: string;
+    len?: number;
+    codes?: Record<string, PinCodeMeta>;
+    views?: Record<string, string>;
 }
 
 async function request(
@@ -151,6 +156,8 @@ export interface VaultSectionMeta {
     pinRelock: 'leave' | 'session';
     /** Released for the MCP server to read and write this view's content. */
     mcpWrite?: boolean;
+    /** The named PIN this view uses. */
+    code?: string;
     /**
      * The redacted view itself — a section's tabs, a tab's widgets. Opaque on
      * purpose: this layer only carries the payload from the adapter to
@@ -212,6 +219,51 @@ export async function vaultRemove(token: string, key: string): Promise<VaultRemo
         scope: json?.scope === 'section' ? 'section' : 'tab',
         content: json?.content,
     };
+}
+
+/** A named PIN as the admin sees it: never the code, only its digit count. */
+export interface PinCodeMeta {
+    name: string;
+    len?: number;
+}
+
+export interface PinCodeList {
+    codes: Record<string, PinCodeMeta>;
+    /** Vault key of each stored view → the named PIN it uses. */
+    views: Record<string, string>;
+}
+
+/** The named PINs of the „Zugriffsschutz“ overview. `null` = the call failed. */
+export async function vaultCodes(token: string): Promise<PinCodeList | null> {
+    const { status, json } = await request('GET', 'vault/codes', { token });
+    if (status !== 200 || !json?.codes) return null;
+    return { codes: json.codes, views: json.views ?? {} };
+}
+
+export type PinCodeSaveResult =
+    | { ok: true; id: string; name: string; len?: number }
+    | { ok: false; reason: 'tooShort' | 'expired' | 'error' };
+
+/**
+ * Create a named PIN (no `id`), or rename / re-key one. A new code reaches every
+ * view that uses the PIN at once — the adapter rewrites their hashes, no save needed.
+ */
+export async function vaultCodeSave(
+    token: string,
+    body: { id?: string; name?: string; pin?: string },
+): Promise<PinCodeSaveResult> {
+    const { status, json } = await request('POST', 'vault/codes', { body, token });
+    if (status === 200 && json?.id) return { ok: true, id: json.id, name: json.name ?? '', len: json.len };
+    if (status === 400) return { ok: false, reason: 'tooShort' };
+    if (status === 401) return { ok: false, reason: 'expired' };
+    return { ok: false, reason: 'error' };
+}
+
+/** Delete an unused named PIN. `inUse` = a stored view still points at it. */
+export async function vaultCodeDelete(token: string, id: string): Promise<'ok' | 'inUse' | 'error'> {
+    const { status } = await request('POST', 'vault/codes/delete', { body: { id }, token });
+    if (status === 200) return 'ok';
+    return status === 409 ? 'inUse' : 'error';
 }
 
 export type UnlockOutcome =

@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
+- feat: Named PINs - create a PIN once (e.g. "Kids") and pick it for any section or tab; Layouts > Access protection lists every PIN with the views it guards, changing a PIN applies everywhere at once, and existing PINs are converted automatically

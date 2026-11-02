@@ -407,4 +407,72 @@ const fullConfig = () => ({
     ok(withFlag.layouts[0].sections[2].tabs[1].pinHideLock === undefined, 'removing the PIN drops the flag too');
 }
 
+// ── Named PINs (codes): one PIN, many views ───────────────────────────────────
+{
+    // Migration: a section with its own PIN and a tab linked to it share one PIN.
+    const legacy = fullConfig();
+    Object.assign(legacy.layouts[0].sections[2].tabs[0], { pin: vault.LINK_PIN, pinFrom: 'section:sLocked' });
+    const split = vault.splitDashboard(legacy);
+    const data = { sections: vault.buildVaultSections(split.protected).sections, codes: {} };
+    ok(vault.assignCodes(data), 'migration assigns named PINs');
+    const sCode = data.sections['section:sLocked'].code;
+    ok(sCode && data.sections['tab:sTabLock:tOpen'].code === sCode, 'a link chain becomes one named PIN');
+    ok(data.codes[sCode].name === 'Musik', 'the shared PIN is named after the link source');
+    ok(data.sections['tab:sTabLock:tPin'].code !== sCode, 'an own PIN gets a named PIN of its own');
+    ok(data.sections['tab:sTabLock:tOpen'].pinFrom === undefined, 'the old link is dropped from the vault');
+    ok(!vault.assignCodes(data), 'a second run changes nothing');
+
+    // The stubs learn their named PIN; pinFrom goes.
+    const pub = split.publicConfig;
+    ok(vault.stampPinCodes(pub, data.sections), 'stamping reports a change');
+    const tStub = pub.layouts[0].sections[2].tabs[0];
+    ok(tStub.pinCode === sCode && tStub.pinFrom === undefined, 'stub carries pinCode instead of pinFrom');
+    ok(!vault.stampPinCodes(pub, data.sections), 'stamping is idempotent');
+
+    // A view picks a named PIN in the editor → its hash comes from the code.
+    // (A save after the migration carries the markers + pinCode for the views already stored.)
+    const picked = fullConfig();
+    Object.assign(picked.layouts[0].sections[1], { pin: vault.KEEP_PIN, pinCode: sCode });
+    Object.assign(picked.layouts[0].sections[2].tabs[0], { pin: vault.KEEP_PIN, pinCode: sCode });
+    Object.assign(picked.layouts[0].sections[2].tabs[1], { pin: vault.KEEP_PIN, pinCode: sCode });
+    const s2 = vault.buildVaultSections(vault.splitDashboard(picked).protected, data.sections, data.codes).sections;
+    ok(s2['tab:sTabLock:tPin'].code === sCode, 'assigned view remembers the code');
+    ok(auth.verifySecret('1234', s2['tab:sTabLock:tPin'].salt, s2['tab:sTabLock:tPin'].hash), '… and opens with it');
+
+    // Changing the named PIN reaches every view that uses it.
+    data.sections = s2;
+    const res = vault.saveCode(data, { id: sCode, pin: '987654' });
+    ok(res.id === sCode, 'saveCode updates an existing PIN');
+    for (const key of ['section:sLocked', 'tab:sTabLock:tOpen', 'tab:sTabLock:tPin'])
+        ok(
+            auth.verifySecret('987654', data.sections[key].salt, data.sections[key].hash),
+            `${key} follows the new code`,
+        );
+    ok(data.sections['tab:sTabLock:tPin'].len === 6, 'digit count follows too');
+    vault.stampPinLengths(pub, data.sections);
+    ok(pub.layouts[0].sections[1].pinLength === 6, 'the stub keypad length is restamped');
+
+    // Rename only — the code stays.
+    const hashBefore = data.codes[sCode].hash;
+    vault.saveCode(data, { id: sCode, name: 'Kinder' });
+    ok(data.codes[sCode].name === 'Kinder' && data.codes[sCode].hash === hashBefore, 'rename keeps the code');
+    ok(vault.saveCode(data, { name: 'X', pin: '12' }).error === 'pin too short', 'short PINs are refused');
+    ok(vault.saveCode(data, { name: 'X' }).error === 'pin required', 'a new PIN needs a code');
+    ok(vault.codeUsers(data, sCode).length === 3, 'codeUsers lists every view of a PIN');
+
+    // A view whose named PIN vanished keeps its own last PIN.
+    const lost = fullConfig();
+    Object.assign(lost.layouts[0].sections[2].tabs[1], { pin: vault.KEEP_PIN, pinCode: 'pc_gone' });
+    const s3 = vault.buildVaultSections(vault.splitDashboard(lost).protected, data.sections, data.codes);
+    ok(s3.unresolved.length === 0 && s3.sections['tab:sTabLock:tPin'].code === undefined, 'lost code falls back');
+    ok(
+        auth.verifySecret('987654', s3.sections['tab:sTabLock:tPin'].salt, s3.sections['tab:sTabLock:tPin'].hash),
+        '… to the PIN the view had',
+    );
+
+    // Removing the protection drops the named PIN from the node.
+    vault.restoreView(pub, 'tab:sTabLock:tOpen', data.sections['tab:sTabLock:tOpen'].content);
+    ok(pub.layouts[0].sections[2].tabs[0].pinCode === undefined, 'restoreView drops pinCode');
+}
+
 console.log(`security-core: ${pass} checks passed`);

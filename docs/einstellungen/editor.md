@@ -215,16 +215,26 @@ Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach E
 
 | Option | |
 | --- | --- |
-| PIN | Beliebiger Code; leer = kein Schutz. Bereich im Zahnrad des Bereichs-Chips, Tab im Zahnrad des Tabs |
-| PIN übernehmen von | Verknüpft die PIN mit einem anderen Bereich oder Tab, der schon eine hat — keine neue ausdenken. Ändert sich die PIN dort, gilt sie beim Speichern auch hier. Eine eigene PIN eintippen oder **Eigene PIN** wählen löst die Verknüpfung; die zuletzt gültige PIN bleibt dann bestehen |
+| PIN | Auswahl einer benannten PIN (z. B. „Kinder“) oder **+ Neue PIN anlegen …** (Name + mindestens 4 Ziffern). **Kein PIN-Schutz** = offen. Bereich im Zahnrad des Bereichs-Chips, Tab im Zahnrad des Tabs |
 | Offen lassen | Aus (Standard): sperrt beim Verlassen sofort wieder. An: bleibt bis zum Neuladen der Seite offen |
 | Schloss-Symbol zeigen | An (Standard): gesperrte Einträge tragen ein Schloss im Bereichs-Menü bzw. in der Tab-Leiste. Aus: kein Symbol – die PIN wird trotzdem abgefragt |
-| Über MCP bearbeitbar | Aus (Standard): der [KI-Zugriff](./mcp#pin-geschützte-bereiche-und-tabs) sieht nur die Struktur und darf nicht schreiben. An: liest und ändert den Inhalt. Erscheint, sobald eine PIN im Feld steht; vor dem ersten Speichern wird die Freigabe vorgemerkt |
+| Über MCP bearbeitbar | Aus (Standard): der [KI-Zugriff](./mcp#pin-geschützte-bereiche-und-tabs) sieht nur die Struktur und darf nicht schreiben. An: liest und ändert den Inhalt. Erscheint, sobald eine PIN gewählt ist; vor dem ersten Speichern wird die Freigabe vorgemerkt |
 | PIN entfernen | Hebt den Schutz auf. Der Adapter schreibt den Inhalt zurück in die Konfiguration und löscht den Tresor-Eintrag — in einem Schritt, ohne Speichern und ohne die PIN |
 
 Ein gesperrter Bereich blendet auch seine Tabs aus der Tab-Leiste aus. Gesperrte Einträge tragen ein Schloss-Symbol, solange **Schloss-Symbol zeigen** an ist. Eine Bereichs-PIN schützt den ganzen Bereich; eine eigene PIN an einem Tab darin entfällt.
 
-Die Prüfung läuft **serverseitig** im Adapter: PIN und geschützte Inhalte verlassen den Server erst, wenn der Code stimmt (scrypt-Hash, Rate-Limit gegen Durchprobieren). Im Editor zeigt ein geschützter Bereich „PIN gesetzt" — eine neue PIN eintippen ändert sie, **PIN entfernen** hebt den Schutz auf. Das Feld selbst bleibt leer, weil der Editor die PIN nie zurückbekommt.
+Die Prüfung läuft **serverseitig** im Adapter: PIN und geschützte Inhalte verlassen den Server erst, wenn der Code stimmt (scrypt-Hash, Rate-Limit gegen Durchprobieren). Der Editor sieht nur Name und Stellenzahl einer PIN, nie den Code.
+
+### Zugriffsschutz (Layouts)
+
+**Layouts › Zugriffsschutz** sammelt alle PINs an einer Stelle.
+
+| Bereich | |
+| --- | --- |
+| PINs | Anlegen, umbenennen, **PIN ändern**, löschen. **Gilt für** listet die Bereiche und Tabs, die sie nutzen. Eine geänderte PIN gilt sofort überall, ohne Speichern. Löschen geht erst, wenn keine Ansicht sie mehr nutzt |
+| Bereiche und Tabs | Alle Layouts › Bereiche › Tabs mit PIN-Auswahl, **Offen lassen**, **Schloss zeigen** und **PIN entfernen**. **Nur geschützte zeigen** blendet freie Ansichten aus. Zuweisungen werden mit **Speichern** übernommen |
+
+Bestehende PINs werden beim Update automatisch zu benannten PINs (Name = Bereich bzw. Tab). Früher verknüpfte Ansichten teilen sich danach eine PIN. Gleiche, aber getrennt eingegebene Codes bleiben getrennte PINs — in der Tabelle einer PIN zuweisen und die leere löschen.
 
 ::: tip
 Die Datenpunkt-**Werte** eines Bereichs laufen nach dem Entsperren über die normale Socket-Verbindung; die zugehörigen Datenpunkt-IDs erfährt ein nicht entsperrter Client aber nicht. Für echte Vertraulichkeit einzelner Datenpunkte zusätzlich ioBroker-Benutzer/ACL nutzen.

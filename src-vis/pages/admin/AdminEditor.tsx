@@ -27,7 +27,6 @@ import {
     ExternalLink,
     FolderInput,
     Copy,
-    ShieldOff,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { ManualWidgetDialog } from '../../components/config/ManualWidgetDialog';
@@ -39,9 +38,10 @@ import { useDashboardStore, useActiveSection } from '../../store/dashboardStore'
 import { BackgroundImageButton } from '../../components/config/BackgroundImageField';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/common/BackgroundImageLayer';
 import { tabBgImage } from '../../utils/backgroundImage';
-import { KEEP_PIN, LINK_PIN, pinSourceOptions, sectionPinKey } from '../../utils/pinLock';
+import { KEEP_PIN } from '../../utils/pinLock';
+import { PinCodeSelect, PinRemoveButton } from '../../components/config/PinCodeSelect';
 import { useMcpReleaseStore } from '../../store/mcpReleaseStore';
-import { vaultSetMcp, vaultRemove } from '../../utils/pinApi';
+import { vaultSetMcp } from '../../utils/pinApi';
 import { adminToken } from '../../store/authStore';
 import { ConditionEditor } from '../../components/config/ConditionEditor';
 import { BadgeAggregateFields, BadgeEditor } from '../../components/config/BadgeEditor';
@@ -391,41 +391,10 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                             <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                 {t('pin.field')}
                             </p>
-                            <input
-                                type="text"
-                                inputMode="numeric"
-                                autoComplete="off"
-                                placeholder={
-                                    openSection.pinFrom
-                                        ? t('pin.linkedPlaceholder')
-                                        : sectionPinStored
-                                          ? t('pin.setPlaceholder')
-                                          : t('pin.placeholder')
-                                }
-                                value={isPinSentinel(openSection.pin) ? '' : (openSection.pin ?? '')}
-                                onChange={(e) =>
-                                    updateSection(openSection.id, {
-                                        pin: e.target.value || undefined,
-                                        pinFrom: undefined,
-                                    })
-                                }
-                                className="aura-pin-input w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                            <PinLinkSelect
-                                selfKey={sectionPinKey(openSection.id)}
+                            <PinCodeSelect
                                 node={openSection}
                                 onChange={(patch) => updateSection(openSection.id, patch)}
                             />
-                            {sectionPinStored && !openSection.pinFrom && (
-                                <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('pin.protectedHint')}
-                                </p>
-                            )}
                             {sectionHasPin ? (
                                 <div className="flex items-center justify-between mt-2">
                                     <div>
@@ -487,6 +456,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                             pinProtected: undefined,
                                             pinLength: undefined,
                                             pinFrom: undefined,
+                                            pinCode: undefined,
                                         })
                                     }
                                 />
@@ -1136,41 +1106,10 @@ const TabBar = memo(function TabBar() {
                                 <label className="text-[11px] block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                     {t('pin.field')}
                                 </label>
-                                <input
-                                    type="text"
-                                    inputMode="numeric"
-                                    autoComplete="off"
-                                    placeholder={
-                                        settingsTab.pinFrom
-                                            ? t('pin.linkedPlaceholder')
-                                            : tabPinStored
-                                              ? t('pin.setPlaceholder')
-                                              : t('pin.placeholder')
-                                    }
-                                    value={isPinSentinel(settingsTab.pin) ? '' : (settingsTab.pin ?? '')}
-                                    onChange={(e) =>
-                                        updateTab(settingsTabId, {
-                                            pin: e.target.value || undefined,
-                                            pinFrom: undefined,
-                                        })
-                                    }
-                                    className="aura-pin-input w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                />
-                                <PinLinkSelect
-                                    selfKey={tabVaultKey}
+                                <PinCodeSelect
                                     node={settingsTab}
                                     onChange={(patch) => updateTab(settingsTabId, patch)}
                                 />
-                                {tabPinStored && !settingsTab.pinFrom && (
-                                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('pin.protectedHint')}
-                                    </p>
-                                )}
                                 {tabHasPin ? (
                                     <div className="flex items-center justify-between mt-2">
                                         <div>
@@ -1236,6 +1175,7 @@ const TabBar = memo(function TabBar() {
                                                 pinProtected: undefined,
                                                 pinLength: undefined,
                                                 pinFrom: undefined,
+                                                pinCode: undefined,
                                             })
                                         }
                                     />
@@ -1443,146 +1383,6 @@ const TabBar = memo(function TabBar() {
         </>
     );
 });
-
-/**
- * „PIN entfernen“ for one section/tab.
- *
- * The PIN field cannot do this itself: a view that is protected server-side shows
- * an EMPTY input (the editor never receives the code back), so there is nothing
- * to clear — which is why the old hint „Feld leeren entfernt den Schutz“ pointed
- * at a gesture nobody could make.
- *
- * `stored` = the vault holds this view. Then removing is the adapter's job, in one
- * step (POST /api/aura/vault/remove): it writes the content back into
- * config.dashboard and forgets the entry, and hands the payload back so the editor
- * lands on the same result without a save of its own — and without depending on
- * having pulled the protected content at all. A PIN that was only typed has no
- * vault entry, so there this is a plain local clear.
- */
-function PinRemoveButton({ vaultKey, stored, onRemove }: { vaultKey: string; stored: boolean; onRemove: () => void }) {
-    const t = useT();
-    const forget = useMcpReleaseStore((s) => s.forget);
-    const merge = useDashboardStore((s) => s.mergeProtectedContent);
-    const [busy, setBusy] = useState(false);
-    const [failed, setFailed] = useState(false);
-    return (
-        <>
-            <button
-                disabled={busy}
-                onClick={() => {
-                    if (!stored) {
-                        forget(vaultKey);
-                        onRemove();
-                        return;
-                    }
-                    const token = adminToken();
-                    if (!token) {
-                        setFailed(true);
-                        return;
-                    }
-                    setBusy(true);
-                    setFailed(false);
-                    void vaultRemove(token, vaultKey).then((res) => {
-                        setBusy(false);
-                        if (!res) {
-                            // Nothing changed server-side — leave the view protected
-                            // rather than opening it locally over a live vault entry.
-                            setFailed(true);
-                            return;
-                        }
-                        forget(vaultKey);
-                        // The adapter already restored the content into the config;
-                        // mirror it here (suppressed-dirty) so editor and state agree.
-                        if (res.content) merge({ [vaultKey]: { scope: res.scope, content: res.content, open: true } });
-                        else onRemove();
-                    });
-                }}
-                className="aura-pin-remove flex items-center gap-1.5 w-full px-2.5 py-2 mt-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
-                style={{
-                    background: 'var(--app-bg)',
-                    border: '1px solid var(--app-border)',
-                    color: 'var(--accent-red)',
-                    opacity: busy ? 0.6 : 1,
-                }}
-            >
-                <ShieldOff size={11} />
-                {t('pin.remove')}
-            </button>
-            {failed && (
-                <p className="text-[9px] mt-1" style={{ color: 'var(--accent-red)' }}>
-                    {t('pin.removeFailed')}
-                </p>
-            )}
-        </>
-    );
-}
-
-/** The PIN field shows nothing for a stored or linked PIN — the editor never knows the digits. */
-function isPinSentinel(pin: string | undefined): boolean {
-    return pin === KEEP_PIN || pin === LINK_PIN;
-}
-
-/**
- * „PIN übernehmen von“: let this view follow the PIN of another section/tab instead
- * of inventing a new one. The link is kept (`pinFrom`), and the adapter takes the
- * source's current PIN on every save — change it there and it changes here too.
- * Typing an own PIN, or picking „Eigene PIN“, ends the link; a stored view then
- * keeps the PIN it had last.
- */
-function PinLinkSelect({
-    selfKey,
-    node,
-    onChange,
-}: {
-    selfKey: string;
-    node: { pin?: string; pinFrom?: string; pinProtected?: boolean };
-    onChange: (patch: { pin?: string; pinFrom?: string }) => void;
-}) {
-    const t = useT();
-    const layouts = useDashboardStore((s) => s.layouts);
-    const options = useMemo(() => pinSourceOptions(layouts, selfKey), [layouts, selfKey]);
-    const source = options.find((o) => o.key === node.pinFrom);
-    if (!options.length && !node.pinFrom) return null;
-    const stored = node.pin === KEEP_PIN || node.pinProtected === true;
-    return (
-        <>
-            <label className="text-[11px] block mt-2 mb-1" style={{ color: 'var(--text-secondary)' }}>
-                {t('pin.linkFrom')}
-            </label>
-            <select
-                className="aura-pin-link w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                style={{
-                    background: 'var(--app-bg)',
-                    color: 'var(--text-primary)',
-                    border: '1px solid var(--app-border)',
-                }}
-                value={source ? source.key : ''}
-                onChange={(e) => {
-                    const key = e.target.value;
-                    if (key) onChange({ pinFrom: key, pin: stored ? KEEP_PIN : LINK_PIN });
-                    else onChange({ pinFrom: undefined, pin: node.pin === LINK_PIN ? undefined : node.pin });
-                }}
-            >
-                <option value="">{t('pin.linkNone')}</option>
-                {options.map((o) => (
-                    <option key={o.key} value={o.key}>
-                        {o.label}
-                    </option>
-                ))}
-            </select>
-            {source && (
-                <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    {t('pin.linkedHint', { name: source.label })}
-                </p>
-            )}
-            {node.pinFrom && !source && (
-                <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    {t('pin.linkLost')}
-                </p>
-            )}
-        </>
-    );
-}
 
 /**
  * One labelled switch inside a PIN panel. The PIN panels of a section and of a tab

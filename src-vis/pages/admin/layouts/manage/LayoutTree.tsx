@@ -4,7 +4,7 @@
 // by their grip; sections are reordered in the layout detail (their list mirrors
 // the frontend's section menu).
 
-import { GripVertical, Layers, LayoutDashboard } from 'lucide-react';
+import { GripVertical, KeyRound, Layers, LayoutDashboard } from 'lucide-react';
 import { useDashboardStore, type DashboardLayout, type Section } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ScopeRow } from '../shared/ScopeRow';
@@ -19,6 +19,9 @@ export function layoutIconNode(layout: DashboardLayout, size = 13) {
 export function sectionIconNode(section: Section, size = 12) {
     return section.icon ? <AuraIcon icon={section.icon} width={size} height={size} /> : <Layers size={size} />;
 }
+
+/** `?ctx=` of the „Zugriffsschutz“ entry above the layouts. */
+export const ACCESS_CTX = 'access';
 
 export function layoutHash(layout: DashboardLayout, isFirst: boolean) {
     return isFirst ? '#/' : `#/view/${layout.slug}`;
@@ -46,16 +49,32 @@ export function LayoutTree({ layouts, selectedId, onSelect }: LayoutTreeProps) {
             testId="layout-tree"
             title={t('layouts.title')}
             current={
-                currentLayout && (
+                selectedId === ACCESS_CTX ? (
                     <>
-                        {currentSection ? sectionIconNode(currentSection) : layoutIconNode(currentLayout)}
-                        <span className="truncate">
-                            {currentSection ? `${currentLayout.name} › ${currentSection.name}` : currentLayout.name}
-                        </span>
+                        <KeyRound size={13} />
+                        <span className="truncate">{t('access.title')}</span>
                     </>
+                ) : (
+                    currentLayout && (
+                        <>
+                            {currentSection ? sectionIconNode(currentSection) : layoutIconNode(currentLayout)}
+                            <span className="truncate">
+                                {currentSection ? `${currentLayout.name} › ${currentSection.name}` : currentLayout.name}
+                            </span>
+                        </>
+                    )
                 )
             }
         >
+            <div data-testid="tree-access">
+                <ScopeRow
+                    active={selectedId === ACCESS_CTX}
+                    onClick={() => onSelect(ACCESS_CTX)}
+                    label={t('access.title')}
+                    sub={t('access.treeSub')}
+                    iconNode={<KeyRound size={13} />}
+                />
+            </div>
             <p
                 className="text-[10px] uppercase tracking-widest px-2 py-1.5 font-semibold"
                 style={{ color: 'var(--text-secondary)' }}

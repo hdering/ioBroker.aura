@@ -5,7 +5,7 @@ import { useGroupDefsStore, newGroupDefId } from './groupDefsStore';
 import { cloneWidget, finishClone, makeIdDeduper, newCloneScope, remapWidgetRefs } from '../utils/widgetCopy';
 import { slugify } from '../utils/slugify';
 import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate, BackgroundImage } from '../types';
-import { KEEP_PIN, type PinRelock } from '../utils/pinLock';
+import { KEEP_PIN, type PinProtected, type PinRelock } from '../utils/pinLock';
 import type { AllVars } from '../themes';
 
 // ── Menu extras (clock / datapoint / static text / widget) ────────────────────
@@ -267,6 +267,7 @@ export interface Tab {
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the tab button - the gate stays, only the badge goes (#692)
     pinFrom?: string; // vault key of the section/tab whose PIN this one follows (linked PIN)
+    pinCode?: string; // id of the named PIN (vault `codes`) this view uses - no secret, only the id
     idleReturnExempt?: boolean; // never left automatically by the idle-return timer (#638)
     /** Background image behind this tab's widgets; unset = the section's, then the layout's (#442). */
     backgroundImage?: BackgroundImage;
@@ -294,6 +295,7 @@ export interface Section {
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the section menu entry - the gate stays, only the badge goes (#692)
     pinFrom?: string; // vault key of the section/tab whose PIN this one follows (linked PIN)
+    pinCode?: string; // id of the named PIN (vault `codes`) this view uses - no secret, only the id
     settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
     /** Background image for every tab of the section that sets none itself; unset = the layout's (#442). */
     backgroundImage?: BackgroundImage;
@@ -505,6 +507,11 @@ interface DashboardState {
     setDefaultSection: (layoutId: string, sectionId: string) => void;
     /** Update per-section content settings */
     updateSectionSettings: (layoutId: string, sectionId: string, patch: Partial<LayoutSettings>) => void;
+    /**
+     * PIN fields of one section (tabId null) or tab in any layout — the
+     * „Zugriffsschutz“ overview edits views outside the active layout.
+     */
+    patchPinView: (layoutId: string, sectionId: string, tabId: string | null, patch: Partial<PinProtected>) => void;
     clearSectionSettings: (layoutId: string, sectionId: string, key: keyof LayoutSettings) => void;
 
     // ── Tab CRUD (on active section of activeLayoutId) ───────────────────────
@@ -529,6 +536,7 @@ interface DashboardState {
                 | 'pinRelock'
                 | 'pinHideLock'
                 | 'pinFrom'
+                | 'pinCode'
                 // Cleared together with `pin` when the protection is removed — a
                 // leftover stub flag would keep the view locked with no PIN.
                 | 'pinProtected'
@@ -889,6 +897,7 @@ export const useDashboardStore = create<DashboardState>()(
                                         pinLength: undefined,
                                         pinRelock: sEntry?.open ? undefined : sEntry?.pinRelock,
                                         pinFrom: sEntry?.open ? undefined : next.pinFrom,
+                                        pinCode: sEntry?.open ? undefined : next.pinCode,
                                     };
                                 }
                                 return {
@@ -908,6 +917,7 @@ export const useDashboardStore = create<DashboardState>()(
                                             pinLength: undefined,
                                             pinRelock: tEntry.open ? undefined : tEntry.pinRelock,
                                             pinFrom: tEntry.open ? undefined : tb.pinFrom,
+                                            pinCode: tEntry.open ? undefined : tb.pinCode,
                                         };
                                     }),
                                 };
@@ -958,6 +968,15 @@ export const useDashboardStore = create<DashboardState>()(
             setDefaultSection: (layoutId, sectionId) =>
                 set((s) => ({
                     layouts: patchLayout(s.layouts, layoutId, (l) => ({ ...l, defaultSectionId: sectionId })),
+                })),
+
+            patchPinView: (layoutId, sectionId, tabId, patch) =>
+                set((s) => ({
+                    layouts: patchSection(s.layouts, layoutId, sectionId, (sec) =>
+                        tabId === null
+                            ? { ...sec, ...patch }
+                            : { ...sec, tabs: sec.tabs.map((tb) => (tb.id === tabId ? { ...tb, ...patch } : tb)) },
+                    ),
                 })),
 
             updateSectionSettings: (layoutId, sectionId, patch) =>

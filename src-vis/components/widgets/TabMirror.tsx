@@ -49,7 +49,16 @@ export function findTabSource(layouts: DashboardLayout[], tabId: string | undefi
 
 /** A tab behind a PIN is never mirrored — the mirror would show it without the code. */
 export function tabSourceLocked({ section, tab }: TabSource): boolean {
-    return !!(tab.pin || tab.pinProtected || tab.pinFrom || section.pin || section.pinProtected || section.pinFrom);
+    return !!(
+        tab.pin ||
+        tab.pinProtected ||
+        tab.pinFrom ||
+        tab.pinCode ||
+        section.pin ||
+        section.pinProtected ||
+        section.pinFrom ||
+        section.pinCode
+    );
 }
 
 function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string; detail?: string }) {

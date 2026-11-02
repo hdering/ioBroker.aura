@@ -58,9 +58,13 @@ const vault = new vaultMod.VaultFile(dir);
 // into config.dashboard (main.js owns the state). Recorded here instead.
 const restored = [];
 let restoreFails = false;
+let codesChanged = 0;
 const api = createSecurityApi({
     vault,
     log: { info() {}, warn() {}, error() {} },
+    onCodesChanged: async () => {
+        codesChanged++;
+    },
     restoreView: async (key, content) => {
         if (restoreFails) throw new Error('state write failed');
         restored.push({ key, widgets: (content && content.tabs && content.tabs[0].widgets.length) ?? null });
@@ -239,6 +243,53 @@ try {
     ok(restored.length === 1, '… and does not restore anything twice');
     r = await call('GET', 'vault', { token: adminToken });
     ok(!r.json.sections['section:sLocked'], 'the editor no longer sees the view either');
+
+    // ── named PINs ───────────────────────────────────────────────────────────
+    r = await call('GET', 'vault/codes');
+    ok(r.status === 401, 'codes list needs the admin token');
+    r = await call('POST', 'vault/codes', { token: adminToken, body: { name: 'Kinder', pin: '12' } });
+    ok(r.status === 400, 'a too-short named PIN is refused');
+    r = await call('POST', 'vault/codes', { token: adminToken, body: { name: 'Kinder', pin: '2468' } });
+    ok(r.status === 200 && r.json.id && r.json.name === 'Kinder' && r.json.len === 4, 'named PIN created');
+    const codeId = r.json.id;
+    ok(!JSON.stringify(r.json).includes('2468'), 'the answer never carries the code');
+    {
+        // A view that uses it (what a save after picking it in the editor leaves behind).
+        const d = vault.load();
+        const c = d.codes[codeId];
+        d.sections['tab:sX:tY'] = {
+            scope: 'tab',
+            name: 'Kamera',
+            salt: c.salt,
+            hash: c.hash,
+            len: c.len,
+            code: codeId,
+            pinRelock: 'leave',
+            content: { widgets: [] },
+        };
+        vault.save(d);
+    }
+    r = await call('GET', 'vault/codes', { token: adminToken });
+    ok(r.json.codes[codeId].name === 'Kinder' && r.json.views['tab:sX:tY'] === codeId, 'list shows PIN + its views');
+    ok(r.json.codes[codeId].hash === undefined, 'the list never carries a hash');
+    r = await call('POST', 'vault/codes', { token: adminToken, body: { id: codeId, pin: '135790' } });
+    ok(r.status === 200 && r.json.len === 6, 'named PIN re-keyed');
+    ok(codesChanged === 1, 'the config refresh hook ran after the new code');
+    r = await call('POST', 'pin/unlock', { body: { key: 'tab:sX:tY', pin: '135790' } });
+    ok(r.status === 200, 'the view opens with the new code at once');
+    r = await call('POST', 'pin/unlock', { body: { key: 'tab:sX:tY', pin: '2468' } });
+    ok(r.status === 401, '… and no longer with the old one');
+    r = await call('POST', 'vault/codes', { token: adminToken, body: { id: codeId, name: 'Kids' } });
+    ok(r.status === 200 && r.json.name === 'Kids' && codesChanged === 1, 'rename needs no config refresh');
+    r = await call('POST', 'vault/codes/delete', { token: adminToken, body: { id: codeId } });
+    ok(r.status === 409 && r.json.users[0] === 'tab:sX:tY', 'a PIN in use cannot be deleted');
+    {
+        const d = vault.load();
+        delete d.sections['tab:sX:tY'];
+        vault.save(d);
+    }
+    r = await call('POST', 'vault/codes/delete', { token: adminToken, body: { id: codeId } });
+    ok(r.status === 200 && r.json.removed === true && !vault.load().codes[codeId], 'an unused PIN is deleted');
 
     // ── unknown route → JSON 404 (never the SPA) ─────────────────────────────
     r = await call('GET', 'nope');
