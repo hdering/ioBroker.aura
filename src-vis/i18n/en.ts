@@ -294,6 +294,8 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.alignStretch': 'Even',
     'settings.tabBar.hideMobileScrollbar': 'Hide scroll bar (mobile)',
     'settings.tabBar.showSingle': 'Show bar with a single tab',
+    'settings.tabBar.hidden': 'Hide tab bar in the frontend',
+    'settings.tabBar.hiddenHint': 'Tabs stay reachable through their address. The editor keeps showing the bar.',
     'settings.tabBar.position': 'Position',
     'settings.tabBar.positionTop': 'Top',
     'settings.tabBar.positionBottom': 'Bottom (footer)',

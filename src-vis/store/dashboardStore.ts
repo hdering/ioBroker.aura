@@ -105,6 +105,7 @@ export interface TabBarSettings {
     tabsAlignment?: 'left' | 'center' | 'right' | 'stretch'; // navigation tabs position ('stretch' spreads the tabs evenly over the full bar width)
     hideMobileScrollbar?: boolean; // hide the mobile scroll indicator ("Laufleiste") under the tabs
     showSingle?: boolean; // show the tab bar even when the section has only a single tab
+    hidden?: boolean; // never show the tab bar in the frontend (tabs stay reachable via URL / section menu); the editor keeps it
     position?: 'top' | 'bottom'; // render the bar above the dashboard (default) or as a footer
     items?: TabBarItem[];
 }

@@ -85,6 +85,17 @@ const LAYOUT = {
             settings: { tabBar: { items: [{ id: 'i1', type: 'text', position: 'right', text: 'FLUR' }] } },
             tabs: [tab('t-item-a', 'Eins', 'eins'), tab('t-item-b', 'Zwei', 'zwei', { hidden: true })],
         },
+        // Schalter "Tab-Leiste ausblenden" (#910): schlägt zwei Tabs, showSingle und Elemente.
+        {
+            id: 'sec-off',
+            name: 'Aus',
+            slug: 'ohne',
+            activeTabId: 't-off-a',
+            settings: {
+                tabBar: { hidden: true, showSingle: true, items: [{ id: 'i2', type: 'text', text: 'WEG' }] },
+            },
+            tabs: [tab('t-off-a', 'Erster', 'erster'), tab('t-off-b', 'Zweiter', 'zweiter')],
+        },
     ],
 };
 
@@ -142,6 +153,15 @@ check('showSingle zeigt die Leiste weiterhin', (await barCount()) === 1);
 await goto('/view/leiste/s/elemente/tab/eins');
 check('ein Leisten-Element zeigt die Leiste weiterhin', (await barCount()) === 1);
 check('das Element steht darin', (await page.locator('.aura-tabs').getByText('FLUR').count()) === 1);
+
+// ── Schalter "Tab-Leiste ausblenden" (#910) ───────────────────────────────────
+console.log('\n── Leiste ausgeblendet ──');
+await goto('/view/leiste/s/ohne/tab/erster');
+check('ausgeblendet: keine Leiste trotz zwei Tabs, showSingle und Element', (await barCount()) === 0);
+check('ausgeblendet: der Tab rendert', await visible('.aura-widget-w-t-off-a'));
+await goto('/view/leiste/s/ohne/tab/zweiter');
+check('ausgeblendet: der zweite Tab bleibt über seinen Slug erreichbar', await visible('.aura-widget-w-t-off-b'));
+check('ausgeblendet: auch dort keine Leiste', (await barCount()) === 0);
 
 check('keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
 

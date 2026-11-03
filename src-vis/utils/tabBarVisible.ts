@@ -8,8 +8,11 @@ import type { Tab, TabBarSettings } from '../store/dashboardStore';
  * Single source of truth for TabBar's own visibility guard, App's automatic
  * mobile placement of the section menu and the guideline top inset — those three
  * must agree or the frame and the guidelines drift apart.
+ *
+ * `hidden` switches the bar off outright, whatever it would otherwise show (#910).
  */
 export function tabBarShowsOnOwn(tabCount: number, tbs?: TabBarSettings): boolean {
+    if (tbs?.hidden) return false;
     return tabCount > 1 || (tbs?.showSingle ?? false) || (tbs?.items?.length ?? 0) > 0;
 }
 

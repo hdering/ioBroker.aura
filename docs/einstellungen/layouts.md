@@ -161,6 +161,8 @@ Darstellung der Tab-Leiste im Frontend.
 
 Die Leiste erscheint erst ab zwei sichtbaren Tabs. Ausgeblendete und deaktivierte Tabs zählen nicht mit — ein Bereich mit zwei Tabs, von denen einer ausgeblendet ist, zeigt keine Leiste. Ausnahmen: **Leiste schon ab einem Tab anzeigen** oder ein Menü-Element in der Leiste.
 
+**Tableiste im Frontend ausblenden** schaltet die Leiste ganz ab — auch bei mehreren Tabs, Menü-Elementen oder „ab einem Tab anzeigen“. Die Tabs bleiben über ihre Adresse (`…/tab/<slug>`) erreichbar, etwa per Navigations-Widget. Ein Bereichs-Menü, das in der Tab-Leiste säße, wandert in den Header bzw. auf den schwebenden Knopf. Global, je Layout oder je Bereich einstellbar; im Editor bleibt die Leiste sichtbar.
+
 ## Menü-Elemente
 
 Header, Tab-Leiste und Bereichs-Menü tragen dieselbe Elementliste. Der Header wird unter [Frontend](./frontend) gepflegt, die beiden anderen in ihrem eigenen Abschnitt.

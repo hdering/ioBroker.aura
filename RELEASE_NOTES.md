@@ -15,3 +15,4 @@
 - feat: Sections - conditions like on tabs: colour the icon/text/background, pulse/blink, hide or disable the menu entry (#907)
 - fix: Section bar - markers sit on the entry's corner instead of widening it, so entries no longer get pushed out of the bar on phones (#907)
 - feat: Tabs - a condition's accent colour now also colours the icon of an inactive tab (#907)
+- feat: Tab bar - new switch to hide the tab bar in the frontend (global, per layout or per section); tabs stay reachable through their address (#910)

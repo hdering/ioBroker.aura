@@ -309,6 +309,9 @@ export function TabBar({
     // no extra items. Tab-bar items (clock / datapoint / text) — global, layout or
     // section scope — must render even when the section has just one tab, and so
     // must an injected headerSlot (the section-menu hamburger placed in the bar).
+    // Switched off by the user (#910): gone in the frontend, injected slot or not —
+    // App moves the section-menu hamburger elsewhere in that case.
+    if (readonly && tbSettings?.hidden) return null;
     if (readonly && !headerSlot && !tabBarShowsOnOwn(visibleTabCount(tabs), tbSettings)) return null;
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);

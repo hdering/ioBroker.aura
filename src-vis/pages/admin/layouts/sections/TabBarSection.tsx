@@ -659,13 +659,45 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </button>
                     </div>
 
-                    <div className="flex items-center justify-between" {...ovRow('showSingle')}>
+                    <div {...ovRow('hidden')}>
+                        <div className="flex items-center justify-between">
+                            <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                                {t('settings.tabBar.hidden')}
+                                <OverrideDot show={ov('hidden')} title={ovTitle} />
+                            </p>
+                            <button
+                                onClick={() => update({ hidden: !tbs.hidden })}
+                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                style={{ background: tbs.hidden ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: tbs.hidden ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {tbs.hidden && (
+                            <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.tabBar.hiddenHint')}
+                            </p>
+                        )}
+                    </div>
+
+                    <div
+                        className="flex items-center justify-between"
+                        {...ovRow('showSingle')}
+                        style={{
+                            ...(ov('showSingle') ? OVERRIDE_ROW_STYLE : {}),
+                            opacity: tbs.hidden ? 0.45 : undefined,
+                        }}
+                    >
                         <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.showSingle')}
                             <OverrideDot show={ov('showSingle')} title={ovTitle} />
                         </p>
                         <button
                             onClick={() => update({ showSingle: !tbs.showSingle })}
+                            disabled={tbs.hidden}
                             className="relative w-9 h-5 rounded-full transition-colors shrink-0"
                             style={{ background: tbs.showSingle ? 'var(--accent)' : 'var(--app-border)' }}
                         >

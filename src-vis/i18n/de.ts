@@ -295,6 +295,8 @@ export const de = {
     'settings.tabBar.alignStretch': 'Gleichmäßig',
     'settings.tabBar.hideMobileScrollbar': 'Laufleiste ausblenden (mobil)',
     'settings.tabBar.showSingle': 'Leiste schon ab einem Tab anzeigen',
+    'settings.tabBar.hidden': 'Tableiste im Frontend ausblenden',
+    'settings.tabBar.hiddenHint': 'Tabs bleiben über ihre Adresse erreichbar. Im Editor bleibt die Leiste sichtbar.',
     'settings.tabBar.position': 'Position',
     'settings.tabBar.positionTop': 'Oben',
     'settings.tabBar.positionBottom': 'Unten (Footer)',

@@ -1388,6 +1388,7 @@ export default function App() {
     const drawerInTabBar =
         drawerEnabled &&
         drawerPlacement === 'tabbar' &&
+        !tabBarResolved.hidden &&
         (mobileRelocated || (!effectiveSettings.showHeader && !drawerAutoHide));
     const drawerFloating =
         drawerEnabled && !drawerSidebar && !drawerBar && !effectiveSettings.showHeader && !drawerInTabBar;
