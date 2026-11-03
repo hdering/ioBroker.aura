@@ -24685,6 +24685,11 @@
           "type": "boolean",
           "default": true
         },
+        "showPressure": {
+          "type": "boolean",
+          "default": false,
+          "description": "Luftdruck (auf Meereshöhe reduziert, hPa) hinter Luftfeuchte/Bewölkung in der Zeile des aktuellen Wetters. Im Custom-Layout als Feld \"pressure\" / \"pressureValue\"."
+        },
         "showRainAmount": {
           "type": "boolean",
           "default": false
