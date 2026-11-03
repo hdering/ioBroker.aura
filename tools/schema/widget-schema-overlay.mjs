@@ -1447,6 +1447,10 @@ export const WIDGET_OPTION_NOTES = {
         forecastDays: { description: 'Anzahl Vorhersagetage.' },
         forecastTempThresholds: { description: 'Schwellenwerte, die die Vorhersagebalken einfärben.' },
         feelsLikeStyle: { description: 'Gefühlte Temperatur als "text", als "icon" oder "hidden".' },
+        showPressure: {
+            description:
+                'Luftdruck (auf Meereshöhe reduziert, hPa) hinter Luftfeuchte/Bewölkung in der Zeile des aktuellen Wetters. Im Custom-Layout als Feld "pressure" / "pressureValue".',
+        },
         refreshMinutes: { description: 'Abstand der Aktualisierung in Minuten.' },
     },
     aircontrol: {

@@ -266,6 +266,7 @@ const WEATHER_JSON = {
         apparent_temperature: 20.8,
         cloud_cover: 75,
         precipitation: 0.2,
+        pressure_msl: 1013.4,
     },
     daily: {
         time: Array.from({ length: 8 }, (_, i) => `2026-03-${String(2 + i).padStart(2, '0')}`),

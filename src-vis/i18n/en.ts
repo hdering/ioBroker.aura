@@ -1561,6 +1561,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.weather.showRainProb': 'Rain probability',
     'wf.weather.showRainAmount': 'Rain amount (mm)',
     'wf.weather.showCloudCover': 'Cloud cover',
+    'wf.weather.showPressure': 'Air pressure',
     'wf.weather.tempThresholds': 'Temperature color scale (bars)',
     'wf.weather.tempThresholdsAdd': 'Add',
     'wf.weather.tempThresholdsPreset': 'Default',

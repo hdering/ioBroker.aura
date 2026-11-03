@@ -32,6 +32,7 @@ interface WeatherData {
         wind_speed_10m: number;
         cloud_cover?: number;
         precipitation?: number;
+        pressure_msl?: number;
     };
     daily: {
         time: string[];
@@ -225,6 +226,7 @@ export function WeatherWidget({ config }: WidgetProps) {
     const showRainProb = (opts.showRainProb as boolean) ?? true;
     const showRainAmount = (opts.showRainAmount as boolean) ?? false;
     const showCloudCover = (opts.showCloudCover as boolean) ?? false;
+    const showPressure = (opts.showPressure as boolean) ?? false;
     const tempThresholds = opts.forecastTempThresholds as [number, string][] | undefined;
     const localTempDp = (opts.localTempDatapoint as string) ?? '';
     const dataSource = (opts.dataSource as 'online' | 'adapter') ?? 'online';
@@ -325,7 +327,7 @@ export function WeatherWidget({ config }: WidgetProps) {
                 const url =
                     `https://api.open-meteo.com/v1/forecast` +
                     `?latitude=${lat}&longitude=${lon}` +
-                    `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,apparent_temperature,cloud_cover,precipitation` +
+                    `&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,apparent_temperature,cloud_cover,precipitation,pressure_msl` +
                     `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum` +
                     `&timezone=auto&forecast_days=${apiForecastDays}&wind_speed_unit=kmh`;
                 const res = await fetch(url);
@@ -682,6 +684,9 @@ export function WeatherWidget({ config }: WidgetProps) {
                     {showCloudCover && cur.cloud_cover !== undefined && (
                         <span> · ☁️ {Math.round(cur.cloud_cover)}%</span>
                     )}
+                    {showPressure && cur.pressure_msl !== undefined && (
+                        <span> · ⏲️ {Math.round(cur.pressure_msl)} hPa</span>
+                    )}
                 </div>
                 <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
                     {feelsLikeStyle === 'text' && (
@@ -891,6 +896,8 @@ export function WeatherWidget({ config }: WidgetProps) {
                         emoji: info.emoji,
                         cloudCover: cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}%` : '',
                         cloudCoverValue: cur.cloud_cover !== undefined ? `${Math.round(cur.cloud_cover)}` : '',
+                        pressure: cur.pressure_msl !== undefined ? `${Math.round(cur.pressure_msl)} hPa` : '',
+                        pressureValue: cur.pressure_msl !== undefined ? `${Math.round(cur.pressure_msl)}` : '',
                         rainNow: cur.precipitation !== undefined ? `${cur.precipitation.toFixed(1)} mm` : '',
                         rainNowValue: cur.precipitation !== undefined ? cur.precipitation.toFixed(1) : '',
                         // Combined "current" rain line — uses today's daily prob + current precipitation amount.

@@ -56,6 +56,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showCondition` | `true` | Wetterbedingung als Text |
 | `showHumidityLabel` | `true` | Beschriftung „Luftfeuchte" hinter dem Wert |
 | `showCloudCover` | `false` | Bewölkung zusätzlich anzeigen |
+| `showPressure` | `false` | Luftdruck (hPa, auf Meereshöhe) zusätzlich anzeigen |
 | `feelsLikeStyle` | `text` | `text` · `icon` · `hidden` |
 | `tempFontSize` | `0` | Schriftgröße der Temperatur in rem (`0` = auto) |
 | `fontScale` | `1` | Skalierungsfaktor der Schrift |

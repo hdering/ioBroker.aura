@@ -284,6 +284,8 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
             { key: 'emoji', label: 'Wetter-Emoji (Text)' },
             { key: 'cloudCover', label: 'Bewölkung (mit %)' },
             { key: 'cloudCoverValue', label: 'Bewölkung (nur Zahl)' },
+            { key: 'pressure', label: 'Luftdruck (mit hPa)' },
+            { key: 'pressureValue', label: 'Luftdruck (nur Zahl)' },
             { key: 'rainNow', label: 'Regen aktuell (mit mm)' },
             { key: 'rainNowValue', label: 'Regen aktuell (nur Zahl)' },
             { key: 'rainLine', label: 'Regen-Zeile (💧 % · mm)' },

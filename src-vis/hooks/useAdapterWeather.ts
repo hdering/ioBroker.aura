@@ -13,6 +13,7 @@ export interface AdapterWeatherData {
         wind_speed_10m: number;
         cloud_cover?: number;
         precipitation?: number;
+        pressure_msl?: number;
     };
     daily: {
         time: string[];
@@ -33,6 +34,7 @@ const CURRENT_FIELDS = [
     'wind_speed_10m',
     'cloud_cover',
     'precipitation',
+    'pressure_msl',
 ] as const;
 const DAILY_FIELDS = [
     'time',
@@ -122,6 +124,7 @@ function assemble(prefix: string, states: Map<string, ioBrokerState | null>): Ad
             wind_speed_10m: num(cur('wind_speed_10m')) ?? 0,
             cloud_cover: num(cur('cloud_cover')),
             precipitation: num(cur('precipitation')),
+            pressure_msl: num(cur('pressure_msl')),
         },
         daily,
     };

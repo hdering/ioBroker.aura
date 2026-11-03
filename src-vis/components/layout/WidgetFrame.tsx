@@ -2711,6 +2711,7 @@ function WeatherConfigSection({ o, set, onOpenPicker, onOpenAdapterPicker, layou
         { key: 'showCondition', label: t('wf.weather.showCondition') },
         { key: 'showHumidityLabel', label: t('wf.weather.showHumidityLabel') },
         { key: 'showCloudCover', label: t('wf.weather.showCloudCover'), def: false },
+        { key: 'showPressure', label: t('wf.weather.showPressure'), def: false },
         {
             key: 'showForecast',
             label: t('wf.weather.showForecast'),

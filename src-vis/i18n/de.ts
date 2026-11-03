@@ -1574,6 +1574,7 @@ export const de = {
     'wf.weather.showRainProb': 'Regenwahrscheinlichkeit',
     'wf.weather.showRainAmount': 'Regenmenge (mm)',
     'wf.weather.showCloudCover': 'Bewölkung',
+    'wf.weather.showPressure': 'Luftdruck',
     'wf.weather.tempThresholds': 'Temperatur-Farbskala (Balken)',
     'wf.weather.tempThresholdsAdd': 'Hinzufügen',
     'wf.weather.tempThresholdsPreset': 'Standard',
