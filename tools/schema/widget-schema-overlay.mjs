@@ -1480,7 +1480,15 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Gruppen (je ein Balken bzw. eine Torte). Jeder Eintrag rechnet über den gewählten Zeitraum EINE Zahl aus ' +
                 '(aggregate) — z. B. "consumption" = Verbrauch/Ertrag eines Zählers im Zeitraum, also die Differenz ' +
-                'zwischen Anfang und Ende. Eine Gruppe mit nur einem Eintrag zeigt diese Zahl als Summe über dem Balken.',
+                'zwischen Anfang und Ende. Eine Gruppe mit nur einem Eintrag zeigt diese Zahl als Summe über dem Balken. ' +
+                'Zähler in Wh, Anzeige in kWh: am Eintrag valueFactor 0.001 + valueTransform "wh-kwh" + unit "kWh" ' +
+                '(bei delta/consumption wird vor der Differenz umgerechnet). Ein totalDatapoint in anderer Einheit ' +
+                'bekommt totalValueFactor; totalValue steht schon in der Anzeige-Einheit.',
+        },
+        valueAutoUnit: {
+            description:
+                'Werte, Gruppensummen und Donut-Mitte wandern auf der Vorsilben-Leiter (850 Wh, 1,25 kWh, 3,4 MWh); ' +
+                'Ausgangspunkt ist die Einheit des Eintrags bzw. unit. Prozente bleiben unberührt.',
         },
         range: {
             description:

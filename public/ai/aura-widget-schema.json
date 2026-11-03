@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.100.1",
+    "auraVersion": "0.101.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6570,7 +6570,19 @@
         },
         "totalValue": {
           "type": "number",
-          "description": "Static 100 % reference; used only when `totalDatapoint` is empty."
+          "description": "Static 100 % reference, in the unit the entries are shown in (after their valueFactor); used only when `totalDatapoint` is empty."
+        },
+        "totalValueTransform": {
+          "type": "string",
+          "description": "Preset picked in the ƒx dialog of `totalDatapoint`; only remembers the choice."
+        },
+        "totalValueFactor": {
+          "type": "number",
+          "description": "Converts `totalDatapoint` into the unit the entries are shown in: raw × totalValueFactor + totalValueOffset (e.g. 0.001 for a reference in Wh next to kWh entries)."
+        },
+        "totalValueOffset": {
+          "type": "number",
+          "description": "Added after totalValueFactor."
         },
         "restLabel": {
           "type": "string",
@@ -6642,6 +6654,18 @@
           "type": "string",
           "ref": "EnergyAggregate",
           "description": "How the entry's value is computed over the selected range. Default 'last'. - 'last': current value of the datapoint, no history needed. - 'delta': last minus first logged value in the range — the difference between start and end, right for a meter that only ever rises (total kWh, gas, water). - 'consumption': sum of every rise in the range; a drop to 0 (day counter reset at midnight, meter swap) books nothing. Use this for any counter that can reset — 'delta' turns negative there. Identical to 'delta' for a monotonic meter, so the safe default for meters. - 'sum' / 'average' / 'max' / 'min': over the logged readings in the range (for power or price datapoints, not meters). Everything but 'last' needs a history adapter on the datapoint and follows the range buttons."
+        },
+        "valueTransform": {
+          "type": "string",
+          "description": "Preset picked in the ƒx dialog (e.g. 'wh-kwh'); only remembers the choice, the numbers are valueFactor/valueOffset."
+        },
+        "valueFactor": {
+          "type": "number",
+          "description": "Display conversion: shown value = raw × valueFactor + valueOffset (e.g. 0.001 for Wh → kWh). Datapoint and history stay untouched. With 'delta'/'consumption' the readings are converted first and differenced afterwards, so the offset cancels out."
+        },
+        "valueOffset": {
+          "type": "number",
+          "description": "Added after valueFactor (see there). Cancels out with 'delta'/'consumption'."
         }
       }
     },
@@ -12629,7 +12653,7 @@
             "ref": "EnergyBar"
           },
           "required": true,
-          "description": "Gruppen (je ein Balken bzw. eine Torte). Jeder Eintrag rechnet über den gewählten Zeitraum EINE Zahl aus (aggregate) — z. B. \"consumption\" = Verbrauch/Ertrag eines Zählers im Zeitraum, also die Differenz zwischen Anfang und Ende. Eine Gruppe mit nur einem Eintrag zeigt diese Zahl als Summe über dem Balken."
+          "description": "Gruppen (je ein Balken bzw. eine Torte). Jeder Eintrag rechnet über den gewählten Zeitraum EINE Zahl aus (aggregate) — z. B. \"consumption\" = Verbrauch/Ertrag eines Zählers im Zeitraum, also die Differenz zwischen Anfang und Ende. Eine Gruppe mit nur einem Eintrag zeigt diese Zahl als Summe über dem Balken. Zähler in Wh, Anzeige in kWh: am Eintrag valueFactor 0.001 + valueTransform \"wh-kwh\" + unit \"kWh\" (bei delta/consumption wird vor der Differenz umgerechnet). Ein totalDatapoint in anderer Einheit bekommt totalValueFactor; totalValue steht schon in der Anzeige-Einheit."
         },
         "chartStyle": {
           "type": "string",
@@ -12812,6 +12836,15 @@
           "type": "string",
           "description": "Einheit hinter jedem Wert und der Summe; ein Eintrag kann sie mit eigener unit überschreiben.",
           "default": "kWh"
+        },
+        "valueAutoUnit": {
+          "type": "boolean",
+          "description": "Werte, Gruppensummen und Donut-Mitte wandern auf der Vorsilben-Leiter (850 Wh, 1,25 kWh, 3,4 MWh); Ausgangspunkt ist die Einheit des Eintrags bzw. unit. Prozente bleiben unberührt.",
+          "default": false
+        },
+        "valueAutoUnitDecimals": {
+          "type": "number",
+          "description": "Nur mit valueAutoUnit: Nachkommastellen, sobald der Wert über der kleinsten Einheit der Leiter steht (kWh, MWh …). Ohne Angabe gilt decimals — z. B. decimals 0 + valueAutoUnitDecimals 2 → \"850 Wh\", \"1,25 kWh\"."
         },
         "visibleRanges": {
           "type": "array",

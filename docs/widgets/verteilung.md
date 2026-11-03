@@ -51,7 +51,8 @@ Ohne Vorgabe ist die Gruppensumme 100 %. Mit Vorgabe zeigen die Einträge ihren 
 | Option                  | Standard  |                                                             |
 | ----------------------- | --------- | ----------------------------------------------------------- |
 | `bars[].totalDatapoint` | —         | Datenpunkt mit der 100-%-Vorgabe; gewinnt über `totalValue` |
-| `bars[].totalValue`     | —         | feste 100-%-Vorgabe ohne Datenpunkt                         |
+| `bars[].totalValue`     | —         | feste 100-%-Vorgabe ohne Datenpunkt, in der Anzeige-Einheit der Einträge |
+| `bars[].totalValueFactor` / `totalValueOffset` | — | rechnet `totalDatapoint` in die Anzeige-Einheit um (ƒx-Knopf) |
 | `bars[].showRest`       | `true`    | Differenz als eigenes Segment anzeigen                      |
 | `bars[].restLabel`      | `Rest`    | Bezeichnung des Rest-Segments in der Legende                |
 | `bars[].restColor`      | `#94a3b8` | Farbe des Rest-Segments                                     |
@@ -81,6 +82,7 @@ Erreichen zählt wie Überschreiten (`>=`). Ohne Vorgabe bleibt der Wechsel wirk
 | `entries[].decimals`     | `decimals` des Widgets | Nachkommastellen nur für diesen Eintrag        |
 | `entries[].numberFormat` | global                 | 1000er-Trennzeichen                            |
 | `entries[].aggregate`    | `last`                 | siehe Tabelle unten                            |
+| `entries[].valueFactor` / `valueOffset` | — | Umrechnung nur für die Anzeige (ƒx-Knopf), z. B. `0.001` für Wh → kWh |
 
 ![](./assets/verteilung/bsp-vt-config-eintrag.png)
 
@@ -99,6 +101,8 @@ Jeder Eintrag wird auf **einen** Wert im gemeinsamen Zeitraum reduziert.
 
 Ohne Verlaufs-Adapter ist kein Zeitraum-Bezug möglich — der Eintrag zeigt dann den aktuellen Wert, wie bei `last`.
 
+Mit Umrechnung (`valueFactor`) rechnen `delta` und `consumption` erst um und bilden dann die Differenz — ein `valueOffset` fällt dabei heraus.
+
 ::: tip Tageszähler
 `sourceanalytix.*.01_currentDay`, PV-Tagesertrag und ähnliche Zähler springen um Mitternacht auf 0. `delta` vergleicht dort den angefangenen Tag mit dem abgeschlossenen Vortag und wird negativ — für solche Datenpunkte `consumption` wählen. Bei fortlaufenden Zählern liefern beide dasselbe Ergebnis. Liegt der Zeitraum auf Tagesgrenzen, ist `consumption` genau die Summe der Tageswerte.
 :::
@@ -113,6 +117,8 @@ Ohne Verlaufs-Adapter ist kein Zeitraum-Bezug möglich — der Eintrag zeigt dan
 | `pieSize`            | `160`               | Durchmesser in px (nur `pie`/`donut`)                                 |
 | `unit`               | `kWh`               | Einheit für alle Werte und Summen                                     |
 | `decimals`           | globale Einstellung | Nachkommastellen                                                      |
+| `valueAutoUnit`      | `false`             | Einheit automatisch anpassen: 850 Wh · 1,25 kWh · 3,4 MWh             |
+| `valueAutoUnitDecimals` | `decimals`       | Nachkommastellen ab der zweiten Stufe (kWh, MWh …)                    |
 | `showTitle`          | `true`              | Widget-Titel                                                          |
 | `showBarTitles`      | `true`              | Titel je Gruppe                                                       |
 | `showTotals`         | `true`              | Summe je Gruppe unter dem Titel                                       |

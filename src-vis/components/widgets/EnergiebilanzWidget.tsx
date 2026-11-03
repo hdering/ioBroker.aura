@@ -13,6 +13,7 @@ import type { WidgetProps } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { autoScaleUnit, autoUnitDecimals } from '../../utils/valueTransform';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
@@ -40,8 +41,14 @@ export interface EnergyBar {
     legendSide?: 'left' | 'right' | 'below' | 'top';
     /** Datapoint holding this group's 100 % reference (a budget, a prepayment, a tank size). */
     totalDatapoint?: string;
-    /** Static 100 % reference; used only when `totalDatapoint` is empty. */
+    /** Static 100 % reference, in the unit the entries are shown in (after their valueFactor); used only when `totalDatapoint` is empty. */
     totalValue?: number;
+    /** Preset picked in the ƒx dialog of `totalDatapoint`; only remembers the choice. */
+    totalValueTransform?: string;
+    /** Converts `totalDatapoint` into the unit the entries are shown in: raw × totalValueFactor + totalValueOffset (e.g. 0.001 for a reference in Wh next to kWh entries). */
+    totalValueFactor?: number;
+    /** Added after totalValueFactor. */
+    totalValueOffset?: number;
     /** Label of the unused remainder in the legend. Default 'Rest'. */
     restLabel?: string;
     /** Colour of the remainder segment. Default REST_COLOR. */
@@ -77,6 +84,10 @@ export interface EnergyBalanceOptions {
     unit?: string;
     decimals?: number;
     numberFormat?: NumberFormat;
+    /** Move every value and total along its unit's prefix ladder (850 Wh, 1.25 kWh, 3.4 MWh). Default false. */
+    valueAutoUnit?: boolean;
+    /** With `valueAutoUnit`: decimals once a value sits above the smallest unit of its ladder; unset = the normal decimals. */
+    valueAutoUnitDecimals?: number;
     range?: EChartTimeRange;
     rangeCustomValue?: number;
     /** Unit of the own range: m, h, d, w, M (calendar months), y (calendar years). */
@@ -294,6 +305,8 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                         id: targetEntryId(b.id),
                         datapointId: b.totalDatapoint as string,
                         aggregate: 'last',
+                        valueFactor: b.totalValueFactor,
+                        valueOffset: b.totalValueOffset,
                     }),
                 ),
         ],
@@ -312,8 +325,20 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const getValue = (entryId: string): number | null =>
         usingSample ? (SAMPLE_VALUES[entryId] ?? null) : (valueMap.get(entryId)?.value ?? null);
 
-    const fmt = (v: number, e: EnergyEntry) =>
-        `${formatNum(v, e.decimals ?? decimals, e.numberFormat ?? numFmt)} ${e.unit ?? unit}`;
+    // Automatic unit (Wh → kWh → MWh): `ref` picks the rung, so "sum / target" share one unit.
+    const autoUnit = o.valueAutoUnit === true;
+    const scaled = (v: number, u: string, dec: number, nf: NumberFormat, ref = v) => {
+        if (!autoUnit || !Number.isFinite(ref) || ref === 0) return { text: formatNum(v, dec, nf), unit: u };
+        const r = autoScaleUnit(ref, u);
+        const k = (r.value as number) / ref;
+        const d = autoUnitDecimals(r.scaledUp, dec, o.valueAutoUnitDecimals);
+        return { text: formatNum(v * k, d, nf), unit: r.unit ?? u };
+    };
+    const fmt = (v: number, e: EnergyEntry) => {
+        const s = scaled(v, e.unit ?? unit, e.decimals ?? decimals, e.numberFormat ?? numFmt);
+        return `${s.text} ${s.unit}`;
+    };
+    const fmtTotal = (v: number, ref = v) => scaled(v, unit, decimals, numFmt, ref);
 
     if (bars.length === 0) {
         return (
@@ -408,6 +433,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     // overrun reads as 100 % rather than as a slice bulging out of the circle.
                     const total = target !== null ? Math.max(target, sum) : sum;
                     const rest = target !== null ? Math.max(0, target - sum) : 0;
+                    const totalText = fmtTotal(total);
                     if (rest > 0 && bar.showRest !== false) {
                         computed.push({
                             entry: { id: restEntryId(bar.id), datapointId: '', label: bar.restLabel ?? 'Rest' },
@@ -468,7 +494,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                         ? target !== null
                                             ? // With a reference the share of it is the headline number.
                                               { value: String(Math.round(usedPct)), unit: '%' }
-                                            : { value: formatNum(total, decimals, numFmt), unit }
+                                            : { value: totalText.text, unit: totalText.unit }
                                         : null
                                 }
                             />
@@ -501,8 +527,8 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                         >
                                             {target !== null ? (
                                                 <>
-                                                    {formatNum(sum, decimals, numFmt)} /{' '}
-                                                    {formatNum(target, decimals, numFmt)} {unit}
+                                                    {fmtTotal(sum, target).text} / {fmtTotal(target).text}{' '}
+                                                    {fmtTotal(target).unit}
                                                     <span
                                                         style={{
                                                             fontSize: Math.round((totalFontSize * 11) / 14),
@@ -516,7 +542,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                                 </>
                                             ) : (
                                                 <>
-                                                    {formatNum(total, decimals, numFmt)} {unit}
+                                                    {totalText.text} {totalText.unit}
                                                 </>
                                             )}
                                         </div>

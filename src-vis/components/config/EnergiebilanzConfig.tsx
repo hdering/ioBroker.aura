@@ -14,6 +14,7 @@ import type { EnergyAggregate, EnergyEntry } from '../../hooks/useEnergyBalanceV
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
 import { ValueFormatRow } from './ValueFormatRow';
+import { ValueTransformButton } from './ValueTransformButton';
 import { IconPickerModal } from './IconPickerModal';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
@@ -184,6 +185,23 @@ function EntryRow({
                             >
                                 <Database size={13} />
                             </button>
+                            {/* Wh → kWh & Co. — converted before a delta/consumption is differenced. */}
+                            <ValueTransformButton
+                                factor={entry.valueFactor}
+                                offset={entry.valueOffset}
+                                presetId={entry.valueTransform}
+                                dpId={entry.datapointId}
+                                fillUnit
+                                className="h-[26px]"
+                                onPatch={(p) =>
+                                    onUpdate({
+                                        valueTransform: p.valueTransform,
+                                        valueFactor: p.valueFactor,
+                                        valueOffset: p.valueOffset,
+                                        ...(p.unit ? { unit: p.unit } : {}),
+                                    })
+                                }
+                            />
                         </div>
                     </div>
 
@@ -482,6 +500,21 @@ function BarSection({
                     >
                         <Database size={13} />
                     </button>
+                    {/* The reference must read in the unit the entries are shown in. */}
+                    <ValueTransformButton
+                        factor={bar.totalValueFactor}
+                        offset={bar.totalValueOffset}
+                        presetId={bar.totalValueTransform}
+                        dpId={bar.totalDatapoint}
+                        className="h-[26px]"
+                        onPatch={(p) =>
+                            onUpdate({
+                                totalValueTransform: p.valueTransform,
+                                totalValueFactor: p.valueFactor,
+                                totalValueOffset: p.valueOffset,
+                            })
+                        }
+                    />
                 </div>
                 <div className="flex items-end gap-1.5">
                     <div style={{ width: 84 }}>
@@ -1060,6 +1093,34 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                         inputClassName={inputCls}
                         inputStyle={inputStyle}
                     />
+                    <ToggleRow
+                        visKey="valueAutoUnit"
+                        label="Einheit automatisch anpassen"
+                        hint="850 Wh, 1,25 kWh, 3,4 MWh — für Werte und Summen"
+                        on={o.valueAutoUnit === true}
+                        onChange={(v) => setO({ valueAutoUnit: v || undefined })}
+                    >
+                        {o.valueAutoUnit === true && (
+                            <div>
+                                <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Nachkommastellen ab der zweiten Stufe (kWh, MWh …)
+                                </label>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    max={6}
+                                    value={o.valueAutoUnitDecimals ?? ''}
+                                    placeholder="wie oben"
+                                    onChange={(e) => {
+                                        const n = parseInt(e.target.value, 10);
+                                        setO({ valueAutoUnitDecimals: isFinite(n) && n >= 0 ? n : undefined });
+                                    }}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                />
+                            </div>
+                        )}
+                    </ToggleRow>
                 </>
             </ConfigSection>
         </>

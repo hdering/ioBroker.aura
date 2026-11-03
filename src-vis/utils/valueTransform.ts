@@ -60,6 +60,7 @@ export const VALUE_TRANSFORM_PRESETS: ValueTransformPreset[] = [
     { id: 's-h', label: 'Sekunden → Stunden', factor: 1 / 3600, offset: 0, unit: 'h' },
     { id: 'ms-s', label: 'Millisekunden → Sekunden', factor: 1 / 1000, offset: 0, unit: 's' },
     { id: 'wh-kwh', label: 'Wh → kWh', factor: 0.001, offset: 0, unit: 'kWh' },
+    { id: 'wh-mwh', label: 'Wh → MWh', factor: 0.000001, offset: 0, unit: 'MWh' },
     { id: 'w-kw', label: 'W → kW', factor: 0.001, offset: 0, unit: 'kW' },
     { id: 'b-kb', label: 'Bytes → KB', factor: 1 / 1024, offset: 0, unit: 'KB' },
     { id: 'b-mb', label: 'Bytes → MB', factor: 1 / (1024 * 1024), offset: 0, unit: 'MB' },

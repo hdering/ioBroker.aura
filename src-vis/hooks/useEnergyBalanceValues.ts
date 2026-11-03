@@ -25,6 +25,7 @@ import type { EChartTimeRange } from './useMultiSeriesData';
 import { unitSpanMs, type RangeUnit } from '../utils/rangeChips';
 import type { ioBrokerState } from '../types';
 import type { NumberFormat } from '../utils/formatValue';
+import { applyValueTransform, transformMagnitude, transformSign } from '../utils/valueTransform';
 
 export type EnergyAggregate = 'last' | 'delta' | 'consumption' | 'sum' | 'average' | 'max' | 'min';
 
@@ -51,6 +52,44 @@ export interface EnergyEntry {
      * Everything but 'last' needs a history adapter on the datapoint and follows the range buttons.
      */
     aggregate?: EnergyAggregate;
+    /** Preset picked in the ƒx dialog (e.g. 'wh-kwh'); only remembers the choice, the numbers are valueFactor/valueOffset. */
+    valueTransform?: string;
+    /** Display conversion: shown value = raw × valueFactor + valueOffset (e.g. 0.001 for Wh → kWh). Datapoint and history stay untouched. With 'delta'/'consumption' the readings are converted first and differenced afterwards, so the offset cancels out. */
+    valueFactor?: number;
+    /** Added after valueFactor (see there). Cancels out with 'delta'/'consumption'. */
+    valueOffset?: number;
+}
+
+/**
+ * Converts one reading of an entry for display (see `valueFactor`). Counter modes difference the
+ * readings, so they run on the factor's MAGNITUDE and get its sign afterwards — a falling counter
+ * would read as a row of resets otherwise (same as the advanced chart's `deltaTransform`).
+ */
+function entryReading(e: EnergyEntry, raw: number, counter: boolean): number {
+    const factor = counter ? transformMagnitude(e.valueFactor) : e.valueFactor;
+    return applyValueTransform(raw, factor, e.valueOffset) as number;
+}
+
+/**
+ * One entry's number for the window, in display units: the logged readings (sorted, raw) are
+ * converted first and then reduced, so 'delta'/'consumption' difference converted readings —
+ * the offset cancels out there, the factor's sign is applied to the finished value.
+ */
+export function aggregateEntry(
+    e: EnergyEntry,
+    data: [number, number][],
+    mode: EnergyAggregate,
+    windowStart: number,
+): number | null {
+    const differences = mode === 'consumption' || mode === 'delta';
+    const conv = data.map((d): [number, number] => [d[0], entryReading(e, d[1], differences)]);
+    const reduced = mode === 'consumption' ? counterIncrease(conv, windowStart) : reduce(conv, mode);
+    return reduced !== null && differences ? reduced * transformSign(e.valueFactor) : reduced;
+}
+
+/** A live / current value converted for display; non-numbers come back as null. */
+export function liveValue(e: EnergyEntry, val: unknown): number | null {
+    return typeof val === 'number' ? entryReading(e, val, false) : null;
 }
 
 export interface EnergyValueResult {
@@ -132,7 +171,16 @@ export function useEnergyBalanceValues(
         };
     }, []);
 
-    const depKey = JSON.stringify(entries.map((e) => [e.id, e.datapointId, e.historyInstance, e.aggregate ?? 'last']));
+    const depKey = JSON.stringify(
+        entries.map((e) => [
+            e.id,
+            e.datapointId,
+            e.historyInstance,
+            e.aggregate ?? 'last',
+            e.valueFactor,
+            e.valueOffset,
+        ]),
+    );
     const rangeMs =
         winStart !== undefined && winEnd !== undefined ? winEnd - winStart : getRangeMs(range, customVal, customUnit);
 
@@ -198,7 +246,7 @@ export function useEnergyBalanceValues(
             if (mode === 'last') {
                 getStateDirect(e.datapointId).then((state) => {
                     if (!mountedRef.current) return;
-                    const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                    const val = liveValue(e, state?.val);
                     setResults((prev) => new Map(prev).set(e.id, { value: val, loading: false }));
                 });
                 return;
@@ -212,11 +260,12 @@ export function useEnergyBalanceValues(
                 // next changes. Seed instantly from the cache if present to avoid a flash.
                 const cached = getStateFromCache(e.datapointId);
                 if (typeof cached?.val === 'number') {
-                    setResults((prev) => new Map(prev).set(e.id, { value: cached.val as number, loading: false }));
+                    const val = liveValue(e, cached.val);
+                    setResults((prev) => new Map(prev).set(e.id, { value: val, loading: false }));
                 }
                 getStateDirect(e.datapointId).then((state) => {
                     if (!mountedRef.current) return;
-                    const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                    const val = liveValue(e, state?.val);
                     setResults((prev) => new Map(prev).set(e.id, { value: val, loading: false }));
                 });
                 return;
@@ -254,7 +303,7 @@ export function useEnergyBalanceValues(
                         )
                         .map((d): [number, number] => [d.ts, d.val as number])
                         .sort((a, b) => a[0] - b[0]);
-                    const value = isCounter ? counterIncrease(data, start) : reduce(data, mode);
+                    const value = aggregateEntry(e, data, mode, start);
                     setResults((prev) => new Map(prev).set(e.id, { value, loading: false }));
                 })
                 .catch(() => {
@@ -282,7 +331,8 @@ export function useEnergyBalanceValues(
                 return subscribe(e.datapointId, (state: ioBrokerState) => {
                     if (typeof state.val !== 'number') return;
                     if (instance && mode !== 'last') return; // ranged aggregate → refresh handles it
-                    setResults((prev) => new Map(prev).set(e.id, { value: state.val as number, loading: false }));
+                    const val = liveValue(e, state.val);
+                    setResults((prev) => new Map(prev).set(e.id, { value: val, loading: false }));
                 });
             });
         return () => unsubs.forEach((u) => u());
