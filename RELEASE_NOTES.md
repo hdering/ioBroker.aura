@@ -17,3 +17,4 @@
 - feat: Tabs - a condition's accent colour now also colours the icon of an inactive tab (#907)
 - feat: Tab bar - new switch to hide the tab bar in the frontend (global, per layout or per section); tabs stay reachable through their address (#910)
 - feat: Navigation - swipe gestures on touch devices: left/right and up/down switch tab or section (configurable per direction, globally, per layout or per section); widgets with a swipe of their own keep it (#908)
+- fix: Weather - the comma after the condition text sits directly behind the word instead of after a gap ("Overcast, 3°C") (#913)

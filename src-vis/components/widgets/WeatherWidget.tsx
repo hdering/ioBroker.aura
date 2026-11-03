@@ -664,7 +664,7 @@ export function WeatherWidget({ config }: WidgetProps) {
                 <div className="flex items-baseline gap-2 flex-wrap">
                     {showCondition && (
                         <span className="font-bold" style={{ color: 'var(--text-secondary)', fontSize: fs(0.85) }}>
-                            {info.desc}
+                            {info.desc},
                         </span>
                     )}
                     <span
@@ -674,7 +674,7 @@ export function WeatherWidget({ config }: WidgetProps) {
                             fontSize: fs(tempFontSize > 0 ? tempFontSize : 0.85),
                         }}
                     >
-                        {showCondition ? `, ${tempStr}` : tempStr}
+                        {tempStr}
                     </span>
                 </div>
                 <div style={{ color: 'var(--text-secondary)', fontSize: fs(0.75) }}>
