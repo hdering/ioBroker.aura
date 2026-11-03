@@ -11,3 +11,4 @@
 - feat: Distribution chart - per-entry value conversion (e.g. Wh → kWh), converted before delta/consumption is differenced; the group reference datapoint gets its own factor
 - feat: Distribution chart - optional automatic unit (850 Wh, 1.25 kWh, 3.4 MWh) for values and totals
 - feat: Value conversion - new preset Wh → MWh
+- feat: News - adjustable ticker text size: default, fixed px, or automatic from the widget height (#906)

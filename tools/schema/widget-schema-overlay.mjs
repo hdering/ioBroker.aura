@@ -1303,6 +1303,13 @@ export const WIDGET_OPTION_NOTES = {
             default: 60,
             description: 'Nur Layout "ticker": Laufgeschwindigkeit in px/s. Hover hält an.',
         },
+        fontSize: {
+            type: 'number',
+            default: undefined,
+            description:
+                'Nur Layout "ticker": Textgröße der Laufschrift. Leer = Standard (wie Fließtext), 0 = automatisch ' +
+                'nach Widget-Höhe (nie kleiner als Standard), n = n px (mal globaler Schriftskalierung).',
+        },
         markNew: {
             description:
                 'Punkt an Artikeln, die auf diesem Gerät noch nicht geöffnet wurden (localStorage je Widget); „N neu“ in der ' +

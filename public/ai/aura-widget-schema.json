@@ -14146,6 +14146,10 @@
           },
           "description": "Die Feeds, zusammengeführt und nach Datum sortiert (gleicher Artikel aus zwei Feeds nur einmal). type \"url\" = RSS-/Atom-Adresse in url, der Aura-Server holt und cached sie (kein CORS-Problem); type \"adapter\" = Datenpunkt des ioBroker.rssfeed-Adapters in datapoint (z. B. \"rssfeed.0.ntv\", JSON {meta, articles})."
         },
+        "fontSize": {
+          "type": "number",
+          "description": "Nur Layout \"ticker\": Textgröße der Laufschrift. Leer = Standard (wie Fließtext), 0 = automatisch nach Widget-Höhe (nie kleiner als Standard), n = n px (mal globaler Schriftskalierung)."
+        },
         "imageProxy": {
           "type": "string",
           "ref": "FeedImageProxy",

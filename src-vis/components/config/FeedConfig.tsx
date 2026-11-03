@@ -342,6 +342,12 @@ export function FeedConfig({ config, onConfigChange }: Props) {
     const layout = (config.layout as WidgetLayout | undefined) ?? 'default';
     const sources = feedSources(o.feeds as FeedSource[] | undefined);
     const showSource = typeof o.showSource === 'boolean' ? (o.showSource ? 'on' : 'off') : 'auto';
+    const fontMode =
+        o.fontSize === undefined || o.fontSize === null || o.fontSize === ''
+            ? 'default'
+            : Number(o.fontSize) > 0
+              ? 'fixed'
+              : 'auto';
 
     return (
         <>
@@ -434,6 +440,27 @@ export function FeedConfig({ config, onConfigChange }: Props) {
                         min={10}
                         max={400}
                         onChange={(v) => set({ tickerSpeed: v })}
+                    />
+                )}
+                {layout === 'ticker' && (
+                    <Select
+                        label={t('feed.cfg.fontSize')}
+                        value={fontMode}
+                        options={[
+                            { id: 'default', label: t('feed.font.default') },
+                            { id: 'auto', label: t('feed.font.auto') },
+                            { id: 'fixed', label: t('feed.font.fixed') },
+                        ]}
+                        onChange={(v) => set({ fontSize: v === 'default' ? undefined : v === 'auto' ? 0 : 20 })}
+                    />
+                )}
+                {layout === 'ticker' && fontMode === 'fixed' && (
+                    <NumberField
+                        label={t('feed.cfg.fontSizePx')}
+                        value={Number(o.fontSize)}
+                        min={8}
+                        max={200}
+                        onChange={(v) => set({ fontSize: v })}
                     />
                 )}
                 {layout === 'single' && (

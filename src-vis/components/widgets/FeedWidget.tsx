@@ -298,6 +298,11 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
     const openMode = (o.openMode as FeedOpenMode | undefined) ?? FEED_DEFAULTS.openMode;
     const rotateSec = Math.max(2, Number(o.rotateSec) || FEED_DEFAULTS.rotateSec);
     const tickerSpeed = Math.max(10, Number(o.tickerSpeed) || FEED_DEFAULTS.tickerSpeed);
+    // Ticker text (#906): unset = the standard size, 0 = follows the widget height, n = px.
+    const tickerFont =
+        o.fontSize === undefined || o.fontSize === null || o.fontSize === ''
+            ? undefined
+            : Math.max(0, Number(o.fontSize) || 0);
     const include = typeof o.includeKeywords === 'string' ? o.includeKeywords : '';
     const exclude = typeof o.excludeKeywords === 'string' ? o.excludeKeywords : '';
     const markNew = o.markNew === true;
@@ -612,6 +617,7 @@ export function FeedWidget({ config, editMode, onLastChange }: WidgetProps) {
             <FeedTicker
                 items={items}
                 speed={tickerSpeed}
+                fontSize={tickerFont}
                 itemProps={itemProps}
                 sourceColor={sourceColor}
                 sourceName={showSource ? sourceName : undefined}
@@ -749,6 +755,7 @@ type ItemProps = (item: FeedItem) => React.HTMLAttributes<HTMLElement> & Record<
 function FeedTicker({
     items,
     speed,
+    fontSize,
     itemProps,
     sourceColor,
     sourceName,
@@ -756,13 +763,18 @@ function FeedTicker({
 }: {
     items: FeedItem[];
     speed: number;
+    /** undefined = standard size, 0 = from the strip height, n = px (times the font scale). */
+    fontSize?: number;
     itemProps: ItemProps;
     sourceColor: (i: number) => string;
     sourceName?: (i: number) => string;
     newDot?: (item: FeedItem) => React.ReactNode;
 }) {
+    const boxRef = useRef<HTMLDivElement>(null);
     const trackRef = useRef<HTMLDivElement>(null);
     const [seconds, setSeconds] = useState(30);
+    const [boxH, setBoxH] = useState(0);
+    const auto = fontSize === 0;
     const sig = items.map((i) => i.id).join('|');
 
     // The track holds the headlines twice and moves by half its width, so the
@@ -775,7 +787,26 @@ function FeedTicker({
         const ro = new ResizeObserver(measure);
         ro.observe(el);
         return () => ro.disconnect();
-    }, [sig, speed]);
+    }, [sig, speed, fontSize, boxH]);
+
+    useEffect(() => {
+        const el = boxRef.current;
+        if (!auto || !el) return;
+        const measure = () => setBoxH(el.clientHeight);
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [auto]);
+
+    // Auto never drops below the standard size: where the height follows the
+    // content (mobile flow) the strip would otherwise shrink itself step by step.
+    const font =
+        fontSize === undefined
+            ? undefined
+            : auto
+              ? `max(calc(0.875rem * var(--font-scale, 1)), ${Math.floor(boxH * 0.6)}px)`
+              : `calc(${fontSize}px * var(--font-scale, 1))`;
 
     const run = (copy: number) =>
         items.map((item) => (
@@ -783,9 +814,13 @@ function FeedTicker({
                 key={`${copy}:${item.source}:${item.id}`}
                 {...(copy ? { 'aria-hidden': true } : {})}
                 {...itemProps(item)}
-                className="aura-feed-item aura-feed-ticker-item inline-flex items-center gap-1.5 pr-8"
+                className="aura-feed-item aura-feed-ticker-item inline-flex items-center"
+                style={{ gap: '0.43em', paddingRight: '2.3em' }}
             >
-                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: sourceColor(item.source) }} />
+                <span
+                    className="rounded-full shrink-0"
+                    style={{ width: '0.43em', height: '0.43em', background: sourceColor(item.source) }}
+                />
                 {sourceName && (
                     <span className="aura-feed-source font-semibold" style={{ color: sourceColor(item.source) }}>
                         {sourceName(item.source)}
@@ -799,12 +834,17 @@ function FeedTicker({
         ));
 
     return (
-        <div className="aura-feed-ticker flex-1 min-h-0 flex items-center overflow-hidden">
+        <div ref={boxRef} className="aura-feed-ticker flex-1 min-h-0 flex items-center overflow-hidden">
             <style>{TICKER_CSS}</style>
             <div
                 ref={trackRef}
                 className="aura-feed-ticker-track flex whitespace-nowrap text-sm leading-normal"
-                style={{ '--aura-feed-ticker-s': `${seconds}s` } as React.CSSProperties}
+                style={
+                    {
+                        '--aura-feed-ticker-s': `${seconds}s`,
+                        ...(font ? { fontSize: font, lineHeight: 1.5 } : {}),
+                    } as React.CSSProperties
+                }
             >
                 {run(0)}
                 {run(1)}

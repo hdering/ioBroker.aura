@@ -234,6 +234,27 @@ check('ticker: headlines twice for a seamless loop', (await W('ft').locator('.au
     check('ticker: hover pauses', (await track.evaluate((el) => getComputedStyle(el).animationPlayState)) === 'paused');
     await page.mouse.move(1270, 890);
 }
+// Text size (#906): unset = 14 px, n = n px, 0 = from the strip height (never below 14 px).
+{
+    const fontPx = (id) =>
+        W(id)
+            .locator('.aura-feed-ticker-track')
+            .evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    check('ticker: standard text size', (await fontPx('ft')) === 14, String(await fontPx('ft')));
+    await mount('ftp', { feeds: SRC, fontSize: 24 }, 'ticker', 3);
+    await waitFor(async () => (await W('ftp').locator('.aura-feed-ticker-item').count()) === 6);
+    check('ticker: fixed text size', (await fontPx('ftp')) === 24, String(await fontPx('ftp')));
+    await mount('fta', { feeds: SRC, fontSize: 0 }, 'ticker', 8);
+    await waitFor(async () => (await fontPx('fta')) > 20);
+    const box = await W('fta').locator('.aura-feed-ticker').boundingBox();
+    const track = await W('fta').locator('.aura-feed-ticker-track').boundingBox();
+    const px = await fontPx('fta');
+    check(
+        'ticker: automatic size follows the widget height',
+        px > 20 && track.height <= box.height,
+        JSON.stringify({ px, box: box.height, track: track.height }),
+    );
+}
 
 // ── single ───────────────────────────────────────────────────────────────────
 await mount('fs', { feeds: SRC, rotateSec: 2 }, 'single', 8);
