@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Delete, Lock, X } from 'lucide-react';
+import { Lock, X } from 'lucide-react';
 import { useT } from '../../i18n';
 import type { PinScope } from '../../utils/pinLock';
+import { NumericKeypad, PinDots } from './NumericKeypad';
 
 /**
  * The unlock dialog for a PIN-protected section / tab. Rendered in place of the
@@ -136,24 +137,7 @@ export function PinPrompt({
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2.5" style={{ minHeight: 16 }}>
-                    {Array.from({ length: dots }, (_, i) => (
-                        <span
-                            key={i}
-                            className="rounded-full transition-all"
-                            style={{
-                                width: 11,
-                                height: 11,
-                                background:
-                                    i < entry.length
-                                        ? error
-                                            ? 'var(--color-error, #ef4444)'
-                                            : 'var(--accent)'
-                                        : 'var(--app-border)',
-                            }}
-                        />
-                    ))}
-                </div>
+                <PinDots count={dots} filled={entry.length} error={error} />
 
                 <div
                     className="text-[11px] text-center"
@@ -162,20 +146,7 @@ export function PinPrompt({
                     {error ? t('pin.wrong') : ''}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 w-full">
-                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((d) => (
-                        <PadButton key={d} onClick={() => push(d)}>
-                            {d}
-                        </PadButton>
-                    ))}
-                    <PadButton onClick={() => setEntry('')} muted>
-                        C
-                    </PadButton>
-                    <PadButton onClick={() => push('0')}>0</PadButton>
-                    <PadButton onClick={back} muted>
-                        <Delete size={16} />
-                    </PadButton>
-                </div>
+                <NumericKeypad onDigit={push} onClear={() => setEntry('')} onBack={back} />
 
                 {onCancel && (
                     <button
@@ -189,21 +160,5 @@ export function PinPrompt({
                 )}
             </div>
         </div>
-    );
-}
-
-function PadButton({ children, onClick, muted }: { children: React.ReactNode; onClick: () => void; muted?: boolean }) {
-    return (
-        <button
-            onClick={onClick}
-            className="h-12 rounded-xl text-lg font-medium flex items-center justify-center transition-opacity hover:opacity-80 active:opacity-60 select-none"
-            style={{
-                background: 'var(--app-bg)',
-                border: '1px solid var(--app-border)',
-                color: muted ? 'var(--text-secondary)' : 'var(--text-primary)',
-            }}
-        >
-            {children}
-        </button>
     );
 }

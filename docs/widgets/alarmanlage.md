@@ -20,6 +20,7 @@ Kein klassischer Haupt-Datenpunkt. Stattdessen wird ein **Instanz-Präfix** gese
 | `use.list` · `use.disable` · `use.enable_with_delay` | schreiben | scharf / aus / mit Verzögerung |
 | `use.activate_sharp_inside` · `use.activate_nightrest` | schreiben | Innen / Nachtruhe |
 | `use.panic` · `use.quit_changes` · `use.disable_password` | schreiben | Panik / Quittieren / PIN |
+| `use.toggle_password` · `use.toggle_with_delay_and_password` | schreiben | Scharf / Verzögert mit PIN |
 
 ## Einstellungen
 
@@ -59,7 +60,11 @@ Blendet die einzelnen Blöcke der Karte ein oder aus.
 | Option | Standard | |
 | --- | --- | --- |
 | `requirePinForDisarm` | `false` | Entschärfen erst nach PIN-Eingabe |
+| `requirePinForArm` | `false` | Scharf / Verzögert erst nach PIN-Eingabe (Innen und Nachtruhe ohne PIN) |
+| `pinInput` | `field` | `field` Eingabefeld · `keypad` Ziffernblock im Popup |
 | `panicConfirm` | `true` | Panik vorher bestätigen |
 | `compactMode` | `false` | Modus-Buttons 2-spaltig statt 4-spaltig |
 | `logLines` | `5` | Anzahl Log-Zeilen (`0`–`20`) |
 | `sizeScale` | `1` | Skalierung der Karte (`0.5`–`2.5`) |
+
+Die PIN legt der alarm-Adapter fest (Instanz-Einstellungen → Passwort); Aura prüft sie nicht selbst.

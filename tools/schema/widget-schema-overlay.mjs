@@ -1740,6 +1740,15 @@ export const WIDGET_OPTION_NOTES = {
         showPanic: { description: 'Panik-Taste anzeigen.' },
         panicConfirm: { description: 'Vor dem Panikalarm eine Rückfrage anzeigen.' },
         requirePinForDisarm: { description: 'Zum Unscharfschalten die PIN abfragen.' },
+        requirePinForArm: {
+            description:
+                'Zum Scharfschalten (Scharf, Verzögert) die PIN abfragen; schreibt use.toggle_password. Innen und Nachtruhe bleiben ohne PIN.',
+        },
+        pinInput: {
+            description:
+                'Art der PIN-Eingabe (mit requirePinForDisarm/requirePinForArm): "field" = Eingabefeld mit Gerätetastatur, ' +
+                '"keypad" = Ziffernblock im Popup (für Wandtablets).',
+        },
         compactMode: { description: 'Dichtere Darstellung.' },
     },
     calendar: {

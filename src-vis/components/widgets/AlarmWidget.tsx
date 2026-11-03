@@ -23,6 +23,8 @@ import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { ConfigSection } from '../config/ConfigSection';
 import { ToggleRow, VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
+import { Unavailable } from '../config/Unavailable';
+import { AlarmKeypadModal } from './AlarmKeypadModal';
 
 // ── alarm state mapping (mirrors info.state_list of ioBroker.alarm) ──────────
 
@@ -263,6 +265,11 @@ export function AlarmWidget({ config }: WidgetProps) {
     const showPresence = o.showPresence === true;
     const logLines = Math.max(0, Math.min(20, (o.logLines as number) ?? 5));
     const requirePin = o.requirePinForDisarm === true;
+    // #911: arming via the adapter's toggle_password DPs, which check the same PIN.
+    // Only full arming — inside/night rest have no password DP in the adapter.
+    const requireArmPin = o.requirePinForArm === true;
+    // #911: touch keypad in a popup instead of the inline field (wall tablets)
+    const keypad = (requirePin || requireArmPin) && o.pinInput === 'keypad';
     const panicConfirm = o.panicConfirm !== false;
     const compactMode = o.compactMode === true;
     const sizeScale = Math.max(0.5, Math.min(2.5, (o.sizeScale as number) ?? 1));
@@ -274,6 +281,8 @@ export function AlarmWidget({ config }: WidgetProps) {
 
     const [pin, setPin] = useState('');
     const [pinOpen, setPinOpen] = useState(false);
+    // What the PIN entry is for — decides the DP the code is written to.
+    const [pinTarget, setPinTarget] = useState<'disarm' | 'arm' | 'armDelay'>('disarm');
     const [confirmAction, setConfirmAction] = useState<null | (() => void)>(null);
 
     // Auto-open pin entry when burglar/silent active and a disarm is requested.
@@ -299,14 +308,26 @@ export function AlarmWidget({ config }: WidgetProps) {
 
     const writeUseList = (n: number) => setState(`${prefix}.use.list`, n);
 
+    const askPin = (target: typeof pinTarget) => {
+        setPinTarget(target);
+        setPinOpen(true);
+    };
     const doDisarm = () => {
         if (requirePin) {
-            setPinOpen(true);
+            askPin('disarm');
             return;
         }
         setState(`${prefix}.use.disable`, true);
     };
-    const doEnableDelay = () => setState(`${prefix}.use.enable_with_delay`, true);
+    // The toggle DPs would disarm an already armed system — never send them then.
+    const doArm = () => {
+        if (!requireArmPin) writeUseList(USE_LIST.sharp);
+        else if (data.stateCode !== 1) askPin('arm');
+    };
+    const doEnableDelay = () => {
+        if (!requireArmPin) setState(`${prefix}.use.enable_with_delay`, true);
+        else if (data.stateCode !== 1) askPin('armDelay');
+    };
     const doSharpInside = () => setState(`${prefix}.use.activate_sharp_inside`, true);
     const doNightRest = () => setState(`${prefix}.use.activate_nightrest`, true);
     const doPanic = () => {
@@ -319,9 +340,17 @@ export function AlarmWidget({ config }: WidgetProps) {
         setPin('');
         setPinOpen(false);
     };
-    const submitPin = () => {
-        if (!pin) return;
-        setState(`${prefix}.use.disable_password`, pin);
+    const submitPin = (code = pin) => {
+        if (!code) return;
+        // A triggered alarm always shows the disarm entry, whatever was asked before.
+        const target = triggered ? 'disarm' : pinTarget;
+        const dp =
+            target === 'arm'
+                ? 'use.toggle_password'
+                : target === 'armDelay'
+                  ? 'use.toggle_with_delay_and_password'
+                  : 'use.disable_password';
+        setState(`${prefix}.${dp}`, code);
         setPin('');
         setPinOpen(false);
     };
@@ -355,7 +384,7 @@ export function AlarmWidget({ config }: WidgetProps) {
             color: '#3b82f6',
             label: t('alarm.mode.sharp') as string,
             Icon: ({ size, color }: { size?: number; color?: string }) => <ShieldCheck size={size} color={color} />,
-            onClick: () => writeUseList(USE_LIST.sharp),
+            onClick: doArm,
             disabled: !data.enableable && data.stateCode !== 1,
         },
         showModeInside && {
@@ -469,8 +498,43 @@ export function AlarmWidget({ config }: WidgetProps) {
                 </div>
             )}
 
-            {/* PIN entry: after a PIN disarm request, and always while an alarm is triggered */}
-            {pinOpen || (triggered && requirePin) ? (
+            {keypad && pinOpen && (
+                <AlarmKeypadModal
+                    title={
+                        (triggered || pinTarget === 'disarm'
+                            ? t('alarm.keypad.title')
+                            : t('alarm.keypad.titleArm')) as string
+                    }
+                    wrongPin={data.wrongPassword}
+                    onSubmit={submitPin}
+                    onCancel={cancelPin}
+                />
+            )}
+
+            {/* Keypad mode: while an alarm is triggered a button reopens the keypad popup */}
+            {keypad && triggered ? (
+                <div className="flex flex-col shrink-0" style={{ gap: 4 * sizeScale }}>
+                    <button
+                        onClick={() => setPinOpen(true)}
+                        className="aura-alarm-keypad-open rounded-xl flex items-center justify-center font-semibold"
+                        style={{
+                            padding: 8 * sizeScale,
+                            gap: 6 * sizeScale,
+                            background: '#ef4444',
+                            color: '#fff',
+                            border: '1px solid #ef4444',
+                            fontSize: fsBase,
+                        }}
+                    >
+                        <KeyRound size={Math.round(14 * sizeScale)} />
+                        {t('alarm.pinPlaceholder') as string}
+                    </button>
+                    {data.wrongPassword && (
+                        <span style={{ color: '#ef4444', fontSize: fsTiny }}>{t('alarm.wrongPin') as string}</span>
+                    )}
+                </div>
+            ) : /* PIN entry: after a PIN disarm request, and always while an alarm is triggered */
+            !keypad && (pinOpen || (triggered && requirePin)) ? (
                 <div
                     className="flex flex-wrap items-center rounded-xl shrink-0"
                     style={{
@@ -502,7 +566,7 @@ export function AlarmWidget({ config }: WidgetProps) {
                     />
                     {/* Icon only: with the label the PIN input got squeezed to nothing in narrow widgets */}
                     <button
-                        onClick={submitPin}
+                        onClick={() => submitPin()}
                         className="rounded-lg flex items-center justify-center shrink-0"
                         title={t('alarm.send') as string}
                         aria-label={t('alarm.send') as string}
@@ -1044,6 +1108,34 @@ export function AlarmConfig({
                     def={false}
                     hint={t('alarm.cfg.requirePin.hint') as string}
                 />
+                <Toggle
+                    label={t('alarm.cfg.requirePinArm') as string}
+                    k="requirePinForArm"
+                    def={false}
+                    hint={t('alarm.cfg.requirePinArm.hint') as string}
+                />
+                <Unavailable
+                    reason={
+                        o.requirePinForDisarm === true || o.requirePinForArm === true
+                            ? undefined
+                            : (t('alarm.cfg.pinInput.needsPin') as string)
+                    }
+                >
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('alarm.cfg.pinInput') as string}
+                        </label>
+                        <select
+                            value={o.pinInput === 'keypad' ? 'keypad' : 'field'}
+                            onChange={(e) => set({ pinInput: e.target.value })}
+                            className={inputCls}
+                            style={inputSty}
+                        >
+                            <option value="field">{t('alarm.cfg.pinInput.field') as string}</option>
+                            <option value="keypad">{t('alarm.cfg.pinInput.keypad') as string}</option>
+                        </select>
+                    </div>
+                </Unavailable>
                 <Toggle label={t('alarm.cfg.panicConfirm') as string} k="panicConfirm" def={true} />
             </ConfigSection>
         </>

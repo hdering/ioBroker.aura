@@ -7562,10 +7562,18 @@
           "default": true,
           "description": "Vor dem Panikalarm eine Rückfrage anzeigen."
         },
+        "pinInput": {
+          "description": "Art der PIN-Eingabe (mit requirePinForDisarm/requirePinForArm): \"field\" = Eingabefeld mit Gerätetastatur, \"keypad\" = Ziffernblock im Popup (für Wandtablets)."
+        },
         "reachColor": {
           "type": "string",
           "description": "Farbe des Erreichbarkeits-Badges bei „nicht erreichbar“. Leer = var(--badge-crit) (rot).",
           "color": true
+        },
+        "requirePinForArm": {
+          "type": "boolean",
+          "default": false,
+          "description": "Zum Scharfschalten (Scharf, Verzögert) die PIN abfragen; schreibt use.toggle_password. Innen und Nachtruhe bleiben ohne PIN."
         },
         "requirePinForDisarm": {
           "type": "boolean",
