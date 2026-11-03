@@ -122,7 +122,16 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
         'guidelinesShowInFrontend',
         'guidelinesShowResolution',
     ],
-    nav: ['idleReturnEnabled', 'idleReturnDelay', 'idleStateEnabled', 'idleStateDelay'],
+    nav: [
+        'idleReturnEnabled',
+        'idleReturnDelay',
+        'idleStateEnabled',
+        'idleStateDelay',
+        'swipeNavEnabled',
+        'swipeNavHorizontal',
+        'swipeNavVertical',
+        'swipeNavWrap',
+    ],
 };
 
 /** Keys a scope may carry, over all groups (custom CSS/JS live on their own page). */

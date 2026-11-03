@@ -44,6 +44,7 @@ import {
     useIdleReturnStore,
 } from './store/idleReturnStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
+import { useSwipeNavigation } from './hooks/useSwipeNavigation';
 import { useIconPreload } from './hooks/useIconPreload';
 import { useIdleStateDp, restartIdleState } from './hooks/useIdleStateDp';
 import { useT } from './i18n';
@@ -1467,6 +1468,28 @@ export default function App() {
         />
     ) : null;
 
+    // Swipe navigation (#908) over the dashboard area. Bars, header and drawer sit
+    // outside the host: their own horizontal scroll and buttons stay untouched.
+    const swipeHostRef = useRef<HTMLDivElement>(null);
+    useSwipeNavigation(swipeHostRef, {
+        enabled: !!effectiveSettings.swipeNavEnabled && !shotEditMode && !pinTarget && !widgetFullscreen,
+        horizontal: effectiveSettings.swipeNavHorizontal ?? 'tabs',
+        vertical: effectiveSettings.swipeNavVertical ?? 'off',
+        wrap: !!effectiveSettings.swipeNavWrap,
+        tabs,
+        activeTabId,
+        sections: layout?.sections ?? [],
+        activeSectionId: section?.id,
+        onTab: (tab) => {
+            const slug = tab.slug ?? tab.id;
+            navigate(viewBase ? `${viewBase}/tab/${slug}` : `/tab/${slug}`);
+        },
+        onSection: (sec) => {
+            // Same target as a click in the section menu: the section opens on its default tab.
+            if (layout) navigate(`/view/${layout.slug}/s/${sec.slug}`);
+        },
+    });
+
     // data-aura-scale marks the subtree whose Tailwind text-* utilities follow the
     // font scale (index.css). It is deliberately a second marker: the admin's widget
     // previews carry it as well, while data-aura-app="frontend" stays the badge of the
@@ -1614,6 +1637,7 @@ export default function App() {
                     {drawerBarTop && sectionMenuBar}
                     {!tabBarAtBottom && tabBarNode}
                     <div
+                        ref={swipeHostRef}
                         className="flex-1 min-h-0 flex flex-col relative"
                         style={pageBgImage ? BG_IMAGE_HOST_STYLE : undefined}
                     >

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
 import type { TabBarSettings, LayoutMenuItem, HeaderItem } from './dashboardStore';
+import type { SwipeAction } from '../utils/swipeNav';
 
 export interface FrontendSettings {
     customCSS: string;
@@ -134,6 +135,14 @@ export interface FrontendSettings {
     idleStateEnabled: boolean;
     /** Seconds without input before the device counts as idle. */
     idleStateDelay: number;
+    /** Swipe navigation (#908): a touch swipe across the dashboard switches tab / section. */
+    swipeNavEnabled: boolean;
+    /** What a horizontal swipe switches. */
+    swipeNavHorizontal: SwipeAction;
+    /** What a vertical swipe switches — only once the content is scrolled to its edge. */
+    swipeNavVertical: SwipeAction;
+    /** After the last tab / section continue with the first one. */
+    swipeNavWrap: boolean;
     /**
      * Icons for devices without internet (#290): load every icon the layout
      * uses right after boot instead of on first display, keep them on the
@@ -264,6 +273,10 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     idleReturnDelay: 30,
     idleStateEnabled: true,
     idleStateDelay: 120,
+    swipeNavEnabled: false,
+    swipeNavHorizontal: 'tabs',
+    swipeNavVertical: 'off',
+    swipeNavWrap: false,
     iconsOffline: false,
     optimisticUpdates: true,
     superAdminKey: '',

@@ -215,6 +215,27 @@ solange ein Widget im Vollbild läuft.
 | Vorübergehend am Gerät | Element **Rückkehr-Pause** in Header, Tab-Leiste oder Bereichs-Menü |
 | Per Datenpunkt | Siehe [Einstellungen → Rückkehr steuern](./settings#rückkehr-steuern) |
 
+### Wischgesten
+
+Mit dem Finger über das Dashboard wischen wechselt Tab oder Bereich. Global, pro Layout oder pro Bereich einstellbar.
+
+| Option | |
+| --- | --- |
+| Wischgesten zum Wechseln | Schaltet die Gesten ein (Standard: aus) |
+| Wischen links/rechts | `Tab wechseln` (Standard), `Bereich wechseln` oder `Aus` |
+| Wischen hoch/runter | `Tab wechseln`, `Bereich wechseln` oder `Aus` (Standard) |
+| Nach dem letzten wieder beim ersten beginnen | Umlauf am Ende der Liste |
+
+| Verhalten | |
+| --- | --- |
+| Richtung | Nach links bzw. oben = weiter, nach rechts bzw. unten = zurück |
+| Reihenfolge | Wie Tab-Leiste bzw. Bereichs-Menü; ausgeblendete, deaktivierte und per Bedingung verborgene Einträge werden übersprungen |
+| Hoch/runter | Wechselt erst, wenn die Seite ganz oben bzw. ganz unten steht |
+| Wirkt nicht | Im Header, in Tab-Leiste und Bereichs-Menü, in Popups, vom Bildschirmrand (System-Zurück), mit der Maus |
+| Eigene Gesten | Schieberegler, Dimmer, Drehregler, Thermostat, Panels, Diashow, Karte und horizontal scrollende Inhalte behalten ihre Geste |
+| Eigene Elemente ausnehmen | Attribut `data-swipe-ignore` (z. B. im HTML-Widget) |
+| Bereich ausnehmen | Geltungsbereich auf den Bereich stellen, Wischgesten dort ausschalten |
+
 ## Icons
 
 Woher die Geräte eines Layouts ihre Icons beziehen. Global oder pro Layout einstellbar (Geltungsbereich links); ein Bereich überschreibt das nicht.

@@ -7,6 +7,7 @@ import { slugify } from '../utils/slugify';
 import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate, BackgroundImage } from '../types';
 import { KEEP_PIN, type PinProtected, type PinRelock } from '../utils/pinLock';
 import type { AllVars } from '../themes';
+import type { SwipeAction } from '../utils/swipeNav';
 
 // ── Menu extras (clock / datapoint / static text / widget) ────────────────────
 // The three navigation chromes — header, tab bar and section menu — all host the
@@ -245,6 +246,11 @@ export interface LayoutSettings {
     // Idle state of the device (#822)
     idleStateEnabled?: boolean;
     idleStateDelay?: number;
+    // Swipe navigation (#908) — per section switchable
+    swipeNavEnabled?: boolean;
+    swipeNavHorizontal?: SwipeAction;
+    swipeNavVertical?: SwipeAction;
+    swipeNavWrap?: boolean;
     // Icons for offline devices (#290) — layout level only: a device shows a
     // layout, so a section cannot sensibly switch its icon source.
     iconsOffline?: boolean;

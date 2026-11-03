@@ -1,9 +1,11 @@
+import type { CSSProperties } from 'react';
 import { useT } from '../../../../i18n';
-import { ToggleRow, OVERRIDE_ROW_STYLE, ClampedNumberInput } from '../shared/SettingControls';
+import { ToggleRow, OVERRIDE_ROW_STYLE, ClampedNumberInput, OverrideField } from '../shared/SettingControls';
 import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import type { LayoutSettings } from '../../../../store/dashboardStore';
+import type { SwipeAction } from '../../../../utils/swipeNav';
 import { NS } from '../../../../utils/namespace';
 
 const NAV_KEYS: (keyof LayoutSettings)[] = [
@@ -11,7 +13,20 @@ const NAV_KEYS: (keyof LayoutSettings)[] = [
     'idleReturnDelay',
     'idleStateEnabled',
     'idleStateDelay',
+    'swipeNavEnabled',
+    'swipeNavHorizontal',
+    'swipeNavVertical',
+    'swipeNavWrap',
 ];
+
+const SELECT_STYLE: CSSProperties = {
+    background: 'var(--app-bg)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--app-border)',
+    borderRadius: 8,
+    padding: '4px 8px',
+    fontSize: 12,
+};
 
 // Frontend navigation behavior (auto-return to the layout default after
 // inactivity). Scope-aware: global or per layout (contextId = null | layout id).
@@ -22,6 +37,10 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
     const [delay, delayOv] = eff('idleReturnDelay');
     const [idleOn, idleOnOv] = eff('idleStateEnabled');
     const [idleDelay, idleDelayOv] = eff('idleStateDelay');
+    const [swipeOn, swipeOnOv] = eff('swipeNavEnabled');
+    const [swipeH, swipeHOv] = eff('swipeNavHorizontal');
+    const [swipeV, swipeVOv] = eff('swipeNavVertical');
+    const [swipeWrap, swipeWrapOv] = eff('swipeNavWrap');
 
     return (
         <div
@@ -141,6 +160,69 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
                     />
                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                         {t('settings.frontend.idleStateHint', { ns: NS })}
+                    </p>
+                </div>
+            )}
+
+            {/* Swipe navigation (#908): touch swipe across the dashboard switches tab / section. */}
+            <ToggleRow
+                label={t('settings.frontend.swipeNav')}
+                value={swipeOn ?? false}
+                onChange={(v) => set('swipeNavEnabled', v)}
+                isOverridden={swipeOnOv}
+                info={
+                    <OverrideState
+                        contextId={contextId}
+                        keys={['swipeNavEnabled']}
+                        label={t('settings.frontend.swipeNav')}
+                    />
+                }
+            />
+            {swipeOn && (
+                <div className="pt-1 space-y-3">
+                    {(
+                        [
+                            ['swipeNavHorizontal', swipeH ?? 'tabs', swipeHOv, 'settings.frontend.swipeNavHorizontal'],
+                            ['swipeNavVertical', swipeV ?? 'off', swipeVOv, 'settings.frontend.swipeNavVertical'],
+                        ] as const
+                    ).map(([key, value, overridden, label]) => (
+                        <OverrideField
+                            key={key}
+                            isOverridden={overridden}
+                            info={<OverrideState contextId={contextId} keys={[key]} label={t(label)} />}
+                        >
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                                    {t(label)}
+                                </p>
+                                <select
+                                    value={value}
+                                    onChange={(e) => set(key, e.target.value as SwipeAction)}
+                                    className="focus:outline-none"
+                                    style={SELECT_STYLE}
+                                >
+                                    <option value="tabs">{t('settings.frontend.swipeNavTabs')}</option>
+                                    <option value="sections">{t('settings.frontend.swipeNavSections')}</option>
+                                    <option value="off">{t('settings.frontend.swipeNavOff')}</option>
+                                </select>
+                            </div>
+                        </OverrideField>
+                    ))}
+                    <ToggleRow
+                        label={t('settings.frontend.swipeNavWrap')}
+                        value={swipeWrap ?? false}
+                        onChange={(v) => set('swipeNavWrap', v)}
+                        isOverridden={swipeWrapOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['swipeNavWrap']}
+                                label={t('settings.frontend.swipeNavWrap')}
+                            />
+                        }
+                    />
+                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {t('settings.frontend.swipeNavHint')}
                     </p>
                 </div>
             )}

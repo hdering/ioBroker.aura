@@ -46,6 +46,12 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     // Idle state (#822): same scoping as auto-return.
     'idleStateEnabled',
     'idleStateDelay',
+    // Swipe navigation (#908): a section with its own sliders / scrollers must be
+    // able to switch it off.
+    'swipeNavEnabled',
+    'swipeNavHorizontal',
+    'swipeNavVertical',
+    'swipeNavWrap',
 ];
 
 // ── 2-level keys: frame settings that belong to a whole layout ───────────────

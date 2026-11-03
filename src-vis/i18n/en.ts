@@ -182,6 +182,15 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.idleStateDelay': 'Idle after',
     'settings.frontend.idleStateHint':
         'Sets {ns}.clients.<id>.idle.active to true after this time without input and back to false on the next touch, click or key. A popup trigger on that datapoint turns it into a screensaver. Per device overridable via {ns}.clients.<id>.idle.delay (-1 = this setting, 0 = off).',
+    'settings.frontend.swipeNav': 'Swipe gestures to switch',
+    'settings.frontend.swipeNavHorizontal': 'Swipe left/right',
+    'settings.frontend.swipeNavVertical': 'Swipe up/down',
+    'settings.frontend.swipeNavTabs': 'Switch tab',
+    'settings.frontend.swipeNavSections': 'Switch section',
+    'settings.frontend.swipeNavOff': 'Off',
+    'settings.frontend.swipeNavWrap': 'Continue with the first after the last',
+    'settings.frontend.swipeNavHint':
+        'Touch only. Swiping left or up = forward. Up/down only switches once the page is scrolled to its top or bottom. Sliders, panels, maps and other widgets with a swipe of their own keep it; data-swipe-ignore excludes your own elements. Hidden, disabled and condition-hidden tabs and sections are skipped.',
     'settings.frontend.iconsOffline': 'Preload icons for offline devices',
     'settings.frontend.iconsOfflineHint':
         'The device loads every icon of the layout right after start and keeps it locally, so icons of other tabs and states are already there. It only talks to Aura and never to the public Iconify hosts — fully in effect from the second start of a device. Leave this off for phones on mobile data; they fetch icons on demand.',
@@ -740,7 +749,7 @@ export const en: Record<TranslationKey, string> = {
     'design.menu.hint':
         'Left-hand navigation menu for switching between the sections of a layout (hamburger button or docked sidebar). Configurable globally or per layout.',
     'design.nav.hint':
-        'Automatically return to the layout default after a period of inactivity and report the device idle state. Configurable globally or per layout.',
+        'Automatically return to the layout default after a period of inactivity, report the device idle state and switch tabs and sections by swiping. Configurable globally, per layout or per section.',
 
     'layouts.subtab.theme': 'Theme & CSS Vars',
     'layouts.subtab.typo': 'Typography & Spacing',
