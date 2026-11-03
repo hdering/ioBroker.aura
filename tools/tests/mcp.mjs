@@ -6066,14 +6066,15 @@ check('aura_compact says what it needs instead of guessing a target', () => {
 // ── Navigation properties: conditions, badges, aggregate ─────────────────────
 
 check('each kind advertises exactly the fields it really has', () => {
-    // A tab button carries conditions, a section menu entry does not, and a layout
-    // has neither badges nor an aggregate. Getting this wrong means the value is
+    // A tab button and a section menu entry carry conditions (#907), a layout has
+    // neither conditions, badges nor an aggregate. Getting this wrong means the value is
     // stored and silently ignored.
     assert.deepEqual(NODE_FIELDS.layout, ['icon', 'hidden', 'defaultSectionId', 'settings', 'backgroundImage']);
     assert.deepEqual(NODE_FIELDS.section, [
         'icon',
         'hidden',
         'defaultTabId',
+        'conditions',
         'badges',
         'badgeAggregate',
         'settings',
@@ -6115,9 +6116,9 @@ check('a background image is stored on every level and its shape is checked', ()
 });
 
 check('a field the kind does not have is refused, with the list of allowed ones', () => {
-    const onSection = updateNode(LAYOUTS, 'section', 's1', { conditions: [] });
-    assert.match(onSection.error, /Ein section kennt "conditions" nicht/);
-    assert.match(onSection.error, /badges, badgeAggregate/);
+    const onSection = updateNode(LAYOUTS, 'section', 's1', { hideLabel: true });
+    assert.match(onSection.error, /Ein section kennt "hideLabel" nicht/);
+    assert.match(onSection.error, /conditions, badges, badgeAggregate/);
     assert.match(updateNode(LAYOUTS, 'layout', 'l1', { badges: [] }).error, /Ein layout kennt "badges" nicht/);
 });
 
@@ -6186,11 +6187,30 @@ check('a section menu entry takes an icon and badges', () => {
 
 const sectionCondition = await client.callTool({
     name: 'aura_update_node',
-    arguments: { kind: 'section', target: 'Start', layout: 'Wohnzimmer', patch: JSON.stringify({ conditions: [] }) },
+    arguments: {
+        kind: 'section',
+        target: 'Start',
+        layout: 'Wohnzimmer',
+        patch: JSON.stringify({
+            conditions: [
+                { id: 'c1', clauses: [{ datapoint: 'x.0.y', operator: '>', value: '0' }], style: { accent: '#f00' } },
+            ],
+        }),
+    },
 });
-check('the endpoint refuses conditions on a section instead of storing dead config', () => {
-    assert.ok(sectionCondition.isError);
-    assert.match(sectionCondition.content[0].text, /kennt "conditions" nicht/);
+check('a section menu entry takes conditions (#907)', () => {
+    assert.ok(!sectionCondition.isError, sectionCondition.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[0].sections[0].conditions.length, 1);
+});
+const sectionConditionCleared = await client.callTool({
+    name: 'aura_update_node',
+    arguments: { kind: 'section', target: 'Start', layout: 'Wohnzimmer', patch: JSON.stringify({ conditions: null }) },
+});
+check('section conditions can be removed again', () => {
+    assert.ok(!sectionConditionCleared.isError, sectionConditionCleared.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[0].sections[0].conditions, undefined);
 });
 
 const overview = await client.callTool({ name: 'aura_dashboard', arguments: {} });

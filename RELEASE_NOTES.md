@@ -12,3 +12,6 @@
 - feat: Distribution chart - optional automatic unit (850 Wh, 1.25 kWh, 3.4 MWh) for values and totals
 - feat: Value conversion - new preset Wh → MWh
 - feat: News - adjustable ticker text size: default, fixed px, or automatic from the widget height (#906)
+- feat: Sections - conditions like on tabs: colour the icon/text/background, pulse/blink, hide or disable the menu entry (#907)
+- fix: Section bar - markers sit on the entry's corner instead of widening it, so entries no longer get pushed out of the bar on phones (#907)
+- feat: Tabs - a condition's accent colour now also colours the icon of an inactive tab (#907)

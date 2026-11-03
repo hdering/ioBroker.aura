@@ -1908,6 +1908,12 @@ export const en: Record<TranslationKey, string> = {
     'cond.disableWidgetHint': 'While the condition matches: greyed out, cannot be operated',
     'cond.disableTab': 'Disable tab',
     'cond.disableTabHint': 'While the condition matches: the tab stays visible, greyed out and cannot be opened',
+    'cond.controlSectionVisibilityHint': 'Show or hide the section in the menu depending on the condition',
+    'cond.hideOnMatchSectionHint': 'Section is visible in the menu and disappears as soon as the condition is met',
+    'cond.showOnMatchSectionHint': 'Section is hidden in the menu and appears only when the condition is met',
+    'cond.disableSection': 'Disable section',
+    'cond.disableSectionHint':
+        'While the condition matches: the section stays in the menu, greyed out and cannot be opened',
     'cond.rules': 'Condition Rules',
     'cond.rulesHint': 'Colors change when conditions are met',
     'cond.noRules': 'No rules yet. Create a rule to get started.',

@@ -1837,9 +1837,9 @@ Layouts bleiben; ein Bereich ohne Tabs bekommt einen neuen. Das Frontend lehnt
 still ab — hier ist es ein Fehler, denn wer löschen wollte, sollte erfahren, dass
 nichts passiert ist.
 
-**Nicht jeder Navigationsknoten kann alles.** Nur der **Tab-Button** trägt
-`conditions`; der Bereichsmenü-Eintrag hat `badges` und `badgeAggregate`, aber
-keine Bedingungen, und ein Layout hat weder das eine noch das andere.
+**Nicht jeder Navigationsknoten kann alles.** **Tab-Button** und
+**Bereichsmenü-Eintrag** tragen `conditions`, `badges` und `badgeAggregate`
+(Bedingungen am Bereich seit #907); ein Layout hat nichts davon.
 `NODE_FIELDS` hält das je Art fest, und ein Feld, das die Art nicht kennt, wird
 mit der Liste der erlaubten abgelehnt — sonst läge es gespeichert im Objekt und
 würde stumm ignoriert.

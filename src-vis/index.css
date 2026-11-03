@@ -246,7 +246,9 @@ iframe {
 .aura-cond-el-disabled * {
     pointer-events: none !important;
 }
-/* A tab a rule locks: stays in the bar, greyed (opacity set inline), no switch. */
+/* A tab or section menu entry a rule locks: stays in the bar, greyed (opacity set
+   inline), no switch. */
+.aura-section-cond-disabled,
 .aura-tab-btn.aura-tab-cond-disabled {
     cursor: not-allowed;
     filter: var(--widget-disabled-filter, grayscale(1));

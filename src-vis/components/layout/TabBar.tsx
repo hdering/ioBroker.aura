@@ -463,7 +463,12 @@ export function TabBar({
                                         flexShrink: 0,
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        color: navIcon(isActive),
+                                        // A rule's accent colours the icon on an inactive tab too —
+                                        // the label only takes it on the active one (#907). An active
+                                        // pill is filled, so there the icon keeps following the text.
+                                        color:
+                                            (!(isActive && indicatorStyle === 'pills') && cssVars['--tab-accent']) ||
+                                            navIcon(isActive),
                                     }}
                                 >
                                     <AuraIcon

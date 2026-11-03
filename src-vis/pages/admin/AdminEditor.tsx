@@ -245,10 +245,12 @@ const SectionSwitcher = memo(function SectionSwitcher() {
     const [newName, setNewName] = useState('');
     const [settingsSectionId, setSettingsSectionId] = useState<string | null>(null);
     const [badgesOpen, setBadgesOpen] = useState(false);
+    const [sectionCondOpen, setSectionCondOpen] = useState(false);
     const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
     const gearRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
     // Marker clause rows need room — 340px squeezed the datapoint field to nothing (#850).
-    const sectionPanel = usePanelWidth('admin-section', badgesOpen ? 600 : 340);
+    // Condition rules need the same room (two effect columns).
+    const sectionPanel = usePanelWidth('admin-section', badgesOpen || sectionCondOpen ? 600 : 340);
     const sectionPanelLeft = panelPos
         ? Math.max(8, Math.min(panelPos.left, window.innerWidth - sectionPanel.width - 12))
         : 0;
@@ -273,6 +275,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
         const btn = gearRefs.current.get(id);
         if (!btn) return;
         setBadgesOpen(false);
+        setSectionCondOpen(false);
         const rect = btn.getBoundingClientRect();
         const panelW = 340;
         setPanelPos({ top: rect.bottom + 6, left: Math.max(8, Math.min(rect.left, window.innerWidth - panelW - 12)) });
@@ -474,9 +477,56 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                 />
                             </div>
 
-                            {/* ── Badges section (collapsed, like the tab panel) ──────────── */}
+                            {/* ── Conditions section (like the tab panel, #907) ─────────────── */}
                             <div
                                 className="rounded-lg px-2.5 py-2 mt-3"
+                                style={{
+                                    background: 'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
+                                    border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
+                                }}
+                            >
+                                <button
+                                    className="flex items-center gap-1.5 w-full text-left hover:opacity-80"
+                                    onClick={() => setSectionCondOpen((o) => !o)}
+                                >
+                                    <span style={{ color: 'var(--text-secondary)' }}>
+                                        {sectionCondOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                    </span>
+                                    <span
+                                        className="text-[11px] font-medium"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('editor.tabMgmt.conditions')}
+                                        {(openSection.conditions?.length ?? 0) > 0 && (
+                                            <span
+                                                className="ml-1.5 px-1 rounded-full text-[9px]"
+                                                style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
+                                            >
+                                                {openSection.conditions!.length}
+                                            </span>
+                                        )}
+                                    </span>
+                                </button>
+
+                                {sectionCondOpen && (
+                                    <div className="mt-2">
+                                        <ConditionEditor
+                                            conditions={openSection.conditions ?? []}
+                                            onChange={(next) =>
+                                                updateSection(openSection.id, {
+                                                    conditions: next.length ? next : undefined,
+                                                })
+                                            }
+                                            context="section"
+                                            style={{ width: '100%', padding: 0 }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* ── Badges section (collapsed, like the tab panel) ──────────── */}
+                            <div
+                                className="rounded-lg px-2.5 py-2 mt-2"
                                 style={{
                                     background: 'color-mix(in srgb, #6366f1 7%, var(--app-bg))',
                                     border: '1px solid color-mix(in srgb, #6366f1 26%, var(--app-border))',

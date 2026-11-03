@@ -99,6 +99,7 @@ const fullConfig = () => ({
                     // and the reason it used to disappear the moment a PIN was set.
                     badgeAggregate: { enabled: true },
                     badges: [{ id: 'b1', dp: 'some.dp' }],
+                    conditions: [{ id: 'c1', clauses: [{ datapoint: 'some.dp' }], style: { accent: '#f00' } }],
                     tabs: [
                         { id: 'tA', name: 'A', slug: 'a', widgets: [{ id: 'wSecret', type: 'gauge' }] },
                         { id: 'tB', name: 'B', slug: 'b', widgets: [{ id: 'wSecret2', type: 'chart' }] },
@@ -167,7 +168,14 @@ const fullConfig = () => ({
     // The section's own badge settings: out of the public stub (a count of widgets
     // behind the PIN is a leak) but INTO the vault, or setting a PIN silently
     // deletes them — which is what happened to a live dashboard.
-    ok(locked.badgeAggregate === undefined && locked.badges === undefined, 'section decoration not in the stub');
+    ok(
+        locked.badgeAggregate === undefined && locked.badges === undefined && locked.conditions === undefined,
+        'section decoration not in the stub',
+    );
+    ok(
+        Array.isArray(sec.content.conditions) && sec.content.conditions[0].id === 'c1',
+        'section conditions kept in the vault (#907)',
+    );
     ok(
         sec.content.badgeAggregate && sec.content.badgeAggregate.enabled === true,
         'section badgeAggregate kept in the vault',
@@ -376,6 +384,7 @@ const fullConfig = () => ({
     ok(sec.pinLength === undefined && sec.pinRelock === undefined, 'stub PIN hints gone too');
     ok(sec.tabs.length === 2 && sec.tabs[0].widgets[0].id === 'wSecret', 'section tabs and widgets are back');
     ok(sec.badgeAggregate.enabled === true && sec.badges[0].id === 'b1', 'menu decoration comes back with it');
+    ok(sec.conditions[0].id === 'c1', 'section conditions come back with it');
 
     ok(vault.restoreView(publicConfig, 'tab:sTabLock:tPin', byKey['tab:sTabLock:tPin'].content), 'tab restored');
     const tab = publicConfig.layouts[0].sections[2].tabs[1];

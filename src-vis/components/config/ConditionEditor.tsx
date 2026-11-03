@@ -1078,7 +1078,7 @@ function ConditionRule({
     condition: WidgetCondition;
     onChange: (c: WidgetCondition) => void;
     onDelete: () => void;
-    context?: 'widget' | 'tab';
+    context?: 'widget' | 'tab' | 'section';
     sourceCtx?: DpSourceCtx;
     slots: ConditionSlot[];
     current?: ConditionSetCurrent;
@@ -1088,6 +1088,8 @@ function ConditionRule({
     dragProps: RuleDragProps;
 }) {
     const t = useT();
+    // A tab button and a section menu entry are navigation, not a card: no widget-only fields.
+    const nav = context === 'tab' || context === 'section';
     const [open, setOpen] = useState(true);
 
     const setStyle = (patch: Partial<ConditionStyle>) =>
@@ -1199,7 +1201,7 @@ function ConditionRule({
                                     onChange={(v) => setStyle({ [key]: v })}
                                 />
                             ))}
-                            {context !== 'tab' &&
+                            {!nav &&
                                 STYLE_TEXT_FIELDS.map(({ key, labelKey, hintKey, options }) => (
                                     <SelectField
                                         key={key}
@@ -1257,7 +1259,7 @@ function ConditionRule({
                         </div>
 
                         {/* Override what the widget shows — icon, title, value (issue #96) */}
-                        {context !== 'tab' && slots.length > 0 && (
+                        {!nav && slots.length > 0 && (
                             <div className="space-y-1.5">
                                 <p
                                     className="text-[10px] font-semibold uppercase tracking-wider"
@@ -1281,7 +1283,7 @@ function ConditionRule({
                     </div>
 
                     {/* Reload widget — embedded content (iframe/camera/image) re-fetches */}
-                    {context !== 'tab' && (
+                    {!nav && (
                         <>
                             <div className="h-px" style={{ background: 'var(--app-border)' }} />
                             <div className="flex items-center justify-between">
@@ -1392,12 +1394,16 @@ function ConditionRule({
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
-                                {context === 'tab' ? t('cond.controlTabVisibility') : t('cond.controlVisibility')}
+                                {nav ? t('cond.controlTabVisibility') : t('cond.controlVisibility')}
                             </p>
                             {!condition.hideWidget && (
                                 <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {context === 'tab'
-                                        ? t('cond.controlTabVisibilityHint')
+                                    {nav
+                                        ? t(
+                                              context === 'section'
+                                                  ? 'cond.controlSectionVisibilityHint'
+                                                  : 'cond.controlTabVisibilityHint',
+                                          )
                                         : t('cond.controlVisibilityHint')}
                                 </p>
                             )}
@@ -1442,12 +1448,24 @@ function ConditionRule({
                             </div>
                             <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
                                 {(condition.visibilityMode ?? 'hideOnMatch') === 'showOnMatch'
-                                    ? t(context === 'tab' ? 'cond.showOnMatchTabHint' : 'cond.showOnMatchHint')
-                                    : t(context === 'tab' ? 'cond.hideOnMatchTabHint' : 'cond.hideOnMatchHint')}
+                                    ? t(
+                                          context === 'section'
+                                              ? 'cond.showOnMatchSectionHint'
+                                              : context === 'tab'
+                                                ? 'cond.showOnMatchTabHint'
+                                                : 'cond.showOnMatchHint',
+                                      )
+                                    : t(
+                                          context === 'section'
+                                              ? 'cond.hideOnMatchSectionHint'
+                                              : context === 'tab'
+                                                ? 'cond.hideOnMatchTabHint'
+                                                : 'cond.hideOnMatchHint',
+                                      )}
                             </p>
                         </div>
                     )}
-                    {context !== 'tab' && condition.hideWidget && (
+                    {!nav && condition.hideWidget && (
                         <div
                             className="flex items-center justify-between pl-3 border-l-2"
                             style={{ borderColor: 'var(--accent)44' }}
@@ -1478,10 +1496,22 @@ function ConditionRule({
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
-                                    {t(context === 'tab' ? 'cond.disableTab' : 'cond.disableWidget')}
+                                    {t(
+                                        context === 'section'
+                                            ? 'cond.disableSection'
+                                            : context === 'tab'
+                                              ? 'cond.disableTab'
+                                              : 'cond.disableWidget',
+                                    )}
                                 </p>
                                 <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {t(context === 'tab' ? 'cond.disableTabHint' : 'cond.disableWidgetHint')}
+                                    {t(
+                                        context === 'section'
+                                            ? 'cond.disableSectionHint'
+                                            : context === 'tab'
+                                              ? 'cond.disableTabHint'
+                                              : 'cond.disableWidgetHint',
+                                    )}
                                 </p>
                             </div>
                             <button
@@ -1515,7 +1545,7 @@ function ConditionRule({
 interface ConditionEditorProps {
     conditions: WidgetCondition[];
     onChange: (conditions: WidgetCondition[]) => void;
-    context?: 'widget' | 'tab';
+    context?: 'widget' | 'tab' | 'section';
     /** Value sources of the owning widget (main DP / list entries). Omitted for tabs. */
     sourceCtx?: DpSourceCtx;
     /**

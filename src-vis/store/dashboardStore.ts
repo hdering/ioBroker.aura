@@ -287,6 +287,7 @@ export interface Section {
     defaultTabId?: string; // tab shown when the section opens without a tab slug
     icon?: string; // icon name (Iconify ID or lucide PascalCase) for the section menu
     hidden?: boolean; // removed from the section menu, but still reachable via its direct slug URL
+    conditions?: WidgetCondition[]; // DP-based style/visibility conditions for the section menu entry (#907)
     badges?: BadgeDef[]; // own overlay badges on the section menu entry
     badgeAggregate?: BadgeAggregate; // auto-count of widgets across the section's tabs that show a badge
     pin?: string; // PIN gate for the whole section (its tabs included)

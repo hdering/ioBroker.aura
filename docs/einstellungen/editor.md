@@ -277,7 +277,7 @@ Die Schaltfläche links an jeder Klausel ab der zweiten schaltet deren Verknüpf
 
 `UND` bindet stärker als `ODER`: `A UND B ODER C` heißt `(A UND B) ODER C`. Für eine andere Reihenfolge die Klammer nutzen. Eine Klammerebene, Klammern können nicht verschachtelt werden.
 
-Gilt für Widget- und Tab-Bedingungen, Zellen- und Zeilenregeln sowie Marker. Bedingungen, die vor dieser Version gespeichert wurden, behalten ihre Bedeutung — sie hatten eine gemeinsame Verknüpfung für alle Zeilen.
+Gilt für Widget-, Tab- und Bereichs-Bedingungen, Zellen- und Zeilenregeln sowie Marker. Bedingungen, die vor dieser Version gespeichert wurden, behalten ihre Bedeutung — sie hatten eine gemeinsame Verknüpfung für alle Zeilen.
 
 ## Bedingungen: Effekte
 
@@ -292,6 +292,15 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
 | Widget deaktivieren | grau hinterlegt, Bedienelemente und Klick-Aktion gesperrt, keine Schreibzugriffe; nur im Frontend |
 | Tab deaktivieren | (Tab-Bedingung) Tab bleibt in der Leiste, grau, lässt sich nicht öffnen; nur im Frontend |
+| Bereich deaktivieren | (Bereichs-Bedingung) Eintrag bleibt im Bereichs-Menü, grau, lässt sich nicht öffnen |
+
+**Tab- und Bereichs-Bedingungen** (Zahnrad am Tab bzw. am Bereichs-Chip → *Bedingungen*):
+
+| Farbe | Wirkung am Eintrag |
+| --- | --- |
+| Akzent | Icon — auch wenn der Eintrag nicht aktiv ist; beim aktiven Eintrag zusätzlich Text bzw. Unterstrich/Pille |
+| Hintergrund | Hinterlegung des Eintrags |
+| Text | Beschriftung (und Icon, wenn kein Akzent gesetzt ist) |
 
 `Nur Rand pulsiert` lässt den Inhalt lesbar und pulst nur einen Ring um die Karte. Die **Rand-Farbe**
 steht direkt unter der Auswahl; ohne sie nimmt der Ring die Rahmenfarbe der Regel, sonst den Akzent.

@@ -12,7 +12,9 @@ import { hasPin, showsPinLock, sectionPinKey } from '../../utils/pinLock';
 import { usePinStore } from '../../store/pinStore';
 import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks/useBadges';
 import { Badge } from '../common/Badge';
-import type { BadgeSize } from '../../types';
+import { BadgeOverlay } from '../widgets/BadgeOverlay';
+import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
+import type { BadgeCorner, BadgeSize } from '../../types';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import { SECTION_DRAWER_OVERLAY_W } from '../../utils/menuItems';
 import { AuraIcon } from '../common/AuraIcon';
@@ -131,9 +133,92 @@ function barEntryActiveStyle(
     }
 }
 
+// ── Section conditions (#907) — the same rules a tab button takes ──────────────
+
+type SectionCondition = ReturnType<typeof useTabConditionStyle>;
+
+// Hooks need a component per entry, like TabBar's TabConditionWrapper.
+function SectionConditionWrapper({
+    section,
+    children,
+}: {
+    section: Section;
+    children: (result: SectionCondition) => React.ReactNode;
+}) {
+    const result = useTabConditionStyle(section.conditions);
+    return <>{children(result)}</>;
+}
+
+/**
+ * Lay a matching rule over an entry's indicator style. The entry styles above
+ * resolve to concrete colours, so the rule replaces them here instead of through
+ * var() fallbacks: text colours the label, the accent takes the place of the
+ * active colour (underline, pill fill), the background tints any entry.
+ */
+function conditionEntryStyle(
+    base: React.CSSProperties,
+    isActive: boolean,
+    style: NonNullable<LayoutDrawerProps['indicatorStyle']>,
+    edge: 'borderLeft' | 'borderBottom',
+    cond: SectionCondition,
+): React.CSSProperties {
+    const v = cond.cssVars;
+    const out: React.CSSProperties = { ...base, ...(v as React.CSSProperties) };
+    const accent = v['--tab-accent'];
+    const text = v['--tab-text'];
+    if (isActive && style === 'pills') {
+        if (v['--tab-bg'] ?? accent) out.background = v['--tab-bg'] ?? accent;
+        if (text) out.color = text;
+    } else {
+        if (isActive && accent) out.color = accent;
+        else if (text) out.color = text;
+        if (v['--tab-bg']) {
+            out.background = v['--tab-bg'];
+            out.borderRadius = base.borderRadius ?? '0.75rem';
+        }
+    }
+    if (isActive && style === 'underline' && accent) out[edge] = `${edge === 'borderLeft' ? 3 : 2}px solid ${accent}`;
+    if (v['--tab-border']) {
+        out.boxShadow = `inset 0 0 0 1px ${v['--tab-border']}`;
+        out.borderRadius = out.borderRadius ?? '0.75rem';
+    }
+    if (cond.effect === 'pulse') out.animation = 'tabPulse 1.5s ease-in-out infinite';
+    else if (cond.effect === 'blink') out.animation = 'tabBlink 1s step-end infinite';
+    if (cond.disabled) out.opacity = 0.45;
+    return out;
+}
+
+/**
+ * Icon colour a matching rule asks for: its accent on every entry (also an inactive
+ * one), else its text colour. On an active pill the accent already fills the entry,
+ * so there the icon follows the text instead of vanishing into the fill.
+ */
+function conditionIconColor(
+    isActive: boolean,
+    style: NonNullable<LayoutDrawerProps['indicatorStyle']>,
+    cond: SectionCondition,
+): string | undefined {
+    const v = cond.cssVars;
+    if (isActive && style === 'pills') return v['--tab-text'];
+    return v['--tab-accent'] ?? v['--tab-text'];
+}
+
+function conditionEntryClass(cond: SectionCondition): string {
+    return [
+        cond.bold ? 'aura-cond-bold' : '',
+        cond.italic ? 'aura-cond-italic' : '',
+        cond.effect === 'border' ? 'aura-cond-ring' : '',
+        cond.disabled ? 'aura-section-cond-disabled' : '',
+    ]
+        .filter(Boolean)
+        .join(' ');
+}
+
 // Own badges + optional aggregate count (widgets with a visible badge across all
-// of the section's tabs) shown inline at the trailing edge of a menu entry.
-function SectionBadges({ section }: { section: Section }) {
+// of the section's tabs). The stacked menu has the width and shows them inline at
+// the trailing edge; in the docked bar they sit on the entry's corners like on a
+// tab button, so they never widen the entry and push the others out (#907).
+function SectionBadges({ section, overlay = false }: { section: Section; overlay?: boolean }) {
     const own = useBadges(section.badges);
     const aggEnabled = section.badgeAggregate?.enabled ?? false;
     const allWidgets = useMemo(
@@ -148,13 +233,14 @@ function SectionBadges({ section }: { section: Section }) {
         badges.push({
             id: `__agg_${section.id}`,
             style: 'count',
-            corner: 'top-right',
+            corner: (section.badgeAggregate?.corner as BadgeCorner) ?? 'top-right',
             color: section.badgeAggregate?.color,
             size: (section.badgeAggregate?.size as BadgeSize) ?? 'md',
             text: agg.text,
         });
     }
     if (!badges.length) return null;
+    if (overlay) return <BadgeOverlay badges={badges} />;
     return (
         <span className="ml-auto shrink-0 flex items-center gap-1">
             {badges.map((b) => (
@@ -308,72 +394,86 @@ export function LayoutDrawer({
             className="flex-1 overflow-y-auto py-2 px-2"
             style={{ marginTop: topOffset || undefined, marginBottom: bottomOffset || undefined }}
         >
-            {visibleSections.map((section) => {
-                const isActive = section.id === activeSection?.id;
-                return (
-                    <button
-                        key={section.id}
-                        onClick={() => goToSection(section)}
-                        title={entryStyle === 'iconOnly' ? section.name : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''}`}
-                        style={{
-                            minHeight: entryHeight,
-                            ...entryActiveStyle(isActive, indicatorStyle),
-                        }}
-                    >
-                        {showBullet && (
-                            <span
-                                className="shrink-0 rounded-full"
-                                style={{
-                                    width: 7,
-                                    height: 7,
-                                    background: isActive
-                                        ? indicatorStyle === 'pills'
-                                            ? 'currentColor'
-                                            : NAV_ACTIVE
-                                        : navText(),
+            {visibleSections.map((section) => (
+                <SectionConditionWrapper key={section.id} section={section}>
+                    {(cond) => {
+                        const isActive = section.id === activeSection?.id;
+                        if (cond.hidden) return null;
+                        const condIcon = conditionIconColor(isActive, indicatorStyle, cond);
+                        return (
+                            <button
+                                onClick={() => {
+                                    if (!cond.disabled) goToSection(section);
                                 }}
-                            />
-                        )}
-                        {showIcon && (
-                            <span
-                                data-aura-nav-icon="section"
-                                className="rounded-lg flex items-center justify-center shrink-0"
+                                aria-disabled={cond.disabled || undefined}
+                                title={entryStyle === 'iconOnly' ? section.name : undefined}
+                                className={`relative w-full flex items-center gap-3 px-3 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''} ${conditionEntryClass(cond)}`}
                                 style={{
-                                    width: iconBox,
-                                    height: iconBox,
-                                    background: isActive
-                                        ? `color-mix(in srgb, ${NAV_ACTIVE} 13%, transparent)`
-                                        : 'var(--app-bg)',
-                                    color: navIcon(isActive, isActive ? NAV_ACTIVE : navText()),
+                                    minHeight: entryHeight,
+                                    ...conditionEntryStyle(
+                                        entryActiveStyle(isActive, indicatorStyle),
+                                        isActive,
+                                        indicatorStyle,
+                                        'borderLeft',
+                                        cond,
+                                    ),
                                 }}
                             >
-                                {section.icon ? (
-                                    <AuraIcon icon={section.icon} width={iconSize} height={iconSize} />
-                                ) : (
-                                    <LayoutDashboard size={iconSize} />
+                                {showBullet && (
+                                    <span
+                                        className="shrink-0 rounded-full"
+                                        style={{
+                                            width: 7,
+                                            height: 7,
+                                            background: isActive
+                                                ? indicatorStyle === 'pills'
+                                                    ? 'currentColor'
+                                                    : NAV_ACTIVE
+                                                : navText(),
+                                        }}
+                                    />
                                 )}
-                            </span>
-                        )}
-                        {showName && (
-                            <span
-                                className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`}
-                                style={{ fontSize }}
-                            >
-                                {section.name}
-                            </span>
-                        )}
-                        {sectionLocked(section) && (
-                            <Lock
-                                data-aura-pin-lock="section"
-                                size={Math.round(fontSize * 0.85)}
-                                className="shrink-0 opacity-70"
-                            />
-                        )}
-                        <SectionBadges section={section} />
-                    </button>
-                );
-            })}
+                                {showIcon && (
+                                    <span
+                                        data-aura-nav-icon="section"
+                                        className="rounded-lg flex items-center justify-center shrink-0"
+                                        style={{
+                                            width: iconBox,
+                                            height: iconBox,
+                                            background: isActive
+                                                ? `color-mix(in srgb, ${NAV_ACTIVE} 13%, transparent)`
+                                                : 'var(--app-bg)',
+                                            color: condIcon ?? navIcon(isActive, isActive ? NAV_ACTIVE : navText()),
+                                        }}
+                                    >
+                                        {section.icon ? (
+                                            <AuraIcon icon={section.icon} width={iconSize} height={iconSize} />
+                                        ) : (
+                                            <LayoutDashboard size={iconSize} />
+                                        )}
+                                    </span>
+                                )}
+                                {showName && (
+                                    <span
+                                        className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`}
+                                        style={{ fontSize }}
+                                    >
+                                        {section.name}
+                                    </span>
+                                )}
+                                {sectionLocked(section) && (
+                                    <Lock
+                                        data-aura-pin-lock="section"
+                                        size={Math.round(fontSize * 0.85)}
+                                        className="shrink-0 opacity-70"
+                                    />
+                                )}
+                                <SectionBadges section={section} />
+                            </button>
+                        );
+                    }}
+                </SectionConditionWrapper>
+            ))}
         </div>
     );
 
@@ -432,61 +532,78 @@ export function LayoutDrawer({
                     <LayoutMenuItemView item={it} compact />
                 </div>
             ));
-        const sectionButtons = visibleSections.map((section) => {
-            const isActive = section.id === activeSection?.id;
-            return (
-                <button
-                    key={section.id}
-                    onClick={() => goToSection(section)}
-                    title={entryStyle === 'iconOnly' ? section.name : undefined}
-                    className={`relative flex items-center gap-2 whitespace-nowrap transition-colors hover:opacity-90 ${
-                        entryStyle === 'iconOnly' ? 'justify-center px-2.5' : 'px-3'
-                    } ${indicatorStyle === 'underline' ? 'py-2.5' : 'py-1.5'}`}
-                    style={barEntryActiveStyle(isActive, indicatorStyle)}
-                >
-                    {showBullet && (
-                        <span
-                            className="shrink-0 rounded-full"
-                            style={{
-                                width: 7,
-                                height: 7,
-                                background: isActive
-                                    ? indicatorStyle === 'pills'
-                                        ? 'currentColor'
-                                        : NAV_ACTIVE
-                                    : navText(),
+        const sectionButtons = visibleSections.map((section) => (
+            <SectionConditionWrapper key={section.id} section={section}>
+                {(cond) => {
+                    const isActive = section.id === activeSection?.id;
+                    if (cond.hidden) return null;
+                    const condIcon = conditionIconColor(isActive, indicatorStyle, cond);
+                    return (
+                        <button
+                            onClick={() => {
+                                if (!cond.disabled) goToSection(section);
                             }}
-                        />
-                    )}
-                    {showIcon && (
-                        <span
-                            data-aura-nav-icon="section"
-                            className="shrink-0 inline-flex items-center justify-center"
-                            style={{ color: navIcon(isActive) }}
-                        >
-                            {section.icon ? (
-                                <AuraIcon icon={section.icon} width={iconSize} height={iconSize} />
-                            ) : (
-                                <LayoutDashboard size={iconSize} />
+                            aria-disabled={cond.disabled || undefined}
+                            title={entryStyle === 'iconOnly' ? section.name : undefined}
+                            className={`relative flex items-center gap-2 whitespace-nowrap transition-colors hover:opacity-90 ${
+                                entryStyle === 'iconOnly' ? 'justify-center px-2.5' : 'px-3'
+                            } ${indicatorStyle === 'underline' ? 'py-2.5' : 'py-1.5'} ${conditionEntryClass(cond)}`}
+                            style={conditionEntryStyle(
+                                barEntryActiveStyle(isActive, indicatorStyle),
+                                isActive,
+                                indicatorStyle,
+                                'borderBottom',
+                                cond,
                             )}
-                        </span>
-                    )}
-                    {showName && (
-                        <span className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`} style={{ fontSize }}>
-                            {section.name}
-                        </span>
-                    )}
-                    {sectionLocked(section) && (
-                        <Lock
-                            data-aura-pin-lock="section"
-                            size={Math.round(fontSize * 0.85)}
-                            className="shrink-0 opacity-70"
-                        />
-                    )}
-                    <SectionBadges section={section} />
-                </button>
-            );
-        });
+                        >
+                            {showBullet && (
+                                <span
+                                    className="shrink-0 rounded-full"
+                                    style={{
+                                        width: 7,
+                                        height: 7,
+                                        background: isActive
+                                            ? indicatorStyle === 'pills'
+                                                ? 'currentColor'
+                                                : NAV_ACTIVE
+                                            : navText(),
+                                    }}
+                                />
+                            )}
+                            {showIcon && (
+                                <span
+                                    data-aura-nav-icon="section"
+                                    className="shrink-0 inline-flex items-center justify-center"
+                                    style={{ color: condIcon ?? navIcon(isActive) }}
+                                >
+                                    {section.icon ? (
+                                        <AuraIcon icon={section.icon} width={iconSize} height={iconSize} />
+                                    ) : (
+                                        <LayoutDashboard size={iconSize} />
+                                    )}
+                                </span>
+                            )}
+                            {showName && (
+                                <span
+                                    className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`}
+                                    style={{ fontSize }}
+                                >
+                                    {section.name}
+                                </span>
+                            )}
+                            {sectionLocked(section) && (
+                                <Lock
+                                    data-aura-pin-lock="section"
+                                    size={Math.round(fontSize * 0.85)}
+                                    className="shrink-0 opacity-70"
+                                />
+                            )}
+                            <SectionBadges section={section} overlay />
+                        </button>
+                    );
+                }}
+            </SectionConditionWrapper>
+        ));
 
         const containerStyle: React.CSSProperties = {
             background: 'var(--nav-bg, var(--app-surface))',

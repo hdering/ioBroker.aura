@@ -49,7 +49,7 @@ export function carryProtectedContent(remoteLayouts: unknown[], localLayouts: re
             if (!localSec) continue;
             if (sec.pinProtected === true) {
                 if (holdsContent(localSec)) {
-                    fill(sec, localSec, ['tabs', 'badges', 'badgeAggregate']);
+                    fill(sec, localSec, ['tabs', 'conditions', 'badges', 'badgeAggregate']);
                     carried = true;
                 }
                 continue; // a section PIN covers its tabs

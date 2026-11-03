@@ -1923,6 +1923,12 @@ export const de = {
     'cond.disableWidgetHint': 'Solange die Bedingung zutrifft: grau hinterlegt, nicht bedienbar',
     'cond.disableTab': 'Tab deaktivieren',
     'cond.disableTabHint': 'Solange die Bedingung zutrifft: Tab bleibt sichtbar, grau und lässt sich nicht öffnen',
+    'cond.controlSectionVisibilityHint': 'Bereich je nach Bedingung im Menü ein- oder ausblenden',
+    'cond.hideOnMatchSectionHint': 'Bereich ist im Menü sichtbar und verschwindet, sobald die Bedingung erfüllt ist',
+    'cond.showOnMatchSectionHint': 'Bereich ist im Menü versteckt und erscheint nur, wenn die Bedingung erfüllt ist',
+    'cond.disableSection': 'Bereich deaktivieren',
+    'cond.disableSectionHint':
+        'Solange die Bedingung zutrifft: Bereich bleibt im Menü sichtbar, grau und lässt sich nicht öffnen',
     'cond.rules': 'Bedingungsregeln',
     'cond.rulesHint': 'Farben ändern sich wenn Bedingungen erfüllt sind',
     'cond.noRules': 'Noch keine Regeln. Erstelle eine Regel um loszulegen.',
