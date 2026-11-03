@@ -6,6 +6,7 @@ import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useGroupActionChildren } from '../../hooks/useGroupActionChildren';
 import {
     groupChildDpIds,
     groupChildTarget,
@@ -186,13 +187,15 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const groupActionType = (gaCfg.groupActionType ?? 'switch') as GroupActionType;
     const { groupDimmerOnValue, groupIncludeNumbers, groupNumberOnValue, groupNumberOffValue, groupExcludeIds } = gaCfg;
     const groupExcludeSet = useMemo(() => new Set(groupExcludeIds ?? []), [groupExcludeIds]);
+    // Mirrored children act as their source widget (#912).
+    const actionChildren = useGroupActionChildren(children);
     const { subscribe, getState, setState } = useIoBroker();
     const [childStates, setChildStates] = useState<Record<string, ioBrokerState['val']>>({});
     // Live child state is only needed for the on/off switch aggregate.
     const childDpIds =
         groupSwitchEnabled && groupActionType === 'switch'
             ? groupChildDpIds(
-                  children.filter((c) => !groupExcludeSet.has(c.id)),
+                  actionChildren.filter((c) => !groupExcludeSet.has(c.id)),
                   gaCfg,
               )
             : [];
@@ -213,14 +216,14 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
             groupNumberOnValue,
             groupNumberOffValue,
         };
-        return children
+        return actionChildren
             .filter((c) => !groupExcludeSet.has(c.id))
             .map((c) => groupChildTarget(c, (id) => childStates[id] ?? null, cfg))
             .filter((x): x is GroupTarget => x !== null);
     }, [
         groupSwitchEnabled,
         groupActionType,
-        children,
+        actionChildren,
         childStates,
         groupDimmerOnValue,
         groupIncludeNumbers,
@@ -229,16 +232,16 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         groupExcludeSet,
     ]);
     const groupDimmerIds = useMemo(
-        () => (groupSwitchEnabled ? groupChildDimmerIds(children, groupExcludeSet) : []),
-        [groupSwitchEnabled, children, groupExcludeSet],
+        () => (groupSwitchEnabled ? groupChildDimmerIds(actionChildren, groupExcludeSet) : []),
+        [groupSwitchEnabled, actionChildren, groupExcludeSet],
     );
     const groupShutterTargets = useMemo(
-        () => (groupSwitchEnabled ? groupChildShutterTargets(children, groupExcludeSet) : []),
-        [groupSwitchEnabled, children, groupExcludeSet],
+        () => (groupSwitchEnabled ? groupChildShutterTargets(actionChildren, groupExcludeSet) : []),
+        [groupSwitchEnabled, actionChildren, groupExcludeSet],
     );
     const groupPulseIds = useMemo(
-        () => (groupSwitchEnabled ? groupChildPulseIds(children, groupExcludeSet) : []),
-        [groupSwitchEnabled, children, groupExcludeSet],
+        () => (groupSwitchEnabled ? groupChildPulseIds(actionChildren, groupExcludeSet) : []),
+        [groupSwitchEnabled, actionChildren, groupExcludeSet],
     );
     const hasAction =
         groupActionType === 'switch'

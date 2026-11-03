@@ -21,3 +21,4 @@
 - feat: Alarm - optional touch keypad in a popup for the PIN instead of the input field, for wall tablets (#911)
 - feat: Alarm - new option "Arm only with PIN": Armed and delayed arming ask for the alarm adapter's password (#911)
 - feat: Weather - optional air pressure (hPa) next to humidity, also available as a field in the custom layout (#909)
+- fix: Group - the group action now also controls mirrored widgets inside the group (#912)

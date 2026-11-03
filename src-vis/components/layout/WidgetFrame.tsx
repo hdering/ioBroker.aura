@@ -143,6 +143,7 @@ import {
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
+import { useGroupActionChildren } from '../../hooks/useGroupActionChildren';
 import type {
     WidgetConfig,
     WidgetCondition,
@@ -7439,8 +7440,10 @@ function WidgetFrameInner({
         if (!needsDpNames) return;
         void ensureDatapointCache().then(() => setDpCacheReady(true));
     }, [needsDpNames]);
+    // Mirrored children are offered as their source widget (#912).
+    const groupActionChildren = useGroupActionChildren(groupChildren);
     const groupActionCandidates = isGroupType(config.type)
-        ? groupGroupCandidates(groupChildren, groupActionType, (t) => WIDGET_BY_TYPE[t as WidgetType]?.label)
+        ? groupGroupCandidates(groupActionChildren, groupActionType, (t) => WIDGET_BY_TYPE[t as WidgetType]?.label)
         : config.type === 'list' || config.type === 'autolist'
           ? listGroupCandidates(
                 (config.options?.entries as Parameters<typeof listGroupCandidates>[0]) ?? [],

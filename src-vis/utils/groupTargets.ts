@@ -414,3 +414,21 @@ export function groupGroupCandidates(
     }
     return items.map((c) => ({ key: c.id, label: label(c) }));
 }
+
+/** Replace widget mirrors among group children with their source widget, keeping
+ *  the mirror's id (exclusion keys stay stable). A mirror only stores the source id,
+ *  so without this the group action sees type 'mirror' and finds no DPs (#912).
+ *  Tab mirrors and mirrors whose source is gone are passed through unchanged. */
+export function resolveMirrorChildren(
+    children: WidgetConfig[],
+    findWidget: (id: string) => WidgetConfig | undefined,
+): WidgetConfig[] {
+    if (!children.some((c) => c.type === 'mirror')) return children;
+    return children.map((c) => {
+        if (c.type !== 'mirror' || c.options?.sourceKind === 'tab') return c;
+        const targetId = c.options?.targetWidgetId as string | undefined;
+        const source = targetId && targetId !== c.id ? findWidget(targetId) : undefined;
+        if (!source || source.type === 'mirror') return c;
+        return { ...source, id: c.id, title: c.title || source.title };
+    });
+}
