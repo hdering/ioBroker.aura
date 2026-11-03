@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.86.0 (2026-10-19)
+- 🌟 **New feature:** List - value conversion can call your own functions from Custom JS: register them with aura.registerFn and use callback("name", dp) in the expression ([#794](https://github.com/hdering/ioBroker.aura/issues/794))
+- Admin overview - "Getting started" and "AI access (MCP)" cards can be shown and hidden again via two switches in the page header ([#799](https://github.com/hdering/ioBroker.aura/issues/799))
+- Groups - group contents could be wiped when the admin page was opened while the adapter was still restarting (e.g. right after an update); failed config reads are now retried instead of being taken as an empty config, and empty group contents are never saved over existing groups ([#800](https://github.com/hdering/ioBroker.aura/issues/800))
+
 ## 0.85.0 (2026-10-18)
 - Map - all sections of the map settings now start folded when the settings open
 - 🌟 **New feature:** Universal Widget / Custom layout - optional vertical and/or horizontal separator lines between the grid cells, with adjustable colour and thickness ([#793](https://github.com/hdering/ioBroker.aura/issues/793))
