@@ -11287,6 +11287,15 @@
         "windowOpenValues"
       ],
       "options": {
+        "fieldAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Waagerechte Ausrichtung der Eingabefelder. Leer = je Darstellung (default links, compact rechts, card/minimal mittig). In compact nur wirksam bei showTitle=false."
+        },
         "fontSize": {
           "description": "Schriftgröße der Eingabefelder in px. Leer = 12.",
           "type": "number",
