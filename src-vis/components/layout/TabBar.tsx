@@ -16,7 +16,8 @@ import { IconPickerModal } from '../config/IconPickerModal';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import { useT } from '../../i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
-import { hasPin, showsPinLock, tabPinKey } from '../../utils/pinLock';
+import { hasPin, pendingPinTarget, showsPinLock, tabPinKey } from '../../utils/pinLock';
+import { findLinkSource } from '../../utils/tabLink';
 import { usePinStore } from '../../store/pinStore';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
 import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
@@ -197,8 +198,18 @@ export function TabBar({
     // `pinHideLock` drops the badge for viewers only (#692) - in the editor it has to
     // stay, otherwise a protected tab looks exactly like a free one while editing.
     const unlockedPins = usePinStore((s) => s.unlocked);
-    const tabLocked = (tab: Tab): boolean =>
-        hasPin(tab) && (!readonly || (showsPinLock(tab) && !(tabPinKey(section.id, tab.id) in unlockedPins)));
+    const allLayouts = useDashboardStore((s) => s.layouts);
+    const tabLocked = (tab: Tab): boolean => {
+        // A linked tab (#896) is locked by its original's section or tab PIN.
+        const src = tab.link ? findLinkSource(allLayouts, tab.link) : undefined;
+        if (src) {
+            const gate = hasPin(src.section) ? src.section : hasPin(src.tab) ? src.tab : null;
+            if (!gate) return false;
+            if (!readonly) return true;
+            return showsPinLock(gate) && !!pendingPinTarget(src.section, src.tab, (k) => k in unlockedPins);
+        }
+        return hasPin(tab) && (!readonly || (showsPinLock(tab) && !(tabPinKey(section.id, tab.id) in unlockedPins)));
+    };
     const globalTabBar = useConfigStore((s) => s.frontend.tabBar);
     // Tab-bar settings cascade global → layout → section (section wins).
     const tbSettings = resolveTabBarSettings(

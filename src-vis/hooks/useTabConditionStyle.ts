@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useIoBroker } from './useIoBroker';
+import { useConnectionStore } from '../store/connectionStore';
+import { withClientIdConditions } from '../utils/clientIdToken';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { conditionHides } from '../utils/conditionEval';
 import { evaluateConditionWithSource } from '../utils/conditionSources';
@@ -41,7 +43,10 @@ const EMPTY_RESULT: TabConditionResult = {
     disabled: false,
 };
 
-export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditionResult {
+export function useTabConditionStyle(rawConditions?: WidgetCondition[]): TabConditionResult {
+    // `{{clientId}}` in a rule stands for this device (#896).
+    const clientId = useConnectionStore((s) => s.clientId);
+    const conditions = useMemo(() => withClientIdConditions(rawConditions, clientId), [rawConditions, clientId]);
     const { subscribe, getState } = useIoBroker();
     const valuesRef = useRef<Map<string, unknown>>(new Map());
     const [result, setResult] = useState<TabConditionResult>(() => {

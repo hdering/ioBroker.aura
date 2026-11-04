@@ -80,6 +80,7 @@ import {
 } from './utils/pinLock';
 import { pinUnlock } from './utils/pinApi';
 import { tabBgImage } from './utils/backgroundImage';
+import { findLinkSource } from './utils/tabLink';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from './components/common/BackgroundImageLayer';
 
 /** The datapoint that forces a brightness on every device. */
@@ -1172,10 +1173,30 @@ export default function App() {
     const unlockPin = usePinStore((s) => s.unlock);
     const retainPins = usePinStore((s) => s.retain);
     const isPinUnlocked = useMemo(() => unlockedReader(unlockedPins), [unlockedPins]);
-    const pinTarget = useMemo(
-        () => (shotEditMode ? null : pendingPinTarget(section, activeTab, isPinUnlocked)),
-        [shotEditMode, section, activeTab, isPinUnlocked],
+    // A linked tab (#896) carries no PIN of its own — it is gated by its original's
+    // (section and tab), and the unlock goes out under the original's key, so the
+    // server hands back the original's content.
+    const linkSrc = useMemo(
+        () => (activeTab?.link ? findLinkSource(allLayouts, activeTab.link) : undefined),
+        [allLayouts, activeTab],
     );
+    const pinGate = useMemo(() => {
+        if (shotEditMode) return null;
+        const own = pendingPinTarget(section, activeTab?.link ? undefined : activeTab, isPinUnlocked);
+        if (own) return { target: own, section, tab: activeTab };
+        if (!linkSrc) return null;
+        const linked = pendingPinTarget(linkSrc.section, linkSrc.tab, isPinUnlocked);
+        // Prompted as a tab: the link's own section stays open and keeps its tab bar.
+        return linked
+            ? {
+                  target: { ...linked, scope: 'tab' as const, name: activeTab?.name ?? linked.name },
+                  item: linked.scope === 'section' ? linkSrc.section : linkSrc.tab,
+                  section: linkSrc.section,
+                  tab: linkSrc.tab,
+              }
+            : null;
+    }, [shotEditMode, section, activeTab, linkSrc, isPinUnlocked]);
+    const pinTarget = pinGate?.target ?? null;
     const pageBgImage = pinTarget ? undefined : tabBgImage(layout, section, activeTab);
 
     // Content the server handed back after a successful unlock (RAM-only). Merged
@@ -1186,15 +1207,16 @@ export default function App() {
 
     // Digit count of the pending PIN — drives the keypad; never the PIN itself.
     const promptPinLength = useMemo(() => {
-        if (!pinTarget) return 4;
-        const item = pinTarget.scope === 'section' ? section : activeTab;
+        if (!pinGate) return 4;
+        const item =
+            'item' in pinGate ? pinGate.item : pinGate.target.scope === 'section' ? pinGate.section : pinGate.tab;
         return item?.pinLength ?? 4;
-    }, [pinTarget, section, activeTab]);
+    }, [pinGate]);
 
     // The tabs actually rendered: a section unlock swaps in its full tabs, a tab
     // unlock swaps that tab's widgets back in. While still locked, pinTarget wins
     // and PinPrompt renders instead — so this only matters once a view is open.
-    const tabsOfSection = useCallback(
+    const contentOfSection = useCallback(
         (sec: Section): Tab[] => {
             const secEntry = unlockedContent[sectionPinKey(sec.id)];
             const secContent = secEntry?.content as { tabs?: Tab[] } | undefined;
@@ -1215,7 +1237,29 @@ export default function App() {
         },
         [unlockedContent],
     );
+    // A linked tab (#896) shows its original's widgets — unlocked content included.
+    // The original's section is read through contentOfSection only, never resolved
+    // for links itself, so two sections linking each other cannot loop.
+    const tabsOfSection = useCallback(
+        (sec: Section): Tab[] =>
+            contentOfSection(sec).map((tb) => {
+                if (!tb.link) return tb;
+                const src = findLinkSource(allLayouts, tb.link);
+                const srcTab = src && contentOfSection(src.section).find((x) => x.id === src.tab.id);
+                return { ...tb, widgets: srcTab?.widgets ?? [] };
+            }),
+        [contentOfSection, allLayouts],
+    );
     const effectiveTabs = useMemo(() => (section ? tabsOfSection(section) : tabs), [tabs, section, tabsOfSection]);
+    // The tab bar gets the stored tabs (their own conditions, badges, PIN stubs) —
+    // only a linked tab takes its original's widgets, for the badge aggregate.
+    const tabBarTabs = useMemo(
+        () =>
+            tabs.some((tb) => tb.link)
+                ? tabs.map((tb) => (tb.link ? (effectiveTabs.find((e) => e.id === tb.id) ?? tb) : tb))
+                : tabs,
+        [tabs, effectiveTabs],
+    );
 
     // ── Visited sections stay mounted (#65) ─────────────────────────────────
     // Like visited tabs inside a section (Dashboard's mountedTabIds), a section
@@ -1260,10 +1304,10 @@ export default function App() {
     // the brief window before the adapter has redacted a freshly saved config).
     const handlePinUnlock = useCallback(
         async (code: string): Promise<boolean> => {
-            if (!pinTarget) return false;
-            const legacy = section?.pin || activeTab?.pin;
+            if (!pinTarget || !pinGate) return false;
+            const legacy = pinGate.section?.pin || pinGate.tab?.pin;
             if (legacy) {
-                const grants = unlocksFor(section, activeTab, code);
+                const grants = unlocksFor(pinGate.section, pinGate.tab, code);
                 if (!grants.length) return false;
                 grants.forEach((g) => unlockPin(g.key, g.relock));
                 return true;
@@ -1274,12 +1318,21 @@ export default function App() {
             unlockPin(pinTarget.key, res.result.pinRelock);
             return true;
         },
-        [pinTarget, section, activeTab, unlockPin, setUnlockContent],
+        [pinTarget, pinGate, unlockPin, setUnlockContent],
     );
 
     // Everything unlocked with the default relock mode falls shut again as soon as
-    // the viewer moves on to another section / tab.
-    const activeKeys = useMemo(() => activePinKeys(section?.id, activeTabId), [section?.id, activeTabId]);
+    // the viewer moves on to another section / tab. A linked tab on screen keeps
+    // its original's unlock open.
+    const linkSrcSectionId = linkSrc?.section.id;
+    const linkSrcTabId = linkSrc?.tab.id;
+    const activeKeys = useMemo(
+        () => [
+            ...activePinKeys(section?.id, activeTabId),
+            ...(linkSrcSectionId && linkSrcTabId ? activePinKeys(linkSrcSectionId, linkSrcTabId) : []),
+        ],
+        [section?.id, activeTabId, linkSrcSectionId, linkSrcTabId],
+    );
     useEffect(() => {
         retainPins(activeKeys);
         retainUnlockContent(activeKeys);
@@ -1315,9 +1368,23 @@ export default function App() {
     const pinEscape = useMemo(
         () =>
             pinTarget && layout
-                ? pinEscapeTarget(layout.sections, section?.id, lastFreeViewRef.current, isPinUnlocked)
+                ? pinEscapeTarget(
+                      // A link to a locked original is no way out — it would prompt again.
+                      layout.sections.map((sec) => ({
+                          ...sec,
+                          tabs: sec.tabs.map((tb) => {
+                              const src = tb.link && findLinkSource(allLayouts, tb.link);
+                              return src && pendingPinTarget(src.section, src.tab, isPinUnlocked)
+                                  ? { ...tb, pinProtected: true }
+                                  : tb;
+                          }),
+                      })),
+                      section?.id,
+                      lastFreeViewRef.current,
+                      isPinUnlocked,
+                  )
                 : null,
-        [pinTarget, layout, section?.id, isPinUnlocked],
+        [pinTarget, layout, allLayouts, section?.id, isPinUnlocked],
     );
 
     // Scope for the message target filter. Slug, id and name are all passed on:
@@ -1418,7 +1485,7 @@ export default function App() {
             readonly
             layoutId={layout?.id}
             sectionId={section?.id}
-            viewTabs={sectionLocked ? [] : tabs}
+            viewTabs={sectionLocked ? [] : tabBarTabs}
             viewActiveTabId={activeTabId}
             onViewTabClick={(tab) => {
                 const slug = tab.slug ?? tab.id;

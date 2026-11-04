@@ -2258,3 +2258,16 @@ Stelle, an der ein Modell die Felder/Komponenten eines Widgets für das Raster s
 | Komponenten-Schlüssel | `utils/customGridComponents.ts` (Editor-Auswahl) → Schema `widgets.<typ>.customGridComponents` (+ Schlüssel aus `customFromLayout`); `aura_validate` warnt bei unbekanntem `componentKey` |
 | Raumklima | `targetControl`, `minTemp`/`maxTemp`/`step`/`presets`; Rezepte `raumklima-soll`, `geraet-mit-verlauf`; Metrik-Modifier `targetControl` |
 | Tests | `climate-setpoint.mjs`, `select-cell-circle.mjs`, `custom-cell-chart.mjs` (Browser), `custom-grid-presets-logic.mjs` |
+
+## Verknüpfte Tabs (#896)
+
+Ein Tab mit `link: { sectionId, tabId }` hat keine eigenen Widgets (`widgets: []`), er zeigt die des
+Originals. Name, Slug, Symbol, Reihenfolge, Bedingungen und Marker gehören dem Link, Widgets und PIN
+dem Original.
+
+| Teil | |
+| --- | --- |
+| Adressierung | `findTab(…, { followLink: true })` liefert das Original plus `linkedVia`. So adressieren `aura_tab` und alle Widget-Schreibwege (`resolveTargetHost`). Umbenennen, Verschieben, Kopieren und Löschen gehen ohne `followLink` an den Link selbst |
+| Übersicht | `aura_dashboard` druckt den Link als „verknüpft mit Layout / Bereich / Tab (Widgets nur im Original)“, ohne Zeilenbudget |
+| Frontend | `App.tsx`: `tabsOfSection` setzt die Widgets des Originals ein (inkl. entsperrtem Inhalt), die PIN-Abfrage läuft mit dem Schlüssel des Originals (`pinGate`) |
+| Tests | `tools/tests/tab-link-logic.mjs` |

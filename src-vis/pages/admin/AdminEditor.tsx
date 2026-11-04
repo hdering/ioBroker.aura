@@ -27,6 +27,7 @@ import {
     ExternalLink,
     FolderInput,
     Copy,
+    Link2,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { ManualWidgetDialog } from '../../components/config/ManualWidgetDialog';
@@ -38,6 +39,7 @@ import { useDashboardStore, useActiveSection } from '../../store/dashboardStore'
 import { BackgroundImageButton } from '../../components/config/BackgroundImageField';
 import { BackgroundImageLayer, BG_IMAGE_HOST_STYLE } from '../../components/common/BackgroundImageLayer';
 import { tabBgImage } from '../../utils/backgroundImage';
+import { findLinkSource, linkSourceLabel, linksTo } from '../../utils/tabLink';
 import { KEEP_PIN } from '../../utils/pinLock';
 import { PinCodeSelect, PinRemoveButton } from '../../components/config/PinCodeSelect';
 import { useMcpReleaseStore } from '../../store/mcpReleaseStore';
@@ -613,6 +615,8 @@ const TabBar = memo(function TabBar() {
             }),
             shallow,
         );
+    const linkTabToSection = useDashboardStore((s) => s.linkTabToSection);
+    const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
 
     // Current layout/section of the edited tabs — used to flag the tab's own section
     // in the move/copy target list and to build a fully-qualified label per section.
@@ -692,6 +696,21 @@ const TabBar = memo(function TabBar() {
     };
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);
+    // Linked tab (#896): the original the open panel's tab shows, resp. the links
+    // that show the open panel's tab elsewhere.
+    const settingsLinkSrc = useStoreWithEqualityFn(
+        useDashboardStore,
+        (s) => (settingsTab?.link ? linkTarget(s.layouts, settingsTab.link) : null),
+        shallow,
+    );
+    const linkedFrom = useStoreWithEqualityFn(
+        useDashboardStore,
+        (s) =>
+            settingsTabId && !settingsTab?.link
+                ? linksTo(s.layouts, currentSectionId, settingsTabId).map((x) => linkSourceLabel(x))
+                : [],
+        shallow,
+    );
     /** Vault key of the tab whose settings panel is open (see lib/security/dashboardVault). */
     const tabVaultKey = `tab:${currentSectionId}:${settingsTabId ?? ''}`;
     /**
@@ -710,6 +729,15 @@ const TabBar = memo(function TabBar() {
         if (mode === 'move' && moveTarget === currentTargetKey) return;
         const [layoutId, sectionId] = moveTarget.split('::');
         moveTabToSection(settingsTabId, currentLayoutId, currentSectionId, layoutId, sectionId, mode);
+        setSettingsTabId(null);
+    };
+    // A link inside the original's own section would show the tab twice there.
+    const linkOriginSectionId = settingsTab?.link?.sectionId ?? currentSectionId;
+    const linkTargetValid = !!moveTarget && moveTarget.split('::')[1] !== linkOriginSectionId;
+    const runTabLink = () => {
+        if (!settingsTabId || !linkTargetValid) return;
+        const [layoutId, sectionId] = moveTarget.split('::');
+        linkTabToSection(settingsTabId, currentLayoutId, currentSectionId, layoutId, sectionId);
         setSettingsTabId(null);
     };
     // Group the flat target list by layout so the dropdown can use <optgroup>.
@@ -846,6 +874,15 @@ const TabBar = memo(function TabBar() {
                                         >
                                             {tab.name}
                                         </button>
+                                        {tab.link && (
+                                            <span
+                                                title={t('tabBar.linkedBadge')}
+                                                data-aura-tab-linked=""
+                                                style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+                                            >
+                                                <Link2 size={11} style={{ color: 'var(--text-secondary)' }} />
+                                            </span>
+                                        )}
                                         {tab.hidden && !tab.disabled && (
                                             <span
                                                 title={t('editor.tabMgmt.hidden')}
@@ -1151,86 +1188,167 @@ const TabBar = memo(function TabBar() {
                                 />
                             </div>
 
-                            {/* ── PIN gate ────────────────────────────────────────────────── */}
-                            <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
-                                <label className="text-[11px] block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('pin.field')}
-                                </label>
-                                <PinCodeSelect
-                                    node={settingsTab}
-                                    onChange={(patch) => updateTab(settingsTabId, patch)}
-                                />
-                                {tabHasPin ? (
-                                    <div className="flex items-center justify-between mt-2">
-                                        <div>
-                                            <p
-                                                className="text-[11px] font-medium"
-                                                style={{ color: 'var(--text-primary)' }}
-                                            >
-                                                {t('pin.keepUnlocked')}
-                                            </p>
-                                            <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                                {t('pin.keepUnlockedHint')}
-                                            </p>
-                                        </div>
+                            {/* ── Linked tab (#896) ───────────────────────────────────────── */}
+                            {settingsLinkSrc && (
+                                <div
+                                    className="border-t pt-2 space-y-1.5"
+                                    style={{ borderColor: 'var(--app-border)' }}
+                                    data-aura-tab-link-info=""
+                                >
+                                    <div
+                                        className="flex items-center gap-1.5 text-[11px] font-medium"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        <Link2 size={11} />
+                                        {t('tabBar.linkedTo')}
+                                    </div>
+                                    <p
+                                        className="text-xs"
+                                        style={{
+                                            color: settingsLinkSrc.label
+                                                ? 'var(--text-primary)'
+                                                : 'var(--accent-red, #ef4444)',
+                                        }}
+                                    >
+                                        {settingsLinkSrc.label || t('tabBar.linkedMissing')}
+                                    </p>
+                                    {settingsLinkSrc.label && (
                                         <button
-                                            onClick={() =>
-                                                updateTab(settingsTabId, {
-                                                    pinRelock:
-                                                        settingsTab.pinRelock === 'session' ? undefined : 'session',
-                                                })
-                                            }
-                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                            onClick={() => {
+                                                setSettingsTabId(null);
+                                                setActiveLayoutAndTab(
+                                                    settingsLinkSrc.layoutId,
+                                                    settingsLinkSrc.tabId,
+                                                    settingsLinkSrc.sectionId,
+                                                );
+                                            }}
+                                            className="flex items-center justify-center gap-1.5 w-full px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity"
                                             style={{
-                                                background:
-                                                    settingsTab.pinRelock === 'session'
-                                                        ? 'var(--accent)'
-                                                        : 'var(--app-border)',
+                                                background: 'var(--app-bg)',
+                                                border: '1px solid var(--app-border)',
+                                                color: 'var(--text-secondary)',
                                             }}
                                         >
-                                            <span
-                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: settingsTab.pinRelock === 'session' ? '18px' : '2px' }}
-                                            />
+                                            <ExternalLink size={11} />
+                                            {t('tabBar.linkedEditOriginal')}
                                         </button>
-                                    </div>
-                                ) : (
-                                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('pin.hint')}
+                                    )}
+                                    <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('tabBar.linkedPin')}
                                     </p>
-                                )}
-                                {tabHasPin && (
-                                    <PinSwitch
-                                        className="aura-pin-showlock"
-                                        label={t('pin.showLock')}
-                                        hint={t('pin.showLockHint')}
-                                        on={settingsTab.pinHideLock !== true}
-                                        onToggle={() =>
-                                            updateTab(settingsTabId, {
-                                                pinHideLock: settingsTab.pinHideLock ? undefined : true,
-                                            })
-                                        }
+                                </div>
+                            )}
+                            {linkedFrom.length > 0 && (
+                                <div
+                                    className="border-t pt-2 space-y-1"
+                                    style={{ borderColor: 'var(--app-border)' }}
+                                    data-aura-tab-linked-from=""
+                                >
+                                    <div
+                                        className="flex items-center gap-1.5 text-[11px] font-medium"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        <Link2 size={11} />
+                                        {t('tabBar.linkedFrom')}
+                                    </div>
+                                    {linkedFrom.map((label, i) => (
+                                        <p key={i} className="text-xs" style={{ color: 'var(--text-primary)' }}>
+                                            {label}
+                                        </p>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* ── PIN gate ────────────────────────────────────────────────── */}
+                            {!settingsTab.link && (
+                                <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
+                                    <label
+                                        className="text-[11px] block mb-1.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('pin.field')}
+                                    </label>
+                                    <PinCodeSelect
+                                        node={settingsTab}
+                                        onChange={(patch) => updateTab(settingsTabId, patch)}
                                     />
-                                )}
-                                {tabHasPin && <McpReleaseToggle vaultKey={tabVaultKey} />}
-                                {tabHasPin && (
-                                    <PinRemoveButton
-                                        vaultKey={tabVaultKey}
-                                        stored={tabPinStored}
-                                        onRemove={() =>
-                                            updateTab(settingsTabId, {
-                                                pin: undefined,
-                                                pinRelock: undefined,
-                                                pinHideLock: undefined,
-                                                pinProtected: undefined,
-                                                pinLength: undefined,
-                                                pinFrom: undefined,
-                                                pinCode: undefined,
-                                            })
-                                        }
-                                    />
-                                )}
-                            </div>
+                                    {tabHasPin ? (
+                                        <div className="flex items-center justify-between mt-2">
+                                            <div>
+                                                <p
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {t('pin.keepUnlocked')}
+                                                </p>
+                                                <p
+                                                    className="text-[9px] mt-0.5"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('pin.keepUnlockedHint')}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    updateTab(settingsTabId, {
+                                                        pinRelock:
+                                                            settingsTab.pinRelock === 'session' ? undefined : 'session',
+                                                    })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background:
+                                                        settingsTab.pinRelock === 'session'
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{
+                                                        left: settingsTab.pinRelock === 'session' ? '18px' : '2px',
+                                                    }}
+                                                />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                            {t('pin.hint')}
+                                        </p>
+                                    )}
+                                    {tabHasPin && (
+                                        <PinSwitch
+                                            className="aura-pin-showlock"
+                                            label={t('pin.showLock')}
+                                            hint={t('pin.showLockHint')}
+                                            on={settingsTab.pinHideLock !== true}
+                                            onToggle={() =>
+                                                updateTab(settingsTabId, {
+                                                    pinHideLock: settingsTab.pinHideLock ? undefined : true,
+                                                })
+                                            }
+                                        />
+                                    )}
+                                    {tabHasPin && <McpReleaseToggle vaultKey={tabVaultKey} />}
+                                    {tabHasPin && (
+                                        <PinRemoveButton
+                                            vaultKey={tabVaultKey}
+                                            stored={tabPinStored}
+                                            onRemove={() =>
+                                                updateTab(settingsTabId, {
+                                                    pin: undefined,
+                                                    pinRelock: undefined,
+                                                    pinHideLock: undefined,
+                                                    pinProtected: undefined,
+                                                    pinLength: undefined,
+                                                    pinFrom: undefined,
+                                                    pinCode: undefined,
+                                                })
+                                            }
+                                        />
+                                    )}
+                                </div>
+                            )}
 
                             {/* ── Export tab ──────────────────────────────────────────────── */}
                             <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
@@ -1255,7 +1373,7 @@ const TabBar = memo(function TabBar() {
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     <FolderInput size={11} />
-                                    {t('tabBar.moveTitle')}
+                                    {t('tabBar.moveTitleLink')}
                                 </div>
                                 <select
                                     value={moveTarget}
@@ -1317,7 +1435,24 @@ const TabBar = memo(function TabBar() {
                                         <Copy size={11} />
                                         {t('tabBar.copy')}
                                     </button>
+                                    <button
+                                        onClick={runTabLink}
+                                        disabled={!linkTargetValid}
+                                        data-aura-tab-link-btn=""
+                                        className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            border: '1px solid var(--app-border)',
+                                            color: 'var(--text-secondary)',
+                                        }}
+                                    >
+                                        <Link2 size={11} />
+                                        {t('tabBar.link')}
+                                    </button>
                                 </div>
+                                <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('tabBar.linkHint')}
+                                </p>
                             </div>
 
                             {/* ── Conditions section (highlighted, like widget Darstellung) ── */}
@@ -1438,6 +1573,52 @@ const TabBar = memo(function TabBar() {
  * One labelled switch inside a PIN panel. The PIN panels of a section and of a tab
  * show the same rows, so the markup lives once.
  */
+/** What a linked tab points at, flat for a shallow-compared selector; label '' = original gone. */
+function linkTarget(
+    layouts: Parameters<typeof findLinkSource>[0],
+    link: Parameters<typeof findLinkSource>[1],
+): { label: string; layoutId: string; sectionId: string; tabId: string } {
+    const src = findLinkSource(layouts, link);
+    return src
+        ? { label: linkSourceLabel(src), layoutId: src.layout.id, sectionId: src.section.id, tabId: src.tab.id }
+        : { label: '', layoutId: '', sectionId: '', tabId: '' };
+}
+
+/** Stands in for the canvas while a linked tab (#896) is open — its widgets live in the original. */
+function LinkedTabCanvas({ target }: { target: ReturnType<typeof linkTarget> }) {
+    const t = useT();
+    const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
+    return (
+        <div className="flex-1 flex items-center justify-center p-6" data-aura-linked-canvas="">
+            <div
+                className="max-w-sm w-full rounded-xl p-5 space-y-3 text-center"
+                style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+            >
+                <Link2 size={22} className="mx-auto" style={{ color: 'var(--accent)' }} />
+                <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                    {t('tabBar.linkedCanvas')}
+                </p>
+                <p
+                    className="text-xs"
+                    style={{ color: target.label ? 'var(--text-secondary)' : 'var(--accent-red, #ef4444)' }}
+                >
+                    {target.label ? `${t('tabBar.linkedTo')}: ${target.label}` : t('tabBar.linkedMissing')}
+                </p>
+                {target.label && (
+                    <button
+                        onClick={() => setActiveLayoutAndTab(target.layoutId, target.tabId, target.sectionId)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-80"
+                        style={{ background: 'var(--accent)' }}
+                    >
+                        <ExternalLink size={14} />
+                        {t('tabBar.linkedEditOriginal')}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+}
+
 function PinSwitch({
     label,
     hint,
@@ -1598,6 +1779,17 @@ export function AdminEditor() {
             sec?.tabs.find((x) => x.id === sec.activeTabId),
         );
     });
+    // A linked tab (#896) has no widgets of its own — the canvas points to the original.
+    const activeLink = useStoreWithEqualityFn(
+        useDashboardStore,
+        (s) => {
+            const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+            const sec = l.sections.find((x) => x.id === l.activeSectionId) ?? l.sections[0];
+            const tab = sec?.tabs.find((x) => x.id === sec.activeTabId);
+            return tab?.link ? linkTarget(s.layouts, tab.link) : null;
+        },
+        shallow,
+    );
     // Stable action references — never cause re-renders
     const setActiveLayout = useDashboardStore((s) => s.setActiveLayout);
     const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
@@ -1758,14 +1950,16 @@ export function AdminEditor() {
                 <div className="flex-1" />
                 <button
                     onClick={() => setShowManual(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-80"
+                    disabled={!!activeLink}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{ background: 'var(--accent)' }}
                 >
                     <Plus size={15} /> Neues Widget
                 </button>
                 <button
                     onClick={() => setShowImport(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
+                    disabled={!!activeLink}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
                     style={{
                         background: 'var(--app-bg)',
                         color: 'var(--text-primary)',
@@ -1904,9 +2098,13 @@ export function AdminEditor() {
                     }
                 >
                     {editorBgImage && <BackgroundImageLayer image={editorBgImage} />}
-                    <FocusedWidgetContext.Provider value={focusedWidgetId}>
-                        <Dashboard editMode={true} />
-                    </FocusedWidgetContext.Provider>
+                    {activeLink ? (
+                        <LinkedTabCanvas target={activeLink} />
+                    ) : (
+                        <FocusedWidgetContext.Provider value={focusedWidgetId}>
+                            <Dashboard editMode={true} />
+                        </FocusedWidgetContext.Provider>
+                    )}
                 </div>
                 {orderPanel === 'mobile' &&
                     (mobileCols > 1 ? (

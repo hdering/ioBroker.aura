@@ -278,6 +278,18 @@ export interface Tab {
     idleReturnExempt?: boolean; // never left automatically by the idle-return timer (#638)
     /** Background image behind this tab's widgets; unset = the section's, then the layout's (#442). */
     backgroundImage?: BackgroundImage;
+    /**
+     * Linked tab (#896): this tab shows the widgets of the tab it points at instead
+     * of its own (`widgets` stays empty). Name, icon, slug, order, conditions and
+     * badges are this tab's own; the content and the PIN are the original's.
+     */
+    link?: TabLink;
+}
+
+/** Where a linked tab takes its content from — tab ids are only unique per section. */
+export interface TabLink {
+    sectionId: string;
+    tabId: string;
 }
 
 /**
@@ -396,6 +408,11 @@ function ensureSlugs(tabs: Tab[]): Tab[] {
         seen.add(t.slug);
         return t;
     });
+}
+
+function layoutHoldsWidget(layouts: DashboardLayout[], layoutId: string, widgetId: string): boolean {
+    const l = layouts.find((x) => x.id === layoutId);
+    return !!l?.sections.some((sec) => sec.tabs.some((t) => t.widgets.some((w) => w.id === widgetId)));
 }
 
 function uniqueLayoutSlug(base: string, layouts: DashboardLayout[]): string {
@@ -575,6 +592,18 @@ interface DashboardState {
         targetLayoutId: string,
         targetSectionId: string,
         mode: 'move' | 'copy',
+    ) => void;
+    /**
+     * Add a linked tab (#896) to the target section that shows the source tab's
+     * widgets. A link to a linked tab points at its original instead. Navigates to
+     * the new tab like moveTabToSection.
+     */
+    linkTabToSection: (
+        tabId: string,
+        srcLayoutId: string,
+        srcSectionId: string,
+        targetLayoutId: string,
+        targetSectionId: string,
     ) => void;
 
     // ── Widget CRUD ──────────────────────────────────────────────────────────
@@ -1172,6 +1201,38 @@ export const useDashboardStore = create<DashboardState>()(
                     };
                 }),
 
+            linkTabToSection: (tabId, srcLayoutId, srcSectionId, targetLayoutId, targetSectionId) =>
+                set((s) => {
+                    const srcSec = s.layouts
+                        .find((l) => l.id === srcLayoutId)
+                        ?.sections.find((sec) => sec.id === srcSectionId);
+                    const srcTab = srcSec?.tabs.find((t) => t.id === tabId);
+                    if (!srcSec || !srcTab) return {};
+                    const link: TabLink = srcTab.link ?? { sectionId: srcSec.id, tabId: srcTab.id };
+                    // A link inside the original's own section would just show the tab twice.
+                    if (link.sectionId === targetSectionId) return {};
+                    const insertId = `tab-${Date.now()}`;
+                    const layouts = patchSection(s.layouts, targetLayoutId, targetSectionId, (sec) => {
+                        const newTab: Tab = {
+                            id: insertId,
+                            name: srcTab.name,
+                            slug: uniqueTabSlug(srcTab.slug || slugify(srcTab.name), sec.tabs),
+                            widgets: [],
+                            ...(srcTab.icon ? { icon: srcTab.icon } : {}),
+                            ...(srcTab.hideLabel ? { hideLabel: true } : {}),
+                            link,
+                        };
+                        return { ...sec, tabs: [...sec.tabs, newTab], activeTabId: insertId };
+                    });
+                    return {
+                        activeLayoutId: targetLayoutId,
+                        layouts: patchLayout(layouts, targetLayoutId, (l) => ({
+                            ...l,
+                            activeSectionId: targetSectionId,
+                        })),
+                    };
+                }),
+
             // ── Widget CRUD ────────────────────────────────────────────────────────
 
             addWidget: (widget) =>
@@ -1238,8 +1299,10 @@ export const useDashboardStore = create<DashboardState>()(
 
             updateWidgetById: (widgetId, config, layoutId) =>
                 set((s) => ({
+                    // A linked tab (#896) renders widgets that live in another layout —
+                    // when the given layout does not hold the widget, look everywhere.
                     layouts: s.layouts.map((l) =>
-                        layoutId && l.id !== layoutId
+                        layoutId && l.id !== layoutId && layoutHoldsWidget(s.layouts, layoutId, widgetId)
                             ? l
                             : {
                                   ...l,

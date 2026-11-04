@@ -147,12 +147,7 @@ export function triggerClauses(trigger: Pick<PopupTrigger, 'clause' | 'extraClau
     return trigger.extraClauses?.length ? [trigger.clause, ...trigger.extraClauses] : [trigger.clause];
 }
 
-/**
- * `{{clientId}}` in a trigger datapoint stands for the device the dashboard runs
- * on, so ONE rule on `clients.{{clientId}}.idle.active` is a screensaver for
- * every device instead of one rule per client (#822).
- */
-export const CLIENT_ID_TOKEN = '{{clientId}}';
+export { CLIENT_ID_TOKEN } from '../utils/clientIdToken';
 
 export function newTriggerHost(): WidgetConfig {
     return {

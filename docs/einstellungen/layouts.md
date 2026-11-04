@@ -35,6 +35,22 @@ Links der Baum aus Layouts und ihren Bereichen, rechts das gewählte Element. Di
 | Tab suchen         | Filtert die Liste nach Name oder Slug                                                   |
 | Neuer Tab          | Legt einen leeren Tab im Bereich an                                                      |
 
+### Verknüpfte Tabs
+
+Ein Tab in mehreren Layouts, gepflegt nur einmal — z. B. ein Layout pro Person mit einer Auswahl der Seiten.
+
+| Wo / Was                 |                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------- |
+| Anlegen                  | Editor → ⚙ am Tab → Zielbereich wählen → **Verknüpfen**                                           |
+| Eigen pro Layout         | Name, Icon, URL-Slug, Reihenfolge, Standard-Tab, Ausblenden, Bedingungen, Marker, Theme des Layouts |
+| Vom Original             | Widgets und PIN (Tab- oder Bereichs-PIN des Originals; ein Code entsperrt beide)                  |
+| Symbol 🔗 am Tab         | Nur im Editor; im Frontend verhält sich der Tab wie jeder andere                                  |
+| Tab öffnen im Editor     | Hinweis statt Widgets, **Original bearbeiten** springt hin                                         |
+| ⚙ am Original            | **Verknüpft in** listet alle Verknüpfungen                                                        |
+| Original gelöscht        | Verknüpfung bleibt leer, Editor meldet „Original-Tab existiert nicht mehr“                       |
+
+Tab nur auf bestimmten Geräten zeigen: Tab-Bedingung mit `{{clientId}}` im Datenpunkt, z. B. `0_userdata.0.aura.{{clientId}}.zeigeRechner` = `false` → verbergen. `{{clientId}}` steht für das Gerät, auf dem das Dashboard läuft; dafür jedem Gerät eine feste [Client-ID](./settings#client-id) geben. Gilt auch für Bereichs-Bedingungen. Ausblenden ist kein Schutz — der Tab bleibt über seine Adresse erreichbar.
+
 ## Geltungsbereich
 
 Links der Baum **Global → Layout → Bereich**, rechts drei Zeilen mit den Gruppen. Der Name einer Zeile ist die Kette, entlang der ihre Gruppen abweichen dürfen; die Leiste darüber sagt, was gerade bearbeitet wird.
