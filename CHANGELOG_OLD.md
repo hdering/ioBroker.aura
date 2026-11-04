@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.87.1 (2026-10-20)
+- iFrame - Energiefluss-erweitert pages now embed without the white box behind the diagram in dark themes ([#642](https://github.com/hdering/ioBroker.aura/issues/642))
+- Energy flow (evcc) - new switch to invert the sign of a manual battery power datapoint that reports positive = charging ([#803](https://github.com/hdering/ioBroker.aura/issues/803))
+- Chart (distribution) - font size of the group title, total, legend and percentage labels can now be set individually ([#804](https://github.com/hdering/ioBroker.aura/issues/804))
+
 ## 0.87.0 (2026-10-19)
 - 🌟 **New feature:** Countdown - can start automatically when a watched datapoint switches on, e.g. turn a plug off 30 min after it was switched on elsewhere ([#796](https://github.com/hdering/ioBroker.aura/issues/796))
 - 🌟 **New feature:** Lists and the status overview can publish their content to ioBroker (count, JSON list and ready-to-send text of the shown rows), computed by the adapter even without an open browser - e.g. for an evening report by mail or Telegram ([#798](https://github.com/hdering/ioBroker.aura/issues/798))

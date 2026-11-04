@@ -122,6 +122,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.104.0 (2026-11-04)
+- 🐛 **Bug fix:** Date picker - time and date fields in Chrome on Android no longer render too wide with a dropdown arrow; they fit their value and show the clock/calendar button ([#920](https://github.com/hdering/ioBroker.aura/issues/920))
+- 🌟 **New feature:** Charts - series names (advanced chart) and group titles, labels and remainder label (distribution chart) can contain bindings, e.g. a forecast date from a datapoint as the bar label ([#919](https://github.com/hdering/ioBroker.aura/issues/919))
+- 🌟 **New feature:** Media player - new option "Marquee": titles and artist/album that are too long scroll instead of being cut off ([#921](https://github.com/hdering/ioBroker.aura/issues/921))
+- 🌟 **New feature:** Header - clicking the dashboard title or the menu title can go to the home tab, any tab or a link; set under Header and Section menu per layout ([#922](https://github.com/hdering/ioBroker.aura/issues/922))
+
+
 ### 0.103.0 (2026-11-04)
 - 🐛 **Bug fix:** Group - the group action no longer makes the group and its children taller; the divider under the title stays at the same height with and without it ([#915](https://github.com/hdering/ioBroker.aura/issues/915))
 - 🐛 **Bug fix:** News - the ticker no longer stops on touch screens after it was tapped or swiped over; pausing on hover now only applies to mouse pointers ([#916](https://github.com/hdering/ioBroker.aura/issues/916))
@@ -335,12 +342,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Value conversion - new option "Adjust unit automatically": the value moves to the next unit prefix from 1000 up and below 1 down (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, bytes), with separate decimal places for the larger unit; works in the value widget, both lists including the second line and the universal widget's datapoint cell
 
 
-### 0.87.1 (2026-10-20)
-- iFrame - Energiefluss-erweitert pages now embed without the white box behind the diagram in dark themes ([#642](https://github.com/hdering/ioBroker.aura/issues/642))
-- Energy flow (evcc) - new switch to invert the sign of a manual battery power datapoint that reports positive = charging ([#803](https://github.com/hdering/ioBroker.aura/issues/803))
-- Chart (distribution) - font size of the group title, total, legend and percentage labels can now be set individually ([#804](https://github.com/hdering/ioBroker.aura/issues/804))
-
-
 ## License
 
 MIT License
@@ -352,6 +353,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
