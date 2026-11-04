@@ -513,7 +513,12 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     : undefined
             }
         >
-            <TitleRow align={titleAlign} className="relative flex items-center gap-1.5 min-w-0">
+            <TitleRow
+                align={titleAlign}
+                // min-h-5: the zero-height master control below needs a line to sit on
+                // when title and icon are both off.
+                className={`relative flex items-center gap-1.5 min-w-0 ${showMaster ? 'min-h-5' : ''}`}
+            >
                 {collapsible && (
                     <ChevronDown
                         size={16}
@@ -542,9 +547,14 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 <HeaderSlotsInline />
                 {showMaster && (
                     // Wrapper stops master-control clicks from bubbling to the header's
-                    // collapse toggle when the group is collapsible.
+                    // collapse toggle when the group is collapsible. Zero height: the
+                    // control (button ~25px) is taller than the title line (20px) and
+                    // would grow the bar — a few px that round the hugged box up a whole
+                    // row, which the fill then hands to the children (#915). Centred on
+                    // the line, it overhangs into the bar's py-2.5 padding instead, so
+                    // the divider sits at the same height with and without the action.
                     <div
-                        className="ml-auto flex min-w-0"
+                        className="ml-auto flex items-center h-0 min-w-0"
                         onClick={collapsible ? (e) => e.stopPropagation() : undefined}
                     >
                         <GroupActionControl
