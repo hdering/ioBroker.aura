@@ -9,6 +9,7 @@ import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
 import { makeMenuItem, sectionMenuItemHost } from '../../../../utils/menuItems';
 import { MenuItemFields, menuItemTypeLabelKey } from '../shared/MenuItemFields';
+import { TitleActionField } from '../shared/TitleActionField';
 
 // layoutDrawer* keys reset together by the per-scope "reset" button.
 const DRAWER_KEYS: (keyof LayoutSettings)[] = [
@@ -24,6 +25,7 @@ const DRAWER_KEYS: (keyof LayoutSettings)[] = [
     'layoutDrawerBottomOffset',
     'layoutDrawerShowTitle',
     'layoutDrawerTitle',
+    'layoutDrawerTitleAction',
     'layoutDrawerTitleMarginTop',
     'layoutDrawerTitleMarginBottom',
     'layoutDrawerEntryStyle',
@@ -240,6 +242,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         layoutDrawerBottomOffset: eff('layoutDrawerBottomOffset')[0],
         layoutDrawerShowTitle: eff('layoutDrawerShowTitle')[0],
         layoutDrawerTitle: eff('layoutDrawerTitle')[0],
+        layoutDrawerTitleAction: eff('layoutDrawerTitleAction')[0],
         layoutDrawerTitleMarginTop: eff('layoutDrawerTitleMarginTop')[0],
         layoutDrawerTitleMarginBottom: eff('layoutDrawerTitleMarginBottom')[0],
         layoutDrawerEntryStyle: eff('layoutDrawerEntryStyle')[0],
@@ -343,6 +346,12 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                         color: 'var(--text-primary)',
                                         border: '1px solid var(--app-border)',
                                     }}
+                                />
+                            </OverrideField>
+                            <OverrideField {...mark('layoutDrawerTitleAction', 'titleAction.label')}>
+                                <TitleActionField
+                                    value={frontend.layoutDrawerTitleAction}
+                                    onChange={(v) => updateFrontend({ layoutDrawerTitleAction: v })}
                                 />
                             </OverrideField>
                             <div className="grid grid-cols-2 gap-3">

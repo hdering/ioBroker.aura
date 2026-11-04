@@ -51,7 +51,7 @@ import { useT } from './i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { tabletBandActive } from './utils/flowOrder';
 import { deriveHeaderItems, resolveMenuWidget } from './utils/menuItems';
-import type { MenuItemContent, Section, Tab } from './store/dashboardStore';
+import type { MenuItemContent, Section, Tab, TitleAction } from './store/dashboardStore';
 
 import { discardPendingRam, isScreenshotMode, setFrontendReadOnly } from './store/persistManager';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
@@ -1471,6 +1471,31 @@ export default function App() {
     const drawerIconSize = effectiveSettings.layoutDrawerIconSize ?? 16;
     const drawerItems = effectiveSettings.layoutDrawerItems ?? [];
 
+    // Click on the header / menu title (#922). Undefined keeps the title a plain label.
+    const titleClick = (action: TitleAction | undefined): (() => void) | undefined => {
+        if (!action || action.kind === 'none') return undefined;
+        if (action.kind === 'link-tab' && !action.tabId) return undefined;
+        if (action.kind === 'link-external' && !action.url.trim()) return undefined;
+        return () => {
+            switch (action.kind) {
+                case 'home':
+                    idleReturnNavRef.current();
+                    break;
+                case 'link-tab':
+                    useNavigationStore
+                        .getState()
+                        .navigateTo(action.layoutId, action.tabId, undefined, action.sectionId);
+                    break;
+                case 'link-external':
+                    if (action.newTab) window.open(action.url, '_blank', 'noopener');
+                    else window.location.href = action.url;
+                    break;
+            }
+        };
+    };
+    const headerTitleClick = titleClick(effectiveSettings.headerTitleAction);
+    const drawerTitleClick = titleClick(effectiveSettings.layoutDrawerTitleAction);
+
     // Header extras. Configs written before #634 carry no headerItems — the two
     // legacy slots (one clock, one datapoint) are projected onto the list there.
     const headerItems = deriveHeaderItems(effectiveSettings);
@@ -1501,6 +1526,7 @@ export default function App() {
                         iconOnly
                         showTitle={drawerShowTitle}
                         drawerTitle={drawerTitle}
+                        onTitleClick={drawerTitleClick}
                         titleMarginTop={drawerTitleMarginTop}
                         titleMarginBottom={drawerTitleMarginBottom}
                         entryStyle={drawerEntryStyle}
@@ -1526,6 +1552,7 @@ export default function App() {
             barAlignment={effectiveSettings.layoutDrawerBarAlignment ?? 'left'}
             hideMobileScrollbar={effectiveSettings.layoutDrawerHideMobileScrollbar ?? false}
             drawerTitle={drawerTitle}
+            onTitleClick={drawerTitleClick}
             entryStyle={drawerEntryStyle}
             entryHeight={drawerEntryHeight}
             indicatorStyle={drawerIndicatorStyle}
@@ -1585,6 +1612,7 @@ export default function App() {
                     autoHide={drawerAutoHide}
                     showTitle={drawerShowTitle}
                     drawerTitle={drawerTitle}
+                    onTitleClick={drawerTitleClick}
                     titleMarginTop={drawerTitleMarginTop}
                     titleMarginBottom={drawerTitleMarginBottom}
                     entryStyle={drawerEntryStyle}
@@ -1606,6 +1634,7 @@ export default function App() {
                         bottomOffset={effectiveSettings.layoutDrawerBottomOffset ?? 0}
                         showTitle={drawerShowTitle}
                         drawerTitle={drawerTitle}
+                        onTitleClick={drawerTitleClick}
                         titleMarginTop={drawerTitleMarginTop}
                         titleMarginBottom={drawerTitleMarginBottom}
                         entryStyle={drawerEntryStyle}
@@ -1630,6 +1659,7 @@ export default function App() {
                                         size={drawerSize}
                                         showTitle={drawerShowTitle}
                                         drawerTitle={drawerTitle}
+                                        onTitleClick={drawerTitleClick}
                                         titleMarginTop={drawerTitleMarginTop}
                                         titleMarginBottom={drawerTitleMarginBottom}
                                         entryStyle={drawerEntryStyle}
@@ -1641,7 +1671,18 @@ export default function App() {
                                     />
                                 )}
                                 <h1 className="aura-titel text-xl font-bold tracking-tight truncate">
-                                    {effectiveSettings.headerTitle || 'Aura'}
+                                    {headerTitleClick ? (
+                                        <button
+                                            type="button"
+                                            onClick={headerTitleClick}
+                                            className="block max-w-full truncate text-left cursor-pointer"
+                                            data-title-action=""
+                                        >
+                                            {effectiveSettings.headerTitle || 'Aura'}
+                                        </button>
+                                    ) : (
+                                        effectiveSettings.headerTitle || 'Aura'
+                                    )}
                                 </h1>
                                 {headerLeftItems.map((it) => (
                                     <div key={it.id} className="shrink-0 flex items-center self-stretch">

@@ -6,6 +6,7 @@ import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { MenuItemRow, menuItemTypeLabelKey } from '../shared/MenuItemFields';
+import { TitleActionField } from '../shared/TitleActionField';
 import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
 import { deriveHeaderItems, makeMenuItem } from '../../../../utils/menuItems';
 import type { HeaderItem, LayoutSettings } from '../../../../store/dashboardStore';
@@ -13,6 +14,7 @@ import type { HeaderItem, LayoutSettings } from '../../../../store/dashboardStor
 const HEADER_KEYS: (keyof LayoutSettings)[] = [
     'showHeader',
     'headerTitle',
+    'headerTitleAction',
     'showConnectionBadge',
     'showAdminLink',
     'showMessageBell',
@@ -43,6 +45,7 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
 
     const [showHeader, showHeaderOv] = eff('showHeader');
     const [headerTitle, headerTitleOv] = eff('headerTitle');
+    const [headerTitleAction, headerTitleActionOv] = eff('headerTitleAction');
     const [showConnectionBadge, showConnectionBadgeOv] = eff('showConnectionBadge');
     const [showAdminLink, showAdminLinkOv] = eff('showAdminLink');
     const [showMessageBell, showMessageBellOv] = eff('showMessageBell');
@@ -132,6 +135,19 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                                 border: '1px solid var(--app-border)',
                             }}
                         />
+                    </OverrideField>
+                    <OverrideField
+                        className="py-2 border-b"
+                        isOverridden={headerTitleActionOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['headerTitleAction']}
+                                label={t('titleAction.label')}
+                            />
+                        }
+                    >
+                        <TitleActionField value={headerTitleAction} onChange={(v) => set('headerTitleAction', v)} />
                     </OverrideField>
                     <ToggleRow
                         label={t('settings.frontend.connectionBadge')}

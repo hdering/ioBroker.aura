@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
-import type { TabBarSettings, LayoutMenuItem, HeaderItem } from './dashboardStore';
+import type { TabBarSettings, LayoutMenuItem, HeaderItem, TitleAction } from './dashboardStore';
 import type { SwipeAction } from '../utils/swipeNav';
 
 export interface FrontendSettings {
@@ -13,6 +13,8 @@ export interface FrontendSettings {
     customJSInEditor: boolean;
     showHeader: boolean;
     headerTitle: string;
+    /** Click on the header title (#922). */
+    headerTitleAction: TitleAction;
     showConnectionBadge: boolean;
     showAdminLink: boolean;
     /** Bell with the unread-message counter (issue #429). */
@@ -107,6 +109,8 @@ export interface FrontendSettings {
     layoutDrawerShowTitle: boolean;
     /** Drawer header title; empty falls back to the localized default ("Layouts"). */
     layoutDrawerTitle: string;
+    /** Click on the menu title (#922). */
+    layoutDrawerTitleAction: TitleAction;
     /** Extra space in px above the menu title row. */
     layoutDrawerTitleMarginTop: number;
     /** Extra space in px below the menu title row. */
@@ -204,6 +208,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     customJSInEditor: false,
     showHeader: true,
     headerTitle: 'Aura',
+    headerTitleAction: { kind: 'none' },
     showConnectionBadge: true,
     showAdminLink: false,
     showMessageBell: false,
@@ -259,6 +264,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerBottomOffset: 0,
     layoutDrawerShowTitle: true,
     layoutDrawerTitle: '',
+    layoutDrawerTitleAction: { kind: 'none' },
     layoutDrawerTitleMarginTop: 0,
     layoutDrawerTitleMarginBottom: 0,
     layoutDrawerEntryStyle: 'iconAndName',

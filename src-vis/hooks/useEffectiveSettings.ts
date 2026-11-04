@@ -69,6 +69,7 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'layoutDrawerBottomOffset',
     'layoutDrawerShowTitle',
     'layoutDrawerTitle',
+    'layoutDrawerTitleAction',
     'layoutDrawerTitleMarginTop',
     'layoutDrawerTitleMarginBottom',
     'layoutDrawerEntryStyle',
@@ -82,6 +83,7 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     // Header
     'showHeader',
     'headerTitle',
+    'headerTitleAction',
     'showConnectionBadge',
     'showAdminLink',
     'showMessageBell',

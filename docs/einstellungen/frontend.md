@@ -13,6 +13,7 @@ Anzeige-Verhalten des Frontends (gilt für alle Layouts).
 | Sofortige Rückmeldung beim Schalten | Geschalteten Wert sofort anzeigen, ohne ioBroker-Echo abzuwarten — unter Frontend-Design → [Verhalten](./layouts#verhalten) |
 | Header anzeigen | Kopfzeile ein-/ausblenden |
 | Dashboard-Titel | Text in der Kopfzeile |
+| Klick auf den Titel | `Nichts`, `Startseite` (Standard-Bereich und -Tab), `Zu einem Tab springen` oder `Link öffnen` — dieselbe Option hat der Titel des Bereichs-Menüs |
 | Verbindungsstatus | ioBroker-Verbindung im Header anzeigen |
 | Admin-Link im Header anzeigen | Direktlink zum Adminbereich |
 | Meldungs-Glocke im Header | Ungelesene Meldungen in der Kopfzeile |

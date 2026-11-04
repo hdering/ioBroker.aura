@@ -38,6 +38,8 @@ interface LayoutDrawerProps {
     showTitle?: boolean;
     /** Custom drawer header title; empty/undefined falls back to the localized default. */
     drawerTitle?: string;
+    /** Click on the title (#922); undefined keeps it a plain label. Closes the overlay first. */
+    onTitleClick?: () => void;
     /** How each entry in the drawer list is rendered. */
     entryStyle?: 'iconAndName' | 'iconOnly' | 'nameOnly' | 'bulletAndName';
     /** Selected-entry indicator style — mirrors the tab-bar indicator styles. */
@@ -273,6 +275,7 @@ export function LayoutDrawer({
     iconOnly = false,
     showTitle = true,
     drawerTitle,
+    onTitleClick,
     entryStyle = 'iconAndName',
     indicatorStyle = 'filled',
     fontSize = 14,
@@ -293,6 +296,26 @@ export function LayoutDrawer({
     const navigate = useNavigate();
     const layouts = useDashboardStore((s) => s.layouts);
     const [open, setOpen] = useState(false);
+    const titleText = drawerTitle?.trim() || t('layoutDrawer.title');
+    const titleNode = (cls: string) =>
+        onTitleClick ? (
+            <button
+                type="button"
+                onClick={() => {
+                    setOpen(false);
+                    onTitleClick();
+                }}
+                className={`${cls} text-left cursor-pointer`}
+                style={{ color: 'var(--text-primary)' }}
+                data-title-action=""
+            >
+                {titleText}
+            </button>
+        ) : (
+            <span className={cls} style={{ color: 'var(--text-primary)' }}>
+                {titleText}
+            </span>
+        );
     // Only floating trigger participates in auto-hide; inline header trigger is always visible.
     const [proximityVisible, setProximityVisible] = useState(!autoHide || !floating);
 
@@ -732,9 +755,7 @@ export function LayoutDrawer({
                             marginBottom: titleMarginBottom || undefined,
                         }}
                     >
-                        <span className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                            {drawerTitle?.trim() || t('layoutDrawer.title')}
-                        </span>
+                        {titleNode('text-sm font-semibold truncate')}
                     </div>
                 )}
                 {renderItemGroup('top')}
@@ -817,13 +838,7 @@ export function LayoutDrawer({
                               marginBottom: titleMarginBottom || undefined,
                           }}
                       >
-                          {showTitle ? (
-                              <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                  {drawerTitle?.trim() || t('layoutDrawer.title')}
-                              </span>
-                          ) : (
-                              <span />
-                          )}
+                          {showTitle ? titleNode('text-sm font-semibold') : <span />}
                           <button
                               onClick={() => setOpen(false)}
                               className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"

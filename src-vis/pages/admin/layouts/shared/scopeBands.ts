@@ -61,6 +61,7 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
     header: [
         'showHeader',
         'headerTitle',
+        'headerTitleAction',
         'showConnectionBadge',
         'showAdminLink',
         'showMessageBell',
@@ -86,6 +87,7 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
         'layoutDrawerBottomOffset',
         'layoutDrawerShowTitle',
         'layoutDrawerTitle',
+        'layoutDrawerTitleAction',
         'layoutDrawerTitleMarginTop',
         'layoutDrawerTitleMarginBottom',
         'layoutDrawerEntryStyle',

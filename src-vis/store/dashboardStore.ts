@@ -16,6 +16,17 @@ import type { SwipeAction } from '../utils/swipeNav';
 
 export type MenuItemType = 'clock' | 'datapoint' | 'text' | 'widget' | 'idleReturn';
 
+/**
+ * What a click on the header title or the menu title does (#922). Unset or
+ * 'none' = a plain label. 'home' = the layout's default section + default tab,
+ * the same target as the idle return.
+ */
+export type TitleAction =
+    | { kind: 'none' }
+    | { kind: 'home' }
+    | { kind: 'link-tab'; layoutId: string; tabId: string; sectionId?: string }
+    | { kind: 'link-external'; url: string; newTab?: boolean };
+
 export interface MenuItemContent {
     id: string;
     type: MenuItemType;
@@ -209,6 +220,7 @@ export interface LayoutSettings {
     layoutDrawerBottomOffset?: number;
     layoutDrawerShowTitle?: boolean;
     layoutDrawerTitle?: string;
+    layoutDrawerTitleAction?: TitleAction; // click on the menu title (#922)
     layoutDrawerTitleMarginTop?: number;
     layoutDrawerTitleMarginBottom?: number;
     layoutDrawerEntryStyle?: 'iconAndName' | 'iconOnly' | 'nameOnly' | 'bulletAndName';
@@ -224,6 +236,7 @@ export interface LayoutSettings {
     // Header
     showHeader?: boolean;
     headerTitle?: string;
+    headerTitleAction?: TitleAction; // click on the header title (#922)
     showConnectionBadge?: boolean;
     showAdminLink?: boolean;
     showMessageBell?: boolean;
