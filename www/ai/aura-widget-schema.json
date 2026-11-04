@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.102.0",
+    "auraVersion": "0.103.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2638,7 +2638,8 @@
         },
         "name": {
           "type": "string",
-          "required": true
+          "required": true,
+          "description": "Shown on the legend, in the tooltip, the period row and — in comparison mode — as the bar's label on the x axis. May carry bindings like free HTML (issue #919): `{dp.id}`, `{dp.id;date(DD.MM.)}`, `{{ a + b }}`, e.g. a forecast date from a datapoint. Reads `Serie n` until the referenced datapoints have a value."
         },
         "datapointId": {
           "type": "string",
