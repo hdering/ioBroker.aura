@@ -2080,6 +2080,9 @@ export const de = {
     'echart.addSeries': 'Serie hinzufügen',
     'echart.noSeries': 'Noch keine Serien. Klicke "Serie hinzufügen".',
     'echart.name': 'Name',
+    'echart.nameInsertDp': 'Datenpunkt in den Namen einfügen',
+    'echart.nameBindings':
+        'Werte im Namen: {0_userdata.0.Datum;date(DD.MM.)} oder {{ … }} — dieselben Bindings wie im HTML-Widget.',
     'echart.datapoint': 'Datenpunkt',
     'echart.dpPlaceholder': 'z.B. hm-rpc.0....',
     'echart.fromIoBroker': 'Aus ioBroker wählen',

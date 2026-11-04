@@ -280,6 +280,7 @@
     "test:chart-stack": "node tools/tests/chart-stack.mjs",
     "test:chart-tooltip-carry": "node tools/tests/chart-tooltip-carry.mjs",
     "test:chart-comparison-legend": "node tools/tests/chart-comparison-legend.mjs",
+    "test:chart-series-names": "node tools/tests/chart-series-name-bindings.mjs",
     "test:chart-stack-percent": "node tools/tests/chart-stack-percent.mjs",
     "test:chart-labels": "node tools/tests/chart-value-labels.mjs",
     "test:chart-axis-decimals": "node tools/tests/chart-axis-decimals.mjs",

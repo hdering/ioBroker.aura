@@ -77,6 +77,8 @@ export function ChartSeriesDetail({
 }) {
     const t = useT();
     const [pickerOpen, setPickerOpen] = useState(false);
+    // Picks a datapoint for a binding in the name (issue #919) — appended as `{id}`.
+    const [namePickerOpen, setNamePickerOpen] = useState(false);
     // A boolean datapoint draws as a step line unless switched off (issue #718).
     const dpMeta = useDatapointMeta(s.datapointId ? [s.datapointId] : []);
     const isBoolDp = dpMeta.bools.has(s.datapointId);
@@ -102,13 +104,31 @@ export function ChartSeriesDetail({
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {t('echart.name')}
                 </label>
-                <input
-                    type="text"
-                    value={s.name}
-                    onChange={(e) => update({ name: e.target.value })}
-                    className={inputCls}
-                    style={inputStyle}
-                />
+                <div className="flex gap-1">
+                    <input
+                        type="text"
+                        value={s.name}
+                        onChange={(e) => update({ name: e.target.value })}
+                        className={`${inputCls} flex-1 min-w-0`}
+                        style={inputStyle}
+                    />
+                    <button
+                        onClick={() => setNamePickerOpen(true)}
+                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title={t('echart.nameInsertDp')}
+                        data-testid="echart-name-insert-dp"
+                    >
+                        <Database size={13} />
+                    </button>
+                </div>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    {t('echart.nameBindings')}
+                </p>
             </div>
 
             {/* Datapoint */}
@@ -635,6 +655,17 @@ export function ChartSeriesDetail({
                         setPickerOpen(false);
                     }}
                     onClose={() => setPickerOpen(false)}
+                />
+            )}
+            {namePickerOpen && (
+                <DatapointPicker
+                    currentValue=""
+                    onSelect={(id) => {
+                        const name = s.name ?? '';
+                        update({ name: name.trim() ? `${name} {${id}}` : `{${id}}` });
+                        setNamePickerOpen(false);
+                    }}
+                    onClose={() => setNamePickerOpen(false)}
                 />
             )}
         </>

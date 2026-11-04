@@ -2062,6 +2062,9 @@ export const en: Record<TranslationKey, string> = {
     'echart.addSeries': 'Add Series',
     'echart.noSeries': 'No series yet. Click "Add Series".',
     'echart.name': 'Name',
+    'echart.nameInsertDp': 'Insert a datapoint into the name',
+    'echart.nameBindings':
+        'Values in the name: {0_userdata.0.Date;date(DD.MM.)} or {{ … }} — the same bindings as in the HTML widget.',
     'echart.datapoint': 'Datapoint',
     'echart.dpPlaceholder': 'e.g. hm-rpc.0....',
     'echart.fromIoBroker': 'Select from ioBroker',

@@ -65,6 +65,17 @@ Reicht die JSON-Serie in die Zukunft, dehnt sich die Zeitachse mit — die Verla
 
 Kategorisches Balkendiagramm — je Serie ein Balken mit ihrem aktuellen Wert.
 
+#### Beschriftung aus Datenpunkt
+
+Der Serienname versteht [Bindings](./bindings) — z. B. eine 5-Tage-Prognose, bei der jeder Balken das Datum seines Tages trägt:
+
+| Serie | Datenpunkt | Name |
+| --- | --- | --- |
+| 1 | `…forecast.day1.energy` | `{…forecast.day1.date;date(DD.MM.)}` |
+| 2 | `…forecast.day2.energy` | `Di {…forecast.day2.date;date(DD.MM.)}` |
+
+Gilt in allen Modi (Legende, Tooltip, Zeitraum-Kennzahl). Der Knopf neben dem Namensfeld fügt einen Datenpunkt als `{id}` ein. Bis der Datenpunkt einen Wert hat, steht dort `Serie N`.
+
 ### JSON
 
 Im Editor **Kategorien (JSON)**. Kategorisches Diagramm aus einem JSON-Datenpunkt statt aus einem History-Adapter — die Labels bilden die X-Achse, in der Reihenfolge des Arrays. Kein Zeitraum-Umschalter, keine Tages-Navigation. Sind die Labels Zeitstempel, gehört die Serie in die [Timeseries](#timeseries) mit `source: json`.
@@ -174,7 +185,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | ------------------------------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `echartMode`                   | `timeseries` | `timeseries` · `comparison` · `json`                                                                                                                                                                               |
 | `echartSeries`                 | `[]`         | Liste der Serien (siehe unten)                                                                                                                                                                                     |
-| `echartSeries[].name`          | `Serie N`    | Name in Legende/Tooltip                                                                                                                                                                                            |
+| `echartSeries[].name`          | `Serie N`    | Name in Legende/Tooltip, im Vergleichs-Modus Balkenbeschriftung — [Bindings](./bindings) erlaubt                                                                                                                  |
 | `echartSeries[].chartType`     | `line`       | `line` · `area` · `bar` · `scatter`                                                                                                                                                                                |
 | `echartSeries[].color`         | Palette      | Linien-/Balkenfarbe: `var(--accent-green)` wie überall sonst (das Widget löst das Token auf, bevor es ans Canvas geht — das Diagramm folgt also dem Theme) oder ein fester Wert wie `#eab308`. Ohne Angabe die nächste Farbe der Palette. |
 | `echartSeries[].yAxisIndex`    | `0`          | `0` = links, `1` = rechte Y-Achse; ab `2` nur mit eigenen Achsen in `echartJsonExtra` (vollständiges `yAxis`-Array)                                                                                                |

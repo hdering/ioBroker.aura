@@ -19,6 +19,7 @@ import {
     type JsonAxisBounds,
 } from '../../hooks/useMultiSeriesData';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useBoundSeriesNames } from '../../hooks/useBoundSeriesNames';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -55,6 +56,9 @@ import { useChartNav } from '../../hooks/useChartNav';
 import { parseLead, parseNavFuture } from '../../utils/chartNav';
 import { ChartNavBar } from './ChartNavBar';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
+
+/** Stable fallback, so a chart without series does not hand the name hook a fresh array. */
+const NO_SERIES: EChartSeriesConfig[] = [];
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -182,7 +186,9 @@ function EChartBody({ config, editMode }: WidgetProps) {
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
     const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
-    const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
+    // Series names may carry bindings (issue #919) — resolved once here, so the axis, legend,
+    // tooltip and period row all read the same text.
+    const echartSeries = useBoundSeriesNames((o.echartSeries as EChartSeriesConfig[] | undefined) ?? NO_SERIES, config);
     // Boolean datapoints (issue #718): they plot as 0/1, draw as a step line by default and give an
     // axis of their own exactly the two ticks 0 and 1.
     const dpMeta = useDatapointMeta(echartSeries.map((s) => s.datapointId).filter((id) => !!id));

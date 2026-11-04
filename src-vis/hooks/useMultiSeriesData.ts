@@ -17,6 +17,12 @@ export type DeltaBucketSetting = DeltaBucket | 'auto';
 
 export interface EChartSeriesConfig {
     id: string;
+    /**
+     * Shown on the legend, in the tooltip, the period row and — in comparison mode — as the bar's
+     * label on the x axis. May carry bindings like free HTML (issue #919): `{dp.id}`,
+     * `{dp.id;date(DD.MM.)}`, `{{ a + b }}`, e.g. a forecast date from a datapoint. Reads `Serie n`
+     * until the referenced datapoints have a value.
+     */
     name: string;
     datapointId: string;
     chartType: 'line' | 'bar' | 'area' | 'scatter';
