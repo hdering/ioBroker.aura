@@ -29,6 +29,20 @@ export function DatePickerWidget({ config }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const defaultIcon = timeOnly ? Clock : showTime ? CalendarClock : CalendarDays;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, defaultIcon);
+    // Horizontal placement of the input fields (#917); unset keeps each layout's own side.
+    // `safe`: a field wider than the tile overflows on the right, so the date text stays readable.
+    const fieldAlign = o.fieldAlign as 'left' | 'center' | 'right' | undefined;
+    const fieldJustify = (fallback: 'flex-start' | 'center' | 'flex-end') => {
+        const side =
+            fieldAlign === 'left'
+                ? 'flex-start'
+                : fieldAlign === 'center'
+                  ? 'center'
+                  : fieldAlign === 'right'
+                    ? 'flex-end'
+                    : fallback;
+        return side === 'flex-start' ? side : `safe ${side}`;
+    };
 
     const { value } = useDatapoint(config.datapoint);
     const { setState } = useIoBroker();
@@ -87,7 +101,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
                         {config.title}
                     </p>
                 )}
-                <div className="flex flex-wrap justify-center gap-1.5">
+                <div className="flex flex-wrap gap-1.5 self-stretch" style={{ justifyContent: fieldJustify('center') }}>
                     {dateInput}
                     {timeInput}
                 </div>
@@ -123,8 +137,12 @@ export function DatePickerWidget({ config }: WidgetProps) {
                         {config.title}
                     </span>
                 )}
-                {!showTitle && <span className="flex-1" />}
-                <div className="flex items-center gap-1 shrink-0">
+                {/* Without a title the fields take the free width themselves — an empty
+                    spacer plus the row gap pushed them past the right edge in narrow frames (#917). */}
+                <div
+                    className={`flex items-center gap-1 ${showTitle ? 'shrink-0' : 'flex-1 min-w-0'}`}
+                    style={showTitle ? undefined : { justifyContent: fieldJustify('flex-end') }}
+                >
                     {dateInput}
                     {timeInput}
                 </div>
@@ -140,7 +158,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
                 className="aura-widget-row flex flex-col items-center justify-center h-full gap-1.5"
                 style={{ position: 'relative' }}
             >
-                <div className="flex flex-wrap justify-center gap-1.5">
+                <div className="flex flex-wrap gap-1.5 self-stretch" style={{ justifyContent: fieldJustify('center') }}>
                     {dateInput}
                     {timeInput}
                 </div>
@@ -184,7 +202,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
                 )}
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5" style={{ justifyContent: fieldJustify('flex-start') }}>
                 {dateInput}
                 {timeInput}
             </div>

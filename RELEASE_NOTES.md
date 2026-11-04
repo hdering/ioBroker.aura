@@ -13,3 +13,4 @@
 - feat: Tabs - linked tabs: a tab can be shown in further layouts via '+ Tab' > 'Link an existing tab' in the editor; name, icon and order stay per layout, the widgets and the PIN come from the original (#896)
 - feat: Tabs - tab and section conditions resolve {{clientId}} in their datapoints, so a tab can be shown or hidden per device (#896)
 - fix: Editor - the tab settings panel is more compact and no longer shows a second scrollbar; the editor page itself no longer scrolls by the height of the save bar
+- fix: Date picker - in the compact layout without a title the field no longer sticks out past the right edge of narrow tiles; new option 'Field alignment' places the field left, centered or right in every layout (#917)

@@ -1170,6 +1170,12 @@ export const WIDGET_OPTION_NOTES = {
         outputPattern: { description: 'Eigene Schreibvorlage, wenn outputFormat "custom" ist.' },
         fontSize: { type: 'number', default: 12, description: 'Schriftgröße der Eingabefelder in px. Leer = 12.' },
         textColor: { description: 'Textfarbe der Eingabefelder. Leer = Themefarbe.' },
+        fieldAlign: {
+            type: 'string',
+            enum: ['left', 'center', 'right'],
+            description:
+                'Waagerechte Ausrichtung der Eingabefelder. Leer = je Darstellung (default links, compact rechts, card/minimal mittig). In compact nur wirksam bei showTitle=false.',
+        },
     },
     messages: {
         severities: { description: 'Welche Dringlichkeitsstufen die Liste zeigt.' },

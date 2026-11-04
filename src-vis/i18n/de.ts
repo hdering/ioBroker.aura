@@ -1300,6 +1300,12 @@ export const de = {
     'wf.edit.group.autoShrinkHint':
         'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',
     'wf.edit.autoHeight': 'Höhe automatisch an Inhalt anpassen',
+    'wf.edit.dateFieldAlign': 'Ausrichtung der Eingabe',
+    'wf.edit.dateFieldAlignAuto': 'Automatisch (je Darstellung)',
+    'wf.edit.dateFieldAlignTitle': 'Der Titel füllt die Zeile – Titel ausblenden, um die Eingabe auszurichten.',
+    'wf.edit.alignLeft': 'Links',
+    'wf.edit.alignCenter': 'Mittig',
+    'wf.edit.alignRight': 'Rechts',
     'dash.autoHeightLocked': 'Höhe folgt dem Inhalt – abschaltbar unter Darstellung.',
     'wf.edit.autoHeightHint':
         'Das Widget wird so hoch wie sein Inhalt, statt eine feste Höhe zu füllen. Die eingestellte Höhe wird dann überschrieben und lässt sich nicht mehr manuell ändern.',

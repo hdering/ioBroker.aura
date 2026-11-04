@@ -1289,6 +1289,12 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.autoShrinkHint':
         'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',
     'wf.edit.autoHeight': 'Fit height to content',
+    'wf.edit.dateFieldAlign': 'Field alignment',
+    'wf.edit.dateFieldAlignAuto': 'Automatic (per layout)',
+    'wf.edit.dateFieldAlignTitle': 'The title fills the row – hide the title to align the field.',
+    'wf.edit.alignLeft': 'Left',
+    'wf.edit.alignCenter': 'Center',
+    'wf.edit.alignRight': 'Right',
     'dash.autoHeightLocked': 'Height follows the content – turn it off under Darstellung.',
     'wf.edit.autoHeightHint':
         'The widget grows as tall as its content instead of filling a fixed height. The set height is then overridden and can no longer be changed by hand.',

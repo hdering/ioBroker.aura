@@ -20845,6 +20845,36 @@ function WidgetFrameInner({
                                                         </div>
                                                     </div>
                                                 </div>
+                                                {/* Horizontal placement of the fields (#917) */}
+                                                <Unavailable
+                                                    reason={
+                                                        config.layout === 'compact' && o.showTitle !== false
+                                                            ? t('wf.edit.dateFieldAlignTitle')
+                                                            : undefined
+                                                    }
+                                                >
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('wf.edit.dateFieldAlign')}
+                                                        </label>
+                                                        <select
+                                                            value={(o.fieldAlign as string) ?? ''}
+                                                            onChange={(e) =>
+                                                                set({ fieldAlign: e.target.value || undefined })
+                                                            }
+                                                            className={inputCls2}
+                                                            style={inputSty2}
+                                                        >
+                                                            <option value="">{t('wf.edit.dateFieldAlignAuto')}</option>
+                                                            <option value="left">{t('wf.edit.alignLeft')}</option>
+                                                            <option value="center">{t('wf.edit.alignCenter')}</option>
+                                                            <option value="right">{t('wf.edit.alignRight')}</option>
+                                                        </select>
+                                                    </div>
+                                                </Unavailable>
                                             </ConfigSection>
                                         </>
                                     );
