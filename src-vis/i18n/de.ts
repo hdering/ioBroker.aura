@@ -1642,7 +1642,8 @@ export const de = {
     'tabBar.copy': 'Kopieren',
     'tabBar.moveTitleLink': 'Verschieben · Kopieren · Verknüpfen',
     'tabBar.link': 'Verknüpfen',
-    'tabBar.linkHint': 'Verknüpfen legt im Zielbereich einen eigenen Tab an, der die Widgets dieses Tabs zeigt. Name, Symbol und Reihenfolge sind dort eigen, gepflegt wird nur das Original.',
+    'tabBar.linkHint':
+        'Verknüpfen legt im Zielbereich einen eigenen Tab an, der die Widgets dieses Tabs zeigt. Name, Symbol und Reihenfolge sind dort eigen, gepflegt wird nur das Original.',
     'tabBar.linkedBadge': 'Verknüpfter Tab',
     'tabBar.linkedTo': 'Zeigt den Inhalt von',
     'tabBar.linkedMissing': 'Der Original-Tab existiert nicht mehr.',
