@@ -18605,6 +18605,11 @@
           "description": "Datenpunkt der Cover-URL. Relative Pfade laufen über /webfs.",
           "datapoint": true
         },
+        "marquee": {
+          "type": "boolean",
+          "default": false,
+          "description": "Laufschrift: Titel und Untertitel (Interpret · Album), die nicht in die Zeile passen, laufen durch statt mit … abgeschnitten zu werden. Wirkt in \"default\", \"compact\", mobil und in den Bausteinen player/player-compact des Layouts \"custom\" — nicht in einzelnen Text-Feldzellen."
+        },
         "mediaLengthDp": {
           "type": "string",
           "default": "",
