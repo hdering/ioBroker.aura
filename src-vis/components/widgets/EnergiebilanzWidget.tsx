@@ -9,8 +9,9 @@
  */
 import { useCallback, useMemo, useRef, useState, type CSSProperties, type RefCallback } from 'react';
 import { PieChart as PieChartIcon } from 'lucide-react';
-import type { WidgetProps } from '../../types';
+import type { WidgetConfig, WidgetProps } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useBoundTexts } from '../../hooks/useBoundTexts';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { autoScaleUnit, autoUnitDecimals } from '../../utils/valueTransform';
@@ -34,7 +35,7 @@ const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y'
 
 export interface EnergyBar {
     id: string;
-    title?: string; // Heading above the group, next to its total.
+    title?: string; // Heading above the group, next to its total. Bindings allowed (`{dp;date(DD.MM.)}`, issue #919).
     /** The datapoints of this group; each becomes one segment sized by its share of the group's total. */
     entries: EnergyEntry[];
     /** Where this bar's legend sits relative to the bar. Default 'below'. */
@@ -49,7 +50,7 @@ export interface EnergyBar {
     totalValueFactor?: number;
     /** Added after totalValueFactor. */
     totalValueOffset?: number;
-    /** Label of the unused remainder in the legend. Default 'Rest'. */
+    /** Label of the unused remainder in the legend. Default 'Rest'. Bindings allowed (issue #919). */
     restLabel?: string;
     /** Colour of the remainder segment. Default REST_COLOR. */
     restColor?: string;
@@ -198,6 +199,32 @@ interface Computed {
     percent: number; // 0..100
 }
 
+const NO_BARS: EnergyBar[] = [];
+
+/**
+ * The bars with bindings in their texts resolved (issue #919): group title, entry labels and the
+ * remainder's label, e.g. `{…day1.date;date(DD.MM.)}`. Texts whose datapoints have not arrived
+ * yet read empty (the remainder falls back to 'Rest'). The labels are not part of the value
+ * hook's fetch key, so a new label never re-queries the history.
+ */
+function useBoundBars(bars: EnergyBar[], config: WidgetConfig): EnergyBar[] {
+    // Flat list per bar: [title, restLabel, ...entry labels].
+    const texts = bars.flatMap((b) => [b.title, b.restLabel, ...(b.entries ?? []).map((e) => e.label)]);
+    const resolved = useBoundTexts(texts, config, () => undefined);
+    return useMemo(() => {
+        if (resolved.every((r, i) => r === texts[i])) return bars;
+        let k = 0;
+        return bars.map((b) => {
+            const title = resolved[k++];
+            const restLabel = resolved[k++];
+            const entries = (b.entries ?? []).map((e) => ({ ...e, label: resolved[k++] }));
+            return { ...b, title, restLabel, entries };
+        });
+        // `texts` is derived from `bars`.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [bars, resolved]);
+}
+
 export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const { subscribe, connected } = useIoBroker();
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
@@ -286,7 +313,8 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const titleAlign = (o.titleAlign as 'left' | 'center' | 'right') ?? 'left';
     const WidgetIcon = getWidgetIcon(o.icon, PieChartIcon);
 
-    const configuredBars = o.bars ?? [];
+    // Texts may carry bindings (issue #919) — resolved once, before legend and titles read them.
+    const configuredBars = useBoundBars(o.bars ?? NO_BARS, config);
     const hasConfig = configuredBars.some((b) => (b.entries ?? []).some((e) => e.datapointId));
     const usingSample = editMode && !hasConfig;
     const bars = usingSample ? SAMPLE_BARS : configuredBars;

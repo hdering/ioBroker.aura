@@ -1,4 +1,5 @@
-// Verifies bindings in the advanced chart's series names (issue #919).
+// Verifies bindings in chart texts (issue #919): the advanced chart's series names and the
+// distribution chart's group titles, entry labels and remainder label.
 //
 //   npm run dev            (or set AURA_BASE; runs offline — the bars draw the editor's sample data)
 //   node tools/tests/chart-series-name-bindings.mjs
@@ -113,6 +114,55 @@ check(
 // hands the name datapoints over on mount.
 const next = await render(widget('w-cmp-next', 'comparison'), mocks('2026-11-07T00:00:00'));
 check('a new date value relabels the bar', next?.xAxis?.data?.[0] === '07.11.', JSON.stringify(next?.xAxis?.data));
+
+// Distribution chart: group title, entry labels and the remainder's label take the same bindings.
+// Plain HTML there, so the texts are read straight from the DOM.
+await page.evaluate(
+    ([ws, v]) => {
+        window.__auraShot.setEditMode(false);
+        window.__auraShot.mock(v);
+        window.__auraShot.mockServerState?.(v);
+        window.__auraShot.showWidgets(ws, { gridRowHeight: 20, gridSnapX: 20, gridGap: 10 });
+    },
+    [
+        [
+            {
+                id: 'w-dist',
+                title: 'w-dist',
+                type: 'energiebilanz',
+                layout: 'default',
+                datapoint: '',
+                gridPos: { x: 0, y: 0, w: 60, h: 14 },
+                options: {
+                    legendFormat: 'label-value',
+                    bars: [
+                        {
+                            id: 'b1',
+                            title: 'Gruppe {demo.fc.d1.date;date(DD.MM.)}',
+                            totalValue: 100,
+                            restLabel: 'Frei bis {demo.fc.d2.date;date(DD.MM.)}',
+                            entries: [
+                                { id: 'e1', datapointId: 'demo.fc.e1', label: '{demo.fc.d1.date;date(DD.MM.)}' },
+                                { id: 'e2', datapointId: 'demo.fc.e2', label: 'Fest' },
+                                { id: 'e3', datapointId: 'demo.fc.e3', label: '{demo.fc.d3.missing}' },
+                            ],
+                        },
+                    ],
+                },
+            },
+        ],
+        { ...mocks('2026-11-05T00:00:00'), 'demo.fc.e1': 20, 'demo.fc.e2': 30, 'demo.fc.e3': 10 },
+    ],
+);
+await page.waitForFunction(() => !!document.querySelector('.react-grid-item'), null, { timeout: 30000 });
+await page.waitForTimeout(1500);
+const distText = await page.evaluate(() => document.querySelector('.react-grid-item')?.innerText ?? '');
+console.log(`  distribution=${JSON.stringify(distText)}`);
+check('distribution: group title resolves', distText.includes('Gruppe 05.11.'));
+check('distribution: entry label resolves', /(^|\n)05\.11\./.test(distText));
+check('distribution: plain label stays', distText.includes('Fest'));
+check('distribution: remainder label resolves', distText.includes('Frei bis 06.11.'));
+check('distribution: no raw binding is shown', !distText.includes('{'));
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

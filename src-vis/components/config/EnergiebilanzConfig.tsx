@@ -233,6 +233,7 @@ function EntryRow({
                             <input
                                 value={entry.label ?? ''}
                                 onChange={(e) => onUpdate({ label: e.target.value || undefined })}
+                                title="Bindings erlaubt, z. B. {0_userdata.0.Datum;date(DD.MM.)}"
                                 className={`${inputCls} py-0`}
                                 style={{ ...inputStyle, height: ROW2_H }}
                             />
@@ -442,6 +443,7 @@ function BarSection({
                     value={bar.title ?? ''}
                     placeholder={`Gruppe ${index + 1}`}
                     onChange={(e) => onUpdate({ title: e.target.value || undefined })}
+                    title="Bindings erlaubt, z. B. {0_userdata.0.Datum;date(DD.MM.)}"
                     className="flex-1 text-[11px] font-semibold rounded px-2 py-1 focus:outline-none"
                     style={inputStyle}
                 />
@@ -540,6 +542,7 @@ function BarSection({
                             value={bar.restLabel ?? ''}
                             placeholder="Rest"
                             onChange={(e) => onUpdate({ restLabel: e.target.value || undefined })}
+                            title="Bindings erlaubt, z. B. {0_userdata.0.Datum;date(DD.MM.)}"
                             className={`${inputCls} py-0`}
                             style={{ ...inputStyle, height: ROW2_H }}
                         />
@@ -878,6 +881,10 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                     >
                         <Plus size={13} /> Gruppe hinzufügen
                     </button>
+                    <p className="text-[9px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                        Gruppentitel, Bezeichnung und Rest-Bezeichnung verstehen Bindings wie das HTML-Widget, z. B. ein
+                        Datum aus einem Datenpunkt: {'{0_userdata.0.Datum;date(DD.MM.)}'}
+                    </p>
                 </>
             </ConfigSection>
             <ConfigSection title={t('cfg.section.settings')} sectionKey="settings">

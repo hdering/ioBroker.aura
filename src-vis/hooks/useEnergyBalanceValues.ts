@@ -32,7 +32,7 @@ export type EnergyAggregate = 'last' | 'delta' | 'consumption' | 'sum' | 'averag
 export interface EnergyEntry {
     id: string;
     datapointId: string;
-    label?: string; // Name in the legend.
+    label?: string; // Name in the legend. Bindings allowed, e.g. `{dp;date(DD.MM.)}` (issue #919).
     icon?: string;
     color?: string;
     unit?: string; // Overrides the widget's `unit` for this entry.

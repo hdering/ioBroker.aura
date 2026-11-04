@@ -38,7 +38,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | Option              | Standard |                                                               |
 | ------------------- | -------- | ------------------------------------------------------------- |
 | `bars`              | `[]`     | Liste der Gruppen — jede Gruppe ist ein Balken bzw. ein Kreis |
-| `bars[].title`      | —        | Titel über der Gruppe                                         |
+| `bars[].title`      | —        | Titel über der Gruppe — [Bindings](./bindings) erlaubt         |
 | `bars[].legendSide` | `below`  | Legende dieser Gruppe: `left` · `right` · `top` · `below`     |
 | `bars[].entries`    | `[]`     | Einträge der Gruppe (siehe unten)                             |
 
@@ -54,7 +54,7 @@ Ohne Vorgabe ist die Gruppensumme 100 %. Mit Vorgabe zeigen die Einträge ihren 
 | `bars[].totalValue`     | —         | feste 100-%-Vorgabe ohne Datenpunkt, in der Anzeige-Einheit der Einträge |
 | `bars[].totalValueFactor` / `totalValueOffset` | — | rechnet `totalDatapoint` in die Anzeige-Einheit um (ƒx-Knopf) |
 | `bars[].showRest`       | `true`    | Differenz als eigenes Segment anzeigen                      |
-| `bars[].restLabel`      | `Rest`    | Bezeichnung des Rest-Segments in der Legende                |
+| `bars[].restLabel`      | `Rest`    | Bezeichnung des Rest-Segments in der Legende — [Bindings](./bindings) erlaubt |
 | `bars[].restColor`      | `#94a3b8` | Farbe des Rest-Segments                                     |
 
 Die Vorgabe wird immer als aktueller Wert gelesen (wie `aggregate: last`), nicht über den Zeitraum aggregiert. Über der Vorgabe bleibt die Gruppe bei 100 %, der Rest verschwindet, und die Summenzeile nennt weiter den echten Anteil (`184,00 / 160,00 € · 115 %`). Beim Donut steht der Anteil in der Mitte.
@@ -75,7 +75,7 @@ Erreichen zählt wie Überschreiten (`>=`). Ohne Vorgabe bleibt der Wechsel wirk
 
 | Option                   | Standard               |                                                |
 | ------------------------ | ---------------------- | ---------------------------------------------- |
-| `entries[].label`        | —                      | Bezeichnung in der Legende                     |
+| `entries[].label`        | —                      | Bezeichnung in der Legende — [Bindings](./bindings) erlaubt, z. B. `{dp;date(DD.MM.)}` |
 | `entries[].icon`         | —                      | [Lucide-Icon](https://lucide.dev), z. B. `Sun` |
 | `entries[].color`        | Palette                | Farbe von Segment und Legendenzeile            |
 | `entries[].unit`         | `unit` des Widgets     | Einheit nur für diesen Eintrag                 |

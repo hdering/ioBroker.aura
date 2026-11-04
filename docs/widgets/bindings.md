@@ -11,6 +11,7 @@ Gültig in:
 | [Marker](../einstellungen/editor#marker-text-mit-datenpunkten) (Widget, Bereich, Tab) | `Text` beim Stil `Label` |
 | [Abschnittstitel](./abschnittstitel) | `subtitle` (Untertitel) |
 | [Diagramm (erweitert)](./diagramm-erweitert#beschriftung-aus-datenpunkt) | `echartSeries[].name` (Serienname) |
+| [Diagramm (Verteilung)](./verteilung) | `bars[].title`, `bars[].restLabel`, `entries[].label` |
 | [Kopfzeile](../einstellungen/editor#kopfzeile) (alle Widgets) | Element mit Quelle `Text` |
 
 Bindings **lesen** nur. Um aus dem HTML heraus einen Datenpunkt zu **setzen**, gibt es `aura.setState` —

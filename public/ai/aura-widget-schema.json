@@ -6543,7 +6543,7 @@
         },
         "title": {
           "type": "string",
-          "description": "Heading above the group, next to its total."
+          "description": "Heading above the group, next to its total. Bindings allowed (`{dp;date(DD.MM.)}`, issue #919)."
         },
         "entries": {
           "type": "array",
@@ -6587,7 +6587,7 @@
         },
         "restLabel": {
           "type": "string",
-          "description": "Label of the unused remainder in the legend. Default 'Rest'."
+          "description": "Label of the unused remainder in the legend. Default 'Rest'. Bindings allowed (issue #919)."
         },
         "restColor": {
           "type": "string",
@@ -6627,7 +6627,7 @@
         },
         "label": {
           "type": "string",
-          "description": "Name in the legend."
+          "description": "Name in the legend. Bindings allowed, e.g. `{dp;date(DD.MM.)}` (issue #919)."
         },
         "icon": {
           "type": "string"
