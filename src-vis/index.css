@@ -797,6 +797,25 @@ input[type='range']::-moz-range-thumb {
     pointer-events: none;
 }
 
+/* Fields the engine paints as a menu button (Chrome on Android: arrow on the
+   right, a minimum width of its own). DateTimeInput puts its own button on
+   them, so they drop the dropdown look and take the width of their value
+   (issue #920). The value box keeps a line of height and some width when the
+   field is empty, where it would otherwise collapse. */
+.aura-dt-dropdown {
+    -webkit-appearance: none;
+    appearance: none;
+    field-sizing: content;
+    width: max-content;
+    min-width: 0;
+}
+.aura-dt-dropdown::-webkit-date-and-time-value {
+    margin: 0;
+    min-width: 5ch;
+    min-height: 1.2em;
+    text-align: left;
+}
+
 /* Arbitrary px sizes used in some widgets */
 [data-aura-scale] .text-\[9px\] {
     font-size: calc(9px * var(--font-scale, 1));

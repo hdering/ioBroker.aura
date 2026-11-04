@@ -137,6 +137,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-contact-lock` | Kontakt-/Schloss-Symbol |
 | `.aura-input-unit` | Einheit hinter einem Eingabefeld |
 | `.aura-dt-input` | Datums-/Zeitfeld mit eigenem Picker |
+| `.aura-dt-dropdown` | zusätzlich an Datums-/Zeitfeldern, die der Browser als Auswahlknopf zeichnet (Chrome auf Android) |
 
 ## Listen und Einträge
 

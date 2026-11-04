@@ -23,6 +23,14 @@
  *     in Firefox — so when the native picker does not open, we show our own
  *     hour/minute list instead.
  *
+ *  3. The DROPDOWN. Chrome on Android has no button inside the field at all: it
+ *     paints the whole field as a menu button (arrow on the right, the engine's
+ *     own minimum width) and opens its chooser on tap. Nothing for rule 1 to
+ *     take out, so the field stayed the engine's — too wide for a list row and
+ *     with an arrow where every other browser shows a clock (issue #920). Such a
+ *     field (`isDropdownField`) gets `.aura-dt-dropdown`: plain look, sized to
+ *     its value, and our button like everywhere else.
+ *
  * Engines without showPicker, and field types an engine does not implement at
  * all (Gecko has no `month` field), keep the plain native input.
  */
@@ -57,6 +65,24 @@ function fieldWidth(kind: PickerKind, ours: boolean, disabled: boolean): number 
     return w;
 }
 
+const dropdownCache = new Map<PickerKind, boolean>();
+
+/** Whether the engine paints this field as a menu button instead of a text field with an icon. */
+function isDropdownField(kind: PickerKind): boolean {
+    const cached = dropdownCache.get(kind);
+    if (cached !== undefined) return cached;
+    const el = document.createElement('input');
+    el.type = kind;
+    el.style.cssText = 'position:absolute;left:-9999px;top:0';
+    document.body.appendChild(el);
+    const cs = getComputedStyle(el);
+    const appearance = cs.appearance || cs.webkitAppearance;
+    el.remove();
+    const dropdown = appearance === 'menulist' || appearance === 'menulist-button';
+    dropdownCache.set(kind, dropdown);
+    return dropdown;
+}
+
 const ownershipCache = new Map<PickerKind, boolean>();
 
 /**
@@ -73,6 +99,11 @@ const ownershipCache = new Map<PickerKind, boolean>();
 function nativeOwnsField(kind: PickerKind): boolean {
     const cached = ownershipCache.get(kind);
     if (cached !== undefined) return cached;
+    // A dropdown-style field is ours by construction: `.aura-dt-dropdown` drops its look.
+    if (isDropdownField(kind)) {
+        ownershipCache.set(kind, false);
+        return false;
+    }
     const plain = fieldWidth(kind, false, false);
     const withRule = fieldWidth(kind, true, false);
     let owns: boolean;
@@ -164,13 +195,18 @@ export function DateTimeInput({
     const btnRef = useRef<HTMLButtonElement>(null);
     const [ownList, setOwnList] = useState(false);
 
+    const ownClass = canOpenPicker(kind)
+        ? isDropdownField(kind)
+            ? 'aura-dt-input aura-dt-dropdown'
+            : 'aura-dt-input'
+        : '';
     const input = (
         <input
             ref={ref}
             type={kind}
             value={value}
             onChange={(e) => onValue(e.target.value)}
-            className={canOpenPicker(kind) ? `aura-dt-input ${className}` : className}
+            className={ownClass ? `${ownClass} ${className}` : className}
             style={canOpenPicker(kind) ? { ...style, paddingRight: PICKER_BTN_SPACE } : style}
             {...rest}
         />
@@ -187,7 +223,8 @@ export function DateTimeInput({
             return;
         }
         const called = openNativePicker(el);
-        if (kind !== 'time') return;
+        // A dropdown-style field opens the engine's chooser — a time picker of its own.
+        if (kind !== 'time' || isDropdownField(kind)) return;
         if (!CAN_SEE_OPEN) {
             // No way to tell whether it opened. Blink/WebKit have a time picker;
             // an engine that does not even know the indicator selector (Gecko)
