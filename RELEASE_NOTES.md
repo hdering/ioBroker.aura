@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: Date picker - time and date fields in Chrome on Android no longer render too wide with a dropdown arrow; they fit their value and show the clock/calendar button (#920)
 - feat: Charts - series names (advanced chart) and group titles, labels and remainder label (distribution chart) can contain bindings, e.g. a forecast date from a datapoint as the bar label (#919)
+- feat: Media player - new option "Marquee": titles and artist/album that are too long scroll instead of being cut off (#921)

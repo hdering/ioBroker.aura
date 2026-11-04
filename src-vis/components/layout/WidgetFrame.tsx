@@ -442,6 +442,12 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
     mediaplayer: [
         { key: 'showCover', label: 'Cover' },
         { key: 'showSubtitle', label: 'Untertitel (Artist · Album)' },
+        {
+            key: 'marquee',
+            label: 'Laufschrift',
+            hint: 'Zu lange Titel und Untertitel laufen durch statt abgeschnitten zu werden',
+            def: false,
+        },
         { key: 'showSource', label: 'Quelle' },
         { key: 'showShuffle', label: 'Shuffle' },
         { key: 'showPrev', label: 'Vorheriger' },

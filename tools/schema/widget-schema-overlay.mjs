@@ -930,6 +930,12 @@ export const WIDGET_OPTION_NOTES = {
                 '"compact" zeichnet der Player seine eigene Kopfzeile und ignoriert die Option.',
         },
         titleDp: { description: 'Datenpunkt des Titels.' },
+        marquee: {
+            description:
+                'Laufschrift: Titel und Untertitel (Interpret · Album), die nicht in die Zeile passen, laufen ' +
+                'durch statt mit … abgeschnitten zu werden. Wirkt in "default", "compact", mobil und in den ' +
+                'Bausteinen player/player-compact des Layouts "custom" — nicht in einzelnen Text-Feldzellen.',
+        },
         artistDp: { description: 'Datenpunkt des Interpreten.' },
         albumDp: { description: 'Datenpunkt des Albums.' },
         coverDp: { description: 'Datenpunkt der Cover-URL. Relative Pfade laufen über /webfs.' },

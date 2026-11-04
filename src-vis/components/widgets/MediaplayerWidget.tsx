@@ -26,6 +26,7 @@ import { useStatusFields } from '../../hooks/useStatusFields';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { resolveImageSource } from '../../utils/assetUrl';
 import { isPlaybackActive } from '../../utils/mediaPlayback';
+import { MarqueeText } from './MarqueeText';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -110,6 +111,12 @@ function IconBtn({
             )}
         </button>
     );
+}
+
+/** Title / subtitle text: cut off with an ellipsis, or scrolling when it does not
+ *  fit and the marquee option is on (#921). */
+function TrackText({ text, marquee }: { text: string; marquee: boolean }) {
+    return marquee ? <MarqueeText text={text} /> : <>{text}</>;
 }
 
 const COVER_REFETCH_MS = 2500;
@@ -361,6 +368,9 @@ export function MediaplayerWidget({ config }: WidgetProps) {
         [cover, titleStr, artistStr, coverTs, coverPass],
     );
     const subtitle = [artistStr, albumStr].filter(Boolean).join(' · ');
+    const marquee = o.marquee === true;
+    // MarqueeText clips by itself; an ellipsis would only cut its moving track.
+    const cut = marquee ? 'min-w-0' : 'truncate';
 
     const { battery, reach, batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
@@ -387,14 +397,14 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                 {/* Track info */}
                 <div className="shrink-0 space-y-0.5 min-w-0">
                     <p
-                        className="aura-widget-title text-sm font-semibold truncate leading-snug"
+                        className={`aura-widget-title text-sm font-semibold ${cut} leading-snug`}
                         style={{ '--aura-title-color': 'var(--text-primary)' }}
                     >
-                        {titleStr || '–'}
+                        <TrackText text={titleStr || '–'} marquee={marquee} />
                     </p>
                     {showSubtitle && subtitle && (
-                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {subtitle}
+                        <p className={`text-xs ${cut}`} style={{ color: 'var(--text-secondary)' }}>
+                            <TrackText text={subtitle} marquee={marquee} />
                         </p>
                     )}
                     {showSource && sourceStr && (
@@ -493,14 +503,14 @@ export function MediaplayerWidget({ config }: WidgetProps) {
             {/* Title + Artist */}
             <div className="flex flex-col flex-1 min-w-0 leading-tight">
                 <p
-                    className="aura-widget-title text-xs font-semibold truncate"
+                    className={`aura-widget-title text-xs font-semibold ${cut}`}
                     style={{ '--aura-title-color': 'var(--text-primary)' }}
                 >
-                    {titleStr || '–'}
+                    <TrackText text={titleStr || '–'} marquee={marquee} />
                 </p>
                 {showSubtitle && subtitle && (
-                    <p className="text-[10px] truncate" style={{ color: 'var(--text-secondary)' }}>
-                        {subtitle}
+                    <p className={`text-[10px] ${cut}`} style={{ color: 'var(--text-secondary)' }}>
+                        <TrackText text={subtitle} marquee={marquee} />
                     </p>
                 )}
             </div>
@@ -593,14 +603,14 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                 {/* Titel + Untertitel */}
                 <div className="shrink-0 space-y-0.5 text-center min-w-0">
                     <p
-                        className="aura-widget-title text-base font-semibold truncate"
+                        className={`aura-widget-title text-base font-semibold ${cut}`}
                         style={{ '--aura-title-color': 'var(--text-primary)' }}
                     >
-                        {titleStr || '–'}
+                        <TrackText text={titleStr || '–'} marquee={marquee} />
                     </p>
                     {showSubtitle && subtitle && (
-                        <p className="text-sm truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {subtitle}
+                        <p className={`text-sm ${cut}`} style={{ color: 'var(--text-secondary)' }}>
+                            <TrackText text={subtitle} marquee={marquee} />
                         </p>
                     )}
                     {showSource && sourceStr && (
