@@ -569,6 +569,8 @@ interface DashboardState {
                 | 'badges'
                 | 'badgeAggregate'
                 | 'backgroundImage'
+                // Re-point a linked tab (#896) at another original.
+                | 'link'
             >
         >,
     ) => void;

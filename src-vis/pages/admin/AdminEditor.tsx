@@ -650,6 +650,32 @@ const TabBar = memo(function TabBar() {
             ),
     );
 
+    // Tabs another section can show as a linked tab (#896): every original outside
+    // the current section. Serialised so the selector only re-renders on a real change.
+    const linkSourcesKey = useDashboardStore((s) =>
+        JSON.stringify(
+            s.layouts.flatMap((l) =>
+                l.sections
+                    .filter((sec) => sec.id !== currentSectionId)
+                    .map((sec) => ({
+                        label: l.sections.length > 1 ? `${l.name} › ${sec.name}` : l.name,
+                        layoutId: l.id,
+                        sectionId: sec.id,
+                        tabs: sec.tabs.filter((tb) => !tb.link).map((tb) => ({ id: tb.id, name: tb.name })),
+                    }))
+                    .filter((g) => g.tabs.length > 0),
+            ),
+        ),
+    );
+    const linkSources = useMemo(() => JSON.parse(linkSourcesKey) as LinkSourceGroup[], [linkSourcesKey]);
+    const pullLinkedTab = (value: string) => {
+        const [sectionId, tabId] = value.split('::');
+        const grp = linkSources.find((g) => g.sectionId === sectionId);
+        if (!grp || !tabId) return;
+        linkTabToSection(tabId, grp.layoutId, sectionId, currentLayoutId, currentSectionId);
+    };
+
+    const [addMenuOpen, setAddMenuOpen] = useState(false);
     const [renamingId, setRenamingId] = useState<string | null>(null);
     const [renamingValue, setRenamingValue] = useState('');
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -729,15 +755,6 @@ const TabBar = memo(function TabBar() {
         if (mode === 'move' && moveTarget === currentTargetKey) return;
         const [layoutId, sectionId] = moveTarget.split('::');
         moveTabToSection(settingsTabId, currentLayoutId, currentSectionId, layoutId, sectionId, mode);
-        setSettingsTabId(null);
-    };
-    // A link inside the original's own section would show the tab twice there.
-    const linkOriginSectionId = settingsTab?.link?.sectionId ?? currentSectionId;
-    const linkTargetValid = !!moveTarget && moveTarget.split('::')[1] !== linkOriginSectionId;
-    const runTabLink = () => {
-        if (!settingsTabId || !linkTargetValid) return;
-        const [layoutId, sectionId] = moveTarget.split('::');
-        linkTabToSection(settingsTabId, currentLayoutId, currentSectionId, layoutId, sectionId);
         setSettingsTabId(null);
     };
     // Group the flat target list by layout so the dropdown can use <optgroup>.
@@ -956,17 +973,81 @@ const TabBar = memo(function TabBar() {
                         </div>
                     );
                 })}
-                <button
-                    onClick={() => addTab(`Tab ${tabs.length + 1}`)}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs hover:opacity-80"
-                    style={{
-                        background: 'var(--app-surface)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid var(--app-border)',
-                    }}
-                >
-                    <Plus size={12} /> {t('tabBar.addTab')}
-                </button>
+                <div className="relative">
+                    <button
+                        onClick={() => setAddMenuOpen((o) => !o)}
+                        data-aura-tab-add=""
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs hover:opacity-80"
+                        style={{
+                            background: 'var(--app-surface)',
+                            color: 'var(--text-secondary)',
+                            border: `1px solid ${addMenuOpen ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}
+                    >
+                        <Plus size={12} /> {t('tabBar.addTabShort')}
+                    </button>
+                    {addMenuOpen && (
+                        <>
+                            <div className="fixed inset-0 z-[998]" onClick={() => setAddMenuOpen(false)} />
+                            <div
+                                className="absolute left-0 top-full mt-1 z-[999] w-64 rounded-xl p-1.5 space-y-1 shadow-2xl"
+                                data-aura-tab-add-menu=""
+                                style={{
+                                    background: 'var(--app-surface)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                <button
+                                    onClick={() => {
+                                        addTab(`Tab ${tabs.length + 1}`);
+                                        setAddMenuOpen(false);
+                                    }}
+                                    data-aura-tab-add-new=""
+                                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg text-xs text-left hover:opacity-80"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    <Plus size={12} style={{ color: 'var(--text-secondary)' }} />
+                                    {t('tabBar.addNew')}
+                                </button>
+                                {/* Linked tab (#896): an existing tab from elsewhere, shown here. */}
+                                <div
+                                    className="rounded-lg px-2 py-1.5"
+                                    title={t('tabBar.linkAddHint')}
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        opacity: linkSources.length ? undefined : 0.5,
+                                    }}
+                                >
+                                    <div
+                                        className="flex items-center gap-2 text-xs mb-1"
+                                        style={{ color: 'var(--text-primary)' }}
+                                    >
+                                        <Link2 size={12} style={{ color: 'var(--text-secondary)' }} />
+                                        {t('tabBar.linkAdd')}
+                                    </div>
+                                    <select
+                                        value=""
+                                        disabled={!linkSources.length}
+                                        onChange={(e) => {
+                                            pullLinkedTab(e.target.value);
+                                            setAddMenuOpen(false);
+                                        }}
+                                        data-aura-tab-link-add=""
+                                        className="w-full h-7 text-xs rounded-lg px-1.5 focus:outline-none cursor-pointer"
+                                        style={{
+                                            background: 'var(--app-surface)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        <option value="">{t('tabBar.linkPick')}</option>
+                                        <LinkSourceOptions groups={linkSources} />
+                                    </select>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
 
             {settingsTabId &&
@@ -1166,16 +1247,29 @@ const TabBar = memo(function TabBar() {
                                         >
                                             {t('tabBar.linkedTo')}
                                         </p>
-                                        <p
-                                            className="text-xs truncate"
+                                        <select
+                                            value={
+                                                settingsLinkSrc.label
+                                                    ? `${settingsLinkSrc.sectionId}::${settingsLinkSrc.tabId}`
+                                                    : ''
+                                            }
+                                            onChange={(e) => {
+                                                const [sectionId, tabId] = e.target.value.split('::');
+                                                if (tabId) updateTab(settingsTabId, { link: { sectionId, tabId } });
+                                            }}
+                                            data-aura-tab-link-source=""
+                                            className="w-full text-xs bg-transparent truncate focus:outline-none cursor-pointer"
                                             style={{
                                                 color: settingsLinkSrc.label
                                                     ? 'var(--text-primary)'
                                                     : 'var(--accent-red, #ef4444)',
                                             }}
                                         >
-                                            {settingsLinkSrc.label || t('tabBar.linkedMissing')}
-                                        </p>
+                                            {!settingsLinkSrc.label && (
+                                                <option value="">{t('tabBar.linkedMissing')}</option>
+                                            )}
+                                            <LinkSourceOptions groups={linkSources} />
+                                        </select>
                                     </div>
                                     {settingsLinkSrc.label && (
                                         <button
@@ -1299,14 +1393,14 @@ const TabBar = memo(function TabBar() {
                                 </div>
                             )}
 
-                            {/* ── Move / copy / link tab to another section ───────────────── */}
+                            {/* ── Move / copy tab to another section ───────────────── */}
                             <div className="border-t pt-2 space-y-1.5" style={{ borderColor: 'var(--app-border)' }}>
                                 <div
                                     className="flex items-center gap-1.5 text-[11px]"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     <FolderInput size={11} />
-                                    {t('tabBar.moveTitleLink')}
+                                    {t('tabBar.moveTitle')}
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <select
@@ -1353,14 +1447,6 @@ const TabBar = memo(function TabBar() {
                                         label={t('tabBar.copy')}
                                         onClick={() => runTabMove('copy')}
                                         disabled={!moveTarget}
-                                    />
-                                    <TabTargetButton
-                                        icon={<Link2 size={12} />}
-                                        label={t('tabBar.link')}
-                                        hint={t('tabBar.linkHint')}
-                                        onClick={runTabLink}
-                                        disabled={!linkTargetValid}
-                                        dataLinkBtn
                                     />
                                 </div>
                             </div>
@@ -1529,6 +1615,30 @@ function LinkedTabCanvas({ target }: { target: ReturnType<typeof linkTarget> }) 
     );
 }
 
+interface LinkSourceGroup {
+    label: string;
+    layoutId: string;
+    sectionId: string;
+    tabs: { id: string; name: string }[];
+}
+
+/** Originals a linked tab (#896) can show, grouped by layout › section; value `sectionId::tabId`. */
+function LinkSourceOptions({ groups }: { groups: LinkSourceGroup[] }) {
+    return (
+        <>
+            {groups.map((g) => (
+                <optgroup key={g.sectionId} label={g.label}>
+                    {g.tabs.map((tb) => (
+                        <option key={tb.id} value={`${g.sectionId}::${tb.id}`}>
+                            {tb.name}
+                        </option>
+                    ))}
+                </optgroup>
+            ))}
+        </>
+    );
+}
+
 /** Compact on/off row of the tab settings panel. */
 function TabSwitch({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
     return (
@@ -1559,25 +1669,20 @@ function TabSwitch({ label, on, onToggle }: { label: string; on: boolean; onTogg
 function TabTargetButton({
     icon,
     label,
-    hint,
     onClick,
     disabled,
-    dataLinkBtn,
 }: {
     icon: ReactNode;
     label: string;
-    hint?: string;
     onClick: () => void;
     disabled: boolean;
-    dataLinkBtn?: boolean;
 }) {
     return (
         <button
             onClick={onClick}
             disabled={disabled}
-            title={hint ? `${label} – ${hint}` : label}
+            title={label}
             aria-label={label}
-            data-aura-tab-link-btn={dataLinkBtn ? '' : undefined}
             className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
                 background: 'var(--app-bg)',

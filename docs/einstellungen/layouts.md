@@ -41,7 +41,8 @@ Ein Tab in mehreren Layouts, gepflegt nur einmal — z. B. ein Layout pro Person
 
 | Wo / Was                 |                                                                                                   |
 | ------------------------ | ------------------------------------------------------------------------------------------------- |
-| Anlegen                  | Editor → ⚙ am Tab → Zielbereich wählen → **Verknüpfen**                                           |
+| Anlegen                  | Editor → Ziel-Layout öffnen → **+ Tab** → **Bestehenden Tab verknüpfen** → Tab wählen             |
+| Original wechseln        | ⚙ am verknüpften Tab → Auswahl **Zeigt den Inhalt von**                                           |
 | Eigen pro Layout         | Name, Icon, URL-Slug, Reihenfolge, Standard-Tab, Ausblenden, Bedingungen, Marker, Theme des Layouts |
 | Vom Original             | Widgets und PIN (Tab- oder Bereichs-PIN des Originals; ein Code entsperrt beide)                  |
 | Symbol 🔗 am Tab         | Nur im Editor; im Frontend verhält sich der Tab wie jeder andere                                  |
