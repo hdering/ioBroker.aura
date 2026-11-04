@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, memo, Fragment } from 'react';
+import { useState, useMemo, useRef, useEffect, memo, Fragment, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { shallow } from 'zustand/shallow';
@@ -975,7 +975,7 @@ const TabBar = memo(function TabBar() {
                     <>
                         <div className="fixed inset-0 z-[998]" onClick={() => setSettingsTabId(null)} />
                         <ResizablePopover
-                            className="p-3 space-y-3"
+                            className="p-3 space-y-2.5"
                             width={panelWidth}
                             onResize={tabPanel.setWidth}
                             onReset={tabPanel.resetWidth}
@@ -990,93 +990,94 @@ const TabBar = memo(function TabBar() {
                                 boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
                             }}
                         >
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                            <div className="flex items-center gap-1">
+                                <span className="flex-1 text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
                                     {t('editor.tabMgmt.settings')}
                                 </span>
                                 <button
+                                    onClick={() => setShowTabExport(true)}
+                                    title={t('tabBar.exportTab')}
+                                    aria-label={t('tabBar.exportTab')}
+                                    className="w-6 h-6 flex items-center justify-center rounded hover:opacity-70"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <Download size={12} />
+                                </button>
+                                <button
                                     onClick={() => setSettingsTabId(null)}
-                                    className="w-5 h-5 flex items-center justify-center rounded hover:opacity-70"
+                                    className="w-6 h-6 flex items-center justify-center rounded hover:opacity-70"
                                 >
                                     <X size={12} style={{ color: 'var(--text-secondary)' }} />
                                 </button>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <label className="text-[11px] shrink-0 w-16" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.name')}
-                                </label>
-                                <input
-                                    type="text"
-                                    value={settingsTab.name}
-                                    onChange={(e) => {
-                                        const newName = e.target.value;
-                                        const currentSlug = settingsTab.slug ?? settingsTab.id;
-                                        if (currentSlug === slugify(settingsTab.name)) {
-                                            updateTab(settingsTabId, { name: newName, slug: slugify(newName) });
-                                        } else {
-                                            updateTab(settingsTabId, { name: newName });
-                                        }
-                                    }}
-                                    className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <label className="text-[11px] shrink-0 w-16" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.icon')}
-                                </label>
-                                <button
-                                    onClick={() => setIconPickerTabId(settingsTabId)}
-                                    className="flex-1 min-w-0 flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs transition-colors hover:opacity-80"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        border: '1px solid var(--app-border)',
-                                        color: 'var(--text-secondary)',
-                                    }}
-                                >
-                                    {settingsTab.icon ? (
-                                        <AuraIcon
-                                            icon={settingsTab.icon}
-                                            width={14}
-                                            height={14}
-                                            style={{ color: 'var(--accent)', flexShrink: 0 }}
-                                        />
-                                    ) : (
-                                        <span
-                                            className="w-3.5 h-3.5 rounded-sm shrink-0"
-                                            style={{ background: 'var(--app-border)' }}
-                                        />
-                                    )}
-                                    <span
-                                        className="truncate"
-                                        style={{
-                                            color: settingsTab.icon ? 'var(--text-primary)' : 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        {settingsTab.icon ?? t('editor.tabMgmt.selectIcon')}
-                                    </span>
-                                </button>
-                                {settingsTab.icon && (
+
+                            {/* ── Icon + name, address ────────────────────────────────────── */}
+                            <div className="space-y-1.5">
+                                <div className="flex items-center gap-1.5">
                                     <button
-                                        onClick={() => updateTab(settingsTabId, { icon: undefined })}
-                                        title={t('editor.tabMgmt.remove')}
-                                        className="shrink-0 p-1 rounded hover:opacity-70"
-                                        style={{ color: 'var(--text-secondary)' }}
+                                        onClick={() => setIconPickerTabId(settingsTabId)}
+                                        title={settingsTab.icon ?? t('editor.tabMgmt.selectIcon')}
+                                        aria-label={t('editor.tabMgmt.icon')}
+                                        className="relative shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80 group"
+                                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                                     >
-                                        <X size={12} />
+                                        {settingsTab.icon ? (
+                                            <AuraIcon
+                                                icon={settingsTab.icon}
+                                                width={15}
+                                                height={15}
+                                                style={{ color: 'var(--accent)' }}
+                                            />
+                                        ) : (
+                                            <span
+                                                className="w-3.5 h-3.5 rounded-sm"
+                                                style={{ border: '1px dashed var(--text-secondary)' }}
+                                            />
+                                        )}
+                                        {settingsTab.icon && (
+                                            <span
+                                                role="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    updateTab(settingsTabId, { icon: undefined });
+                                                }}
+                                                title={t('editor.tabMgmt.remove')}
+                                                className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 hidden group-hover:flex items-center justify-center rounded-full"
+                                                style={{
+                                                    background: 'var(--app-surface)',
+                                                    border: '1px solid var(--app-border)',
+                                                    color: 'var(--text-secondary)',
+                                                }}
+                                            >
+                                                <X size={8} />
+                                            </span>
+                                        )}
                                     </button>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <label className="text-[11px] shrink-0 w-16" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.slug')}
-                                </label>
+                                    <input
+                                        type="text"
+                                        value={settingsTab.name}
+                                        aria-label={t('editor.tabMgmt.name')}
+                                        placeholder={t('editor.tabMgmt.name')}
+                                        onChange={(e) => {
+                                            const newName = e.target.value;
+                                            const currentSlug = settingsTab.slug ?? settingsTab.id;
+                                            if (currentSlug === slugify(settingsTab.name)) {
+                                                updateTab(settingsTabId, { name: newName, slug: slugify(newName) });
+                                            } else {
+                                                updateTab(settingsTabId, { name: newName });
+                                            }
+                                        }}
+                                        className="flex-1 min-w-0 h-8 text-xs rounded-lg px-2.5 focus:outline-none"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    />
+                                </div>
                                 <div
-                                    className="flex-1 min-w-0 flex items-center gap-1 rounded-lg px-2.5 py-2"
+                                    className="flex items-center gap-1 h-7 rounded-lg px-2.5"
+                                    title={t('editor.tabMgmt.slug')}
                                     style={{
                                         background: 'var(--app-bg)',
                                         border: '1px solid var(--app-border)',
@@ -1091,127 +1092,91 @@ const TabBar = memo(function TabBar() {
                                     <input
                                         type="text"
                                         value={settingsTab.slug ?? settingsTab.id}
+                                        aria-label={t('editor.tabMgmt.slug')}
                                         onChange={(e) => {
                                             const val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
                                             if (val) setTabSlug(settingsTabId, val);
                                         }}
-                                        className="flex-1 min-w-0 text-xs font-mono bg-transparent focus:outline-none"
+                                        className="flex-1 min-w-0 text-[11px] font-mono bg-transparent focus:outline-none"
                                         style={{
                                             color: 'var(--text-primary)',
                                         }}
                                     />
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.hideLabel')}
-                                </label>
-                                <button
-                                    onClick={() => updateTab(settingsTabId, { hideLabel: !settingsTab.hideLabel })}
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{
-                                        background: settingsTab.hideLabel ? 'var(--accent)' : 'var(--app-border)',
-                                    }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: settingsTab.hideLabel ? '18px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.hidden')}
-                                </label>
-                                <button
-                                    onClick={() => updateTab(settingsTabId, { hidden: !settingsTab.hidden })}
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{ background: settingsTab.hidden ? 'var(--accent)' : 'var(--app-border)' }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: settingsTab.hidden ? '18px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.idleReturnExempt')}
-                                </label>
-                                <button
-                                    onClick={() =>
+
+                            {/* ── Switches ────────────────────────────────────────────────── */}
+                            <div className="space-y-1">
+                                <TabSwitch
+                                    label={t('editor.tabMgmt.hideLabel')}
+                                    on={!!settingsTab.hideLabel}
+                                    onToggle={() => updateTab(settingsTabId, { hideLabel: !settingsTab.hideLabel })}
+                                />
+                                <TabSwitch
+                                    label={t('editor.tabMgmt.hidden')}
+                                    on={!!settingsTab.hidden}
+                                    onToggle={() => updateTab(settingsTabId, { hidden: !settingsTab.hidden })}
+                                />
+                                <TabSwitch
+                                    label={t('editor.tabMgmt.idleReturnExempt')}
+                                    on={!!settingsTab.idleReturnExempt}
+                                    onToggle={() =>
                                         updateTab(settingsTabId, {
                                             idleReturnExempt: !settingsTab.idleReturnExempt,
                                         })
                                     }
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{
-                                        background: settingsTab.idleReturnExempt
-                                            ? 'var(--accent)'
-                                            : 'var(--app-border)',
-                                    }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: settingsTab.idleReturnExempt ? '18px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.tabMgmt.disabled')}
-                                </label>
-                                <button
-                                    onClick={() => {
+                                />
+                                <TabSwitch
+                                    label={t('editor.tabMgmt.disabled')}
+                                    on={!!settingsTab.disabled}
+                                    onToggle={() => {
                                         const nonDisabledCount = tabs.filter((t) => !t.disabled).length;
                                         if (!settingsTab.disabled && nonDisabledCount <= 1) return;
                                         updateTab(settingsTabId, { disabled: !settingsTab.disabled });
                                     }}
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{ background: settingsTab.disabled ? 'var(--accent)' : 'var(--app-border)' }}
-                                >
-                                    <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: settingsTab.disabled ? '18px' : '2px' }}
-                                    />
-                                </button>
-                            </div>
-                            <div>
-                                <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('bgImage.label')}
-                                </label>
-                                <BackgroundImageButton
-                                    value={settingsTab.backgroundImage}
-                                    onChange={(v) => updateTab(settingsTabId, { backgroundImage: v })}
-                                    title={t('bgImage.tabTitle')}
-                                    inheritLabel={t('bgImage.inheritSection')}
                                 />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('bgImage.label')}
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                    <BackgroundImageButton
+                                        value={settingsTab.backgroundImage}
+                                        onChange={(v) => updateTab(settingsTabId, { backgroundImage: v })}
+                                        title={t('bgImage.tabTitle')}
+                                        inheritLabel={t('bgImage.inheritSection')}
+                                    />
+                                </div>
                             </div>
 
                             {/* ── Linked tab (#896) ───────────────────────────────────────── */}
                             {settingsLinkSrc && (
                                 <div
-                                    className="border-t pt-2 space-y-1.5"
-                                    style={{ borderColor: 'var(--app-border)' }}
+                                    className="flex items-center gap-1.5 rounded-lg px-2 py-1.5"
+                                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                                    title={t('tabBar.linkedPin')}
                                     data-aura-tab-link-info=""
                                 >
-                                    <div
-                                        className="flex items-center gap-1.5 text-[11px] font-medium"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        <Link2 size={11} />
-                                        {t('tabBar.linkedTo')}
+                                    <Link2 size={12} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />
+                                    <div className="flex-1 min-w-0">
+                                        <p
+                                            className="text-[10px] leading-tight"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            {t('tabBar.linkedTo')}
+                                        </p>
+                                        <p
+                                            className="text-xs truncate"
+                                            style={{
+                                                color: settingsLinkSrc.label
+                                                    ? 'var(--text-primary)'
+                                                    : 'var(--accent-red, #ef4444)',
+                                            }}
+                                        >
+                                            {settingsLinkSrc.label || t('tabBar.linkedMissing')}
+                                        </p>
                                     </div>
-                                    <p
-                                        className="text-xs"
-                                        style={{
-                                            color: settingsLinkSrc.label
-                                                ? 'var(--text-primary)'
-                                                : 'var(--accent-red, #ef4444)',
-                                        }}
-                                    >
-                                        {settingsLinkSrc.label || t('tabBar.linkedMissing')}
-                                    </p>
                                     {settingsLinkSrc.label && (
                                         <button
                                             onClick={() => {
@@ -1222,40 +1187,27 @@ const TabBar = memo(function TabBar() {
                                                     settingsLinkSrc.sectionId,
                                                 );
                                             }}
-                                            className="flex items-center justify-center gap-1.5 w-full px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                border: '1px solid var(--app-border)',
-                                                color: 'var(--text-secondary)',
-                                            }}
+                                            title={t('tabBar.linkedEditOriginal')}
+                                            aria-label={t('tabBar.linkedEditOriginal')}
+                                            className="shrink-0 w-6 h-6 flex items-center justify-center rounded hover:opacity-70"
+                                            style={{ color: 'var(--accent)' }}
                                         >
-                                            <ExternalLink size={11} />
-                                            {t('tabBar.linkedEditOriginal')}
+                                            <ExternalLink size={12} />
                                         </button>
                                     )}
-                                    <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('tabBar.linkedPin')}
-                                    </p>
                                 </div>
                             )}
                             {linkedFrom.length > 0 && (
                                 <div
-                                    className="border-t pt-2 space-y-1"
-                                    style={{ borderColor: 'var(--app-border)' }}
+                                    className="flex items-start gap-1.5 text-[11px]"
+                                    style={{ color: 'var(--text-secondary)' }}
                                     data-aura-tab-linked-from=""
                                 >
-                                    <div
-                                        className="flex items-center gap-1.5 text-[11px] font-medium"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        <Link2 size={11} />
-                                        {t('tabBar.linkedFrom')}
-                                    </div>
-                                    {linkedFrom.map((label, i) => (
-                                        <p key={i} className="text-xs" style={{ color: 'var(--text-primary)' }}>
-                                            {label}
-                                        </p>
-                                    ))}
+                                    <Link2 size={11} className="shrink-0 mt-0.5" />
+                                    <span>
+                                        {t('tabBar.linkedFrom')}:{' '}
+                                        <span style={{ color: 'var(--text-primary)' }}>{linkedFrom.join(', ')}</span>
+                                    </span>
                                 </div>
                             )}
 
@@ -1263,8 +1215,9 @@ const TabBar = memo(function TabBar() {
                             {!settingsTab.link && (
                                 <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
                                     <label
-                                        className="text-[11px] block mb-1.5"
+                                        className="text-[11px] block mb-1"
                                         style={{ color: 'var(--text-secondary)' }}
+                                        title={tabHasPin ? undefined : t('pin.hint')}
                                     >
                                         {t('pin.field')}
                                     </label>
@@ -1311,11 +1264,7 @@ const TabBar = memo(function TabBar() {
                                                 />
                                             </button>
                                         </div>
-                                    ) : (
-                                        <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                            {t('pin.hint')}
-                                        </p>
-                                    )}
+                                    ) : null}
                                     {tabHasPin && (
                                         <PinSwitch
                                             className="aura-pin-showlock"
@@ -1350,114 +1299,75 @@ const TabBar = memo(function TabBar() {
                                 </div>
                             )}
 
-                            {/* ── Export tab ──────────────────────────────────────────────── */}
-                            <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
-                                <button
-                                    onClick={() => setShowTabExport(true)}
-                                    className="flex items-center gap-1.5 w-full px-2.5 py-2 rounded-lg text-xs hover:opacity-80 transition-opacity"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        border: '1px solid var(--app-border)',
-                                        color: 'var(--text-secondary)',
-                                    }}
-                                >
-                                    <Download size={11} />
-                                    {t('tabBar.exportTab')}
-                                </button>
-                            </div>
-
-                            {/* ── Move / copy tab to another section ──────────────────────── */}
+                            {/* ── Move / copy / link tab to another section ───────────────── */}
                             <div className="border-t pt-2 space-y-1.5" style={{ borderColor: 'var(--app-border)' }}>
                                 <div
-                                    className="flex items-center gap-1.5 text-[11px] font-medium"
+                                    className="flex items-center gap-1.5 text-[11px]"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     <FolderInput size={11} />
                                     {t('tabBar.moveTitleLink')}
                                 </div>
-                                <select
-                                    value={moveTarget}
-                                    onChange={(e) => setMoveTarget(e.target.value)}
-                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                >
-                                    <option value="">{t('tabBar.moveTargetPlaceholder')}</option>
-                                    {targetsByLayout.map((grp) => {
-                                        const opts = grp.sections.map((sec) => {
-                                            const key = `${grp.layoutId}::${sec.sectionId}`;
-                                            const label =
-                                                key === currentTargetKey
-                                                    ? `${sec.sectionName} (${t('tabBar.moveCurrentSuffix')})`
-                                                    : sec.sectionName;
-                                            return (
-                                                <option key={key} value={key}>
-                                                    {label}
-                                                </option>
+                                <div className="flex items-center gap-1">
+                                    <select
+                                        value={moveTarget}
+                                        onChange={(e) => setMoveTarget(e.target.value)}
+                                        className="flex-1 min-w-0 h-7 text-xs rounded-lg px-1.5 focus:outline-none"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-primary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        <option value="">{t('tabBar.moveTargetPlaceholder')}</option>
+                                        {targetsByLayout.map((grp) => {
+                                            const opts = grp.sections.map((sec) => {
+                                                const key = `${grp.layoutId}::${sec.sectionId}`;
+                                                const label =
+                                                    key === currentTargetKey
+                                                        ? `${sec.sectionName} (${t('tabBar.moveCurrentSuffix')})`
+                                                        : sec.sectionName;
+                                                return (
+                                                    <option key={key} value={key}>
+                                                        {label}
+                                                    </option>
+                                                );
+                                            });
+                                            return multiLayout ? (
+                                                <optgroup key={grp.layoutId} label={grp.layoutName}>
+                                                    {opts}
+                                                </optgroup>
+                                            ) : (
+                                                <Fragment key={grp.layoutId}>{opts}</Fragment>
                                             );
-                                        });
-                                        return multiLayout ? (
-                                            <optgroup key={grp.layoutId} label={grp.layoutName}>
-                                                {opts}
-                                            </optgroup>
-                                        ) : (
-                                            <Fragment key={grp.layoutId}>{opts}</Fragment>
-                                        );
-                                    })}
-                                </select>
-                                <div className="flex items-center gap-1.5">
-                                    <button
+                                        })}
+                                    </select>
+                                    <TabTargetButton
+                                        icon={<FolderInput size={12} />}
+                                        label={t('tabBar.move')}
                                         onClick={() => runTabMove('move')}
                                         disabled={!moveTarget || moveTarget === currentTargetKey}
-                                        className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            border: '1px solid var(--app-border)',
-                                            color: 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        <FolderInput size={11} />
-                                        {t('tabBar.move')}
-                                    </button>
-                                    <button
+                                    />
+                                    <TabTargetButton
+                                        icon={<Copy size={12} />}
+                                        label={t('tabBar.copy')}
                                         onClick={() => runTabMove('copy')}
                                         disabled={!moveTarget}
-                                        className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            border: '1px solid var(--app-border)',
-                                            color: 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        <Copy size={11} />
-                                        {t('tabBar.copy')}
-                                    </button>
-                                    <button
+                                    />
+                                    <TabTargetButton
+                                        icon={<Link2 size={12} />}
+                                        label={t('tabBar.link')}
+                                        hint={t('tabBar.linkHint')}
                                         onClick={runTabLink}
                                         disabled={!linkTargetValid}
-                                        data-aura-tab-link-btn=""
-                                        className="flex items-center justify-center gap-1.5 flex-1 px-2.5 py-1.5 rounded-lg text-xs hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            border: '1px solid var(--app-border)',
-                                            color: 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        <Link2 size={11} />
-                                        {t('tabBar.link')}
-                                    </button>
+                                        dataLinkBtn
+                                    />
                                 </div>
-                                <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('tabBar.linkHint')}
-                                </p>
                             </div>
 
                             {/* ── Conditions section (highlighted, like widget Darstellung) ── */}
                             <div
-                                className="rounded-lg px-2.5 py-2"
+                                className="rounded-lg px-2.5 py-1.5"
                                 style={{
                                     background: 'color-mix(in srgb, var(--accent-yellow, #eab308) 7%, var(--app-bg))',
                                     border: '1px solid color-mix(in srgb, var(--accent-yellow, #eab308) 26%, var(--app-border))',
@@ -1500,7 +1410,7 @@ const TabBar = memo(function TabBar() {
 
                             {/* ── Badges section ──────────────────────────────────────────── */}
                             <div
-                                className="rounded-lg px-2.5 py-2"
+                                className="rounded-lg px-2.5 py-1.5"
                                 style={{
                                     background: 'color-mix(in srgb, #6366f1 7%, var(--app-bg))',
                                     border: '1px solid color-mix(in srgb, #6366f1 26%, var(--app-border))',
@@ -1616,6 +1526,67 @@ function LinkedTabCanvas({ target }: { target: ReturnType<typeof linkTarget> }) 
                 )}
             </div>
         </div>
+    );
+}
+
+/** Compact on/off row of the tab settings panel. */
+function TabSwitch({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
+    return (
+        <button
+            type="button"
+            role="switch"
+            aria-checked={on}
+            onClick={onToggle}
+            className="flex items-center justify-between gap-2 w-full py-0.5 text-left hover:opacity-80"
+        >
+            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </span>
+            <span
+                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+            >
+                <span
+                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                    style={{ left: on ? '14px' : '2px' }}
+                />
+            </span>
+        </button>
+    );
+}
+
+/** Icon button next to the move/copy/link target select; the label is the tooltip. */
+function TabTargetButton({
+    icon,
+    label,
+    hint,
+    onClick,
+    disabled,
+    dataLinkBtn,
+}: {
+    icon: ReactNode;
+    label: string;
+    hint?: string;
+    onClick: () => void;
+    disabled: boolean;
+    dataLinkBtn?: boolean;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            title={hint ? `${label} – ${hint}` : label}
+            aria-label={label}
+            data-aura-tab-link-btn={dataLinkBtn ? '' : undefined}
+            className="shrink-0 w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+                background: 'var(--app-bg)',
+                border: '1px solid var(--app-border)',
+                color: 'var(--text-secondary)',
+            }}
+        >
+            {icon}
+        </button>
     );
 }
 
@@ -1910,7 +1881,7 @@ export function AdminEditor() {
     }, []);
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-full">
             {/* Toolbar */}
             <div
                 className="flex items-center gap-3 px-6 py-3 shrink-0 flex-wrap"

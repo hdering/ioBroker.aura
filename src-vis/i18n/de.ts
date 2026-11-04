@@ -1640,7 +1640,7 @@ export const de = {
     'tabBar.moveCurrentSuffix': 'aktuell',
     'tabBar.move': 'Verschieben',
     'tabBar.copy': 'Kopieren',
-    'tabBar.moveTitleLink': 'In Bereich verschieben / kopieren / verknüpfen',
+    'tabBar.moveTitleLink': 'Verschieben · Kopieren · Verknüpfen',
     'tabBar.link': 'Verknüpfen',
     'tabBar.linkHint': 'Verknüpfen legt im Zielbereich einen eigenen Tab an, der die Widgets dieses Tabs zeigt. Name, Symbol und Reihenfolge sind dort eigen, gepflegt wird nur das Original.',
     'tabBar.linkedBadge': 'Verknüpfter Tab',

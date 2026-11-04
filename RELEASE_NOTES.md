@@ -12,3 +12,4 @@
 - fix: News - the ticker no longer stops on touch screens after it was tapped or swiped over; pausing on hover now only applies to mouse pointers (#916)
 - feat: Tabs - linked tabs: a tab can be shown in further layouts via 'Link' in the tab settings; name, icon and order stay per layout, the widgets and the PIN come from the original (#896)
 - feat: Tabs - tab and section conditions resolve {{clientId}} in their datapoints, so a tab can be shown or hidden per device (#896)
+- fix: Editor - the tab settings panel is more compact and no longer shows a second scrollbar; the editor page itself no longer scrolls by the height of the save bar

@@ -466,7 +466,7 @@ export function AdminLayout() {
         <PortalThemeContext.Provider value={adminVars}>
             <PortalTargetContext.Provider value={portalTarget}>
                 <div
-                    className="min-h-screen flex"
+                    className="h-screen flex"
                     style={{
                         ...adminVars,
                         colorScheme: adminTheme.dark ? 'dark' : 'light',

@@ -1627,7 +1627,7 @@ export const en: Record<TranslationKey, string> = {
     'tabBar.moveCurrentSuffix': 'current',
     'tabBar.move': 'Move',
     'tabBar.copy': 'Copy',
-    'tabBar.moveTitleLink': 'Move / copy / link to section',
+    'tabBar.moveTitleLink': 'Move · Copy · Link',
     'tabBar.link': 'Link',
     'tabBar.linkHint': 'Link adds a tab of its own to the target section that shows the widgets of this tab. Name, icon and order are its own there, only the original is maintained.',
     'tabBar.linkedBadge': 'Linked tab',
