@@ -275,10 +275,12 @@ function useNow(intervalMs: number): number {
     return now;
 }
 
+// Pause on hover only where a pointer really hovers: on touch screens :hover sticks
+// after a tap or a swipe and would hold the ticker until the next tap elsewhere (#916).
 const TICKER_CSS = `
 @keyframes aura-feed-ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .aura-feed-ticker-track { animation: aura-feed-ticker var(--aura-feed-ticker-s, 30s) linear infinite; }
-.aura-feed-ticker:hover .aura-feed-ticker-track { animation-play-state: paused; }
+@media (hover: hover) { .aura-feed-ticker:hover .aura-feed-ticker-track { animation-play-state: paused; } }
 @media (prefers-reduced-motion: reduce) { .aura-feed-ticker-track { animation: none; } }
 `;
 

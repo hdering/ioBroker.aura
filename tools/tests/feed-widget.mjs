@@ -234,6 +234,37 @@ check('ticker: headlines twice for a seamless loop', (await W('ft').locator('.au
     check('ticker: hover pauses', (await track.evaluate((el) => getComputedStyle(el).animationPlayState)) === 'paused');
     await page.mouse.move(1270, 890);
 }
+// Touch screens (#916): :hover sticks after a tap, the ticker must keep running.
+{
+    const tctx = await browser.newContext({ viewport: { width: 800, height: 900 }, hasTouch: true, isMobile: true });
+    const tpage = await tctx.newPage();
+    await tpage.route('**/feed?**', (route) => {
+        const url = new URL(route.request().url()).searchParams.get('url');
+        return route.fulfill({ status: 200, contentType: 'application/rss+xml', body: FEEDS[url] ?? '' });
+    });
+    await tpage.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
+    await tpage.waitForFunction(() => !!window.__auraShot?.ready, null, { timeout: 90000 });
+    await tpage.evaluate((feeds) => {
+        window.__auraShot.showWidgets([
+            {
+                id: 'ftt',
+                type: 'feed',
+                title: 'News',
+                layout: 'ticker',
+                gridPos: { x: 0, y: 0, w: 16, h: 3 },
+                options: { feeds, openMode: 'newTab' },
+            },
+        ]);
+    }, SRC);
+    const tw = tpage.locator('.aura-widget-ftt').first();
+    await tw.locator('.aura-feed-ticker-item').first().waitFor({ timeout: 15000 });
+    const tb = await tw.locator('.aura-feed-ticker').boundingBox();
+    await tpage.touchscreen.tap(tb.x + 4, tb.y + tb.height / 2);
+    await tpage.waitForTimeout(200);
+    const ps = await tw.locator('.aura-feed-ticker-track').evaluate((el) => getComputedStyle(el).animationPlayState);
+    check('ticker: keeps running after a tap on a touch screen', ps === 'running', ps);
+    await tctx.close();
+}
 // Text size (#906): unset = 14 px, n = n px, 0 = from the strip height (never below 14 px).
 {
     const fontPx = (id) =>

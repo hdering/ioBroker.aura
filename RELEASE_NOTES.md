@@ -9,3 +9,4 @@
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: Group - the group action no longer makes the group and its children taller; the divider under the title stays at the same height with and without it (#915)
+- fix: News - the ticker no longer stops on touch screens after it was tapped or swiped over; pausing on hover now only applies to mouse pointers (#916)
