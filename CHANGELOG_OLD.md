@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.87.0 (2026-10-19)
+- 🌟 **New feature:** Countdown - can start automatically when a watched datapoint switches on, e.g. turn a plug off 30 min after it was switched on elsewhere ([#796](https://github.com/hdering/ioBroker.aura/issues/796))
+- 🌟 **New feature:** Lists and the status overview can publish their content to ioBroker (count, JSON list and ready-to-send text of the shown rows), computed by the adapter even without an open browser - e.g. for an evening report by mail or Telegram ([#798](https://github.com/hdering/ioBroker.aura/issues/798))
+- Admin - the instance (e.g. aura.1) is shown next to the version in the sidebar, so several Aura instances can be told apart at a glance ([#801](https://github.com/hdering/ioBroker.aura/issues/801))
+
 ## 0.86.0 (2026-10-19)
 - 🌟 **New feature:** List - value conversion can call your own functions from Custom JS: register them with aura.registerFn and use callback("name", dp) in the expression ([#794](https://github.com/hdering/ioBroker.aura/issues/794))
 - Admin overview - "Getting started" and "AI access (MCP)" cards can be shown and hidden again via two switches in the page header ([#799](https://github.com/hdering/ioBroker.aura/issues/799))
