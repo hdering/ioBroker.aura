@@ -4699,9 +4699,12 @@ class Aura extends utils.Adapter {
                 frontend: { link: frontendLink, name: makeName('Aura Frontend') },
                 backend: { link: backendLink, name: makeName('Aura Backend') },
             };
-            // Web adapter extension on: the same frontend under `<web-port>/aura/`.
+            // Web adapter extension on: the same frontend and backend under `<web-port>/aura/` (#936).
             const webLink = await this._webExtensionLink();
-            if (webLink) wantLinks.web = { link: webLink, name: makeName('Aura (web adapter)') };
+            if (webLink) {
+                wantLinks.web = { link: webLink, name: makeName('Aura Frontend (web adapter)') };
+                wantLinks.webBackend = { link: `${webLink}#/admin`, name: makeName('Aura Backend (web adapter)') };
+            }
             try {
                 const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
                 if (obj) {
@@ -4710,7 +4713,9 @@ class Aura extends utils.Adapter {
                     if (
                         curLinks?.frontend?.link !== wantLinks.frontend.link ||
                         curLinks?.backend?.link !== wantLinks.backend.link ||
-                        curLinks?.web?.link !== wantLinks.web?.link
+                        curLinks?.web?.link !== wantLinks.web?.link ||
+                        curLinks?.web?.name?.en !== wantLinks.web?.name?.en ||
+                        curLinks?.webBackend?.link !== wantLinks.webBackend?.link
                     ) {
                         obj.common.localLinks = wantLinks;
                         changed = true;

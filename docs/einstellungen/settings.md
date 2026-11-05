@@ -83,7 +83,7 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 | Socket | Die Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte |
 | Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs |
 | Aura gestoppt | `/aura/` zeigt „Aura läuft nicht“ und lädt von selbst neu, sobald Aura wieder läuft; die Web-Instanz läuft weiter |
-| Instanz-Links | Zusätzlicher Link „Aura (web adapter)“ in der Instanzliste |
+| Instanz-Links | Zusätzliche Links „Aura Frontend (web adapter)“ und „Aura Backend (web adapter)“ in Instanzliste und Schnellzugriff |
 
 ## Client-ID
 
