@@ -17718,13 +17718,11 @@
         },
         "brightnessMax": {
           "type": "number",
-          "default": 100,
-          "description": "Größter Helligkeitswert des Geräts."
+          "description": "Größter Helligkeitswert. Leer lassen = common.max von brightnessDp, sonst 100."
         },
         "brightnessMin": {
           "type": "number",
-          "default": 0,
-          "description": "Kleinster Helligkeitswert des Geräts."
+          "description": "Kleinster Helligkeitswert. Leer lassen = common.min von brightnessDp (zur Laufzeit gelesen, passt also auch in Popups mit {{parent}}), sonst 0. Eingetragen übersteuert den Datenpunkt."
         },
         "colorDp": {
           "type": "string",
@@ -17761,13 +17759,11 @@
         },
         "ctMax": {
           "type": "number",
-          "default": 6500,
-          "description": "Größte Farbtemperatur des Geräts."
+          "description": "Kälteste Farbtemperatur (K). Leer lassen = common.max von temperatureDp, sonst 6500."
         },
         "ctMin": {
           "type": "number",
-          "default": 2000,
-          "description": "Kleinste Farbtemperatur des Geräts."
+          "description": "Wärmste Farbtemperatur (K). Leer lassen = common.min von temperatureDp (zur Laufzeit gelesen, ein Popup mit {{parent}} passt sich jeder Lampe an), sonst 2000. Eingetragen übersteuert den Datenpunkt."
         },
         "ctSliderSize": {},
         "effectDp": {
