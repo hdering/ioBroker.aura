@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.103.0",
+    "auraVersion": "0.104.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -9848,6 +9848,23 @@
           "description": "Farbe der Mittelwertlinie.",
           "color": true
         },
+        "controlPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips und der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter)."
+        },
+        "controlSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips und der Blätter-Leiste: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Größer = höhere Bedienzeile."
+        },
         "dayNav": {
           "type": "boolean",
           "default": false,
@@ -12228,6 +12245,23 @@
           "default": false,
           "description": "History-Instanz automatisch aus dem Datenpunkt bestimmen."
         },
+        "controlPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips und der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter)."
+        },
+        "controlSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips und der Blätter-Leiste: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Größer = höhere Bedienzeile."
+        },
         "echartAnimation": {
           "type": "boolean",
           "default": true,
@@ -12682,6 +12716,23 @@
           ],
           "description": "Visual style of each bar's composition. Default 'bars' (100%-stacked bar).",
           "default": "bars"
+        },
+        "controlPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips und der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter)."
+        },
+        "controlSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips und der Blätter-Leiste: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Größer = höhere Bedienzeile."
         },
         "dayNav": {
           "type": "boolean",
