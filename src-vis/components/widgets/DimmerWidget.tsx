@@ -2,6 +2,7 @@ import React, { useMemo, useState, type CSSProperties } from 'react';
 import { Power, SunDim } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useReadBackDatapoint } from '../../hooks/useReadBackDatapoint';
+import { useReleaseCommit } from '../../hooks/useReleaseCommit';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -78,6 +79,9 @@ export function DimmerWidget({ config }: WidgetProps) {
             setDragValue(null);
         }
     };
+    // The slider's own mouseup/touchend misses a cancelled or keyboard drag — the
+    // dragged level then stayed on screen over every later status update (#935).
+    useReleaseCommit(dragValue !== null, handleSliderRelease);
 
     const getBarValue = (e: React.PointerEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect();

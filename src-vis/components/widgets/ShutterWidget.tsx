@@ -8,6 +8,7 @@ import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresho
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
+import { useReleaseCommit } from '../../hooks/useReleaseCommit';
 import { ShutterViz } from './ShutterViz';
 import { applyCircleOrder, CircleMenu, type CircleDirection, type CircleMenuItem } from './CircleMenu';
 import { TILT_SLIDER_WIDTH, TiltButton, TiltPopover, TiltSlider, TiltStepButtons } from './TiltControls';
@@ -387,6 +388,10 @@ export function ShutterWidget({ config }: WidgetProps) {
             setDragTilt(null);
         }
     };
+    // A drag that ends off the slider (cancelled touch, keyboard) must still commit,
+    // or the dragged value covers every later live update (#935).
+    useReleaseCommit(dragPos !== null, handleSliderRelease);
+    useReleaseCommit(dragTilt !== null, handleTiltRelease);
     const pickTilt = (v: number) => {
         setDragTilt(null);
         writeTilt(clampPct(v));
