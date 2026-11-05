@@ -4714,7 +4714,6 @@ class Aura extends utils.Adapter {
                         curLinks?.frontend?.link !== wantLinks.frontend.link ||
                         curLinks?.backend?.link !== wantLinks.backend.link ||
                         curLinks?.web?.link !== wantLinks.web?.link ||
-                        curLinks?.web?.name?.en !== wantLinks.web?.name?.en ||
                         curLinks?.webBackend?.link !== wantLinks.webBackend?.link
                     ) {
                         obj.common.localLinks = wantLinks;
