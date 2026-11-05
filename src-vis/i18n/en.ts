@@ -1359,6 +1359,10 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.style.text': 'Text',
     'wf.edit.style.textSec': 'Secondary Text',
     'wf.edit.style.radius': 'Corner Radius',
+    'wf.edit.style.paddingY': 'Padding top/bottom (px)',
+    'wf.edit.style.paddingX': 'Padding left/right (px)',
+    'wf.edit.style.paddingHint': "Empty = the layout's padding ({n} px).",
+    'wf.edit.style.paddingNone': 'This widget is drawn without padding.',
     'bgImage.label': 'Background image',
     'bgImage.placeholder': 'https://…/image.jpg, /vis.0/image.png, colour/gradient or pick a file',
     'bgImage.cssHint':

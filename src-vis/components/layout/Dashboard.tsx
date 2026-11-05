@@ -45,6 +45,7 @@ import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScale
 import { useViewportWidth } from '../../hooks/useViewportWidth';
 import { reportMetric } from '../../utils/perfMetrics';
 import { resolveEmbedMobileHeight } from '../../utils/embedMobileHeight';
+import { cardPadding } from '../../utils/cardPadding';
 import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../../utils/renderReport';
 
 // Default gap — overridden by config at runtime
@@ -1166,7 +1167,8 @@ export function Dashboard({
                                                     if (usesContentAutoHeight(w)) {
                                                         const px = autoHeights[rid(w.id)];
                                                         if (px && px > 0) {
-                                                            const total = px + widgetPadding * 2 + 2;
+                                                            const total =
+                                                                px + cardPadding(w.options, widgetPadding).y * 2 + 2;
                                                             const rows = Math.max(
                                                                 1,
                                                                 Math.ceil((total + MARGIN) / (rowPx + MARGIN)),

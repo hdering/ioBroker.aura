@@ -554,13 +554,11 @@ export function statusRowPlacement(
     const [v, h] = pos.split('-') as ['top' | 'bottom', 'left' | 'right'];
     // Against the card the padding is already outside the box: the content corner
     // lies one padding in, the edge spot right at the border.
-    if (anchor === 'card')
-        return onEdge
-            ? { [v]: 2, [h]: 4 }
-            : { [v]: 'var(--aura-widget-pad, 16px)', [h]: 'var(--aura-widget-pad, 16px)' };
-    return onEdge
-        ? { [v]: 'calc(2px - var(--aura-widget-pad, 16px))', [h]: 'calc(4px - var(--aura-widget-pad, 16px))' }
-        : { [v]: 0, [h]: 0 };
+    // Top/bottom and left/right may differ per widget (#928).
+    const padV = 'var(--aura-widget-pad-y, var(--aura-widget-pad, 16px))';
+    const padH = 'var(--aura-widget-pad, 16px)';
+    if (anchor === 'card') return onEdge ? { [v]: 2, [h]: 4 } : { [v]: padV, [h]: padH };
+    return onEdge ? { [v]: `calc(2px - ${padV})`, [h]: `calc(4px - ${padH})` } : { [v]: 0, [h]: 0 };
 }
 
 export function StatusBadges({ config, anchor = 'content' }: Props) {

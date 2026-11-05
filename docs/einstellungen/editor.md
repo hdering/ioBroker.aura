@@ -148,6 +148,17 @@ Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeil
 
 Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer an. Ein- und ausschalten geht auch direkt im Dialog `Klick-Aktion`.
 
+## Innenabstand je Widget
+
+`Bearbeiten` → **Erweitert**. Überschreibt den Innenabstand des Layouts ([Layouts](./layouts#typografie-spacing) → Typografie & Spacing) nur für diese Karte — z. B. für schmale Leisten aus Chips oder Datumsfeldern.
+
+| Option | |
+| --- | --- |
+| Innenabstand oben/unten | `0`–`64` px; leer = Wert des Layouts |
+| Innenabstand links/rechts | `0`–`64` px; leer = Wert des Layouts |
+
+Ausgegraut bei Typen ohne Innenabstand (Gruppe, Gerätekarte, Panels, iFrame, Karte, Diagramm-Vorlage, Abschnittstitel ohne Rahmen). `Höhe an Inhalt anpassen` rechnet mit dem eigenen Wert. Wird mit `Stil kopieren` übertragen; `Zurücksetzen` in **Erweitert** entfernt ihn.
+
 ## Hintergrundbild
 
 `Bearbeiten` → **Erweitert** → `Hintergrundbild`. Liegt über der Hintergrundfarbe und unter dem Inhalt; mit `Transparent` zeigt die Karte nur das Bild. `Zurücksetzen` in **Erweitert** entfernt es zusammen mit den Farben.

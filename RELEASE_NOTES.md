@@ -25,3 +25,4 @@
 - feat: Popups - new placeholder {{dpunit}} for the unit of the popup's datapoint (#925)
 - feat: Dynamic list - new options to hide rows whose device reports itself unreachable (UNREACH, available, online …; the row comes back once the device answers) and alias rows whose target datapoint does not exist (#925)
 - fix: Date picker - time/date fields on Chrome for Android are now really sized to their value and show the clock/calendar icon instead of a dropdown arrow; the fix in 0.104.0 did not detect real Android devices (#920)
+- feat: Widgets - own padding per widget (top/bottom and left/right) under Edit › Advanced; empty keeps the layout padding, e.g. for slim bars of chips or date fields next to normal tiles (#928)

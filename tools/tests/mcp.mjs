@@ -2038,6 +2038,23 @@ check('the inner padding sits twice in the chrome — two pixels per pixel', () 
     assert.equal(measureWidget(gauge, AT(1, ref)).requiredPx - measureWidget(gauge, AT(1, ref - 8)).requiredPx, 16);
 });
 
+check("a widget's own padding (#928) replaces the dashboard's — top/bottom only", () => {
+    const list = listWidget(8, 25);
+    const own = (o) => measureWidget({ ...list, options: { ...list.options, ...o } }, AT(1, 16)).requiredPx;
+    assert.equal(own({}) - own({ paddingY: 4 }), 24, '16 → 4 px saves 2 × 12 px');
+    assert.equal(own({ paddingY: 4 }), measureWidget(list, AT(1, 4)).requiredPx, 'same as a dashboard at 4 px');
+    assert.equal(own({ paddingX: 4 }), own({}), 'left/right does not change the height');
+    // Bare types stay bare, whatever the option says.
+    const bare = {
+        id: 'h',
+        type: 'header',
+        title: 'W',
+        gridPos: { x: 0, y: 0, w: 12, h: 2 },
+        options: { paddingY: 0 },
+    };
+    assert.equal(measureWidget(bare, AT(1, 16)).requiredPx, 22);
+});
+
 check('the frame types that have no padding are not corrected for it', () => {
     // WidgetFrame draws these edge to edge (isNoPad) — correcting them would
     // invent a gutter that is not there.

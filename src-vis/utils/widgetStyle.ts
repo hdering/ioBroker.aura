@@ -76,6 +76,9 @@ const EXTRA_STYLE_KEYS = new Set([
     'transparency',
     'styleOverride',
     'bgImage',
+    // The card's own padding (#928) — `paddingY` misses the `…Padding` suffix
+    'paddingY',
+    'paddingX',
     'colorThresholds',
     // The on/off twin of `fullscreenPosition`, which the suffix list already catches
     'fullscreenWidget',
@@ -175,6 +178,8 @@ const FRAME_STYLE_KEYS = [
     'transparency',
     'styleOverride',
     'bgImage',
+    'paddingY',
+    'paddingX',
     'fullscreenWidget',
     'fullscreenPosition',
     'fullscreenScreen',

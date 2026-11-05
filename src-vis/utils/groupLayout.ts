@@ -1,5 +1,6 @@
 import type { WidgetConfig } from '../types';
 import { usesContentAutoHeight } from './autoHeight';
+import { cardPadding } from './cardPadding';
 
 // Shared layout math for group widgets.
 //
@@ -105,9 +106,9 @@ export function withContentHeights(
         if (!usesContentAutoHeight(c)) return c;
         const px = heights[c.id];
         if (!px || px <= 0) return c;
-        // Frame chrome: padding top+bottom plus the 1px border on each side. A
-        // child of h rows is h·rowPx + (h-1)·GROUP_GAP tall.
-        const total = px + padding * 2 + 2;
+        // Frame chrome: padding top+bottom (the child's own, #928) plus the 1px
+        // border on each side. A child of h rows is h·rowPx + (h-1)·GROUP_GAP tall.
+        const total = px + cardPadding(c.options, padding).y * 2 + 2;
         const h = Math.max(1, Math.ceil((total + GROUP_GAP) / (rowPx + GROUP_GAP)));
         if (h === c.gridPos.h) return c;
         changed = true;

@@ -50,6 +50,7 @@ import type { LucideIcon } from 'lucide-react';
 import { setDragBridge, getTabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows, withContentHeights } from '../../utils/groupLayout';
+import { CARD_PAD_MAX, cardPadding } from '../../utils/cardPadding';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { htmlCanReportHeight, supportsAutoHeight } from '../../utils/autoHeight';
 import { Unavailable } from '../config/Unavailable';
@@ -7552,6 +7553,8 @@ function WidgetFrameInner({
     // ──────────────────────────────────────────────────────────────────────────
 
     const widgetPadding = effectiveSettings.widgetPadding ?? 16;
+    // The card's own padding (#928): options.paddingY / paddingX, else the layout's.
+    const cardPad = cardPadding(config.options, widgetPadding);
     // A mirror renders its source inside the frame, so its outer padding must
     // follow the SOURCE's type — not 'mirror'. Otherwise a mirrored group (which
     // needs to be edge-to-edge) gets the default widget padding, shrinking the
@@ -7749,22 +7752,27 @@ function WidgetFrameInner({
     // (collapsedRows) uses the same value. Deliberately NOT the dashboard's widget
     // padding: on a dense board (padding 0–6) that folded the card onto the bare
     // text row and the corner buttons spilled out of it.
-    const isNoPad =
-        !isCollapsed &&
-        (isBareHeader ||
-            isGroupType(framingType) ||
-            // A tab mirror draws the tab's own scroller inset, like the tab itself.
-            isTabMirror(config) ||
-            framingType === 'panels' ||
-            framingType === 'iframe' ||
-            framingType === 'map' ||
-            framingType === 'echartsPreset');
+    const noPadType =
+        isBareHeader ||
+        isGroupType(framingType) ||
+        // A tab mirror draws the tab's own scroller inset, like the tab itself.
+        isTabMirror(config) ||
+        framingType === 'panels' ||
+        framingType === 'iframe' ||
+        framingType === 'map' ||
+        framingType === 'echartsPreset';
+    const isNoPad = !isCollapsed && noPadType;
     // Publish the padding that is actually applied, so widget content can align to
     // the card edge instead of assuming the default. Scrolling lists whose rows
     // bleed into this gutter need it to stay inside the card (.aura-bleed-* in
     // index.css) — with a small "Innenabstand der Widgets" a fixed bleed would
-    // push the rows and the scrollbar past the card border (#590).
-    const padVar = { '--aura-widget-pad': `${isNoPad ? 0 : widgetPadding}px` } as React.CSSProperties;
+    // push the rows and the scrollbar past the card border (#590). The bleed is
+    // horizontal, so --aura-widget-pad is the left/right padding; the vertical one
+    // rides along for whatever sits in a top or bottom corner (#928).
+    const padVar = {
+        '--aura-widget-pad': `${isNoPad ? 0 : cardPad.x}px`,
+        '--aura-widget-pad-y': `${isNoPad ? 0 : cardPad.y}px`,
+    } as React.CSSProperties;
     // "Textumbruch": 1 (or unset) keeps every widget's own truncation. Above that the
     // .aura-textwrap rule in index.css turns each truncated text into a clamped box of
     // that many lines — see the comment there for why it rides on a class.
@@ -8440,8 +8448,8 @@ function WidgetFrameInner({
                           padding: isNoPad
                               ? undefined
                               : isCollapsed
-                                ? `${collapsedPadY()}px ${widgetPadding}px`
-                                : widgetPadding,
+                                ? `${collapsedPadY()}px ${cardPad.x}px`
+                                : `${cardPad.y}px ${cardPad.x}px`,
                           cursor: !editMode && hasClickAction && !condDisabled ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',
@@ -8466,8 +8474,8 @@ function WidgetFrameInner({
                           padding: isNoPad
                               ? undefined
                               : isCollapsed
-                                ? `${collapsedPadY()}px ${widgetPadding}px`
-                                : widgetPadding,
+                                ? `${collapsedPadY()}px ${cardPad.x}px`
+                                : `${cardPad.y}px ${cardPad.x}px`,
                           cursor: !editMode && hasClickAction && !condDisabled ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',
@@ -10590,13 +10598,17 @@ function WidgetFrameInner({
                                 </span>
                                 <div className="flex items-center gap-2">
                                     {((overrides && Object.keys(overrides).length > 0) ||
-                                        !!activeBgImage(config.options?.bgImage)) && (
+                                        !!activeBgImage(config.options?.bgImage) ||
+                                        config.options?.paddingY !== undefined ||
+                                        config.options?.paddingX !== undefined) && (
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
                                                 const {
                                                     styleOverride: _,
                                                     bgImage: _img,
+                                                    paddingY: _py,
+                                                    paddingX: _px,
                                                     ...rest
                                                 } = config.options ?? {};
                                                 onConfigChange({ ...config, options: rest });
@@ -10692,6 +10704,63 @@ function WidgetFrameInner({
                                     </div>
                                 ))}
                             </div>
+                            {/* Own padding (#928): overrides the layout's "Innenabstand der Widgets"
+                                for this card only. Greyed out where the frame draws no padding. */}
+                            <Unavailable reason={noPadType ? t('wf.edit.style.paddingNone') : undefined}>
+                                <div className="grid grid-cols-2 gap-x-3 mt-1.5" data-card-padding="">
+                                    {(['paddingY', 'paddingX'] as const).map((key) => (
+                                        <div key={key}>
+                                            <label
+                                                className="text-[10px] block mb-0.5"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {t(`wf.edit.style.${key}`)}
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={CARD_PAD_MAX}
+                                                value={
+                                                    typeof config.options?.[key] === 'number'
+                                                        ? (config.options[key] as number)
+                                                        : ''
+                                                }
+                                                onChange={(e) => {
+                                                    const raw = e.target.value;
+                                                    const n = Number(raw);
+                                                    onConfigChange({
+                                                        ...config,
+                                                        options: {
+                                                            ...config.options,
+                                                            [key]:
+                                                                raw === '' || !Number.isFinite(n)
+                                                                    ? undefined
+                                                                    : Math.max(
+                                                                          0,
+                                                                          Math.min(CARD_PAD_MAX, Math.round(n)),
+                                                                      ),
+                                                        },
+                                                    });
+                                                }}
+                                                placeholder={String(widgetPadding)}
+                                                className="w-full text-[10px] rounded px-1.5 py-1 focus:outline-none font-mono"
+                                                style={{
+                                                    background: 'var(--app-bg)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--app-border)',
+                                                }}
+                                                data-card-padding-input={key}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                <p
+                                    className="text-[10px] mt-1"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                >
+                                    {t('wf.edit.style.paddingHint', { n: widgetPadding })}
+                                </p>
+                            </Unavailable>
                             {/* Not for the bare section title — it draws no card to put an image on. */}
                             {!(config.type === 'header' && (config.layout ?? 'default') !== 'framed') && (
                                 <div className="mt-2.5">

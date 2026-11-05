@@ -1370,6 +1370,10 @@ export const de = {
     'wf.edit.style.text': 'Text',
     'wf.edit.style.textSec': 'Text sekundär',
     'wf.edit.style.radius': 'Eckenradius',
+    'wf.edit.style.paddingY': 'Innenabstand oben/unten (px)',
+    'wf.edit.style.paddingX': 'Innenabstand links/rechts (px)',
+    'wf.edit.style.paddingHint': 'Leer = Innenabstand des Layouts ({n} px).',
+    'wf.edit.style.paddingNone': 'Dieses Widget zeichnet ohne Innenabstand.',
     'bgImage.label': 'Hintergrundbild',
     'bgImage.placeholder': 'https://…/bild.jpg, /vis.0/bild.png, Farbe/Verlauf oder Datei wählen',
     'bgImage.cssHint':

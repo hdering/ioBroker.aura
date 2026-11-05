@@ -1110,6 +1110,7 @@ input[type='range']::-moz-range-thumb {
 }
 .aura-popup-bare > .aura-widget {
     --aura-widget-pad: 0px !important;
+    --aura-widget-pad-y: 0px !important;
     padding: 0 !important;
     border-width: 0 !important;
     border-radius: 0 !important;

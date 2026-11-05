@@ -2494,6 +2494,20 @@ export const UNIVERSAL_OPTIONS = {
         ts: 'number',
         description: 'Deckkraft der Karte in Prozent (100 = voll deckend).',
     },
+    paddingY: {
+        ts: 'number',
+        description:
+            'Eigener Innenabstand der Karte oben und unten in px (0–64). Leer = Innenabstand des Layouts ' +
+            '(widgetPadding, Standard 16). Für schmale Leisten aus Chips/Datumsfeldern 4–8. aura_measure rechnet ' +
+            'ihn mit: jede px weniger spart 2 px Kartenhöhe. Wirkungslos bei header (außer framed), group, ' +
+            'devicecard, panels, iframe, map, echartsPreset — die zeichnen ohne Innenabstand.',
+    },
+    paddingX: {
+        ts: 'number',
+        description:
+            'Eigener Innenabstand der Karte links und rechts in px (0–64). Leer = Innenabstand des Layouts. ' +
+            'Ändert die Höhe nicht, nur die nutzbare Breite. Wirkungslos bei denselben Typen wie paddingY.',
+    },
     styleOverride: {
         ts: 'Record<string, string>',
         description: 'CSS-Variablen nur für dieses Widget, z. B. { "--accent": "#f00" }.',
