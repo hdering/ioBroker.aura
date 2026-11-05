@@ -8,5 +8,5 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- feat: Charts - range chips and paging bar can be made bigger (touch size) and moved below the chart (#871)
+- feat: Charts - range chips and paging bar can each be made bigger (touch size) and moved below the chart (#871)
 - fix: Fullscreen - the close button no longer covers the top-right corner of the widget (#871)

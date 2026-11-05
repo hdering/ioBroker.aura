@@ -63,6 +63,60 @@ function Hint({ children, className = '' }: { children: string; className?: stri
     );
 }
 
+/** Size and position of one control group: the range chips or the paging bar. */
+function ControlLook({
+    o,
+    set,
+    sizeKey,
+    posKey,
+    testId,
+    label,
+    className = '',
+}: {
+    o: Record<string, unknown>;
+    set: (patch: Record<string, unknown>) => void;
+    sizeKey: string;
+    posKey: string;
+    testId: string;
+    label: string;
+    className?: string;
+}) {
+    const t = useT();
+    const size = o[sizeKey] === 'md' || o[sizeKey] === 'lg' ? (o[sizeKey] as string) : 'sm';
+    return (
+        <div className={`flex items-center gap-2 mt-2 ${className}`} data-testid={testId}>
+            <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </span>
+            <select
+                value={size}
+                onChange={(e) => set({ [sizeKey]: e.target.value === 'sm' ? undefined : e.target.value })}
+                className={`${inputCls} flex-1 min-w-0`}
+                style={inputStyle}
+                aria-label={t('echart.controlSize')}
+                title={t('echart.controlSize')}
+                data-testid={`${testId}-size`}
+            >
+                <option value="sm">{t('echart.controlSizeSm')}</option>
+                <option value="md">{t('echart.controlSizeMd')}</option>
+                <option value="lg">{t('echart.controlSizeLg')}</option>
+            </select>
+            <select
+                value={o[posKey] === 'bottom' ? 'bottom' : 'top'}
+                onChange={(e) => set({ [posKey]: e.target.value === 'bottom' ? 'bottom' : undefined })}
+                className={`${inputCls} flex-1 min-w-0`}
+                style={inputStyle}
+                aria-label={t('echart.controlPosition')}
+                title={t('echart.controlPosition')}
+                data-testid={`${testId}-position`}
+            >
+                <option value="top">{t('echart.controlPositionTop')}</option>
+                <option value="bottom">{t('echart.controlPositionBottom')}</option>
+            </select>
+        </div>
+    );
+}
+
 export function ChartNavSettings({
     o,
     set,
@@ -83,6 +137,17 @@ export function ChartNavSettings({
     const futureKind = future === '' || future === 'none' ? 'none' : future === 'data' ? 'data' : 'fixed';
     return (
         <div data-testid="chart-nav-settings">
+            {/* Size and position of the range chips — the paging bar has its own below (#871). */}
+            <Unavailable reason={o.lockRange === true ? t('echart.rangeChipsLocked') : undefined}>
+                <ControlLook
+                    o={o}
+                    set={set}
+                    sizeKey="rangeChipSize"
+                    posKey="rangeChipPosition"
+                    testId="chart-chip-look"
+                    label={t('echart.rangeChipsLook')}
+                />
+            </Unavailable>
             <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                 <input
                     type="checkbox"
@@ -123,38 +188,15 @@ export function ChartNavSettings({
                 <Hint className="ml-5">
                     {o[keys.anchor] === 'start' ? t('echart.navAnchorStartHint') : t('echart.navAnchorEndHint')}
                 </Hint>
-            </Unavailable>
-            <Unavailable reason={o.lockRange === true && !paging ? t('echart.controlsNeedControls') : undefined}>
-                <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-2 mt-3">
-                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.controlSize')}
-                    </span>
-                    <select
-                        value={o.controlSize === 'md' || o.controlSize === 'lg' ? o.controlSize : 'sm'}
-                        onChange={(e) => set({ controlSize: e.target.value === 'sm' ? undefined : e.target.value })}
-                        className={`${inputCls} min-w-0`}
-                        style={inputStyle}
-                        data-testid="chart-control-size"
-                    >
-                        <option value="sm">{t('echart.controlSizeSm')}</option>
-                        <option value="md">{t('echart.controlSizeMd')}</option>
-                        <option value="lg">{t('echart.controlSizeLg')}</option>
-                    </select>
-                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.controlPosition')}
-                    </span>
-                    <select
-                        value={o.controlPosition === 'bottom' ? 'bottom' : 'top'}
-                        onChange={(e) => set({ controlPosition: e.target.value === 'bottom' ? 'bottom' : undefined })}
-                        className={`${inputCls} min-w-0`}
-                        style={inputStyle}
-                        data-testid="chart-control-position"
-                    >
-                        <option value="top">{t('echart.controlPositionTop')}</option>
-                        <option value="bottom">{t('echart.controlPositionBottom')}</option>
-                    </select>
-                </div>
-                <Hint>{t('echart.controlsHint')}</Hint>
+                <ControlLook
+                    o={o}
+                    set={set}
+                    sizeKey="navSize"
+                    posKey="navPosition"
+                    testId="chart-nav-look"
+                    label={t('echart.navLook')}
+                    className="ml-5"
+                />
             </Unavailable>
             {keys.future && keys.current && keys.lead && (
                 <Unavailable reason={forecastUnavailable}>

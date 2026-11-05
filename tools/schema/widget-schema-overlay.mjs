@@ -215,10 +215,14 @@ export const KEY_DESCRIPTIONS = {
     rangeChips:
         'Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (m = Minute, h, d, w, M = Monat, y = Jahr; Groß-/Kleinschreibung zählt) oder "total", optional mit eigener Beschriftung nach "=": ["1M", "3M=Quartal", "12M", "total"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips.',
     lockRange: 'Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten.',
-    controlSize:
-        'Größe der Zeitraum-Chips und der Blätter-Leiste: "sm" (Standard, kompakt), "md", "lg" (Touch, z. B. Handy/Wandtablet). Größer = höhere Bedienzeile.',
-    controlPosition:
-        'Position der Zeitraum-Chips und der Blätter-Leiste: "top" (Standard, über dem Diagramm) oder "bottom" (darunter).',
+    rangeChipSize:
+        'Größe der Zeitraum-Chips: "sm" (Standard, kompakt), "md", "lg" (Touch, z. B. Handy/Wandtablet). Unabhängig von navSize; größer = höhere Bedienzeile.',
+    rangeChipPosition:
+        'Position der Zeitraum-Chips: "top" (Standard, über dem Diagramm) oder "bottom" (darunter). Unabhängig von navPosition.',
+    navSize:
+        'Größe der Blätter-Leiste (‹ › ⇥ 📅): "sm" (Standard, kompakt), "md", "lg" (Touch). Unabhängig von rangeChipSize.',
+    navPosition:
+        'Position der Blätter-Leiste: "top" (Standard, über dem Diagramm) oder "bottom" (darunter). Stehen Chips und Leiste am selben Rand, teilen sie sich eine Zeile.',
     lineColor: 'Farbe der Linie.',
     avgColor: 'Farbe der Mittelwertlinie.',
     showAverage: 'Mittelwertlinie einzeichnen.',
@@ -2580,8 +2584,10 @@ export const KEY_TYPES = {
     // validator refuses the whole widget over one option's type.
     muteViaVolume: 'boolean | string',
     // The chart widgets read these through a helper, so only the energy balance (typed) had an enum.
-    controlSize: "'sm' | 'md' | 'lg'",
-    controlPosition: "'top' | 'bottom'",
+    rangeChipSize: "'sm' | 'md' | 'lg'",
+    rangeChipPosition: "'top' | 'bottom'",
+    navSize: "'sm' | 'md' | 'lg'",
+    navPosition: "'top' | 'bottom'",
     // Shared shapes of the status row, also for the types that get it through EXTRA_OPTIONS.
     statusItems: 'StatusItem[]',
     statusOrder: 'string[]',

@@ -66,8 +66,10 @@ Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeiche
 | `dayNav`                  | `false`  | Blättern im Frontend (‹ › ⇥ 📅) — Schritt = aktiver Zeitraum-Chip |
 | `dayNavDefault`           | `false`  | Beim Laden auf den aktuellen Zeitraum stellen      |
 | `navAnchor`               | `end`    | Gewähltes Datum ist `end` = letzter Tag · `start` = erster Tag |
-| `controlSize`             | `sm`     | Größe von Zeitraum-Chips und Blätter-Leiste: `sm` · `md` · `lg` (Touch) |
-| `controlPosition`         | `top`    | Chips und Blätter-Leiste über (`top`) oder unter (`bottom`) dem Diagramm |
+| `rangeChipSize`           | `sm`     | Größe der Zeitraum-Chips: `sm` · `md` · `lg` (Touch) |
+| `rangeChipPosition`       | `top`    | Zeitraum-Chips über (`top`) oder unter (`bottom`) dem Diagramm |
+| `navSize`                 | `sm`     | Größe der Blätter-Leiste: `sm` · `md` · `lg` (Touch) |
+| `navPosition`             | `top`    | Blätter-Leiste über (`top`) oder unter (`bottom`) dem Diagramm |
 | `navGroup`                | —        | Kopplungsgruppe, auch mit dem erweiterten Diagramm und der Verteilung |
 | `navGroupMode`            | `all`    | `date` = nur das Datum koppeln, jedes Diagramm behält seinen Zeitraum |
 | `navRangeDp`              | —        | Zeitraum-Datenpunkt, lesen + schreiben (`7d`, `1M` …) |

@@ -32,7 +32,14 @@ import { samplePreviewHistory } from '../../utils/sampleChartData';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { useChartNav } from '../../hooks/useChartNav';
-import { ChartNavBar, chartControlCls, chartControlGap, chartControlSize, chartControlsBelow } from './ChartNavBar';
+import {
+    ChartControlsRow,
+    ChartNavBar,
+    chartControlCls,
+    chartControlGap,
+    chartControlSize,
+    chartControlsBelow,
+} from './ChartNavBar';
 import { HistoryErrorNote } from './HistoryErrorNote';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -77,8 +84,10 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
     const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
     const lockRange = o.lockRange === true;
-    const controlSize = chartControlSize(o.controlSize);
-    const controlsBelow = chartControlsBelow(o.controlPosition);
+    const chipSize = chartControlSize(o.rangeChipSize);
+    const chipsBelow = chartControlsBelow(o.rangeChipPosition);
+    const navSize = chartControlSize(o.navSize);
+    const navBelow = chartControlsBelow(o.navPosition);
     // User-defined chips (issue #709) replace the presets and the single custom chip.
     const userChips = parseRangeChips(o.rangeChips as string[] | undefined);
     const chipList: RangeChip[] =
@@ -302,13 +311,13 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     // Range selector shown only when a history adapter is configured/detected and not locked
     const rangeSelector =
         hasResolvedInstance && !lockRange ? (
-            <div className={`flex ${chartControlGap(controlSize)} flex-wrap`}>
+            <div className={`flex ${chartControlGap(chipSize)} flex-wrap`}>
                 {chipList.map((c) => {
                     const active = activeKey === c.key;
                     return (
                         <button
                             key={c.key}
-                            className={chartControlCls(controlSize)}
+                            className={chartControlCls(chipSize)}
                             style={{
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
@@ -323,17 +332,18 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
         ) : null;
 
     // Paging bar, next to the chips — only where there is a history to page through.
-    const navBar =
-        nav.paging && hasResolvedInstance ? <ChartNavBar nav={nav} chips={chipList} size={controlSize} /> : null;
-    // Chips, adapter picker and paging bar — above the chart or below it (controlPosition).
-    const controlsRow = (gap: string) =>
-        rangeSelector || adapterPicker || navBar ? (
-            <div className={`aura-chart-controls ${gap} flex items-center gap-1 flex-wrap`}>
+    const navBar = nav.paging && hasResolvedInstance ? <ChartNavBar nav={nav} chips={chipList} size={navSize} /> : null;
+    // Chips (with the adapter picker) and paging bar each sit above or below the chart (#871).
+    const chipGroup =
+        rangeSelector || adapterPicker ? (
+            <div className="flex items-center gap-1 flex-wrap">
                 {rangeSelector}
                 {adapterPicker}
-                {navBar && <div className="ml-auto">{navBar}</div>}
             </div>
         ) : null;
+    const controlsAt = (below: boolean) => (
+        <ChartControlsRow chips={chipsBelow === below && chipGroup} bar={navBelow === below && navBar} below={below} />
+    );
     // While paging the axis frames the window itself, so an empty stretch shows as empty.
     const xDomain: [number | string, number | string] = navWindow
         ? [navWindow.start, navWindow.end]
@@ -388,7 +398,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                         </div>
                     </div>
                 </div>
-                {!controlsBelow && controlsRow('mb-1.5')}
+                {controlsAt(false)}
                 <div className="flex-1 relative" style={{ minHeight: 1 }}>
                     {history.length > 1 ? (
                         hasSize ? (
@@ -449,7 +459,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                     )}
                     {errorBadge}
                 </div>
-                {controlsBelow && controlsRow('mt-1.5')}
+                {controlsAt(true)}
             </div>
         );
     }
@@ -501,7 +511,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 </div>
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            {!controlsBelow && controlsRow('mb-1')}
+            {controlsAt(false)}
             <div className="flex-1 relative" style={{ minHeight: 1 }}>
                 {history.length > 1 ? (
                     hasSize ? (
@@ -566,7 +576,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 )}
                 {errorBadge}
             </div>
-            {controlsBelow && controlsRow('mt-1')}
+            {controlsAt(true)}
         </div>
     );
 }

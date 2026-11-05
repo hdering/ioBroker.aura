@@ -361,12 +361,16 @@ await mount([distribution('dist-m', 0, { dayNav: true, dayNavDefault: true, rang
     check('the own chips replace the presets', (await item(0).locator(chip('Quartal')).count()) === 1);
 }
 
-// ── Size and position of the controls (controlSize / controlPosition) ─────────────────────
+// ── Size and position, separately for the chips and the paging bar ─────────────────────────
+// (rangeChipSize / rangeChipPosition, navSize / navPosition)
 await mount([
     chart('size-sm', 0),
-    chart('size-lg', 8, { controlSize: 'lg', controlPosition: 'bottom' }),
-    simple('simple-lg', 16, { dayNav: true, controlSize: 'lg', controlPosition: 'bottom' }),
-    distribution('dist-lg', 24, { dayNav: true, controlSize: 'lg', controlPosition: 'bottom' }),
+    // chips stay small on top, the bar goes big to the bottom
+    chart('nav-lg', 8, { navSize: 'lg', navPosition: 'bottom' }),
+    // the other way round
+    chart('chips-lg', 16, { rangeChipSize: 'lg', rangeChipPosition: 'bottom' }),
+    simple('simple-split', 24, { dayNav: true, navSize: 'lg', navPosition: 'bottom' }),
+    distribution('dist-split', 32, { dayNav: true, rangeChipSize: 'lg', rangeChipPosition: 'bottom' }),
 ]);
 {
     const height = (n, sel) =>
@@ -377,22 +381,53 @@ await mount([
             .then((b) => b?.height ?? 0);
     const prev = '[data-testid="echart-nav-prev"]';
     const sm = await height(0, prev);
-    const lg = await height(1, prev);
-    check('lg makes the paging buttons a touch target', lg >= 32 && lg > sm, `sm ${sm} px, lg ${lg} px`);
+    const navLg = await height(1, prev);
+    check(
+        'navSize lg makes the paging buttons a touch target',
+        navLg >= 32 && navLg > sm,
+        `sm ${sm} px, lg ${navLg} px`,
+    );
     const chipSm = await height(0, chip('7 Tage'));
-    const chipLg = await height(1, chip('7 Tage'));
-    check('and the range chips grow with them', chipLg > chipSm, `sm ${chipSm} px, lg ${chipLg} px`);
-    // Below: the controls row starts under the chart (the advanced chart's canvas, the others' body).
-    const below = (n, bodySel) =>
-        item(n).evaluate((el, sel) => {
-            const row = el.querySelector('.aura-chart-controls')?.getBoundingClientRect();
-            const body = el.querySelector(sel)?.getBoundingClientRect();
-            return row && body ? row.top >= body.bottom - 1 : null;
-        }, bodySel);
-    check('bottom puts the advanced chart controls under the chart', await below(1, '[_echarts_instance_]'));
-    check('top keeps them above it', (await below(0, '[_echarts_instance_]')) === false);
-    check('bottom works in the simple chart', await below(2, '.recharts-responsive-container, .flex-1.relative'));
-    check('bottom works in the distribution', await below(3, '.aura-scroll'));
+    check('and leaves the chips small', (await height(1, chip('7 Tage'))) === chipSm);
+    const chipLg = await height(2, chip('7 Tage'));
+    check('rangeChipSize lg grows the chips', chipLg >= 32 && chipLg > chipSm, `sm ${chipSm} px, lg ${chipLg} px`);
+    check('and leaves the paging bar small', (await height(2, prev)) === sm);
+    // Where each group sits: the edge of its row, against the chart body.
+    const edgeOf = (n, sel, bodySel) =>
+        item(n).evaluate(
+            (el, [sel, bodySel]) => {
+                const hit = el.querySelector(sel);
+                const row = hit?.closest('.aura-chart-controls')?.getBoundingClientRect();
+                const body = el.querySelector(bodySel)?.getBoundingClientRect();
+                if (!row || !body) return null;
+                return row.top >= body.bottom - 1 ? 'bottom' : row.bottom <= body.top + 1 ? 'top' : 'inside';
+            },
+            [sel, bodySel],
+        );
+    const ec = '[_echarts_instance_]';
+    const chipSel = 'button:not([data-testid])';
+    check(
+        'top/top: chips and bar share the top row',
+        (await edgeOf(0, prev, ec)) === 'top' && (await edgeOf(0, chipSel, ec)) === 'top',
+    );
+    check(
+        'navPosition bottom moves only the bar',
+        (await edgeOf(1, prev, ec)) === 'bottom' && (await edgeOf(1, chipSel, ec)) === 'top',
+    );
+    check(
+        'rangeChipPosition bottom moves only the chips',
+        (await edgeOf(2, chipSel, ec)) === 'bottom' && (await edgeOf(2, prev, ec)) === 'top',
+    );
+    const rc = '.recharts-responsive-container, .flex-1.relative';
+    check(
+        'simple chart: bar below, chips above',
+        (await edgeOf(3, prev, rc)) === 'bottom' && (await edgeOf(3, chipSel, rc)) === 'top',
+    );
+    const sc = '.aura-scroll';
+    check(
+        'distribution: chips below, bar above',
+        (await edgeOf(4, chipSel, sc)) === 'bottom' && (await edgeOf(4, prev, sc)) === 'top',
+    );
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

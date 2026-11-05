@@ -1063,15 +1063,27 @@ const HEADER_ROW2_MODIFIER = {
     },
 };
 
-/** Bigger range chips / paging bar of the chart types (#871): their row grows, the plot keeps its
- *  minimum. `sm` is the measured baseline, like selectSize. */
-const controlSizeModifiers = () =>
-    ['md', 'lg'].map((size) => ({
-        key: `controlSize=${size}`,
-        label: `Bedienelemente ${size === 'md' ? 'mittel' : 'groß'} (controlSize ${size})`,
-        when: { path: 'controlSize', equals: size },
-        options: { controlSize: size },
-    }));
+/** Bigger range chips (rangeChipSize) or paging bar (navSize) of the chart types (#871): their row
+ *  grows, the plot keeps its minimum. `sm` is the measured baseline, like selectSize. The bar is
+ *  measured alone in the row (lockRange), so its delta is against the sm chips it then replaces. */
+const controlSizeModifiers = (pagingKey) =>
+    ['md', 'lg'].flatMap((size) => {
+        const word = size === 'md' ? 'mittel' : 'groß';
+        return [
+            {
+                key: `rangeChipSize=${size}`,
+                label: `Zeitraum-Chips ${word} (rangeChipSize ${size})`,
+                when: { path: 'rangeChipSize', equals: size },
+                options: { rangeChipSize: size },
+            },
+            {
+                key: `navSize=${size}`,
+                label: `Blätter-Leiste ${word} (navSize ${size})`,
+                when: { path: 'navSize', equals: size },
+                options: { [pagingKey]: true, lockRange: true, navSize: size },
+            },
+        ];
+    });
 
 const MIN_MODIFIERS = {
     // The Auswahlfeld's dropdown sets the height of the row it sits in (#679), so
@@ -1183,11 +1195,11 @@ const MIN_MODIFIERS = {
                 ],
             },
         },
-        ...controlSizeModifiers(),
+        ...controlSizeModifiers('echartDayNav'),
     ],
     // Offline (no history) the simple chart is skipped, so these land only with a connected run.
-    chart: controlSizeModifiers(),
-    energiebilanz: controlSizeModifiers(),
+    chart: controlSizeModifiers('dayNav'),
+    energiebilanz: controlSizeModifiers('dayNav'),
     // Same for the shutter's quick-select row under the slider (#745).
     shutter: [
         {
@@ -1290,7 +1302,9 @@ const FITS = ({ id, need, plot }) => {
             // the padding is intact, and that is the whole criterion.
             into = Math.max(into, rb.top + padTop - b.top, b.bottom - (rb.bottom - padBottom));
         }
-        if (getComputedStyle(el).overflowY !== 'visible') {
+        // A collapsed element hides nothing: the chart's 0×0 date input (kept for showPicker)
+        // reports 13 px of scroll of its own (#871).
+        if (b.height && getComputedStyle(el).overflowY !== 'visible') {
             scroll = Math.max(scroll, el.scrollHeight - el.clientHeight);
         }
     }

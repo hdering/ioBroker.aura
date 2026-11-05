@@ -21,8 +21,9 @@ import {
 import { rangeLabel, type RangeChip } from '../../utils/rangeChips';
 import { openNativePicker } from '../common/DateTimeInput';
 
-/** Size of the chart controls — the range chips and this bar (`controlSize`). `sm` is the compact
- *  default; `md`/`lg` give a phone or a wall tablet something to hit (#871). */
+/** Size of a chart control group — the range chips (`rangeChipSize`) or this bar (`navSize`), each
+ *  on its own. `sm` is the compact default; `md`/`lg` give a phone or a wall tablet something to
+ *  hit (#871). */
 export type ChartControlSize = 'sm' | 'md' | 'lg';
 export const chartControlSize = (v: unknown): ChartControlSize => (v === 'md' || v === 'lg' ? v : 'sm');
 const SIZE_CLS: Record<ChartControlSize, string> = {
@@ -33,9 +34,32 @@ const SIZE_CLS: Record<ChartControlSize, string> = {
 const ICON_SIZE: Record<ChartControlSize, number> = { sm: 12, md: 14, lg: 18 };
 /** Gap between the controls, growing with them. */
 export const chartControlGap = (size: ChartControlSize) => (size === 'lg' ? 'gap-1.5' : 'gap-1');
-/** Where chips and bar sit (`controlPosition`): above the chart, or below it — out of the way of
- *  the header values and of the fullscreen overlay's close button. */
+/** Where a control group sits (`rangeChipPosition`, `navPosition`): above the chart, or below it —
+ *  out of the way of the header values and of the fullscreen overlay's close button. */
 export const chartControlsBelow = (v: unknown) => v === 'bottom';
+
+/** The controls of one edge of the chart: chips on the left, paging bar on the right. Where both
+ *  do not fit, the bar wraps into a line of its own. Nothing to show = no row. */
+export function ChartControlsRow({
+    chips,
+    bar,
+    below,
+}: {
+    chips: React.ReactNode;
+    bar: React.ReactNode;
+    below: boolean;
+}) {
+    if (!chips && !bar) return null;
+    return (
+        <div
+            className={`aura-chart-controls shrink-0 ${below ? 'mt-1' : 'mb-1'} flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0`}
+            data-edge={below ? 'bottom' : 'top'}
+        >
+            {chips || <span />}
+            {bar && <div className="ml-auto max-w-full min-w-0">{bar}</div>}
+        </div>
+    );
+}
 /** Classes of one chart control: a range chip or a button of this bar. */
 export const chartControlCls = (size: ChartControlSize) =>
     `nodrag ${SIZE_CLS[size]} rounded font-medium hover:opacity-80 transition-opacity disabled:opacity-40`;
@@ -100,14 +124,21 @@ export function ChartNavBar({
         // The bar takes the width it needs at its widest — invisible copies with the longest
         // captions share its grid cell, the real bar sits on the right of it. Its row then wraps
         // (narrow widget) before the first ‹ and not because of it: a date appearing on ‹ would
-        // otherwise push the bar onto the next line, away from under the pointer.
+        // otherwise push the bar onto the next line, away from under the pointer. Narrower than the
+        // bar itself (big buttons, small widget), it wraps — ghosts and real bar alike, so the date
+        // lands above the arrows instead of spilling out of the card (#871).
         <div
-            className="aura-chart-nav grid justify-items-end shrink-0 pointer-events-none"
+            className="aura-chart-nav grid justify-items-end max-w-full pointer-events-none"
             data-testid="echart-nav"
             title={off ? t('echart.navTotalHint') : undefined}
         >
             {ghosts.map((g, i) => (
-                <div key={i} className={`invisible flex items-center ${gap}`} style={{ gridArea: '1 / 1' }} aria-hidden>
+                <div
+                    key={i}
+                    className={`invisible flex flex-wrap justify-end items-center ${gap}`}
+                    style={{ gridArea: '1 / 1' }}
+                    aria-hidden
+                >
                     <span className={`${btnCls} flex items-center gap-1 whitespace-nowrap tabular-nums mr-1`}>
                         <CalendarDays size={icon} />
                         {g}
@@ -119,7 +150,10 @@ export function ChartNavBar({
                     ))}
                 </div>
             ))}
-            <div className={`flex items-center ${gap} pointer-events-auto`} style={{ gridArea: '1 / 1' }}>
+            <div
+                className={`flex flex-wrap justify-end items-center ${gap} pointer-events-auto`}
+                style={{ gridArea: '1 / 1' }}
+            >
                 {/* The date comes first: the bar sits on the right, so a caption that changes its
                     width (none while rolling, then "Mi 29.10.", then "Di 28.10.") grows to the left
                     and the arrows stay under the pointer. It is the picker's trigger — a field of
