@@ -503,16 +503,21 @@ Standard ohne eigene Einstellung: **Aus** — Zeilen reagieren nicht auf Klicks.
 
 Automatik nach Rolle des Datenpunkts:
 
-| Rolle                                                         | Popup                                                         |
-| ------------------------------------------------------------- | ------------------------------------------------------------- |
-| `level.dimmer` · `level.*` · `*dimmer*` · `*brightness*`      | Dimmer                                                        |
-| `switch` · `switch.*` · `sensor.*` · `indicator.*` · `button` | Schalter                                                      |
-| `level.blind` · `*shutter*` · `*cover*` · `*awning*`          | Rollladen                                                     |
-| `level.temperature` · `heating*`                              | Thermostat                                                    |
-| `media.*` (außer `media.volume`)                              | Schalter                                                      |
-| sonst                                                         | `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung) |
+| Rolle | Typ | Popup |
+| --- | --- | --- |
+| `switch.light` · `level.color.*` | Licht | `Liste: Licht` — erkennt Helligkeit, Farbe und Lichtwärme im Kanal der Lampe |
+| `level.dimmer` · `level.*` · `*dimmer*` · `*brightness*` | Dimmer | `Liste: Dimmer` |
+| `switch` · `switch.*` · `indicator.*` · `button` · `media.*` (außer `media.volume`) | Schalter | `Liste: Schalter` |
+| `level.blind` · `*shutter*` · `*cover*` · `*awning*` | Rollladen | `Liste: Rollladen` |
+| `level.temperature` · `heating*` | Thermostat | `Liste: Thermostat` |
+| `sensor.window` · `sensor.door` | Fensterkontakt | `Liste: Fensterkontakt` |
+| `sensor.*` · `*presence*` · `*smoke*` · `alarm` | Sensor | `Liste: Sensor` |
+| `value.*` · Zahl | Wert | `Liste: Wert` |
+| sonst | — | `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung) |
 
-Zugewiesene [Widget-Typ-Standards](../einstellungen/popups#widget-typ-standards) gelten auch hier — wer dem Typ `switch` eine eigene View zuweist, bekommt sie auch in der Liste.
+Reihenfolge: [Widget-Typ-Standard](../einstellungen/popups#widget-typ-standards) des Typs → `Liste: …` → `Standard: Datenpunkt`. Die `Liste: …`-Popups stehen unter **Admin › Popups** und lassen sich dort anpassen, löschen und wiederherstellen; sie gelten nur für Listenzeilen, nicht für Widgets.
+
+![](./assets/liste/zeilen-popups.png)
 
 Pro Datenpunkt lässt sich das im Detail-Editor überschreiben (`entries[].clickAction`):
 

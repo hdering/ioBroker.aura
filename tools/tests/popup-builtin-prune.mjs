@@ -80,16 +80,26 @@ async function section(heading) {
     }, heading);
 }
 
+// What every installation keeps: the row fallback and the row popups per type (#925).
+const SEEDED = [
+    'pv-builtin-datapoint',
+    'pv-builtin-row-binarysensor',
+    'pv-builtin-row-dimmer',
+    'pv-builtin-row-light',
+    'pv-builtin-row-shutter',
+    'pv-builtin-row-switch',
+    'pv-builtin-row-thermostat',
+    'pv-builtin-row-value',
+    'pv-builtin-row-windowcontact',
+];
+const onlySeeded = (ids) => JSON.stringify([...ids].sort()) === JSON.stringify(SEEDED);
+
 // ── 1. A fresh install shows nothing about built-ins at all ──────────────────
 // The harness boots into one, so the offer must not be there yet.
 {
     check('fresh install has no cleanup offer', (await pruneButton.count()) === 0);
     const ids = await viewIds();
-    check(
-        'fresh install only has the always-seeded view',
-        ids.length === 1 && ids[0] === 'pv-builtin-datapoint',
-        `got ${JSON.stringify(ids)}`,
-    );
+    check('fresh install only has the always-seeded views', onlySeeded(ids), `got ${JSON.stringify(ids)}`);
 }
 
 // ── 2. An unused set is fully removable ──────────────────────────────────────
@@ -113,11 +123,7 @@ async function section(heading) {
     await page.locator('button', { hasText: 'entfernen' }).last().click();
     await settle();
     const ids = await viewIds();
-    check(
-        'the built-ins are gone after confirming',
-        ids.length === 1 && ids[0] === 'pv-builtin-datapoint',
-        `got ${JSON.stringify(ids)}`,
-    );
+    check('the built-ins are gone after confirming', onlySeeded(ids), `got ${JSON.stringify(ids)}`);
     check('their type defaults went with them', Object.keys(await typeDefaults()).length === 0);
     check('the offer disappears once they are gone', (await pruneButton.count()) === 0);
 }

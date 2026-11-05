@@ -682,6 +682,13 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     useEffect(() => {
         if (!mainTabs.includes(activeTab)) setActiveTab(mainTabs[0] ?? 'brightness');
     }, [mainTabs, activeTab]);
+    // Before the detection lands every datapoint is empty and the tabs fall back to
+    // the colour view - a lamp that does have colour would then stay on it instead of
+    // opening on brightness. Start over once this lamp's datapoints are known.
+    useEffect(() => {
+        if (detected) setActiveTab(initialTab);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [detected]);
     const persistTab = useCallback(
         (tab: LightTab) => {
             setActiveTab(tab);

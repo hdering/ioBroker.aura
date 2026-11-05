@@ -598,6 +598,16 @@ function installScreenshotApi(): void {
             withSuppressedDirty(() => usePopupConfigStore.getState().updateViewName(viewId, name));
         },
 
+        /** Delete a view the way Admin › Popups does (a built-in is remembered as deleted). */
+        popupRemoveView(viewId: string): void {
+            withSuppressedDirty(() => usePopupConfigStore.getState().removeView(viewId));
+        },
+
+        /** Replace the widget-type → view assignments (Admin › Popups › Widget-Typ-Standards). */
+        popupTypeDefaults(typeDefaults: Record<string, string>): void {
+            withSuppressedDirty(() => usePopupConfigStore.setState({ typeDefaults }));
+        },
+
         /** Reproduce a pre-existing installation: every shipped built-in plus the
          *  widget-type assignments that used to be seeded automatically. A fresh
          *  install (which is what the harness boots into) no longer gets them, so

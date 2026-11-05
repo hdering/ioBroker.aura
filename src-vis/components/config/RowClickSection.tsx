@@ -1,6 +1,15 @@
 import type { ReactNode } from 'react';
 import type { BackgroundImage, ClickAction, PopupCountdownPosition, WidgetConfig } from '../../types';
-import { DEFAULT_ROW_CLICK_ACTION, type RowClickSetting, type RowPopupOptions } from '../../utils/rowClickAction';
+import {
+    DEFAULT_ROW_CLICK_ACTION,
+    resolveRowAction,
+    rowWidgetType,
+    ROW_FALLBACK_VIEW_ID,
+    type RowClickSetting,
+    type RowPopupOptions,
+} from '../../utils/rowClickAction';
+import { lookupDatapointEntry, lookupDatapointName } from '../../hooks/useDatapointList';
+import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { ClickActionEditor } from './ClickActionEditor';
 
 type Mode = 'auto' | 'off' | 'custom';
@@ -156,6 +165,87 @@ export function RowClickEntryField({
     );
 }
 
+/** What a row is recognised as, in the words of the row popups' names (#925). */
+const ROW_TYPE_LABEL: Record<string, string> = {
+    light: 'Licht',
+    switch: 'Schalter',
+    dimmer: 'Dimmer',
+    shutter: 'Rollladen',
+    thermostat: 'Thermostat',
+    windowcontact: 'Fensterkontakt',
+    binarysensor: 'Sensor',
+    value: 'Wert',
+};
+
+/** A list row as far as the overview needs it. */
+export interface RowOverviewEntry {
+    id: string;
+    label?: string;
+    role?: string;
+    clickAction?: RowClickSetting;
+}
+
+/**
+ * Under "Automatisch": what each row was recognised as and which popup a click opens.
+ * Runs the same resolveRowAction as the click itself, so it never tells a different
+ * story - type defaults, a deleted row popup and a row's own setting included.
+ */
+function RowAutoOverview({ entries, listSetting }: { entries: RowOverviewEntry[]; listSetting: RowClickSetting }) {
+    const typeDefaults = usePopupConfigStore((s) => s.typeDefaults);
+    const views = usePopupConfigStore((s) => s.views);
+    const rows = entries
+        .filter((e) => !!e.id)
+        .map((e) => {
+            const cached = e.role ? null : lookupDatapointEntry(e.id);
+            const role = e.role ?? cached?.role;
+            const type = cached?.type;
+            const kind = rowWidgetType(role, type);
+            const action = resolveRowAction(
+                e.id,
+                e.clickAction ?? listSetting,
+                { typeDefaults, hasView: (id) => views.some((v) => v.id === id) },
+                { role, type },
+            );
+            const popup = !action
+                ? 'kein Popup'
+                : action.kind === 'popup-view'
+                  ? action.viewId === ROW_FALLBACK_VIEW_ID
+                      ? 'Standard: Datenpunkt'
+                      : (views.find((v) => v.id === action.viewId)?.name ?? action.viewId)
+                  : 'eigene Aktion';
+            return {
+                id: e.id,
+                name: e.label || lookupDatapointName(e.id) || e.id,
+                kind: kind ? (ROW_TYPE_LABEL[kind] ?? kind) : 'nicht erkannt',
+                popup,
+            };
+        });
+    if (rows.length === 0) return null;
+    const cell = 'py-1 pr-2 align-top';
+    return (
+        <table className="aura-row-auto-overview w-full text-[10px] mt-2" style={{ color: 'var(--text-secondary)' }}>
+            <thead>
+                <tr style={{ color: 'var(--text-primary)' }}>
+                    <th className={`${cell} text-left font-medium`}>Eintrag</th>
+                    <th className={`${cell} text-left font-medium`}>erkannt als</th>
+                    <th className={`${cell} text-left font-medium`}>öffnet</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows.map((r) => (
+                    <tr key={r.id} style={{ borderTop: '1px solid var(--app-border)' }}>
+                        <td className={`${cell} break-all`} title={r.id}>
+                            {r.name}
+                        </td>
+                        <td className={cell}>{r.kind}</td>
+                        <td className={cell}>{r.popup}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+}
+
 const MODES: { value: Mode; label: string }[] = [
     { value: 'auto', label: 'Automatisch' },
     { value: 'off', label: 'Aus' },
@@ -181,6 +271,7 @@ export function RowClickSection({
     allowAuto = true,
     hint,
     defaultAction = DEFAULT_ROW_CLICK_ACTION,
+    entries,
 }: {
     config: WidgetConfig;
     opts: RowPopupOptions;
@@ -191,6 +282,8 @@ export function RowClickSection({
     hint?: ReactNode;
     /** What "Eigene Aktion" starts from. Default: the datapoint list of the row's branch. */
     defaultAction?: ClickAction;
+    /** The list's rows - under "Automatisch" each one shows what it was recognised as. */
+    entries?: RowOverviewEntry[];
 }) {
     const stored = opts.rowClickAction;
     // undefined = not configured = off, so rows stay inert until an action is picked.
@@ -228,11 +321,15 @@ export function RowClickSection({
                 ))}
             </div>
             {mode === 'auto' && (
-                <p className="text-[10px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                    Das Popup wird aus der Rolle des Datenpunkts abgeleitet: Dimmer-Popup, Schalter-Popup, Rolladen,
-                    Thermostat - sonst ein generisches Datenpunkt-Popup. Klicks auf Schalter oder Regler in der Zeile
-                    schalten weiterhin direkt.
-                </p>
+                <>
+                    <p className="text-[10px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        Das Popup wird aus der Rolle des Datenpunkts abgeleitet: ein eigenes Popup aus Admin › Popups ›
+                        Widget-Typ-Standards, sonst das passende „Liste: …“-Popup (Licht, Schalter, Dimmer, Rollladen,
+                        Thermostat, Fensterkontakt, Sensor, Wert), sonst das Datenpunkt-Popup. Klicks auf Schalter oder
+                        Regler in der Zeile schalten weiterhin direkt.
+                    </p>
+                    {entries && <RowAutoOverview entries={entries} listSetting="auto" />}
+                </>
             )}
             {mode === 'custom' && (
                 <ClickActionEditor

@@ -42,9 +42,16 @@ export function useDpNameVars(dpId: string): Record<string, string> {
         // Each name on its own: one object that never answers must not hold back the rest.
         for (const [token, id] of dpNameTokenIds(dpId)) {
             void getObjectDirect(id).then((obj) => {
+                if (!alive) return;
                 const name = objectNameText(obj?.common?.name, lang);
-                if (!alive || !name) return;
-                setState((prev) => ({ key: own, vars: { ...(prev.key === own ? prev.vars : EMPTY), [token]: name } }));
+                // `{{dpunit}}`: the datapoint's own unit, empty when it has none - a popup
+                // opened from a list row knows no unit otherwise (#925).
+                const unit = token === 'dpname' && obj ? { dpunit: obj.common?.unit ?? '' } : null;
+                if (!name && !unit) return;
+                setState((prev) => ({
+                    key: own,
+                    vars: { ...(prev.key === own ? prev.vars : EMPTY), ...(name ? { [token]: name } : {}), ...unit },
+                }));
             });
         }
         return () => {

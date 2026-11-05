@@ -1,0 +1,81 @@
+{
+    "id": "pv-builtin-row-shutter",
+    "name": "Liste: Rollladen",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-row-shutter-1",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "type": "shutter",
+            "layout": "custom",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 12
+            },
+            "options": {
+                "showTitle": false,
+                "showIcon": false,
+                "buttonSize": 28,
+                "customGrid": {
+                    "cols": 4,
+                    "rows": 2,
+                    "cells": [
+                        {
+                            "type": "value",
+                            "fontSize": 28,
+                            "bold": true,
+                            "color": "var(--aura-state-color, var(--accent))",
+                            "align": "center",
+                            "valign": "middle",
+                            "suffix": " %",
+                            "colSpan": 4
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "slider",
+                            "dpId": "{{dp}}",
+                            "orientation": "vertical",
+                            "barStyle": true,
+                            "barSize": 110,
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "component",
+                            "componentKey": "btn-col",
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "empty"
+                        }
+                    ],
+                    "colSizes": [
+                        "1fr",
+                        "110px",
+                        "72px",
+                        "1fr"
+                    ],
+                    "rowSizes": [
+                        "auto",
+                        "1fr"
+                    ]
+                }
+            }
+        }
+    ]
+}

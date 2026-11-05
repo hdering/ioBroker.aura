@@ -10,10 +10,11 @@
 // the whole thing off.
 //
 // A row click needs rowClickAction 'auto' (or an explicit action) - unset means
-// off. And the type-specific built-in views are no longer seeded into fresh
-// installations, so the role -> view chain is exercised twice: once as the
-// harness boots (generic datapoint view for every role) and once after
-// __auraShot.popupBuiltins() has restored a pre-existing installation.
+// off. The type-specific built-in views are no longer seeded into fresh
+// installations - the row popups per type (#925) are, and only for rows. So the
+// role -> view chain is exercised twice: once as the harness boots (row popups)
+// and once after __auraShot.popupBuiltins() has restored a pre-existing
+// installation, whose type defaults win over the row popups.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -61,7 +62,10 @@ const popup = page.locator('div[class*="z-[300]"]').first();
 const settle = () => page.waitForTimeout(350);
 const popupCount = () => page.locator('div[class*="z-[300]"]').count();
 const popupText = async () => ((await popup.count()) > 0 ? ((await popup.innerText()) ?? '') : '');
-const gridItems = () => popup.locator('.react-grid-item').count();
+const popupWidgets = () =>
+    page.evaluate(() =>
+        [...document.querySelectorAll('[data-aura-popup-widget]')].map((e) => e.getAttribute('data-aura-popup-widget')),
+    );
 
 async function closePopup() {
     await page.keyboard.press('Escape');
@@ -85,14 +89,12 @@ const clickRowLabel = async (label) => {
     await settle();
 };
 
-// ── 0. Fresh install: no type-specific built-ins, so every role falls back ───
-// The shipped dimmer/switch/... views are not set up any more; 'auto' resolves
-// through the (empty) type defaults and lands on the generic datapoint view,
-// which is the only one that prints the datapoint id.
+// ── 0. Fresh install: no type defaults, so the row popups answer (#925) ────────
+// A lamp (switch.light) is a light here, not a plain switch.
 await show();
 await clickRowLabel('Licht Wohnzimmer');
 check('fresh install: a row click still opens a popup', (await popupCount()) === 1, `count=${await popupCount()}`);
-check('fresh install: switch role falls back to the datapoint view', (await popupText()).includes('demo.light'));
+check('fresh install: a lamp opens the light row popup', (await popupWidgets()).includes('pw-row-light-1'));
 await closePopup();
 
 // Everything below is the pre-existing installation that still has them.
@@ -105,8 +107,8 @@ await clickRowLabel('Licht Wohnzimmer');
 check('row click opens a popup', (await popupCount()) === 1, `count=${await popupCount()}`);
 check('popup heading is the row label', (await popupText()).includes('Licht Wohnzimmer'));
 
-// switch.json ships exactly one widget - dimmer/datapoint views ship two.
-check('switch role opens the built-in switch view', (await gridItems()) === 1, `cells=${await gridItems()}`);
+// The old switch type default does not catch a lamp - no light type default is set.
+check('a lamp opens the light row popup, not the switch view', (await popupWidgets()).includes('pw-row-light-1'));
 await closePopup();
 check('Escape closes the popup', (await popupCount()) === 0);
 
@@ -116,8 +118,8 @@ check('dimmer role opens the built-in dimmer view', (await popupText()).includes
 await closePopup();
 
 await clickRowLabel('Temperatur Bad');
-// The generic datapoint view lists the DP id (showId) - no other view does.
-check('value role falls back to the generic datapoint view', (await popupText()).includes('demo.temp'));
+// No value type default either: the value row popup answers.
+check('value role opens the value row popup', (await popupWidgets()).includes('pw-row-value-1'));
 await closePopup();
 
 // ── 3. A control inside the row keeps its own click ──────────────────────────

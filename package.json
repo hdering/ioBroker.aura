@@ -422,6 +422,7 @@
     "test:webfs-files": "node tools/tests/webfs-adapter-files.mjs",
     "test:backend-check": "node tools/tests/backend-check.mjs",
     "test:media-detect": "node tools/tests/media-role-detect.mjs",
+    "test:row-auto-popups": "node tools/tests/row-auto-popups.mjs",
     "test:light-auto-dps": "node tools/tests/light-auto-dps.mjs && node tools/tests/light-auto-dps-render.mjs",
     "test:media-mode": "node tools/tests/media-mode-logic.mjs",
     "test:autolist-icon": "node tools/tests/autolist-icon.mjs",

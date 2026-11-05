@@ -234,7 +234,14 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                             {
                                 key: 'rowclick',
                                 label: 'Klick auf Zeile',
-                                node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
+                                node: (
+                                    <RowClickSection
+                                        config={config}
+                                        opts={opts}
+                                        onChange={setOpts}
+                                        entries={opts.entries ?? []}
+                                    />
+                                ),
                             },
                             {
                                 key: 'names',

@@ -1,0 +1,83 @@
+{
+    "id": "pv-builtin-row-dimmer",
+    "name": "Liste: Dimmer",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-row-dimmer-1",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "type": "dimmer",
+            "layout": "custom",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 12
+            },
+            "options": {
+                "showTitle": false,
+                "showIcon": false,
+                "customGrid": {
+                    "cols": 3,
+                    "rows": 3,
+                    "cells": [
+                        {
+                            "type": "value",
+                            "fontSize": 28,
+                            "bold": true,
+                            "color": "var(--aura-state-color, var(--accent))",
+                            "align": "center",
+                            "valign": "middle",
+                            "suffix": " %",
+                            "colSpan": 3
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "slider",
+                            "dpId": "{{dp}}",
+                            "orientation": "vertical",
+                            "barStyle": true,
+                            "barSize": 110,
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "component",
+                            "componentKey": "toggle",
+                            "align": "center",
+                            "colSpan": 3
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        }
+                    ],
+                    "colSizes": [
+                        "1fr",
+                        "110px",
+                        "1fr"
+                    ],
+                    "rowSizes": [
+                        "auto",
+                        "1fr",
+                        "auto"
+                    ]
+                }
+            }
+        }
+    ]
+}

@@ -5,9 +5,10 @@ in `BUILTIN_VIEWS` (siehe `src-vis/store/popupConfigStore.ts`) eingelesen.
 
 ## Status: ausgelaufen
 
-Neue Installationen bekommen nur noch die IDs aus `ALWAYS_SEEDED_VIEW_IDS`
-(derzeit `pv-builtin-datapoint`, der Fallback fuer Listenzeilen im
-Automatik-Modus). Die typ-spezifischen Views und `BUILTIN_TYPE_DEFAULTS` sind
+Neue Installationen bekommen nur noch die IDs aus `ALWAYS_SEEDED_VIEW_IDS`:
+`pv-builtin-datapoint` (Fallback fuer Listenzeilen im Automatik-Modus) und die
+Zeilen-Popups `row-*.json` je erkanntem Typ (`src-vis/utils/rowPopupViews.ts`, #925).
+Die Zeilen-Popups gelten nur fuer Listenzeilen, nie fuer Widgets. Die typ-spezifischen Views und `BUILTIN_TYPE_DEFAULTS` sind
 Altlast: sie bleiben fuer Installationen erhalten, die sie schon haben, werden
 aber nirgends neu eingerichtet. Eine neue JSON hier anzulegen bringt also
 nichts, solange sie nicht in `ALWAYS_SEEDED_VIEW_IDS` steht — Standard-Popups

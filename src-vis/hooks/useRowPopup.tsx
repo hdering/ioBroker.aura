@@ -46,10 +46,14 @@ interface OpenPopup {
  */
 export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode: boolean) {
     const typeDefaults = usePopupConfigStore((s) => s.typeDefaults);
+    const views = usePopupConfigStore((s) => s.views);
     const [open, setOpen] = useState<OpenPopup | null>(null);
     const runNavigation = useRunNavigationAction();
 
-    const ctx = useMemo(() => ({ typeDefaults }), [typeDefaults]);
+    const ctx = useMemo(() => {
+        const ids = new Set(views.map((v) => v.id));
+        return { typeDefaults, hasView: (id: string) => ids.has(id) };
+    }, [typeDefaults, views]);
 
     /**
      * Resolved action for a row, or null when the row must not be clickable.

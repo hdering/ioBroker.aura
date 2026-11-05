@@ -25,7 +25,9 @@ import { AccentBar } from './AccentBar';
 export function ValueWidget({ config }: WidgetProps) {
     const t = useT();
     const { value } = useDatapoint(config.datapoint);
-    const configUnit = config.options?.unit as string | undefined;
+    // A popup's `{{dpunit}}` stays a literal until the datapoint's object is loaded.
+    const rawUnit = config.options?.unit as string | undefined;
+    const configUnit = rawUnit?.includes('{{') ? undefined : rawUnit;
     const htmlTemplate = config.options?.htmlTemplate as string | undefined;
     const layout = config.layout ?? 'default';
     const CardIcon = getWidgetIcon(config.options?.icon as string | undefined, Activity);

@@ -24,7 +24,12 @@ export function detectWidgetTypeFromRole(role?: string, valueType?: string): Wid
         return 'shutter';
 
     // ── THERMOSTAT / HEATING ──────────────────────────────────────────────────
-    if (r === 'level.temperature' || r.startsWith('heating') || (r.includes('temperature') && r.includes('level')))
+    // level.color.temperature is a lamp's colour temperature, not a setpoint (#925).
+    if (
+        r === 'level.temperature' ||
+        r.startsWith('heating') ||
+        (r.includes('temperature') && r.includes('level') && !r.startsWith('level.color'))
+    )
         return 'thermostat';
 
     // ── DIMMER / LEVEL CONTROL ────────────────────────────────────────────────
@@ -48,9 +53,10 @@ export function detectWidgetTypeFromRole(role?: string, valueType?: string): Wid
     if (r === 'switch' || r.startsWith('switch.')) return 'switch';
     if (r === 'button') return 'switch';
     if (r.startsWith('indicator.')) return 'switch';
-    if (r.startsWith('sensor.')) return 'switch';
+    // Motion, alarm and the other sensor.* roles report a state, nobody switches them (#925).
     if (r === 'motion' || r.startsWith('sensor.motion') || r.includes('presence')) return 'binarysensor';
     if (r.startsWith('sensor.alarm') || r === 'alarm' || r.includes('smoke')) return 'binarysensor';
+    if (r.startsWith('sensor.')) return 'binarysensor';
     // media controls other than volume (play, pause, stop, mute …)
     if (r.startsWith('media.') && r !== 'media.volume') return 'switch';
     if (valueType === 'boolean') return 'switch';

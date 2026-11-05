@@ -1,0 +1,79 @@
+{
+    "id": "pv-builtin-row-value",
+    "name": "Liste: Wert",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-row-value-1",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "type": "value",
+            "layout": "custom",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 5
+            },
+            "options": {
+                "showTitle": false,
+                "showIcon": false,
+                "unit": "{{dpunit}}",
+                "customGrid": {
+                    "cols": 4,
+                    "rows": 2,
+                    "cells": [
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "value",
+                            "fontSize": 48,
+                            "bold": true,
+                            "align": "right",
+                            "valign": "baseline"
+                        },
+                        {
+                            "type": "unit",
+                            "fontSize": 20,
+                            "color": "var(--text-secondary)",
+                            "align": "left",
+                            "valign": "baseline"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "lastchange",
+                            "dpId": "{{dp}}",
+                            "fontSize": 12,
+                            "color": "var(--text-secondary)",
+                            "align": "center",
+                            "valign": "top",
+                            "colSpan": 4
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        },
+                        {
+                            "type": "empty"
+                        }
+                    ],
+                    "colSizes": [
+                        "1fr",
+                        "auto",
+                        "auto",
+                        "1fr"
+                    ],
+                    "rowSizes": [
+                        "1fr",
+                        "auto"
+                    ]
+                }
+            }
+        }
+    ]
+}

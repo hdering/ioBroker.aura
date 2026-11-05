@@ -1,6 +1,7 @@
 import type { BackgroundImage, ClickAction, PopupCountdownPosition } from '../types';
 import { detectWidgetTypeFromRole } from './dpTemplates';
 import { lookupDatapointEntry } from '../hooks/useDatapointList';
+import { ROW_TYPE_VIEW_IDS } from './rowPopupViews';
 
 /**
  * Generic detail popup for a datapoint that has no type-specific built-in view.
@@ -70,6 +71,19 @@ export function isExplicitRowAction(
 export interface RowActionCtx {
     /** popupConfigStore.typeDefaults - admin-assigned view per widget type. */
     typeDefaults: Record<string, string>;
+    /** Whether a popup view exists - a built-in row popup the admin deleted is skipped. */
+    hasView?: (viewId: string) => boolean;
+}
+
+/**
+ * The widget type a list row stands for. Same as for creating a widget, except that a
+ * lamp is a light here: its `switch.light` or colour datapoint opens the light popup,
+ * which finds brightness and colour on its own, instead of a plain on/off switch.
+ */
+export function rowWidgetType(role?: string, type?: string): string | null {
+    const r = (role ?? '').toLowerCase();
+    if (r === 'switch.light' || r.startsWith('level.color')) return 'light';
+    return detectWidgetTypeFromRole(role, type);
 }
 
 /**
@@ -81,7 +95,8 @@ export interface RowActionCtx {
  * detected from the datapoint's role instead of the (list) widget's own type:
  *
  *   1. admin type default (popupConfigStore.typeDefaults)
- *   2. the generic datapoint view
+ *   2. the built-in row popup of that type (utils/rowPopupViews, #925)
+ *   3. the generic datapoint view
  *
  * The `typeDefaultLayouts` gate from WidgetFrame is intentionally not applied - it
  * filters by widget *layout*, which has no meaning for a row.
@@ -114,13 +129,15 @@ export function resolveRowAction(
         type = type ?? entry?.type;
     }
 
-    const widgetType = detectWidgetTypeFromRole(role, type);
+    const widgetType = rowWidgetType(role, type);
     if (widgetType) {
         const viewId = ctx.typeDefaults[widgetType];
         if (viewId) return { kind: 'popup-view', viewId };
         // An explicit empty type default ('- keine View -') means "no popup" and
         // must suppress the generic fallback, exactly as for widget clicks.
         if (widgetType in ctx.typeDefaults) return null;
+        const rowView = ROW_TYPE_VIEW_IDS[widgetType];
+        if (rowView && ctx.hasView?.(rowView)) return { kind: 'popup-view', viewId: rowView };
     }
     return { kind: 'popup-view', viewId: ROW_FALLBACK_VIEW_ID };
 }

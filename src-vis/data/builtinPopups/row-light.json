@@ -1,0 +1,25 @@
+{
+    "id": "pv-builtin-row-light",
+    "name": "Liste: Licht",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-row-light-1",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "type": "light",
+            "layout": "light-all",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 12
+            },
+            "options": {
+                "autoDetectDps": true,
+                "showTitle": false,
+                "showIcon": false
+            }
+        }
+    ]
+}

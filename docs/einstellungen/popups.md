@@ -146,6 +146,8 @@ Ein Trigger-Popup kann auch ohne Skript zugehen: „Popup schließen, wenn die B
 
 Mitgeliefert wird `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung). Sie ist bewusst **kein** Widget-Typ-Standard — sie dient nur als Rückfallebene für den [Klick auf eine Listenzeile](../widgets/dynamische-liste#klick-auf-zeile) und ändert das Verhalten bestehender Widgets nicht.
 
+Dazu kommen die Popups für Listenzeilen im Modus `Automatisch`: `Liste: Licht`, `Liste: Schalter`, `Liste: Dimmer`, `Liste: Rollladen`, `Liste: Thermostat`, `Liste: Fensterkontakt`, `Liste: Sensor`, `Liste: Wert` — welche Zeile welches öffnet: [Klick auf Zeile](../widgets/liste#klick-auf-zeile). Auch sie sind keine Widget-Typ-Standards.
+
 `Standard: Dimmer`, `Standard: Thermostat`, `Standard: Schalter`, `Standard: Rolladen` und `Standard: Mediaplayer` werden nicht mehr weiterentwickelt und in neue Installationen nicht mehr eingerichtet. Wer sie hat, behält sie unverändert.
 
 ### Platzhalter
@@ -159,6 +161,7 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 | `{{parent2}}`, `{{parent3}}`, … | `alias.0.Heizung`, `alias.0` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{name}}` | `TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{dpname}}` | `common.name` des Datenpunkts, z. B. `Soll-Temperatur` | Texten der Popup-Widgets · Popup-Titel |
+| `{{dpunit}}` | `common.unit` des Datenpunkts, z. B. `°C`; leer ohne Einheit | jedem Feld der Popup-Widgets |
 | `{{parentname}}`, `{{parent2name}}`, … | `common.name` von `{{parent}}`, `{{parent2}}`, … | Texten der Popup-Widgets · Popup-Titel |
 | `[[<dp>]]` | Wert des Datenpunkts | Popup-Titel · Widget-Name (jedes Widget) |
 | `{{row_<feld>}}` | Rohwert eines Felds der geklickten [JSON-Tabellen-Zeile](../widgets/json-tabelle#klick-auf-zeile) | jedem Feld der Popup-Widgets · Popup-Titel · HTML-Popup |

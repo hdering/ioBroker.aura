@@ -1,0 +1,61 @@
+{
+    "id": "pv-builtin-row-binarysensor",
+    "name": "Liste: Sensor",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-row-binarysensor-1",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "type": "binarysensor",
+            "layout": "custom",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 7
+            },
+            "options": {
+                "showTitle": false,
+                "showIcon": true,
+                "iconSize": 64,
+                "customGrid": {
+                    "cols": 1,
+                    "rows": 3,
+                    "cells": [
+                        {
+                            "type": "component",
+                            "componentKey": "icon",
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "value",
+                            "fontSize": 22,
+                            "bold": true,
+                            "color": "var(--aura-state-color, var(--accent))",
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "lastchange",
+                            "dpId": "{{dp}}",
+                            "fontSize": 12,
+                            "color": "var(--text-secondary)",
+                            "align": "center",
+                            "valign": "top"
+                        }
+                    ],
+                    "colSizes": [
+                        "1fr"
+                    ],
+                    "rowSizes": [
+                        "1fr",
+                        "auto",
+                        "auto"
+                    ]
+                }
+            }
+        }
+    ]
+}

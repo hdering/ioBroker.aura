@@ -221,7 +221,9 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                             {
                                 key: 'rowclick',
                                 label: 'Klick auf Zeile',
-                                node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
+                                node: (
+                                    <RowClickSection config={config} opts={opts} onChange={setOpts} entries={entries} />
+                                ),
                             },
                             {
                                 key: 'names',

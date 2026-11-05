@@ -1,0 +1,49 @@
+{
+    "id": "pv-builtin-row-thermostat",
+    "name": "Liste: Thermostat",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-row-thermostat-1",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "type": "thermostat",
+            "layout": "custom",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 11
+            },
+            "options": {
+                "showTitle": false,
+                "showIcon": false,
+                "setpointDp": "{{dp}}",
+                "customGrid": {
+                    "cols": 1,
+                    "rows": 2,
+                    "cells": [
+                        {
+                            "type": "component",
+                            "componentKey": "dial",
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "component",
+                            "componentKey": "presets",
+                            "align": "center"
+                        }
+                    ],
+                    "colSizes": [
+                        "1fr"
+                    ],
+                    "rowSizes": [
+                        "1fr",
+                        "auto"
+                    ]
+                }
+            }
+        }
+    ]
+}

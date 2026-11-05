@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage, withSuppressedDirty } from './persistManager';
+import { ROW_TYPE_VIEW_IDS } from '../utils/rowPopupViews';
 import type {
     BackgroundImage,
     ClickAction,
@@ -217,8 +218,10 @@ export const BUILTIN_TYPE_DEFAULTS: Record<string, string> = {
  * (`ROW_FALLBACK_VIEW_ID` in utils/rowClickAction — duplicated here because
  * importing it would close a module cycle through ClickActionEditor). Every
  * list row set to `'auto'` opens it, so it is load-bearing, not decoration.
+ * The row popups per type (utils/rowPopupViews, #925) ride along for the same
+ * reason - they are what an 'auto' row opens before that fallback.
  */
-export const ALWAYS_SEEDED_VIEW_IDS = new Set(['pv-builtin-datapoint']);
+export const ALWAYS_SEEDED_VIEW_IDS = new Set(['pv-builtin-datapoint', ...Object.values(ROW_TYPE_VIEW_IDS)]);
 
 export const BUILTIN_VIEW_IDS = new Set(BUILTIN_VIEWS.map((v) => v.id));
 const BUILTIN_VIEW_BY_ID = new Map(BUILTIN_VIEWS.map((v) => [v.id, v] as const));

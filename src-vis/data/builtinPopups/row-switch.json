@@ -1,0 +1,62 @@
+{
+    "id": "pv-builtin-row-switch",
+    "name": "Liste: Schalter",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-row-switch-1",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "type": "switch",
+            "layout": "custom",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 12,
+                "h": 8
+            },
+            "options": {
+                "showTitle": false,
+                "showIcon": true,
+                "icon": "Power",
+                "iconSize": 72,
+                "customGrid": {
+                    "cols": 1,
+                    "rows": 3,
+                    "cells": [
+                        {
+                            "type": "component",
+                            "componentKey": "icon-button",
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "value",
+                            "fontSize": 22,
+                            "bold": true,
+                            "color": "var(--aura-state-color, var(--accent))",
+                            "align": "center",
+                            "valign": "middle"
+                        },
+                        {
+                            "type": "lastchange",
+                            "dpId": "{{dp}}",
+                            "fontSize": 12,
+                            "color": "var(--text-secondary)",
+                            "align": "center",
+                            "valign": "top"
+                        }
+                    ],
+                    "colSizes": [
+                        "1fr"
+                    ],
+                    "rowSizes": [
+                        "1fr",
+                        "auto",
+                        "auto"
+                    ]
+                }
+            }
+        }
+    ]
+}
