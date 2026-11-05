@@ -8437,7 +8437,9 @@ function WidgetFrameInner({
                           opacity: 'var(--widget-opacity, 1)',
                           ...(bgImage ? BG_IMAGE_HOST_STYLE : {}),
                           ...cssOverride,
-                          ...(!editMode && conditionResult.hidden && !conditionResult.reflow
+                          // Also while reflow-hidden: the container drops the widget a
+                          // render later, and until then it must not flash (#924).
+                          ...(!editMode && conditionResult.hidden
                               ? { visibility: 'hidden', pointerEvents: 'none' }
                               : {}),
                       }
@@ -8461,7 +8463,9 @@ function WidgetFrameInner({
                           opacity: 'var(--widget-opacity, 1)',
                           ...(bgImage ? BG_IMAGE_HOST_STYLE : {}),
                           ...cssOverride,
-                          ...(!editMode && conditionResult.hidden && !conditionResult.reflow
+                          // Also while reflow-hidden: the container drops the widget a
+                          // render later, and until then it must not flash (#924).
+                          ...(!editMode && conditionResult.hidden
                               ? { visibility: 'hidden', pointerEvents: 'none' }
                               : {}),
                       }

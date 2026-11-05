@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import { AlertTriangle } from 'lucide-react';
 import { DEFAULT_POPUP_PADDING, usePopupConfigStore } from '../../../store/popupConfigStore';
@@ -74,7 +74,9 @@ function ConditionProbe({ w, onResult }: { w: WidgetConfig; onResult: (id: strin
     const conditions = (w.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
     const srcCtx = useMemo(() => widgetSourceCtx(w), [w]);
     const cond = useConditionStyle(conditions, w.id, srcCtx);
-    useEffect(() => {
+    // Layout effect: the verdict must reach the grid before the browser paints, or a
+    // reflow-hidden widget keeps its slot for a frame and the others jump (#924).
+    useLayoutEffect(() => {
         onResult(w.id, cond);
     }, [w.id, cond, onResult]);
     return null;
