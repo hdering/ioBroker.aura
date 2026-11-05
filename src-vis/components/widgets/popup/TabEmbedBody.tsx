@@ -18,6 +18,7 @@ const DEFAULT_MARGIN = 10;
 
 // Stable empty reference so useConditionStyle doesn't re-subscribe every render.
 const NO_CONDITIONS: WidgetCondition[] = [];
+const conditionsOf = (w: WidgetConfig) => (w.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
 
 /**
  * Build an `options` patch for persisting an in-popup widget edit (e.g. adding a
@@ -71,7 +72,7 @@ function mergedOptionsPatch(
  * inside condition clauses resolve the same way the widget body does.
  */
 function ConditionProbe({ w, onResult }: { w: WidgetConfig; onResult: (id: string, r: ConditionResult) => void }) {
-    const conditions = (w.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
+    const conditions = conditionsOf(w);
     const srcCtx = useMemo(() => widgetSourceCtx(w), [w]);
     const cond = useConditionStyle(conditions, w.id, srcCtx);
     // Layout effect: the verdict must reach the grid before the browser paints, or a
@@ -205,6 +206,10 @@ interface Props {
     fill?: boolean;
     /** Fullscreen: a fill-tab widget runs edge to edge — no popup padding, no card frame. */
     edgeToEdge?: boolean;
+    /** Reports whether a hiding rule still waits for its values. Set by the dialog, which
+     *  stays invisible meanwhile; widgets that may reflow away then stay out of the grid
+     *  until they have a verdict, so the dialog opens at its final height (#924). */
+    onPendingChange?: (pending: boolean) => void;
 }
 
 export function TabEmbedBody({
@@ -214,6 +219,7 @@ export function TabEmbedBody({
     padding = DEFAULT_POPUP_PADDING,
     fill = false,
     edgeToEdge = false,
+    onPendingChange,
 }: Props) {
     const view = usePopupConfigStore((s) => s.views.find((v) => v.id === viewId));
     const updateWidgetInView = usePopupConfigStore((s) => s.updateWidgetInView);
@@ -246,6 +252,7 @@ export function TabEmbedBody({
                 cur.hidden === r.hidden &&
                 cur.reflow === r.reflow &&
                 cur.disabled === r.disabled &&
+                !cur.pending === !r.pending &&
                 cur.effect === r.effect &&
                 JSON.stringify(cur.cssVars) === JSON.stringify(r.cssVars)
             ) {
@@ -254,6 +261,17 @@ export function TabEmbedBody({
             return { ...prev, [id]: r };
         });
     }, []);
+
+    // A widget with a hiding rule has no verdict until its values are in — before the
+    // probe's first report, or while the probe is still pessimistic.
+    const isPending = (w: WidgetConfig) => {
+        const c = conds[w.id];
+        return conditionsOf(w).some((r) => r.hideWidget) && (!c || !!c.pending);
+    };
+    const anyPending = !!view?.widgets.some(isPending);
+    useLayoutEffect(() => {
+        onPendingChange?.(anyPending);
+    }, [anyPending, onPendingChange]);
 
     // Measured natural height (px) per content-driven widget in auto-height mode; drives
     // each widget's grid row-count so the grid — and the auto-sized dialog — grows to fit.
@@ -351,9 +369,13 @@ export function TabEmbedBody({
     // In-place hidden widgets stay in the layout (their space is kept) and are only
     // visually hidden by the cell. The probes below keep every widget's condition
     // subscription alive regardless, so a dropped widget can reappear.
+    // While the dialog waits (onPendingChange), a widget whose rule may reflow it away
+    // also stays out until it has a verdict: kept in place it would size the dialog
+    // with every variant, which then shrinks once the values arrive (#924).
     const gridWidgets = widgets.filter((w) => {
         const c = conds[w.id];
-        return !(c?.hidden && c?.reflow);
+        if (c?.hidden && c?.reflow) return false;
+        return !(onPendingChange && isPending(w) && conditionsOf(w).some((r) => r.hideWidget && r.reflow));
     });
 
     // Whether a given widget grows to its measured content height (auto dialog + a type

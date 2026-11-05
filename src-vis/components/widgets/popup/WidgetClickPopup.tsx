@@ -58,6 +58,9 @@ function normalizeAction(action: ClickAction): ClickAction {
     }
 }
 
+/** Longest a popup view stays invisible while its hiding rules wait for values (#924). */
+const POPUP_HOLD_MAX_MS = 600;
+
 /** Numeric option (percent or px) → clamped number; non-numeric/undefined falls back to `fallback`. */
 function clampPct(value: number | undefined, max: number, fallback: number): number {
     const n = Number(value);
@@ -308,6 +311,22 @@ function PopupDialog({ onClose, ...initial }: Props) {
         return () => ro.disconnect();
     }, [isIframe]);
 
+    // A popup view whose hiding rules still wait for their values stays invisible until
+    // the verdicts are in (#924) — otherwise it opens sized for every variant and jumps.
+    // Revealed one frame later, so the cells that just joined the grid have measured;
+    // capped, so a value that never arrives cannot keep the dialog hidden.
+    const [bodyPending, setBodyPending] = useState(action.kind === 'popup-view');
+    const [held, setHeld] = useState(action.kind === 'popup-view');
+    useEffect(() => {
+        const cap = window.setTimeout(() => setHeld(false), POPUP_HOLD_MAX_MS);
+        return () => window.clearTimeout(cap);
+    }, []);
+    useEffect(() => {
+        if (!held || bodyPending) return;
+        const raf = requestAnimationFrame(() => setHeld(false));
+        return () => cancelAnimationFrame(raf);
+    }, [held, bodyPending]);
+
     const body = (() => {
         switch (action.kind) {
             case 'popup-dimmer':
@@ -347,6 +366,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
                         padding={padding}
                         fill={fillBody}
                         edgeToEdge={fullscreen && viewFills}
+                        onPendingChange={setBodyPending}
                     />
                 );
             default:
@@ -371,6 +391,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
                     // widgets — which paint their own --widget-bg cards — turn see-through
                     // together with the dialog chrome instead of staying solid.
                     opacity: transparency > 0 ? 1 - transparency / 100 : undefined,
+                    visibility: held ? 'hidden' : undefined,
                     ...(fullscreen
                         ? { width: '100vw', height: '100dvh' }
                         : {

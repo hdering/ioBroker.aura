@@ -194,6 +194,8 @@ export interface ConditionResult {
     reflow: boolean; // remove from grid so others slide up
     /** Greyed out and not operable while a rule with `disableWidget` matches. */
     disabled: boolean;
+    /** Values still loading: `hidden` is the pessimistic in-place hide, not a verdict. */
+    pending?: boolean;
 }
 
 /** The half of a ConditionElement that becomes a class on the frame root. */
@@ -227,6 +229,9 @@ const EMPTY_RESULT: ConditionResult = {
     reflow: false,
     disabled: false,
 };
+
+// Pessimistic in-place hide while a hiding rule's values are still loading.
+const PENDING_RESULT: ConditionResult = { ...EMPTY_RESULT, hidden: true, pending: true };
 
 // Shared "nothing changed" set for every evaluation that is not driven by a live
 // value arriving (initial load, getState resolution, manual recompute).
@@ -392,19 +397,7 @@ export function useConditionStyle(
         // reflow container before values are known, causing a mount→unmount→
         // remount cycle on initial paint (and inside group widgets, an actual
         // flicker loop: see issue #281).
-        const initial: ConditionResult = mayHide
-            ? {
-                  cssVars: {},
-                  set: EMPTY_SET,
-                  bold: false,
-                  italic: false,
-                  parts: EMPTY_PARTS,
-                  effect: null,
-                  hidden: true,
-                  reflow: false,
-                  disabled: false,
-              }
-            : EMPTY_RESULT;
+        const initial: ConditionResult = mayHide ? PENDING_RESULT : EMPTY_RESULT;
         condLog('init (cache miss/partial — pessimistic in-place hide)', {
             widgetId,
             dps: uniqueIds,
@@ -458,19 +451,7 @@ export function useConditionStyle(
 
         const pessimistic = (): ConditionResult => {
             const mayHide = conditions.some((c) => c.hideWidget);
-            return mayHide
-                ? {
-                      cssVars: {},
-                      set: EMPTY_SET,
-                      bold: false,
-                      italic: false,
-                      parts: EMPTY_PARTS,
-                      effect: null,
-                      hidden: true,
-                      reflow: false,
-                      disabled: false,
-                  }
-                : EMPTY_RESULT;
+            return mayHide ? PENDING_RESULT : EMPTY_RESULT;
         };
 
         // ── "Widget neu laden" rules (issue #537) ────────────────────────────
@@ -591,6 +572,7 @@ export function useConditionStyle(
                     prev.hidden === next.hidden &&
                     prev.reflow === next.reflow &&
                     prev.disabled === next.disabled &&
+                    !prev.pending === !next.pending &&
                     JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars) &&
                     JSON.stringify(prev.set) === JSON.stringify(next.set)
                 ) {

@@ -85,7 +85,11 @@ async function run(label, cached) {
     // Sampler: one entry per animation frame, listing the variants on screen.
     await page.evaluate(() => {
         window.__flash = [];
+        window.__heights = [];
         const tick = () => {
+            const dlg = document.querySelector('[data-aura-click-popup] > div');
+            if (dlg && getComputedStyle(dlg).visibility !== 'hidden')
+                window.__heights.push(Math.round(dlg.getBoundingClientRect().height));
             const shown = [];
             for (const cell of document.querySelectorAll('[data-aura-popup-widget]')) {
                 const card = cell.querySelector('.aura-widget') ?? cell;
@@ -102,9 +106,18 @@ async function run(label, cached) {
     await page.locator('text=Spot Flur').first().click();
     await page.waitForTimeout(1200);
     const frames = await page.evaluate(() => window.__flash);
+    const heights = await page.evaluate(() => window.__heights);
     const wrong = frames.filter((f) => f.split(',').some((id) => id && id !== 'w-b'));
     check(`${label}: no other variant ever shows`, wrong.length === 0, wrong.slice(0, 3).join(' | '));
     check(`${label}: the matching variant ends up visible`, frames.at(-1) === 'w-b', `last=${frames.at(-1)}`);
+    // The dialog shows at its final height from its first visible frame on - not sized
+    // for every variant first and then shrinking.
+    const sizes = [...new Set(heights)];
+    check(
+        `${label}: the dialog opens at its final height`,
+        heights.length > 0 && sizes.length === 1,
+        sizes.join(' -> '),
+    );
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 }
