@@ -117,6 +117,34 @@ await page.evaluate(() => {
 const fallback = await openRow('demo925.plug.STATE', 'switch');
 check('a deleted row popup falls back to the datapoint popup', fallback.includes('pw-bi-dp-1'), fallback.join(','));
 
+// ── Admin › Popups › Listenzeilen ────────────────────────────────────────────
+// Admin sits behind the session flag - the same bypass the documentation shots use.
+await page.evaluate(() => {
+    localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 }));
+    window.location.hash = '/admin/popups';
+});
+await page.waitForSelector('#listenzeilen', { timeout: 20000 });
+const typeRows = page.locator('#listenzeilen [data-aura-row-type]');
+eq('the section lists every row type', await typeRows.count(), ROWS.length);
+const lightSelect = page.locator('#listenzeilen [data-aura-row-type="light"] select');
+const standardText = await lightSelect.locator('option').first().innerText();
+eq('"Standard" names what a lamp opens without a pick', standardText.trim(), 'Standard (Liste: Licht)');
+await lightSelect.selectOption('v-own');
+await page.locator('#listenzeilen [data-aura-row-type="switch"] select').selectOption('');
+eq('the picks are stored', await page.evaluate(() => window.__auraShot.popupRowTypeViews()), {
+    light: 'v-own',
+    switch: '',
+});
+
+await page.evaluate(() => {
+    window.location.hash = '/';
+});
+await page.waitForTimeout(800);
+// A widget type default for the same type loses against the pick for list rows.
+await page.evaluate(() => window.__auraShot.popupTypeDefaults({ light: 'pv-builtin-row-value' }));
+eq('a lamp opens the view picked for list rows', await openRow('demo925.lamp.ON', 'switch.light'), ['w-own']);
+eq('"kein Popup" leaves the row without one', await openRow('demo925.plug.STATE', 'switch'), []);
+
 eq('no page errors', pageErrors, []);
 await browser.close();
 

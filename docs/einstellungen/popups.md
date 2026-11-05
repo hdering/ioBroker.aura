@@ -229,3 +229,17 @@ Ordnet einem Widget-Typ eine Popup-View zu — gilt für alle Widgets dieses Typ
 | Widget-Typ | Typ, für den der Standard gilt |
 | Popup-View | Zugeordnete View |
 | Nur für Layouts | Optionaler Layout-Filter |
+
+## Listenzeilen
+
+Welches Popup eine Listenzeile mit Klick `Automatisch` öffnet — je erkanntem Typ, für alle Listen. Widgets sind nicht betroffen.
+
+![](./assets/popups/listenzeilen.png)
+
+| Auswahl | Zeile öffnet |
+| --- | --- |
+| `Standard (…)` | Widget-Typ-Standard des Typs, sonst `Liste: …`, sonst `Standard: Datenpunkt` — in Klammern steht, was das gerade ist |
+| `— kein Popup —` | nichts |
+| eine View | diese View, auch vor einem Widget-Typ-Standard |
+
+Eigenes Popup für Listen: `Liste: …` unter [Views verwalten](#views-verwalten) kopieren, Kopie anpassen, hier auswählen. Eine gelöschte View fällt auf `Standard` zurück.

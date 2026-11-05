@@ -83,7 +83,8 @@ function hasAutoRowAction(widgets: WidgetConfig[]): boolean {
  * store's own order. Views the user never received are not listed.
  */
 export function builtinUsage(): BuiltinUsage[] {
-    const { views, typeDefaults } = usePopupConfigStore.getState();
+    const { views, typeDefaults, rowTypeViews } = usePopupConfigStore.getState();
+    const pickedForRows = new Set(Object.values(rowTypeViews ?? {}));
     const widgets = userWidgets();
     // Widget configs only — typeDefaults would match every seeded view and make
     // the whole scan answer "used".
@@ -99,6 +100,8 @@ export function builtinUsage(): BuiltinUsage[] {
             const reason = ((): UsageReason | undefined => {
                 if (ALWAYS_SEEDED_VIEW_IDS.has(view.id)) return 'always';
                 if (view.userEdited) return 'edited';
+                // Picked under Admin › Popups › Listenzeilen (#925).
+                if (pickedForRows.has(view.id)) return 'row-auto';
                 if (serialised.includes(`"${view.id}"`)) return 'linked';
                 if (types.length > 0) {
                     // A widget of that type without its own action opens this view.

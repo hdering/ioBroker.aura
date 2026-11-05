@@ -515,7 +515,7 @@ Automatik nach Rolle des Datenpunkts:
 | `value.*` · Zahl | Wert | `Liste: Wert` |
 | sonst | — | `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung) |
 
-Reihenfolge: [Widget-Typ-Standard](../einstellungen/popups#widget-typ-standards) des Typs → `Liste: …` → `Standard: Datenpunkt`. Die `Liste: …`-Popups stehen unter **Admin › Popups** und lassen sich dort anpassen, löschen und wiederherstellen; sie gelten nur für Listenzeilen, nicht für Widgets.
+Reihenfolge: Auswahl unter [Admin › Popups › Listenzeilen](../einstellungen/popups#listenzeilen) → [Widget-Typ-Standard](../einstellungen/popups#widget-typ-standards) des Typs → `Liste: …` → `Standard: Datenpunkt`. Die `Liste: …`-Popups stehen unter **Admin › Popups** und lassen sich dort anpassen, löschen und wiederherstellen; sie gelten nur für Listenzeilen, nicht für Widgets.
 
 ![](./assets/liste/zeilen-popups.png)
 

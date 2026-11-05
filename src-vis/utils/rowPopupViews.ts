@@ -21,3 +21,15 @@ export const ROW_TYPE_VIEW_IDS: Readonly<Record<string, string>> = {
     binarysensor: 'pv-builtin-row-binarysensor',
     value: 'pv-builtin-row-value',
 };
+
+/** The types in the order Admin › Popups › Listenzeilen lists them, with their names. */
+export const ROW_TYPE_LABEL: Readonly<Record<string, string>> = {
+    light: 'Licht',
+    switch: 'Schalter',
+    dimmer: 'Dimmer',
+    shutter: 'Rollladen',
+    thermostat: 'Thermostat',
+    windowcontact: 'Fensterkontakt',
+    binarysensor: 'Sensor',
+    value: 'Wert',
+};

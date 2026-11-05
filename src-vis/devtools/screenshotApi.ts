@@ -603,6 +603,11 @@ function installScreenshotApi(): void {
             withSuppressedDirty(() => usePopupConfigStore.getState().removeView(viewId));
         },
 
+        /** Read the row type → view picks (Admin › Popups › Listenzeilen, #925). */
+        popupRowTypeViews(): Record<string, string> {
+            return { ...(usePopupConfigStore.getState().rowTypeViews ?? {}) };
+        },
+
         /** Replace the widget-type → view assignments (Admin › Popups › Widget-Typ-Standards). */
         popupTypeDefaults(typeDefaults: Record<string, string>): void {
             withSuppressedDirty(() => usePopupConfigStore.setState({ typeDefaults }));

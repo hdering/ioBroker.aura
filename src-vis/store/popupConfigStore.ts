@@ -281,6 +281,8 @@ function patchView(views: PopupView[], viewId: string, fn: (v: PopupView) => Pop
 
 interface PopupConfigState {
     typeDefaults: Record<string, string>; // WidgetType → viewId
+    /** Admin › Popups › Listenzeilen (#925): row type → view for list rows on 'auto'; '' = no popup, absent = standard. */
+    rowTypeViews: Record<string, string>;
     typeDefaultLayouts: Record<string, WidgetLayout[]>; // WidgetType → allowed layouts (empty = all)
     views: PopupView[];
     deletedBuiltinIds: string[]; // builtin IDs the user explicitly deleted
@@ -305,6 +307,8 @@ interface PopupConfigState {
     setTypeDefault: (widgetType: string, viewId: string) => void;
     setTypeDefaultLayouts: (widgetType: string, layouts: WidgetLayout[]) => void;
     removeTypeDefault: (widgetType: string) => void;
+    /** undefined = back to the standard chain for that row type. */
+    setRowTypeView: (rowType: string, viewId: string | undefined) => void;
 
     // Views
     addView: (name: string) => string;
@@ -349,6 +353,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
     persist(
         (set) => ({
             typeDefaults: {},
+            rowTypeViews: {},
             typeDefaultLayouts: {},
             views: [],
             deletedBuiltinIds: [],
@@ -364,6 +369,14 @@ export const usePopupConfigStore = create<PopupConfigState>()(
 
             setTypeDefault: (widgetType, viewId) =>
                 set((s) => ({ typeDefaults: { ...s.typeDefaults, [widgetType]: viewId } })),
+
+            setRowTypeView: (rowType, viewId) =>
+                set((s) => {
+                    const next = { ...(s.rowTypeViews ?? {}) };
+                    if (viewId === undefined) delete next[rowType];
+                    else next[rowType] = viewId;
+                    return { rowTypeViews: next };
+                }),
 
             setTypeDefaultLayouts: (widgetType, layouts) =>
                 set((s) => ({ typeDefaultLayouts: { ...s.typeDefaultLayouts, [widgetType]: layouts } })),
@@ -410,6 +423,9 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                     views: s.views.filter((v) => v.id !== viewId),
                     typeDefaults: Object.fromEntries(
                         Object.entries(s.typeDefaults).filter(([, vid]) => vid !== viewId),
+                    ),
+                    rowTypeViews: Object.fromEntries(
+                        Object.entries(s.rowTypeViews ?? {}).filter(([, vid]) => vid !== viewId),
                     ),
                     // Remember deleted builtins so ensureBuiltins doesn't re-add them
                     deletedBuiltinIds: BUILTIN_VIEW_IDS.has(viewId)

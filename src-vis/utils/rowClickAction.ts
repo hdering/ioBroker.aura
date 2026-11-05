@@ -71,6 +71,8 @@ export function isExplicitRowAction(
 export interface RowActionCtx {
     /** popupConfigStore.typeDefaults - admin-assigned view per widget type. */
     typeDefaults: Record<string, string>;
+    /** Admin › Popups › Listenzeilen: row type → view; '' = no popup. Wins over the type defaults. */
+    rowTypeViews?: Record<string, string>;
     /** Whether a popup view exists - a built-in row popup the admin deleted is skipped. */
     hasView?: (viewId: string) => boolean;
 }
@@ -94,9 +96,10 @@ export function rowWidgetType(role?: string, type?: string): string | null {
  * the same chain WidgetFrame uses for widget clicks, but keyed on the widget type
  * detected from the datapoint's role instead of the (list) widget's own type:
  *
- *   1. admin type default (popupConfigStore.typeDefaults)
- *   2. the built-in row popup of that type (utils/rowPopupViews, #925)
- *   3. the generic datapoint view
+ *   1. the view picked for that row type under Admin › Popups › Listenzeilen
+ *   2. admin type default (popupConfigStore.typeDefaults)
+ *   3. the built-in row popup of that type (utils/rowPopupViews, #925)
+ *   4. the generic datapoint view
  *
  * The `typeDefaultLayouts` gate from WidgetFrame is intentionally not applied - it
  * filters by widget *layout*, which has no meaning for a row.
@@ -131,6 +134,10 @@ export function resolveRowAction(
 
     const widgetType = rowWidgetType(role, type);
     if (widgetType) {
+        const picked = ctx.rowTypeViews?.[widgetType];
+        if (picked === '') return null;
+        // A picked view that was deleted since falls through to the standard chain.
+        if (picked && (!ctx.hasView || ctx.hasView(picked))) return { kind: 'popup-view', viewId: picked };
         const viewId = ctx.typeDefaults[widgetType];
         if (viewId) return { kind: 'popup-view', viewId };
         // An explicit empty type default ('- keine View -') means "no popup" and

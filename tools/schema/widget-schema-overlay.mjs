@@ -2699,7 +2699,7 @@ export const TYPE_NOTES = {
     RowClickSetting:
         'Was ein Klick auf eine Listenzeile auslöst (rowClickAction / clickAction einer Zeile). Nicht gesetzt = ' +
         'Zeilen sind nicht anklickbar. "auto" leitet das Popup aus der Rolle des Datenpunkts der Zeile ab ' +
-        '(Typ-Vorgabe aus Admin › Popups, sonst das eingebaute Zeilen-Popup des Typs "Liste: …" — Licht ' +
+        '(Auswahl je Typ unter Admin › Popups › Listenzeilen, sonst Typ-Vorgabe aus Admin › Popups, sonst das eingebaute Zeilen-Popup des Typs "Liste: …" — Licht ' +
         'für switch.light/level.color.*, Schalter, Dimmer, Rollladen, Thermostat, Fensterkontakt, Sensor, Wert —, ' +
         'sonst die allgemeine Datenpunkt-Ansicht). Ein ClickAction-Objekt ' +
         'legt die Aktion fest; { kind: "none" } schaltet eine Zeile gezielt ab. Eine Zeile, die einen Wert ' +

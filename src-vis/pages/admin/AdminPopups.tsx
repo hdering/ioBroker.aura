@@ -34,6 +34,7 @@ import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { getAvailableLayouts } from '../../utils/widgetLayouts';
 import { exportPopupView, importPopupView } from '../../utils/widgetExportImport';
 import { builtinUsage, type UsageReason } from '../../utils/builtinPopupUsage';
+import { ROW_TYPE_LABEL, ROW_TYPE_VIEW_IDS } from '../../utils/rowPopupViews';
 import type { ClickAction, WidgetLayout } from '../../types';
 import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPageHeader';
 
@@ -1001,6 +1002,96 @@ function TypeDefaultsSection() {
     );
 }
 
+// ── List rows section ─────────────────────────────────────────────────────────
+
+/** Select value for "follow the standard chain" - '' already means "no popup". */
+const ROW_STANDARD = '__standard';
+
+/**
+ * Admin › Popups › Listenzeilen (#925): which popup a list row on "Automatisch" opens,
+ * per recognised type and for every list at once. Widgets are not affected - that is
+ * what the widget-type standards are for. "Standard" names what the chain lands on
+ * without a pick, so a copied built-in can be swapped in without guessing.
+ */
+function RowTypeViewsSection() {
+    const rowTypeViews = usePopupConfigStore((s) => s.rowTypeViews) ?? {};
+    const setRowTypeView = usePopupConfigStore((s) => s.setRowTypeView);
+    const typeDefaults = usePopupConfigStore((s) => s.typeDefaults);
+    const views = usePopupConfigStore((s) => s.views);
+    const sorted = useMemo(() => [...views].sort((a, b) => byLabel(a.name, b.name)), [views]);
+    const viewName = (id: string) => views.find((v) => v.id === id)?.name;
+
+    /** What a row of this type opens without an own pick. */
+    const standardOf = (type: string): string => {
+        const td = typeDefaults[type];
+        if (td !== undefined) return td === '' ? 'kein Popup' : (viewName(td) ?? 'Standard: Datenpunkt');
+        return viewName(ROW_TYPE_VIEW_IDS[type]) ?? 'Standard: Datenpunkt';
+    };
+
+    return (
+        <section id="listenzeilen">
+            <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+                Listenzeilen
+            </h2>
+            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+                <div
+                    className="grid gap-3 px-4 py-2 text-[11px] font-medium"
+                    style={{
+                        gridTemplateColumns: '130px 1fr',
+                        background: 'var(--app-surface)',
+                        borderBottom: '1px solid var(--app-border)',
+                        color: 'var(--text-secondary)',
+                    }}
+                >
+                    <span>Erkannt als</span>
+                    <span>Popup-View</span>
+                </div>
+                {Object.entries(ROW_TYPE_LABEL).map(([type, label]) => {
+                    const picked = rowTypeViews[type];
+                    // A picked view that was deleted since shows - and acts - as standard.
+                    const value = picked === undefined || (picked !== '' && !viewName(picked)) ? ROW_STANDARD : picked;
+                    return (
+                        <div
+                            key={type}
+                            data-aura-row-type={type}
+                            className="grid items-center gap-3 px-4 py-2"
+                            style={{
+                                gridTemplateColumns: '130px 1fr',
+                                borderBottom: '1px solid var(--app-border)',
+                                background: 'var(--app-bg)',
+                            }}
+                        >
+                            <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                                {label}
+                            </span>
+                            <select
+                                value={value}
+                                onChange={(e) =>
+                                    setRowTypeView(type, e.target.value === ROW_STANDARD ? undefined : e.target.value)
+                                }
+                                className={inputCls}
+                                style={inputStyle}
+                            >
+                                <option value={ROW_STANDARD}>Standard ({standardOf(type)})</option>
+                                <option value="">— kein Popup —</option>
+                                {sorted.map((v) => (
+                                    <option key={v.id} value={v.id}>
+                                        {v.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    );
+                })}
+            </div>
+            <p className="text-[11px] mt-2" style={labelStyle}>
+                Gilt für alle Listen, deren Klick auf Zeile auf „Automatisch“ steht – Widgets sind nicht betroffen. Eine
+                kopierte „Liste: …“-View hier auswählen, um sie statt der mitgelieferten zu verwenden.
+            </p>
+        </section>
+    );
+}
+
 // ── Global settings section ───────────────────────────────────────────────────
 
 /** Slider + live readout for one of the global appearance defaults (percent or px). */
@@ -1643,7 +1734,10 @@ export function AdminPopups() {
             <PopupTriggersSection />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 items-start">
                 <PopupViewsSection />
-                <TypeDefaultsSection />
+                <div className="space-y-8">
+                    <TypeDefaultsSection />
+                    <RowTypeViewsSection />
+                </div>
             </div>
         </div>
     );

@@ -10,6 +10,7 @@ import {
 } from '../../utils/rowClickAction';
 import { lookupDatapointEntry, lookupDatapointName } from '../../hooks/useDatapointList';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
+import { ROW_TYPE_LABEL } from '../../utils/rowPopupViews';
 import { ClickActionEditor } from './ClickActionEditor';
 
 type Mode = 'auto' | 'off' | 'custom';
@@ -165,18 +166,6 @@ export function RowClickEntryField({
     );
 }
 
-/** What a row is recognised as, in the words of the row popups' names (#925). */
-const ROW_TYPE_LABEL: Record<string, string> = {
-    light: 'Licht',
-    switch: 'Schalter',
-    dimmer: 'Dimmer',
-    shutter: 'Rollladen',
-    thermostat: 'Thermostat',
-    windowcontact: 'Fensterkontakt',
-    binarysensor: 'Sensor',
-    value: 'Wert',
-};
-
 /** A list row as far as the overview needs it. */
 export interface RowOverviewEntry {
     id: string;
@@ -193,6 +182,7 @@ export interface RowOverviewEntry {
 function RowAutoOverview({ entries, listSetting }: { entries: RowOverviewEntry[]; listSetting: RowClickSetting }) {
     const typeDefaults = usePopupConfigStore((s) => s.typeDefaults);
     const views = usePopupConfigStore((s) => s.views);
+    const rowTypeViews = usePopupConfigStore((s) => s.rowTypeViews);
     const rows = entries
         .filter((e) => !!e.id)
         .map((e) => {
@@ -203,7 +193,7 @@ function RowAutoOverview({ entries, listSetting }: { entries: RowOverviewEntry[]
             const action = resolveRowAction(
                 e.id,
                 e.clickAction ?? listSetting,
-                { typeDefaults, hasView: (id) => views.some((v) => v.id === id) },
+                { typeDefaults, rowTypeViews, hasView: (id) => views.some((v) => v.id === id) },
                 { role, type },
             );
             const popup = !action
@@ -223,26 +213,34 @@ function RowAutoOverview({ entries, listSetting }: { entries: RowOverviewEntry[]
     if (rows.length === 0) return null;
     const cell = 'py-1 pr-2 align-top';
     return (
-        <table className="aura-row-auto-overview w-full text-[10px] mt-2" style={{ color: 'var(--text-secondary)' }}>
-            <thead>
-                <tr style={{ color: 'var(--text-primary)' }}>
-                    <th className={`${cell} text-left font-medium`}>Eintrag</th>
-                    <th className={`${cell} text-left font-medium`}>erkannt als</th>
-                    <th className={`${cell} text-left font-medium`}>öffnet</th>
-                </tr>
-            </thead>
-            <tbody>
-                {rows.map((r) => (
-                    <tr key={r.id} style={{ borderTop: '1px solid var(--app-border)' }}>
-                        <td className={`${cell} break-all`} title={r.id}>
-                            {r.name}
-                        </td>
-                        <td className={cell}>{r.kind}</td>
-                        <td className={cell}>{r.popup}</td>
+        <>
+            <table
+                className="aura-row-auto-overview w-full text-[10px] mt-2"
+                style={{ color: 'var(--text-secondary)' }}
+            >
+                <thead>
+                    <tr style={{ color: 'var(--text-primary)' }}>
+                        <th className={`${cell} text-left font-medium`}>Eintrag</th>
+                        <th className={`${cell} text-left font-medium`}>erkannt als</th>
+                        <th className={`${cell} text-left font-medium`}>öffnet</th>
                     </tr>
-                ))}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {rows.map((r) => (
+                        <tr key={r.id} style={{ borderTop: '1px solid var(--app-border)' }}>
+                            <td className={`${cell} break-all`} title={r.id}>
+                                {r.name}
+                            </td>
+                            <td className={cell}>{r.kind}</td>
+                            <td className={cell}>{r.popup}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                Welches Popup ein Typ öffnet, legt Admin › Popups › Listenzeilen für alle Listen fest.
+            </p>
+        </>
     );
 }
 
