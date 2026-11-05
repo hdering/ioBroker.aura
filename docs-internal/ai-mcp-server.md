@@ -130,8 +130,8 @@ enthält denselben Token ein zweites Mal.
 
 Das Feld „Client-Konfiguration" zeigt den Token **nur direkt nach dem Erzeugen** im
 Klartext — genau dann wird er kopiert. Beim nächsten Adapterstart ersetzt
-`maskClientConfig()` ihn durch einen Platzhalter (`extendForeignObject` auf das
-eigene Instanzobjekt, im selben Block wie die `localLinks`-Pflege). Danach ist er
+`maskClientConfig()` ihn durch einen Platzhalter (in der einen Schreiboperation auf das
+eigene Instanzobjekt pro Start, `lib/ownInstanceObject.js`). Danach ist er
 beim Öffnen der Seite nicht mehr lesbar, die URL bleibt aber korrekt.
 
 Das räumt nebenbei ein zweites Problem ab: ein von Hand geänderter Token machte

@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: AI access (MCP) - backups taken before each change are now gzipped, a burst of changes within a minute shares one, and old ones are deleted (keep count and days configurable in the instance settings; existing files are cleaned up on start)
 - feat: AI access (MCP) - with the web adapter extension switched on, the MCP endpoint is also reachable as `<web-port>/aura/mcp` and authenticates with its own token even when the web instance requires a login (needs a web adapter newer than 9.2.0)
+- fix: Aura writes its own instance settings at most once per start - a PIN reset or an MCP token stored in clear text no longer restarts Aura (and the web instance with the extension switched on) several times in a row
