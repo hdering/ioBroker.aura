@@ -315,6 +315,80 @@ function upgrade(path) {
     await new Promise((r) => web3.close(r));
 }
 
+// ── 3c. /aura/mcp in front of the web login (ExtAPI.publicRoutes) ────────────
+// Built like web with authentication: the public paths first, then the body
+// parsers and a login that refuses everything (web's OAuth2 layer answers Aura's
+// token with 401), and only behind it the extension's own routes.
+{
+    const off = new WebExtension(
+        http.createServer(),
+        { secure: false },
+        { ...fakeAdapter, config: {} },
+        { common: { host: 'host-a' }, native: { port: auraPort } },
+        express(),
+    );
+    eq('MCP off: no public path', off.publicRoutes(), []);
+    await off.unload();
+
+    const app4 = express();
+    const web4 = http.createServer(app4);
+    // Filled from publicRoutes() once the extension exists - web reads it per request too.
+    let routes = [];
+    app4.use((req, res, next) => {
+        const route = routes.find((r) => req.path === r.path || req.path.startsWith(`${r.path}/`));
+        return route ? route.handler(req, res, next) : next();
+    });
+    app4.use(bodyParser.json());
+    app4.use((_req, res) => {
+        res.writeHead(401, { 'X-From': 'web-login' });
+        res.end('login required');
+    });
+    const ext4 = new WebExtension(
+        web4,
+        { secure: false, auth: true },
+        { ...fakeAdapter, config: {} },
+        { common: { host: 'host-a' }, native: { port: auraPort, mcpEnabled: true } },
+        app4,
+    );
+    routes = ext4.publicRoutes();
+    eq(
+        'MCP on: /aura/mcp is the only public path',
+        routes.map((r) => r.path),
+        ['/aura/mcp'],
+    );
+    const port4 = await listen(web4);
+    const req4 = (path, { method = 'GET', headers = {}, body } = {}) =>
+        new Promise((resolve, reject) => {
+            const r = http.request({ host: '127.0.0.1', port: port4, path, method, headers }, (res) => {
+                const chunks = [];
+                res.on('data', (c) => chunks.push(c));
+                res.on('end', () =>
+                    resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks).toString() }),
+                );
+            });
+            r.on('error', reject);
+            r.end(body);
+        });
+    const rpc = JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
+    const r = await req4('/aura/mcp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer aura-mcp-token' },
+        body: rpc,
+    });
+    eq('MCP: answered by Aura, not by the login', [r.status, r.headers['x-from']], [200, 'aura']);
+    const s = JSON.parse(r.body);
+    eq('MCP: arrives as /mcp', s.url, '/mcp');
+    eq('MCP: the token arrives', s.headers.authorization, 'Bearer aura-mcp-token');
+    eq('MCP: the unparsed body is piped through', s.body, rpc);
+    eq('MCP: the prefix is named in X-Aura-Base', s.headers['x-aura-base'], '/aura/');
+    eq('MCP: the query survives', JSON.parse((await req4('/aura/mcp?x=1')).body).url, '/mcp?x=1');
+    const page = await req4('/aura/index.html');
+    eq('MCP on: every other /aura/ path stays behind the login', page.headers['x-from'], 'web-login');
+    await ext4.unload();
+    web4.closeAllConnections();
+    await new Promise((resolve) => web4.close(resolve));
+}
+
 // ── 4. Aura not running ──────────────────────────────────────────────────────
 {
     const closed = new Promise((r) => aura.close(r));

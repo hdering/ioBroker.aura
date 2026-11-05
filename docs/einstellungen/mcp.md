@@ -10,7 +10,7 @@ Der Assistent verändert dein Dashboard. Widgets können an der falschen Stelle 
 
 |                               |                                                                             |
 | ----------------------------- | --------------------------------------------------------------------------- |
-| Aura-Instanz                  | läuft, Port bekannt (Standard `8095` — **nicht** der Port des Web-Adapters) |
+| Aura-Instanz                  | läuft, Port bekannt (Standard `8095`; über den Web-Adapter nur als [`/aura/mcp`](#web-instanz)) |
 | [ioBroker-MCP](#iobroker-mcp) | **Pflicht.** Nur er kennt die Datenpunkte                                   |
 | KI-Client                     | mit MCP über HTTP (Claude Desktop, Claude Code, …)                          |
 
@@ -145,6 +145,17 @@ Danach Claude Desktop **vollständig beenden** und neu starten (Tray-Symbol, nic
 
 Verbindung prüfen: „Welche Tabs hat mein Aura-Dashboard?“ — die Antwort kommt aus `aura_dashboard`.
 
+### Über eine Web-Instanz {#web-instanz}
+
+Ist die [Web-Adapter-Erweiterung](settings#web-adapter-erweiterung-visu-app) eingeschaltet, ist der Endpunkt zusätzlich unter dem Port dieser Web-Instanz erreichbar.
+
+|                    |                                                                                                                                                    |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| URL                | `http://<ioBroker-IP>:<web-port>/aura/mcp`, mit HTTPS in der Web-Instanz `https://` — im Block aus der Instanz-Konfiguration `:8095/mcp` ersetzen |
+| Token              | Derselbe wie auf Port 8095                                                                                                                         |
+| Anmeldung von web  | Gilt für `/aura/mcp` nicht, der Endpunkt prüft nur den Aura-Token. Alle anderen Seiten unter `/aura/` bleiben hinter der Anmeldung                 |
+| Web-Adapter        | **neuer als 9.2.0**, wenn in der Web-Instanz die Anmeldung aktiv ist. Ältere Versionen weisen den Aura-Token ab                                   |
+
 ## Schritt 4 — ioBroker-MCP einrichten {#iobroker-mcp}
 
 Ohne ihn bleibt der Aura-MCP nutzlos. Adapter [`ioBroker.mcp`](https://github.com/ioBroker/ioBroker.mcp) installieren und eine Instanz anlegen.
@@ -235,7 +246,8 @@ Vor jedem Schreibvorgang prüft Aura das Widget gegen Schema, Datenpunkte und Ze
 | `401`                                                        | Der Client schickt gar keinen Token — Header `Authorization` fehlt                                                                                                                                  |
 | `403`                                                        | Token im Client stimmt nicht mit dem in der Instanz überein                                                                                                                                         |
 | `405`                                                        | Client spricht nicht MCP über HTTP (`/mcp` nimmt nur POST)                                                                                                                                          |
-| Keine Verbindung                                             | Falscher Port — Aura läuft auf `8095`, nicht auf dem Port des Web-Adapters                                                                                                                          |
+| Keine Verbindung                                             | Falscher Port — Aura läuft auf `8095`; über den Port des Web-Adapters nur als [`/aura/mcp`](#web-instanz) mit eingeschalteter Web-Adapter-Erweiterung                                              |
+| `/aura/mcp` liefert `401 Unauthorized` oder die Anmeldeseite | Anmeldung in der Web-Instanz aktiv und Web-Adapter 9.2.0 oder älter — Web-Adapter aktualisieren oder Port `8095` nehmen                                                                             |
 | `Unexpected token '<'` in Claude Desktop                     | Aura älter als 0.54.0 — die OAuth-Suche von `mcp-remote` bekam die Oberfläche statt einer Absage                                                                                                    |
 | Claude Desktop zeigt den Server nicht                        | App nicht vollständig beendet, oder `node`/`npx` fehlt auf dem Rechner mit Claude Desktop                                                                                                           |
 | Claude Desktop verhält sich nach dem Eintrag seltsam         | `claude_desktop_config.json` wurde durch den Block **ersetzt** statt ergänzt — die App-Einstellungen sind dann weg; nur der `"aura"`-Eintrag gehört in `mcpServers`                                 |

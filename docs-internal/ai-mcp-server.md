@@ -94,6 +94,22 @@ für immer grün geblieben, während `main.js` davon wegdriftet.
 
 Der Port ist der von Aura selbst (Standard 8095), nicht der des Web-Adapters.
 
+**Über die Web-Adapter-Erweiterung** ist derselbe Endpunkt als `<web-port>/aura/mcp`
+erreichbar. Ein KI-Client hat kein Konto bei der Web-Instanz, und mit eingeschalteter
+Anmeldung beantwortet die OAuth2-Schicht von web jeden fremden Bearer-Token mit 401,
+bevor die Anfrage eine Extension erreicht. Darum meldet `lib/webExtension.js` den Pfad
+über `publicRoutes()` (web neuer als 9.2.0, `ioBroker.web/src/lib/publicRoutes.ts`).
+web gibt ihn dann vor Body-Parser, OAuth2, Session und Login-Riegel an die Extension,
+und die reicht ihn ungeparst an Port 8095 weiter. Gemeldet wird nur bei
+`native.mcpEnabled`. Ändert sich das, schreibt der Adapter sein Instanzobjekt um, und
+web startet neu und fragt erneut. Alle anderen `/aura/`-Pfade bleiben hinter der
+Anmeldung von web. Test: `tools/tests/web-extension.mjs`, Abschnitt 3c.
+
+Offen: Bei falschem Token (401 von Aura) suchen MCP-Clients an der Wurzel nach
+`/.well-known/oauth-*`. Ist in web OAuth eingeschaltet, finden sie dort echte Metadaten
+von web und versuchen womöglich einen OAuth-Ablauf statt einer klaren Fehlermeldung.
+Mit gültigem Token tritt das nicht auf.
+
 ## Warum Token Pflicht ist
 
 Auras Server hat **keine eigene Authentifizierung** — auch `/fs/read` ist offen.

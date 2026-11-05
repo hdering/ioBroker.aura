@@ -81,7 +81,7 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 | Eigene Web-Instanz | Z. B. `web.1` nur für Aura: geht lokal, aber nicht über die Cloud. `cloud.0` auf `web.1` umstellen macht Aura erreichbar, vis dann nicht mehr ([#688](https://github.com/hdering/ioBroker.aura/issues/688)) |
 | Neustarts | Die gewählte Web-Instanz startet bei jedem Start, Stopp und Speichern der Aura-Instanz neu (technisch bedingt) – andere Web-Instanzen nicht |
 | Socket | Die Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte |
-| Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs |
+| Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs. Ausnahme: der [MCP-Endpunkt](mcp#web-instanz) `/aura/mcp` prüft nur seinen Token (Web-Adapter neuer als 9.2.0) |
 | Aura gestoppt | `/aura/` zeigt „Aura läuft nicht“ und lädt von selbst neu, sobald Aura wieder läuft; die Web-Instanz läuft weiter |
 | Instanz-Links | Zusätzliche Links „Aura Frontend (web adapter)“ und „Aura Backend (web adapter)“ in Instanzliste und Schnellzugriff |
 
