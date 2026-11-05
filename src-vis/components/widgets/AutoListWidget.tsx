@@ -54,6 +54,7 @@ import { GroupActionControl } from './GroupActionControl';
 import { CheckboxControl } from './CheckboxControl';
 import { EntrySubLine, subCondKey, useRelativeTick, type EntrySubDp } from './EntrySubLine';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
+import { useHiddenDevices } from '../../hooks/useHiddenDevices';
 import { isStampSub, lastChangeTs, subDpsNeedTick } from '../../utils/subDpStamp';
 import { resolveSubDpTemplate } from '../../utils/subDpTemplate';
 import { ListFilterChip } from './ListFilterChip';
@@ -161,6 +162,10 @@ export interface AutoListOptions
     filterTypes?: string;
     excludeIdPatterns?: string;
     excludeIds?: string[];
+    /** Hide rows whose device reports itself unreachable (UNREACH, available, online …), live (#925). */
+    hideUnreachable?: boolean;
+    /** Hide alias rows whose alias points at a datapoint that does not exist (#925). */
+    hideAliasWithoutTarget?: boolean;
     syncIntervalMin?: number;
     /** Auto-sync also removes entries the filters no longer find — only those without own settings (default false). */
     syncRemove?: boolean;
@@ -1394,11 +1399,22 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const searchReachable = !opts.hideFilterSearch && !opts.hideFilterButton;
     const effectiveSearch = editMode || !searchReachable ? '' : searchTerm;
 
+    // Rows of devices that are gone (#925) drop out before any other filter, so the
+    // counts and the empty state treat them as not there at all.
+    const goneDevices = useHiddenDevices(
+        useMemo(() => entries.map((e) => e.id), [entries]),
+        { unreachable: opts.hideUnreachable === true, aliasWithoutTarget: opts.hideAliasWithoutTarget === true },
+    );
+    const presentEntries = useMemo(
+        () => (goneDevices.size ? entries.filter((e) => !goneDevices.has(e.id)) : entries),
+        [entries, goneDevices],
+    );
+
     const matchedEntries = useMemo(() => {
         let result =
             effectiveFilter === 'all' && !effectiveSearch.trim()
-                ? entries
-                : entries.filter((e) => {
+                ? presentEntries
+                : presentEntries.filter((e) => {
                       const row = filterRow(e);
                       return (
                           matchesFilterMode(effectiveFilter, opts.filterPresets, row) &&
@@ -1412,7 +1428,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         return result;
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        entries,
+        presentEntries,
         states,
         subValues,
         entrySubDps,
@@ -1599,7 +1615,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     {showCount && entries.length > 0 && (
                                         <span className="ml-1 opacity-50">
                                             ({valueFilter !== 'all' ? `${matchedEntries.length}/` : ''}
-                                            {entries.length})
+                                            {presentEntries.length})
                                         </span>
                                     )}
                                 </p>
@@ -1694,7 +1710,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     // ── ANZAHL (count) — zeigt nur die Anzahl der Einträge ────────────────────
     if (layout === 'count') {
-        const count = effectiveFilter === 'all' ? entries.length : matchedEntries.length;
+        const count = effectiveFilter === 'all' ? presentEntries.length : matchedEntries.length;
         return (
             <div className="aura-widget-row relative flex flex-col items-center justify-center h-full gap-1">
                 {showIcon && (

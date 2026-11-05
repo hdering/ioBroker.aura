@@ -2082,6 +2082,14 @@ export const WIDGET_OPTION_NOTES = {
     // AutoListWidget and attributed its reads to the static list — twenty options
     // the schema advertised and the widget ignored (verified in the browser).
     autolist: {
+        hideUnreachable: {
+            description:
+                'Zeilen ausblenden, deren Gerät sich als nicht erreichbar meldet (UNREACH/offline = true bzw. available/reachable/online = false im Kanal oder im Gerät darüber). Live: die Zeile kommt wieder, sobald das Gerät antwortet. Geräte ohne solchen Datenpunkt bleiben sichtbar. Wirkt vor allen Filtern und auf die Anzahl.',
+        },
+        hideAliasWithoutTarget: {
+            description:
+                'alias.*-Zeilen ausblenden, deren Alias-Ziel (common.alias.id bzw. read) nicht existiert. Alle 5 Minuten neu geprüft. Für dauerhaft ausgeschlossene Einträge stattdessen excludeIds.',
+        },
         entryIcon: { description: 'Icon, das alle Zeilen ohne eigenes Icon bekommen.' },
         entryIconColor: { description: 'Farbe des Zeilen-Icons.' },
         entryIconSize: { description: 'Größe des Zeilen-Icons in px.' },

@@ -23,3 +23,4 @@
 - feat: Lists - rows set to "Automatic" open a fitting built-in popup per device type (light, switch, dimmer, shutter, thermostat, window contact, sensor, value), editable under Admin › Popups; a lamp opens the light popup, which finds brightness, colour and colour temperature itself; the "Click on row" tab lists what each row was recognised as and which popup it opens; Admin › Popups › List rows picks another popup per type for all lists, e.g. an edited copy (#925)
 - fix: Datapoint roles - colour temperature datapoints are no longer taken for a thermostat, and motion or other sensor datapoints no longer for a switch (#925)
 - feat: Popups - new placeholder {{dpunit}} for the unit of the popup's datapoint (#925)
+- feat: Dynamic list - new options to hide rows whose device reports itself unreachable (UNREACH, available, online …; the row comes back once the device answers) and alias rows whose target datapoint does not exist (#925)

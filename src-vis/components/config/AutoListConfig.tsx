@@ -28,6 +28,7 @@ import { RowClickSection } from './RowClickSection';
 import { ColorField } from './list/listFieldUi';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { ListDensityField } from './ListDensityField';
+import { ToggleRow } from './VisibleFieldsSection';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
@@ -527,6 +528,21 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         setOpts={setOpts}
                         rows={filterRows}
                         storageKey="aura-autolist-filter-modal"
+                    />
+                    {/* Devices that are gone (#925) - before every other filter. */}
+                    <ToggleRow
+                        visKey="hideUnreachable"
+                        label="Nicht erreichbare Geräte ausblenden"
+                        hint="Liest den Erreichbarkeits-Datenpunkt des Geräts (UNREACH, available, online …) live – die Zeile kommt wieder, sobald das Gerät antwortet."
+                        on={opts.hideUnreachable === true}
+                        onChange={(v) => setOpts({ hideUnreachable: v || undefined })}
+                    />
+                    <ToggleRow
+                        visKey="hideAliasWithoutTarget"
+                        label="Aliase ohne Ziel ausblenden"
+                        hint="Alias-Zeilen, deren Ziel-Datenpunkt es nicht gibt. Wird alle 5 Minuten neu geprüft."
+                        on={opts.hideAliasWithoutTarget === true}
+                        onChange={(v) => setOpts({ hideAliasWithoutTarget: v || undefined })}
                     />
                     {/* ── Sortierung (eigener Dialog) ── */}
                     <ListSortSection

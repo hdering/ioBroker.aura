@@ -305,6 +305,17 @@ Frontend-Filter als Chip im Header (nicht zu verwechseln mit der Datenpunkt-Such
 
 Freitext trifft Name, Datenpunkt-ID, Wert und alle Werte der [zweiten Zeile](#zweite-zeile-zusatzliche-datenpunkte).
 
+### Geräte ohne Verbindung ausblenden
+
+Panel **Filter & Sortierung**. Gilt vor allen anderen Filtern und für die Anzahl.
+
+| Option | Standard | blendet aus |
+| --- | --- | --- |
+| `hideUnreachable` | `false` | Zeilen, deren Gerät `UNREACH`/`offline` = `true` bzw. `available`/`reachable`/`online` = `false` meldet (im Kanal oder im Gerät darüber) — live, die Zeile kommt wieder, sobald das Gerät antwortet |
+| `hideAliasWithoutTarget` | `false` | `alias.*`-Zeilen, deren Alias-Ziel nicht existiert — alle 5 Minuten neu geprüft |
+
+Geräte ohne Erreichbarkeits-Datenpunkt bleiben sichtbar. Einzelne Zeilen dauerhaft weglassen: `excludeIds` ([Datenpunkt-Suche](#datenpunkt-suche)) oder ein [eigener Filter](#eigene-filter).
+
 ### Eigene Filter
 
 Panel **Filter & Sortierung** → **Eigene Filter**. Aufbau und Optionen (`filterPresets[]`, `rules[]`) wie bei der [statischen Liste](./liste#eigene-filter) —

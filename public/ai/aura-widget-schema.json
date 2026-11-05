@@ -8046,6 +8046,11 @@
           ],
           "description": "Shape of the 'switch' action: 'slide' = tri-state toggle (default), 'checkbox' = tick box (a dash marks the mixed state)."
         },
+        "hideAliasWithoutTarget": {
+          "type": "boolean",
+          "description": "alias.*-Zeilen ausblenden, deren Alias-Ziel (common.alias.id bzw. read) nicht existiert. Alle 5 Minuten neu geprüft. Für dauerhaft ausgeschlossene Einträge stattdessen excludeIds.",
+          "default": false
+        },
         "hideBuiltinFilters": {
           "type": "boolean",
           "description": "Drop the built-in \"Nur aktive\" / \"Nur inaktive\" from the menu (presets only)."
@@ -8057,6 +8062,11 @@
         "hideFilterSearch": {
           "type": "boolean",
           "description": "Hide the free-text field in the filter menu."
+        },
+        "hideUnreachable": {
+          "type": "boolean",
+          "description": "Zeilen ausblenden, deren Gerät sich als nicht erreichbar meldet (UNREACH/offline = true bzw. available/reachable/online = false im Kanal oder im Gerät darüber). Live: die Zeile kommt wieder, sobald das Gerät antwortet. Geräte ohne solchen Datenpunkt bleiben sichtbar. Wirkt vor allen Filtern und auf die Anzahl.",
+          "default": false
         },
         "inactiveBg": {
           "type": "string",
