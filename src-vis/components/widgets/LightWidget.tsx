@@ -431,7 +431,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const detected = useLightAutoDps(config.datapoint, autoDps);
     const mainDp = config.datapoint || '';
     const mainIsSwitch = detected?.mainType === 'boolean';
-    const dpOpt = (key: string): string => (autoDps ? detected?.dps[key] : (o[key] as string | undefined)) || '';
+    const det = (key: string): string | undefined => (autoDps ? detected?.dps[key] || '' : undefined);
 
     // ── Resolved options ────────────────────────────────────────────────────────
     const colorMode: LightColorMode = autoDps
@@ -475,20 +475,23 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
         return 220;
     })();
 
-    // DP IDs
-    // DP IDs. Detected: the main datapoint is the switch when it is a boolean,
-    // otherwise the brightness - detection never returns the main datapoint itself.
-    const switchDp = dpOpt('switchDp') || (autoDps && mainIsSwitch ? mainDp : '');
-    const brightnessDp = dpOpt('brightnessDp') || (!autoDps || (detected && !mainIsSwitch) ? mainDp : '');
-    const hueDp = dpOpt('hueDp');
-    const saturationDp = dpOpt('saturationDp');
-    const rDp = dpOpt('rDp');
-    const gDp = dpOpt('gDp');
-    const bDp = dpOpt('bDp');
-    const colorDp = dpOpt('colorDp'); // HmIP single integer
-    const colorHexDp = dpOpt('colorHexDp'); // single "#RRGGBB" string
-    const temperatureDp = dpOpt('temperatureDp');
-    const effectDp = dpOpt('effectDp');
+    // DP IDs — detected ones replace the options. The main datapoint is the switch when
+    // it is a boolean, otherwise the brightness (detection never returns it itself).
+    const switchDp = autoDps
+        ? det('switchDp') || (mainIsSwitch ? mainDp : '')
+        : (o.switchDp as string | undefined) || '';
+    const brightnessDp = autoDps
+        ? det('brightnessDp') || (detected && !mainIsSwitch ? mainDp : '')
+        : (o.brightnessDp as string | undefined) || config.datapoint || '';
+    const hueDp = det('hueDp') ?? ((o.hueDp as string | undefined) || '');
+    const saturationDp = det('saturationDp') ?? ((o.saturationDp as string | undefined) || '');
+    const rDp = det('rDp') ?? ((o.rDp as string | undefined) || '');
+    const gDp = det('gDp') ?? ((o.gDp as string | undefined) || '');
+    const bDp = det('bDp') ?? ((o.bDp as string | undefined) || '');
+    const colorDp = det('colorDp') ?? ((o.colorDp as string | undefined) || ''); // HmIP single integer
+    const colorHexDp = det('colorHexDp') ?? ((o.colorHexDp as string | undefined) || ''); // single "#RRGGBB" string
+    const temperatureDp = det('temperatureDp') ?? ((o.temperatureDp as string | undefined) || '');
+    const effectDp = det('effectDp') ?? ((o.effectDp as string | undefined) || '');
 
     // Ranges — a bound typed into the options wins; an empty one follows the
     // datapoint's common.min/max (read at runtime, so one popup with {{parent}}
