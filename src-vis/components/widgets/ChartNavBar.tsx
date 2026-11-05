@@ -21,8 +21,24 @@ import {
 import { rangeLabel, type RangeChip } from '../../utils/rangeChips';
 import { openNativePicker } from '../common/DateTimeInput';
 
-const btnCls =
-    'nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity disabled:opacity-40';
+/** Size of the chart controls — the range chips and this bar (`controlSize`). `sm` is the compact
+ *  default; `md`/`lg` give a phone or a wall tablet something to hit (#871). */
+export type ChartControlSize = 'sm' | 'md' | 'lg';
+export const chartControlSize = (v: unknown): ChartControlSize => (v === 'md' || v === 'lg' ? v : 'sm');
+const SIZE_CLS: Record<ChartControlSize, string> = {
+    sm: 'px-1.5 py-0.5 text-[10px]',
+    md: 'px-2 py-1 text-xs',
+    lg: 'px-3 py-2 text-sm',
+};
+const ICON_SIZE: Record<ChartControlSize, number> = { sm: 12, md: 14, lg: 18 };
+/** Gap between the controls, growing with them. */
+export const chartControlGap = (size: ChartControlSize) => (size === 'lg' ? 'gap-1.5' : 'gap-1');
+/** Where chips and bar sit (`controlPosition`): above the chart, or below it — out of the way of
+ *  the header values and of the fullscreen overlay's close button. */
+export const chartControlsBelow = (v: unknown) => v === 'bottom';
+/** Classes of one chart control: a range chip or a button of this bar. */
+export const chartControlCls = (size: ChartControlSize) =>
+    `nodrag ${SIZE_CLS[size]} rounded font-medium hover:opacity-80 transition-opacity disabled:opacity-40`;
 const btnStyle = (active: boolean): React.CSSProperties => ({
     background: active ? 'var(--accent)' : 'var(--app-border)',
     color: active ? '#fff' : 'var(--text-secondary)',
@@ -58,8 +74,19 @@ function widestLabels(span: NavSpan, locale: string): string[] {
     );
 }
 
-export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] }) {
+export function ChartNavBar({
+    nav,
+    chips,
+    size = 'sm',
+}: {
+    nav: ChartNav;
+    chips: RangeChip[];
+    size?: ChartControlSize;
+}) {
     const t = useT();
+    const btnCls = chartControlCls(size);
+    const icon = ICON_SIZE[size];
+    const gap = chartControlGap(size);
     const inputRef = useRef<HTMLInputElement>(null);
     const off = !nav.span;
     // What one arrow step is, for the tooltips: the active chip's caption ("7 Tage", "Quartal").
@@ -80,19 +107,19 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
             title={off ? t('echart.navTotalHint') : undefined}
         >
             {ghosts.map((g, i) => (
-                <div key={i} className="invisible flex items-center gap-1" style={{ gridArea: '1 / 1' }} aria-hidden>
+                <div key={i} className={`invisible flex items-center ${gap}`} style={{ gridArea: '1 / 1' }} aria-hidden>
                     <span className={`${btnCls} flex items-center gap-1 whitespace-nowrap tabular-nums mr-1`}>
-                        <CalendarDays size={12} />
+                        <CalendarDays size={icon} />
                         {g}
                     </span>
                     {[0, 1, 2].map((k) => (
                         <span key={k} className={`${btnCls} inline-flex`}>
-                            <ChevronLeft size={12} />
+                            <ChevronLeft size={icon} />
                         </span>
                     ))}
                 </div>
             ))}
-            <div className="flex items-center gap-1 pointer-events-auto" style={{ gridArea: '1 / 1' }}>
+            <div className={`flex items-center ${gap} pointer-events-auto`} style={{ gridArea: '1 / 1' }}>
                 {/* The date comes first: the bar sits on the right, so a caption that changes its
                     width (none while rolling, then "Mi 29.10.", then "Di 28.10.") grows to the left
                     and the arrows stay under the pointer. It is the picker's trigger — a field of
@@ -117,7 +144,7 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
                         data-testid="echart-nav-date"
                         onClick={() => openNativePicker(inputRef.current)}
                     >
-                        <CalendarDays size={12} />
+                        <CalendarDays size={icon} />
                         {label}
                     </button>
                 </span>
@@ -130,7 +157,7 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
                     data-testid="echart-nav-prev"
                     onClick={() => nav.command('prev')}
                 >
-                    <ChevronLeft size={12} />
+                    <ChevronLeft size={icon} />
                 </button>
                 <button
                     className={btnCls}
@@ -141,7 +168,7 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
                     data-testid="echart-nav-next"
                     onClick={() => nav.command('next')}
                 >
-                    <ChevronRight size={12} />
+                    <ChevronRight size={icon} />
                 </button>
                 {/* ⇥ rather than "Heute": the arrows step by the chip, so a day word would read as
                 yesterday/tomorrow on a week or a month. */}
@@ -155,7 +182,7 @@ export function ChartNavBar({ nav, chips }: { nav: ChartNav; chips: RangeChip[] 
                     data-testid="echart-nav-today"
                     onClick={() => nav.command(nav.onCurrent ? 'now' : 'today')}
                 >
-                    <ArrowRightToLine size={12} />
+                    <ArrowRightToLine size={icon} />
                 </button>
             </div>
         </div>

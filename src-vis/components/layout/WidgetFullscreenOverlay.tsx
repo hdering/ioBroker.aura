@@ -13,6 +13,12 @@ import { useT } from '../../i18n';
 
 /** Gap between the overlay edge and the widget card. */
 const OVERLAY_PAD = 12;
+/** Close button: size and its distance from the top edge. */
+const CLOSE_SIZE = 36;
+const CLOSE_TOP = 8;
+/** The card starts below the close button. Over the card it hid whatever the widget draws into
+ *  its top-right corner — header values, a chart's paging bar (#871). */
+const OVERLAY_PAD_TOP = CLOSE_TOP + CLOSE_SIZE + 8;
 
 /**
  * Shows one widget across the whole viewport (issue #644).
@@ -109,7 +115,7 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
         const base = live ?? fromGroup ?? target.snapshot;
         const pitch = cellSize + gridGap;
         const usableW = Math.max(1, box.w - 2 * OVERLAY_PAD);
-        const usableH = Math.max(1, box.h - 2 * OVERLAY_PAD);
+        const usableH = Math.max(1, box.h - OVERLAY_PAD_TOP - OVERLAY_PAD);
         return {
             ...base,
             gridPos: {
@@ -124,7 +130,7 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
     return (
         <div
             className="fixed inset-0 z-[900] flex flex-col aura-widget-fullscreen"
-            style={{ background: 'var(--app-bg)', padding: OVERLAY_PAD }}
+            style={{ background: 'var(--app-bg)', padding: OVERLAY_PAD, paddingTop: OVERLAY_PAD_TOP }}
             data-widget-fullscreen={config.id}
         >
             <div className="flex-1 min-h-0">
@@ -140,8 +146,12 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
             </div>
             <button
                 onClick={onClose}
-                className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full"
+                className="absolute flex items-center justify-center rounded-full"
                 style={{
+                    top: CLOSE_TOP,
+                    right: OVERLAY_PAD,
+                    width: CLOSE_SIZE,
+                    height: CLOSE_SIZE,
                     background: 'rgba(0,0,0,0.6)',
                     color: '#fff',
                     backdropFilter: 'blur(4px)',

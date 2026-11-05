@@ -1063,6 +1063,16 @@ const HEADER_ROW2_MODIFIER = {
     },
 };
 
+/** Bigger range chips / paging bar of the chart types (#871): their row grows, the plot keeps its
+ *  minimum. `sm` is the measured baseline, like selectSize. */
+const controlSizeModifiers = () =>
+    ['md', 'lg'].map((size) => ({
+        key: `controlSize=${size}`,
+        label: `Bedienelemente ${size === 'md' ? 'mittel' : 'groß'} (controlSize ${size})`,
+        when: { path: 'controlSize', equals: size },
+        options: { controlSize: size },
+    }));
+
 const MIN_MODIFIERS = {
     // The Auswahlfeld's dropdown sets the height of the row it sits in (#679), so
     // a bigger control raises the whole widget's minimum. Two entries rather than
@@ -1173,7 +1183,11 @@ const MIN_MODIFIERS = {
                 ],
             },
         },
+        ...controlSizeModifiers(),
     ],
+    // Offline (no history) the simple chart is skipped, so these land only with a connected run.
+    chart: controlSizeModifiers(),
+    energiebilanz: controlSizeModifiers(),
     // Same for the shutter's quick-select row under the slider (#745).
     shutter: [
         {

@@ -32,7 +32,7 @@ import { samplePreviewHistory } from '../../utils/sampleChartData';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 import { useChartNav } from '../../hooks/useChartNav';
-import { ChartNavBar } from './ChartNavBar';
+import { ChartNavBar, chartControlCls, chartControlGap, chartControlSize, chartControlsBelow } from './ChartNavBar';
 import { HistoryErrorNote } from './HistoryErrorNote';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -77,6 +77,8 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
     const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
     const lockRange = o.lockRange === true;
+    const controlSize = chartControlSize(o.controlSize);
+    const controlsBelow = chartControlsBelow(o.controlPosition);
     // User-defined chips (issue #709) replace the presets and the single custom chip.
     const userChips = parseRangeChips(o.rangeChips as string[] | undefined);
     const chipList: RangeChip[] =
@@ -300,13 +302,13 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     // Range selector shown only when a history adapter is configured/detected and not locked
     const rangeSelector =
         hasResolvedInstance && !lockRange ? (
-            <div className="flex gap-1 flex-wrap">
+            <div className={`flex ${chartControlGap(controlSize)} flex-wrap`}>
                 {chipList.map((c) => {
                     const active = activeKey === c.key;
                     return (
                         <button
                             key={c.key}
-                            className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                            className={chartControlCls(controlSize)}
                             style={{
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
@@ -321,7 +323,17 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
         ) : null;
 
     // Paging bar, next to the chips — only where there is a history to page through.
-    const navBar = nav.paging && hasResolvedInstance ? <ChartNavBar nav={nav} chips={chipList} /> : null;
+    const navBar =
+        nav.paging && hasResolvedInstance ? <ChartNavBar nav={nav} chips={chipList} size={controlSize} /> : null;
+    // Chips, adapter picker and paging bar — above the chart or below it (controlPosition).
+    const controlsRow = (gap: string) =>
+        rangeSelector || adapterPicker || navBar ? (
+            <div className={`aura-chart-controls ${gap} flex items-center gap-1 flex-wrap`}>
+                {rangeSelector}
+                {adapterPicker}
+                {navBar && <div className="ml-auto">{navBar}</div>}
+            </div>
+        ) : null;
     // While paging the axis frames the window itself, so an empty stretch shows as empty.
     const xDomain: [number | string, number | string] = navWindow
         ? [navWindow.start, navWindow.end]
@@ -376,13 +388,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                         </div>
                     </div>
                 </div>
-                {(rangeSelector || adapterPicker || navBar) && (
-                    <div className="mb-1.5 flex items-center gap-1 flex-wrap">
-                        {rangeSelector}
-                        {adapterPicker}
-                        {navBar && <div className="ml-auto">{navBar}</div>}
-                    </div>
-                )}
+                {!controlsBelow && controlsRow('mb-1.5')}
                 <div className="flex-1 relative" style={{ minHeight: 1 }}>
                     {history.length > 1 ? (
                         hasSize ? (
@@ -443,6 +449,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                     )}
                     {errorBadge}
                 </div>
+                {controlsBelow && controlsRow('mt-1.5')}
             </div>
         );
     }
@@ -494,13 +501,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 </div>
                 <HeaderSlotsRow2 />
             </HeaderGroup>
-            {(rangeSelector || adapterPicker || navBar) && (
-                <div className="mb-1 flex items-center gap-1 flex-wrap">
-                    {rangeSelector}
-                    {adapterPicker}
-                    {navBar && <div className="ml-auto">{navBar}</div>}
-                </div>
-            )}
+            {!controlsBelow && controlsRow('mb-1')}
             <div className="flex-1 relative" style={{ minHeight: 1 }}>
                 {history.length > 1 ? (
                     hasSize ? (
@@ -565,6 +566,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 )}
                 {errorBadge}
             </div>
+            {controlsBelow && controlsRow('mt-1')}
         </div>
     );
 }

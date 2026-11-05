@@ -1,6 +1,7 @@
 /**
  * Paging settings of the chart widgets (issue #871): paging on/off, start on the current window,
- * what the picked date is, the link group and the navigation datapoints. One editor for the
+ * what the picked date is, size and position of the controls, the link group and the navigation
+ * datapoints. One editor for the
  * advanced, the simple and the distribution chart — each passes its own option keys.
  */
 import { useT } from '../../../i18n';
@@ -122,6 +123,38 @@ export function ChartNavSettings({
                 <Hint className="ml-5">
                     {o[keys.anchor] === 'start' ? t('echart.navAnchorStartHint') : t('echart.navAnchorEndHint')}
                 </Hint>
+            </Unavailable>
+            <Unavailable reason={o.lockRange === true && !paging ? t('echart.controlsNeedControls') : undefined}>
+                <div className="grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-2 mt-3">
+                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.controlSize')}
+                    </span>
+                    <select
+                        value={o.controlSize === 'md' || o.controlSize === 'lg' ? o.controlSize : 'sm'}
+                        onChange={(e) => set({ controlSize: e.target.value === 'sm' ? undefined : e.target.value })}
+                        className={`${inputCls} min-w-0`}
+                        style={inputStyle}
+                        data-testid="chart-control-size"
+                    >
+                        <option value="sm">{t('echart.controlSizeSm')}</option>
+                        <option value="md">{t('echart.controlSizeMd')}</option>
+                        <option value="lg">{t('echart.controlSizeLg')}</option>
+                    </select>
+                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.controlPosition')}
+                    </span>
+                    <select
+                        value={o.controlPosition === 'bottom' ? 'bottom' : 'top'}
+                        onChange={(e) => set({ controlPosition: e.target.value === 'bottom' ? 'bottom' : undefined })}
+                        className={`${inputCls} min-w-0`}
+                        style={inputStyle}
+                        data-testid="chart-control-position"
+                    >
+                        <option value="top">{t('echart.controlPositionTop')}</option>
+                        <option value="bottom">{t('echart.controlPositionBottom')}</option>
+                    </select>
+                </div>
+                <Hint>{t('echart.controlsHint')}</Hint>
             </Unavailable>
             {keys.future && keys.current && keys.lead && (
                 <Unavailable reason={forecastUnavailable}>

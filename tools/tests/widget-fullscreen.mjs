@@ -83,6 +83,14 @@ const overlay = '[data-widget-fullscreen]';
         box ? `${Math.round(box.width)}x${Math.round(box.height)}` : 'keine Box',
     );
     check('im Overlay gibt es keinen zweiten Vollbild-Knopf', (await page.locator(`${overlay} ${btn}`).count()) === 0);
+    // Das Kreuz lag über der rechten oberen Ecke der Karte und verdeckte Kopfwerte und die
+    // Blätter-Leiste der Diagramme (#871) — jetzt beginnt die Karte darunter.
+    const closeBox = await page.locator('[data-widget-fullscreen-close]').boundingBox();
+    check(
+        'das Kreuz verdeckt die Karte nicht',
+        closeBox && box && closeBox.y + closeBox.height <= box.y,
+        closeBox && box ? `Kreuz bis ${Math.round(closeBox.y + closeBox.height)}, Karte ab ${Math.round(box.y)}` : '',
+    );
 
     await page.click('[data-widget-fullscreen-close]');
     await page.waitForTimeout(300);

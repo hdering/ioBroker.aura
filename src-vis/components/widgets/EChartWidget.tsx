@@ -54,7 +54,7 @@ import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
 import { useChartNav } from '../../hooks/useChartNav';
 import { parseLead, parseNavFuture } from '../../utils/chartNav';
-import { ChartNavBar } from './ChartNavBar';
+import { ChartNavBar, chartControlCls, chartControlGap, chartControlSize, chartControlsBelow } from './ChartNavBar';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 /** Stable fallback, so a chart without series does not hand the name hook a fresh array. */
@@ -457,6 +457,8 @@ function EChartBody({ config, editMode }: WidgetProps) {
     const cfgCustomUnit =
         (o.echartRangeCustomUnit as RangeUnit | undefined) ?? echartSeries[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = o.lockRange === true;
+    const controlSize = chartControlSize(o.controlSize);
+    const controlsBelow = chartControlsBelow(o.controlPosition);
     // User-defined chips (issue #709) replace the presets AND the single custom chip below.
     const userChips = parseRangeChips(o.rangeChips as string[] | undefined);
     // Which presets the frontend selector offers (config-selectable; default: all).
@@ -1774,13 +1776,13 @@ function EChartBody({ config, editMode }: WidgetProps) {
         hasHistory && !lockRange ? (
             // The chips stay on one line; where they do not fit beside the paging bar, the bar
             // wraps into a row of its own, and only then do too many chips scroll (swipe).
-            <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
+            <div className={`nodrag flex ${chartControlGap(controlSize)} min-w-0 overflow-x-auto aura-no-scrollbar`}>
                 {chipList.map((c) => {
                     const active = nav.chipKey === c.key;
                     return (
                         <button
                             key={c.key}
-                            className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
+                            className={`${chartControlCls(controlSize)} shrink-0 whitespace-nowrap`}
                             style={{
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
@@ -1794,7 +1796,16 @@ function EChartBody({ config, editMode }: WidgetProps) {
             </div>
         ) : null;
 
-    const dayNavControls = dayNav && hasHistory ? <ChartNavBar nav={nav} chips={chipList} /> : null;
+    const dayNavControls = dayNav && hasHistory ? <ChartNavBar nav={nav} chips={chipList} size={controlSize} /> : null;
+    const controlsRow =
+        rangeSelector || dayNavControls ? (
+            <div
+                className={`aura-chart-controls shrink-0 ${controlsBelow ? 'mt-1' : 'mb-1'} flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0`}
+            >
+                {rangeSelector ?? <span />}
+                {dayNavControls && <div className="ml-auto">{dayNavControls}</div>}
+            </div>
+        ) : null;
 
     return (
         <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
@@ -1829,12 +1840,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                     )}
                 </div>
             )}
-            {(rangeSelector || dayNavControls) && (
-                <div className="shrink-0 mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0">
-                    {rangeSelector ?? <span />}
-                    {dayNavControls && <div className="ml-auto">{dayNavControls}</div>}
-                </div>
-            )}
+            {!controlsBelow && controlsRow}
             {periodRow.length > 0 && (
                 <div
                     className="aura-chart-period shrink-0 mb-1 flex items-center gap-x-3 gap-y-0.5 flex-wrap min-w-0"
@@ -1925,6 +1931,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                     <HistoryErrorNote message={historyError} variant="badge" />
                 )}
             </div>
+            {controlsBelow && controlsRow}
         </div>
     );
 }

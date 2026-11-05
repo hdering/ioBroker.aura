@@ -23,7 +23,7 @@ import { useEnergyBalanceValues, type EnergyEntry } from '../../hooks/useEnergyB
 import { AuraIcon } from '../common/AuraIcon';
 import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
 import { useChartNav } from '../../hooks/useChartNav';
-import { ChartNavBar } from './ChartNavBar';
+import { ChartNavBar, chartControlCls, chartControlGap, chartControlSize, chartControlsBelow } from './ChartNavBar';
 
 /** Presets offered by the frontend range selector (custom handled separately). */
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -114,6 +114,10 @@ export interface EnergyBalanceOptions {
     visibleRanges?: EChartTimeRange[];
     /** Hide the frontend range selector and pin the configured range. Default false. */
     lockRange?: boolean;
+    /** Size of the range chips and the paging bar. Default 'sm'. */
+    controlSize?: 'sm' | 'md' | 'lg';
+    /** Chips and paging bar above ('top', default) or below the chart. */
+    controlPosition?: 'top' | 'bottom';
     showTitle?: boolean;
     /** Per-bar title + total above each bar. Default true. */
     showBarTitles?: boolean;
@@ -259,6 +263,8 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const cfgCustomVal = o.rangeCustomValue ?? 24;
     const cfgCustomUnit = o.rangeCustomUnit ?? 'h';
     const lockRange = o.lockRange === true;
+    const controlSize = chartControlSize(o.controlSize);
+    const controlsBelow = chartControlsBelow(o.controlPosition);
     // Which presets the frontend selector offers (config-selectable; default: all presets).
     const cfgVisibleRanges = o.visibleRanges;
     const visibleRanges =
@@ -379,6 +385,44 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
         );
     }
 
+    // Range chips and paging bar — above the bars or below them (controlPosition).
+    const controlsRow =
+        (!lockRange && chipList.length > 0) || nav.paging ? (
+            <div
+                className={`aura-chart-controls shrink-0 ${controlsBelow ? 'mt-1' : 'mb-1'} flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0`}
+            >
+                {!lockRange && chipList.length > 0 ? (
+                    <div
+                        className={`nodrag flex ${chartControlGap(controlSize)} min-w-0 overflow-x-auto aura-no-scrollbar`}
+                    >
+                        {chipList.map((c) => {
+                            const active = nav.chipKey === c.key;
+                            return (
+                                <button
+                                    key={c.key}
+                                    className={`${chartControlCls(controlSize)} shrink-0 whitespace-nowrap`}
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-border)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                    }}
+                                    onClick={() => nav.selectChip(c)}
+                                >
+                                    {c.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <span />
+                )}
+                {nav.paging && (
+                    <div className="ml-auto">
+                        <ChartNavBar nav={nav} chips={chipList} size={controlSize} />
+                    </div>
+                )}
+            </div>
+        ) : null;
+
     return (
         <div className="w-full h-full flex flex-col overflow-hidden" style={{ color: 'var(--text-primary)' }}>
             {showTitle && (config.title || showIcon) && (
@@ -402,37 +446,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                 </div>
             )}
 
-            {((!lockRange && chipList.length > 0) || nav.paging) && (
-                <div className="shrink-0 mb-1 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 min-w-0">
-                    {!lockRange && chipList.length > 0 ? (
-                        <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
-                            {chipList.map((c) => {
-                                const active = nav.chipKey === c.key;
-                                return (
-                                    <button
-                                        key={c.key}
-                                        className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-border)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                        }}
-                                        onClick={() => nav.selectChip(c)}
-                                    >
-                                        {c.label}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <span />
-                    )}
-                    {nav.paging && (
-                        <div className="ml-auto">
-                            <ChartNavBar nav={nav} chips={chipList} />
-                        </div>
-                    )}
-                </div>
-            )}
+            {!controlsBelow && controlsRow}
 
             <div className="flex-1 min-h-0 flex items-stretch justify-center gap-4 overflow-x-auto aura-scroll">
                 {bars.map((bar) => {
@@ -588,6 +602,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     );
                 })}
             </div>
+            {controlsBelow && controlsRow}
         </div>
     );
 }

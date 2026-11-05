@@ -401,6 +401,8 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartDayNav`           | `false`  | Blättern im Frontend (‹ › ⇥ 📅) — Schritt = aktiver Zeitraum-Chip                 |
 | `echartDayNavDefault`    | `false`  | Beim Laden auf den aktuellen Zeitraum stellen (24 Std: heute 00:00–24:00)          |
 | `echartNavAnchor`        | `end`    | Gewähltes Datum ist `end` = letzter Tag des Fensters · `start` = erster Tag       |
+| `controlSize`             | `sm`     | Größe von Zeitraum-Chips und Blätter-Leiste: `sm` · `md` · `lg` (Touch) |
+| `controlPosition`         | `top`    | Chips und Blätter-Leiste über (`top`) oder unter (`bottom`) dem Diagramm |
 | `echartNavGroup`         | —        | Kopplungsgruppe: gleiche Namen blättern gemeinsam (im selben Browser)             |
 | `echartNavGroupMode`     | `all`    | `all` = Datum und Zeitraum-Chip gemeinsam · `date` = nur das Datum, jedes Diagramm behält seinen Zeitraum |
 | `echartNavRangeDp`       | —        | Zeitraum-Datenpunkt, lesen + schreiben: `6h` · `24h` · `7d` · `1M` · `total`    |

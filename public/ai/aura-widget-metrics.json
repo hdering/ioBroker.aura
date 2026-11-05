@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-10-30",
+    "measured": "2026-11-05",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -1702,6 +1702,24 @@
           }
         },
         {
+          "key": "controlSize=md",
+          "label": "Bedienelemente mittel (controlSize md)",
+          "when": {
+            "path": "controlSize",
+            "equals": "md"
+          },
+          "basePx": 6
+        },
+        {
+          "key": "controlSize=lg",
+          "label": "Bedienelemente groß (controlSize lg)",
+          "when": {
+            "path": "controlSize",
+            "equals": "lg"
+          },
+          "basePx": 18
+        },
+        {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
           "when": {
@@ -1729,12 +1747,30 @@
       "minRowsDefaultGrid": 8,
       "notIncluded": [
         "gemessen mit EINEM Balken aus zwei Einträgen. Die Balken werden in die Karte eingepasst, nicht gestapelt (gemessen 1→224, 2→288, 4→306 px) — für mehrere Balken die Höhe am Ergebnis prüfen",
-        "Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf",
+        "Zeitbereichs-Umschalter (visibleRanges/rangeChips) und eine umbrechende Legende kommen oben drauf; die Blätter-Leiste (dayNav) sitzt in derselben Zeile, bei lockRange bildet sie sie allein",
         "gemessen mit den Standard-Schriftgrößen. Größere barTitleFontSize/totalFontSize/legendFontSize machen Titel und Legende höher - die Höhe dann am Ergebnis prüfen"
       ],
       "fontScalePx": 20,
       "atWidthPx": 160,
       "modifiers": [
+        {
+          "key": "controlSize=md",
+          "label": "Bedienelemente mittel (controlSize md)",
+          "when": {
+            "path": "controlSize",
+            "equals": "md"
+          },
+          "basePx": 6
+        },
+        {
+          "key": "controlSize=lg",
+          "label": "Bedienelemente groß (controlSize lg)",
+          "when": {
+            "path": "controlSize",
+            "equals": "lg"
+          },
+          "basePx": 18
+        },
         {
           "key": "headerRow2",
           "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
