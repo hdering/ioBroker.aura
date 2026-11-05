@@ -9848,23 +9848,6 @@
           "description": "Farbe der Mittelwertlinie.",
           "color": true
         },
-        "controlPosition": {
-          "type": "string",
-          "enum": [
-            "top",
-            "bottom"
-          ],
-          "description": "Position der Zeitraum-Chips und der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter)."
-        },
-        "controlSize": {
-          "type": "string",
-          "enum": [
-            "sm",
-            "md",
-            "lg"
-          ],
-          "description": "Größe der Zeitraum-Chips und der Blätter-Leiste: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Größer = höhere Bedienzeile."
-        },
         "dayNav": {
           "type": "boolean",
           "default": false,
@@ -9942,11 +9925,45 @@
           "default": "all",
           "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
         },
+        "navPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Stehen Chips und Leiste am selben Rand, teilen sie sich eine Zeile."
+        },
         "navRangeDp": {
           "type": "string",
           "default": "",
           "description": "Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips (\"6h\", \"24h\", \"7d\", \"1M\", \"total\"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.",
           "datapoint": true
+        },
+        "navSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Blätter-Leiste (‹ › ⇥ 📅): \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch). Unabhängig von rangeChipSize."
+        },
+        "rangeChipPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Unabhängig von navPosition."
+        },
+        "rangeChipSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Unabhängig von navSize; größer = höhere Bedienzeile."
         },
         "rangeChips": {
           "type": "array",
@@ -12245,23 +12262,6 @@
           "default": false,
           "description": "History-Instanz automatisch aus dem Datenpunkt bestimmen."
         },
-        "controlPosition": {
-          "type": "string",
-          "enum": [
-            "top",
-            "bottom"
-          ],
-          "description": "Position der Zeitraum-Chips und der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter)."
-        },
-        "controlSize": {
-          "type": "string",
-          "enum": [
-            "sm",
-            "md",
-            "lg"
-          ],
-          "description": "Größe der Zeitraum-Chips und der Blätter-Leiste: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Größer = höhere Bedienzeile."
-        },
         "echartAnimation": {
           "type": "boolean",
           "default": true,
@@ -12546,6 +12546,40 @@
           "default": false,
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten."
         },
+        "navPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Stehen Chips und Leiste am selben Rand, teilen sie sich eine Zeile."
+        },
+        "navSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Blätter-Leiste (‹ › ⇥ 📅): \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch). Unabhängig von rangeChipSize."
+        },
+        "rangeChipPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Unabhängig von navPosition."
+        },
+        "rangeChipSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Unabhängig von navSize; größer = höhere Bedienzeile."
+        },
         "rangeChips": {
           "type": "array",
           "items": {
@@ -12717,23 +12751,6 @@
           "description": "Visual style of each bar's composition. Default 'bars' (100%-stacked bar).",
           "default": "bars"
         },
-        "controlPosition": {
-          "type": "string",
-          "enum": [
-            "top",
-            "bottom"
-          ],
-          "description": "Position der Zeitraum-Chips und der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter)."
-        },
-        "controlSize": {
-          "type": "string",
-          "enum": [
-            "sm",
-            "md",
-            "lg"
-          ],
-          "description": "Größe der Zeitraum-Chips und der Blätter-Leiste: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Größer = höhere Bedienzeile."
-        },
         "dayNav": {
           "type": "boolean",
           "description": "Blättern im Frontend (‹ › ⇥ + Datum). Schritt = Länge des aktiven Zeitraum-Chips (24 Std = Kalendertag, 7 Tage = Woche, 1M = Kalendermonat); ein Chip-Wechsel behält das gewählte Datum. ⇥ springt auf den aktuellen Zeitraum, ein zweiter Klick darauf kehrt zum rollenden Zeitraum bis jetzt zurück. Bei „Gesamt\" ist Blättern ausgegraut.",
@@ -12818,11 +12835,28 @@
           "default": "all",
           "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
         },
+        "navPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Stehen Chips und Leiste am selben Rand, teilen sie sich eine Zeile."
+        },
         "navRangeDp": {
           "type": "string",
           "description": "Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips (\"6h\", \"24h\", \"7d\", \"1M\", \"total\"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.",
           "default": "",
           "datapoint": true
+        },
+        "navSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Blätter-Leiste (‹ › ⇥ 📅): \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch). Unabhängig von rangeChipSize."
         },
         "percentFontSize": {
           "type": "number",
@@ -12838,6 +12872,23 @@
           "ref": "EChartTimeRange",
           "default": "24h",
           "description": "Zeitraum, über den die Einträge aggregiert werden. Im Frontend umschaltbar (visibleRanges), solange lockRange aus ist."
+        },
+        "rangeChipPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Unabhängig von navPosition."
+        },
+        "rangeChipSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Unabhängig von navSize; größer = höhere Bedienzeile."
         },
         "rangeChips": {
           "type": "array",

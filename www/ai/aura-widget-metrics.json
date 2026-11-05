@@ -1702,22 +1702,40 @@
           }
         },
         {
-          "key": "controlSize=md",
-          "label": "Bedienelemente mittel (controlSize md)",
+          "key": "rangeChipSize=md",
+          "label": "Zeitraum-Chips mittel (rangeChipSize md)",
           "when": {
-            "path": "controlSize",
+            "path": "rangeChipSize",
             "equals": "md"
           },
           "basePx": 6
         },
         {
-          "key": "controlSize=lg",
-          "label": "Bedienelemente groß (controlSize lg)",
+          "key": "navSize=md",
+          "label": "Blätter-Leiste mittel (navSize md)",
           "when": {
-            "path": "controlSize",
+            "path": "navSize",
+            "equals": "md"
+          },
+          "basePx": 10
+        },
+        {
+          "key": "rangeChipSize=lg",
+          "label": "Zeitraum-Chips groß (rangeChipSize lg)",
+          "when": {
+            "path": "rangeChipSize",
             "equals": "lg"
           },
           "basePx": 18
+        },
+        {
+          "key": "navSize=lg",
+          "label": "Blätter-Leiste groß (navSize lg)",
+          "when": {
+            "path": "navSize",
+            "equals": "lg"
+          },
+          "basePx": 62
         },
         {
           "key": "headerRow2",
@@ -1754,22 +1772,40 @@
       "atWidthPx": 160,
       "modifiers": [
         {
-          "key": "controlSize=md",
-          "label": "Bedienelemente mittel (controlSize md)",
+          "key": "rangeChipSize=md",
+          "label": "Zeitraum-Chips mittel (rangeChipSize md)",
           "when": {
-            "path": "controlSize",
+            "path": "rangeChipSize",
             "equals": "md"
           },
           "basePx": 6
         },
         {
-          "key": "controlSize=lg",
-          "label": "Bedienelemente groß (controlSize lg)",
+          "key": "navSize=md",
+          "label": "Blätter-Leiste mittel (navSize md)",
           "when": {
-            "path": "controlSize",
+            "path": "navSize",
+            "equals": "md"
+          },
+          "basePx": 36
+        },
+        {
+          "key": "rangeChipSize=lg",
+          "label": "Zeitraum-Chips groß (rangeChipSize lg)",
+          "when": {
+            "path": "rangeChipSize",
             "equals": "lg"
           },
           "basePx": 18
+        },
+        {
+          "key": "navSize=lg",
+          "label": "Blätter-Leiste groß (navSize lg)",
+          "when": {
+            "path": "navSize",
+            "equals": "lg"
+          },
+          "basePx": 102
         },
         {
           "key": "headerRow2",
