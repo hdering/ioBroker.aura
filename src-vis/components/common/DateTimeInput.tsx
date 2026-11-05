@@ -65,12 +65,24 @@ function fieldWidth(kind: PickerKind, ours: boolean, disabled: boolean): number 
     return w;
 }
 
+/**
+ * Blink on Android (Chrome, Samsung Internet, WebView). Its date/time fields are
+ * menu buttons, yet getComputedStyle reports `appearance: auto` for them like on
+ * desktop — the theme decides the look, not the stylesheet. So the appearance
+ * probe alone never fired on a real phone (issue #920 after 0.104.0).
+ */
+const BLINK_ANDROID = KNOWS_INDICATOR && typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent ?? '');
+
 const dropdownCache = new Map<PickerKind, boolean>();
 
 /** Whether the engine paints this field as a menu button instead of a text field with an icon. */
 function isDropdownField(kind: PickerKind): boolean {
     const cached = dropdownCache.get(kind);
     if (cached !== undefined) return cached;
+    if (BLINK_ANDROID) {
+        dropdownCache.set(kind, true);
+        return true;
+    }
     const el = document.createElement('input');
     el.type = kind;
     el.style.cssText = 'position:absolute;left:-9999px;top:0';

@@ -7,10 +7,12 @@
 // with an arrow instead of a clock. Such fields now get `.aura-dt-dropdown`
 // (plain look, value width) and our picker button.
 //
-// Desktop Chromium has no Android theme, so the test plays it: a zero-specificity
-// rule gives the fields the dropdown appearance and a wide minimum, like the
-// engine's own stylesheet does. A second context without it checks that desktop
-// fields stay as they were.
+// Desktop Chromium has no Android theme, so the test plays it. The real engine
+// reports `appearance: auto` for those fields (the theme paints the arrow), so
+// the main case is an Android user agent with only a wide minimum and the arrow
+// gap injected — the appearance probe alone missed exactly that (0.104.0). A
+// second case keeps the menulist appearance on a desktop agent, a third context
+// without either checks that desktop fields stay as they were.
 //
 //   npm run dev                       (or set AURA_BASE)
 //   node tools/tests/datepicker-dropdown.mjs
@@ -26,7 +28,14 @@ const check = (name, ok, detail = '') => {
     console.log(`${ok ? '  ok  ' : '  FAIL'} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
-const ANDROID_LIKE = `:where(input[type='time'], input[type='date']) {
+const ANDROID_UA =
+    'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36';
+
+// What Chrome on Android lays out: a wide field, room on the right for the arrow.
+const ANDROID_FIELD = `:where(input[type='time'], input[type='date']) { min-width: 220px; }
+:where(input)::-webkit-date-and-time-value { margin: 1px 24px 1px 4px; }`;
+
+const MENULIST = `:where(input[type='time'], input[type='date']) {
     -webkit-appearance: menulist-button;
     appearance: menulist-button;
     min-width: 220px;
@@ -76,14 +85,17 @@ const FIELD = () => {
     };
 };
 
-async function open(browser, androidLike) {
-    const ctx = await browser.newContext({ viewport: { width: 400, height: 700 } });
+async function open(browser, css, userAgent) {
+    const ctx = await browser.newContext({
+        viewport: { width: 400, height: 700 },
+        ...(userAgent ? { userAgent } : {}),
+    });
     const page = await ctx.newPage();
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 });
-    if (androidLike) await page.addStyleTag({ content: ANDROID_LIKE });
+    if (css) await page.addStyleTag({ content: css });
     return { ctx, page, errors };
 }
 
@@ -98,21 +110,26 @@ async function measure(page, wd) {
 
 const browser = await chromium.launch();
 try {
-    const android = await open(browser, true);
-    for (const [name, wd] of [
-        ['widget', widget],
-        ['list entry', list],
+    for (const [variant, css, ua] of [
+        ['android (appearance auto)', ANDROID_FIELD, ANDROID_UA],
+        ['menulist appearance', MENULIST, undefined],
     ]) {
-        const f = await measure(android.page, wd);
-        const d = JSON.stringify(f);
-        check(`${name}: dropdown field taken over`, !!f && f.dropdown && f.appearance === 'none', d);
-        check(`${name}: sized to its value, not the engine minimum`, !!f && f.width < 120, d);
-        check(`${name}: own picker button`, !!f?.button, d);
+        const android = await open(browser, css, ua);
+        for (const [name, wd] of [
+            ['widget', widget],
+            ['list entry', list],
+        ]) {
+            const f = await measure(android.page, wd);
+            const d = JSON.stringify(f);
+            check(`${variant} ${name}: dropdown field taken over`, !!f && f.dropdown && f.appearance === 'none', d);
+            check(`${variant} ${name}: sized to its value, not the engine minimum`, !!f && f.width < 120, d);
+            check(`${variant} ${name}: own picker button`, !!f?.button, d);
+        }
+        check(`${variant}: no page errors`, android.errors.length === 0, android.errors.join(' | '));
+        await android.ctx.close();
     }
-    check('android-like: no page errors', android.errors.length === 0, android.errors.join(' | '));
-    await android.ctx.close();
 
-    const desktop = await open(browser, false);
+    const desktop = await open(browser, null);
     const f = await measure(desktop.page, list);
     check(
         'desktop: field keeps its normal look',
