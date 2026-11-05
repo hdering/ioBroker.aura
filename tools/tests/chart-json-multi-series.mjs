@@ -289,6 +289,21 @@ if (!BASE) {
         'editor: colour greyed with its reason',
         (await dlg.locator('.aura-cfg-unavailable-reason:has-text("Palettenfarbe")').count()) === 1,
     );
+    check(
+        'editor: name greyed with its reason',
+        (await dlg.locator('.aura-cfg-unavailable-reason:has-text("Eintrag im JSON")').count()) === 1,
+    );
+    // The switch decides the payload shape, so it sits with the datapoint and the shape examples,
+    // above the "JSON-Quelle" section further down.
+    const yOf = async (loc) => (await loc.boundingBox())?.y ?? NaN;
+    const toggleY = await yOf(dlg.locator('label:has-text("Mehrere Serien aus dem JSON")'));
+    const shapesY = await yOf(dlg.locator('summary:has-text("Welche JSON-Formen")').first());
+    const sectionY = await yOf(dlg.locator('p:text-is("JSON-Quelle")').first());
+    check(
+        'editor: switch sits up at the datapoint',
+        toggleY < shapesY && toggleY < sectionY,
+        `${toggleY} / ${shapesY} / ${sectionY}`,
+    );
 
     check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
     await browser.close();

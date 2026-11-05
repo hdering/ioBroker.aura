@@ -373,7 +373,7 @@ Statt Objekten nimmt `data` auch `[x, y]`-Paare: `[[1759312800000, 98], [1759399
 
 #### Mehrere Serien aus einem Datenpunkt
 
-Im Editor **Mehrere Serien aus dem JSON**. Eine Serie liefert so viele Linien, wie der Datenpunkt Einträge hat — kommt einer dazu, erscheint eine Linie mehr, ohne das Widget anzufassen. Die Einstellungen der Serie (Typ, Glättung, Einheit, Achse, Stapeln, Umrechnung) gelten für alle Linien.
+Im Editor **Mehrere Serien aus dem JSON**, direkt unter der Datenquelle. Name und Farbe der Serie sind dann ausgegraut — beides kommt je Linie aus dem JSON. Eine Serie liefert so viele Linien, wie der Datenpunkt Einträge hat — kommt einer dazu, erscheint eine Linie mehr, ohne das Widget anzufassen. Die Einstellungen der Serie (Typ, Glättung, Einheit, Achse, Stapeln, Umrechnung) gelten für alle Linien.
 
 ```json
 {

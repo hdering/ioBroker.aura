@@ -60,29 +60,6 @@ export function ChartSeriesJsonPanel({
                         style={inputStyle}
                     />
                 </div>
-                {/* Issue #926: the array holds whole series, one line per entry. */}
-                <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={!!s.jsonMultiSeries}
-                            onChange={(e) => update({ jsonMultiSeries: e.target.checked || undefined })}
-                            className="accent-[var(--accent)]"
-                        />
-                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.jsonMultiSeries')}
-                        </span>
-                    </label>
-                    <p
-                        className="text-[11px] mt-1"
-                        style={{
-                            color: 'var(--text-secondary)',
-                            opacity: 0.7,
-                        }}
-                    >
-                        {t('echart.jsonMultiSeriesHint')}
-                    </p>
-                </div>
                 {/* Widget-level, and only a choice in the JSON mode: a
                     timeseries chart always has a time axis, so a JSON
                     series mixed into it (issue #595) has nothing to pick. */}
@@ -225,20 +202,6 @@ export function ChartSeriesJsonPanel({
                         )}
                     </div>
                 )}
-                {probe?.done && !probe.invalid && !!probe.seriesNames?.length && (
-                    <p
-                        className="text-[11px]"
-                        style={{
-                            color: 'var(--text-secondary)',
-                            opacity: 0.8,
-                        }}
-                    >
-                        {t('echart.jsonMultiSeriesFound', {
-                            count: probe.seriesNames.length,
-                            names: probe.seriesNames.join(', '),
-                        })}
-                    </p>
-                )}
                 {probe?.done && !probe.invalid && (
                     <p
                         className="text-[11px]"
@@ -255,6 +218,49 @@ export function ChartSeriesJsonPanel({
                     </p>
                 )}
             </div>
+        </div>
+    );
+}
+
+/**
+ * "Several series from the JSON" (issue #926). Sits right under the data source, not down in
+ * "JSON-Quelle": it decides what the payload has to look like — whole series instead of points —
+ * and so belongs with the datapoint, next to the shape examples.
+ */
+export function JsonMultiSeriesToggle({
+    s,
+    probe,
+    update,
+}: {
+    s: EChartSeriesConfig;
+    probe?: JsonProbe;
+    update: (patch: Partial<EChartSeriesConfig>) => void;
+}) {
+    const t = useT();
+    return (
+        <div>
+            <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                    type="checkbox"
+                    checked={!!s.jsonMultiSeries}
+                    onChange={(e) => update({ jsonMultiSeries: e.target.checked || undefined })}
+                    className="accent-[var(--accent)]"
+                />
+                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    {t('echart.jsonMultiSeries')}
+                </span>
+            </label>
+            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                {t('echart.jsonMultiSeriesHint')}
+            </p>
+            {s.jsonMultiSeries && probe?.done && !probe.invalid && !!probe.seriesNames?.length && (
+                <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                    {t('echart.jsonMultiSeriesFound', {
+                        count: probe.seriesNames.length,
+                        names: probe.seriesNames.join(', '),
+                    })}
+                </p>
+            )}
         </div>
     );
 }

@@ -9,7 +9,7 @@ import { DatapointPicker } from '../DatapointPicker';
 import { ValueTransformButton } from '../ValueTransformButton';
 import { JsonShapeHint } from '../JsonChartHints';
 import { Unavailable } from '../Unavailable';
-import { ChartSeriesJsonPanel } from './ChartSeriesJsonPanel';
+import { ChartSeriesJsonPanel, JsonMultiSeriesToggle } from './ChartSeriesJsonPanel';
 import { ChartSeriesHistoryPanel } from './ChartSeriesHistoryPanel';
 import {
     CHART_TYPES,
@@ -99,37 +99,39 @@ export function ChartSeriesDetail({
     const mixedProbe = !isComparison && !isJson && seriesIsJson && probe?.done && !probe.invalid ? probe : null;
     return (
         <>
-            {/* Name */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('echart.name')}
-                </label>
-                <div className="flex gap-1">
-                    <input
-                        type="text"
-                        value={s.name}
-                        onChange={(e) => update({ name: e.target.value })}
-                        className={`${inputCls} flex-1 min-w-0`}
-                        style={inputStyle}
-                    />
-                    <button
-                        onClick={() => setNamePickerOpen(true)}
-                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                        title={t('echart.nameInsertDp')}
-                        data-testid="echart-name-insert-dp"
-                    >
-                        <Database size={13} />
-                    </button>
+            {/* Name — with several series from the JSON every line is named by its entry. */}
+            <Unavailable reason={seriesIsJson && s.jsonMultiSeries ? t('echart.unavailNameMultiSeries') : undefined}>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.name')}
+                    </label>
+                    <div className="flex gap-1">
+                        <input
+                            type="text"
+                            value={s.name}
+                            onChange={(e) => update({ name: e.target.value })}
+                            className={`${inputCls} flex-1 min-w-0`}
+                            style={inputStyle}
+                        />
+                        <button
+                            onClick={() => setNamePickerOpen(true)}
+                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            title={t('echart.nameInsertDp')}
+                            data-testid="echart-name-insert-dp"
+                        >
+                            <Database size={13} />
+                        </button>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.nameBindings')}
+                    </p>
                 </div>
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    {t('echart.nameBindings')}
-                </p>
-            </div>
+            </Unavailable>
 
             {/* Datapoint */}
             <div>
@@ -206,6 +208,8 @@ export function ChartSeriesDetail({
                     </div>
                 </div>
             </Unavailable>
+
+            {!isComparison && seriesIsJson && <JsonMultiSeriesToggle s={s} probe={probe} update={update} />}
 
             {/* Mixed into a timeseries chart the labels have to BE timestamps —
                 "01" is a month, and the time axis has nowhere to put it, so every
