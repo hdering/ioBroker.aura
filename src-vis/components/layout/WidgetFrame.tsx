@@ -197,6 +197,7 @@ import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDir
 import { lookupDatapointEntry, ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import { scalePatchFromDatapoint } from '../../utils/dpScale';
 import { DpRangeHint } from '../config/DpRangeHint';
+import { DpRangeBoundFields } from '../config/DpRangeBoundFields';
 import { detectMediaDevices, type DetectedMediaDevice } from '../../utils/mediaDeviceDetectors';
 import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE, conditionSlotsFor } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
@@ -16542,7 +16543,7 @@ function WidgetFrameInner({
                                                 <SubGroup title="Helligkeit">
                                                     <div>
                                                         <label className="text-[11px] mb-1 block" style={hint}>
-                                                            Helligkeits-DP (Dimmer 0–100)
+                                                            Helligkeits-DP (Dimmer)
                                                         </label>
                                                         {dpRow(
                                                             'brightnessDp',
@@ -16550,36 +16551,18 @@ function WidgetFrameInner({
                                                             'z.B. hue.0…level',
                                                         )}
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-2 mt-1">
-                                                        <div>
-                                                            <label className="text-[10px]" style={hint}>
-                                                                Min
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={(o.brightnessMin as number) ?? 0}
-                                                                onChange={(e) =>
-                                                                    setO({ brightnessMin: Number(e.target.value) })
-                                                                }
-                                                                className={lInputCls}
-                                                                style={lInputStyle}
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-[10px]" style={hint}>
-                                                                Max
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={(o.brightnessMax as number) ?? 100}
-                                                                onChange={(e) =>
-                                                                    setO({ brightnessMax: Number(e.target.value) })
-                                                                }
-                                                                className={lInputCls}
-                                                                style={lInputStyle}
-                                                            />
-                                                        </div>
-                                                    </div>
+                                                    <DpRangeBoundFields
+                                                        datapoint={
+                                                            (o.brightnessDp as string | undefined) || config.datapoint
+                                                        }
+                                                        min={{ key: 'brightnessMin', label: 'Min', fallback: 0 }}
+                                                        max={{ key: 'brightnessMax', label: 'Max', fallback: 100 }}
+                                                        options={o}
+                                                        onChange={setO}
+                                                        inputClassName={lInputCls}
+                                                        inputStyle={lInputStyle}
+                                                        labelStyle={hint}
+                                                    />
                                                     {!!(o.brightnessDp as string) &&
                                                         (() => {
                                                             const raw = o.brightnessBarSize;
@@ -16831,36 +16814,16 @@ function WidgetFrameInner({
                                                             'optional, z.B. hue.0…ct',
                                                         )}
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-2 mt-1">
-                                                        <div>
-                                                            <label className="text-[10px]" style={hint}>
-                                                                Min (warm)
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={(o.ctMin as number) ?? 2000}
-                                                                onChange={(e) =>
-                                                                    setO({ ctMin: Number(e.target.value) })
-                                                                }
-                                                                className={lInputCls}
-                                                                style={lInputStyle}
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-[10px]" style={hint}>
-                                                                Max (kalt)
-                                                            </label>
-                                                            <input
-                                                                type="number"
-                                                                value={(o.ctMax as number) ?? 6500}
-                                                                onChange={(e) =>
-                                                                    setO({ ctMax: Number(e.target.value) })
-                                                                }
-                                                                className={lInputCls}
-                                                                style={lInputStyle}
-                                                            />
-                                                        </div>
-                                                    </div>
+                                                    <DpRangeBoundFields
+                                                        datapoint={o.temperatureDp as string | undefined}
+                                                        min={{ key: 'ctMin', label: 'Min (warm)', fallback: 2000 }}
+                                                        max={{ key: 'ctMax', label: 'Max (kalt)', fallback: 6500 }}
+                                                        options={o}
+                                                        onChange={setO}
+                                                        inputClassName={lInputCls}
+                                                        inputStyle={lInputStyle}
+                                                        labelStyle={hint}
+                                                    />
                                                     {(!!(o.temperatureDp as string) || colorMode === 'hm-color') &&
                                                         (() => {
                                                             const raw = o.ctSliderSize;

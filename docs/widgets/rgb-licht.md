@@ -73,15 +73,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `brightnessMin` | `0` | Helligkeits-Minimum |
-| `brightnessMax` | `100` | Helligkeits-Maximum |
+| `brightnessMin` | aus DP, sonst `0` | Helligkeits-Minimum |
+| `brightnessMax` | aus DP, sonst `100` | Helligkeits-Maximum |
 | `brightnessBarSize` | `220` | max. px des Balkens (60–400) |
 | `satMax` | `100` | Maximum des Sättigungs-DPs (`hsv`) |
-| `ctMin` | `2000` | min. Kelvin |
-| `ctMax` | `6500` | max. Kelvin |
+| `ctMin` | aus DP, sonst `2000` | min. Kelvin |
+| `ctMax` | aus DP, sonst `6500` | max. Kelvin |
 | `ctSliderSize` | `220` | max. px des Reglers (60–400) |
 | `hmWhiteValue` | `200` | HmIP-Integer für Weiß-Modus (`hm-color`) |
 | `powerButtonSize` | `120` | max. px der Power-Taste (40–240) |
+
+Leere Min/Max-Felder übernehmen `common.min`/`common.max` des Datenpunkts – auch in Popups mit `{{parent}}`, wo jede Lampe ihren eigenen Bereich mitbringt. Ein eingetragener Wert übersteuert den Datenpunkt.
 
 ### Status-Datenpunkte
 

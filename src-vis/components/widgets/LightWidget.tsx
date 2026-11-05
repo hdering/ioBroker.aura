@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Lightbulb, Power, SunMedium, Palette, Thermometer, Sparkles, type LucideIcon } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useDpRange } from '../../hooks/useDpRange';
 import type { LightColorMode, LightEffect, LightTab, WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
@@ -406,6 +407,16 @@ const TAB_META: Record<LightTab, { icon: LucideIcon; key: LightTab }> = {
     effects: { icon: Sparkles, key: 'effects' },
 };
 
+/** A bound typed into the options, or undefined for an empty field. */
+function optNum(v: unknown): number | undefined {
+    return typeof v === 'number' && Number.isFinite(v) ? v : undefined;
+}
+
+/** Whole numbers on a wide scale; a narrow one (a 0…1 level) keeps its fractions. */
+function roundInRange(v: number, min: number, max: number): number {
+    return max - min >= 10 ? Math.round(v) : Math.round(v * 1000) / 1000;
+}
+
 export function LightWidget({ config, onConfigChange }: WidgetProps) {
     // Memoise the ?? {} fallback so dependents (persistTab callback below) don't
     // see a brand-new object reference on every render when options is undefined.
@@ -466,12 +477,16 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const temperatureDp = (o.temperatureDp as string | undefined) || '';
     const effectDp = (o.effectDp as string | undefined) || '';
 
-    // Ranges
-    const briMin = (o.brightnessMin as number | undefined) ?? 0;
-    const briMax = (o.brightnessMax as number | undefined) ?? 100;
+    // Ranges — a bound typed into the options wins; an empty one follows the
+    // datapoint's common.min/max (read at runtime, so one popup with {{parent}}
+    // fits every lamp, #923), then the fixed default.
+    const briRange = useDpRange(brightnessDp);
+    const ctRange = useDpRange(temperatureDp);
+    const briMin = optNum(o.brightnessMin) ?? briRange?.min ?? 0;
+    const briMax = optNum(o.brightnessMax) ?? briRange?.max ?? 100;
     const satMax = (o.satMax as number | undefined) ?? 100;
-    const ctMin = (o.ctMin as number | undefined) ?? 2000;
-    const ctMax = (o.ctMax as number | undefined) ?? 6500;
+    const ctMin = optNum(o.ctMin) ?? ctRange?.min ?? 2000;
+    const ctMax = optNum(o.ctMax) ?? ctRange?.max ?? 6500;
     const hmWhiteValue = (o.hmWhiteValue as number | undefined) ?? 200;
 
     // Current values
@@ -545,7 +560,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const writeBri = useCallback(
         (v: number) => {
             if (!brightnessDp) return;
-            setState(brightnessDp, Math.round(clamp(v, briMin, briMax)));
+            setState(brightnessDp, roundInRange(clamp(v, briMin, briMax), briMin, briMax));
         },
         [brightnessDp, briMin, briMax, setState],
     );
@@ -665,7 +680,7 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const stateText = (() => {
         if (!isOn) return 'Aus';
         if (brightnessVal != null) {
-            const pct = Math.round(((brightnessVal - briMin) / Math.max(1, briMax - briMin)) * 100);
+            const pct = Math.round(((brightnessVal - briMin) / Math.max(1e-6, briMax - briMin)) * 100);
             return `An · ${pct}%`;
         }
         return 'An';

@@ -586,11 +586,27 @@ export const WIDGET_OPTION_NOTES = {
                 '"hex" (colorHexDp), "hm-color" (Homematic-Farbwert) oder "none" für ein Licht ohne Farbe.',
         },
         brightnessDp: { description: 'Datenpunkt der Helligkeit.' },
-        brightnessMin: { description: 'Kleinster Helligkeitswert des Geräts.' },
-        brightnessMax: { description: 'Größter Helligkeitswert des Geräts.' },
+        brightnessMin: {
+            type: 'number',
+            description:
+                'Kleinster Helligkeitswert. Leer lassen = common.min von brightnessDp (zur Laufzeit gelesen, ' +
+                'passt also auch in Popups mit {{parent}}), sonst 0. Eingetragen übersteuert den Datenpunkt.',
+        },
+        brightnessMax: {
+            type: 'number',
+            description: 'Größter Helligkeitswert. Leer lassen = common.max von brightnessDp, sonst 100.',
+        },
         temperatureDp: { description: 'Datenpunkt der Farbtemperatur.' },
-        ctMin: { description: 'Kleinste Farbtemperatur des Geräts.' },
-        ctMax: { description: 'Größte Farbtemperatur des Geräts.' },
+        ctMin: {
+            type: 'number',
+            description:
+                'Wärmste Farbtemperatur (K). Leer lassen = common.min von temperatureDp (zur Laufzeit gelesen, ' +
+                'ein Popup mit {{parent}} passt sich jeder Lampe an), sonst 2000. Eingetragen übersteuert den Datenpunkt.',
+        },
+        ctMax: {
+            type: 'number',
+            description: 'Kälteste Farbtemperatur (K). Leer lassen = common.max von temperatureDp, sonst 6500.',
+        },
         satMax: { description: 'Größter Sättigungswert des Geräts.' },
         hmWhiteValue: { description: 'Homematic: Farbwert, der Weiß bedeutet.' },
         effectDp: { description: 'Datenpunkt für den Lichteffekt.' },
