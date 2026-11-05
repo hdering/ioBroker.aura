@@ -16414,6 +16414,10 @@ function WidgetFrameInner({
                                     };
                                     const hint: React.CSSProperties = { color: 'var(--text-secondary)' };
                                     const colorMode = (o.colorMode as string) ?? 'none';
+                                    const autoDps = o.autoDetectDps === true;
+                                    const autoDpsReason = autoDps
+                                        ? 'Wird beim Anzeigen aus dem Kanal des Haupt-Datenpunkts erkannt.'
+                                        : undefined;
                                     const wheelStyle = (o.colorWheelStyle as string) ?? 'disc';
                                     const presets = (o.colorPresets as string[] | undefined) ?? [
                                         '#ff3b30',
@@ -16445,7 +16449,11 @@ function WidgetFrameInner({
                                             | 'light_effectDp',
                                         placeholder = 'optional',
                                     ) => (
-                                        <div className="flex gap-1">
+                                        <fieldset
+                                            disabled={autoDps}
+                                            className="flex gap-1 m-0 p-0 border-0 min-w-0"
+                                            style={autoDps ? { opacity: 0.45 } : undefined}
+                                        >
                                             <input
                                                 type="text"
                                                 value={(o[optKey] as string) ?? ''}
@@ -16465,31 +16473,40 @@ function WidgetFrameInner({
                                             >
                                                 <Database size={13} />
                                             </button>
-                                        </div>
+                                        </fieldset>
                                     );
                                     return (
                                         <>
                                             <ConfigSection title={t('cfg.section.datapoints')} sectionKey="datapoints">
                                                 {renderMainDpField()}
+                                                <VisToggleRow
+                                                    visKey="autoDetectDps"
+                                                    label="Datenpunkte beim Anzeigen erkennen"
+                                                    hint="Für ein Popup, das für viele Lampen öffnet: Schalten, Helligkeit, Farbe und Lichtwärme kommen aus dem Kanal des Haupt-Datenpunkts (z. B. {{dp}})."
+                                                    on={autoDps}
+                                                    onChange={(v) => setO({ autoDetectDps: v || undefined })}
+                                                />
                                                 {/* Auto-Erkennen */}
-                                                <div className="flex items-center justify-between">
-                                                    <label className="text-[11px]" style={hint}>
-                                                        Datenpunkte aus Geschwistern füllen
-                                                    </label>
-                                                    <button
-                                                        onClick={() => void autoFillLight()}
-                                                        disabled={!config.datapoint}
-                                                        className="text-[10px] px-2.5 py-1 rounded-lg transition-colors disabled:opacity-40"
-                                                        style={{
-                                                            background:
-                                                                'color-mix(in srgb, var(--accent) 12%, transparent)',
-                                                            color: 'var(--accent)',
-                                                            border: '1px solid var(--accent)44',
-                                                        }}
-                                                    >
-                                                        ✨ Auto-Erkennen
-                                                    </button>
-                                                </div>
+                                                <Unavailable reason={autoDpsReason}>
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-[11px]" style={hint}>
+                                                            Datenpunkte aus Geschwistern füllen
+                                                        </label>
+                                                        <button
+                                                            onClick={() => void autoFillLight()}
+                                                            disabled={!config.datapoint}
+                                                            className="text-[10px] px-2.5 py-1 rounded-lg transition-colors disabled:opacity-40"
+                                                            style={{
+                                                                background:
+                                                                    'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                                                color: 'var(--accent)',
+                                                                border: '1px solid var(--accent)44',
+                                                            }}
+                                                        >
+                                                            ✨ Auto-Erkennen
+                                                        </button>
+                                                    </div>
+                                                </Unavailable>
 
                                                 <SubGroup title="Schalten">
                                                     {/* Switch DP */}
@@ -16503,7 +16520,7 @@ function WidgetFrameInner({
                                                             interpretiert.
                                                         </p>
                                                     </div>
-                                                    {!!(o.switchDp as string) &&
+                                                    {(autoDps || !!(o.switchDp as string)) &&
                                                         (() => {
                                                             const raw = o.powerButtonSize;
                                                             const pxVal =
@@ -16563,7 +16580,7 @@ function WidgetFrameInner({
                                                         inputStyle={lInputStyle}
                                                         labelStyle={hint}
                                                     />
-                                                    {!!(o.brightnessDp as string) &&
+                                                    {(autoDps || !!(o.brightnessDp as string)) &&
                                                         (() => {
                                                             const raw = o.brightnessBarSize;
                                                             const pxVal =
@@ -16604,41 +16621,46 @@ function WidgetFrameInner({
                                                 </SubGroup>
                                                 <SubGroup title="Farbe">
                                                     {/* Color mode */}
-                                                    <div>
-                                                        <label className="text-[11px] mb-1 block" style={hint}>
-                                                            Farb-Modus
-                                                        </label>
-                                                        <div className="grid grid-cols-2 gap-1">
-                                                            {(
-                                                                [
-                                                                    { val: 'none', label: 'Keine Farbe' },
-                                                                    { val: 'hsv', label: 'HSV (Hue + Sat)' },
-                                                                    { val: 'rgb', label: 'RGB (3 DPs)' },
-                                                                    { val: 'hex', label: 'Hex (#RRGGBB)' },
-                                                                    { val: 'hm-color', label: 'HmIP Color (0–200)' },
-                                                                ] as const
-                                                            ).map(({ val, label }) => (
-                                                                <button
-                                                                    key={val}
-                                                                    onClick={() => setO({ colorMode: val })}
-                                                                    className="py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
-                                                                    style={{
-                                                                        background:
-                                                                            colorMode === val
-                                                                                ? 'var(--accent)'
-                                                                                : 'var(--app-bg)',
-                                                                        color:
-                                                                            colorMode === val
-                                                                                ? '#fff'
-                                                                                : 'var(--text-secondary)',
-                                                                        border: '1px solid var(--app-border)',
-                                                                    }}
-                                                                >
-                                                                    {label}
-                                                                </button>
-                                                            ))}
+                                                    <Unavailable reason={autoDpsReason}>
+                                                        <div>
+                                                            <label className="text-[11px] mb-1 block" style={hint}>
+                                                                Farb-Modus
+                                                            </label>
+                                                            <div className="grid grid-cols-2 gap-1">
+                                                                {(
+                                                                    [
+                                                                        { val: 'none', label: 'Keine Farbe' },
+                                                                        { val: 'hsv', label: 'HSV (Hue + Sat)' },
+                                                                        { val: 'rgb', label: 'RGB (3 DPs)' },
+                                                                        { val: 'hex', label: 'Hex (#RRGGBB)' },
+                                                                        {
+                                                                            val: 'hm-color',
+                                                                            label: 'HmIP Color (0–200)',
+                                                                        },
+                                                                    ] as const
+                                                                ).map(({ val, label }) => (
+                                                                    <button
+                                                                        key={val}
+                                                                        onClick={() => setO({ colorMode: val })}
+                                                                        className="py-1.5 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                                                        style={{
+                                                                            background:
+                                                                                colorMode === val
+                                                                                    ? 'var(--accent)'
+                                                                                    : 'var(--app-bg)',
+                                                                            color:
+                                                                                colorMode === val
+                                                                                    ? '#fff'
+                                                                                    : 'var(--text-secondary)',
+                                                                            border: '1px solid var(--app-border)',
+                                                                        }}
+                                                                    >
+                                                                        {label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
                                                         </div>
-                                                    </div>
+                                                    </Unavailable>
                                                     {/* Mode-specific DPs */}
                                                     {colorMode === 'hsv' && (
                                                         <>
@@ -16731,7 +16753,7 @@ function WidgetFrameInner({
                                                         </div>
                                                     )}
                                                     {/* Wheel style — only if color mode active */}
-                                                    {colorMode !== 'none' && (
+                                                    {(autoDps || colorMode !== 'none') && (
                                                         <div>
                                                             <label className="text-[11px] mb-1 block" style={hint}>
                                                                 Farbrad-Stil
@@ -16824,7 +16846,9 @@ function WidgetFrameInner({
                                                         inputStyle={lInputStyle}
                                                         labelStyle={hint}
                                                     />
-                                                    {(!!(o.temperatureDp as string) || colorMode === 'hm-color') &&
+                                                    {(autoDps ||
+                                                        !!(o.temperatureDp as string) ||
+                                                        colorMode === 'hm-color') &&
                                                         (() => {
                                                             const raw = o.ctSliderSize;
                                                             const pxVal =
@@ -16872,7 +16896,7 @@ function WidgetFrameInner({
                                                             'optional, z.B. hm-rpc…3.PROGRAM',
                                                         )}
                                                     </div>
-                                                    {!!(o.effectDp as string) && (
+                                                    {(autoDps || !!(o.effectDp as string)) && (
                                                         <div className="mt-2 space-y-1.5">
                                                             <p className="text-[10px]" style={hint}>
                                                                 Effekte (Label + Wert):

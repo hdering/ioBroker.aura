@@ -585,6 +585,14 @@ export const WIDGET_OPTION_NOTES = {
                 'Über welche Datenpunkte die Farbe läuft: "hsv" (hueDp/saturationDp), "rgb" (rDp/gDp/bDp), ' +
                 '"hex" (colorHexDp), "hm-color" (Homematic-Farbwert) oder "none" für ein Licht ohne Farbe.',
         },
+        autoDetectDps: {
+            type: 'boolean',
+            description:
+                'Datenpunkte beim Anzeigen erkennen: Schalten, Helligkeit, Farbe (mit colorMode) und Lichtwärme ' +
+                'kommen aus dem Kanal des Haupt-Datenpunkts (Namen/Rollen wie beim type-detector: ON, SET, DIMMER, ' +
+                'TEMPERATURE, RGB, HUE/SAT, HmIP-Kanäle). Die *Dp-Felder und colorMode werden dann ignoriert. Für ' +
+                'EIN Popup, das eine Liste für jede Lampe öffnet: datapoint "{{dp}}", ein Licht-Widget, keine Varianten.',
+        },
         brightnessDp: { description: 'Datenpunkt der Helligkeit.' },
         brightnessMin: {
             type: 'number',

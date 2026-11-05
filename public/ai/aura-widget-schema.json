@@ -17705,17 +17705,12 @@
           "ref": "LightTab",
           "description": "Zuletzt geöffneter Reiter — wird vom Widget selbst gesetzt."
         },
-        "bDp": {
-          "type": "string",
-          "default": "",
-          "datapoint": true
+        "autoDetectDps": {
+          "type": "boolean",
+          "default": false,
+          "description": "Datenpunkte beim Anzeigen erkennen: Schalten, Helligkeit, Farbe (mit colorMode) und Lichtwärme kommen aus dem Kanal des Haupt-Datenpunkts (Namen/Rollen wie beim type-detector: ON, SET, DIMMER, TEMPERATURE, RGB, HUE/SAT, HmIP-Kanäle). Die *Dp-Felder und colorMode werden dann ignoriert. Für EIN Popup, das eine Liste für jede Lampe öffnet: datapoint \"{{dp}}\", ein Licht-Widget, keine Varianten."
         },
         "brightnessBarSize": {},
-        "brightnessDp": {
-          "type": "string",
-          "description": "Datenpunkt der Helligkeit.",
-          "datapoint": true
-        },
         "brightnessMax": {
           "type": "number",
           "description": "Größter Helligkeitswert. Leer lassen = common.max von brightnessDp, sonst 100."
@@ -17723,16 +17718,6 @@
         "brightnessMin": {
           "type": "number",
           "description": "Kleinster Helligkeitswert. Leer lassen = common.min von brightnessDp (zur Laufzeit gelesen, passt also auch in Popups mit {{parent}}), sonst 0. Eingetragen übersteuert den Datenpunkt."
-        },
-        "colorDp": {
-          "type": "string",
-          "default": "",
-          "datapoint": true
-        },
-        "colorHexDp": {
-          "type": "string",
-          "default": "",
-          "datapoint": true
         },
         "colorMode": {
           "type": "string",
@@ -17766,12 +17751,6 @@
           "description": "Wärmste Farbtemperatur (K). Leer lassen = common.min von temperatureDp (zur Laufzeit gelesen, ein Popup mit {{parent}} passt sich jeder Lampe an), sonst 2000. Eingetragen übersteuert den Datenpunkt."
         },
         "ctSliderSize": {},
-        "effectDp": {
-          "type": "string",
-          "default": "",
-          "description": "Datenpunkt für den Lichteffekt.",
-          "datapoint": true
-        },
         "effects": {
           "type": "array",
           "items": {
@@ -17780,37 +17759,17 @@
           },
           "description": "Auswählbare Effekte."
         },
-        "gDp": {
-          "type": "string",
-          "default": "",
-          "datapoint": true
-        },
         "hmWhiteValue": {
           "type": "number",
           "default": 200,
           "description": "Homematic: Farbwert, der Weiß bedeutet."
         },
-        "hueDp": {
-          "type": "string",
-          "default": "",
-          "datapoint": true
-        },
         "paletteSize": {},
         "powerButtonSize": {},
-        "rDp": {
-          "type": "string",
-          "default": "",
-          "datapoint": true
-        },
         "satMax": {
           "type": "number",
           "default": 100,
           "description": "Größter Sättigungswert des Geräts."
-        },
-        "saturationDp": {
-          "type": "string",
-          "default": "",
-          "datapoint": true
         },
         "showPalette": {
           "type": "boolean",
@@ -17825,18 +17784,6 @@
           "type": "string",
           "default": "left",
           "description": "Ausrichtung des Zustandstexts."
-        },
-        "switchDp": {
-          "type": "string",
-          "default": "",
-          "description": "Separater Ein/Aus-Datenpunkt neben dem Hauptwert.",
-          "datapoint": true
-        },
-        "temperatureDp": {
-          "type": "string",
-          "default": "",
-          "description": "Datenpunkt der Farbtemperatur.",
-          "datapoint": true
         }
       }
     },

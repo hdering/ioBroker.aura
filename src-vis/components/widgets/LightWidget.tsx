@@ -3,6 +3,7 @@ import { Lightbulb, Power, SunMedium, Palette, Thermometer, Sparkles, type Lucid
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDpRange } from '../../hooks/useDpRange';
+import { useLightAutoDps } from '../../hooks/useLightAutoDps';
 import type { LightColorMode, LightEffect, LightTab, WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
@@ -424,8 +425,18 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     const { setState } = useIoBroker();
     const { batteryIcon, reachIcon, statusBadges, statusItemCells } = useStatusFields(config);
 
+    // Runtime detection (#925): the datapoints come from the lamp's channel instead of
+    // the options, so one widget in a shared popup fits every lamp it is opened for.
+    const autoDps = o.autoDetectDps === true;
+    const detected = useLightAutoDps(config.datapoint, autoDps);
+    const mainDp = config.datapoint || '';
+    const mainIsSwitch = detected?.mainType === 'boolean';
+    const dpOpt = (key: string): string => (autoDps ? detected?.dps[key] : (o[key] as string | undefined)) || '';
+
     // ── Resolved options ────────────────────────────────────────────────────────
-    const colorMode = (o.colorMode as LightColorMode) ?? 'none';
+    const colorMode: LightColorMode = autoDps
+        ? (detected?.dps.colorMode ?? 'none')
+        : ((o.colorMode as LightColorMode) ?? 'none');
     const layout = (config.layout ?? 'light-all') as string;
     const wheelStyle = (o.colorWheelStyle as 'disc' | 'ring') ?? 'disc';
     const presets = (o.colorPresets as string[] | undefined) ?? DEFAULT_PRESETS;
@@ -465,17 +476,19 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     })();
 
     // DP IDs
-    const switchDp = (o.switchDp as string | undefined) || '';
-    const brightnessDp = (o.brightnessDp as string | undefined) || config.datapoint || '';
-    const hueDp = (o.hueDp as string | undefined) || '';
-    const saturationDp = (o.saturationDp as string | undefined) || '';
-    const rDp = (o.rDp as string | undefined) || '';
-    const gDp = (o.gDp as string | undefined) || '';
-    const bDp = (o.bDp as string | undefined) || '';
-    const colorDp = (o.colorDp as string | undefined) || ''; // HmIP single integer
-    const colorHexDp = (o.colorHexDp as string | undefined) || ''; // single "#RRGGBB" string
-    const temperatureDp = (o.temperatureDp as string | undefined) || '';
-    const effectDp = (o.effectDp as string | undefined) || '';
+    // DP IDs. Detected: the main datapoint is the switch when it is a boolean,
+    // otherwise the brightness - detection never returns the main datapoint itself.
+    const switchDp = dpOpt('switchDp') || (autoDps && mainIsSwitch ? mainDp : '');
+    const brightnessDp = dpOpt('brightnessDp') || (!autoDps || (detected && !mainIsSwitch) ? mainDp : '');
+    const hueDp = dpOpt('hueDp');
+    const saturationDp = dpOpt('saturationDp');
+    const rDp = dpOpt('rDp');
+    const gDp = dpOpt('gDp');
+    const bDp = dpOpt('bDp');
+    const colorDp = dpOpt('colorDp'); // HmIP single integer
+    const colorHexDp = dpOpt('colorHexDp'); // single "#RRGGBB" string
+    const temperatureDp = dpOpt('temperatureDp');
+    const effectDp = dpOpt('effectDp');
 
     // Ranges — a bound typed into the options wins; an empty one follows the
     // datapoint's common.min/max (read at runtime, so one popup with {{parent}}

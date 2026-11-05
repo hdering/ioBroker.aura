@@ -624,14 +624,16 @@ export function autoDetectStatusDps(
 // 2.COLOR, 3.PROGRAM). This function tries both layouts plus role-based fallback.
 
 const LIGHT_NAMES = {
-    switchDp: ['on', 'ON', 'state', 'STATE'],
-    brightnessDp: ['level', 'LEVEL', 'bri', 'brightness'],
+    // ON_SET / ON_LIGHT / DIMMER / BRIGHTNESS / RGB: alias channels as the type-detector names them (#925)
+    switchDp: ['on', 'ON', 'state', 'STATE', 'ON_SET', 'ON_LIGHT'],
+    brightnessDp: ['level', 'LEVEL', 'bri', 'brightness', 'DIMMER', 'BRIGHTNESS'],
     hueDp: ['hue', 'HUE'],
     saturationDp: ['sat', 'SAT', 'saturation', 'SATURATION'],
     rDp: ['r', 'R', 'red', 'RED'],
     gDp: ['g', 'G', 'green', 'GREEN'],
     bDp: ['b', 'B', 'blue', 'BLUE'],
     colorDp: ['COLOR', 'color'],
+    colorHexDp: ['RGB', 'rgb', 'hex_color'],
     temperatureDp: ['ct', 'CT', 'color_temp', 'colorTemp', 'color_temperature'],
     effectDp: ['effect', 'EFFECT', 'PROGRAM', 'program'],
 } as const;
@@ -645,7 +647,13 @@ const LIGHT_ROLES = {
     gDp: ['level.color.green'],
     bDp: ['level.color.blue'],
     temperatureDp: ['level.color.temperature'],
+    colorHexDp: ['level.color.rgb'],
 } as const;
+
+/** Result of autoDetectLightDps: the light widget's option keys it could fill. */
+export type LightDpDetection = Record<string, string | undefined> & {
+    colorMode?: 'hsv' | 'rgb' | 'hex' | 'hm-color' | 'none';
+};
 
 /**
  * Detects all light-related DPs for a given main datapoint. Searches:
@@ -658,11 +666,12 @@ const LIGHT_ROLES = {
  *  - rDp + gDp + bDp → 'rgb'
  *  - colorDp (single integer, last segment 'COLOR' or role level.color.hue
  *    on integer with max ≤ 200) → 'hm-color'
+ *  - colorHexDp (one "#RRGGBB" string, type-detector `rgbSingle`) → 'hex'
  */
 export function autoDetectLightDps(
     mainDpId: string,
     entries: Array<{ id: string; role?: string; type?: string }>,
-): Record<string, string | undefined> & { colorMode?: 'hsv' | 'rgb' | 'hm-color' | 'none' } {
+): LightDpDetection {
     if (!mainDpId) return {};
     const parts = mainDpId.split('.');
     const parent = parts.slice(0, -1).join('.');
@@ -709,7 +718,7 @@ export function autoDetectLightDps(
         return all.find((e) => roles.includes((e.role ?? '').toLowerCase()) && e.id !== mainDpId)?.id;
     };
 
-    const result: Record<string, string | undefined> & { colorMode?: 'hsv' | 'rgb' | 'hm-color' | 'none' } = {};
+    const result: LightDpDetection = {};
 
     // Generic lookup: try same-channel name → cross-channel name → role
     const lookup = (key: keyof typeof LIGHT_NAMES, roleKey?: keyof typeof LIGHT_ROLES): string | undefined =>
@@ -725,6 +734,9 @@ export function autoDetectLightDps(
     result.gDp = lookup('gDp', 'gDp');
     result.bDp = lookup('bDp', 'bDp');
     result.colorDp = lookup('colorDp');
+    // A hex colour is a string - a numeric `rgb` (some zigbee devices) is not one.
+    const hex = lookup('colorHexDp', 'colorHexDp');
+    result.colorHexDp = hex && entries.find((e) => e.id === hex)?.type !== 'number' ? hex : undefined;
     result.temperatureDp = lookup('temperatureDp', 'temperatureDp');
     result.effectDp = lookup('effectDp');
 
@@ -745,11 +757,17 @@ export function autoDetectLightDps(
         result.rDp = undefined;
         result.gDp = undefined;
         result.bDp = undefined;
+        result.colorHexDp = undefined;
     } else if (result.hueDp && result.saturationDp) {
         result.colorMode = 'hsv';
         result.colorDp = undefined;
+        result.colorHexDp = undefined;
     } else if (result.rDp && result.gDp && result.bDp) {
         result.colorMode = 'rgb';
+        result.colorDp = undefined;
+        result.colorHexDp = undefined;
+    } else if (result.colorHexDp) {
+        result.colorMode = 'hex';
         result.colorDp = undefined;
     } else {
         result.colorMode = 'none';

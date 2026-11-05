@@ -17,6 +17,21 @@ Je nach Funktion werden verschiedene Datenpunkte verwendet. `colorMode` bestimmt
 | `temperatureDp` | nein | `number` | Farbtemperatur in Kelvin |
 | `effectDp` | nein | — | Effekt-Auswahl |
 
+### Beim Anzeigen erkennen
+
+`autoDetectDps: true` (**Datenpunkte beim Anzeigen erkennen**): Die Felder oben und `colorMode` kommen aus dem Kanal des Haupt-Datenpunkts. Damit reicht **ein** Licht-Widget in einem Popup, das eine Liste für jede Lampe öffnet (Datenpunkt `{{dp}}`).
+
+| Kanal enthält | Bedienung |
+| --- | --- |
+| `ON` / `SET` (`switch.light`) | An/Aus |
+| `DIMMER` / `BRIGHTNESS` / `SET` (`level.dimmer`) | Helligkeit |
+| `TEMPERATURE` (`level.color.temperature`) | Lichtwärme |
+| `RGB` (`level.color.rgb`, `#RRGGBB`) | Farbe, `hex` |
+| `HUE` + `SAT` | Farbe, `hsv` |
+| `RED` + `GREEN` + `BLUE` | Farbe, `rgb` |
+
+Ist der Haupt-Datenpunkt ein `boolean`, ist er der Schalter, sonst die Helligkeit. HmIP-Kanäle desselben Geräts werden mit durchsucht.
+
 ## Layouts
 
 ### light-all
