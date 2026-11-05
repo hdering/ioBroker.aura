@@ -60,6 +60,29 @@ export function ChartSeriesJsonPanel({
                         style={inputStyle}
                     />
                 </div>
+                {/* Issue #926: the array holds whole series, one line per entry. */}
+                <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={!!s.jsonMultiSeries}
+                            onChange={(e) => update({ jsonMultiSeries: e.target.checked || undefined })}
+                            className="accent-[var(--accent)]"
+                        />
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.jsonMultiSeries')}
+                        </span>
+                    </label>
+                    <p
+                        className="text-[11px] mt-1"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            opacity: 0.7,
+                        }}
+                    >
+                        {t('echart.jsonMultiSeriesHint')}
+                    </p>
+                </div>
                 {/* Widget-level, and only a choice in the JSON mode: a
                     timeseries chart always has a time axis, so a JSON
                     series mixed into it (issue #595) has nothing to pick. */}
@@ -185,7 +208,7 @@ export function ChartSeriesJsonPanel({
                 {probe?.done && probe.invalid && (
                     <div>
                         <p className="text-[11px]" style={{ color: 'var(--danger, #ef4444)' }}>
-                            {t('echart.jsonNoArray')}
+                            {t(s.jsonMultiSeries ? 'echart.jsonNoSeries' : 'echart.jsonNoArray')}
                         </p>
                         {!!probe.arrayPaths?.length && (
                             <p
@@ -201,6 +224,20 @@ export function ChartSeriesJsonPanel({
                             </p>
                         )}
                     </div>
+                )}
+                {probe?.done && !probe.invalid && !!probe.seriesNames?.length && (
+                    <p
+                        className="text-[11px]"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            opacity: 0.8,
+                        }}
+                    >
+                        {t('echart.jsonMultiSeriesFound', {
+                            count: probe.seriesNames.length,
+                            names: probe.seriesNames.join(', '),
+                        })}
+                    </p>
                 )}
                 {probe?.done && !probe.invalid && (
                     <p

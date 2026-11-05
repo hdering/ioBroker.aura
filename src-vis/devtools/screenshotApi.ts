@@ -742,6 +742,7 @@ function installScreenshotApi(): void {
                   color: unknown;
                   step: unknown;
                   smooth: unknown;
+                  lineType: unknown;
               }[]
             | null {
             const el = document.querySelector('[_echarts_instance_]');
@@ -756,6 +757,7 @@ function installScreenshotApi(): void {
                           color?: unknown;
                           step?: unknown;
                           smooth?: unknown;
+                          lineStyle?: { type?: unknown };
                       }[];
                   }
                 | undefined;
@@ -779,6 +781,8 @@ function installScreenshotApi(): void {
                     // Step line vs. curve (issue #718).
                     step: s.step,
                     smooth: s.smooth,
+                    // Dashed/dotted lines of a multi-series JSON payload (issue #926).
+                    lineType: s.lineStyle?.type,
                 };
             });
         },

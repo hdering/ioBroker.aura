@@ -367,6 +367,34 @@ Für Serien mit `source: json` — im Modus `json` alle, im Modus `timeseries` d
 | `echartJsonTimeAxis`          | `false`     | Beschriftungen als Zeitstempel lesen → Zeitachse statt Kategorien |
 | `echartJsonAxisBounds`        | `false`     | min/max-Block aus dem Datenpunkt für die Y-Achse übernehmen       |
 | `echartSeries[].jsonAxisPath` | automatisch | Punkt-Pfad zum min/max-Block, z. B. `axis`; leer = suchen         |
+| `echartSeries[].jsonMultiSeries` | `false`  | das Array enthält ganze Serien — je Eintrag eine Linie (s. u.)    |
+
+Statt Objekten nimmt `data` auch `[x, y]`-Paare: `[[1759312800000, 98], [1759399200000, 101]]`.
+
+#### Mehrere Serien aus einem Datenpunkt
+
+Im Editor **Mehrere Serien aus dem JSON**. Eine Serie liefert so viele Linien, wie der Datenpunkt Einträge hat — kommt einer dazu, erscheint eine Linie mehr, ohne das Widget anzufassen. Die Einstellungen der Serie (Typ, Glättung, Einheit, Achse, Stapeln, Umrechnung) gelten für alle Linien.
+
+```json
+{
+    "series": [
+        { "name": "script-restore", "data": [[1759312800000, 98], [1759399200000, 101]] },
+        { "name": "agent-dvr", "data": [[1759312800000, 14]], "color": "var(--accent-green)" },
+        { "name": "Gesamt", "data": [[1759312800000, 190]], "lineStyle": "dashed" }
+    ]
+}
+```
+
+| Feld je Eintrag | Pflicht |                                                                    |
+| --------------- | ------- | ------------------------------------------------------------------ |
+| `name`          | ja      | Legende und Tooltip; doppelte Namen bekommen ` (2)`                 |
+| `data`          | ja      | Punkte wie bei einer einfachen JSON-Serie oder `[x, y]`-Paare       |
+| `color`         | nein    | Farbe oder Theme-Token; ohne Angabe feste Palettenfarbe je Name     |
+| `lineStyle`     | nein    | `dashed` / `dotted`                                                 |
+| `yAxisIndex`    | nein    | `0` links, `1` rechts; sonst die Achse der Serie                    |
+| `type`          | nein    | `line` / `bar` / `area` / `scatter`; sonst der Typ der Serie        |
+
+`jsonPath` zeigt auf die Liste (`series`); leer findet sie auch in `{"series": [...]}`. Mit Zeitstempeln in `data`: Modus `timeseries` oder `echartJsonTimeAxis`.
 
 ### Achsen
 

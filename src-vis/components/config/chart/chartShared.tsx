@@ -55,6 +55,8 @@ export interface JsonProbe {
     /** Every label in payload order (capped) — the category axis' names, e.g. for the now line. */
     labels?: string[];
     entries: number;
+    /** Names of the series a multi-series payload holds (issue #926) — unset for a plain one. */
+    seriesNames?: string[];
     /** Every sampled label parses as a timestamp → the time axis is the right choice. */
     timeLike: boolean;
 }

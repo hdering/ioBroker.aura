@@ -17,9 +17,11 @@ import {
     type EChartSeriesConfig,
     type EChartTimeRange,
     type JsonAxisBounds,
+    type JsonFannedSeries,
 } from '../../hooks/useMultiSeriesData';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useBoundSeriesNames } from '../../hooks/useBoundSeriesNames';
+import { useJsonSeriesFanOut } from '../../hooks/useJsonSeriesFanOut';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -194,8 +196,13 @@ function EChartBody({ config, editMode }: WidgetProps) {
     const decimals = (o.decimals as number) ?? defaultDecimals;
     const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     // Series names may carry bindings (issue #919) — resolved once here, so the axis, legend,
-    // tooltip and period row all read the same text.
-    const echartSeries = useBoundSeriesNames((o.echartSeries as EChartSeriesConfig[] | undefined) ?? NO_SERIES, config);
+    // tooltip and period row all read the same text. A multi-series JSON template (issue #926)
+    // becomes one plain JSON series per payload entry before anything else sees the list.
+    const echartSeries = useJsonSeriesFanOut(
+        useBoundSeriesNames((o.echartSeries as EChartSeriesConfig[] | undefined) ?? NO_SERIES, config),
+        o.echartMode === 'json',
+        DEFAULT_COLORS,
+    );
     // Boolean datapoints (issue #718): they plot as 0/1, draw as a step line by default and give an
     // axis of their own exactly the two ticks 0 and 1.
     const dpMeta = useDatapointMeta(echartSeries.map((s) => s.datapointId).filter((id) => !!id));
@@ -1304,7 +1311,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                 smooth: !stepOf(s) && (s.smooth ?? (s.chartType === 'line' || s.chartType === 'area')),
                 smoothMonotone: 'x',
                 // Stacked bands go without an outline — see `outlineWidthFor`.
-                lineStyle: { width: outlineWidthFor(s) },
+                lineStyle: { width: outlineWidthFor(s), type: (s as JsonFannedSeries).lineType },
                 itemStyle: { color: colorAt(idx) },
                 data: jsonData[idx],
                 yAxisIndex: s.yAxisIndex ?? 0,
@@ -1573,7 +1580,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
             // (e.g. dry days at 0) stays exactly flat instead of wobbling around it.
             smoothMonotone: 'x',
             // Stacked bands go without an outline — see `outlineWidthFor`.
-            lineStyle: { width: outlineWidthFor(s) },
+            lineStyle: { width: outlineWidthFor(s), type: (s as JsonFannedSeries).lineType },
             itemStyle: { color: colorAt(idx) },
             data,
             yAxisIndex: s.yAxisIndex ?? 0,

@@ -135,6 +135,15 @@ export interface EChartSeriesConfig {
     source?: 'history' | 'json';
     /** Dotted path into the parsed JSON value down to the array, e.g. `data.hours`. Empty = root. */
     jsonPath?: string;
+    /**
+     * The array at `jsonPath` holds whole series instead of points (issue #926): one line per entry
+     * `{"name": …, "data": […], "color"?: …, "lineStyle"?: "dashed"|"dotted", "yAxisIndex"?: …,
+     * "type"?: "line"|"bar"|"area"|"scatter"}`, so the number of lines follows the payload. `data`
+     * takes the same points as a plain JSON series, or `[x, y]` pairs. This series' own settings
+     * (chart type, smoothing, unit, axis, stacking …) are the template of every line; name and
+     * colour come from the entry — without a `color` each name keeps a palette colour of its own.
+     */
+    jsonMultiSeries?: boolean;
     /** Object key holding the x category (default `label`). */
     jsonLabelKey?: string;
     /** Object key holding the y value (default `value`). */
@@ -315,6 +324,26 @@ export function deltaTransform(s: EChartSeriesConfig): { factor: number; sign: 1
 /** A counter reading in the magnitude space `bucketDeltas` differences in. */
 function deltaMagnitude(s: EChartSeriesConfig, raw: number): number {
     return applyValueTransform(raw, deltaTransform(s).factor, s.valueOffset);
+}
+
+/**
+ * One line a multi-series JSON template fans out into (issue #926) — set by the widget, never
+ * stored: `jsonSeriesEntry` names the payload entry the line reads its points from, `lineType`
+ * carries the entry's `lineStyle`.
+ */
+export interface JsonFannedSeries extends EChartSeriesConfig {
+    jsonSeriesEntry?: string;
+    lineType?: 'solid' | 'dashed' | 'dotted';
+}
+
+/** One series of a multi-series JSON payload (issue #926), with its points still raw. */
+export interface JsonSeriesEntry {
+    name: string;
+    data: unknown[];
+    color?: string;
+    lineStyle?: 'solid' | 'dashed' | 'dotted';
+    yAxisIndex?: number;
+    chartType?: EChartSeriesConfig['chartType'];
 }
 
 /** One label/value pair of a JSON-sourced series. */
@@ -1006,25 +1035,106 @@ export function suggestJsonArrayPaths(raw: unknown, maxPaths = 4): string[] {
  * first entry. Entries whose value doesn't parse to a finite number are dropped; the array order
  * is kept as-is and becomes the category order on the x axis.
  */
-export function parseJsonSeries(raw: unknown, s: EChartSeriesConfig): JsonPoint[] {
+export function parseJsonSeries(raw: unknown, s: JsonFannedSeries): JsonPoint[] {
+    if (s.jsonSeriesEntry !== undefined) {
+        const entry = resolveJsonSeriesEntries(raw, s.jsonPath).find((e) => e.name === s.jsonSeriesEntry);
+        return entry ? parseJsonPoints(entry.data, s) : [];
+    }
     const parsed = resolveJsonArray(raw, s.jsonPath);
-    if (!parsed) return [];
+    return parsed ? parseJsonPoints(parsed, s) : [];
+}
 
-    const firstObj = parsed.find((i) => !!i && typeof i === 'object' && !Array.isArray(i)) as
-        | Record<string, unknown>
-        | undefined;
+/**
+ * Label/value points out of a data array: objects (`{"ts": …, "val": …}`, keys configured or
+ * detected) or `[x, y]` pairs — the shape ECharts itself takes and the one a script exporting a
+ * time series most likely writes (issue #926).
+ */
+export function parseJsonPoints(parsed: unknown[], s: EChartSeriesConfig): JsonPoint[] {
+    const firstObj = parsed.find(isPlainObject);
     const detected = firstObj ? detectJsonKeys(firstObj) : {};
     const labelKey = s.jsonLabelKey || detected.labelKey || 'label';
     const valueKey = s.jsonValueKey || detected.valueKey || 'value';
     const points: JsonPoint[] = [];
     for (const item of parsed) {
         if (!item || typeof item !== 'object') continue;
+        const pair = Array.isArray(item);
+        if (pair && item.length < 2) continue;
         const rec = item as Record<string, unknown>;
-        const value = Number(rec[valueKey]);
+        const value = Number(pair ? item[1] : rec[valueKey]);
         if (!Number.isFinite(value)) continue;
-        points.push({ label: String(rec[labelKey] ?? ''), value: seriesValue(s, value) });
+        points.push({ label: String((pair ? item[0] : rec[labelKey]) ?? ''), value: seriesValue(s, value) });
     }
     return points;
+}
+
+const LINE_STYLES = ['solid', 'dashed', 'dotted'] as const;
+const CHART_TYPES = ['line', 'bar', 'area', 'scatter'] as const;
+
+/** The points array of a series entry: `data`, else the first array it carries. */
+function entryData(e: Record<string, unknown>): unknown[] | undefined {
+    if (Array.isArray(e.data)) return e.data;
+    return Object.values(e).find(Array.isArray) as unknown[] | undefined;
+}
+
+/**
+ * Whether `v` is one series of a multi-series payload — an object carrying an array of points. A
+ * wrapper (`{"series": [...]}`) carries an array too, but one of such objects, not of points.
+ */
+function isSeriesEntry(v: unknown): v is Record<string, unknown> {
+    if (!isPlainObject(v)) return false;
+    const data = entryData(v);
+    return !!data && !data.some((p) => isPlainObject(p) && entryData(p) !== undefined);
+}
+
+/**
+ * The series a multi-series JSON payload describes (issue #926), following `jsonPath` and seeing
+ * through an object or array wrapper around the list, so `{"series": [...]}` charts with an empty
+ * path. Names are made unique — every line is keyed by its name, so a doubled one would steal the
+ * other's points.
+ */
+export function resolveJsonSeriesEntries(raw: unknown, jsonPath?: string): JsonSeriesEntry[] {
+    let node: unknown = raw;
+    if (typeof raw === 'string') {
+        try {
+            node = JSON.parse(raw);
+        } catch {
+            return [];
+        }
+    }
+    for (const seg of (jsonPath ?? '').trim().split('.').filter(Boolean)) node = stepInto(node, seg);
+    let list: unknown[] | undefined;
+    for (let depth = 0; depth < 3 && !list; depth++) {
+        if (Array.isArray(node)) {
+            if (node.some(isSeriesEntry)) list = node;
+            else if (node.length === 1 && isPlainObject(node[0])) node = node[0];
+            else return [];
+        } else if (isPlainObject(node)) {
+            node = Object.values(node).find((v) => Array.isArray(v) && v.some(isSeriesEntry));
+        } else return [];
+    }
+    if (!list) return [];
+    const seen = new Map<string, number>();
+    const entries: JsonSeriesEntry[] = [];
+    list.forEach((e, idx) => {
+        if (!isSeriesEntry(e)) return;
+        const base = String(e.name ?? e.label ?? e.title ?? `#${idx + 1}`);
+        const n = (seen.get(base) ?? 0) + 1;
+        seen.set(base, n);
+        const type = e.type ?? e.chartType;
+        const axis = Number(e.yAxisIndex);
+        entries.push({
+            name: n > 1 ? `${base} (${n})` : base,
+            data: entryData(e) ?? [],
+            color: typeof e.color === 'string' && e.color.trim() ? e.color.trim() : undefined,
+            lineStyle: LINE_STYLES.find((l) => l === e.lineStyle),
+            yAxisIndex:
+                e.yAxisIndex !== undefined && e.yAxisIndex !== null && Number.isFinite(axis) && axis >= 0
+                    ? Math.floor(axis)
+                    : undefined,
+            chartType: CHART_TYPES.find((c) => c === type),
+        });
+    });
+    return entries;
 }
 
 /** Key names a payload may use for the two bounds, best guess first. */
@@ -1284,6 +1394,7 @@ export function useMultiSeriesData(
             s.aggregate === 'delta' ? resolveDeltaBucket(s.deltaBucket, windowMs(s)) : undefined,
             s.source,
             s.jsonPath,
+            (s as JsonFannedSeries).jsonSeriesEntry,
             s.jsonLabelKey,
             s.jsonValueKey,
             s.jsonAxisPath,

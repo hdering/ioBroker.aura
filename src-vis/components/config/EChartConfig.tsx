@@ -11,6 +11,7 @@ import {
     parseJsonAxisBounds,
     parseTimeLabel,
     resolveJsonArray,
+    resolveJsonSeriesEntries,
     suggestJsonArrayPaths,
     type EChartSeriesConfig,
     type EChartTimeRange,
@@ -325,14 +326,17 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // ones (issue #595), so the source flag decides — with the JSON mode forcing it on.
     const jsonSeries = series.filter((s) => isJson || s.source === 'json');
     const jsonProbeKey = jsonSeries
-        .map((s) => `${s.id}:${s.datapointId}:${s.jsonPath ?? ''}:${s.jsonAxisPath ?? ''}`)
+        .map((s) => `${s.id}:${s.datapointId}:${s.jsonPath ?? ''}:${s.jsonAxisPath ?? ''}:${s.jsonMultiSeries ? 1 : 0}`)
         .join(',');
     useEffect(() => {
         for (const s of jsonSeries) {
             if (!s.datapointId || s.datapointId.includes('{{')) continue;
             getStateDirect(s.datapointId)
                 .then((state) => {
-                    const arr = resolveJsonArray(state?.val, s.jsonPath);
+                    // A multi-series template (issue #926) is probed on its first entry's points —
+                    // they decide the keys and the axis type for every line alike.
+                    const groups = s.jsonMultiSeries ? resolveJsonSeriesEntries(state?.val, s.jsonPath) : null;
+                    const arr = groups ? (groups[0]?.data ?? null) : resolveJsonArray(state?.val, s.jsonPath);
                     if (!arr) {
                         setJsonProbes((prev) => ({
                             ...prev,
@@ -362,7 +366,15 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         string,
                         unknown
                     >[];
-                    const labels = labelKey ? sample.map((i) => String(i[labelKey] ?? '')) : [];
+                    // `[x, y]` pairs carry their label in front, objects under the label key.
+                    const labelOf = (i: unknown): string | undefined =>
+                        Array.isArray(i)
+                            ? String(i[0] ?? '')
+                            : labelKey && i && typeof i === 'object'
+                              ? String((i as Record<string, unknown>)[labelKey] ?? '')
+                              : undefined;
+                    const pair = first ? undefined : (arr.find(Array.isArray) as unknown[] | undefined);
+                    const labels = sample.map(labelOf).filter((l): l is string => l !== undefined);
                     const timeLike = labels.length > 0 && labels.every((l) => parseTimeLabel(l) !== null);
                     setJsonProbes((prev) => ({
                         ...prev,
@@ -371,14 +383,24 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             keys,
                             labelKey,
                             valueKey,
-                            sampleLabel: labelKey && first ? String(first[labelKey] ?? '') : undefined,
-                            sampleValue: valueKey && first ? String(first[valueKey] ?? '') : undefined,
-                            labels: labelKey
-                                ? arr
-                                      .slice(0, 500)
-                                      .filter((i): i is Record<string, unknown> => !!i && typeof i === 'object')
-                                      .map((i) => String(i[labelKey] ?? ''))
-                                : undefined,
+                            sampleLabel: pair
+                                ? String(pair[0] ?? '')
+                                : labelKey && first
+                                  ? String(first[labelKey] ?? '')
+                                  : undefined,
+                            sampleValue: pair
+                                ? String(pair[1] ?? '')
+                                : valueKey && first
+                                  ? String(first[valueKey] ?? '')
+                                  : undefined,
+                            labels:
+                                labelKey || pair
+                                    ? arr
+                                          .slice(0, 500)
+                                          .map(labelOf)
+                                          .filter((l): l is string => l !== undefined)
+                                    : undefined,
+                            seriesNames: groups?.map((g) => g.name),
                             bounds: parseJsonAxisBounds(state?.val, s),
                             entries: arr.length,
                             timeLike,

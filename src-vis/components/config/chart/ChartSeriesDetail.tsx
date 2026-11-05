@@ -282,24 +282,28 @@ export function ChartSeriesDetail({
                 a kWh line and a percentage line rarely want the same precision. */}
             <div className="aura-series-format flex gap-1.5 items-end" style={{ maxWidth: 540 }}>
                 <div className="shrink-0" style={{ width: 168 }}>
-                    <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.color')}
-                    </label>
-                    <div className="flex gap-1.5 items-center">
-                        <ColorPicker
-                            value={s.color ?? '#3b82f6'}
-                            onChange={(v) => update({ color: v })}
-                            className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent shrink-0"
-                        />
-                        <input
-                            type="text"
-                            value={s.color ?? '#3b82f6'}
-                            onChange={(e) => update({ color: e.target.value })}
-                            className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
-                            style={inputStyle}
-                            placeholder="#3b82f6"
-                        />
-                    </div>
+                    <Unavailable
+                        reason={seriesIsJson && s.jsonMultiSeries ? t('echart.unavailColorMultiSeries') : undefined}
+                    >
+                        <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.color')}
+                        </label>
+                        <div className="flex gap-1.5 items-center">
+                            <ColorPicker
+                                value={s.color ?? '#3b82f6'}
+                                onChange={(v) => update({ color: v })}
+                                className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent shrink-0"
+                            />
+                            <input
+                                type="text"
+                                value={s.color ?? '#3b82f6'}
+                                onChange={(e) => update({ color: e.target.value })}
+                                className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
+                                style={inputStyle}
+                                placeholder="#3b82f6"
+                            />
+                        </div>
+                    </Unavailable>
                 </div>
                 <ValueFormatRow
                     decimals={s.decimals}

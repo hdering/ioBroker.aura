@@ -2160,6 +2160,13 @@ export const en: Record<TranslationKey, string> = {
     'echart.jsonKeyAuto': 'Automatic ({key})',
     'echart.jsonKeyAutoShort': 'Automatic',
     'echart.jsonPreview': '{count} entries found · first: {label} → {value}',
+    'echart.jsonMultiSeries': 'Several series from the JSON',
+    'echart.jsonMultiSeriesHint':
+        'The array holds whole series instead of points: one line per entry with “name” and “data”, optionally “color”, “lineStyle” (dashed/dotted), “yAxisIndex” and “type”. A new entry adds a line. This series’ settings apply to every line.',
+    'echart.jsonMultiSeriesFound': '{count} series found: {names}',
+    'echart.jsonNoSeries': 'There is no list of series here (entries with “name” and “data”).',
+    'echart.unavailColorMultiSeries':
+        'Each line takes its colour from the JSON (“color”) – without one, every name keeps a palette colour of its own.',
     'echart.jsonNoArray': 'The datapoint holds no JSON array at this path.',
     'echart.jsonPathSuggest': 'Arrays in this datapoint: {paths} — use one as the path.',
     'echart.jsonTimeAxis': 'Label is a timestamp',

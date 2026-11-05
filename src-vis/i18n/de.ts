@@ -2179,6 +2179,13 @@ export const de = {
     'echart.jsonKeyAuto': 'Automatisch ({key})',
     'echart.jsonKeyAutoShort': 'Automatisch',
     'echart.jsonPreview': '{count} Einträge erkannt · erster: {label} → {value}',
+    'echart.jsonMultiSeries': 'Mehrere Serien aus dem JSON',
+    'echart.jsonMultiSeriesHint':
+        'Das Array enthält ganze Serien statt Punkte: je Eintrag eine Linie mit „name“ und „data“, optional „color“, „lineStyle“ (dashed/dotted), „yAxisIndex“ und „type“. Kommt ein Eintrag dazu, erscheint eine Linie mehr. Die Einstellungen dieser Serie gelten für alle Linien.',
+    'echart.jsonMultiSeriesFound': '{count} Serien erkannt: {names}',
+    'echart.jsonNoSeries': 'An dieser Stelle steht keine Liste von Serien (Einträge mit „name“ und „data“).',
+    'echart.unavailColorMultiSeries':
+        'Die Farbe kommt je Linie aus dem JSON („color“) – ohne Angabe behält jeder Name eine feste Palettenfarbe.',
     'echart.jsonNoArray': 'Der Datenpunkt enthält an dieser Stelle kein JSON-Array.',
     'echart.jsonPathSuggest': 'Arrays in diesem Datenpunkt: {paths} — als Pfad eintragen.',
     'echart.jsonTimeAxis': 'Beschriftung ist ein Zeitstempel',
