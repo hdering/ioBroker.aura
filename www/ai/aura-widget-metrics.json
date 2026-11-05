@@ -1393,6 +1393,86 @@
           }
         }
       ]
+    },
+    "announcements": {
+      "item": "Ansage",
+      "basePx": 94,
+      "perItemPx": 54,
+      "fontScalePx": {
+        "basePx": 90,
+        "perItemPx": 36
+      },
+      "atWidthPx": 160,
+      "measured": [
+        {
+          "n": 1,
+          "px": 148
+        },
+        {
+          "n": 3,
+          "px": 256
+        },
+        {
+          "n": 6,
+          "px": 418
+        }
+      ],
+      "modifiers": [
+        {
+          "key": "allowCreate",
+          "label": "ohne Zeile „+ Neue Ansage“ (allowCreate: false)",
+          "when": {
+            "path": "allowCreate",
+            "equals": false
+          },
+          "basePx": -38,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": -86.7,
+            "perItemPx": 0
+          }
+        },
+        {
+          "key": "showSummary",
+          "label": "ohne zweite Zeile je Ansage (showSummary: false)",
+          "when": {
+            "path": "showSummary",
+            "equals": false
+          },
+          "basePx": 0,
+          "perItemPx": -13.2,
+          "fontScalePx": {
+            "basePx": 0,
+            "perItemPx": -25.3
+          }
+        },
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
+          "when": {
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              },
+              {
+                "path": "iconPlace",
+                "startsWith": "r2-"
+              }
+            ]
+          },
+          "basePx": 20,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 13.3,
+            "perItemPx": 0
+          }
+        }
+      ]
     }
   },
   "minimum": {
@@ -2656,6 +2736,38 @@
       "minPx": 170,
       "minRowsDefaultGrid": 6,
       "fontScalePx": 66.7,
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*, titleRow 2 oder iconPlace r2-*)",
+          "when": {
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              },
+              {
+                "path": "iconPlace",
+                "startsWith": "r2-"
+              }
+            ]
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
+    },
+    "announcements": {
+      "minPx": 92,
+      "minRowsDefaultGrid": 4,
+      "fontScalePx": 106.7,
       "atWidthPx": 160,
       "modifiers": [
         {

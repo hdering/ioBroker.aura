@@ -2528,6 +2528,66 @@
       ]
     },
     {
+      "id": "ansagen",
+      "title": "Sprachansagen im Dashboard anlegen – und Ansage beim Countdown-Ende",
+      "when": "Der Nutzer will, dass Haushaltsmitglieder selbst Ansagen einrichten („wenn es klingelt, hier ansagen“), oder ein Countdown/Küchenwecker soll am Ende etwas ansagen („Pizza fertig“) (#918).",
+      "instead": "ein Skript mit setState auf speech.say, eine eigene Liste aus Tasten oder einen Countdown, der auf clients.<id>.speech.say schreibt — Regeln führt der Adapter aus, die Ansage beim Ablauf hat der Countdown eingebaut",
+      "notes": [
+        "Widget \"announcements\" zeigt die Ansage-Regeln aus Admin → Ansagen (aura.0.config.announcements). Die Regeln führt der Adapter aus, auch ohne offenes Dashboard. Regeln selbst sind über das MCP nicht anlegbar — der Nutzer legt sie im Widget oder im Admin an.",
+        "Eine im Widget angelegte Regel gehört dem Gerät (owner = Client-ID) und sagt standardmäßig nur dort an; allowOtherDevices gibt die Geräteauswahl frei. Geräteübergreifende Regeln bleiben Admin-Sache: Admin → Ansagen zeigt sie als „vom Gerät …“ und kann sie übernehmen.",
+        "triggers: [{ dp, name }] gibt dem Haushalt benannte Auslöser („Haustürklingel“) statt der freien Datenpunkt-Auswahl. scope \"device\" listet zusätzlich die Admin-Regeln, die auf diesem Gerät sprechen (nur testen).",
+        "Countdown: announceText (z. B. \"{{title}} ist fertig\") sagt beim Ablauf an — announceTarget \"starter\" (Standard) auf dem Gerät, auf dem Start gedrückt wurde, \"all\" überall, \"clients\" auf announceClients. Ein Start per triggerDp oder Skript kennt kein Gerät, dann alle.",
+        "Höhe des Ansagen-Widgets: eine Zeile je Regel plus „+ Neue Ansage“, die Zahl kennt erst der Adapter zur Laufzeit — autoHeight einschalten oder großzügig planen."
+      ],
+      "widgets": [
+        {
+          "id": "w-ansagen",
+          "type": "announcements",
+          "title": "%Titel%",
+          "datapoint": "",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 8,
+            "h": 8
+          },
+          "options": {
+            "triggers": [
+              {
+                "dp": "%Datenpunkt%",
+                "name": "%Name%"
+              }
+            ]
+          }
+        },
+        {
+          "id": "w-pizza",
+          "type": "countdown",
+          "title": "Pizza",
+          "datapoint": "",
+          "layout": "default",
+          "gridPos": {
+            "x": 8,
+            "y": 0,
+            "w": 6,
+            "h": 8
+          },
+          "options": {
+            "durationSec": 720,
+            "presets": [
+              600,
+              720,
+              900
+            ],
+            "valueOnStart": "",
+            "valueOnEnd": "",
+            "announceText": "{{title}} ist fertig"
+          }
+        }
+      ]
+    },
+    {
       "id": "diashow",
       "title": "Diashow aus einem Fotoordner – als Kachel oder Bildschirmschoner",
       "when": "Der Nutzer will Fotos (und Videos) aus einem Ordner im Dashboard durchlaufen lassen – digitaler Bilderrahmen, Urlaubsbilder, Bildschirmschoner auf dem Wandtablet (#848).",

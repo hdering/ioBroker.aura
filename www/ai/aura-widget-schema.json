@@ -7668,6 +7668,104 @@
         }
       }
     },
+    "announcements": {
+      "label": "Ansagen",
+      "group": "control",
+      "addMode": "free",
+      "hint": "Sprachansagen für dieses Gerät direkt im Dashboard anlegen – Auslöser, Text, Zeitfenster, Sperre",
+      "defaultSize": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "autoHeight",
+        "badges",
+        "bgImage",
+        "clickAction",
+        "clickActionIcon",
+        "clickActionIconName",
+        "clickActionIconPosition",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenScreen",
+        "fullscreenWidget",
+        "headerItems",
+        "iconColor",
+        "iconPlace",
+        "iconSize",
+        "lastChangeDatapoint",
+        "lastChangePosition",
+        "lastChangeSource",
+        "showIcon",
+        "showLastChange",
+        "showTitle",
+        "styleOverride",
+        "textLines",
+        "titleColor",
+        "titleRow",
+        "titleSize",
+        "transparency",
+        "transparent"
+      ],
+      "options": {
+        "allowCreate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Zeile „+ Neue Ansage“: Regeln im Dashboard anlegen. Standard an."
+        },
+        "allowDelete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Löschen im Bearbeiten-Popup. Standard an."
+        },
+        "allowEdit": {
+          "type": "boolean",
+          "default": true,
+          "description": "Stift (Bearbeiten-Popup) und An/Aus-Schalter an den Regeln dieses Geräts. Standard an."
+        },
+        "allowOtherDevices": {
+          "type": "boolean",
+          "default": false,
+          "description": "Im Popup auch andere Geräte als Ziel wählbar. Standard aus: eine im Dashboard angelegte Regel sagt nur auf dem Gerät an, das sie angelegt hat — geräteübergreifende Ansagen bleiben Admin-Sache. Der Adapter ändert nur Regeln, deren owner das anfragende Gerät ist."
+        },
+        "icon": {
+          "type": "string",
+          "default": "Megaphone",
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, \"#tint\" färbt ein einfarbiges PNG in der Icon-Farbe ein; sonst hat ein PNG seine eigenen Farben). Leer = Standard-Icon des Typs."
+        },
+        "scope": {
+          "description": "Welche Ansage-Regeln (Admin → Ansagen, aura.0.config.announcements) die Liste zeigt: \"own\" (Standard) = nur die auf diesem Gerät im Widget angelegten; \"device\" = zusätzlich die Admin-Regeln, die auf diesem Gerät sprechen — die nur testen, nicht ändern."
+        },
+        "showSummary": {
+          "type": "boolean",
+          "default": true,
+          "description": "Zweite Zeile je Regel: Auslöser, Zeitfenster, Wochentage, Sperre."
+        },
+        "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
+          "description": "Ausrichtung des Titels: left, center oder right."
+        },
+        "triggers": {
+          "description": "Auslöser zur Auswahl: [{ dp, name }] — Datenpunkte mit Klarnamen (\"Haustürklingel\"), aus denen der Haushalt im Popup wählt, statt eine Datenpunkt-ID zu suchen. Leer = freie Datenpunkt-Auswahl."
+        }
+      }
+    },
     "autolist": {
       "label": "Dynamische Liste",
       "group": "control",
@@ -11125,6 +11223,29 @@
         "transparent"
       ],
       "options": {
+        "announceClients": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Client-IDs (aura.0.clients.<id>) für announceTarget \"clients\". Leer = alle Geräte."
+        },
+        "announceInterrupt": {
+          "type": "boolean",
+          "default": false,
+          "description": "Laufende Ansage abbrechen und die Warteschlange leeren, bevor angesagt wird."
+        },
+        "announceTarget": {
+          "description": "Wo angesagt wird: \"starter\" (Standard) = auf dem Gerät, auf dem Start gedrückt wurde; \"all\" = alle Geräte; \"clients\" = die Client-IDs in announceClients. Startet triggerDp oder ein Skript den Countdown, ist kein Gerät bekannt — dann alle."
+        },
+        "announceText": {
+          "type": "string",
+          "default": "",
+          "description": "Sprachansage beim Ablauf (#918): Text oder Sounddatei (.mp3/.wav/URL), gesprochen über aura.0.speech.say — der Adapter sagt an, auch wenn kein Dashboard offen ist. {{title}} = Widget-Titel, [[Datenpunkt-ID]] = Wert eines Datenpunkts. Leer = keine Ansage. Unabhängig von targetDp/valueOnEnd: beides geht zusammen."
+        },
+        "announceVolume": {
+          "description": "Lautstärke der Ansage 0–100. Leer = speech.volume des Geräts."
+        },
         "digitSize": {
           "description": "Schriftgröße der Ziffern in px; 0 = passt sich der Kachelbreite an."
         },
