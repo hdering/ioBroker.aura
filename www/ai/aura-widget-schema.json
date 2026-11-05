@@ -6087,6 +6087,17 @@
         "value": {
           "type": "string",
           "description": "per-event override — only honored when allowEventValue is on"
+        },
+        "announce": {
+          "type": "string",
+          "description": "text or sound file announced when the event fires ([[id]] = a value); only with allowEventAnnounce (#918)"
+        },
+        "announceClients": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "devices that announce it — set to the device that saved the event; ignored with announceTarget 'all'"
         }
       }
     },
@@ -23644,10 +23655,18 @@
           "type": "number",
           "default": 16
         },
+        "allowEventAnnounce": {
+          "type": "boolean",
+          "default": false,
+          "description": "Je Schaltzeit eine Sprachansage erlauben (#918): Feld „Ansage“ im Ereignis-Popup (events[].announce, Text oder Sounddatei, [[id]] = Wert), gesprochen über aura.0.speech.say, wenn das Ereignis auslöst (beim Zeitraum nur am Anfang). Damit läuft die Zeitschaltuhr auch ohne targetDp als reiner Ansage-Plan."
+        },
         "allowEventValue": {
           "type": "boolean",
           "default": false,
           "description": "Je Schaltzeit einen eigenen Wert erlauben."
+        },
+        "announceTarget": {
+          "description": "Wo die Ansagen sprechen: \"device\" (Standard) = auf dem Gerät, auf dem das Ereignis gespeichert wurde (events[].announceClients); \"all\" = alle Geräte."
         },
         "enabled": {
           "type": "boolean",

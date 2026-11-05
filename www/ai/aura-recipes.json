@@ -2537,6 +2537,7 @@
         "Eine im Widget angelegte Regel gehört dem Gerät (owner = Client-ID) und sagt standardmäßig nur dort an; allowOtherDevices gibt die Geräteauswahl frei. Geräteübergreifende Regeln bleiben Admin-Sache: Admin → Ansagen zeigt sie als „vom Gerät …“ und kann sie übernehmen.",
         "triggers: [{ dp, name }] gibt dem Haushalt benannte Auslöser („Haustürklingel“) statt der freien Datenpunkt-Auswahl. scope \"device\" listet zusätzlich die Admin-Regeln, die auf diesem Gerät sprechen (nur testen).",
         "Countdown: announceText (z. B. \"{{title}} ist fertig\") sagt beim Ablauf an — announceTarget \"starter\" (Standard) auf dem Gerät, auf dem Start gedrückt wurde, \"all\" überall, \"clients\" auf announceClients. Ein Start per triggerDp oder Skript kennt kein Gerät, dann alle.",
+        "Ansage nach Zeitplan („täglich 7:00: Mülltonne raus“): Widget \"timer\" mit allowEventAnnounce: true — jedes Ereignis bekommt im Popup ein Feld „Ansage“ (events[].announce); targetDp darf dann leer bleiben. announceTarget \"device\" (Standard) = Gerät, auf dem das Ereignis gespeichert wurde, \"all\" = überall.",
         "Höhe des Ansagen-Widgets: eine Zeile je Regel plus „+ Neue Ansage“, die Zahl kennt erst der Adapter zur Laufzeit — autoHeight einschalten oder großzügig planen."
       ],
       "widgets": [
