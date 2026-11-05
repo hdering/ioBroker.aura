@@ -105,6 +105,19 @@ check('control cell ignores a stored click action', (await popups().count()) ===
 const writes = await page.evaluate(() => window.__auraShot.writes?.() ?? null);
 check('control cell still writes', !writes || JSON.stringify(writes).includes('aura_test_729'), JSON.stringify(writes));
 
+// A per-cell fullscreen popup covers the whole window (#937).
+await show([{ ...cells[0], popup: { fullscreen: true } }, cells[1], cells[2], cells[3]]);
+await page.locator('.aura-widget-cca1 >> text=Zelle A').click();
+await settle();
+const dialogBox = await popups().first().locator('> div').first().boundingBox();
+check(
+    'cell popup with fullscreen covers the window',
+    !!dialogBox && dialogBox.width >= 1199 && dialogBox.height >= 899,
+    JSON.stringify(dialogBox),
+);
+await closePopup();
+await show(cells);
+
 // ── Edit mode: cells are inert ────────────────────────────────────────────────
 await page.evaluate((w) => {
     window.__auraShot.showWidgets([w], { editMode: true });
@@ -145,6 +158,13 @@ check(
     g?.cells[2]?.clickAction?.kind === 'link-external' && g?.cells[0]?.clickAction?.kind === 'popup-html',
     JSON.stringify(g?.cells.map((c) => c.clickAction?.kind ?? null)),
 );
+// The popup-wide "Vollbild" switch has to stick on a cell, too (#937).
+await actionSelect.selectOption('popup-html');
+await settle();
+await page.locator('label:has(> span:text-is("Vollbild")) > div').last().click();
+await settle();
+g = await grid();
+check('editor: "Vollbild" is stored on the cell', g?.cells[2]?.popup?.fullscreen === true, JSON.stringify(g?.cells[2]));
 await actionSelect.selectOption('none');
 await settle();
 g = await grid();

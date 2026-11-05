@@ -34,6 +34,8 @@ export interface RowPopupOptions {
     rowPopupHideTitle?: boolean;
     rowPopupWidth?: number;
     rowPopupHeight?: number;
+    /** Popup covers the whole screen; rowPopupWidth/rowPopupHeight are ignored. */
+    rowPopupFullscreen?: boolean;
     rowPopupAutoCloseSec?: number;
     rowPopupAutoCloseCountdown?: PopupCountdownPosition; // corner of the auto-close countdown; undefined = inherit view/global
     /** Popup transparency / backdrop dim in percent; undefined = inherit view/global. */

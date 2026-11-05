@@ -114,6 +114,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                         popupHideTitle: open.hideTitle ?? po.rowPopupHideTitle,
                         popupWidth: po.rowPopupWidth,
                         popupHeight: po.rowPopupHeight,
+                        popupFullscreen: po.rowPopupFullscreen,
                         popupAutoCloseSec: po.rowPopupAutoCloseSec,
                         popupAutoCloseCountdown: po.rowPopupAutoCloseCountdown,
                         popupTransparency: po.rowPopupTransparency,

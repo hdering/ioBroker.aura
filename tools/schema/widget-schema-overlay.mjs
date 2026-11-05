@@ -199,6 +199,7 @@ export const KEY_DESCRIPTIONS = {
     rowPopupTitle: 'Titel des Popups, das eine Zeile beim Antippen öffnet.',
     rowPopupWidth: 'Breite des Zeilen-Popups in px.',
     rowPopupHeight: 'Höhe des Zeilen-Popups in px.',
+    rowPopupFullscreen: 'Zeilen-Popup füllt den ganzen Bildschirm; rowPopupWidth/rowPopupHeight entfallen.',
     rowPopupHideTitle: 'Titelzeile des Zeilen-Popups ausblenden.',
     rowPopupBackdropDim: 'Abdunklung des Hintergrunds hinter dem Zeilen-Popup, 0–100.',
     rowPopupAutoCloseSec: 'Zeilen-Popup nach so vielen Sekunden schließen. 0 = nie.',

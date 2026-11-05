@@ -2326,6 +2326,7 @@ function cellPopupOpts(p: CellPopupOptions | undefined): RowPopupOptions | undef
     return {
         rowPopupWidth: p.width,
         rowPopupHeight: p.height,
+        rowPopupFullscreen: p.fullscreen,
         rowPopupAutoCloseSec: p.autoCloseSec,
         rowPopupAutoCloseCountdown: p.autoCloseCountdown,
         rowPopupTransparency: p.transparency,

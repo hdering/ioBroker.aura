@@ -171,7 +171,7 @@ const MODES: { value: Mode; label: string }[] = [
  * row's datapoint role instead, so a dimmer row opens the dimmer popup and a sensor
  * row the generic datapoint popup. A custom
  * action reuses the regular ClickActionEditor through a proxy config: it reads
- * options.clickAction / popupTitle / popupWidth / popupHeight / popupAutoCloseSec,
+ * options.clickAction / popupTitle / popupWidth / popupHeight / popupFullscreen / popupAutoCloseSec,
  * which are mapped onto the row* option keys here.
  */
 export function RowClickSection({
@@ -244,6 +244,7 @@ export function RowClickSection({
                             popupHideTitle: opts.rowPopupHideTitle,
                             popupWidth: opts.rowPopupWidth,
                             popupHeight: opts.rowPopupHeight,
+                            popupFullscreen: opts.rowPopupFullscreen,
                             popupAutoCloseSec: opts.rowPopupAutoCloseSec,
                             popupAutoCloseCountdown: opts.rowPopupAutoCloseCountdown,
                             popupTransparency: opts.rowPopupTransparency,
@@ -261,6 +262,7 @@ export function RowClickSection({
                             rowPopupHideTitle: o.popupHideTitle as boolean | undefined,
                             rowPopupWidth: o.popupWidth as number | undefined,
                             rowPopupHeight: o.popupHeight as number | undefined,
+                            rowPopupFullscreen: (o.popupFullscreen as boolean) || undefined,
                             rowPopupAutoCloseSec: o.popupAutoCloseSec as number | undefined,
                             rowPopupAutoCloseCountdown: o.popupAutoCloseCountdown as PopupCountdownPosition | undefined,
                             rowPopupTransparency: o.popupTransparency as number | undefined,

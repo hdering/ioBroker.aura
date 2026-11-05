@@ -489,6 +489,7 @@ export interface CellPopupOptions {
     hideTitle?: boolean; // hide the popup's title bar
     width?: number; // popup width in px; unset = view/global
     height?: number; // popup height in px; unset = view/global
+    fullscreen?: boolean; // popup covers the whole screen; width/height are ignored
     autoCloseSec?: number; // 0 = never close automatically, >0 = seconds; unset = view/global
     autoCloseCountdown?: PopupCountdownPosition; // corner where the seconds until auto-close run down; 'off' = none; unset = view/global
     transparency?: number; // popup transparency in % (0 = opaque)

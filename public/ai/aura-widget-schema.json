@@ -2334,6 +2334,10 @@
           "type": "number",
           "description": "popup height in px; unset = view/global"
         },
+        "fullscreen": {
+          "type": "boolean",
+          "description": "popup covers the whole screen; width/height are ignored"
+        },
         "autoCloseSec": {
           "type": "number",
           "description": "0 = never close automatically, >0 = seconds; unset = view/global"
@@ -8155,6 +8159,10 @@
           "type": "object",
           "ref": "BackgroundImage",
           "description": "Popup background image; undefined = inherit view/global (issue #442)."
+        },
+        "rowPopupFullscreen": {
+          "type": "boolean",
+          "description": "Zeilen-Popup füllt den ganzen Bildschirm; rowPopupWidth/rowPopupHeight entfallen."
         },
         "rowPopupHeight": {
           "type": "number",
@@ -16494,6 +16502,10 @@
           "ref": "BackgroundImage",
           "description": "Popup background image; undefined = inherit view/global (issue #442)."
         },
+        "rowPopupFullscreen": {
+          "type": "boolean",
+          "description": "Zeilen-Popup füllt den ganzen Bildschirm; rowPopupWidth/rowPopupHeight entfallen."
+        },
         "rowPopupHeight": {
           "type": "number",
           "description": "Höhe des Zeilen-Popups in px."
@@ -18104,6 +18116,10 @@
           "type": "object",
           "ref": "BackgroundImage",
           "description": "Popup background image; undefined = inherit view/global (issue #442)."
+        },
+        "rowPopupFullscreen": {
+          "type": "boolean",
+          "description": "Zeilen-Popup füllt den ganzen Bildschirm; rowPopupWidth/rowPopupHeight entfallen."
         },
         "rowPopupHeight": {
           "type": "number",
@@ -21956,6 +21972,10 @@
           "type": "object",
           "ref": "BackgroundImage",
           "description": "Popup background image; undefined = inherit view/global (issue #442)."
+        },
+        "rowPopupFullscreen": {
+          "type": "boolean",
+          "description": "Zeilen-Popup füllt den ganzen Bildschirm; rowPopupWidth/rowPopupHeight entfallen."
         },
         "rowPopupHeight": {
           "type": "number",

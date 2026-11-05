@@ -22234,6 +22234,7 @@ function WidgetFrameInner({
                             popupHideTitle: p.hideTitle,
                             popupWidth: p.width,
                             popupHeight: p.height,
+                            popupFullscreen: p.fullscreen,
                             popupAutoCloseSec: p.autoCloseSec,
                             popupAutoCloseCountdown: p.autoCloseCountdown,
                             popupTransparency: p.transparency,
@@ -22258,6 +22259,7 @@ function WidgetFrameInner({
                                         hideTitle: (o.popupHideTitle as boolean) || undefined,
                                         width: o.popupWidth as number | undefined,
                                         height: o.popupHeight as number | undefined,
+                                        fullscreen: (o.popupFullscreen as boolean) || undefined,
                                         autoCloseSec: o.popupAutoCloseSec as number | undefined,
                                         autoCloseCountdown: o.popupAutoCloseCountdown as
                                             | PopupCountdownPosition
