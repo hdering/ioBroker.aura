@@ -42,7 +42,7 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 
 | Farbe | Bedeutung |
 | --- | --- |
-| Grau | Ziel-DP nicht gesetzt **oder** keine Ereignisse |
+| Grau | Ziel-DP nicht gesetzt (und keine [Ansage](#ansage) erlaubt) **oder** keine Ereignisse |
 | Slate | Master aus — Ereignisse bleiben gespeichert |
 | Orange | Master an, aber kein Ereignis aktiv |
 | Grün | Mindestens ein Ereignis aktiv |
@@ -73,6 +73,22 @@ Frei plaziert in einer Zellenmatrix. Verfügbare Komponenten: `icon`, `master`, 
 | `reapplyOnStart` | `false` | Beim Adapterstart den Wert schreiben, der laut Plan gerade gilt — siehe [Plan erneut anwenden](#plan-erneut-anwenden) |
 
 Beim Auslöser-Typ **Zeitraum** schreibt der Scheduler am Ende den invertierten Wert (`true → false`, `42 → 0`, sonst leerer String).
+
+### Ansage
+
+Ein Ereignis kann beim Auslösen etwas ansagen — z. B. täglich 7:00 „Die Mülltonne muss raus“. Über die [Sprachausgabe](../anleitungen/sprachausgabe), auch wenn kein Dashboard offen ist.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `allowEventAnnounce` | `false` | Feld **Ansage** im Ereignis-Editor; die Zeitschaltuhr läuft dann auch ohne `targetDp` |
+| `announceTarget` | `device` | `device` = auf dem Gerät, auf dem das Ereignis gespeichert wurde · `all` = alle Geräte |
+
+| Ansage | |
+| --- | --- |
+| Inhalt | Text oder Sounddatei; `[[Datenpunkt-ID]]` = Wert eines Datenpunkts |
+| Zeitraum | nur am Anfang |
+| mit `targetDp` | Wert schreiben **und** ansagen |
+| in der Liste | 📢-Symbol am Ereignis |
 
 ### In Popup-Ansicht oder Gerätekarte
 

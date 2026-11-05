@@ -26,6 +26,7 @@ import {
     Pencil,
     Power,
     PowerOff,
+    Megaphone,
 } from 'lucide-react';
 import type { WidgetProps, TimerEvent, TimerWeekday, TimerTrigger, TimerAstroEvent } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
@@ -41,6 +42,7 @@ import {
 import { useSharedTemplateMode } from '../../contexts/RenderTransformContext';
 import { instanceBackendKey, templateInstanceKey } from '../../utils/templateInstanceKey';
 import { TimerEventModal } from './TimerEventModal';
+import { useConnectionStore } from '../../store/connectionStore';
 import { TimerSpecialDaysModal, type SpecialDaysSource } from './TimerSpecialDaysModal';
 import { summarizeSpecialDays, type SpecialDaysSummary } from '../../utils/specialDays';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -253,6 +255,23 @@ function ValueBadge({ raw, isRange, iconOnly }: { raw: string; isRange?: boolean
     );
 }
 
+/** An event that speaks when it fires (#918): megaphone, with the text unless iconOnly. */
+function AnnounceBadge({ text, iconOnly }: { text?: string; iconOnly?: boolean }) {
+    const t = (text ?? '').trim();
+    if (!t) return null;
+    return (
+        <span
+            className="flex items-center gap-1 text-[10px] min-w-0 shrink"
+            style={{ color: 'var(--accent)' }}
+            title={`Ansage: ${t}`}
+            data-testid="timer-announce"
+        >
+            <Megaphone size={11} className="shrink-0" />
+            {!iconOnly && <span className="truncate">{t}</span>}
+        </span>
+    );
+}
+
 function statusColor(masterEnabled: boolean, events: TimerEvent[], hasTarget: boolean): string {
     if (!hasTarget) return 'var(--text-secondary)'; // grey — admin hasn't set target yet
     if (events.length === 0) return 'var(--text-secondary)'; // grey — no events
@@ -330,6 +349,9 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     };
     const targetValue = o.value as string | undefined;
     const allowEventValue = o.allowEventValue === true;
+    const allowEventAnnounce = o.allowEventAnnounce === true;
+    const announceTarget = o.announceTarget === 'all' ? 'all' : 'device';
+    const clientId = useConnectionStore((s) => s.clientId);
     const reapplyOnStart = o.reapplyOnStart === true;
     const holidaysDp = o.holidaysDp as string | undefined;
     const vacationDp = o.vacationDp as string | undefined;
@@ -371,7 +393,8 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const useAddIcon = !!addIconName;
     const posClass = contentPositionClass(o.contentPosition as string | undefined);
 
-    const hasTarget = targets.length > 0;
+    // An announcement-only timer (#918) needs no target datapoint.
+    const hasTarget = targets.length > 0 || allowEventAnnounce;
     const statusCol = statusColor(masterEnabled, events, hasTarget);
     const enabledCount = events.filter((e) => e.enabled && e.weekdays.length > 0).length;
 
@@ -434,6 +457,8 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             extraTargetDps,
             value: targetValue,
             allowEventValue,
+            allowEventAnnounce: allowEventAnnounce || undefined,
+            announceTarget: allowEventAnnounce ? announceTarget : undefined,
             holidaysDp,
             vacationDp,
             holidaysValue,
@@ -455,6 +480,8 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         extraTargetDps,
         targetValue,
         allowEventValue,
+        allowEventAnnounce,
+        announceTarget,
         holidaysDp,
         vacationDp,
         holidaysValue,
@@ -549,9 +576,11 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             className="text-[10px] truncate"
             style={{ color: 'var(--text-secondary)' }}
             title={
-                hasTarget
+                targets.length
                     ? `Ziel: ${targets.join(', ')} ← ${targetValue ?? 'true'}`
-                    : 'Kein Ziel-Datenpunkt — bitte Admin'
+                    : hasTarget
+                      ? 'Nur Ansagen'
+                      : 'Kein Ziel-Datenpunkt — bitte Admin'
             }
         >
             {!hasTarget
@@ -614,10 +643,13 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                 <TriggerIcon trigger={ev.trigger} />
                                 {triggerLabel(ev.trigger)}
                             </span>
-                            <ValueBadge
-                                raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
-                                isRange={ev.trigger.kind === 'range'}
-                            />
+                            {targets.length > 0 && (
+                                <ValueBadge
+                                    raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
+                                    isRange={ev.trigger.kind === 'range'}
+                                />
+                            )}
+                            {allowEventAnnounce && <AnnounceBadge text={ev.announce} />}
                             {ev.label ? (
                                 <span
                                     className="text-[10px] flex-1 truncate text-right"
@@ -723,8 +755,9 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             {editing && (
                 <TimerEventModal
                     initial={editing === 'new' ? newEvent() : editing}
-                    allowValue={allowEventValue}
+                    allowValue={allowEventValue && targets.length > 0}
                     defaultValue={targetValue}
+                    announce={allowEventAnnounce ? { clientId, all: announceTarget === 'all' } : undefined}
                     onSave={saveFromModal}
                     onCancel={() => setEditing(null)}
                     onDelete={editing === 'new' ? undefined : deleteFromModal}
@@ -742,9 +775,11 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             className="text-[10px] truncate"
             style={{ color: 'var(--text-secondary)' }}
             title={
-                hasTarget
+                targets.length
                     ? `Ziel: ${targets.join(', ')} ← ${targetValue ?? 'true'}`
-                    : 'Kein Ziel-Datenpunkt — bitte Admin'
+                    : hasTarget
+                      ? 'Nur Ansagen'
+                      : 'Kein Ziel-Datenpunkt — bitte Admin'
             }
         >
             {!hasTarget
@@ -822,11 +857,14 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                         />
                         <TriggerIcon trigger={ev.trigger} />
                         <span className="font-mono">{triggerLabel(ev.trigger)}</span>
-                        <ValueBadge
-                            raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
-                            isRange={ev.trigger.kind === 'range'}
-                            iconOnly
-                        />
+                        {targets.length > 0 && (
+                            <ValueBadge
+                                raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
+                                isRange={ev.trigger.kind === 'range'}
+                                iconOnly
+                            />
+                        )}
+                        {allowEventAnnounce && <AnnounceBadge text={ev.announce} iconOnly />}
                         <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
                             {ev.label ||
                                 (ev.trigger.kind === 'time' || ev.trigger.kind === 'astro'
@@ -929,11 +967,14 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                                     />
                                     <TriggerIcon trigger={ev.trigger} />
                                     <span className="font-mono">{triggerLabel(ev.trigger)}</span>
-                                    <ValueBadge
-                                        raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
-                                        isRange={ev.trigger.kind === 'range'}
-                                        iconOnly
-                                    />
+                                    {targets.length > 0 && (
+                                        <ValueBadge
+                                            raw={effectiveEventValue(ev.value, targetValue, allowEventValue)}
+                                            isRange={ev.trigger.kind === 'range'}
+                                            iconOnly
+                                        />
+                                    )}
+                                    {allowEventAnnounce && <AnnounceBadge text={ev.announce} iconOnly />}
                                     <span className="flex-1 truncate" style={{ color: 'var(--text-secondary)' }}>
                                         {ev.label ||
                                             (ev.trigger.kind === 'time' || ev.trigger.kind === 'astro'

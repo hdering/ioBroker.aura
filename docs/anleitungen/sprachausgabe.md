@@ -164,3 +164,7 @@ Das Widget [Ansagen](../widgets/ansagen) legt dieselben Regeln direkt im Dashboa
 ## Ansage am Ende eines Countdowns
 
 Im [Countdown](../widgets/countdown#ansage-am-ende): Feld **Ansage am Ende**, z. B. `{{title}} ist fertig`. Standard: auf dem Gerät, auf dem Start gedrückt wurde.
+
+## Ansage nach Zeitplan
+
+In der [Zeitschaltuhr](../widgets/zeitschaltuhr#ansage) mit **Ansage pro Ereignis**: Feld **Ansage** je Ereignis, z. B. täglich 7:00 „Die Mülltonne muss raus“. Standard: auf dem Gerät, auf dem das Ereignis gespeichert wurde.

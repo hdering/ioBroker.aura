@@ -53,6 +53,8 @@ export interface TimerConfigPayload {
     extraTargetDps?: string[]; // further DPs written with the same value (#774)
     value?: string; // widget-level: what to write (parsed bool/number/string)
     allowEventValue?: boolean; // when true, backend honors per-event ev.value overrides
+    allowEventAnnounce?: boolean; // when true, backend announces ev.announce (#918)
+    announceTarget?: 'device' | 'all'; // device = ev.announceClients, all = every device
     holidaysDp?: string;
     vacationDp?: string;
     holidaysValue?: string; // exception value while holidaysDp marks today (#757)

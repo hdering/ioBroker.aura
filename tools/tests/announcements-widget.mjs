@@ -9,7 +9,9 @@
 // of option `triggers` replace the datapoint field; switching, editing (prefilled) and
 // deleting (after a confirmation) the own rules; the test button of an admin rule
 // speaks only here; allowCreate / allowOtherDevices; the countdown's Start carries the
-// device along when an end announcement is set, and a plain "start" without one.
+// device along when an end announcement is set, and a plain "start" without one; the
+// Zeitschaltuhr offers an announcement per event only with allowEventAnnounce, then
+// runs without target datapoint and marks such events in its list.
 // Backend replies come from the harness (mockSendTo), writes are captured (captureWrites).
 import { chromium } from 'playwright';
 
@@ -247,6 +249,57 @@ async function countdownStart(options) {
         'countdown without announcement: plain start',
         r2.last?.id === `${r2.base}.cmd` && r2.last?.val === 'start',
         JSON.stringify(r2.last),
+    );
+}
+
+// ── Zeitschaltuhr: an announcement per event, no target datapoint needed ─────
+async function mountTimer(options) {
+    n++;
+    const id = `w-tm-${n}`;
+    await page.evaluate(
+        ([id, options]) => {
+            window.__auraShot.showWidgets([
+                {
+                    id,
+                    type: 'timer',
+                    title: 'Müll',
+                    gridPos: { x: 0, y: 0, w: 10, h: 10 },
+                    options: { stateBaseId: `aura.0.timers.t918${id}`, events: [], ...options },
+                },
+            ]);
+        },
+        [id, options],
+    );
+    const w = page.locator(`.aura-widget-${id}`).first();
+    await w.waitFor();
+    await page.waitForTimeout(400);
+    return w;
+}
+{
+    const plain = await mountTimer({});
+    await plain.getByTitle('Neues Ereignis').first().click();
+    const field = page.locator('[data-testid="timer-event-announce"]');
+    await page.waitForTimeout(300);
+    check('timer without allowEventAnnounce: no announcement field', (await field.count()) === 0);
+    await page.keyboard.press('Escape');
+
+    const w = await mountTimer({ allowEventAnnounce: true });
+    check(
+        'announcement-only timer is not "target missing"',
+        !/Ziel-DP fehlt/.test(await w.innerText()),
+        await w.innerText(),
+    );
+    await w.getByTitle('Neues Ereignis').first().click();
+    await field.waitFor();
+    await field.fill('Die Mülltonne muss raus');
+    check('hint: on this device', /auf diesem Gerät/.test(await field.locator('xpath=..').innerText()));
+    await page.getByRole('button', { name: 'Speichern' }).last().click();
+    await page.waitForTimeout(300);
+    const badge = w.locator('[data-testid="timer-announce"]').first();
+    check(
+        'saved event shows the announcement',
+        (await badge.count()) === 1 && (await badge.getAttribute('title')) === 'Ansage: Die Mülltonne muss raus',
+        await badge.getAttribute('title').catch(() => ''),
     );
 }
 

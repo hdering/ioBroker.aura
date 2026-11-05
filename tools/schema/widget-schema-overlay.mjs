@@ -1853,6 +1853,15 @@ export const WIDGET_OPTION_NOTES = {
         },
         value: { description: 'Wert, den eine Schaltzeit ohne eigenen Wert schreibt.' },
         allowEventValue: { description: 'Je Schaltzeit einen eigenen Wert erlauben.' },
+        allowEventAnnounce: {
+            description:
+                'Je Schaltzeit eine Sprachansage erlauben (#918): Feld „Ansage“ im Ereignis-Popup (events[].announce, Text oder Sounddatei, [[id]] = Wert), ' +
+                'gesprochen über aura.0.speech.say, wenn das Ereignis auslöst (beim Zeitraum nur am Anfang). Damit läuft die Zeitschaltuhr auch ohne targetDp als reiner Ansage-Plan.',
+        },
+        announceTarget: {
+            description:
+                'Wo die Ansagen sprechen: "device" (Standard) = auf dem Gerät, auf dem das Ereignis gespeichert wurde (events[].announceClients); "all" = alle Geräte.',
+        },
         reapplyOnStart: {
             description:
                 'Beim Adapterstart den Wert schreiben, der laut Plan gerade gilt (aktiver Ausnahme-Wert, sonst die zuletzt fällige Schaltzeit). Unabhängig davon löst der DP timers.<id>.reapply = true (z. B. per Skript) dasselbe jederzeit aus.',

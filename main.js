@@ -9,6 +9,7 @@ const zlib = require('node:zlib');
 const SunCalc = require('suncalc');
 const { CountdownEngine, COUNTDOWN_STATE_DEFS, countdownAnnouncement } = require('./lib/countdowns');
 const auraShared = require('./lib/shared/auraShared');
+const { timerEventAnnouncement, timerHasWork } = require('./lib/timerAnnounce');
 const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
 const { WidgetPublishEngine, PUBLISH_STATE_DEFS, collectWidgets } = require('./lib/widgetPublish');
 /** Record of battery changes kept by the former battery script — imported once (status.battery.history). */
@@ -5082,7 +5083,8 @@ class Aura extends utils.Adapter {
         const payload = entry.payload;
         if (!payload || !Array.isArray(payload.events)) return;
         const targets = this._timerTargets(payload);
-        if (targets.length === 0) return; // admin hasn't configured the target yet
+        // Admin hasn't configured the target yet — unless the events only speak (#918).
+        if (!timerHasWork(payload, targets)) return;
         const widgetBaseValue = payload.value != null ? payload.value : 'true';
         const allowEventValue = payload.allowEventValue === true;
 
@@ -5147,6 +5149,11 @@ class Aura extends utils.Adapter {
                 }
                 await this._writeTarget(targets, baseValue, ev, writeVal);
                 this._timerFired.add(c.key);
+                // The end of a range only switches back; it has nothing to say (#918).
+                if (!c.invert) {
+                    const plan = timerEventAnnouncement(payload, ev);
+                    if (plan) await this._announceTemplate(plan, `[timers] ${ev.label || ev.id}`);
+                }
 
                 if (c.isOnce) {
                     await this._disableOnceEvent(widgetId, ev.id);
@@ -5362,7 +5369,17 @@ class Aura extends utils.Adapter {
      */
     async _announceCountdownEnd(key, entry) {
         const plan = countdownAnnouncement(entry.config, entry.startedBy);
-        if (!plan) return;
+        if (plan) await this._announceTemplate(plan, `[countdowns] ${key}`);
+    }
+
+    /**
+     * Speak a planned announcement (countdown end, timer event; #918): read the
+     * `[[id]]` values of the template now and hand the text to speech.say.
+     *
+     * @param {{ template: string, payload: Record<string, unknown> }} plan text template and speech.say fields
+     * @param {string} tag log prefix
+     */
+    async _announceTemplate(plan, tag) {
         const values = new Map();
         for (const id of auraShared.announcementTextDps(plan.template)) {
             try {
@@ -5374,7 +5391,7 @@ class Aura extends utils.Adapter {
         }
         const text = auraShared.renderAnnouncementText(plan.template, values).trim();
         if (!text) return;
-        this.log.info(`[countdowns] ${key} announces: ${text}`);
+        this.log.info(`${tag} announces: ${text}`);
         await this._announce({ text, ...plan.payload });
     }
 

@@ -18,6 +18,8 @@ interface Props {
     allowValue?: boolean;
     /** Widget-level default value, shown as placeholder in the per-event field. */
     defaultValue?: string;
+    /** Admin opt-in (allowEventAnnounce, #918): an announcement per event. `all` = every device, else the one saving it. */
+    announce?: { clientId: string; all: boolean };
     onSave: (ev: TimerEvent) => void;
     onCancel: () => void;
     onDelete?: () => void; // only shown when editing an existing event
@@ -87,7 +89,16 @@ function freshTrigger(kind: TimerTrigger['kind']): TimerTrigger {
     return { kind: 'range', fromIso: isoNow, toIso: isoEnd };
 }
 
-export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onCancel, onDelete }: Props) {
+/** The event as saved: an announcement speaks on the device that saved it (#918). */
+function withAnnounce(ev: TimerEvent, announce: Props['announce']): TimerEvent {
+    const { announce: text, announceClients: _drop, ...rest } = ev;
+    const t = (text ?? '').trim();
+    if (!announce) return ev;
+    if (!t) return rest;
+    return { ...rest, announce: t, announceClients: announce.all ? undefined : [announce.clientId] };
+}
+
+export function TimerEventModal({ initial, allowValue, defaultValue, announce, onSave, onCancel, onDelete }: Props) {
     const [event, setEvent] = useState<TimerEvent>(initial);
 
     // Close on ESC
@@ -422,6 +433,27 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                             </p>
                         </div>
                     )}
+                    {/* Announcement when the event fires (#918) */}
+                    {announce && (
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Ansage
+                            </label>
+                            <input
+                                type="text"
+                                value={event.announce ?? ''}
+                                onChange={(e) => patch({ announce: e.target.value })}
+                                placeholder="z. B. Die Mülltonne muss raus"
+                                className={inputCls}
+                                style={inputStyle}
+                                data-testid="timer-event-announce"
+                            />
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                Text oder Sounddatei, angesagt {announce.all ? 'auf allen Geräten' : 'auf diesem Gerät'}
+                                . [[Datenpunkt-ID]] = Wert eines Datenpunkts. Leer = keine Ansage.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer */}
@@ -455,7 +487,7 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                         Abbruch
                     </button>
                     <button
-                        onClick={() => onSave(event)}
+                        onClick={() => onSave(withAnnounce(event, announce))}
                         className="px-3 py-2 text-xs rounded-lg text-white hover:opacity-80"
                         style={{ background: 'var(--accent)' }}
                     >

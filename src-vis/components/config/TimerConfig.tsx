@@ -15,6 +15,7 @@ import { AuraIcon } from '../common/AuraIcon';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { useT } from '../../i18n';
 import { VisibleFieldsSection } from './VisibleFieldsSection';
+import { Unavailable } from './Unavailable';
 
 function toIconifyId(name: string): string {
     if (!name) return '';
@@ -169,6 +170,8 @@ export function TimerConfig({ config, onConfigChange }: Props) {
     const extraTargetDps = (o.extraTargetDps as string[] | undefined) ?? [];
     const value = (o.value as string | undefined) ?? 'true';
     const allowEventValue = o.allowEventValue === true;
+    const allowEventAnnounce = o.allowEventAnnounce === true;
+    const announceTarget = o.announceTarget === 'all' ? 'all' : 'device';
     const reapplyOnStart = o.reapplyOnStart === true;
     const stateBaseId = o.stateBaseId as string | undefined;
     const holidaysDp = (o.holidaysDp as string | undefined) ?? '';
@@ -429,6 +432,49 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                 />
                             </button>
                         </div>
+                        <div className="flex items-center justify-between pt-1">
+                            <div className="min-w-0 pr-2">
+                                <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                    Ansage pro Ereignis
+                                </p>
+                                <p className={hintCls} style={hintStyle}>
+                                    Im Ereignis-Popup ein Feld „Ansage“ (Text oder Sounddatei), gesprochen, wenn das
+                                    Ereignis auslöst. Damit geht die Zeitschaltuhr auch ohne Ziel-Datenpunkt.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setOpts({ allowEventAnnounce: allowEventAnnounce ? undefined : true })}
+                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                style={{ background: allowEventAnnounce ? 'var(--accent)' : 'var(--app-border)' }}
+                                data-field="allowEventAnnounce"
+                            >
+                                <span
+                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: allowEventAnnounce ? '14px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        <Unavailable
+                            reason={allowEventAnnounce ? undefined : 'Erst „Ansage pro Ereignis“ einschalten.'}
+                        >
+                            <div>
+                                <label className={labelCls} style={labelStyle}>
+                                    Ansage auf
+                                </label>
+                                <select
+                                    value={announceTarget}
+                                    onChange={(e) =>
+                                        setOpts({ announceTarget: e.target.value === 'all' ? 'all' : undefined })
+                                    }
+                                    className={inputCls}
+                                    style={inputStyle}
+                                    data-field="announceTarget"
+                                >
+                                    <option value="device">dem Gerät, auf dem das Ereignis gespeichert wurde</option>
+                                    <option value="all">allen Geräten</option>
+                                </select>
+                            </div>
+                        </Unavailable>
                         <div className="flex items-center justify-between pt-1">
                             <div className="min-w-0 pr-2">
                                 <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
