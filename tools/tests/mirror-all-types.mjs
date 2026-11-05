@@ -50,6 +50,8 @@ const mirror = () => ({
     options: { targetWidgetId: SRC_ID },
 });
 
+const STATUS = { batteryDp: 'demo.0.battLow' };
+
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 }, ignoreHTTPSErrors: true });
 const page = await ctx.newPage();
@@ -64,6 +66,7 @@ await page.evaluate(() =>
         'demo.0.value': { val: 21.5, unit: '°C' },
         'demo.0.switch': true,
         'demo.0.level': { val: 60, unit: '%' },
+        'demo.0.battLow': true,
     }),
 );
 
@@ -71,7 +74,8 @@ const body = (id) => page.locator(`.aura-widget-${id}`);
 
 for (const type of TYPES) {
     const before = pageErrors.length;
-    await page.evaluate(([s, m]) => window.__auraShot.showWidgets([s, m]), [source(type), mirror()]);
+    // A low battery on every source — the mirror must show the same status row (#927).
+    await page.evaluate(([s, m]) => window.__auraShot.showWidgets([s, m]), [source(type, STATUS), mirror()]);
     // Chart/map/echart widgets are lazy chunks — give the import time to resolve.
     await page.waitForTimeout(700);
 
@@ -94,6 +98,15 @@ for (const type of TYPES) {
     check(`${type}: renders a known type`, !text.includes('Unbekannter Widget-Typ'), text.trim().split('\n')[0]);
     check(`${type}: resolves its source`, !text.includes('existiert nicht mehr'));
     check(`${type}: renders content`, nodes > 0, `${nodes} nodes`);
+    const rows = (id) =>
+        body(id)
+            .first()
+            .locator('[data-aura-status-row]')
+            .count()
+            .catch(() => 0);
+    const srcRows = await rows(SRC_ID);
+    const mirRows = await rows(MIR_ID);
+    check(`${type}: mirror shows the source's status row`, srcRows === mirRows, `source ${srcRows}, mirror ${mirRows}`);
     check(`${type}: no page error`, pageErrors.length === before, pageErrors.slice(before).join(' | '));
 }
 

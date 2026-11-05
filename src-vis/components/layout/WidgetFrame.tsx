@@ -7204,6 +7204,15 @@ function WidgetFrameInner({
                 }
         return undefined;
     });
+    // Source of a mirror whose status row the frame mounts (STATUS_ROW_FRAME_TYPES):
+    // the mirror's body is the source's widget, which never draws that row itself.
+    const mirrorStatusSource = useMemo(
+        () =>
+            mirrorLcSource && STATUS_ROW_FRAME_TYPES.has(mirrorLcSource.type)
+                ? resolveDualDeep(mirrorLcSource, dark)
+                : undefined,
+        [mirrorLcSource, dark],
+    );
     // A mirror of a whole tab: its name for the editor badge.
     const mirrorTabName = useDashboardStore((s) =>
         isTabMirror(config)
@@ -8853,6 +8862,8 @@ function WidgetFrameInner({
                                 {STATUS_ROW_FRAME_TYPES.has(config.type) && (
                                     <StatusBadges config={renderConfig} anchor="card" />
                                 )}
+                                {/* A mirror draws its source's body only — the card row of such a source comes from here (#927). */}
+                                {mirrorStatusSource && <StatusBadges config={mirrorStatusSource} anchor="card" />}
                             </HeaderSlotsContext.Provider>
                         </WidgetWriteLockContext.Provider>
                     </Suspense>
