@@ -833,6 +833,62 @@ function rootRedirect(pathname, search = '') {
     return (depth ? '../'.repeat(depth) : './') + (search || '');
 }
 
+/**
+ * React for ioBroker web components (`@iobroker/web-components`): a component
+ * built with React imports `<base>/lib/esm/react-19.js` (or `react-18.js`), the
+ * same folder level as `<base>/adapter/`, so all components on a page share one
+ * React. Aura's own server answers these two files from the package instead of
+ * asking the web adapter, which only has them from 9.2.0 on. Behind the web
+ * extension (`/aura/`) the web adapter serves them itself.
+ *
+ * @param {string} pathname request path
+ * @returns {string|null} the file in the package, or null when the request is not one of these
+ */
+function reactEsmFile(pathname) {
+    const m = /^\/lib\/esm\/(react-1[89]\.js)$/.exec(pathname);
+    if (!m) return null;
+    try {
+        return require.resolve(`@iobroker/web-components/esm/${m[1]}`);
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Send one of the React files of {@link reactEsmFile}, compressed if the browser
+ * takes it. They change with an update of Aura only, but carry no version in their
+ * URL, so the browser asks again after an hour.
+ *
+ * @param {string} abs the file
+ * @param {import('node:http').ServerResponse} res the response
+ * @param {string} method GET or HEAD
+ * @param {string} acceptEncoding the request's Accept-Encoding header
+ * @param {() => void} fallback called when the file cannot be read
+ */
+function serveReactEsm(abs, res, method, acceptEncoding, fallback) {
+    fs.readFile(abs, (err, data) => {
+        if (err) {
+            fallback();
+            return;
+        }
+        const headers = {
+            'Content-Type': 'application/javascript; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            Vary: 'Accept-Encoding',
+        };
+        /** @type {Buffer} */
+        let body = data;
+        const enc = pickEncoding(acceptEncoding);
+        if (enc) {
+            body = compressed(abs, data, enc);
+            headers['Content-Encoding'] = enc;
+        }
+        headers['Content-Length'] = body.length;
+        res.writeHead(200, headers);
+        res.end(method === 'HEAD' ? undefined : body);
+    });
+}
+
 function serveStatic(
     pathname,
     res,
@@ -2267,6 +2323,13 @@ class Aura extends utils.Adapter {
             // A bare `/adapter/<name>/…` is answered the same way, for free HTML
             // that references adapter files directly (see webFsPath, #885).
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
+            const reactEsm = req.method === 'GET' || req.method === 'HEAD' ? reactEsmFile(pathname) : null;
+            if (reactEsm) {
+                serveReactEsm(reactEsm, res, req.method, String(req.headers['accept-encoding'] || ''), () =>
+                    proxyToWebBackend(req, res, req.url),
+                );
+                return;
+            }
             const webfsPath = webFsPath(pathname);
             const isWebFs = webfsPath !== null;
             if (isWebFs || webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {

@@ -106,7 +106,8 @@ export type WidgetType =
     | 'scenes'
     | 'slideshow'
     | 'feed'
-    | 'announcements';
+    | 'announcements'
+    | 'webcomponent';
 
 /**
  * Every layout any widget offers. `segments` / `wave` / `bar` belong to the fill

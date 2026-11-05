@@ -188,6 +188,8 @@ export const WIDGETS = [
       hint: 'Externe Webseite oder lokale URL einbetten.', runtime: null },
     { type: 'html', slug: 'html', label: 'HTML', group: 'special',
       hint: 'Beliebigen HTML/CSS-Code frei einbetten.', runtime: null },
+    { type: 'webcomponent', slug: 'web-komponente', label: 'Web-Komponente', group: 'special',
+      hint: 'Web-Komponente eines installierten Adapters einbetten (z. B. das Fluss-Diagramm von flow).', runtime: null },
     { type: 'stateimage', slug: 'zustandsbild', label: 'Zustandsbild', group: 'special',
       hint: 'Je nach Zustand (true/false) ein anderes Bild anzeigen.', runtime: null },
     { type: 'adapterstatus', slug: 'adapter-status', label: 'Adapter-Status', group: 'special',

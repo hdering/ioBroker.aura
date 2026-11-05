@@ -549,6 +549,29 @@ export const WIDGET_OPTION_NOTES = {
                 'Braucht eine Sandbox, die Skripte erlaubt (Voreinstellung). true = an (Standard).',
         },
     },
+    webcomponent: {
+        wcTag: {
+            type: 'string',
+            description:
+                'Tag der ioBroker-Web-Komponente (Custom Element, z. B. "iob-flow-diagram"). Nur Komponenten, die ein ' +
+                'installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt ' +
+                'das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte ' +
+                'selbst - es gibt kein dp-Feld.',
+        },
+        wcAdapter: {
+            type: 'string',
+            description:
+                'Adaptername der Komponente (ohne Instanz, z. B. "flow"). Entscheidet nur, wenn zwei Adapter ' +
+                'denselben Tag anbieten; leer = der erste mit diesem Tag.',
+        },
+        wcSettings: {
+            type: 'object',
+            description:
+                'Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der ' +
+                'Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard ' +
+                'speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg.',
+        },
+    },
     button: {
         buttonLabel: { description: 'Beschriftung der Taste. Leer = Widget-Titel.' },
         buttonColor: { description: 'Farbe der Beschriftung.' },

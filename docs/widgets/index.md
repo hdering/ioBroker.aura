@@ -61,6 +61,7 @@
 | [Skript-Status](./skript-status) | Liste aller JavaScript-Skripte mit Status, Filter und Start-/Stopp-Aktionen. |
 | [Statusübersicht](./statusuebersicht) | Zeigt von selbst, was Aufmerksamkeit braucht – schwache Batterien, offene Fenster, offline-Geräte; merkt sich Hinweise, bis sie quittiert sind. |
 | [Uhrzeit](./uhrzeit) | Aktuelle Uhrzeit und Datum anzeigen (kein Datenpunkt nötig). |
+| [Web-Komponente](./web-komponente) | Web-Komponente eines installierten Adapters einbetten (z. B. das Fluss-Diagramm von flow). |
 | [Wetter](./wetter) | Wetterdaten vom ioBroker-Wetter-Adapter anzeigen. |
 | [Zeitschaltuhr](./zeitschaltuhr) | Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum. |
 | [Zustandsbild](./zustandsbild) | Je nach Zustand (true/false) ein anderes Bild anzeigen. |

@@ -3523,4 +3523,9 @@ export const en: Record<TranslationKey, string> = {
     'iconPicker.more': 'Show {n} more',
     'iconPicker.count': '{n} icons',
     'iconPicker.remove': 'Remove',
+
+    // ── Web component ───────────────────────────────────────────────────────────
+    'wc.unset': 'No component selected',
+    'wc.missing': 'Component <{tag}> is not installed',
+    'wc.failed': 'Component <{tag}> could not be loaded: {error}',
 };
