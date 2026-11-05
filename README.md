@@ -122,6 +122,28 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.105.0 (2026-11-05)
+- 🌟 **New feature:** Charts - range chips and paging bar can each be made bigger (touch size) and moved below the chart ([#871](https://github.com/hdering/ioBroker.aura/issues/871))
+- 🐛 **Bug fix:** Fullscreen - the close button no longer covers the top-right corner of the widget ([#871](https://github.com/hdering/ioBroker.aura/issues/871))
+- 🌟 **New feature:** Countdown - announce a text or sound file when the countdown ends, on the device that started it, on all devices or on selected ones ([#918](https://github.com/hdering/ioBroker.aura/issues/918))
+- 🌟 **New feature:** New Announcements widget - create, switch and test announcement rules for this device right in the dashboard; Admin - Announcements shows them as "from device" and can take them over ([#918](https://github.com/hdering/ioBroker.aura/issues/918))
+- 🐛 **Bug fix:** Popup views - widgets hidden by a "show on match" condition no longer flash briefly when the popup opens, and the popup opens straight at its final height instead of shrinking into it ([#924](https://github.com/hdering/ioBroker.aura/issues/924))
+- 🌟 **New feature:** Timer - an event can announce a text or sound file when it fires, on the device it was saved on or on all devices; a timer may then run without target datapoint ([#918](https://github.com/hdering/ioBroker.aura/issues/918))
+- 🐛 **Bug fix:** Mirror - status symbols (battery, reachability, own symbols) of mirrored Universal, Button, Gauge and similar widgets now show in the mirror too ([#927](https://github.com/hdering/ioBroker.aura/issues/927))
+- 🐛 **Bug fix:** Dimmer, Shutter - after a slider drag that ended off the slider (cancelled touch, keyboard, pointer released elsewhere) the widget no longer sticks to the dragged value and follows status updates again ([#935](https://github.com/hdering/ioBroker.aura/issues/935))
+- 🐛 **Bug fix:** Instance links - with "reachable via web adapter" switched on, the quick links now also offer the backend under `<web-port>/aura/#/admin` ([#936](https://github.com/hdering/ioBroker.aura/issues/936))
+- 🐛 **Bug fix:** Universal widget - the "Fullscreen" switch of a cell's click action now sticks, and the cell popup opens fullscreen; same for a list row's own click action ([#937](https://github.com/hdering/ioBroker.aura/issues/937))
+- 🌟 **New feature:** Light - colour temperature and brightness range follow the datapoint's min/max when the Min/Max fields are left empty, so one shared popup fits lamps with different ranges; typed values still override ([#923](https://github.com/hdering/ioBroker.aura/issues/923))
+- 🌟 **New feature:** Light - new option "Detect datapoints when shown" finds switch, brightness, colour and colour temperature in the lamp's channel at runtime (alias names ON, DIMMER, TEMPERATURE, RGB, HUE/SAT …), so ONE light widget in a shared list popup fits every lamp - no helper script or popup variants; auto-detect now also recognises single RGB hex datapoints ([#925](https://github.com/hdering/ioBroker.aura/issues/925))
+- 🌟 **New feature:** Lists - rows set to "Automatic" open a fitting built-in popup per device type (light, switch, dimmer, shutter, thermostat, window contact, sensor, value), editable under Admin › Popups; a lamp opens the light popup, which finds brightness, colour and colour temperature itself; the "Click on row" tab lists what each row was recognised as and which popup it opens; Admin › Popups › List rows picks another popup per type for all lists, e.g. an edited copy ([#925](https://github.com/hdering/ioBroker.aura/issues/925))
+- 🐛 **Bug fix:** Datapoint roles - colour temperature datapoints are no longer taken for a thermostat, and motion or other sensor datapoints no longer for a switch ([#925](https://github.com/hdering/ioBroker.aura/issues/925))
+- 🌟 **New feature:** Popups - new placeholder {{dpunit}} for the unit of the popup's datapoint ([#925](https://github.com/hdering/ioBroker.aura/issues/925))
+- 🌟 **New feature:** Dynamic list - new options to hide rows whose device reports itself unreachable (UNREACH, available, online …; the row comes back once the device answers) and alias rows whose target datapoint does not exist ([#925](https://github.com/hdering/ioBroker.aura/issues/925))
+- 🐛 **Bug fix:** Date picker - time/date fields on Chrome for Android are now really sized to their value and show the clock/calendar icon instead of a dropdown arrow; the fix in 0.104.0 did not detect real Android devices ([#920](https://github.com/hdering/ioBroker.aura/issues/920))
+- 🌟 **New feature:** Widgets - own padding per widget (top/bottom and left/right) under Edit › Advanced; empty keeps the layout padding, e.g. for slim bars of chips or date fields next to normal tiles ([#928](https://github.com/hdering/ioBroker.aura/issues/928))
+- 🌟 **New feature:** Chart (advanced) - one JSON series can now draw several lines: with "Several series from the JSON" every entry of the datapoint (name, data, optional color, line style, axis, type) becomes its own line, so new entries show up without editing the widget; JSON data also accepts [timestamp, value] pairs ([#926](https://github.com/hdering/ioBroker.aura/issues/926))
+
+
 ### 0.104.0 (2026-11-04)
 - 🐛 **Bug fix:** Date picker - time and date fields in Chrome on Android no longer render too wide with a dropdown arrow; they fit their value and show the clock/calendar button ([#920](https://github.com/hdering/ioBroker.aura/issues/920))
 - 🌟 **New feature:** Charts - series names (advanced chart) and group titles, labels and remainder label (distribution chart) can contain bindings, e.g. a forecast date from a datapoint as the bar label ([#919](https://github.com/hdering/ioBroker.aura/issues/919))
@@ -333,15 +355,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Shutter - new "Circle menu" layout: a round button that fans out open, quick-select positions, close and stop in a circle, in an adjustable order ([#815](https://github.com/hdering/ioBroker.aura/issues/815))
 
 
-### 0.88.0 (2026-10-20)
-- 🌟 **New feature:** Countdown - font size of the preset chips and the status text can now be set individually ([#812](https://github.com/hdering/ioBroker.aura/issues/812))
-- 🌟 **New feature:** Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"; both image modes take a URL, Base64, a file from the server or an upload from the PC
-- iFrame - the fullscreen button now sits under Appearance like on every other widget, with corner choice, the "Fill screen" option and permanent visibility on touch devices; the embedded page stays operable in fullscreen ([#813](https://github.com/hdering/ioBroker.aura/issues/813))
-- Theme editor - every field now shows the name of its CSS variable (e.g. `--app-surface`); a click copies it as `var(...)` ([#814](https://github.com/hdering/ioBroker.aura/issues/814))
-- Section menu - the slide-in drawer is no longer see-through on the glass themes, and "Navigation → background" now colours the drawer and the docked sidebar like the section and tab bars ([#814](https://github.com/hdering/ioBroker.aura/issues/814))
-- 🌟 **New feature:** Value conversion - new option "Adjust unit automatically": the value moves to the next unit prefix from 1000 up and below 1 down (850 Wh, 1.25 kWh, 3.4 MWh; also W, VA, V, A, Hz, g, m, l, bytes), with separate decimal places for the larger unit; works in the value widget, both lists including the second line and the universal widget's datapoint cell
-
-
 ## License
 
 MIT License
@@ -353,6 +366,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

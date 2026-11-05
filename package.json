@@ -1,6 +1,6 @@
 {
   "name": "iobroker.aura",
-  "version": "0.104.0",
+  "version": "0.105.0",
   "description": "Modern visualization dashboard for ioBroker",
   "author": "hdering <aura@dering-online.de>",
   "main": "main.js",
