@@ -26,7 +26,7 @@ function setObjectAsync(id: string, obj: object): Promise<void> {
 
 const NAMESPACE = `${NS}.countdowns`;
 
-export type CountdownStateKey = 'config' | 'cmd' | 'state' | 'endTs' | 'remainingMs' | 'durationMs';
+export type CountdownStateKey = 'config' | 'cmd' | 'state' | 'endTs' | 'remainingMs' | 'durationMs' | 'startedBy';
 
 export function countdownChannelId(key: string): string {
     return `${NAMESPACE}.${key}`;
@@ -49,6 +49,14 @@ export interface CountdownConfigPayload {
     triggerStopOnRevert?: boolean;
     triggerRestart?: boolean;
     title?: string;
+    /** End announcement (#918); absent = none. */
+    announce?: {
+        text: string;
+        target: 'starter' | 'all' | 'clients';
+        clients?: string[];
+        volume?: number;
+        interrupt?: boolean;
+    };
 }
 
 // Same definitions as COUNTDOWN_STATE_DEFS in lib/countdowns.js.
@@ -59,6 +67,7 @@ const STATE_DEFS: Record<CountdownStateKey, Record<string, unknown>> = {
     endTs: { type: 'number', role: 'date', read: true, write: false, def: 0 },
     remainingMs: { type: 'number', role: 'value.interval', unit: 'ms', read: true, write: false, def: 0 },
     durationMs: { type: 'number', role: 'value.interval', unit: 'ms', read: true, write: false, def: 0 },
+    startedBy: { type: 'string', role: 'text', read: true, write: false, def: '' },
 };
 
 const ensurePromises = new Map<string, Promise<void>>();

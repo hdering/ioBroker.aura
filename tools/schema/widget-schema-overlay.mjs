@@ -1351,6 +1351,29 @@ export const WIDGET_OPTION_NOTES = {
                 'Laden scheitert (Hotlink-Sperre, Gerät ohne Internet); "always" = immer über Aura; "off" = nur direkt.',
         },
     },
+    announcements: {
+        scope: {
+            description:
+                'Welche Ansage-Regeln (Admin → Ansagen, aura.0.config.announcements) die Liste zeigt: "own" (Standard) = nur die auf diesem ' +
+                'Gerät im Widget angelegten; "device" = zusätzlich die Admin-Regeln, die auf diesem Gerät sprechen — die nur testen, nicht ändern.',
+        },
+        allowCreate: { description: 'Zeile „+ Neue Ansage“: Regeln im Dashboard anlegen. Standard an.' },
+        allowEdit: {
+            description: 'Stift (Bearbeiten-Popup) und An/Aus-Schalter an den Regeln dieses Geräts. Standard an.',
+        },
+        allowDelete: { description: 'Löschen im Bearbeiten-Popup. Standard an.' },
+        allowOtherDevices: {
+            description:
+                'Im Popup auch andere Geräte als Ziel wählbar. Standard aus: eine im Dashboard angelegte Regel sagt nur auf dem Gerät an, das sie ' +
+                'angelegt hat — geräteübergreifende Ansagen bleiben Admin-Sache. Der Adapter ändert nur Regeln, deren owner das anfragende Gerät ist.',
+        },
+        showSummary: { description: 'Zweite Zeile je Regel: Auslöser, Zeitfenster, Wochentage, Sperre.' },
+        triggers: {
+            description:
+                'Auslöser zur Auswahl: [{ dp, name }] — Datenpunkte mit Klarnamen ("Haustürklingel"), aus denen der Haushalt im Popup wählt, statt eine ' +
+                'Datenpunkt-ID zu suchen. Leer = freie Datenpunkt-Auswahl.',
+        },
+    },
     scenes: {
         allowEdit: {
             description:
@@ -1926,6 +1949,24 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Kommt der Auslösewert erneut, während der Countdown läuft oder pausiert, beginnt die volle Dauer von vorn (Bewegungsmelder, Treppenhauslicht). Standard aus = läuft unverändert weiter.',
         },
+        announceText: {
+            description:
+                'Sprachansage beim Ablauf (#918): Text oder Sounddatei (.mp3/.wav/URL), gesprochen über aura.0.speech.say — der Adapter sagt an, ' +
+                'auch wenn kein Dashboard offen ist. {{title}} = Widget-Titel, [[Datenpunkt-ID]] = Wert eines Datenpunkts. Leer = keine Ansage. ' +
+                'Unabhängig von targetDp/valueOnEnd: beides geht zusammen.',
+        },
+        announceTarget: {
+            description:
+                'Wo angesagt wird: "starter" (Standard) = auf dem Gerät, auf dem Start gedrückt wurde; "all" = alle Geräte; ' +
+                '"clients" = die Client-IDs in announceClients. Startet triggerDp oder ein Skript den Countdown, ist kein Gerät bekannt — dann alle.',
+        },
+        announceClients: {
+            description: 'Client-IDs (aura.0.clients.<id>) für announceTarget "clients". Leer = alle Geräte.',
+        },
+        announceVolume: { description: 'Lautstärke der Ansage 0–100. Leer = speech.volume des Geräts.' },
+        announceInterrupt: {
+            description: 'Laufende Ansage abbrechen und die Warteschlange leeren, bevor angesagt wird.',
+        },
         format: {
             description:
                 'Ziffernformat: "auto" (mm:ss unter einer Stunde, sonst hh:mm:ss), "hms" (immer hh:mm:ss), "ms" (Minuten gesamt), "hm" (hh:mm, Sekunden aufgerundet).',
@@ -2233,6 +2274,7 @@ export const EXTRA_OPTIONS = {
     adapterlogs: { ...AUTO_HEIGHT_OPTION },
     historytable: { ...AUTO_HEIGHT_OPTION },
     scenes: { ...AUTO_HEIGHT_OPTION },
+    announcements: { ...AUTO_HEIGHT_OPTION },
     iframe: {
         // Read in hooks/useIframeColorScheme, not through the widget's own
         // options binding.

@@ -20,6 +20,7 @@ export const AUTO_HEIGHT_TYPES: ReadonlySet<string> = new Set([
     'adapterlogs',
     'historytable',
     'scenes',
+    'announcements',
     'html',
 ]);
 

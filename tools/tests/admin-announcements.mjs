@@ -37,6 +37,35 @@ try {
     check('the page lists the nav entry', await page.getByRole('link', { name: 'Ansagen' }).isVisible());
     check('empty state shown', (await page.locator('[data-aura-announcement]').count()) === 0);
 
+    // #918: a dashboard adds a rule of its own — the untouched page follows along,
+    // marks it "vom Gerät" and can take it over.
+    await page.evaluate(() =>
+        window.__auraShot.mock({
+            'aura.0.config.announcements': JSON.stringify({
+                rules: [
+                    {
+                        id: 'dev-kueche-1',
+                        name: 'Pizza',
+                        enabled: true,
+                        clause: { datapoint: 'demo.oven', operator: 'true', value: '' },
+                        text: 'Pizza fertig',
+                        clientIds: ['kueche'],
+                        owner: 'kueche',
+                    },
+                ],
+            }),
+        }),
+    );
+    const devRow = page.locator('[data-aura-announcement="dev-kueche-1"]');
+    await devRow.waitFor({ timeout: 5000 });
+    check('a rule from a dashboard shows up live', true);
+    check('marked as from the device', /vom Gerät kueche/.test(await devRow.innerText()));
+    await devRow.locator('[data-action="take-over"]').click();
+    check('take over drops the mark', (await devRow.locator('[data-aura-announcement-owner]').count()) === 0);
+    await devRow.getByTitle('Löschen').click();
+    await page.waitForTimeout(300);
+    check('and it can be deleted like any other', (await page.locator('[data-aura-announcement]').count()) === 0);
+
     await page.getByRole('button', { name: /Ansage hinzufügen/ }).click();
     await page.getByPlaceholder('Name, z. B. Klingel').fill('Klingel');
     await page.keyboard.press('Enter');

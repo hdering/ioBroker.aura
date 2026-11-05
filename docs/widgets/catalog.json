@@ -858,6 +858,28 @@
       }
     },
     {
+      "type": "announcements",
+      "slug": "ansagen",
+      "label": "Ansagen",
+      "group": "control",
+      "hint": "Sprachansagen für dieses Gerät im Dashboard anlegen – Auslöser, Text, Zeitfenster, Sperre; läuft im Adapter.",
+      "defaultGrid": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/ansagen/runtime.png",
+        "config": "assets/ansagen/config.png",
+        "shots": {}
+      }
+    },
+    {
       "type": "echart",
       "slug": "diagramm-erweitert",
       "label": "Diagramm (erweitert)",

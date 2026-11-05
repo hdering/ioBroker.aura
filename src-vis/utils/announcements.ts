@@ -56,6 +56,12 @@ export interface AnnouncementRule {
     cooldownMin?: number;
     /** At most once per calendar day. */
     oncePerDay?: boolean;
+    /**
+     * Client id of the device that created the rule in the Ansagen widget (#918).
+     * Such a rule may only be changed from that device; Admin → Ansagen can take
+     * it over (drop the owner). Absent = an admin rule.
+     */
+    owner?: string;
 }
 
 export interface AnnouncementConfig {
@@ -145,7 +151,14 @@ export function normalizeAnnouncementRule(raw: unknown): AnnouncementRule | null
     const cooldown = Number(r.cooldownMin);
     if (Number.isFinite(cooldown) && cooldown > 0) rule.cooldownMin = Math.round(cooldown);
     if (r.oncePerDay === true) rule.oncePerDay = true;
+    const owner = cleanClientId(r.owner);
+    if (owner) rule.owner = owner;
     return rule;
+}
+
+/** A client id as the adapter names devices (sanitizeClientId), '' for anything else. */
+function cleanClientId(v: unknown): string {
+    return typeof v === 'string' && /^[a-z0-9_-]{1,40}$/.test(v.trim()) ? v.trim() : '';
 }
 
 /** The value of `config.announcements`, normalized. Broken or empty = no rules. */
@@ -281,4 +294,93 @@ export function announcementPayload(rule: AnnouncementRule, text: string): Recor
     if (rule.onlyVisible) p.onlyVisible = true;
     if (rule.clientIds?.length) p.target = { clients: rule.clientIds };
     return p;
+}
+
+/** How many rules one device may own — the widget is for a handful, not for bulk. */
+export const ANNOUNCEMENT_MAX_PER_DEVICE = 50;
+
+/** What the Ansagen widget asks the adapter to do (sendTo `announcementEdit`). */
+export type AnnouncementClientEdit =
+    | { op: 'upsert'; rule: unknown }
+    | { op: 'delete'; id: string }
+    | { op: 'toggle'; id: string; enabled: boolean };
+
+export interface AnnouncementClientEditResult {
+    config: AnnouncementConfig;
+    /** `forbidden` = not this device's rule, `limit` = too many rules, `invalid` = not a rule. */
+    error?: 'forbidden' | 'limit' | 'invalid' | 'notFound';
+    rule?: AnnouncementRule;
+}
+
+/**
+ * An edit from a dashboard (#918), applied to the stored rules. A device only
+ * touches the rules it owns; a new rule becomes its own and, without devices of
+ * its own, speaks on that device only — "all devices" stays an admin decision.
+ * The adapter applies this; the widget never writes `config.announcements` itself.
+ */
+export function applyAnnouncementClientEdit(
+    config: AnnouncementConfig,
+    clientId: string,
+    edit: AnnouncementClientEdit,
+): AnnouncementClientEditResult {
+    const owner = cleanClientId(clientId);
+    if (!owner || !edit || typeof edit !== 'object') return { config, error: 'invalid' };
+    const rules = config.rules;
+    if (edit.op === 'delete' || edit.op === 'toggle') {
+        const cur = rules.find((r) => r.id === edit.id);
+        if (!cur) return { config, error: 'notFound' };
+        if (cur.owner !== owner) return { config, error: 'forbidden' };
+        if (edit.op === 'delete') return { config: { ...config, rules: rules.filter((r) => r.id !== edit.id) } };
+        const rule = { ...cur, enabled: edit.enabled === true };
+        return { config: { ...config, rules: rules.map((r) => (r.id === rule.id ? rule : r)) }, rule };
+    }
+    if (edit.op !== 'upsert') return { config, error: 'invalid' };
+    const next = normalizeAnnouncementRule(edit.rule);
+    if (!next) return { config, error: 'invalid' };
+    const cur = rules.find((r) => r.id === next.id);
+    if (cur && cur.owner !== owner) return { config, error: 'forbidden' };
+    if (!cur && rules.filter((r) => r.owner === owner).length >= ANNOUNCEMENT_MAX_PER_DEVICE) {
+        return { config, error: 'limit' };
+    }
+    const rule: AnnouncementRule = { ...next, owner, clientIds: next.clientIds?.length ? next.clientIds : [owner] };
+    return {
+        config: { ...config, rules: cur ? rules.map((r) => (r.id === rule.id ? rule : r)) : [...rules, rule] },
+        rule,
+    };
+}
+
+/**
+ * Admin → Ansagen saves its whole list, while a dashboard may have added or
+ * changed a rule since the page loaded. Three-way merge per rule id: what the
+ * admin changed (or deleted) since `base` wins, everything else is taken from
+ * `theirs` — the rules as stored right now. Order: the admin's, then new ones.
+ */
+export function mergeAnnouncementConfig(
+    base: AnnouncementConfig,
+    mine: AnnouncementConfig,
+    theirs: AnnouncementConfig,
+): AnnouncementConfig {
+    const key = (r: AnnouncementRule | undefined) => (r ? JSON.stringify(r) : '');
+    const baseById = new Map(base.rules.map((r) => [r.id, r]));
+    const mineById = new Map(mine.rules.map((r) => [r.id, r]));
+    const theirsById = new Map(theirs.rules.map((r) => [r.id, r]));
+    const out: AnnouncementRule[] = [];
+    for (const r of mine.rules) {
+        const b = baseById.get(r.id);
+        const t = theirsById.get(r.id);
+        if (b && key(b) === key(r)) {
+            // untouched here: whatever is stored now, or gone when a device deleted it
+            if (t) out.push(t);
+        } else {
+            out.push(r);
+        }
+    }
+    for (const r of theirs.rules) {
+        if (mineById.has(r.id)) continue;
+        // deleted here (it was in base) — stays deleted unless a device changed it since
+        const b = baseById.get(r.id);
+        if (b && key(b) === key(r)) continue;
+        out.push(r);
+    }
+    return { rules: out };
 }

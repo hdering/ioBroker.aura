@@ -73,6 +73,9 @@ const HistoryTableWidget = lazyWithReload(() =>
 const SlideshowWidget = lazyWithReload(() => import('./SlideshowWidget').then((m) => ({ default: m.SlideshowWidget })));
 const FeedWidget = lazyWithReload(() => import('./FeedWidget').then((m) => ({ default: m.FeedWidget })));
 const ScenesWidget = lazyWithReload(() => import('./ScenesWidget').then((m) => ({ default: m.ScenesWidget })));
+const AnnouncementsWidget = lazyWithReload(() =>
+    import('./AnnouncementsWidget').then((m) => ({ default: m.AnnouncementsWidget })),
+);
 const LoadTimesWidget = lazyWithReload(() => import('./LoadTimesWidget').then((m) => ({ default: m.LoadTimesWidget })));
 
 export function getWidgetMap() {
@@ -136,6 +139,7 @@ export function getWidgetMap() {
         devicecard: DeviceCardWidget,
         historytable: HistoryTableWidget,
         scenes: ScenesWidget,
+        announcements: AnnouncementsWidget,
         slideshow: SlideshowWidget,
         feed: FeedWidget,
         // `satisfies` makes a missing widget type a build error instead of a

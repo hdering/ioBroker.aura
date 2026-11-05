@@ -34,6 +34,8 @@ export {
     announcementTextDps,
     renderAnnouncementText,
     announcementPayload,
+    applyAnnouncementClientEdit,
+    mergeAnnouncementConfig,
 } from '../../src-vis/utils/announcements';
 // Statusübersicht discovery in the adapter (lib/statusDiscovery.js, #882).
 export { buildDatapointEntries } from '../../src-vis/utils/datapointEntry';

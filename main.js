@@ -7,7 +7,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const zlib = require('node:zlib');
 const SunCalc = require('suncalc');
-const { CountdownEngine, COUNTDOWN_STATE_DEFS } = require('./lib/countdowns');
+const { CountdownEngine, COUNTDOWN_STATE_DEFS, countdownAnnouncement } = require('./lib/countdowns');
+const auraShared = require('./lib/shared/auraShared');
 const { StatusLatchEngine, LATCH_CATEGORIES, STATUS_STATE_DEFS } = require('./lib/statusLatch');
 const { WidgetPublishEngine, PUBLISH_STATE_DEFS, collectWidgets } = require('./lib/widgetPublish');
 /** Record of battery changes kept by the former battery script — imported once (status.battery.history). */
@@ -4537,6 +4538,7 @@ class Aura extends utils.Adapter {
             log: this.log,
             writeStatus: (key, status) => this._writeCountdownStatus(key, status),
             writeTarget: (dp, raw, why) => this._writeCountdownTarget(dp, raw, why),
+            onEnded: (key, entry) => this._announceCountdownEnd(key, entry),
         });
         try {
             const existing = await this.getStatesAsync(`${this.namespace}.countdowns.*`);
@@ -5159,7 +5161,7 @@ class Aura extends utils.Adapter {
 
     /** aura.<inst>.countdowns.<key>.<sub> → { key, sub } or null. */
     _countdownIdParts(fullId) {
-        const m = fullId.match(/^.+\.countdowns\.([^.]+)\.(config|cmd|state|endTs|remainingMs|durationMs)$/);
+        const m = fullId.match(/^.+\.countdowns\.([^.]+)\.(config|cmd|state|endTs|remainingMs|durationMs|startedBy)$/);
         return m ? { key: m[1], sub: m[2] } : null;
     }
 
@@ -5174,8 +5176,8 @@ class Aura extends utils.Adapter {
             const p = this._countdownIdParts(fullId);
             if (!p) continue;
             if (p.sub === 'config') {
+                // Not marked as ensured: an older install lacks states added since (startedBy, #918).
                 this._countdowns.ingestConfig(p.key, st.val);
-                this._countdownObjectsEnsured.add(p.key);
             } else if (p.sub !== 'cmd') {
                 const cur = status.get(p.key) || {};
                 cur[p.sub] = st.val;
@@ -5331,7 +5333,7 @@ class Aura extends utils.Adapter {
     /** Publish the engine's status (ack=true). Partial objects carry only the ticker's remainingMs. */
     async _writeCountdownStatus(key, status) {
         await this._ensureCountdownObjects(key);
-        for (const sub of ['state', 'endTs', 'remainingMs', 'durationMs']) {
+        for (const sub of ['state', 'endTs', 'remainingMs', 'durationMs', 'startedBy']) {
             if (status[sub] === undefined) continue;
             try {
                 await this.setStateAsync(`countdowns.${key}.${sub}`, status[sub], true);
@@ -5349,6 +5351,31 @@ class Aura extends utils.Adapter {
         } catch (e) {
             this.log.warn(`[countdowns] write failed (${targetDp}): ${e.message}`);
         }
+    }
+
+    /**
+     * The countdown's end announcement (#918): on the device that started it, on
+     * every device or on a list, with `[[id]]` values read now.
+     *
+     * @param {string} key countdown key
+     * @param {{ config: object|null, startedBy: string }} entry the engine's entry
+     */
+    async _announceCountdownEnd(key, entry) {
+        const plan = countdownAnnouncement(entry.config, entry.startedBy);
+        if (!plan) return;
+        const values = new Map();
+        for (const id of auraShared.announcementTextDps(plan.template)) {
+            try {
+                const st = await this.getForeignStateAsync(id);
+                values.set(id, st ? st.val : null);
+            } catch {
+                values.set(id, null);
+            }
+        }
+        const text = auraShared.renderAnnouncementText(plan.template, values).trim();
+        if (!text) return;
+        this.log.info(`[countdowns] ${key} announces: ${text}`);
+        await this._announce({ text, ...plan.payload });
     }
 
     async _syncCountdownName(key, title) {
@@ -6110,6 +6137,25 @@ class Aura extends utils.Adapter {
                 }
                 const text = await this._announcements.test(msg.message && msg.message.rule);
                 reply({ ok: true, text });
+                return;
+            }
+
+            // Ansagen widget (#918): a dashboard adds, changes, switches or deletes one
+            // of its own rules. Applied here so a device only touches what it owns, and
+            // serialized so two devices saving at once do not overwrite each other.
+            if (msg.command === 'announcementEdit') {
+                const m = msg.message || {};
+                const run = async () => {
+                    const st = await this.getStateAsync('config.announcements');
+                    const cur = auraShared.parseAnnouncementConfig(st ? st.val : '');
+                    const res = auraShared.applyAnnouncementClientEdit(cur, m.clientId, m.edit);
+                    if (res.error) return { ok: false, error: res.error };
+                    await this.setStateAsync('config.announcements', { val: JSON.stringify(res.config), ack: true });
+                    return { ok: true, rule: res.rule };
+                };
+                const next = (this._announcementEditChain || Promise.resolve()).then(run, run);
+                this._announcementEditChain = next.catch(() => {});
+                reply(await next);
                 return;
             }
 

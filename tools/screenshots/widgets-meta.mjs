@@ -115,6 +115,10 @@ export const WIDGETS = [
     { type: 'scenes', slug: 'szenen', label: 'Szenen', group: 'control',
       hint: 'Szenen des ioBroker-Szenen-Adapters auslösen – und in Aura anlegen: Geräte wählen, Werte festlegen.',
       runtime: null, defaultGrid: { w: 8, h: 8 }, hero: 'assets/szenen/runtime.png', configShot: null },
+    // Screenshots come from tools/screenshots/ansagen.mjs (rules mocked in config.announcements).
+    { type: 'announcements', slug: 'ansagen', label: 'Ansagen', group: 'control',
+      hint: 'Sprachansagen für dieses Gerät im Dashboard anlegen – Auslöser, Text, Zeitfenster, Sperre; läuft im Adapter.',
+      runtime: null, defaultGrid: { w: 8, h: 8 }, hero: 'assets/ansagen/runtime.png', configShot: 'assets/ansagen/config.png' },
     { type: 'echart', slug: 'diagramm-erweitert', label: 'Diagramm (erweitert)', group: 'control',
       hint: 'Erweitertes Diagramm mit mehreren Datenpunkten und Optionen.', runtime: null },
     { type: 'energiebilanz', slug: 'verteilung', label: 'Diagramm (Verteilung)', group: 'control',

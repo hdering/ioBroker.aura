@@ -300,6 +300,7 @@ import { AlarmConfig } from '../widgets/AlarmWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { CountdownConfig } from '../config/CountdownConfig';
 import { ScenesConfig } from '../config/ScenesConfig';
+import { AnnouncementsConfig } from '../config/AnnouncementsConfig';
 import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ConfigModal } from '../config/ConfigModal';
@@ -429,6 +430,18 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, VisibleField[]>> = {
             def: false,
         },
     ],
+    announcements: [
+        { key: 'allowCreate', label: 'Anlegen', hint: '„+ Neue Ansage“ im Dashboard' },
+        { key: 'allowEdit', label: 'Bearbeiten & schalten', hint: 'Stift und Schalter an den eigenen Ansagen' },
+        { key: 'allowDelete', label: 'Löschen', hint: 'Papierkorb im Bearbeiten-Popup' },
+        {
+            key: 'allowOtherDevices',
+            label: 'Andere Geräte wählbar',
+            hint: 'Sonst sagt eine im Dashboard angelegte Ansage nur auf diesem Gerät an',
+            def: false,
+        },
+        { key: 'showSummary', label: 'Auslöser & Zeitfenster', hint: 'Zweite Zeile je Ansage' },
+    ],
     loadtimes: [
         { key: 'showLegend', label: 'Legende' },
         { key: 'showThresholds', label: 'Schwellwerte (gut/ok/langsam)' },
@@ -498,6 +511,7 @@ const SECTIONED_EDIT_TYPES = new Set<WidgetType>([
     'evcc',
     'historytable',
     'scenes',
+    'announcements',
     'slideshow',
     'feed',
     'switch',
@@ -562,6 +576,7 @@ const NO_MAIN_DP_TYPES = new Set<WidgetType>([
     'aircontrol',
     'energiebilanz',
     'scenes',
+    'announcements',
     'slideshow',
     'feed',
 ]);
@@ -15585,6 +15600,11 @@ function WidgetFrameInner({
                             {/* ── Scenes: manage the scenes (#825) ── */}
                             {config.type === 'scenes' && (
                                 <ScenesConfig config={config} onConfigChange={onConfigChange} />
+                            )}
+
+                            {/* ── Ansagen: scope and named triggers (#918) ── */}
+                            {config.type === 'announcements' && (
+                                <AnnouncementsConfig config={config} onConfigChange={onConfigChange} />
                             )}
 
                             {/* ── Countdown config (#675) ── */}

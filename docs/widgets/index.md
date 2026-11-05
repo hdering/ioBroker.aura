@@ -6,6 +6,7 @@
 
 | Widget | Beschreibung |
 | --- | --- |
+| [Ansagen](./ansagen) | Sprachansagen für dieses Gerät im Dashboard anlegen – Auslöser, Text, Zeitfenster, Sperre; läuft im Adapter. |
 | [Auswahlfeld](./auswahlfeld) | DP-Werte (0,1,2…) auf Text-Labels mappen; Dropdown schreibt den Wert zurück. |
 | [Binärsensor](./binaersensor) | Allgemeinen Binärsensor anzeigen (z. B. Bewegungsmelder, Alarm). |
 | [Countdown](./countdown) | Restzeit hh:mm:ss mit Start/Pause/Stopp und ±-Tasten – läuft im Adapter, schaltet am Ende einen Datenpunkt; zeigt wahlweise die Restzeit eines fremden Datenpunkts. |

@@ -105,7 +105,8 @@ export type WidgetType =
     | 'historytable'
     | 'scenes'
     | 'slideshow'
-    | 'feed';
+    | 'feed'
+    | 'announcements';
 
 /**
  * Every layout any widget offers. `segments` / `wave` / `bar` belong to the fill
@@ -248,6 +249,14 @@ export interface TimerWidgetOptions {
 export type CountdownSource = 'aura' | 'datapoint';
 /** What a foreign remaining-time datapoint holds. */
 export type CountdownDpKind = 'remaining-ms' | 'remaining-s' | 'end-ts';
+/** A trigger the Ansagen widget offers by name instead of a datapoint id (#918). */
+export interface AnnouncementTriggerDef {
+    dp: string; // datapoint the announcement rule watches
+    name: string; // name shown in the widget, e.g. "Haustürklingel"; empty = the datapoint id
+}
+
+/** Where the countdown's end announcement speaks (#918). */
+export type CountdownAnnounceTarget = 'starter' | 'all' | 'clients';
 /** Digit format of the remaining time. */
 export type CountdownFormat = 'auto' | 'hms' | 'ms' | 'hm';
 
@@ -271,6 +280,11 @@ export interface CountdownWidgetOptions {
     triggerValue?: string; // value whose arrival starts the countdown, compared as boolean / number / text; default "true"
     triggerStopOnRevert?: boolean; // trigger leaves triggerValue while running → back to idle without writing valueOnEnd
     triggerRestart?: boolean; // triggerValue arrives again while running → the time starts over (motion sensor); default: keep running
+    announceText?: string; // text or sound file announced when the countdown ends ({{title}}, [[id]]); empty = no announcement (#918)
+    announceTarget?: CountdownAnnounceTarget; // where it is announced: starter = the device that started it (default), all, clients = announceClients
+    announceClients?: string[]; // client ids for announceTarget clients; empty = every device
+    announceVolume?: number; // 0..100; empty = the device's speech.volume
+    announceInterrupt?: boolean; // stop a running announcement and drop the queue first
     format?: CountdownFormat; // auto (mm:ss below one hour), hms, ms or hm
     showDays?: boolean; // show days as their own field from 24 h on
     digitSize?: number; // font size of the digits in px, 0 = fit the widget width

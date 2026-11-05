@@ -20,6 +20,9 @@ Bei der Quelle „Eigener Countdown“ bleibt das Feld leer. Der Adapter legt pr
 | `endTs` | number | Adapter → Widget | Endzeitpunkt in Epoch-ms, `0` wenn nicht laufend |
 | `remainingMs` | number | Adapter → alle | Restzeit bei Pause; laufend nur mit „sekündlich veröffentlichen“ |
 | `durationMs` | number | Adapter → alle | aktuell eingestellte Dauer (ändert sich mit ±, Chips, `=N`) |
+| `startedBy` | string | Adapter → alle | Client-ID des Geräts, das gestartet hat; leer bei Skript oder Auslöser — Ziel der [Ansage am Ende](#ansage-am-ende) |
+
+`cmd` nimmt jeden Befehl auch als JSON mit dem Gerät: `{"cmd":"start","client":"kueche"}`.
 
 Der Pfad steht im Widget-Edit-Panel unter **Adapter-States** – mit fertigen Beispielen für den eigenen Schlüssel. Skripte schreiben `cmd` mit `ack=false`; der Adapter quittiert.
 
@@ -134,6 +137,24 @@ Nur der **Wechsel** zählt: gleiche Aktualisierungen und der Wert beim Adapter-S
 | --- | --- | --- | --- | --- | --- |
 | Steckdose nach 30 min aus | Steckdose | Steckdose | leer | `false` | Rückfall stoppen |
 | Treppenhauslicht | Licht | Bewegungsmelder | `true` | `false` | neu starten |
+
+### Ansage am Ende
+
+Sagt beim Ablauf einen Text an oder spielt eine Sounddatei — über die [Sprachausgabe](../anleitungen/sprachausgabe), auch wenn das Dashboard geschlossen ist. Unabhängig von der Ziel-Aktion.
+
+| Option | Typ | Standard | |
+| --- | --- | --- | --- |
+| `announceText` | `string` | – | Text oder Sounddatei; `{{title}}` = Titel, `[[Datenpunkt-ID]]` = Wert; leer = keine Ansage |
+| `announceTarget` | `starter` · `all` · `clients` | `starter` | Gerät, auf dem Start gedrückt wurde · alle · Auswahl |
+| `announceClients` | `string[]` | – | Client-IDs bei `clients`; leer = alle |
+| `announceVolume` | `0`–`100` | – | leer = Lautstärke des Geräts |
+| `announceInterrupt` | `boolean` | `false` | laufende Ansage abbrechen |
+
+Startet der Auslöser oder ein Skript den Countdown, ist kein Gerät bekannt — dann sagen alle Geräte an. Das startende Gerät steht in `countdowns.<key>.startedBy`.
+
+| Beispiel | Titel | `announceText` | Ziel-Aktion |
+| --- | --- | --- | --- |
+| Küchenwecker | Pizza | `{{title}} ist fertig` | `valueOnStart` und `valueOnEnd` leer |
 
 ### Anzeige
 

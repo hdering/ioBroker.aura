@@ -57,6 +57,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     // One layout, no choice: the widget ignores `layout` entirely.
     gauge: ['default'],
     slideshow: ['default'],
+    announcements: ['default'],
     // News (#854): the same articles as list, cards, ticker or one rotating headline.
     feed: ['default', 'card', 'ticker', 'single'],
     climate: ['default', 'custom'],

@@ -149,3 +149,18 @@ Meldungen mit `"speak": true` liest das Gerät vor, das sie anzeigt: Titel, dann
 | Bedingungen beim Speichern oder Adapterstart schon erfüllt | keine Ansage |
 | **Jetzt testen** | Spricht die Regel sofort, ohne Bedingung und Sperre |
 | Ablage | `aura.0.config.announcements`; letzte Ansage je Regel in `aura.0.speech.announcementLog` |
+
+### Im Dashboard
+
+Das Widget [Ansagen](../widgets/ansagen) legt dieselben Regeln direkt im Dashboard an — ohne Admin.
+
+| | |
+| --- | --- |
+| Geräte | nur das Gerät, auf dem die Ansage angelegt wurde (Option `allowOtherDevices` gibt alle frei) |
+| Ändern | nur auf diesem Gerät |
+| Admin → Ansagen | zeigt sie als „vom Gerät …“; **Übernehmen** macht sie zur Admin-Ansage |
+| Speichern im Admin | überschreibt keine Ansagen, die ein Gerät inzwischen angelegt oder geändert hat |
+
+## Ansage am Ende eines Countdowns
+
+Im [Countdown](../widgets/countdown#ansage-am-ende): Feld **Ansage am Ende**, z. B. `{{title}} ist fertig`. Standard: auf dem Gerät, auf dem Start gedrückt wurde.

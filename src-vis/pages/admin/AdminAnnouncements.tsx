@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Check, Copy, Pencil, Plus, Trash2, Volume2, X } from 'lucide-react';
 import { docsUrl } from '../../utils/docsUrl';
-import { getStateDirect, sendToDirect, setStateDirectAsync } from '../../hooks/useIoBroker';
+import { getStateDirect, sendToDirect, setStateDirectAsync, subscribeStateDirect } from '../../hooks/useIoBroker';
 import { useClientList } from '../../hooks/useClientList';
 import {
     discardPendingKey,
@@ -16,6 +16,7 @@ import { ConfigModal } from '../../components/config/ConfigModal';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import {
     announcementClauses,
+    mergeAnnouncementConfig,
     parseAnnouncementConfig,
     type AnnouncementConfig,
     type AnnouncementRule,
@@ -30,6 +31,10 @@ import { ADMIN_PAGE_CLASS, AdminPageTitle, AdminPageSubtitle } from './AdminPage
  * holds across every device. This page only edits the datapoint — the same
  * module-level edit buffer as the message defaults, so the admin's save bar and
  * undo/redo cover it.
+ *
+ * Dashboards add rules of their own through the Ansagen widget (#918, `owner`).
+ * Saving therefore merges with what is stored now instead of overwriting it, and
+ * an untouched page follows those changes live.
  */
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -70,9 +75,16 @@ registerHistoryStore(CONFIG_KEY, {
     },
 });
 
-/** ack=true: an owned configuration value, not a command. */
-function writeConfig(next: AnnouncementConfig): Promise<boolean> {
-    return setStateDirectAsync(`${NS}.config.announcements`, JSON.stringify(next), true).then(() => true);
+/**
+ * ack=true: an owned configuration value, not a command. Merged with the rules as
+ * stored right now, so a rule a dashboard added since the page loaded survives.
+ * Resolves to what was written.
+ */
+async function writeConfig(next: AnnouncementConfig): Promise<AnnouncementConfig> {
+    const st = await getStateDirect(`${NS}.config.announcements`);
+    const merged = mergeAnnouncementConfig(editBuffer.saved ?? EMPTY, next, parseAnnouncementConfig(st?.val));
+    await setStateDirectAsync(`${NS}.config.announcements`, JSON.stringify(merged), true);
+    return merged;
 }
 
 /** Re-renders the page on every edit — subscribeDirty only reports the clean/dirty switch. */
@@ -483,9 +495,11 @@ export function AdminAnnouncements() {
     useEffect(() => {
         registerExternalConfigKey(CONFIG_KEY, {
             save: () =>
-                writeConfig(editBuffer.value ?? EMPTY).then((ok) => {
-                    if (ok) editBuffer.saved = editBuffer.value;
-                    return ok;
+                writeConfig(editBuffer.value ?? EMPTY).then((merged) => {
+                    editBuffer.saved = merged;
+                    editBuffer.value = merged;
+                    editListeners.forEach((fn) => fn());
+                    return true;
                 }),
             revert: () => {
                 editBuffer.value = editBuffer.saved;
@@ -509,6 +523,25 @@ export function AdminAnnouncements() {
         };
     }, []);
 
+    // A dashboard changed its rules (#918): follow along while nothing is edited here.
+    useEffect(
+        () =>
+            subscribeStateDirect(`${NS}.config.announcements`, (st) => {
+                // Nothing loaded yet counts as untouched: the push may beat the first read.
+                if (editBuffer.value !== null && JSON.stringify(editBuffer.value) !== JSON.stringify(editBuffer.saved))
+                    return;
+                const parsed = parseAnnouncementConfig(st?.val);
+                if (JSON.stringify(parsed) === JSON.stringify(editBuffer.saved)) return;
+                editBuffer.saved = parsed;
+                editBuffer.value = parsed;
+                resyncHistoryKey(CONFIG_KEY);
+                bump((n) => n + 1);
+            }),
+        [],
+    );
+    const clients = useClientList();
+    const clientName = (id: string) => clients.find((c) => c.clientId === id)?.name ?? id;
+
     const config = editBuffer.value ?? EMPTY;
     const rules = config.rules;
     const editing = rules.find((r) => r.id === editingId) ?? null;
@@ -531,6 +564,7 @@ export function AdminAnnouncements() {
             ...structuredClone(rule),
             id: `ann-${Date.now().toString(36)}`,
             name: `${rule.name} (Kopie)`,
+            owner: undefined,
         };
         const at = rules.findIndex((r) => r.id === rule.id) + 1;
         commit({ ...config, rules: [...rules.slice(0, at), copy, ...rules.slice(at)] });
@@ -656,6 +690,32 @@ export function AdminAnnouncements() {
                                     )}
                                     <span className="font-sans"> · {ruleSummary(rule)}</span>
                                 </div>
+                                {rule.owner && (
+                                    <div
+                                        className="flex items-center gap-2 mt-1 text-[11px]"
+                                        style={labelStyle}
+                                        data-aura-announcement-owner={rule.owner}
+                                    >
+                                        <span
+                                            className="px-1.5 py-0.5 rounded-md"
+                                            style={{
+                                                background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                                color: 'var(--accent)',
+                                            }}
+                                        >
+                                            vom Gerät {clientName(rule.owner)}
+                                        </span>
+                                        <button
+                                            onClick={() => updateRule({ ...rule, owner: undefined })}
+                                            className="underline hover:opacity-80"
+                                            style={{ color: 'var(--accent)' }}
+                                            title="Zur Admin-Ansage machen: danach nur noch hier änderbar, Geräte frei wählbar"
+                                            data-action="take-over"
+                                        >
+                                            Übernehmen
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <button
                                 onClick={() => setEditingId(rule.id)}
@@ -689,9 +749,10 @@ export function AdminAnnouncements() {
                 </div>
 
                 <p className="text-[11px] mt-2" style={labelStyle}>
-                    Änderungen gelten nach dem Speichern. Die Ansage läuft über{' '}
-                    <span className="font-mono">{NS}.speech.say</span> — Stummschaltung, Lautstärke und
-                    Autoplay-Hinweise der Geräte gelten wie bei jeder anderen Ansage.
+                    Ansagen mit „vom Gerät …“ wurden im Dashboard (Widget Ansagen) angelegt und lassen sich dort weiter
+                    ändern; <strong>Übernehmen</strong> macht sie zur Admin-Ansage. Änderungen gelten nach dem
+                    Speichern. Die Ansage läuft über <span className="font-mono">{NS}.speech.say</span> —
+                    Stummschaltung, Lautstärke und Autoplay-Hinweise der Geräte gelten wie bei jeder anderen Ansage.
                 </p>
             </section>
 

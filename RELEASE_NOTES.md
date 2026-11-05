@@ -10,3 +10,5 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - feat: Charts - range chips and paging bar can each be made bigger (touch size) and moved below the chart (#871)
 - fix: Fullscreen - the close button no longer covers the top-right corner of the widget (#871)
+- feat: Countdown - announce a text or sound file when the countdown ends, on the device that started it, on all devices or on selected ones (#918)
+- feat: New Announcements widget - create, switch and test announcement rules for this device right in the dashboard; Admin - Announcements shows them as "from device" and can take them over (#918)

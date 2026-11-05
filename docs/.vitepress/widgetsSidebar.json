@@ -16,6 +16,10 @@
     "collapsed": false,
     "items": [
       {
+        "text": "Ansagen",
+        "link": "/widgets/ansagen"
+      },
+      {
         "text": "Auswahlfeld",
         "link": "/widgets/auswahlfeld"
       },

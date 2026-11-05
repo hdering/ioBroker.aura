@@ -17,7 +17,13 @@
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Hourglass, Play, Pause, Square, Plus, Minus } from 'lucide-react';
-import type { WidgetProps, CountdownFormat, CountdownDpKind, CountdownSource } from '../../types';
+import type {
+    WidgetProps,
+    CountdownFormat,
+    CountdownDpKind,
+    CountdownSource,
+    CountdownAnnounceTarget,
+} from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT, type TranslationKey } from '../../i18n';
@@ -30,6 +36,7 @@ import {
     type CountdownConfigPayload,
 } from '../../utils/publishCountdown';
 import { useSharedTemplateMode } from '../../contexts/RenderTransformContext';
+import { useConnectionStore } from '../../store/connectionStore';
 import { instanceBackendKey, templateInstanceKey } from '../../utils/templateInstanceKey';
 import { formatCountdown, formatPreset } from '../../utils/countdownFormat';
 import { CountdownDurationModal } from './CountdownDurationModal';
@@ -103,6 +110,13 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     const triggerValue = o.triggerValue as string | undefined;
     const triggerStopOnRevert = o.triggerStopOnRevert === true;
     const triggerRestart = o.triggerRestart === true;
+    const announceText = ((o.announceText as string | undefined) ?? '').trim();
+    const announceTarget: CountdownAnnounceTarget =
+        o.announceTarget === 'all' || o.announceTarget === 'clients' ? o.announceTarget : 'starter';
+    const announceClientsKey = Array.isArray(o.announceClients) ? (o.announceClients as string[]).join(',') : '';
+    const announceVolume = typeof o.announceVolume === 'number' ? o.announceVolume : undefined;
+    const announceInterrupt = o.announceInterrupt === true;
+    const clientId = useConnectionStore((s) => s.clientId);
     const format = (o.format as CountdownFormat | undefined) ?? 'auto';
     const showDays = o.showDays === true;
     const digitSize = Math.max(0, asNumber(o.digitSize));
@@ -181,6 +195,18 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
             triggerStopOnRevert: triggerDp ? triggerStopOnRevert : undefined,
             triggerRestart: triggerDp ? triggerRestart : undefined,
             title: config.title,
+            announce: announceText
+                ? {
+                      text: announceText,
+                      target: announceTarget,
+                      clients:
+                          announceTarget === 'clients' && announceClientsKey
+                              ? announceClientsKey.split(',')
+                              : undefined,
+                      volume: announceVolume,
+                      interrupt: announceInterrupt || undefined,
+                  }
+                : undefined,
         };
         const serialized = JSON.stringify(payload);
         if (serialized !== lastPublishedRef.current) {
@@ -200,6 +226,11 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
         triggerValue,
         triggerStopOnRevert,
         triggerRestart,
+        announceText,
+        announceTarget,
+        announceClientsKey,
+        announceVolume,
+        announceInterrupt,
         config.title,
         publishTitle,
     ]);
@@ -309,9 +340,15 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     const stateLabel = t(`countdown.state.${phase}` as TranslationKey);
 
     // ── Commands ───────────────────────────────────────────────────────────────
+    // A start carries this device along, so the end announcement can speak here (#918).
+    const withClient = announceText && announceTarget === 'starter' && clientId;
     const send = (cmd: string) => {
         if (!interactive || !backendKey) return;
-        setState(countdownStateId(backendKey, 'cmd'), cmd);
+        const starts = cmd === 'start' || cmd === 'resume' || cmd === 'toggle';
+        setState(
+            countdownStateId(backendKey, 'cmd'),
+            starts && withClient ? JSON.stringify({ cmd, client: clientId }) : cmd,
+        );
     };
     const canCommand = interactive && !!backendKey && phase !== 'unknown';
     const primaryCmd = phase === 'running' ? 'pause' : phase === 'paused' ? 'resume' : 'start';

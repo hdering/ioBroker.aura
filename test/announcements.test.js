@@ -10,6 +10,7 @@
  *   - time window (also across midnight), weekdays, cooldown, once per day
  *   - {{value}}, {{name}}, [[id]] in the text; target, volume in the payload
  *   - subscriptions follow the rules
+ *   - #918: a dashboard edits only its own rules; the admin's save merges
  */
 
 const assert = require('assert');
@@ -228,6 +229,76 @@ async function feed(env, id, val, rules) {
         assert.strictEqual(text, 'Es sind 21 Grad');
         assert.strictEqual(env.said.length, 1);
         assert.strictEqual(env.saved(), null, 'a test does not count for the lock');
+    }
+
+    // ── #918: edits from a dashboard ─────────────────────────────────────────
+    {
+        const apply = shared.applyAnnouncementClientEdit;
+        const admin = rule({ id: 'a1' });
+        let conf = { rules: [admin] };
+
+        let res = apply(conf, 'kueche', { op: 'upsert', rule: rule({ id: 'k1', name: 'Pizza', clientIds: [] }) });
+        assert.strictEqual(res.error, undefined);
+        assert.strictEqual(res.rule.owner, 'kueche');
+        assert.deepStrictEqual(res.rule.clientIds, ['kueche'], 'no devices = only the own one, never all');
+        conf = res.config;
+        assert.deepStrictEqual(
+            conf.rules.map((r) => r.id),
+            ['a1', 'k1'],
+        );
+
+        res = apply(conf, 'kueche', { op: 'upsert', rule: rule({ id: 'k1', owner: 'flur', text: 'neu' }) });
+        assert.strictEqual(res.rule.owner, 'kueche', 'the owner is not up to the client');
+        assert.strictEqual(res.rule.text, 'neu');
+        conf = res.config;
+
+        assert.strictEqual(apply(conf, 'flur', { op: 'upsert', rule: rule({ id: 'k1' }) }).error, 'forbidden');
+        assert.strictEqual(apply(conf, 'flur', { op: 'delete', id: 'k1' }).error, 'forbidden');
+        assert.strictEqual(
+            apply(conf, 'kueche', { op: 'upsert', rule: rule({ id: 'a1' }) }).error,
+            'forbidden',
+            'admin rule',
+        );
+        assert.strictEqual(apply(conf, 'kueche', { op: 'toggle', id: 'a1', enabled: false }).error, 'forbidden');
+        assert.strictEqual(apply(conf, 'kueche', { op: 'delete', id: 'nope' }).error, 'notFound');
+        assert.strictEqual(apply(conf, '', { op: 'delete', id: 'k1' }).error, 'invalid');
+        assert.strictEqual(apply(conf, 'kueche', { op: 'upsert', rule: { name: 'no id' } }).error, 'invalid');
+
+        res = apply(conf, 'kueche', { op: 'toggle', id: 'k1', enabled: false });
+        assert.strictEqual(res.rule.enabled, false);
+        res = apply(res.config, 'kueche', { op: 'delete', id: 'k1' });
+        assert.deepStrictEqual(
+            res.config.rules.map((r) => r.id),
+            ['a1'],
+        );
+
+        let many = { rules: [] };
+        for (let i = 0; i < 50; i++) {
+            many = apply(many, 'kueche', { op: 'upsert', rule: rule({ id: `k${i}` }) }).config;
+        }
+        assert.strictEqual(apply(many, 'kueche', { op: 'upsert', rule: rule({ id: 'k50' }) }).error, 'limit');
+        assert.strictEqual(apply(many, 'flur', { op: 'upsert', rule: rule({ id: 'f1' }) }).error, undefined);
+    }
+
+    // ── #918: the admin's save merges with what dashboards changed meanwhile ─
+    {
+        const { mergeAnnouncementConfig: merge, parseAnnouncementConfig: parse } = shared;
+        {
+            const a = rule({ id: 'a', text: 'A' });
+            const b = rule({ id: 'b', text: 'B' });
+            const k = rule({ id: 'k', text: 'K', owner: 'kueche' });
+            const base = parse({ rules: [a, b] });
+            // admin edited a, deleted b; a dashboard added k meanwhile
+            const mine = parse({ rules: [{ ...a, text: 'A2' }] });
+            const theirs = parse({ rules: [a, b, k] });
+            assert.deepStrictEqual(
+                merge(base, mine, theirs).rules.map((r) => [r.id, r.text]),
+                [
+                    ['a', 'A2'],
+                    ['k', 'K'],
+                ],
+            );
+        }
     }
 
     console.log('announcements: all tests passed');

@@ -8,7 +8,9 @@
  * the target datapoint at start, end and stop, restart semantics, restore after
  * an adapter restart (still running → re-armed, elapsed → caught up), the
  * per-second remainingMs ticker, the no-duration guard, and the trigger
- * datapoint (#796): edges only, priming, stop on revert, restart, own echoes.
+ * datapoint (#796): edges only, priming, stop on revert, restart, own echoes,
+ * and the end announcement (#918): JSON commands with the starting device,
+ * startedBy across a restart, target and text of the announcement.
  *
  *   node test/countdowns.test.js
  */
@@ -20,6 +22,7 @@ const {
     parseSeconds,
     durationFromConfig,
     normalizeTriggerValue,
+    countdownAnnouncement,
 } = require('../lib/countdowns');
 
 /**
@@ -605,6 +608,88 @@ const CONFIG = { durationSec: 3600, targetDp: 'hue.0.lamp.on', valueOnEnd: 'fals
             'a restart writes valueOnStart again',
         );
         engine.dispose();
+    }
+
+    // ── #918: commands carry the device that started the countdown ───────────
+    {
+        assert.deepStrictEqual(parseCountdownCommand('{"cmd":"start","client":"kueche"}'), {
+            kind: 'start',
+            client: 'kueche',
+        });
+        assert.deepStrictEqual(parseCountdownCommand('{"cmd":"+60","client":"kueche"}'), {
+            kind: 'add',
+            ms: 60_000,
+            client: 'kueche',
+        });
+        assert.deepStrictEqual(
+            parseCountdownCommand('{"cmd":"start","client":"Bad Client!"}'),
+            { kind: 'start' },
+            'an id the adapter would never hand out is dropped',
+        );
+        assert.strictEqual(parseCountdownCommand('{"cmd":"fly"}'), null);
+        assert.strictEqual(parseCountdownCommand('{broken'), null);
+        assert.strictEqual(parseCountdownCommand('{"cmd":"{\\"cmd\\":\\"start\\"}"}'), null, 'no nesting');
+
+        const clock = makeClock();
+        const ended = [];
+        const { engine, statusLog } = makeEngine(clock, { onEnded: (key, e) => ended.push([key, e.startedBy]) });
+        engine.ingestConfig('p', { durationSec: 60 });
+        await engine.command('p', '{"cmd":"start","client":"kueche"}');
+        assert.strictEqual(engine.startedBy('p'), 'kueche');
+        assert.strictEqual(statusLog.at(-1).startedBy, 'kueche', 'published for a restart');
+        await engine.command('p', 'pause');
+        await engine.command('p', '{"cmd":"resume","client":"flur"}');
+        assert.strictEqual(engine.startedBy('p'), 'flur', 'resumed elsewhere: speaks there');
+        await engine.command('p', 'pause');
+        await engine.command('p', 'resume');
+        assert.strictEqual(engine.startedBy('p'), 'flur', 'a plain resume keeps the device');
+        await clock.advance(61_000);
+        assert.deepStrictEqual(ended, [['p', 'flur']]);
+        await engine.command('p', 'start');
+        assert.strictEqual(engine.startedBy('p'), '', 'a script start has no device');
+        engine.dispose();
+
+        // restart: startedBy comes back from the persisted state
+        const clock2 = makeClock();
+        const { engine: e2 } = makeEngine(clock2);
+        e2.ingestConfig('p', { durationSec: 60 });
+        e2.ingestStatus('p', { state: 'running', endTs: clock2.now() + 30_000, startedBy: 'kueche' });
+        await e2.restore();
+        assert.strictEqual(e2.startedBy('p'), 'kueche');
+        e2.dispose();
+    }
+
+    // ── #918: what the end announcement says and where ───────────────────────
+    {
+        const cfg = (announce, title = 'Pizza') => ({ durationSec: 60, title, announce });
+        assert.strictEqual(countdownAnnouncement(cfg(undefined), 'kueche'), null);
+        assert.strictEqual(countdownAnnouncement(cfg({ text: '  ' }), 'kueche'), null);
+        assert.deepStrictEqual(countdownAnnouncement(cfg({ text: '{{title}} ist fertig' }), 'kueche'), {
+            template: 'Pizza ist fertig',
+            payload: { target: { clients: ['kueche'] } },
+        });
+        assert.deepStrictEqual(
+            countdownAnnouncement(cfg({ text: 'fertig', target: 'starter' }), ''),
+            { template: 'fertig', payload: {} },
+            'started by a script: every device',
+        );
+        assert.deepStrictEqual(countdownAnnouncement(cfg({ text: 'fertig', target: 'all' }), 'kueche'), {
+            template: 'fertig',
+            payload: {},
+        });
+        assert.deepStrictEqual(
+            countdownAnnouncement(
+                cfg({
+                    text: 'fertig',
+                    target: 'clients',
+                    clients: ['flur', 'kueche', 'flur', 'BAD'],
+                    volume: 140,
+                    interrupt: true,
+                }),
+                'bad',
+            ),
+            { template: 'fertig', payload: { volume: 100, interrupt: true, target: { clients: ['flur', 'kueche'] } } },
+        );
     }
 
     console.log('countdowns.test.js: all assertions passed');

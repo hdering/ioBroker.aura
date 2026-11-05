@@ -49,6 +49,7 @@
     "test:client-tree": "node test/client-tree.test.js",
     "test:scenes": "node test/scenes.test.js",
     "test:scenes-widget": "node tools/tests/scenes-widget.mjs",
+    "test:announcements-widget": "node tools/tests/announcements-widget.mjs",
     "test:fs-media": "node tools/tests/fs-media.mjs",
     "test:slideshow-order": "node tools/tests/slideshow-order.mjs",
     "test:slideshow-widget": "node tools/tests/slideshow-widget.mjs",

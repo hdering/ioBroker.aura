@@ -11,6 +11,8 @@ import { useT } from '../../i18n';
 import { DatapointPicker } from './DatapointPicker';
 import { ConfigSection, SubGroup } from './ConfigSection';
 import { VisibleFieldsSection } from './VisibleFieldsSection';
+import { Unavailable } from './Unavailable';
+import { useClientList } from '../../hooks/useClientList';
 import { formatPreset, parseDurationText, splitDuration } from '../../utils/countdownFormat';
 
 interface Props {
@@ -77,6 +79,12 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
     const digitSize = Number(o.digitSize) || 0;
     const endedText = (o.endedText as string | undefined) ?? '';
     const stateBaseId = o.stateBaseId as string | undefined;
+    const announceText = (o.announceText as string | undefined) ?? '';
+    const announceTarget = o.announceTarget === 'all' || o.announceTarget === 'clients' ? o.announceTarget : 'starter';
+    const announceClients = Array.isArray(o.announceClients) ? (o.announceClients as string[]) : [];
+    const announceVolume = typeof o.announceVolume === 'number' ? o.announceVolume : undefined;
+    const announceInterrupt = o.announceInterrupt === true;
+    const clients = useClientList();
 
     const [picker, setPicker] = useState<'source' | 'target' | 'trigger' | null>(null);
     const [presetText, setPresetText] = useState(() => presetsToText(o.presets));
@@ -391,6 +399,126 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     </div>
                                 </>
                             )}
+                        </SubGroup>
+                    )}
+                    {!isDp && (
+                        <SubGroup title={t('countdown.cfg.announce')}>
+                            <p className={hintCls} style={hintStyle}>
+                                {t('countdown.cfg.announceHint')}
+                            </p>
+                            <div>
+                                <label className={labelCls} style={labelStyle}>
+                                    {t('countdown.cfg.announceText')}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={announceText}
+                                    onChange={(e) => setOpts({ announceText: e.target.value || undefined })}
+                                    placeholder={t('countdown.cfg.announcePlaceholder')}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                    data-field="announceText"
+                                />
+                                <p className={hintCls} style={hintStyle}>
+                                    {t('countdown.cfg.announceTextHint')}
+                                </p>
+                            </div>
+                            <Unavailable
+                                reason={announceText.trim() ? undefined : t('countdown.cfg.announceNoText')}
+                                className="space-y-2"
+                            >
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        {t('countdown.cfg.announceTarget')}
+                                    </label>
+                                    <select
+                                        value={announceTarget}
+                                        onChange={(e) =>
+                                            setOpts({
+                                                announceTarget:
+                                                    e.target.value === 'starter' ? undefined : e.target.value,
+                                            })
+                                        }
+                                        className={inputCls}
+                                        style={inputStyle}
+                                        data-field="announceTarget"
+                                    >
+                                        <option value="starter">{t('countdown.cfg.announceTarget.starter')}</option>
+                                        <option value="all">{t('countdown.cfg.announceTarget.all')}</option>
+                                        <option value="clients">{t('countdown.cfg.announceTarget.clients')}</option>
+                                    </select>
+                                    <p className={hintCls} style={hintStyle}>
+                                        {announceTarget === 'clients'
+                                            ? t('countdown.cfg.announceClientsEmpty')
+                                            : t('countdown.cfg.announceTargetHint')}
+                                    </p>
+                                </div>
+                                {announceTarget === 'clients' && (
+                                    <div
+                                        className="flex flex-wrap gap-1 overflow-y-auto rounded-lg p-1.5"
+                                        style={{ maxHeight: 110, border: '1px solid var(--app-border)' }}
+                                    >
+                                        {clients.map((c) => {
+                                            const on = announceClients.includes(c.clientId);
+                                            return (
+                                                <button
+                                                    key={c.clientId}
+                                                    type="button"
+                                                    title={c.clientId}
+                                                    onClick={() => {
+                                                        const next = on
+                                                            ? announceClients.filter((x) => x !== c.clientId)
+                                                            : [...announceClients, c.clientId];
+                                                        setOpts({ announceClients: next.length ? next : undefined });
+                                                    }}
+                                                    className="text-[10px] rounded-lg px-2 py-1"
+                                                    style={{
+                                                        background: on ? 'var(--accent)' : 'var(--app-bg)',
+                                                        color: on ? '#fff' : 'var(--text-primary)',
+                                                        border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    }}
+                                                    data-client={c.clientId}
+                                                >
+                                                    {c.name}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                <div>
+                                    <label className={labelCls} style={labelStyle}>
+                                        {t('countdown.cfg.announceVolume')}
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={100}
+                                        value={announceVolume ?? ''}
+                                        onChange={(e) =>
+                                            setOpts({
+                                                announceVolume:
+                                                    e.target.value === ''
+                                                        ? undefined
+                                                        : Math.max(
+                                                              0,
+                                                              Math.min(100, Math.round(Number(e.target.value) || 0)),
+                                                          ),
+                                            })
+                                        }
+                                        className={`${inputCls} tabular-nums`}
+                                        style={inputStyle}
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                    <p className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                        {t('countdown.cfg.announceInterrupt')}
+                                    </p>
+                                    <Toggle
+                                        on={announceInterrupt}
+                                        onToggle={() => setOpts({ announceInterrupt: !announceInterrupt || undefined })}
+                                    />
+                                </div>
+                            </Unavailable>
                         </SubGroup>
                     )}
                 </ConfigSection>

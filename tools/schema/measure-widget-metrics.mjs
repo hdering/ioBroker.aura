@@ -562,6 +562,30 @@ const COUNTED = [
         ],
     },
     {
+        // Ansagen (#918): one row per rule in aura.0.config.announcements. Admin rules
+        // for every device (scope "device") show on any client id, so the harness's id
+        // does not matter. The "+ Neue Ansage" row is on by default.
+        type: 'announcements',
+        item: 'Ansage',
+        counts: [1, 3, 6],
+        mock: (n) => ({ 'aura.0.config.announcements': announcementRules(n) }),
+        build: () => ({ options: { scope: 'device' } }),
+        modifiers: [
+            {
+                key: 'allowCreate',
+                label: 'ohne Zeile „+ Neue Ansage“ (allowCreate: false)',
+                when: { path: 'allowCreate', equals: false },
+                build: () => ({ options: { scope: 'device', allowCreate: false } }),
+            },
+            {
+                key: 'showSummary',
+                label: 'ohne zweite Zeile je Ansage (showSummary: false)',
+                when: { path: 'showSummary', equals: false },
+                build: () => ({ options: { scope: 'device', showSummary: false } }),
+            },
+        ],
+    },
+    {
         // Verlaufstabelle (#760): the fabricated history behind DP_HIST has more rows
         // than any count here, so historyCount alone decides how many are drawn.
         type: 'historytable',
@@ -854,6 +878,21 @@ function sceneReplies(n) {
             })),
         },
     };
+}
+
+/** config.announcements with n admin rules that speak on every device. */
+function announcementRules(n) {
+    return JSON.stringify({
+        rules: Array.from({ length: n }, (_, i) => ({
+            id: `a${i}`,
+            name: `Ansage ${i + 1}`,
+            enabled: true,
+            clause: { datapoint: DP_BOOL, operator: 'true', value: '' },
+            text: 'Es hat geklingelt',
+            timeFrom: '07:00',
+            timeTo: '22:00',
+        })),
+    });
 }
 
 /** Backend replies for the single-render measurements (minimum, layouts). */
