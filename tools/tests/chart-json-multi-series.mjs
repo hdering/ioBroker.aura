@@ -254,6 +254,29 @@ if (!BASE) {
         JSON.stringify(after?.map((s) => s.color)),
     );
 
+    // An entry dropping out while the chart stays open takes its line along — ECharts merges the
+    // option by default and would keep drawing the series that is gone.
+    for (const mode of ['json', 'timeseries']) {
+        await render(widget(`w-shrink-${mode}`, mode), PAYLOAD);
+        const shrunk = { series: PAYLOAD.series.filter((s) => s.name !== 'agent-dvr') };
+        await page.evaluate(
+            ([dp, v]) => {
+                window.__auraShot.mock({ [dp]: v });
+                window.__auraShot.mockServerState?.({ [dp]: v });
+            },
+            [DP, JSON.stringify(shrunk)],
+        );
+        await page
+            .waitForFunction(() => window.__auraShot.chartSeries()?.length === 2, null, { timeout: 5000 })
+            .catch(() => undefined);
+        const left = await page.evaluate(() => window.__auraShot.chartSeries());
+        check(
+            `${mode}: removed entry drops its line in place`,
+            left?.map((s) => s.name).join(',') === 'script-restore,Gesamt',
+            JSON.stringify(left?.map((s) => s.name)),
+        );
+    }
+
     // Editor: the switch is on, the series found are named, the colour is greyed with its reason.
     await page.evaluate(
         ([w, v]) => {

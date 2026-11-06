@@ -69,6 +69,10 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 /** Stable fallback, so a chart without series does not hand the name hook a fresh array. */
 const NO_SERIES: EChartSeriesConfig[] = [];
 
+// Series are replaced, not merged: ECharts keeps a series that drops out of the option (a JSON
+// entry removed while the chart is open, issue #926); everything else stays merged.
+const REPLACE_SERIES = ['series'];
+
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 // Margin left over *outside* the axis labels. The grid runs with containLabel, so echarts
@@ -1940,6 +1944,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                         option={merged}
                         style={{ width: '100%', height: '100%' }}
                         opts={{ renderer: 'canvas' }}
+                        replaceMerge={REPLACE_SERIES}
                     />
                 )}
                 {effHasData && historyError && !isPreview && (
