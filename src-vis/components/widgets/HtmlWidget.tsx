@@ -202,7 +202,11 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                     className={`aura-widget-value aura-frame-neutral w-full block ${fit ? '' : 'flex-1 min-h-0'}`}
                     style={{ border: 'none', ...(fit ? { height: contentH ?? INITIAL_CONTENT_H } : null) }}
                     // A blocked frame cannot be scrolled — its scrollbar would be dead chrome.
-                    scrolling={scrollable ? iframeScrollingAttr(interactionMode) : 'no'}
+                    // Under autoHeight the frame follows its content and never scrolls
+                    // either: a width change overflows briefly before the new height lands,
+                    // a classic scrollbar steals ~15 px, the content rewraps and the bar
+                    // can stick (#940).
+                    scrolling={scrollable && !fit ? iframeScrollingAttr(interactionMode) : 'no'}
                 />
                 {/* Interaction blocker — also the click path for the widget's action (#773) */}
                 {interactionMode === 'action' && (

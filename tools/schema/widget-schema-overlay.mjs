@@ -541,6 +541,11 @@ export const WIDGET_OPTION_NOTES = {
     html: {
         htmlContent: { description: 'Fester HTML-Inhalt.' },
         htmlDatapoint: { description: 'Datenpunkt, der den HTML-Inhalt liefert.' },
+        scrollable: {
+            description:
+                'Scrollbalken im HTML-Rahmen erlauben. true = an (Standard). Wirkungslos bei autoHeight: true - ' +
+                'der Rahmen ist dann so hoch wie der Inhalt und scrollt nie.',
+        },
         htmlApi: {
             description:
                 'Stellt im HTML window.aura bereit: aura.setState(id, wert, ack?), aura.toggle(id), ' +

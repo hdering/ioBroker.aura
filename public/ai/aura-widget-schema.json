@@ -15738,7 +15738,8 @@
         },
         "scrollable": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Scrollbalken im HTML-Rahmen erlauben. true = an (Standard). Wirkungslos bei autoHeight: true - der Rahmen ist dann so hoch wie der Inhalt und scrollt nie."
         },
         "valueDatapoint": {
           "type": "string",

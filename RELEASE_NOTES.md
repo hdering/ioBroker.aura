@@ -17,3 +17,4 @@
 - feat: Settings - new option "Reachable on: only via the web instance (/aura/)" closes Aura's own port 8095 for the network; instance links and the MCP client block then point to `<web-port>/aura/`
 - feat: js-controller 8 - Aura's port and listen address show up in the host's used resources, and a port already held by another instance is named in the log
 - fix: Web adapter extension - together with another web extension that handles its own WebSockets (e.g. victron-cerbo), every socket connection of the web instance was closed right after connecting ("ws connection error: CLOSE_ABNORMAL", endless reconnects); Aura now leaves the web instance's WebSocket listeners untouched
+- fix: HTML widget - with "fit height to content" switched on, no scrollbar appears in the frame after resizing the browser window anymore; the "Allow scrolling" option is greyed out in that mode (#940)
