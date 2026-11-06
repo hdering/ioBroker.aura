@@ -3366,124 +3366,103 @@ export function CustomCellEditor({
 
             {cell.type !== 'empty' && cell.type !== 'component' && (
                 <>
-                    {/* Font size — icon cells set it as "Icon-Größe" in their content block */}
-                    {cell.type !== 'icon' && cell.type !== 'state-icon' && (
-                        <div className="flex items-center gap-2">
-                            <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                Schriftgröße
-                            </label>
-                            <input
-                                type="number"
-                                min={8}
-                                max={192}
-                                step={1}
-                                value={cell.fontSize ?? ''}
-                                onChange={(e) =>
-                                    onChange({ fontSize: e.target.value ? Number(e.target.value) : undefined })
-                                }
-                                placeholder="auto"
-                                className="w-16 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                style={inputSty}
-                            />
-                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                px
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Line height (#933) — 1 lets a large value fit a flat cell */}
-                    {cell.type !== 'icon' && cell.type !== 'state-icon' && (
-                        <div className="flex items-center gap-2">
-                            <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                Zeilenhöhe
-                            </label>
-                            <input
-                                type="number"
-                                min={0.5}
-                                max={3}
-                                step={0.05}
-                                value={cell.lineHeight ?? ''}
-                                onChange={(e) =>
-                                    onChange({ lineHeight: e.target.value ? Number(e.target.value) : undefined })
-                                }
-                                placeholder="1.3"
-                                className="w-16 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                style={inputSty}
-                            />
-                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                × Schrift (leer = auto)
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Bold / Italic */}
-                    <div className="flex items-center gap-4">
-                        {(
-                            [
-                                { key: 'bold', label: 'Fett' },
-                                { key: 'italic', label: 'Kursiv' },
-                            ] as const
-                        ).map(({ key, label }) => {
-                            const val = !!(cell as unknown as Record<string, unknown>)[key];
-                            return (
-                                <div key={key} className="flex items-center gap-2">
-                                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                        {label}
-                                    </span>
+                    {/* Text style in one row: size, line height (#933), bold, italic.
+                        Icon cells set the size as "Icon-Größe" in their content block. */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        {cell.type !== 'icon' && cell.type !== 'state-icon' && (
+                            <>
+                                <label
+                                    className="flex items-center gap-1.5 text-[11px]"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                    title="Schriftgröße in px — leer = automatisch"
+                                >
+                                    Größe
+                                    <input
+                                        type="number"
+                                        aria-label="Schriftgröße"
+                                        min={8}
+                                        max={192}
+                                        step={1}
+                                        value={cell.fontSize ?? ''}
+                                        onChange={(e) =>
+                                            onChange({ fontSize: e.target.value ? Number(e.target.value) : undefined })
+                                        }
+                                        placeholder="auto"
+                                        className="w-14 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                        style={inputSty}
+                                    />
+                                </label>
+                                <label
+                                    className="flex items-center gap-1.5 text-[11px]"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                    title="Zeilenabstand als Vielfaches der Schriftgröße — leer = 1,3 mit Reserve für Unterlängen; 1 lässt große Werte in flache Zellen passen"
+                                >
+                                    Abstand
+                                    <input
+                                        type="number"
+                                        aria-label="Zeilenabstand"
+                                        min={0.5}
+                                        max={3}
+                                        step={0.05}
+                                        value={cell.lineHeight ?? ''}
+                                        onChange={(e) =>
+                                            onChange({
+                                                lineHeight: e.target.value ? Number(e.target.value) : undefined,
+                                            })
+                                        }
+                                        placeholder="1.3"
+                                        className="w-14 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                        style={inputSty}
+                                    />
+                                </label>
+                            </>
+                        )}
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    { key: 'bold', label: 'Fett', glyph: 'B', glyphSty: { fontWeight: 700 } },
+                                    { key: 'italic', label: 'Kursiv', glyph: 'I', glyphSty: { fontStyle: 'italic' } },
+                                ] as const
+                            ).map(({ key, label, glyph, glyphSty }) => {
+                                const val = !!cell[key];
+                                return (
                                     <button
-                                        onClick={() => onChange({ [key]: !val } as Partial<CustomCell>)}
-                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                        style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
+                                        key={key}
+                                        type="button"
+                                        title={label}
+                                        aria-label={label}
+                                        aria-pressed={val}
+                                        onClick={() => onChange({ [key]: !val })}
+                                        className="w-7 h-7 rounded-lg text-xs shrink-0"
+                                        style={{
+                                            ...glyphSty,
+                                            fontFamily: 'serif',
+                                            background: val ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: val ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${val ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
                                     >
-                                        <span
-                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                            style={{ left: val ? '14px' : '2px' }}
-                                        />
+                                        {glyph}
                                     </button>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
 
-                    {/* Color */}
-                    <div className="flex items-center gap-2">
-                        <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                            Farbe
-                        </label>
-                        <ColorPicker
-                            value={cell.color || '#ffffff'}
-                            onChange={(v) => onChange({ color: v })}
-                            className="w-8 h-7 rounded cursor-pointer border-0 p-0"
-                            style={{ background: 'none' }}
-                        />
-                        <button
-                            onClick={() => onChange({ color: '' })}
-                            className="text-[10px] px-2 py-0.5 rounded"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            Theme
-                        </button>
-                    </div>
-
-                    {/* Background (#732) — e.g. a semi-transparent label over a photo */}
-                    <div className="flex items-center gap-2">
-                        <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                            Hintergrund
-                        </label>
-                        <ColorPicker
-                            value={cell.bg || '#00000080'}
-                            unset={!cell.bg}
-                            onChange={(v) => onChange({ bg: v })}
-                            className="w-8 h-7 rounded cursor-pointer border-0 p-0"
-                            style={{ background: 'none' }}
-                        />
-                        {cell.bg && (
+                    {/* Text color + background (#732) side by side */}
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <div className="flex items-center gap-1.5">
+                            <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                Farbe
+                            </label>
+                            <ColorPicker
+                                value={cell.color || '#ffffff'}
+                                onChange={(v) => onChange({ color: v })}
+                                className="w-8 h-7 rounded cursor-pointer border-0 p-0"
+                                style={{ background: 'none' }}
+                            />
                             <button
-                                onClick={() => onChange({ bg: undefined, bgMode: undefined })}
+                                onClick={() => onChange({ color: '' })}
                                 className="text-[10px] px-2 py-0.5 rounded"
                                 style={{
                                     background: 'var(--app-bg)',
@@ -3491,9 +3470,35 @@ export function CustomCellEditor({
                                     border: '1px solid var(--app-border)',
                                 }}
                             >
-                                Keiner
+                                Theme
                             </button>
-                        )}
+                        </div>
+                        {/* e.g. a semi-transparent label over a photo */}
+                        <div className="flex items-center gap-1.5">
+                            <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                Hintergrund
+                            </label>
+                            <ColorPicker
+                                value={cell.bg || '#00000080'}
+                                unset={!cell.bg}
+                                onChange={(v) => onChange({ bg: v })}
+                                className="w-8 h-7 rounded cursor-pointer border-0 p-0"
+                                style={{ background: 'none' }}
+                            />
+                            {cell.bg && (
+                                <button
+                                    onClick={() => onChange({ bg: undefined, bgMode: undefined })}
+                                    className="text-[10px] px-2 py-0.5 rounded"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    Keiner
+                                </button>
+                            )}
+                        </div>
                     </div>
                     {cell.bg && CONTENT_BG_TYPES.has(cell.type) && (
                         <div className="flex gap-1">

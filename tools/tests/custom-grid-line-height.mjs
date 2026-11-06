@@ -60,7 +60,7 @@ const one = await spanBox(1);
 check('default keeps 1.3 plus descender reserve', def.h >= 41, JSON.stringify(def));
 check('lineHeight 1 makes the text box the font size', Math.abs(one.h - 30) < 1, JSON.stringify(one));
 
-// Editor: the cell editor offers 'Zeilenhöhe' and stores it.
+// Editor: the cell editor offers 'Zeilenabstand' and stores it.
 await page.evaluate(() => window.__auraShot.setEditMode(true));
 await page.waitForTimeout(300);
 await page.locator('.aura-widget-lh1').hover();
@@ -69,7 +69,7 @@ await page.locator('button:text-is("Bearbeiten")').click();
 const dlg = page.locator('.aura-widget-edit-modal');
 await dlg.waitFor({ timeout: 10000 });
 await dlg.locator('button:has(> span:text-is("1/1"))').click();
-const input = dlg.locator('label:text-is("Zeilenhöhe") + input');
+const input = dlg.getByLabel('Zeilenabstand', { exact: true });
 check('cell editor offers the line height field', (await input.count()) === 1);
 await input.fill('0.9');
 await page.waitForTimeout(300);
@@ -84,6 +84,26 @@ const cleared = await page.evaluate(() =>
         : null,
 );
 check('empty field clears it', cleared === false, String(cleared));
+
+// Compact row (size, line height, B, I on one line): the bold toggle still stores.
+const boldBtn = dlg.getByRole('button', { name: 'Fett', exact: true });
+await boldBtn.click();
+await page.waitForTimeout(300);
+const bold = await page.evaluate(() => window.__auraShot.widgetOptions('lh1')?.customGrid?.cells?.[0]?.bold);
+check('bold toggle stores', bold === true, String(bold));
+check('bold toggle shows pressed', (await boldBtn.getAttribute('aria-pressed')) === 'true');
+const sizeY = (await dlg.getByLabel('Schriftgröße', { exact: true }).boundingBox())?.y;
+const lhY = (await input.boundingBox())?.y;
+const boldY = (await boldBtn.boundingBox())?.y;
+check(
+    'size, line height and bold share one row',
+    Math.abs(sizeY - lhY) < 4 && Math.abs(sizeY - boldY) < 4,
+    `${sizeY} / ${lhY} / ${boldY}`,
+);
+if (process.env.AURA_SHOT_OUT) {
+    await dlg.getByLabel('Schriftgröße', { exact: true }).evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await dlg.screenshot({ path: process.env.AURA_SHOT_OUT });
+}
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 await browser.close();
