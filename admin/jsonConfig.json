@@ -899,6 +899,46 @@
       "lg": 4,
       "xl": 4
     },
+    "mcpBackupKeep": {
+      "type": "number",
+      "label": {
+        "en": "Keep MCP backups (count)",
+        "de": "MCP-Sicherungen behalten (Anzahl)"
+      },
+      "help": {
+        "en": "Before every change the AI makes, a copy of the configuration lands in aura.0.backups (mcp-*.json.gz); changes within a minute share one. Older files beyond this count are deleted — they end up in every ioBroker backup.",
+        "de": "Vor jeder Änderung durch die KI landet eine Kopie der Konfiguration in aura.0.backups (mcp-*.json.gz); Änderungen innerhalb einer Minute teilen sich eine. Ältere Dateien über diese Anzahl hinaus werden gelöscht — sie landen sonst in jeder ioBroker-Sicherung."
+      },
+      "min": 1,
+      "max": 1000,
+      "default": 50,
+      "hidden": "!data.mcpEnabled",
+      "xs": 12,
+      "sm": 6,
+      "md": 3,
+      "lg": 2,
+      "xl": 2
+    },
+    "mcpBackupDays": {
+      "type": "number",
+      "label": {
+        "en": "Keep MCP backups (days)",
+        "de": "MCP-Sicherungen behalten (Tage)"
+      },
+      "help": {
+        "en": "Deletes MCP backups older than this; the newest 5 always stay. 0 = no age limit, only the count applies.",
+        "de": "Löscht MCP-Sicherungen, die älter sind; die neuesten 5 bleiben immer. 0 = kein Alterslimit, nur die Anzahl zählt."
+      },
+      "min": 0,
+      "max": 3650,
+      "default": 30,
+      "hidden": "!data.mcpEnabled",
+      "xs": 12,
+      "sm": 6,
+      "md": 3,
+      "lg": 2,
+      "xl": 2
+    },
     "mcpClientConfig": {
       "type": "text",
       "label": {

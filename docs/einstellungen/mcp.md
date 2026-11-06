@@ -183,6 +183,16 @@ Unterhalb von **…und löschen** wird auch ein Schreibvorgang abgelehnt, der vo
 
 Mit **Nur lesen** anfangen und erst erhöhen, wenn das Ergebnis überzeugt.
 
+## Sicherungen
+
+Vor jeder Änderung legt Aura eine Kopie der Konfiguration in `aura.0.backups` ab (`mcp-<Zeit>.json.gz`).
+
+| | |
+| --- | --- |
+| Zusammenfassen | Änderungen innerhalb einer Minute teilen sich eine Sicherung — Zurückspielen nimmt alle zurück |
+| Aufbewahrung | Instanz-Einstellung **MCP-Sicherungen behalten**: Anzahl (Standard 50) und Tage (Standard 30, 0 = kein Alterslimit); die neuesten 5 bleiben immer |
+| Aufräumen | bei jeder Sicherung und beim Start der Instanz, auch alte unkomprimierte `mcp-*.json` |
+
 ## PIN-geschützte Bereiche und Tabs
 
 Der Inhalt eines [PIN-geschützten](./editor#pin-schutz) Bereichs/Tabs liegt serverseitig im Tresor, nicht in der Konfiguration. Der MCP meldet ihn deshalb als **„PIN-geschützt, Inhalt nicht einsehbar"** — nicht als leer.

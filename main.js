@@ -26,7 +26,7 @@ const {
 } = require('./lib/timerException');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
-const { mergeRenderReport, renderReportEntry } = require('./lib/mcp/auraConfig');
+const { mergeRenderReport, pruneBackups, renderReportEntry } = require('./lib/mcp/auraConfig');
 const { generateServerSecret } = require('./lib/security/authCore');
 const {
     splitDashboard,
@@ -4191,6 +4191,12 @@ class Aura extends utils.Adapter {
             common: { name: 'Auto-backup files', type: 'meta.user' },
             native: {},
         });
+        // MCP snapshots (mcp-*.json[.gz]) to the configured retention — also clears
+        // what versions without a limit piled up. In the background: an old
+        // instance may hold hundreds of files.
+        pruneBackups(this)
+            .then((n) => n && this.log.info(`aura: removed ${n} old MCP backup(s) from ${this.namespace}.backups`))
+            .catch((e) => this.log.warn(`aura: pruning MCP backups failed: ${e.message}`));
 
         await this.setObjectNotExistsAsync('navigate.url', {
             type: 'state',

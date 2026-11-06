@@ -1876,6 +1876,17 @@ vierter dazu (die Vorlagen), war die angekündigte Sicherung sonst für genau di
 Änderung wertlos, die sie begleitete. Der Dateiname wird
 gegen ein Muster geprüft, bevor er an `readFile` geht.
 
+**Sicherungen wachsen nicht mehr unbegrenzt.** Jede Sicherung ist eine volle
+Kopie (2–3 MB), und `<ns>.backups` landet in jeder ioBroker-Sicherung. Gemeldet:
+572 Dateien, 1,2 GB, BackItUp-Läufe, die den Host nachts einfrieren ließen. Seitdem:
+gzip+base64 (`.json.gz`, wie Frontend und Config-Guard), Schreibvorgänge innerhalb
+von 60 s teilen sich die Sicherung (nur solange die Datei noch existiert; der
+Schnappschuss von `aura_restore` erzwingt eine eigene und beendet das Fenster),
+und `pruneBackups` hält `mcpBackupKeep`/`mcpBackupDays` ein — nach jeder
+Sicherung und beim Adapterstart, Altdateien `.json` eingeschlossen. Das Alterslimit
+lässt die neuesten 5 stehen, damit eine lange unbenutzte Instanz einen Weg zurück
+behält. `aura_restore` liest beide Formate.
+
 **Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
 die Spaltengrenze des Dashboards **nicht** — sie wird für diese Werkzeuge
 weggelassen.

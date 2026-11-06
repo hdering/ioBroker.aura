@@ -34,6 +34,8 @@ declare global {
             mcpEnabled: boolean;
             mcpToken: string;
             mcpMode: string;
+            mcpBackupKeep: number;
+            mcpBackupDays: number;
             mcpClientConfig: string;
             mcpDesktopConfig: string;
         }

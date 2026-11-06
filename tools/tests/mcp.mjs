@@ -22,6 +22,7 @@ import path from 'node:path';
 import assert from 'node:assert/strict';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
+import zlib from 'node:zlib';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
@@ -45,6 +46,9 @@ const {
     updateNode,
     collectDefIds,
     replaceTabWidgets,
+    pruneBackups,
+    backupTime,
+    backupRetention,
 } = require('../../lib/mcp/auraConfig.js');
 const { handleAuthDiscovery, handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const { LEVELS, levelIndex, setProbeWaitMs, toolsFor } = require('../../lib/mcp/tools.js');
@@ -86,6 +90,12 @@ const {
 } = require('../../lib/mcp/clientConfig.js');
 
 const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-schema.json'), 'utf8'));
+
+/** An MCP backup file as an object — gzip+base64 (`.json.gz`) or plain JSON. */
+function readBackupFile(name, data) {
+    const text = String(data);
+    return JSON.parse(name.endsWith('.gz') ? zlib.gunzipSync(Buffer.from(text, 'base64')).toString('utf8') : text);
+}
 
 let checks = 0;
 const check = (label, fn) => {
@@ -3143,6 +3153,12 @@ function makeAdapter() {
             files[name] = data;
         },
         readDirAsync: async () => Object.keys(files).map((file) => ({ file })),
+        delFileAsync: async (_ns, name) => {
+            if (files[name] === undefined) {
+                throw new Error('not found');
+            }
+            delete files[name];
+        },
         readFileAsync: async (_ns, name) => {
             if (files[name] === undefined) {
                 throw new Error('not found');
@@ -4606,9 +4622,9 @@ for (const name of Object.keys(adapter.files)) {
 check('the write is backed up first and the answer says where', () => {
     const names = Object.keys(adapter.files);
     assert.equal(names.length, 1);
-    assert.match(names[0], /^mcp-.*\.json$/);
+    assert.match(names[0], /^mcp-.*\.json\.gz$/);
     assert.match(added.content[0].text, /Sicherung: aura\.0\.backups\/mcp-/);
-    const backup = JSON.parse(adapter.files[names[0]]);
+    const backup = readBackupFile(names[0], adapter.files[names[0]]);
     assert.ok(backup.dashboard.includes('"t2"'), 'the backup must hold the PREVIOUS dashboard');
     assert.ok(!backup.dashboard.includes('"neu"'), 'the backup must predate the change');
 });
@@ -4983,7 +4999,7 @@ check('a group whose children do not validate is left alone', () => {
 
 check('the backup covers all three config states, not just the dashboard', () => {
     const names = Object.keys(adapter.files).sort();
-    const last = JSON.parse(adapter.files[names[names.length - 1]]);
+    const last = readBackupFile(names[names.length - 1], adapter.files[names[names.length - 1]]);
     assert.ok('dashboard' in last, 'dashboard missing from the backup');
     assert.ok('group-defs' in last, 'group-defs missing from the backup');
     assert.ok('popup-config' in last, 'popup-config missing from the backup — a popup edit would be unrecoverable');
@@ -6333,9 +6349,77 @@ check('a popup can be deleted', () => {
     assert.ok(!views.some((v) => v.name === 'Frisch'));
 });
 
-check('every deletion left a backup behind', () => {
+check('the deletions are backed up — a quick run of them shares one file', () => {
+    // Every snapshot is a full copy of the config and ends up in every ioBroker
+    // backup; one per tool call within seconds filled the file store.
     const names = Object.keys(adapter.files);
-    assert.ok(names.length >= 4, `expected several backups, got ${names.length}`);
+    assert.equal(names.length, 1, `one backup for the burst, got ${names.join(', ')}`);
+    assert.ok(deletedPopup.content[0].text.includes(names[0]), 'the answer names the backup that holds the way back');
+});
+
+// ── Backup retention ─────────────────────────────────────────────────────────
+// Every MCP backup is a full config copy, and <ns>.backups goes into every
+// ioBroker backup. Reported from use: 572 uncompressed files, 1.2 GB, nightly
+// backups that no longer finished.
+
+const retentionFiles = {};
+const retentionAdapter = {
+    namespace: 'aura.0',
+    config: { mcpBackupKeep: 10, mcpBackupDays: 30 },
+    readDirAsync: async () => Object.keys(retentionFiles).map((file) => ({ file })),
+    delFileAsync: async (_ns, name) => {
+        delete retentionFiles[name];
+    },
+};
+const DAY = 86400000;
+const retentionNow = Date.parse('2026-11-04T12:00:00.000Z');
+const stampAt = (t) => new Date(t).toISOString().replace(/[:.]/g, '-');
+// 40 old uncompressed ones, one a day, plus 3 new compressed ones from today.
+for (let i = 0; i < 40; i++) {
+    retentionFiles[`mcp-${stampAt(retentionNow - (i + 1) * DAY)}.json`] = '{}';
+}
+for (let i = 0; i < 3; i++) {
+    retentionFiles[`mcp-${stampAt(retentionNow - i * 60000)}.json.gz`] = '';
+}
+retentionFiles['backup-2020-01-01T00-00-00-000Z.json.gz'] = 'frontend';
+const pruned = await pruneBackups(retentionAdapter, retentionNow);
+check('pruning keeps the newest N, old and new format alike, and nothing of the frontend', () => {
+    const left = Object.keys(retentionFiles).filter((n) => n.startsWith('mcp-'));
+    assert.equal(left.length, 10);
+    assert.equal(pruned, 33);
+    assert.equal(left.filter((n) => n.endsWith('.gz')).length, 3, 'the newest are kept');
+    assert.ok('backup-2020-01-01T00-00-00-000Z.json.gz' in retentionFiles, 'frontend backups are not ours');
+});
+
+retentionAdapter.config = { mcpBackupKeep: 100, mcpBackupDays: 7 };
+await pruneBackups(retentionAdapter, retentionNow);
+check('the age limit applies on top of the count', () => {
+    const left = Object.keys(retentionFiles).filter((n) => n.startsWith('mcp-'));
+    assert.ok(
+        left.every((n) => backupTime(n) >= retentionNow - 7 * DAY),
+        left.join(', '),
+    );
+    assert.equal(left.length, 3 + 7);
+});
+
+await pruneBackups(retentionAdapter, retentionNow + 365 * DAY);
+check('the age limit never takes the last few — an idle instance keeps a way back', () => {
+    assert.equal(Object.keys(retentionFiles).filter((n) => n.startsWith('mcp-')).length, 5);
+});
+
+check('retention falls back to sane defaults on missing or broken config', () => {
+    assert.deepEqual(backupRetention({ config: {} }), { keep: 50, days: 30 });
+    assert.deepEqual(backupRetention({ config: { mcpBackupKeep: 0, mcpBackupDays: -1 } }), { keep: 50, days: 30 });
+    assert.deepEqual(backupRetention({ config: { mcpBackupKeep: '20', mcpBackupDays: 0 } }), { keep: 20, days: 0 });
+});
+
+check('backups are stored compressed', () => {
+    const name = Object.keys(adapter.files).find((n) => n.endsWith('.json.gz'));
+    assert.ok(name, 'no compressed backup written');
+    // gzip+base64 — the test config is too small for the size to tell, the magic does.
+    const bytes = Buffer.from(String(adapter.files[name]), 'base64');
+    assert.deepEqual([bytes[0], bytes[1]], [0x1f, 0x8b]);
+    assert.equal(readBackupFile(name, adapter.files[name])._type, 'aura-mcp-backup');
 });
 
 // ── Custom layout ────────────────────────────────────────────────────────────
@@ -6385,7 +6469,7 @@ const restored = await client.callTool({ name: 'aura_restore', arguments: { back
 
 check('restoring puts the earlier state back', () => {
     assert.ok(!restored.isError, restored.content[0].text);
-    const expected = JSON.parse(JSON.parse(adapter.files[firstBackup]).dashboard);
+    const expected = JSON.parse(readBackupFile(firstBackup, adapter.files[firstBackup]).dashboard);
     assert.deepEqual(JSON.parse(adapter.states['config.dashboard']), expected);
     assert.notDeepEqual(JSON.parse(adapter.states['config.dashboard']), beforeRestore, 'nothing would have changed');
 });
@@ -6393,8 +6477,8 @@ check('restoring puts the earlier state back', () => {
 check('the state before the restore is itself kept', () => {
     // Restoring the wrong backup must not be a one-way door.
     assert.match(restored.content[0].text, /Der Stand davor liegt als aura\.0\.backups\/mcp-/);
-    const safety = restored.content[0].text.match(/backups\/(mcp-[\w.-]+\.json)/)[1];
-    assert.deepEqual(JSON.parse(JSON.parse(adapter.files[safety]).dashboard), beforeRestore);
+    const safety = restored.content[0].text.match(/backups\/(mcp-[\w.-]+\.json(?:\.gz)?)/)[1];
+    assert.deepEqual(JSON.parse(readBackupFile(safety, adapter.files[safety]).dashboard), beforeRestore);
 });
 
 const badName = await client.callTool({ name: 'aura_restore', arguments: { backup: '../../etc/passwd' } });
@@ -6646,15 +6730,16 @@ check('an unknown preset lists what is there', () => {
     assert.match(unknownPreset.content[0].text, /Meine Gruppe/);
 });
 
+// A fresh backup for this write: the shared one of the burst above predates the
+// first preset, and the check below is about presets being in the snapshot.
+for (const f of Object.keys(adapter.files)) delete adapter.files[f];
 const beforePresets = adapter.states['config.widget-presets'];
 const savedSecond = await client.callTool({
     name: 'aura_save_preset',
     arguments: { widgetId: 'quelle', name: 'Zweite' },
 });
-const restoredPresets = await client.callTool({
-    name: 'aura_restore',
-    arguments: { backup: savedSecond.content[0].text.match(/mcp-[\w.-]+\.json/)[0] },
-});
+const announced = savedSecond.content[0].text.match(/mcp-[\w.-]+\.json(?:\.gz)?/)[0];
+const restoredPresets = await client.callTool({ name: 'aura_restore', arguments: { backup: announced } });
 check('a preset write is covered by the backup it announces', () => {
     // Presets are a fourth writable state; leaving them out of the snapshot would
     // make the "Sicherung: ..." line a promise the restore cannot keep.

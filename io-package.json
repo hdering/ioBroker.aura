@@ -235,6 +235,8 @@
     "mcpEnabled": false,
     "mcpToken": "",
     "mcpMode": "read",
+    "mcpBackupKeep": 50,
+    "mcpBackupDays": 30,
     "mcpClientConfig": "",
     "mcpDesktopConfig": ""
   },
