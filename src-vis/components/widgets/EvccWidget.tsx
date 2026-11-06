@@ -1,6 +1,6 @@
 import { ConfigSection, SubGroup } from '../config/ConfigSection';
 import { VisibleFieldsSection, type VisibleField } from '../config/VisibleFieldsSection';
-import { useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame, Database } from 'lucide-react';
 import { useThemeEpoch } from '../../store/themeEpoch';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -25,9 +25,32 @@ import {
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-function fmtKW(w: number): string {
+type PowerUnit = 'kW' | 'W' | 'auto';
+
+function normalizePowerUnit(v: unknown): PowerUnit {
+    return v === 'W' || v === 'auto' ? v : 'kW';
+}
+
+/**
+ * Formats a power value given in watts.
+ * kW = original behaviour, W = always watts, auto = below 1000 W in watts, above in kW.
+ */
+function formatPower(w: number, unit: PowerUnit): string {
+    if (unit === 'W' || (unit === 'auto' && Math.abs(w) < 1000)) {
+        return `${Math.round(w).toLocaleString()} W`;
+    }
     if (w < 100) return `${(w / 1000).toFixed(2)} kW`;
     return `${(w / 1000).toFixed(1)} kW`;
+}
+
+// The unit is a widget option, but the formatting happens in many small
+// components (flow row, flow SVG, compact row, loadpoint card, ...). A context
+// hands the chosen unit down without threading a prop through all of them.
+const PowerUnitContext = createContext<PowerUnit>('kW');
+
+function useFmtPower(): (w: number) => string {
+    const unit = useContext(PowerUnitContext);
+    return useCallback((w: number) => formatPower(w, unit), [unit]);
 }
 
 function fmtDuration(ns: number): string {
@@ -520,6 +543,7 @@ function VertFlowArrow({
 
 function EnergyFlowRow({ site, showBattery, scale = 1 }: { site: SiteState; showBattery: boolean; scale?: number }) {
     const t = useT();
+    const fmtKW = useFmtPower();
     const hasSolar = site.pvPower > 10;
     const gridImport = site.gridPower > 10;
     const gridExport = site.gridPower < -10;
@@ -690,6 +714,7 @@ function EnergyFlowSVG({
     visibleLpIndices: number[];
 }) {
     const t = useT();
+    const fmtKW = useFmtPower();
     const hasSolar = site.pvPower > 10;
     const gridImport = site.gridPower > 10;
     const gridExport = site.gridPower < -10;
@@ -858,6 +883,7 @@ function EnergyFlowSVG({
 // ── Compact row ───────────────────────────────────────────────────────────────
 
 function CompactRow({ site, showBattery, scale = 1 }: { site: SiteState; showBattery: boolean; scale?: number }) {
+    const fmtKW = useFmtPower();
     const gridColor = site.gridPower > 0 ? '#ef4444' : site.gridPower < 0 ? '#10b981' : 'var(--text-secondary)';
     const battColor = site.batteryPower < 0 ? '#3b82f6' : '#f59e0b';
     const fs = 12 * scale;
@@ -890,6 +916,7 @@ function CompactRow({ site, showBattery, scale = 1 }: { site: SiteState; showBat
 // ── Battery-only view ─────────────────────────────────────────────────────────
 
 function BatteryView({ site, scale = 1 }: { site: SiteState; scale?: number }) {
+    const fmtKW = useFmtPower();
     const battCharge = site.batteryPower < -10;
     const battDisch = site.batteryPower > 10;
     const battColor = battCharge ? '#3b82f6' : battDisch ? '#f59e0b' : '#10b981';
@@ -938,6 +965,7 @@ function BatteryView({ site, scale = 1 }: { site: SiteState; scale?: number }) {
 // ── Production-only view ──────────────────────────────────────────────────────
 
 function ProductionView({ site, scale = 1 }: { site: SiteState; scale?: number }) {
+    const fmtKW = useFmtPower();
     const feedIn = site.gridPower < -10;
     const feedInW = Math.abs(Math.min(0, site.gridPower));
     const iconFs = 30 * scale;
@@ -969,6 +997,7 @@ function ProductionView({ site, scale = 1 }: { site: SiteState; scale?: number }
 // ── Consumption-only view ─────────────────────────────────────────────────────
 
 function ConsumptionView({ site, scale = 1 }: { site: SiteState; scale?: number }) {
+    const fmtKW = useFmtPower();
     const gridImport = site.gridPower > 10;
     const gridColor = gridImport ? '#ef4444' : '#10b981';
     const iconFs = 30 * scale;
@@ -1048,6 +1077,7 @@ function LoadpointCard({
 }) {
     const t = useT();
     const { setState } = useIoBroker();
+    const fmtKW = useFmtPower();
 
     const [pendingMode, setPendingMode] = useState<string | null>(null);
     const [pendingAlways, setPendingAlways] = useState<boolean | null>(null);
@@ -1334,8 +1364,23 @@ function LoadpointCard({
 
 // ── EvccWidget ────────────────────────────────────────────────────────────────
 
-export function EvccWidget({ config }: WidgetProps) {
+/**
+ * The unit option is read here and handed to every formatter below through
+ * PowerUnitContext; the real widget (EvccWidgetInner) sits underneath so it can
+ * use the hook for its own strings (the custom layout's `value` / `extraFields`).
+ */
+export function EvccWidget(props: WidgetProps) {
+    const unit = normalizePowerUnit(props.config.options?.powerUnit);
+    return (
+        <PowerUnitContext.Provider value={unit}>
+            <EvccWidgetInner {...props} />
+        </PowerUnitContext.Provider>
+    );
+}
+
+function EvccWidgetInner({ config }: WidgetProps) {
     const t = useT();
+    const fmtKW = useFmtPower();
     const { connected } = useIoBroker();
     const o = config.options ?? {};
     // `??`, not `||`: an EMPTY prefix is a deliberate state — the widget then runs
@@ -1886,6 +1931,7 @@ export function EvccConfig({
     const showBattery = (o.showBattery as boolean) ?? true;
     const visibleLps = (o.visibleLoadpoints as number[]) ?? [];
 
+    const powerUnit = normalizePowerUnit(o.powerUnit);
     const autoScale = o.autoScale !== false;
     const sizeScale = (o.sizeScale as number) ?? 1;
     const headerScale = (o.headerScale as number) ?? 1;
@@ -2177,6 +2223,22 @@ export function EvccConfig({
             </ConfigSection>
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                 <>
+                    <div className="mb-3">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Einheit der Leistung
+                        </label>
+                        <select
+                            value={powerUnit}
+                            onChange={(e) => set({ powerUnit: e.target.value })}
+                            className={`aura-evcc-power-unit ${inputCls}`}
+                            style={inputSty}
+                        >
+                            <option value="kW">kW</option>
+                            <option value="W">W</option>
+                            <option value="auto">Automatisch (W unter 1000 W, sonst kW)</option>
+                        </select>
+                    </div>
+
                     <div className="flex items-center justify-between mb-2">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                             Auto-Skalierung <span style={{ opacity: 0.6 }}>(schrumpft bei schmalem Widget)</span>
