@@ -6480,7 +6480,7 @@
         },
         "maxPoints": {
           "type": "number",
-          "description": "history: newest N points at most (default 500)."
+          "description": "json/history: points drawn at most (default 2000); longer tracks are simplified (Douglas-Peucker, #929)."
         },
         "showPoints": {
           "type": "boolean",
@@ -18612,8 +18612,13 @@
         },
         "dayNav": {
           "type": "boolean",
-          "description": "Datumsleiste ‹ Datum › über der Karte. Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Tag statt der letzten historyHours; nur heute kommt der Live-Wert dazu.",
+          "description": "Blätter-Leiste (‹ › ⇥ + Datum) über der Karte, Schritt = aktiver Zeitraum-Chip; ohne rangeChips ein Kalendertag (früher: Tagesleiste). Strecken zeigen das gewählte Fenster; nur ein Fenster bis jetzt bekommt den Live-Wert.",
           "default": false
+        },
+        "dayNavDefault": {
+          "type": "boolean",
+          "description": "Mit dayNav: startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00). Bei der Karte Standard an; false = rollend bis jetzt.",
+          "default": true
         },
         "followMarkers": {
           "type": "boolean",
@@ -18645,7 +18650,7 @@
             "type": "object",
             "ref": "MapLine"
           },
-          "description": "Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source \"route\" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source \"json\" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; \"name\"/\"lineColor\" im Wert werden übernommen). source \"history\" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus."
+          "description": "Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source \"route\" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source \"json\" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; \"name\"/\"lineColor\" im Wert werden übernommen). source \"history\" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24 – gilt nur ohne rangeChips/dayNav/navGroup/navRangeDp). maxPoints? (json/history, Standard 2000) = höchstens so viele Punkte zeichnen; längere Strecken werden per Douglas-Peucker über den ganzen Zeitraum vereinfacht (Länge und Zeitleiste rechnen mit allen Punkten). Lange Zeiträume liest die Karte tageweise. showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus."
         },
         "mapStyle": {
           "type": "string",
@@ -18665,6 +18670,64 @@
           },
           "description": "Die Markierungen auf der Karte."
         },
+        "navAnchor": {
+          "type": "string",
+          "enum": [
+            "end",
+            "start"
+          ],
+          "description": "Was das gewählte Datum beim Blättern ist: \"end\" (Standard) = letzter Tag des Fensters (7 Tage bis zum Datum), \"start\" = erster Tag (7 Tage ab dem Datum). Setzt dayNav voraus.",
+          "default": "end"
+        },
+        "navCommandDp": {
+          "type": "string",
+          "description": "Optionaler Befehls-Datenpunkt (nur lesen, setzt dayNav voraus): \"prev\", \"next\", \"today\", \"now\" (auch -1/1). Jede Aktualisierung zählt, auch derselbe Wert; der Wert beim Laden wird ignoriert, das Widget setzt den DP nicht zurück.",
+          "default": "",
+          "datapoint": true
+        },
+        "navDateDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
+          "default": "",
+          "datapoint": true
+        },
+        "navGroup": {
+          "type": "string",
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum (nur das Datum: navGroupMode \"date\") — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp.",
+          "default": ""
+        },
+        "navGroupMode": {
+          "type": "string",
+          "enum": [
+            "all",
+            "date"
+          ],
+          "default": "all",
+          "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
+        },
+        "navPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Stehen Chips und Leiste am selben Rand, teilen sie sich eine Zeile."
+        },
+        "navRangeDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips (\"6h\", \"24h\", \"7d\", \"1M\", \"total\"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.",
+          "default": "",
+          "datapoint": true
+        },
+        "navSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Blätter-Leiste (‹ › ⇥ 📅): \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch). Unabhängig von rangeChipSize."
+        },
         "quickViews": {
           "type": "array",
           "items": {
@@ -18672,6 +18735,30 @@
             "ref": "MapQuickView"
           },
           "description": "Gespeicherte Kartenausschnitte zum Anspringen."
+        },
+        "rangeChipPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Unabhängig von navPosition."
+        },
+        "rangeChipSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Unabhängig von navSize; größer = höhere Bedienzeile."
+        },
+        "rangeChips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Zeitraum-Chips über der Karte wie beim Diagramm, z. B. [\"6h\", \"24h\", \"7d\", \"1M=Monat\"]. Aufgezeichnete Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Zeitraum statt historyHours. Der erste Chip ist der Start-Zeitraum. \"total\" wird nicht angeboten. Mit navGroup teilen Karte und Diagramme Chip und Datum (Wohnmobil-Strecke neben Temperatur/Batterie)."
         },
         "reachColor": {
           "type": "string",
@@ -18734,7 +18821,7 @@
         },
         "timeline": {
           "type": "boolean",
-          "description": "Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav.",
+          "description": "Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav bzw. rangeChips.",
           "default": false
         },
         "windowColor": {
