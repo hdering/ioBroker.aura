@@ -8,5 +8,3 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- fix: List / dynamic list - display "Auto" no longer shows a number datapoint as a switch while it reads 0 or 1
-- fix: Camera - snapshot refresh no longer blanks the picture; the previous image stays until the next one has loaded

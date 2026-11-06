@@ -122,6 +122,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.106.2 (2026-11-06)
+- 🐛 **Bug fix:** List / dynamic list - display "Auto" no longer shows a number datapoint as a switch while it reads 0 or 1
+- 🐛 **Bug fix:** Camera - snapshot refresh no longer blanks the picture; the previous image stays until the next one has loaded
+
+
 ### 0.106.1 (2026-11-06)
 - 🐛 **Bug fix:** Section menu / tab bar - datapoint, clock and text elements in a docked section bar or the tab bar no longer stick together; they get the same spacing as in the header. In the docked section bar the element position is now labelled left / right instead of top / bottom
 
@@ -345,18 +350,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Device card - new placeholders {{dpname}}, {{parentname}}, {{parent2name}} … show the object name (common.name) of the card's datapoint and of the channel/device above it, e.g. as card title; they work in popup views and popup titles as well ([#841](https://github.com/hdering/ioBroker.aura/issues/841))
 
 
-### 0.91.0 (2026-10-22)
-- Section menu - a popup opened by a widget inside the open section menu now appears on top of the menu instead of behind it
-- Custom grid - clicking a cell in the edit dialog now highlights it in the preview even when an image or another spanning cell covers it
-- 🌟 **New feature:** Thermostat and selection widgets - new circle menu layout: a round button fans out the preset temperatures with -/+ or all selection entries around it, like the shutter's circle menu ([#815](https://github.com/hdering/ioBroker.aura/issues/815))
-- Universal widget: status icon and static icon cells now have an icon size slider in their content settings
-- Connection lost banner - now has an opaque background in glass themes so the message stays readable over the dashboard ([#826](https://github.com/hdering/ioBroker.aura/issues/826))
-- 🌟 **New feature:** List widgets - the -/+ stepper can show and read durations (mm:ss, hh:mm, hh:mm:ss) and write the value as number, text or time string, e.g. for Sprinkle Control running times ([#827](https://github.com/hdering/ioBroker.aura/issues/827))
-- 🌟 **New feature:** Input, selection, dial, slider, dimmer and thermostat widgets - new optional status datapoint: the widget shows the confirmed value from there while still writing to the main datapoint, like the switch ([#828](https://github.com/hdering/ioBroker.aura/issues/828))
-- Custom grid - cells placed on a spanning cell (e.g. lamps and values on a floor-plan image covering the whole grid) are now drawn on top of it, also as single cells
-- Popups - click actions of widgets inside a popup view now work: a tab jump navigates and closes the popup, a popup action opens a further popup on top (up to three levels, Escape closes the topmost) ([#829](https://github.com/hdering/ioBroker.aura/issues/829))
-
-
 ## License
 
 MIT License
@@ -368,6 +361,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

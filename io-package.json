@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.106.1",
+    "version": "0.106.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.106.2": {
+        "en": "🐛 Bug fix: List / dynamic list - display \"Auto\" no longer shows a number datapoint as a switch while it reads 0 or 1\n🐛 Bug fix: Camera - snapshot refresh no longer blanks the picture; the previous image stays until the next one has loaded",
+        "de": "🐛 Fehlerbehebung: Liste / dynamische Liste – Anzeige „Auto“ zeigt einen Zahlendatenpunkt nicht mehr als Schalter an, während er 0 oder 1 anzeigt\n🐛 Fehlerbehebung: Kamera – Schnappschuss-Aktualisierung macht das Bild nicht mehr leer; Das vorherige Bild bleibt erhalten, bis das nächste geladen wurde",
+        "ru": "🐛 Исправлена ​​ошибка: список/динамический список — отображение «Авто» больше не отображает числовую точку данных в качестве переключателя, пока она читает 0 или 1.\n🐛 Исправлена ​​ошибка: камера — обновление снимка больше не стирает изображение; предыдущее изображение остается до тех пор, пока не загрузится следующее",
+        "pt": "🐛 Correção de bug: Lista / lista dinâmica - a exibição \"Auto\" não mostra mais um ponto de dados numérico como uma opção enquanto lê 0 ou 1\n🐛 Correção de bug: Câmera - a atualização do instantâneo não deixa mais a imagem em branco; a imagem anterior permanece até que a próxima seja carregada",
+        "nl": "🐛 Bugfix: Lijst / dynamische lijst - weergave \"Auto\" toont niet langer een getaldatapunt als een schakelaar terwijl deze 0 of 1 aangeeft\n🐛 Bugfix: Camera - momentopnamevernieuwing maakt de foto niet langer leeg; de vorige afbeelding blijft staan ​​totdat de volgende is geladen",
+        "fr": "🐛 Correction d'un bug : Liste / liste dynamique - l'affichage \"Auto\" n'affiche plus un point de données numérique comme commutateur lorsqu'il lit 0 ou 1\n🐛 Correction d'un bug : appareil photo - l'actualisation de l'instantané n'efface plus l'image ; l'image précédente reste jusqu'à ce que la suivante soit chargée",
+        "it": "🐛 Correzione del bug: Elenco/elenco dinamico - il display \"Auto\" non mostra più un punto dati numerico come interruttore mentre legge 0 o 1\n🐛 Correzione bug: Fotocamera: l'aggiornamento dell'istantanea non oscura più l'immagine; l'immagine precedente rimane finché non viene caricata quella successiva",
+        "es": "🐛 Corrección de errores: Lista/lista dinámica: la pantalla \"Auto\" ya no muestra un punto de datos numérico como un interruptor mientras lee 0 o 1\n🐛 Corrección de errores: Cámara: la actualización de instantáneas ya no deja la imagen en blanco; la imagen anterior permanece hasta que se haya cargado la siguiente",
+        "pl": "🐛 Poprawka błędu: Lista/lista dynamiczna – wyświetlacz „Auto” nie pokazuje już liczbowego punktu danych jako przełącznika, gdy odczytuje 0 lub 1\n🐛 Poprawka błędu: Kamera - odświeżanie migawki nie powoduje już wygaszenia obrazu; poprzedni obraz pozostanie aż do załadowania następnego",
+        "uk": "🐛 Виправлено помилку: список / динамічний список - відображення \"Авто\" більше не показує числові дані як перемикач, коли воно читає 0 або 1\n🐛 Виправлено помилку: камера — оновлення знімка більше не гасить зображення; попереднє зображення залишається, доки не завантажиться наступне",
+        "zh-cn": "🐛 错误修复：列表/动态列表 - 显示“自动”在读取 0 或 1 时不再将数字数据点显示为开关\n🐛 Bug 修复：相机-快照刷新不再留白图片；上一张图像将保留，直到下一张图像加载完毕"
+      },
       "0.106.1": {
         "en": "🐛 Bug fix: Section menu / tab bar - datapoint, clock and text elements in a docked section bar or the tab bar no longer stick together; they get the same spacing as in the header. In the docked section bar the element position is now labelled left / right instead of top / bottom",
         "de": "🐛 Fehlerbehebung: Abschnittsmenü/Tab-Leiste – Datenpunkt-, Uhr- und Textelemente in einer angedockten Abschnittsleiste oder der Tab-Leiste kleben nicht mehr zusammen; Sie erhalten den gleichen Abstand wie im Header. In der angedockten Abschnittsleiste wird die Elementposition jetzt mit links/rechts statt oben/unten beschriftet",
@@ -185,19 +198,6 @@
         "pl": "🌟 Nowa funkcja: Nazwane PIN-y - utwórz PIN raz (np. „Dzieci”) i wybierz go dla dowolnej sekcji lub karty; Układy > Ochrona dostępu wyświetla listę każdego PIN-u z widokami, których chroni, zmiana PIN-u obowiązuje wszędzie jednocześnie, a istniejące PIN-y są konwertowane automatycznie\n🐛 Poprawka błędu: Pokaz slajdów - wybrane przejście i jego czas obowiązują teraz na urządzeniach z włączoną funkcją „Redukuj ruch”; tylko slajd i przewracanie stron ustępują miejsca zanikaniu z ustawionym czasem (#903)\n🐛 Poprawka błędu: iFrame - na pełnym ekranie kafelek pod spodem nie jest już odtwarzany, więc dźwięk nie jest słyszalny dwukrotnie i nie jest zgodny z rytmem; także wtedy, gdy ramka iFrame znajduje się w grupie (#904)",
         "uk": "🌟 Нова функція: іменовані PIN-коди — створіть PIN-код один раз (наприклад, «Діти») і виберіть його для будь-якого розділу чи вкладки; Макети > Захист доступу містить список кожного PIN-коду з видами, які він захищає, зміна PIN-коду застосовується всюди одночасно, а наявні PIN-коди перетворюються автоматично\n🐛 Виправлено помилку: слайд-шоу — вибраний перехід і його час тепер застосовуються на пристроях із увімкненим «зменшення руху»; тільки слайд і перегортання сторінки змінюються згасанням із встановленим часом (#903)\n🐛 Виправлено помилку: iFrame — у повноекранному режимі плитка під ним більше не відтворюється, тому звук не чути двічі та не так; також коли iFrame знаходиться в групі (#904)",
         "zh-cn": "🌟 新功能：命名 PIN - 创建一次 PIN（例如“儿童”）并为任何部分或选项卡选择它；布局 > 访问保护列出每个 PIN 及其所保护的视图，更改 PIN 会立即应用于所有地方，并且现有 PIN 会自动转换\n🐛 错误修复：幻灯片放映 - 所选的过渡及其时间现在适用于打开“减少运动”的设备；只有幻灯片和翻页让位于淡入淡出，并具有设定的时间(#903)\n🐛 错误修复：iFrame - 全屏时下方的图块不再继续播放，因此不会听到两次声音且不同步；当 iFrame 位于组中时也是如此 (#904)"
-      },
-      "0.100.1": {
-        "en": "🐛 Bug fix: iOS - Safari now also shows the Aura icon in the browser tab; the PNG favicon was missing from the 0.100.0 bundle (#899)",
-        "de": "🐛 Fehlerbehebung: iOS – Safari zeigt jetzt auch das Aura-Symbol im Browser-Tab an; Das PNG-Favicon fehlte im 0.100.0-Bundle (#899)",
-        "ru": "🐛 Исправлена ​​ошибка: iOS — Safari теперь также отображает значок Aura на вкладке браузера; значок PNG отсутствовал в пакете 0.100.0 (#899).",
-        "pt": "🐛 Correção de bug: iOS - Safari agora também mostra o ícone do Aura na aba do navegador; o favicon PNG estava faltando no pacote 0.100.0 (#899)",
-        "nl": "🐛 Bugfix: iOS - Safari toont nu ook het Aura-pictogram in het browsertabblad; de PNG-favicon ontbrak in de 0.100.0-bundel (#899)",
-        "fr": "🐛 Correction d'un bug : iOS - Safari affiche désormais également l'icône Aura dans l'onglet du navigateur ; le favicon PNG manquait dans le bundle 0.100.0 (#899)",
-        "it": "🐛 Correzione bug: iOS - Safari ora mostra anche l'icona Aura nella scheda del browser; mancava la favicon PNG nel bundle 0.100.0 (#899)",
-        "es": "🐛 Corrección de errores: iOS: Safari ahora también muestra el icono de Aura en la pestaña del navegador; faltaba el favicon PNG en el paquete 0.100.0 (#899)",
-        "pl": "🐛 Poprawka błędu: iOS – Safari wyświetla teraz także ikonę Aury na karcie przeglądarki; w pakiecie 0.100.0 (#899) brakowało favikony PNG",
-        "uk": "🐛 Виправлено помилку: iOS - Safari тепер також відображає піктограму Aura на вкладці браузера; значок PNG був відсутній у пакеті 0.100.0 (#899)",
-        "zh-cn": "🐛 错误修复：iOS - Safari 现在还在浏览器选项卡中显示 Aura 图标； 0.100.0 包中缺少 PNG 图标 (#899)"
       }
     }
   },

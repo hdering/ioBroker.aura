@@ -1,5 +1,16 @@
 # Changelog (older entries)
 
+## 0.91.0 (2026-10-22)
+- Section menu - a popup opened by a widget inside the open section menu now appears on top of the menu instead of behind it
+- Custom grid - clicking a cell in the edit dialog now highlights it in the preview even when an image or another spanning cell covers it
+- 🌟 **New feature:** Thermostat and selection widgets - new circle menu layout: a round button fans out the preset temperatures with -/+ or all selection entries around it, like the shutter's circle menu ([#815](https://github.com/hdering/ioBroker.aura/issues/815))
+- Universal widget: status icon and static icon cells now have an icon size slider in their content settings
+- Connection lost banner - now has an opaque background in glass themes so the message stays readable over the dashboard ([#826](https://github.com/hdering/ioBroker.aura/issues/826))
+- 🌟 **New feature:** List widgets - the -/+ stepper can show and read durations (mm:ss, hh:mm, hh:mm:ss) and write the value as number, text or time string, e.g. for Sprinkle Control running times ([#827](https://github.com/hdering/ioBroker.aura/issues/827))
+- 🌟 **New feature:** Input, selection, dial, slider, dimmer and thermostat widgets - new optional status datapoint: the widget shows the confirmed value from there while still writing to the main datapoint, like the switch ([#828](https://github.com/hdering/ioBroker.aura/issues/828))
+- Custom grid - cells placed on a spanning cell (e.g. lamps and values on a floor-plan image covering the whole grid) are now drawn on top of it, also as single cells
+- Popups - click actions of widgets inside a popup view now work: a tab jump navigates and closes the popup, a popup action opens a further popup on top (up to three levels, Escape closes the topmost) ([#829](https://github.com/hdering/ioBroker.aura/issues/829))
+
 ## 0.90.0 (2026-10-21)
 - Fill level - a narrow vertical battery now shows the limit value next to the battery instead of hiding it ([#819](https://github.com/hdering/ioBroker.aura/issues/819))
 - 🌟 **New feature:** Screensaver - each device reports its idle state in clients.<id>.idle.active after a configurable time without input; a popup trigger on it (with {{clientId}} for every device) opens a screensaver popup that closes on the next touch ([#822](https://github.com/hdering/ioBroker.aura/issues/822))
