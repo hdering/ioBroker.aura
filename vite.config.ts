@@ -346,6 +346,12 @@ export default defineConfig({
   define: {
     __AURA_BUILD__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC'),
   },
+  // The dependency scan starts from the app's own index.html only. By default it takes
+  // every *.html in the project, and the ioBroker dev server's copies under .dev-server/
+  // made it hang for good on a cold start (empty node_modules/.vite).
+  optimizeDeps: {
+    entries: ['index.html'],
+  },
   server: {
     host: '0.0.0.0',
     port: 5173,
