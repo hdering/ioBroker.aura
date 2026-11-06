@@ -3557,6 +3557,7 @@ export const de = {
     // ── Web-Komponente ──────────────────────────────────────────────────────────
     'wc.unset': 'Keine Komponente gewählt',
     'wc.missing': 'Komponente <{tag}> ist nicht installiert',
+    'wc.missingAdapter': '{name}: Adapter „{adapter}“ fehlt (ab Version {version})',
     'wc.failed': 'Komponente <{tag}> lässt sich nicht laden: {error}',
 } as const;
 

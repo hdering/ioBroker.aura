@@ -3527,5 +3527,6 @@ export const en: Record<TranslationKey, string> = {
     // ── Web component ───────────────────────────────────────────────────────────
     'wc.unset': 'No component selected',
     'wc.missing': 'Component <{tag}> is not installed',
+    'wc.missingAdapter': '{name}: adapter "{adapter}" is missing (version {version} or newer)',
     'wc.failed': 'Component <{tag}> could not be loaded: {error}',
 };

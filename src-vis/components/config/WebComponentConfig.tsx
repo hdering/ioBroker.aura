@@ -3,7 +3,13 @@ import { Database, RefreshCw } from 'lucide-react';
 import { getSettingsGroups, getText, resolveManifestUrl, type WebComponentSetting } from '@iobroker/web-components';
 import { useConfigStore } from '../../store/configStore';
 import { getObjectViewDirect } from '../../hooks/useIoBroker';
-import { evalSettingExpr, objectIdOfRow, typedSettings } from '../../utils/webComponentHost';
+import {
+    evalSettingExpr,
+    findKnownWebComponent,
+    hostOwnedSettings,
+    objectIdOfRow,
+    typedSettings,
+} from '../../utils/webComponentHost';
 import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { DatapointPicker } from './DatapointPicker';
 
@@ -178,6 +184,29 @@ function InstanceSelect({
 }
 
 /**
+ * The type name of a webcomponent widget in the edit dialog: the name of its
+ * component (from the manifest, or the known name while the adapter is missing),
+ * `fallback` - "Web-Komponente" - while none is chosen.
+ */
+export function WebComponentTypeLabel({
+    options: o,
+    fallback,
+}: {
+    options: Record<string, unknown>;
+    fallback: string;
+}) {
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de') as ioBrokerLang;
+    const { components } = useWebComponentCatalog();
+    const component = findWebComponent(components, o.wcTag, o.wcAdapter);
+    const known = findKnownWebComponent(o.wcTag, o.wcAdapter);
+    const name =
+        (component && getText(component.manifest.name, lang)) ||
+        (known && (lang === 'de' ? known.name.de : known.name.en)) ||
+        fallback;
+    return <>{name}</>;
+}
+
+/**
  * Settings of the webcomponent widget: which component of which adapter, and its
  * own settings as its manifest declares them (a subset of JSON-Config). Values
  * are stored in `options.wcSettings`, only what the user set - the defaults of
@@ -187,6 +216,11 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
     const lang = useConfigStore((s) => s.frontend.language ?? 'de') as ioBrokerLang;
     const { components, loading, reload } = useWebComponentCatalog();
     const component = findWebComponent(components, o.wcTag, o.wcAdapter);
+    // Placed from the dialog before its adapter was installed: say which one is missing
+    const known = component ? undefined : findKnownWebComponent(o.wcTag, o.wcAdapter);
+    const knownName = known ? (lang === 'de' ? known.name.de : known.name.en) : '';
+    // Title and "open large" come from the widget frame, not from the component
+    const hostKeys = component ? hostOwnedSettings(component.manifest.tag, component.adapter) : [];
     const stored = (o.wcSettings && typeof o.wcSettings === 'object' ? o.wcSettings : {}) as Record<string, unknown>;
     const data = component ? (typedSettings(component.manifest, stored) as Record<string, unknown>) : {};
     const [picking, setPicking] = useState<string | null>(null);
@@ -408,7 +442,12 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
         );
     };
 
-    const choice = component ? `${component.adapter}|${component.manifest.tag}` : '';
+    // a stored component that is not installed stays selected (its "nicht installiert" entry)
+    const choice = component
+        ? `${component.adapter}|${component.manifest.tag}`
+        : typeof o.wcTag === 'string' && o.wcTag
+          ? `${String(o.wcAdapter ?? '')}|${o.wcTag}`
+          : '';
     const icon = component ? resolveManifestUrl(component.manifest.icon, component.url) : undefined;
     const pickingItem = picking && component ? findSetting(component.manifest, picking) : undefined;
 
@@ -432,7 +471,7 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                         <option value="">{loading ? 'Lade…' : '– wählen –'}</option>
                         {typeof o.wcTag === 'string' && o.wcTag && !component && (
                             <option value={`${String(o.wcAdapter ?? '')}|${o.wcTag}`}>
-                                {o.wcTag} (nicht installiert)
+                                {knownName || o.wcTag} (nicht installiert)
                             </option>
                         )}
                         {components.map((c) => (
@@ -451,7 +490,13 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                         <RefreshCw size={13} />
                     </button>
                 </div>
-                {!loading && !components.length && (
+                {!loading && known && (
+                    <p className="text-[11px] mt-1.5" style={{ color: 'var(--accent-yellow)' }}>
+                        Der Adapter „{known.adapter}“ fehlt: {knownName} braucht ioBroker.{known.adapter} ab Version{' '}
+                        {known.minVersion}. Nach der Installation mit ↻ neu einlesen.
+                    </p>
+                )}
+                {!loading && !known && !components.length && (
                     <p className="text-[10px] mt-0.5" style={hintSty}>
                         Kein installierter Adapter bietet Web-Komponenten an (io-package: common.webComponents).
                     </p>
@@ -475,7 +520,9 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                                 {getText(group.label, lang)}
                             </p>
                         )}
-                        {Object.entries(group.panel.items).map(([key, item]) => field(key, item))}
+                        {Object.entries(group.panel.items)
+                            .filter(([key]) => !hostKeys.includes(key))
+                            .map(([key, item]) => field(key, item))}
                     </div>
                 ))}
 

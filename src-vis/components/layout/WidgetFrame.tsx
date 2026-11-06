@@ -293,7 +293,7 @@ import {
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlConfig } from '../config/HtmlConfig';
-import { WebComponentConfig } from '../config/WebComponentConfig';
+import { WebComponentConfig, WebComponentTypeLabel } from '../config/WebComponentConfig';
 import { MapConfig } from '../config/MapConfig';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
@@ -9693,7 +9693,14 @@ function WidgetFrameInner({
                                             .sort((a, b) => a.label.localeCompare(b.label, 'de'))
                                             .map((m) => (
                                                 <option key={m.type} value={m.type}>
-                                                    {m.label}
+                                                    {m.type === 'webcomponent' && config.type === 'webcomponent' ? (
+                                                        <WebComponentTypeLabel
+                                                            options={config.options ?? {}}
+                                                            fallback={m.label}
+                                                        />
+                                                    ) : (
+                                                        m.label
+                                                    )}
                                                 </option>
                                             ))}
                                     </optgroup>
@@ -10872,7 +10879,15 @@ function WidgetFrameInner({
                                 className="text-[10px] font-bold uppercase tracking-widest"
                                 style={{ color: 'var(--accent)' }}
                             >
-                                {WIDGET_BY_TYPE[config.type]?.label ?? config.type}
+                                {config.type === 'webcomponent' ? (
+                                    // the component's own name, e.g. "Fluss-Diagramm"
+                                    <WebComponentTypeLabel
+                                        options={config.options ?? {}}
+                                        fallback={WIDGET_BY_TYPE.webcomponent.label}
+                                    />
+                                ) : (
+                                    (WIDGET_BY_TYPE[config.type]?.label ?? config.type)
+                                )}
                             </p>
                         )}
                         {/* Sichtbare Felder — always the first section of the widget's own settings
