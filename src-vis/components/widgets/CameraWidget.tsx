@@ -670,8 +670,10 @@ function StreamView(p: StreamViewProps) {
             ) : (
                 // An MJPEG connection dropped during standby never re-opens on its
                 // own — the src is unchanged, so only a remount re-requests it.
+                // Snapshots keep one element: a remount per refresh shows an empty
+                // (black) frame until the next picture has loaded.
                 <img
-                    key={`${p.imgSrc}#${p.wakeNonce}`}
+                    key={p.refreshInterval > 0 ? 'snapshot' : `${p.imgSrc}#${p.wakeNonce}`}
                     src={p.imgSrc}
                     alt={p.title || 'Kamera'}
                     onError={p.onError}
@@ -1262,19 +1264,44 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         return resolved.includes('?') ? `${resolved}&_t=${Date.now()}` : `${resolved}?_t=${Date.now()}`;
     };
 
+    // A refreshed snapshot is loaded off-screen first and only then swapped in, so
+    // the previous picture stays up while the camera answers — like VIS does.
+    // A failed preload still hands the URL to the <img>, whose onError then
+    // counts it as before.
+    const preloadRef = useRef<HTMLImageElement | null>(null);
+    const cancelPreload = () => {
+        const pending = preloadRef.current;
+        if (pending) pending.onload = pending.onerror = null;
+        preloadRef.current = null;
+    };
+    const showSnapshot = (src: string) => {
+        cancelPreload();
+        if (mode !== 'img' || refreshInterval === 0 || src.startsWith('data:')) {
+            setImgSrc(src);
+            setLastRefresh(new Date());
+            return;
+        }
+        const img = new Image();
+        preloadRef.current = img;
+        img.onload = img.onerror = () => {
+            if (preloadRef.current !== img) return;
+            preloadRef.current = null;
+            setImgSrc(src);
+            setLastRefresh(new Date());
+        };
+        img.src = src;
+    };
+
     useEffect(() => {
         if (!streamUrl || !streamReady || (mode !== 'img' && mode !== 'video')) return;
         setLoadError(false);
-        setImgSrc(buildSrc(streamUrl));
-        setLastRefresh(new Date());
+        showSnapshot(buildSrc(streamUrl));
         if (refreshInterval > 0) {
-            intervalRef.current = setInterval(() => {
-                setImgSrc(buildSrc(streamUrl));
-                setLastRefresh(new Date());
-            }, refreshInterval * 1000);
+            intervalRef.current = setInterval(() => showSnapshot(buildSrc(streamUrl)), refreshInterval * 1000);
         }
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current);
+            cancelPreload();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [streamUrl, refreshInterval, streamReady, mode]);
@@ -1282,8 +1309,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     useEffect(() => {
         if (!triggerNonce || !streamUrl || !streamReady || (mode !== 'img' && mode !== 'video')) return;
         setLoadError(false);
-        setImgSrc(buildSrc(streamUrl));
-        setLastRefresh(new Date());
+        showSnapshot(buildSrc(streamUrl));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [triggerNonce]);
 
