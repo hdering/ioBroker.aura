@@ -3368,7 +3368,7 @@ export function CustomCellEditor({
                 <>
                     {/* Text style in one row: size, line height (#933), bold, italic, color, background.
                         Icon cells set the size as "Icon-Größe" in their content block. */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                         {cell.type !== 'icon' && cell.type !== 'state-icon' && (
                             <>
                                 <label
