@@ -26,6 +26,14 @@ const {
 } = require('./lib/timerException');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
+const {
+    listenAddress,
+    isLoopbackOnly,
+    loopbackProblems,
+    mcpBaseOptions,
+    portHolders,
+    usedResourceCheck,
+} = require('./lib/serverBind');
 const { syncOwnInstanceObject } = require('./lib/ownInstanceObject');
 const { mergeRenderReport, pruneBackups, renderReportEntry } = require('./lib/mcp/auraConfig');
 const { generateServerSecret } = require('./lib/security/authCore');
@@ -1447,6 +1455,75 @@ class Aura extends utils.Adapter {
         return `${n.secure ? 'https' : 'http'}://%ip%:${n.port || 8082}/aura/`;
     }
 
+    /**
+     * `native` and host of the web instance of the extension, or null while it is
+     * off or unknown.
+     *
+     * @returns {Promise<{ port?: number, secure?: boolean, host?: string } | null>} what is needed of it
+     */
+    async _webInstanceNative() {
+        const id = String(this.config.webInstance || '').trim();
+        if (!id) return null;
+        try {
+            const obj = /** @type {ioBroker.Object} */ (await this.getForeignObjectAsync(`system.adapter.${id}`));
+            if (!obj || obj.type !== 'instance') return null;
+            const n = obj.native || {};
+            return { port: Number(n.port) || 8082, secure: !!n.secure, host: obj.common?.host || '' };
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Other instances that js-controller 8 lists as holding this TCP port on this
+     * host (used-resources registry). Empty on an older js-controller, or when
+     * nobody holds it - which does not promise the port is free.
+     *
+     * @param {number} port the own port
+     * @param {string|undefined} bindAddr the listen address, undefined = all interfaces
+     * @returns {Promise<string[]>} instance names, e.g. `['web.1']`
+     */
+    async _portHolders(port, bindAddr) {
+        const check = usedResourceCheck(this);
+        if (!check) {
+            return [];
+        }
+        try {
+            const held = await check('tcpPort', bindAddr ? { port, bind: bindAddr } : { port });
+            return portHolders(held, this.namespace);
+        } catch (e) {
+            this.log.debug(`aura: could not ask js-controller who uses port ${port} (${e.message})`);
+            return [];
+        }
+    }
+
+    /**
+     * Before the server opens its port: name what will get in the way. js-controller
+     * 8 registers the port of every instance from `native.port`/`native.bind` itself,
+     * so another adapter on the same port shows up here instead of only as EADDRINUSE.
+     *
+     * @param {number} port the own port
+     * @param {string|undefined} bindAddr the listen address, undefined = all interfaces
+     */
+    async _checkBind(port, bindAddr) {
+        const holders = await this._portHolders(port, bindAddr);
+        if (holders.length) {
+            this.log.warn(
+                `aura: port ${port} is registered by ${holders.join(', ')} on this host — the server will probably not start. Change "Port" in the instance configuration.`,
+            );
+        }
+        if (isLoopbackOnly(this.config.bind)) {
+            const web = await this._webInstanceNative();
+            const problems = loopbackProblems({
+                bind: this.config.bind,
+                webInstance: this.config.webInstance,
+                webHost: web?.host,
+                auraHost: this.host,
+            });
+            problems.forEach((p) => this.log.warn(`aura: ${p}`));
+        }
+    }
+
     // ── server-side PIN / admin security ────────────────────────────────────────
 
     /**
@@ -1756,6 +1833,7 @@ class Aura extends utils.Adapter {
             alive,
             server: {
                 port: this.config.port || 8095,
+                bind: listenAddress(this.config.bind) || '',
                 https: !!this._httpsActive,
                 httpsWanted: !!this.config.secure,
                 listening: !!this._httpServer?.listening,
@@ -2484,11 +2562,17 @@ class Aura extends utils.Adapter {
             proxyWebSocket(req, socket, targetWsUrl, this.log);
         });
 
+        const bindAddr = listenAddress(this.config.bind);
         server.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
             if (e.code === 'EADDRINUSE') {
-                this.log.error(
-                    `aura: port ${port} is already in use — another aura instance or service is listening on this port. Change "Port" in the instance configuration to a free value (default 8095) and restart.`,
-                );
+                this._portHolders(port, bindAddr).then((holders) => {
+                    const who = holders.length
+                        ? `${holders.join(', ')} ${holders.length === 1 ? 'uses' : 'use'} it`
+                        : 'another aura instance or service is listening on this port';
+                    this.log.error(
+                        `aura: port ${port} is already in use — ${who}. Change "Port" in the instance configuration to a free value (default 8095) and restart.`,
+                    );
+                });
                 this.setState('info.connection', false, true);
             } else {
                 this.log.error(`aura: server error: ${e.message}`);
@@ -2498,8 +2582,13 @@ class Aura extends utils.Adapter {
         // The MCP client block needs the protocol that is actually in use — HTTPS
         // can fail at startup and fall back to HTTP, so config.secure would lie.
         this._httpsActive = httpsActive;
-        server.listen(port, () => {
-            this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`);
+        await this._checkBind(port, bindAddr);
+        server.listen(port, bindAddr, () => {
+            const where = bindAddr ? `${bindAddr}:${port}` : `port ${port}`;
+            const only = isLoopbackOnly(this.config.bind)
+                ? ' — not reachable in the network, only through the web instance (/aura/)'
+                : '';
+            this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on ${where}${only}`);
             // A wrong socket port is the most common cause of "aura does not work":
             // check it once, here, where the answer is still cheap to act on.
             this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
@@ -3842,7 +3931,11 @@ class Aura extends utils.Adapter {
             backend: { link: backendLink, name: makeName('Aura Backend') },
         };
         const webLink = await this._webExtensionLink(webInstance);
-        if (webLink) {
+        if (webLink && !base && isLoopbackOnly(this.config.bind)) {
+            // The own port only answers on this machine: the web instance is the way in.
+            wantLinks.frontend.link = webLink;
+            wantLinks.backend.link = `${webLink}#/admin`;
+        } else if (webLink) {
             wantLinks.web = { link: webLink, name: makeName('Aura Frontend (web adapter)') };
             wantLinks.webBackend = { link: `${webLink}#/admin`, name: makeName('Aura Backend (web adapter)') };
         }
@@ -6241,12 +6334,17 @@ class Aura extends utils.Adapter {
                 // The adapter cannot know which address the client will use to reach
                 // it, so a configured customUrl wins and otherwise a placeholder is
                 // left in — better an obvious gap than a confidently wrong host.
+                // Only listening on 127.0.0.1: the client comes in through the web
+                // instance's /aura/mcp, which the extension lets past the web login.
+                const web = isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
                 const blocks = await resolveBothConfigs(
-                    {
+                    mcpBaseOptions({
                         customUrl: this.config.customUrl,
                         port: this.config.port,
                         https: this._httpsActive,
-                    },
+                        bind: this.config.bind,
+                        web,
+                    }),
                     token,
                 );
                 reply({

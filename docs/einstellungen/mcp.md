@@ -153,6 +153,7 @@ Ist die [Web-Adapter-Erweiterung](settings#web-adapter-erweiterung-visu-app) ein
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | URL                | `http://<ioBroker-IP>:<web-port>/aura/mcp`, mit HTTPS in der Web-Instanz `https://` — im Block aus der Instanz-Konfiguration `:8095/mcp` ersetzen |
 | Token              | Derselbe wie auf Port 8095                                                                                                                         |
+| Nur über web       | Steht Aura auf [Nur über die Web-Instanz](settings#nur-uber-die-web-instanz), nennt der Block aus der Instanz-Konfiguration schon `<web-port>/aura/mcp` |
 | Anmeldung von web  | Gilt für `/aura/mcp` nicht, der Endpunkt prüft nur den Aura-Token. Alle anderen Seiten unter `/aura/` bleiben hinter der Anmeldung                 |
 | Web-Adapter        | **neuer als 9.2.0**, wenn in der Web-Instanz die Anmeldung aktiv ist. Ältere Versionen weisen den Aura-Token ab                                   |
 

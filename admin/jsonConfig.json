@@ -34,6 +34,45 @@
       "lg": 4,
       "xl": 4
     },
+    "bind": {
+      "type": "select",
+      "noTranslation": true,
+      "label": {
+        "en": "Reachable on",
+        "de": "Erreichbar über"
+      },
+      "options": [
+        {
+          "label": {
+            "en": "Network - all interfaces (default)",
+            "de": "Netzwerk – alle Schnittstellen (Standard)"
+          },
+          "value": ""
+        },
+        {
+          "label": {
+            "en": "Only via the web instance (/aura/) - port not reachable in the network",
+            "de": "Nur über die Web-Instanz (/aura/) – Port im Netzwerk nicht erreichbar"
+          },
+          "value": "127.0.0.1"
+        }
+      ],
+      "help": {
+        "en": "\"Only via the web instance\" lets the server listen on 127.0.0.1: the port above is then closed for the network and Aura is opened as <web-port>/aura/ only. Needs a web instance on the same host under \"Also reachable via web instance\" below.",
+        "de": "„Nur über die Web-Instanz“ lässt den Server auf 127.0.0.1 lauschen: Der Port oben ist dann im Netzwerk zu, Aura wird nur noch als <Web-Port>/aura/ geöffnet. Braucht eine Web-Instanz auf demselben Host unter „Zusätzlich erreichbar über Web-Instanz“ weiter unten."
+      },
+      "validator": "data.bind !== '127.0.0.1' || !!data.webInstance",
+      "validatorErrorText": {
+        "en": "Pick a web instance below - otherwise Aura can only be opened on the ioBroker machine itself.",
+        "de": "Unten eine Web-Instanz wählen – sonst lässt sich Aura nur noch auf dem ioBroker-Rechner selbst öffnen."
+      },
+      "validatorNoSaveOnError": true,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
     "customUrl": {
       "type": "text",
       "label": "Base URL",
