@@ -95,10 +95,21 @@ check('bold toggle shows pressed', (await boldBtn.getAttribute('aria-pressed')) 
 const sizeY = (await dlg.getByLabel('Schriftgröße', { exact: true }).boundingBox())?.y;
 const lhY = (await input.boundingBox())?.y;
 const boldY = (await boldBtn.boundingBox())?.y;
+const themeY = (await dlg.getByRole('button', { name: 'Theme', exact: true }).boundingBox())?.y;
+// The cell's background label sits next to the text color group ('Hintergrund' also appears elsewhere).
+const bgBox = await dlg
+    .getByRole('button', { name: 'Theme', exact: true })
+    .locator('xpath=../following-sibling::div[1]/label')
+    .boundingBox();
+const sizeBox = await dlg.getByLabel('Schriftgröße', { exact: true }).boundingBox();
+const midY = (b) => b.y + b.height / 2;
 check(
-    'size, line height and bold share one row',
-    Math.abs(sizeY - lhY) < 4 && Math.abs(sizeY - boldY) < 4,
-    `${sizeY} / ${lhY} / ${boldY}`,
+    'size, line height, bold, color and background share one row',
+    Math.abs(sizeY - lhY) < 4 &&
+        Math.abs(sizeY - boldY) < 4 &&
+        Math.abs(sizeY - themeY) < 8 &&
+        Math.abs(midY(sizeBox) - midY(bgBox)) < 6,
+    `${sizeY} / ${lhY} / ${boldY} / ${themeY} / ${midY(bgBox)}`,
 );
 if (process.env.AURA_SHOT_OUT) {
     await dlg.getByLabel('Schriftgröße', { exact: true }).evaluate((el) => el.scrollIntoView({ block: 'center' }));

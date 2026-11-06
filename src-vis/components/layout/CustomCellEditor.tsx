@@ -3366,7 +3366,7 @@ export function CustomCellEditor({
 
             {cell.type !== 'empty' && cell.type !== 'component' && (
                 <>
-                    {/* Text style in one row: size, line height (#933), bold, italic.
+                    {/* Text style in one row: size, line height (#933), bold, italic, color, background.
                         Icon cells set the size as "Icon-Größe" in their content block. */}
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                         {cell.type !== 'icon' && cell.type !== 'state-icon' && (
@@ -3447,10 +3447,7 @@ export function CustomCellEditor({
                                 );
                             })}
                         </div>
-                    </div>
-
-                    {/* Text color + background (#732) side by side */}
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        {/* Text color + background (#732) */}
                         <div className="flex items-center gap-1.5">
                             <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                 Farbe
