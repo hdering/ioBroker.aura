@@ -3447,8 +3447,8 @@ export function CustomCellEditor({
                                 );
                             })}
                         </div>
-                        {/* Text color + background (#732) */}
-                        <div className="flex items-center gap-1.5">
+                        {/* Text color + background (#732), pushed to the right edge */}
+                        <div className="flex items-center gap-1.5 ml-auto">
                             <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                 Farbe
                             </label>
