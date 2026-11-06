@@ -9,12 +9,18 @@ Die Komponente liest und schreibt ihre Datenpunkte selbst. Aura gibt ihr die Ver
 ioBroker, die gewählten Einstellungen, die Farben und die Schrift des aktiven Themes und den
 Bearbeitungsmodus.
 
-## Welche Komponenten gibt es?
+## Hinzufügen
 
-Jeder Adapter, der in seiner `io-package.json` unter `common.webComponents` Komponenten
-anbietet, erscheint in der Auswahl. Ist kein solcher Adapter installiert, bleibt die Liste leer.
-Nach der Installation oder einem Update eines Adapters liest der Knopf **↻** neben der Auswahl
-die Komponenten neu ein.
+Jede Komponente eines installierten Adapters steht im Dialog **Neues Widget** als eigenes
+Widget unter **Weitere Widgets** — mit ihrem Namen und Bild, z. B. **Fluss-Diagramm**. Die
+Suche findet sie auch über den Adapter-Namen (`flow`) oder „Web-Komponente“. Ein neues Widget
+bekommt die Größe, die die Komponente für sich angibt.
+
+Angeboten wird, was ein Adapter in seiner `io-package.json` unter `common.webComponents`
+anmeldet. Ist kein solcher Adapter installiert, gibt es keine solchen Einträge. Nach der
+Installation oder einem Update eines Adapters die Seite neu laden — oder in den Einstellungen
+eines Komponenten-Widgets mit **↻** neben der Auswahl **Komponente** neu einlesen. Dort lässt sich
+auch auf eine andere Komponente umstellen.
 
 ## Einstellungen
 

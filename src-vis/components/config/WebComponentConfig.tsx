@@ -3,7 +3,7 @@ import { Database, RefreshCw } from 'lucide-react';
 import { getSettingsGroups, getText, resolveManifestUrl, type WebComponentSetting } from '@iobroker/web-components';
 import { useConfigStore } from '../../store/configStore';
 import { getObjectViewDirect } from '../../hooks/useIoBroker';
-import { evalSettingExpr, typedSettings } from '../../utils/webComponentHost';
+import { evalSettingExpr, objectIdOfRow, typedSettings } from '../../utils/webComponentHost';
 import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { DatapointPicker } from './DatapointPicker';
 
@@ -90,7 +90,8 @@ function useObjectsOfTypes(types: string[], root: string | undefined): { id: str
             setList(
                 rows
                     .map((row) => ({
-                        id: row.id,
+                        // not row.id: the `config` view keys its rows by name, not by ID
+                        id: objectIdOfRow(row),
                         name: (row.value as { common?: { name?: unknown } } | undefined)?.common?.name,
                     }))
                     .sort((a, b) => a.id.localeCompare(b.id)),
@@ -132,7 +133,9 @@ function ObjectSelect({
             style={iSty}
         >
             <option value="">{objects.length ? '–' : 'Keine Objekte gefunden'}</option>
-            {current && !objects.some((o) => o.id === current) && <option value={current}>{current}</option>}
+            {current && !objects.some((o) => o.id === current) && (
+                <option value={current}>{objects.length ? `${current} (nicht gefunden)` : current}</option>
+            )}
             {objects.map((o) => (
                 <option key={o.id} value={o.id}>
                     {label(o.id, o.name)}

@@ -582,6 +582,8 @@ const NO_MAIN_DP_TYPES = new Set<WidgetType>([
     'announcements',
     'slideshow',
     'feed',
+    // The component picks its datapoints in its own settings (wcSettings).
+    'webcomponent',
 ]);
 
 // ── Custom grid: row height control, leading column of the cell picker (#737) ──

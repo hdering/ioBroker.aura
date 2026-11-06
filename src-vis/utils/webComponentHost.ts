@@ -9,12 +9,17 @@
  * - `typedSettings` - the `settings` property from what the widget stored.
  * - `evalSettingExpr` - `hidden` / `disabled` of a settings field (JSON-Config style).
  * - `findTabForView` - where the `iob-navigate` event of a component leads.
+ * - `webComponentPickerEntries` / `parseWebComponentKey` / `webComponentGridSize` -
+ *   every installed component as an entry of its own in the "add widget" dialog.
  */
 import {
     getDefaultSettings,
     getSettingTypes,
+    getText,
+    resolveManifestUrl,
     toSettings,
     toWebComponentTheme,
+    type LoadedWebComponent,
     type WebComponentManifest,
     type WebComponentSettings,
     type WebComponentSocket,
@@ -266,4 +271,108 @@ export function findTabForView(
         if (tab) return { layoutId: layout.id, sectionId: section.id, tabId: tab.id };
     }
     return null;
+}
+
+// ── the "add widget" dialog ─────────────────────────────────────────────────
+
+/** One installed web component as an entry of its own in the "add widget" dialog */
+export interface WebComponentPickerEntry {
+    /** `wc:<adapter>|<tag>` - cannot clash with a widget type or a template id */
+    key: string;
+    adapter: string;
+    tag: string;
+    /** Name of the component in the language of the frontend */
+    label: string;
+    /** Its description and the adapter that brings it */
+    hint: string;
+    /** Absolute URL of its picture, if the manifest names one */
+    iconUrl?: string;
+    /** The size it looks best in (px), if the manifest names one */
+    size?: { width: number; height: number };
+}
+
+const KEY_PREFIX = 'wc:';
+
+/** The key of a component in the dialog (and in "recently used") */
+export function webComponentKey(adapter: string, tag: string): string {
+    return `${KEY_PREFIX}${adapter}|${tag}`;
+}
+
+/** Adapter and tag of a key made by `webComponentKey`, or null for anything else */
+export function parseWebComponentKey(key: unknown): { adapter: string; tag: string } | null {
+    if (typeof key !== 'string' || !key.startsWith(KEY_PREFIX)) return null;
+    const rest = key.slice(KEY_PREFIX.length);
+    const bar = rest.indexOf('|');
+    if (bar < 0 || bar === rest.length - 1) return null;
+    return { adapter: rest.slice(0, bar), tag: rest.slice(bar + 1) };
+}
+
+/**
+ * The installed components as entries of the dialog: once per adapter and tag,
+ * named in the frontend's language (English, then the tag, as fallback).
+ *
+ * @param components the catalog (`loadWebComponentCatalog`)
+ * @param lang language of the frontend
+ */
+export function webComponentPickerEntries(components: LoadedWebComponent[], lang: string): WebComponentPickerEntry[] {
+    const entries: WebComponentPickerEntry[] = [];
+    for (const c of components) {
+        const tag = c?.manifest?.tag;
+        if (typeof tag !== 'string' || !tag) continue;
+        const key = webComponentKey(c.adapter, tag);
+        if (entries.some((e) => e.key === key)) continue;
+        const language = lang as Parameters<typeof getText>[1];
+        const description = getText(c.manifest.description, language);
+        const from = c.adapter ? `Adapter ${c.adapter}` : '';
+        const size = c.manifest.size;
+        entries.push({
+            key,
+            adapter: c.adapter,
+            tag,
+            label: getText(c.manifest.name, language) || tag,
+            hint: [description, from].filter(Boolean).join(' – '),
+            iconUrl: resolveManifestUrl(c.manifest.icon, c.url),
+            size:
+                size && Number(size.width) > 0 && Number(size.height) > 0
+                    ? { width: Number(size.width), height: Number(size.height) }
+                    : undefined,
+        });
+    }
+    return entries;
+}
+
+/**
+ * Grid size of a new widget for a component's preferred size: the element area
+ * plus the widget's inner padding, in cells of the dashboard grid
+ * (cells of `snapX` × `rowHeight` px with `gap` px between them).
+ *
+ * @param size the size the manifest names, in px
+ * @param grid the grid and the widget padding (px)
+ * @param grid.rowHeight height of a grid row
+ * @param grid.snapX width of a grid column
+ * @param grid.gap space between two cells
+ * @param grid.padding inner padding of a widget
+ */
+export function webComponentGridSize(
+    size: { width: number; height: number } | undefined,
+    grid: { rowHeight: number; snapX: number; gap: number; padding: number },
+): { w: number; h: number } | null {
+    if (!size || !(size.width > 0) || !(size.height > 0)) return null;
+    const cells = (px: number, cell: number): number =>
+        Math.max(2, Math.round((px + 2 * grid.padding + grid.gap) / (Math.max(1, cell) + grid.gap)));
+    return { w: cells(size.width, grid.snapX), h: cells(size.height, grid.rowHeight) };
+}
+
+/**
+ * The ID of an object in a row of an object view. Most views of js-controller key
+ * their rows by the ID, but `config` keys them by `common.name` - flow's diagram
+ * `flow.0.diagrams.12v` comes back as `12V`. The object itself knows its ID.
+ *
+ * @param row a row of `getObjectView`
+ * @param row.id the key the view emitted
+ * @param row.value the object (or what the view emits for it)
+ */
+export function objectIdOfRow(row: { id: string; value?: unknown }): string {
+    const own = (row.value as { _id?: unknown } | null | undefined)?._id;
+    return typeof own === 'string' && own ? own : row.id;
 }

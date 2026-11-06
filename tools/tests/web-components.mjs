@@ -276,6 +276,88 @@ check('navigate: only the active layout', m.findTabForView('bad', layouts, 'L1',
 check('navigate: unknown view', m.findTabForView('nowhere', layouts, 'L1'), null);
 check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
 
+// ── the "add widget" dialog: every component an entry of its own ────────────
+{
+    const flow = {
+        url: 'http://host:8082/adapter/flow/webcomponents/flow-diagram.json',
+        adapter: 'flow',
+        version: '0.1.0',
+        moduleUrl: 'http://host:8082/adapter/flow/webcomponents/flow-diagram.js',
+        manifest: {
+            manifestVersion: 1,
+            tag: 'iob-flow-diagram',
+            name: { en: 'Flow diagram', de: 'Fluss-Diagramm' },
+            description: { en: 'Animated flow diagram', de: 'Animiertes Fluss-Diagramm' },
+            icon: '../flow.svg',
+            size: { width: 480, height: 340 },
+            settings: { type: 'panel', items: {} },
+        },
+    };
+    const bare = {
+        url: 'http://host:8082/adapter/other/wc/tile.json',
+        adapter: 'other',
+        version: '1.0.0',
+        moduleUrl: 'http://host:8082/adapter/other/wc/tile.js',
+        manifest: { manifestVersion: 1, tag: 'iob-other-tile', name: { fr: 'Tuile' }, settings: { items: {} } },
+    };
+    const entries = m.webComponentPickerEntries([flow, flow, bare, { adapter: 'x', manifest: {} }, null], 'de');
+    check('entries: once per adapter and tag, without a tag none', entries.length, 2);
+    check('entry: key', entries[0].key, 'wc:flow|iob-flow-diagram');
+    check('entry: name in the frontend language', entries[0].label, 'Fluss-Diagramm');
+    check('entry: description and adapter as hint', entries[0].hint, 'Animiertes Fluss-Diagramm – Adapter flow');
+    check('entry: icon relative to the manifest', entries[0].iconUrl, 'http://host:8082/adapter/flow/flow.svg');
+    check('entry: preferred size', entries[0].size, { width: 480, height: 340 });
+    check('entry: no name in the language - another one', entries[1].label, 'Tuile');
+    check(
+        'entry: no name at all - the tag',
+        m.webComponentPickerEntries([{ ...bare, manifest: { ...bare.manifest, name: undefined } }], 'de')[0].label,
+        'iob-other-tile',
+    );
+    check('entry: no description - only the adapter', entries[1].hint, 'Adapter other');
+    check('entry: no icon, no size', [entries[1].iconUrl, entries[1].size], [undefined, undefined]);
+    check('entries: English frontend', m.webComponentPickerEntries([flow], 'en')[0].label, 'Flow diagram');
+
+    check('key: parsed', m.parseWebComponentKey('wc:flow|iob-flow-diagram'), {
+        adapter: 'flow',
+        tag: 'iob-flow-diagram',
+    });
+    check('key: round trip', m.parseWebComponentKey(m.webComponentKey('a', 'b-c')), { adapter: 'a', tag: 'b-c' });
+    check(
+        'key: a widget type, a template id or garbage is none',
+        ['webcomponent', 'shutter', 'wc:flow', 'wc:flow|', undefined, 7].map((k) => m.parseWebComponentKey(k)),
+        [null, null, null, null, null, null],
+    );
+
+    const grid = { rowHeight: 20, snapX: 20, gap: 10, padding: 16 };
+    // 480 + 2·16 = 512 px wide: (512 + 10) / 30 ≈ 17 columns; 340 + 32 = 372 px high: 382 / 30 ≈ 13 rows
+    check('size: px to grid cells with the widget padding', m.webComponentGridSize({ width: 480, height: 340 }, grid), {
+        w: 17,
+        h: 13,
+    });
+    check('size: tiny stays at least 2×2', m.webComponentGridSize({ width: 1, height: 1 }, { ...grid, padding: 0 }), {
+        w: 2,
+        h: 2,
+    });
+    check(
+        'size: none named - the type default applies',
+        [m.webComponentGridSize(undefined, grid), m.webComponentGridSize({ width: 0, height: 100 }, grid)],
+        [null, null],
+    );
+}
+
+// ── object views: the ID of a row ───────────────────────────────────────────
+check(
+    'row of the config view (keyed by name): the object ID',
+    m.objectIdOfRow({ id: '12V', value: { _id: 'flow.0.diagrams.12v', type: 'config', common: { name: '12V' } } }),
+    'flow.0.diagrams.12v',
+);
+check('row keyed by ID: unchanged', m.objectIdOfRow({ id: 'a.0.b', value: { _id: 'a.0.b' } }), 'a.0.b');
+check(
+    'row without an object (e.g. the custom view): its key',
+    [m.objectIdOfRow({ id: 'a.0.b', value: { enabled: true } }), m.objectIdOfRow({ id: 'a.0.c' })],
+    ['a.0.b', 'a.0.c'],
+);
+
 if (failed) {
     console.error(`\n${failed} check(s) failed`);
     process.exit(1);

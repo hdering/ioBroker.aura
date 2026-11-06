@@ -25,7 +25,7 @@ import {
     setStateDirectAsync,
     subscribeStateDirect,
 } from '../hooks/useIoBroker';
-import { createWebComponentSocket, type HostState } from './webComponentHost';
+import { createWebComponentSocket, objectIdOfRow, type HostState } from './webComponentHost';
 
 let catalog: Promise<LoadedWebComponent[]> | null = null;
 const catalogListeners = new Set<() => void>();
@@ -145,7 +145,8 @@ export function getWebComponentSocket(): Promise<WebComponentSocket> {
                             end,
                         );
                         const out: Record<string, unknown> = {};
-                        for (const row of view.rows ?? []) out[row.id] = row.value;
+                        // by the object's own ID: the `config` view keys its rows by name
+                        for (const row of view.rows ?? []) out[objectIdOfRow(row)] = row.value;
                         return out;
                     },
                     sendTo: async (instance, command, data) => {
