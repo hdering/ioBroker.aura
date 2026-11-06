@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.104.0",
+    "auraVersion": "0.105.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1635,6 +1635,10 @@
         "fontSize": {
           "type": "number",
           "description": "px; undefined = auto. 'icon' / 'state-icon' cells: icon size in px (default 28)"
+        },
+        "lineHeight": {
+          "type": "number",
+          "description": "text line height as a multiple of the font size (e.g. 1); undefined = 1.3 plus a small descender reserve below. A set value drops that reserve, so a large value fits a flat cell (#933)"
         },
         "bold": {
           "type": "boolean"
