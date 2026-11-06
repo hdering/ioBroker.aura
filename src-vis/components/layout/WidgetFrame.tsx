@@ -9674,38 +9674,54 @@ function WidgetFrameInner({
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 {t('wf.edit.widgetType')}
                             </label>
-                            <select
-                                value={config.type}
-                                onChange={(e) =>
-                                    onConfigChange({ ...config, type: e.target.value as WidgetConfig['type'] })
-                                }
-                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                {WIDGET_GROUPS.map((g) => (
-                                    <optgroup key={g.id} label={g.label}>
-                                        {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && !m.hidden)
-                                            .slice()
-                                            .sort((a, b) => a.label.localeCompare(b.label, 'de'))
-                                            .map((m) => (
-                                                <option key={m.type} value={m.type}>
-                                                    {m.type === 'webcomponent' && config.type === 'webcomponent' ? (
-                                                        <WebComponentTypeLabel
-                                                            options={config.options ?? {}}
-                                                            fallback={m.label}
-                                                        />
-                                                    ) : (
-                                                        m.label
-                                                    )}
-                                                </option>
+                            {(() => {
+                                // Sorted by the name shown - a web component widget shows its
+                                // component's name ("Fluss-Diagramm"), not "Web-Komponente"
+                                const typeSelect = (wcName?: string) => {
+                                    const label = (m: (typeof WIDGET_REGISTRY)[number]) =>
+                                        m.type === 'webcomponent' && wcName ? wcName : m.label;
+                                    return (
+                                        <select
+                                            value={config.type}
+                                            onChange={(e) =>
+                                                onConfigChange({
+                                                    ...config,
+                                                    type: e.target.value as WidgetConfig['type'],
+                                                })
+                                            }
+                                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-primary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            {WIDGET_GROUPS.map((g) => (
+                                                <optgroup key={g.id} label={g.label}>
+                                                    {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && !m.hidden)
+                                                        .slice()
+                                                        .sort((a, b) => label(a).localeCompare(label(b), 'de'))
+                                                        .map((m) => (
+                                                            <option key={m.type} value={m.type}>
+                                                                {label(m)}
+                                                            </option>
+                                                        ))}
+                                                </optgroup>
                                             ))}
-                                    </optgroup>
-                                ))}
-                            </select>
+                                        </select>
+                                    );
+                                };
+                                return config.type === 'webcomponent' ? (
+                                    <WebComponentTypeLabel
+                                        options={config.options ?? {}}
+                                        fallback={WIDGET_BY_TYPE.webcomponent.label}
+                                    >
+                                        {typeSelect}
+                                    </WebComponentTypeLabel>
+                                ) : (
+                                    typeSelect()
+                                );
+                            })()}
                         </div>
 
                         {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}

@@ -186,14 +186,17 @@ function InstanceSelect({
 /**
  * The type name of a webcomponent widget in the edit dialog: the name of its
  * component (from the manifest, or the known name while the adapter is missing),
- * `fallback` - "Web-Komponente" - while none is chosen.
+ * `fallback` - "Web-Komponente" - while none is chosen. With `children`, that
+ * function renders the name (e.g. a type list sorted by it).
  */
 export function WebComponentTypeLabel({
     options: o,
     fallback,
+    children,
 }: {
     options: Record<string, unknown>;
     fallback: string;
+    children?: (name: string) => React.ReactNode;
 }) {
     const lang = useConfigStore((s) => s.frontend.language ?? 'de') as ioBrokerLang;
     const { components } = useWebComponentCatalog();
@@ -203,7 +206,7 @@ export function WebComponentTypeLabel({
         (component && getText(component.manifest.name, lang)) ||
         (known && (lang === 'de' ? known.name.de : known.name.en)) ||
         fallback;
-    return <>{name}</>;
+    return <>{children ? children(name) : name}</>;
 }
 
 /**
