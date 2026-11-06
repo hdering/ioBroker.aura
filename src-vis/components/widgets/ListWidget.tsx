@@ -19,6 +19,7 @@ import {
 import { condDisabledProps, COND_DISABLED_CONTENTS } from '../../utils/condDisabled';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
+import { useNumberDatapoints } from '../../hooks/useNumberDatapoints';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -373,6 +374,7 @@ function EntryValue(props: React.ComponentProps<typeof EntryValueBody>) {
 function EntryValueBody({
     entry,
     val,
+    numeric,
     statusVal,
     lockVal,
     presetsJson,
@@ -394,6 +396,8 @@ function EntryValueBody({
 }: {
     entry: StaticListEntry;
     val: ioBrokerState['val'];
+    /** The datapoint is declared a number: a 0/1 value then stays a value under display "Auto". */
+    numeric?: boolean;
     /** Live value of the switch display's status datapoint, when one is configured. */
     statusVal?: ioBrokerState['val'];
     /** Live value of the contact display's lock datapoint, when one is configured. */
@@ -434,7 +438,7 @@ function EntryValueBody({
     const falseLabel = entry.falseLabel ?? falseText;
     const hasLabels = !!(trueLabel || falseLabel);
     const isBool = typeof val === 'boolean';
-    const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+    const isBoolLike = isBool || (!numeric && typeof val === 'number' && (val === 0 || val === 1));
     const on = val === true || val === 1;
     const displayType = entry.displayType ?? 'auto';
     const switchStyle = entry.switchStyle ?? 'slide';
@@ -835,6 +839,8 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // One timer for the whole list, and only while a relative timestamp is on screen.
     useRelativeTick(useMemo(() => entries.some((e) => subDpsNeedTick(e.subDps)), [entries]));
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
+    // Numbers declared as such keep showing their value at 0/1 under display "Auto".
+    const numberDps = useNumberDatapoints(entries.map((e) => e.id));
 
     // ── Conditional formatting (issue #572) ──────────────────────────────────
     // One hook for the whole list — rows and their second-line datapoints alike.
@@ -1411,6 +1417,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         <EntryValue
                                             cond={cValue}
                                             entry={entry}
+                                            numeric={numberDps.has(entry.id)}
                                             val={val}
                                             statusVal={states[switchStatusDp(entry)]?.val}
                                             lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
@@ -1560,6 +1567,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         <EntryValue
                                             cond={cValue}
                                             entry={entry}
+                                            numeric={numberDps.has(entry.id)}
                                             val={val}
                                             statusVal={states[switchStatusDp(entry)]?.val}
                                             lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
@@ -1622,7 +1630,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const falseLabel = entry.falseLabel ?? opts.falseText;
                             const hasLabels = !!(trueLabel || falseLabel);
                             const isBool = typeof val === 'boolean';
-                            const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+                            const isBoolLike =
+                                isBool ||
+                                (!numberDps.has(entry.id) && typeof val === 'number' && (val === 0 || val === 1));
                             const on = val === true || val === 1;
                             const displayType = entry.displayType ?? 'auto';
                             const forceSwitch = displayType === 'switch';
@@ -1950,6 +1960,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     <EntryValue
                                         cond={cValue}
                                         entry={entry}
+                                        numeric={numberDps.has(entry.id)}
                                         val={val}
                                         statusVal={states[switchStatusDp(entry)]?.val}
                                         lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}

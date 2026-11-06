@@ -186,6 +186,7 @@
     "test:select-cell-circle": "node tools/tests/select-cell-circle.mjs",
     "test:custom-cell-chart": "node tools/tests/custom-cell-chart.mjs",
     "test:carousel-label": "node tools/tests/carousel-state-label.mjs",
+    "test:list-auto-number-zero": "node tools/tests/list-auto-number-zero.mjs",
     "test:list-max-rows": "node tools/tests/list-max-rows.mjs",
     "test:list-row-heights": "node tools/tests/list-row-heights.mjs",
     "test:list-row-density": "node tools/tests/list-row-density.mjs",

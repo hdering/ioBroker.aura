@@ -4,7 +4,7 @@ Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. Jeder Eintra
 
 ## Datenpunkt
 
-Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Eine `id` mit JSON-Pfad (`0_userdata.0.akku?devices[0].soc`, Button `{}` neben dem Datenpunkt-Feld) zeigt ein Feld aus einem JSON-Datenpunkt — nur lesend. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `select` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
+Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Eine `id` mit JSON-Pfad (`0_userdata.0.akku?devices[0].soc`, Button `{}` neben dem Datenpunkt-Feld) zeigt ein Feld aus einem JSON-Datenpunkt — nur lesend. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt — ein Zahlen-Datenpunkt (`common.type: number`) bleibt auch bei 0/1 eine Zahl, außer er hat die Rolle `switch`/`button`; `displayType` (`shutter` · `stepper` · `buttons` · `select` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
 
 ### Darstellung Schalter
 

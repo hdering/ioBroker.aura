@@ -25,6 +25,7 @@ import {
     type DiscoveredDp,
 } from '../../utils/autoListDiscovery';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
+import { useNumberDatapoints } from '../../hooks/useNumberDatapoints';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -437,6 +438,7 @@ function EntryValue(props: React.ComponentProps<typeof EntryValueBody>) {
 function EntryValueBody({
     entry,
     val,
+    numeric,
     statusVal,
     lockVal,
     presetsJson,
@@ -457,6 +459,8 @@ function EntryValueBody({
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
+    /** The datapoint is declared a number: a 0/1 value then stays a value under display "Auto". */
+    numeric?: boolean;
     /** Live value of the switch display's status datapoint, when one is configured. */
     statusVal?: ioBrokerState['val'];
     /** Live value of the contact display's lock datapoint, when one is configured. */
@@ -509,7 +513,8 @@ function EntryValueBody({
     const falseLabel = entry.falseLabel ?? falseText;
     const hasLabels = !!(trueLabel || falseLabel);
     const isBool = typeof val === 'boolean';
-    const isBoolLike = (isBool || (typeof val === 'number' && (val === 0 || val === 1))) && !isNumericRole(entry.role);
+    const isBoolLike =
+        (isBool || (!numeric && typeof val === 'number' && (val === 0 || val === 1))) && !isNumericRole(entry.role);
     const on = val === true || val === 1;
 
     // Rich control types — shared with the static list (see entryControls).
@@ -737,6 +742,7 @@ function CardEntryValue(props: React.ComponentProps<typeof CardEntryValueBody>) 
 function CardEntryValueBody({
     entry,
     val,
+    numeric,
     statusVal,
     lockVal,
     presetsJson,
@@ -757,6 +763,8 @@ function CardEntryValueBody({
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
+    /** The datapoint is declared a number: a 0/1 value then stays a value under display "Auto". */
+    numeric?: boolean;
     /** Live value of the switch display's status datapoint, when one is configured. */
     statusVal?: ioBrokerState['val'];
     /** Live value of the contact display's lock datapoint, when one is configured. */
@@ -806,7 +814,8 @@ function CardEntryValueBody({
     const falseLabel = entry.falseLabel ?? falseText;
     const hasLabels = !!(trueLabel || falseLabel);
     const isBool = typeof val === 'boolean';
-    const isBoolLike = (isBool || (typeof val === 'number' && (val === 0 || val === 1))) && !isNumericRole(entry.role);
+    const isBoolLike =
+        (isBool || (!numeric && typeof val === 'number' && (val === 0 || val === 1))) && !isNumericRole(entry.role);
     const on = val === true || val === 1;
 
     // Rich control types — shared with the static list (see entryControls).
@@ -1053,6 +1062,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const numFmt = opts.numberFormat ?? globalNumFmt;
     const { subscribe, setState, getState } = useIoBroker();
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
+    // Numbers declared as such keep showing their value at 0/1 under display "Auto".
+    const numberDps = useNumberDatapoints(entries.map((e) => e.id));
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
     const [syncing, setSyncing] = useState(false);
@@ -1842,6 +1853,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     <CardEntryValue
                                                         cond={cValue}
                                                         entry={entry}
+                                                        numeric={numberDps.has(entry.id)}
                                                         val={val}
                                                         statusVal={states[switchStatusDp(entry)]?.val}
                                                         lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
@@ -2016,6 +2028,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 <EntryValue
                                                     cond={cValue}
                                                     entry={entry}
+                                                    numeric={numberDps.has(entry.id)}
                                                     val={val}
                                                     statusVal={states[switchStatusDp(entry)]?.val}
                                                     lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
@@ -2090,7 +2103,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const falseLabel = entry.falseLabel ?? opts.falseText;
                                     const hasLabels = !!(trueLabel || falseLabel);
                                     const isBool = typeof val === 'boolean';
-                                    const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
+                                    const isBoolLike =
+                                        isBool ||
+                                        (!numberDps.has(entry.id) &&
+                                            typeof val === 'number' &&
+                                            (val === 0 || val === 1));
                                     const on = val === true || val === 1;
                                     // A badge draws no control, so it evaluates the switch itself —
                                     // through the shared rule, so status DP, write values and the
@@ -2423,6 +2440,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             <EntryValue
                                                 cond={cValue}
                                                 entry={entry}
+                                                numeric={numberDps.has(entry.id)}
                                                 val={val}
                                                 statusVal={states[switchStatusDp(entry)]?.val}
                                                 lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
