@@ -3553,6 +3553,11 @@ export const de = {
     'iconPicker.more': '{n} weitere anzeigen',
     'iconPicker.count': '{n} Icons',
     'iconPicker.remove': 'Entfernen',
+
+    // ── Web-Komponente ──────────────────────────────────────────────────────────
+    'wc.unset': 'Keine Komponente gewählt',
+    'wc.missing': 'Komponente <{tag}> ist nicht installiert',
+    'wc.failed': 'Komponente <{tag}> lässt sich nicht laden: {error}',
 } as const;
 
 export type TranslationKey = keyof typeof de;

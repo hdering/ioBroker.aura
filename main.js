@@ -26,6 +26,15 @@ const {
 } = require('./lib/timerException');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
+const {
+    listenAddress,
+    isLoopbackOnly,
+    loopbackProblems,
+    mcpBaseOptions,
+    portHolders,
+    usedResourceCheck,
+} = require('./lib/serverBind');
+const { syncOwnInstanceObject } = require('./lib/ownInstanceObject');
 const { mergeRenderReport, pruneBackups, renderReportEntry } = require('./lib/mcp/auraConfig');
 const { generateServerSecret } = require('./lib/security/authCore');
 const {
@@ -832,6 +841,62 @@ function rootRedirect(pathname, search = '') {
     return (depth ? '../'.repeat(depth) : './') + (search || '');
 }
 
+/**
+ * React for ioBroker web components (`@iobroker/web-components`): a component
+ * built with React imports `<base>/lib/esm/react-19.js` (or `react-18.js`), the
+ * same folder level as `<base>/adapter/`, so all components on a page share one
+ * React. Aura's own server answers these two files from the package instead of
+ * asking the web adapter, which only has them from 9.2.0 on. Behind the web
+ * extension (`/aura/`) the web adapter serves them itself.
+ *
+ * @param {string} pathname request path
+ * @returns {string|null} the file in the package, or null when the request is not one of these
+ */
+function reactEsmFile(pathname) {
+    const m = /^\/lib\/esm\/(react-1[89]\.js)$/.exec(pathname);
+    if (!m) return null;
+    try {
+        return require.resolve(`@iobroker/web-components/esm/${m[1]}`);
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Send one of the React files of {@link reactEsmFile}, compressed if the browser
+ * takes it. They change with an update of Aura only, but carry no version in their
+ * URL, so the browser asks again after an hour.
+ *
+ * @param {string} abs the file
+ * @param {import('node:http').ServerResponse} res the response
+ * @param {string} method GET or HEAD
+ * @param {string} acceptEncoding the request's Accept-Encoding header
+ * @param {() => void} fallback called when the file cannot be read
+ */
+function serveReactEsm(abs, res, method, acceptEncoding, fallback) {
+    fs.readFile(abs, (err, data) => {
+        if (err) {
+            fallback();
+            return;
+        }
+        const headers = {
+            'Content-Type': 'application/javascript; charset=utf-8',
+            'Cache-Control': 'public, max-age=3600',
+            Vary: 'Accept-Encoding',
+        };
+        /** @type {Buffer} */
+        let body = data;
+        const enc = pickEncoding(acceptEncoding);
+        if (enc) {
+            body = compressed(abs, data, enc);
+            headers['Content-Encoding'] = enc;
+        }
+        headers['Content-Length'] = body.length;
+        res.writeHead(200, headers);
+        res.end(method === 'HEAD' ? undefined : body);
+    });
+}
+
 function serveStatic(
     pathname,
     res,
@@ -1363,10 +1428,11 @@ class Aura extends utils.Adapter {
      * Admin link to the frontend behind the web adapter extension, or null while
      * it is off. Also says in the log when the chosen web instance cannot load it.
      *
+     * @param {string} webInstance the chosen web instance, e.g. `web.0` - empty = extension off
      * @returns {Promise<string|null>} e.g. `http://%ip%:8082/aura/`
      */
-    async _webExtensionLink() {
-        const id = String(this.config.webInstance || '').trim();
+    async _webExtensionLink(webInstance) {
+        const id = String(webInstance || '').trim();
         if (!id) return null;
         let obj = null;
         try {
@@ -1387,6 +1453,75 @@ class Aura extends utils.Adapter {
         }
         const n = obj.native || {};
         return `${n.secure ? 'https' : 'http'}://%ip%:${n.port || 8082}/aura/`;
+    }
+
+    /**
+     * `native` and host of the web instance of the extension, or null while it is
+     * off or unknown.
+     *
+     * @returns {Promise<{ port?: number, secure?: boolean, host?: string } | null>} what is needed of it
+     */
+    async _webInstanceNative() {
+        const id = String(this.config.webInstance || '').trim();
+        if (!id) return null;
+        try {
+            const obj = /** @type {ioBroker.Object} */ (await this.getForeignObjectAsync(`system.adapter.${id}`));
+            if (!obj || obj.type !== 'instance') return null;
+            const n = obj.native || {};
+            return { port: Number(n.port) || 8082, secure: !!n.secure, host: obj.common?.host || '' };
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Other instances that js-controller 8 lists as holding this TCP port on this
+     * host (used-resources registry). Empty on an older js-controller, or when
+     * nobody holds it - which does not promise the port is free.
+     *
+     * @param {number} port the own port
+     * @param {string|undefined} bindAddr the listen address, undefined = all interfaces
+     * @returns {Promise<string[]>} instance names, e.g. `['web.1']`
+     */
+    async _portHolders(port, bindAddr) {
+        const check = usedResourceCheck(this);
+        if (!check) {
+            return [];
+        }
+        try {
+            const held = await check('tcpPort', bindAddr ? { port, bind: bindAddr } : { port });
+            return portHolders(held, this.namespace);
+        } catch (e) {
+            this.log.debug(`aura: could not ask js-controller who uses port ${port} (${e.message})`);
+            return [];
+        }
+    }
+
+    /**
+     * Before the server opens its port: name what will get in the way. js-controller
+     * 8 registers the port of every instance from `native.port`/`native.bind` itself,
+     * so another adapter on the same port shows up here instead of only as EADDRINUSE.
+     *
+     * @param {number} port the own port
+     * @param {string|undefined} bindAddr the listen address, undefined = all interfaces
+     */
+    async _checkBind(port, bindAddr) {
+        const holders = await this._portHolders(port, bindAddr);
+        if (holders.length) {
+            this.log.warn(
+                `aura: port ${port} is registered by ${holders.join(', ')} on this host — the server will probably not start. Change "Port" in the instance configuration.`,
+            );
+        }
+        if (isLoopbackOnly(this.config.bind)) {
+            const web = await this._webInstanceNative();
+            const problems = loopbackProblems({
+                bind: this.config.bind,
+                webInstance: this.config.webInstance,
+                webHost: web?.host,
+                auraHost: this.host,
+            });
+            problems.forEach((p) => this.log.warn(`aura: ${p}`));
+        }
     }
 
     // ── server-side PIN / admin security ────────────────────────────────────────
@@ -1422,7 +1557,7 @@ class Aura extends utils.Adapter {
             data.serverSecret = generateServerSecret();
             this.vault.save(data);
         }
-        if (this.config.resetAdminPin === true) await this._resetAdminPin(data);
+        if (this.config.resetAdminPin === true) this._resetAdminPin(data);
         this._securityApi = createSecurityApi({
             vault: this.vault,
             log: this.log,
@@ -1446,20 +1581,14 @@ class Aura extends utils.Adapter {
      * secret so sessions opened with the old PIN end too. Section/tab PINs stay.
      * Only someone who may edit the instance object gets here — a state would let
      * any socket client (the frontend included) take over the admin area.
-     * Clearing the flag rewrites native, so js-controller restarts the instance once.
+     * The flag is cleared by _syncOwnInstanceObject() right after, in the one write
+     * of the instance object per start (which makes js-controller restart it once).
      */
-    async _resetAdminPin(data) {
+    _resetAdminPin(data) {
         data.admin = null;
         data.serverSecret = generateServerSecret();
         this.vault.save(data);
         this.log.warn('aura: admin PIN reset from the instance settings — set a new one in the admin area');
-        try {
-            await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
-                native: { resetAdminPin: false },
-            });
-        } catch (e) {
-            this.log.warn(`aura: could not clear the admin PIN reset flag — ${e.message}`);
-        }
     }
 
     /**
@@ -1704,6 +1833,7 @@ class Aura extends utils.Adapter {
             alive,
             server: {
                 port: this.config.port || 8095,
+                bind: listenAddress(this.config.bind) || '',
                 https: !!this._httpsActive,
                 httpsWanted: !!this.config.secure,
                 listening: !!this._httpServer?.listening,
@@ -2271,6 +2401,13 @@ class Aura extends utils.Adapter {
             // A bare `/adapter/<name>/…` is answered the same way, for free HTML
             // that references adapter files directly (see webFsPath, #885).
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
+            const reactEsm = req.method === 'GET' || req.method === 'HEAD' ? reactEsmFile(pathname) : null;
+            if (reactEsm) {
+                serveReactEsm(reactEsm, res, req.method, String(req.headers['accept-encoding'] || ''), () =>
+                    proxyToWebBackend(req, res, req.url),
+                );
+                return;
+            }
             const webfsPath = webFsPath(pathname);
             const isWebFs = webfsPath !== null;
             if (isWebFs || webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
@@ -2425,11 +2562,17 @@ class Aura extends utils.Adapter {
             proxyWebSocket(req, socket, targetWsUrl, this.log);
         });
 
+        const bindAddr = listenAddress(this.config.bind);
         server.on('error', (/** @type {NodeJS.ErrnoException} */ e) => {
             if (e.code === 'EADDRINUSE') {
-                this.log.error(
-                    `aura: port ${port} is already in use — another aura instance or service is listening on this port. Change "Port" in the instance configuration to a free value (default 8095) and restart.`,
-                );
+                this._portHolders(port, bindAddr).then((holders) => {
+                    const who = holders.length
+                        ? `${holders.join(', ')} ${holders.length === 1 ? 'uses' : 'use'} it`
+                        : 'another aura instance or service is listening on this port';
+                    this.log.error(
+                        `aura: port ${port} is already in use — ${who}. Change "Port" in the instance configuration to a free value (default 8095) and restart.`,
+                    );
+                });
                 this.setState('info.connection', false, true);
             } else {
                 this.log.error(`aura: server error: ${e.message}`);
@@ -2439,8 +2582,13 @@ class Aura extends utils.Adapter {
         // The MCP client block needs the protocol that is actually in use — HTTPS
         // can fail at startup and fall back to HTTP, so config.secure would lie.
         this._httpsActive = httpsActive;
-        server.listen(port, () => {
-            this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`);
+        await this._checkBind(port, bindAddr);
+        server.listen(port, bindAddr, () => {
+            const where = bindAddr ? `${bindAddr}:${port}` : `port ${port}`;
+            const only = isLoopbackOnly(this.config.bind)
+                ? ' — not reachable in the network, only through the web instance (/aura/)'
+                : '';
+            this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on ${where}${only}`);
             // A wrong socket port is the most common cause of "aura does not work":
             // check it once, here, where the answer is still cheap to act on.
             this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
@@ -3764,39 +3912,80 @@ class Aura extends utils.Adapter {
     }
 
     /**
-     * One-time migration for the MCP token.
+     * Links the instance offers in admin: the own server and, with the web
+     * adapter extension on, the same pages under `<web-port>/aura/` (#936).
      *
-     * `mcpToken` is listed in io-package's `encryptedNative` since 0.52.3, so
-     * js-controller decrypts whatever sits in the instance object — a token
-     * written before that move comes back as noise. A generated token is 32
-     * hex characters, which is a clear enough fingerprint to recognise the
-     * old plaintext and store it encrypted instead. A hand-typed token that
-     * does not match has to be entered once more; nothing else can tell it
-     * apart from garbage.
+     * @param {string} webInstance the chosen web instance - empty = extension off
      */
-    async migratePlainMcpToken() {
+    async _wantLocalLinks(webInstance) {
+        const base = this.config.customUrl ? this.config.customUrl.replace(/\/+$/, '') : null;
+        const port = this.config.port || 8095;
+        const langs = ['en', 'de', 'ru', 'pt', 'nl', 'fr', 'it', 'es', 'pl', 'uk', 'zh-cn'];
+        const makeName = (v) => Object.fromEntries(langs.map((l) => [l, v]));
+
+        const frontendLink = base ? `${base}/` : `%protocol%://%ip%:${port}/`;
+        const backendLink = base ? `${base}/#/admin` : `%protocol%://%ip%:${port}/#/admin`;
+        /** @type {Record<string, { link: string, name: Record<string, string> }>} */
+        const wantLinks = {
+            frontend: { link: frontendLink, name: makeName('Aura Frontend') },
+            backend: { link: backendLink, name: makeName('Aura Backend') },
+        };
+        const webLink = await this._webExtensionLink(webInstance);
+        if (webLink && !base && isLoopbackOnly(this.config.bind)) {
+            // The own port only answers on this machine: the web instance is the way in.
+            wantLinks.frontend.link = webLink;
+            wantLinks.backend.link = `${webLink}#/admin`;
+        } else if (webLink) {
+            wantLinks.web = { link: webLink, name: makeName('Aura Frontend (web adapter)') };
+            wantLinks.webBackend = { link: `${webLink}#/admin`, name: makeName('Aura Backend (web adapter)') };
+        }
+        return wantLinks;
+    }
+
+    /**
+     * Brings the own instance object up to date - MCP token in clear text, the
+     * one-shot PIN reset flag, localLinks, masked MCP client blocks, legacy
+     * `webInstance` values - and writes it at most ONCE. Every write makes
+     * js-controller restart this instance, and with the web adapter extension on
+     * the web instance as well; separate writes used to cost up to three restarts
+     * of both in a row (lib/ownInstanceObject.js).
+     */
+    async _syncOwnInstanceObject() {
         try {
             const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
-            const raw = obj && obj.native ? obj.native.mcpToken : null;
-            if (typeof raw !== 'string' || !/^[0-9a-f]{32}$/.test(raw)) {
+            if (!obj) {
                 return;
             }
-            // This run already holds the decrypted noise in config — put the
-            // real token back before anything reads it.
-            this.config.mcpToken = raw;
-            obj.native.mcpToken = this.encrypt(raw);
-            await this.setForeignObjectAsync(obj._id, obj);
-            this.log.info('aura: MCP token was stored in clear text and has been encrypted in place');
+            const { changed, plainMcpToken, info, debug } = await syncOwnInstanceObject(obj, {
+                encrypt: (value) => this.encrypt(value),
+                clearResetAdminPin: this.config.resetAdminPin === true,
+                localLinks: (webInstance) => this._wantLocalLinks(webInstance),
+            });
+            // This run holds what js-controller decrypted and the values from before
+            // the migrations; put the real ones in place before anything reads them.
+            if (plainMcpToken) {
+                this.config.mcpToken = plainMcpToken;
+            }
+            this.config.resetAdminPin = false;
+            this.config.webInstance = obj.native.webInstance || '';
+            this.config.socketInstance = obj.native.socketInstance || '';
+            info.forEach((line) => this.log.info(line));
+            debug.forEach((line) => this.log.debug(line));
+            if (changed) {
+                await this.setForeignObjectAsync(obj._id, obj);
+            }
         } catch (e) {
-            this.log.debug(`aura: MCP token migration skipped — ${e.message}`);
+            this.log.warn(`Could not update instance object: ${e.message}`);
         }
     }
 
     async onReady() {
         this.log.debug('aura adapter started');
 
-        await this.migratePlainMcpToken();
+        // The PIN vault first: a pending "reset admin PIN" runs there, and the one
+        // write below then clears its flag together with everything else.
         await this._initPinVault();
+        await this._syncOwnInstanceObject();
 
         await this.setObjectNotExistsAsync('config', {
             type: 'channel',
@@ -4689,91 +4878,6 @@ class Aura extends utils.Adapter {
             this.log.debug(`[perf] load-time metrics ready (${this._perfBuffer.length} historical sample(s))`);
         } catch (e) {
             this.log.warn(`[perf] metrics init failed: ${e?.message ?? e}`);
-        }
-
-        // Update localLinks to point to the aura HTTP server port
-        {
-            const base = this.config.customUrl ? this.config.customUrl.replace(/\/+$/, '') : null;
-            const port = this.config.port || 8095;
-            const langs = ['en', 'de', 'ru', 'pt', 'nl', 'fr', 'it', 'es', 'pl', 'uk', 'zh-cn'];
-            const makeName = (v) => Object.fromEntries(langs.map((l) => [l, v]));
-
-            const frontendLink = base ? `${base}/` : `%protocol%://%ip%:${port}/`;
-            const backendLink = base ? `${base}/#/admin` : `%protocol%://%ip%:${port}/#/admin`;
-            /** @type {Record<string, any>} */
-            const wantLinks = {
-                frontend: { link: frontendLink, name: makeName('Aura Frontend') },
-                backend: { link: backendLink, name: makeName('Aura Backend') },
-            };
-            // Web adapter extension on: the same frontend and backend under `<web-port>/aura/` (#936).
-            const webLink = await this._webExtensionLink();
-            if (webLink) {
-                wantLinks.web = { link: webLink, name: makeName('Aura Frontend (web adapter)') };
-                wantLinks.webBackend = { link: `${webLink}#/admin`, name: makeName('Aura Backend (web adapter)') };
-            }
-            try {
-                const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
-                if (obj) {
-                    let changed = false;
-                    const curLinks = obj.common.localLinks || {};
-                    if (
-                        curLinks?.frontend?.link !== wantLinks.frontend.link ||
-                        curLinks?.backend?.link !== wantLinks.backend.link ||
-                        curLinks?.web?.link !== wantLinks.web?.link ||
-                        curLinks?.webBackend?.link !== wantLinks.webBackend?.link
-                    ) {
-                        obj.common.localLinks = wantLinks;
-                        changed = true;
-                        this.log.debug(`localLinks updated to port ${port}${base ? ` (custom URL: ${base})` : ''}`);
-                    }
-                    // The generated client blocks show the token in full so they can
-                    // be copied; once they have been stored there is no reason for it
-                    // to stay readable on every later visit to the config page. Both
-                    // blocks carry it, so both are masked — leaving one behind would
-                    // defeat the whole point.
-                    let maskedAny = false;
-                    for (const field of ['mcpClientConfig', 'mcpDesktopConfig']) {
-                        const masked = maskClientConfig(obj.native?.[field]);
-                        if (masked) {
-                            obj.native[field] = masked;
-                            changed = true;
-                            maskedAny = true;
-                        }
-                    }
-                    if (maskedAny) {
-                        this.log.info(
-                            'aura: MCP client configuration stored — token replaced by a placeholder. ' +
-                                'Generate a new token to see a complete block again.',
-                        );
-                    }
-
-                    // Migration: `webInstance` switches the web adapter extension
-                    // (lib/webExtension.js) and names the ONE web instance that loads
-                    // it. `*` is left over from before 0.9.91, when every web instance
-                    // loaded the old extension and restarted on every Aura start/stop.
-                    if (obj.native?.webInstance === '*') {
-                        obj.native.webInstance = '';
-                        changed = true;
-                        this.log.info(
-                            'aura: cleared legacy webInstance "*" — the web adapter extension stays off until a web instance is chosen',
-                        );
-                    }
-                    // The socket backend choice (#519) briefly lived in `webInstance`
-                    // as well; a socketio/ws instance there can only be that.
-                    const legacy = String(obj.native?.webInstance || '');
-                    if (legacy && !/^web\.\d+$/.test(legacy)) {
-                        if (!obj.native.socketInstance) obj.native.socketInstance = legacy;
-                        obj.native.webInstance = '';
-                        changed = true;
-                        this.log.info(`aura: moved socket backend "${legacy}" from webInstance to socketInstance`);
-                    }
-                    if (changed) {
-                        await this.setForeignObjectAsync(`system.adapter.${this.namespace}`, obj);
-                    }
-                }
-            } catch (e) {
-                this.log.warn(`Could not update instance object: ${e.message}`);
-            }
         }
 
         await this.startHttpServer();
@@ -6230,12 +6334,17 @@ class Aura extends utils.Adapter {
                 // The adapter cannot know which address the client will use to reach
                 // it, so a configured customUrl wins and otherwise a placeholder is
                 // left in — better an obvious gap than a confidently wrong host.
+                // Only listening on 127.0.0.1: the client comes in through the web
+                // instance's /aura/mcp, which the extension lets past the web login.
+                const web = isLoopbackOnly(this.config.bind) ? await this._webInstanceNative() : null;
                 const blocks = await resolveBothConfigs(
-                    {
+                    mcpBaseOptions({
                         customUrl: this.config.customUrl,
                         port: this.config.port,
                         https: this._httpsActive,
-                    },
+                        bind: this.config.bind,
+                        web,
+                    }),
                     token,
                 );
                 reply({

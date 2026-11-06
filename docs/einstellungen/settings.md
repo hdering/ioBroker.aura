@@ -76,14 +76,33 @@ Aura zusätzlich unter dem Port einer Web-Instanz erreichbar machen, z. B. für 
 | Hinweis | |
 | --- | --- |
 | Datenverbindung | Das Feld **Datenverbindung (Socket-Backend)** weiter oben ist etwas anderes: von dort holt Aura Live-Werte und Adapter-Dateien – wird immer gebraucht, auch ohne Erweiterung |
-| Port 8095 | Läuft unverändert weiter; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben |
+| Port 8095 | Läuft unverändert weiter; Dashboards, PINs und Einstellungen sind auf beiden Wegen dieselben. Soll er im Netzwerk zu sein: [Nur über die Web-Instanz](#nur-uber-die-web-instanz) |
 | Visu App / ioBroker.pro | Dieselbe Web-Instanz wählen, die im Cloud-Adapter (`cloud.0`) eingetragen ist – meist `web.0`. Der Cloud-Adapter leitet nur **eine** Web-Instanz weiter; Aura, vis und andere Apps müssen alle über sie laufen |
 | Eigene Web-Instanz | Z. B. `web.1` nur für Aura: geht lokal, aber nicht über die Cloud. `cloud.0` auf `web.1` umstellen macht Aura erreichbar, vis dann nicht mehr ([#688](https://github.com/hdering/ioBroker.aura/issues/688)) |
 | Neustarts | Die gewählte Web-Instanz startet bei jedem Start, Stopp und Speichern der Aura-Instanz neu (technisch bedingt) – andere Web-Instanzen nicht |
 | Socket | Die Web-Instanz braucht ihren integrierten Socket (Standard) – darüber laufen die Live-Werte |
-| Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs |
+| Anmeldung | Ist in der Web-Instanz die Anmeldung aktiv, gilt sie zusätzlich zu den Aura-PINs. Ausnahme: der [MCP-Endpunkt](mcp#web-instanz) `/aura/mcp` prüft nur seinen Token (Web-Adapter neuer als 9.2.0) |
 | Aura gestoppt | `/aura/` zeigt „Aura läuft nicht“ und lädt von selbst neu, sobald Aura wieder läuft; die Web-Instanz läuft weiter |
 | Instanz-Links | Zusätzliche Links „Aura Frontend (web adapter)“ und „Aura Backend (web adapter)“ in Instanzliste und Schnellzugriff |
+
+### Nur über die Web-Instanz {#nur-uber-die-web-instanz}
+
+Port 8095 im Netzwerk schließen, Aura nur noch als `<web-port>/aura/` öffnen – z. B. damit nur ein Port
+freigegeben werden muss oder die Anmeldung der Web-Instanz für alles gilt.
+
+| Schritt | ioBroker-Admin → Instanzen → Aura (Schraubenschlüssel) |
+| --- | --- |
+| 1. Web-Instanz wählen | wie oben unter **Zusätzlich erreichbar über Web-Instanz (/aura/)** |
+| 2. Erreichbar über | Abschnitt **Aura-Server (eigener Port)** → **Nur über die Web-Instanz (/aura/)** |
+| 3. Speichern | Aura lauscht nur noch auf `127.0.0.1:8095`; die Web-Instanz leitet `/aura/` dorthin weiter |
+
+| Hinweis | |
+| --- | --- |
+| Ohne Web-Instanz | Lässt sich nicht speichern – Aura wäre sonst nur noch auf dem ioBroker-Rechner selbst erreichbar |
+| Multihost | Die Web-Instanz muss auf demselben Host laufen wie Aura; sonst steht eine Warnung im Log |
+| Instanz-Links | „Aura Frontend“ und „Aura Backend“ zeigen auf `<web-port>/aura/` |
+| KI-Zugriff (MCP) | Der Konfigurationsblock nennt `<web-port>/aura/mcp` statt Port 8095 ([MCP](mcp#web-instanz)) |
+| js-controller 8 | Meldet Port und Adresse als belegte Ressource des Hosts (`system.host.<host>.usedResources.tcpPort`); hält eine andere Instanz den Port, nennt Aura sie im Log |
 
 ## Client-ID
 

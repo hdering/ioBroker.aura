@@ -204,6 +204,9 @@ const REPORTED = {
 {
     const up = serverFindings({ port: 8095, https: false, httpsWanted: false, listening: true });
     check('a listening server is confirmed', byId(up, 'own-server')?.level === 'ok');
+    check('all interfaces: no address named', !byId(up, 'own-server').title.includes('only on'));
+    const local = serverFindings({ port: 8095, bind: '127.0.0.1', listening: true });
+    check('one address: named in the report', byId(local, 'own-server').title.includes('only on 127.0.0.1'));
     const down = serverFindings({ port: 8095, listening: false });
     check('a blocked port is an error', byId(down, 'own-server-down')?.level === 'error');
     const fellBack = serverFindings({ port: 8095, https: false, httpsWanted: true, listening: true });

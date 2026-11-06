@@ -101,6 +101,18 @@ function ioBrokerDevPlugin(): Plugin {
       server.middlewares.use((req, res, next) => {
         if (!iconCache.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
       });
+      // React for ioBroker web components, as main.js answers it (reactEsmFile):
+      // a component built with React imports /lib/esm/react-19.js next to /adapter/.
+      server.middlewares.use((req, res, next) => {
+        const m = /^\/lib\/esm\/(react-1[89]\.js)$/.exec(new URL(req.url ?? '', 'http://localhost').pathname);
+        if (!m) return next();
+        const file = path.resolve('node_modules/@iobroker/web-components/build/esm', m[1]);
+        fs.readFile(file, (err, data) => {
+          if (err) return next();
+          res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+          res.end(data);
+        });
+      });
       const feedProxy = createFeedProxy({ log: console });
       server.middlewares.use((req, res, next) => {
         if (!feedProxy.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
@@ -360,6 +372,14 @@ export default defineConfig({
         secure: false,
         timeout: 4000,
         proxyTimeout: 4000,
+      },
+      // Files of adapters: the manifests and modules of ioBroker web components
+      // (common.webComponents) and adapter graphics. The web adapter and Aura's
+      // own server both answer /adapter/<name>/… from the file storage.
+      '/adapter/': {
+        target: proxyTarget,
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

@@ -8,6 +8,8 @@ declare global {
         interface AdapterConfig {
             customUrl: string;
             port: number;
+            /** Listen address of the own server; empty = all interfaces, `127.0.0.1` = only via the web instance (lib/serverBind.js). */
+            bind: string;
             socketPort: number;
             socketSecure: boolean;
             webInstance: string;

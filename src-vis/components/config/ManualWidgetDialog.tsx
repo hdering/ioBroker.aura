@@ -26,6 +26,25 @@ import { useConfigStore } from '../../store/configStore';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { hasScaleFromDatapoint, scaleOptionsFromDatapoint } from '../../utils/dpScale';
+import { useWebComponentCatalog } from '../../utils/webComponentRegistry';
+import { parseWebComponentKey, webComponentGridSize, webComponentPickerEntries } from '../../utils/webComponentHost';
+import type { LucideIcon } from 'lucide-react';
+
+/**
+ * An entry of "Weitere Widgets": a widget type of its own, or one installed web
+ * component - shown and added like a widget, stored as type `webcomponent`.
+ */
+interface FurtherEntry {
+    /** The widget type, or `wc:<adapter>|<tag>` for a web component */
+    key: string;
+    widgetType: WidgetType;
+    label: string;
+    hint?: string;
+    Icon: LucideIcon;
+    color: string;
+    /** Picture of a web component (its manifest's icon) */
+    iconUrl?: string;
+}
 
 // ── Recently used templates (persisted in localStorage) ──────────────────────
 const RECENT_TEMPLATES_KEY = 'aura-recent-templates';
@@ -77,6 +96,14 @@ export function ManualWidgetDialog({
 }) {
     const t = useT();
     const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de');
+    const gridRowHeight = useConfigStore((s) => s.frontend.gridRowHeight);
+    const gridSnapX = useConfigStore((s) => s.frontend.gridSnapX);
+    const gridGap = useConfigStore((s) => s.frontend.gridGap);
+    const widgetPadding = useConfigStore((s) => s.frontend.widgetPadding);
+    // Every installed web component is an entry of its own, like a widget
+    const { components: webComponents, loading: webComponentsLoading } = useWebComponentCatalog();
+    const wcEntries = useMemo(() => webComponentPickerEntries(webComponents, lang), [webComponents, lang]);
 
     const [type, setType] = useState<WidgetType>('value');
     const [templateId, setTemplateId] = useState<string>('');
@@ -86,7 +113,20 @@ export function ManualWidgetDialog({
     const [unit, setUnit] = useState('');
     const [showPicker, setShowPicker] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
-    const [recentTemplates, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
+    const [storedRecent, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
+    // A web component that is no longer installed drops out (once the catalog is read);
+    // the bare "Web-Komponente" type is no entry of the dialog any more.
+    const recentTemplates = useMemo(
+        () =>
+            storedRecent.filter((r) =>
+                r.widgetType !== 'webcomponent'
+                    ? true
+                    : parseWebComponentKey(r.templateId)
+                      ? webComponentsLoading || wcEntries.some((e) => e.key === r.templateId)
+                      : false,
+            ),
+        [storedRecent, wcEntries, webComponentsLoading],
+    );
     const presets = useWidgetPresetsStore((s) => s.presets);
     const [insertPreset, setInsertPreset] = useState<WidgetPreset | null>(null);
     const [query, setQuery] = useState('');
@@ -162,17 +202,38 @@ export function ManualWidgetDialog({
         return () => document.removeEventListener('keydown', onKey);
     }, [showPicker, insertPreset, query, onClose]);
 
-    // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE
+    // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE, and the
+    // installed web components in place of the bare "Web-Komponente" type
     const coveredWidgetTypes = useMemo(() => new Set(DP_TEMPLATES.map((t) => t.widgetType)), []);
-    const furtherWidgets = useMemo(
-        () =>
-            // Sort by the displayed label (de locale) so new widget types are
-            // inserted alphabetically automatically – no manual ordering needed.
-            WIDGET_REGISTRY.filter((w) => !w.hidden && !coveredWidgetTypes.has(w.type)).sort((a, b) =>
-                a.label.localeCompare(b.label, 'de'),
-            ),
-        [coveredWidgetTypes],
-    );
+    const furtherWidgets = useMemo((): FurtherEntry[] => {
+        const wcMeta = WIDGET_BY_TYPE.webcomponent;
+        return (
+            [
+                ...WIDGET_REGISTRY.filter(
+                    (w) => !w.hidden && !coveredWidgetTypes.has(w.type) && w.type !== 'webcomponent',
+                ).map((w) => ({
+                    key: w.type as string,
+                    widgetType: w.type,
+                    label: w.label,
+                    hint: w.hint,
+                    Icon: w.Icon,
+                    color: w.color,
+                })),
+                ...wcEntries.map((e) => ({
+                    key: e.key,
+                    widgetType: 'webcomponent' as WidgetType,
+                    label: e.label,
+                    hint: e.hint,
+                    Icon: wcMeta.Icon,
+                    color: wcMeta.color,
+                    iconUrl: e.iconUrl,
+                })),
+            ]
+                // Sort by the displayed label (de locale) so new widget types are
+                // inserted alphabetically automatically – no manual ordering needed.
+                .sort((a, b) => a.label.localeCompare(b.label, 'de'))
+        );
+    }, [coveredWidgetTypes, wcEntries]);
 
     // Searchable text per entry - see utils/widgetSearch for what goes in.
     const templateHaystacks = useMemo(() => {
@@ -186,8 +247,11 @@ export function ManualWidgetDialog({
     const widgetHaystacks = useMemo(() => {
         const map = new Map<string, string>();
         for (const w of WIDGET_REGISTRY) map.set(w.type, widgetHaystack(w));
+        for (const e of wcEntries) {
+            map.set(e.key, buildHaystack([e.label, e.hint, e.adapter, e.tag, WIDGET_BY_TYPE.webcomponent.label]));
+        }
         return map;
-    }, []);
+    }, [wcEntries]);
 
     // Hits in the order the grid draws them: category by category, each sorted by
     // label, "Weitere Widgets" last. A search looks through every category, so the
@@ -205,7 +269,7 @@ export function ManualWidgetDialog({
         [q, searching, templateHaystacks],
     );
     const furtherHits = useMemo(
-        () => furtherWidgets.filter((w) => !searching || matchesQuery(widgetHaystacks.get(w.type) ?? '', q)),
+        () => furtherWidgets.filter((w) => !searching || matchesQuery(widgetHaystacks.get(w.key) ?? '', q)),
         [furtherWidgets, q, searching, widgetHaystacks],
     );
     const recentHits = useMemo(() => {
@@ -226,11 +290,11 @@ export function ManualWidgetDialog({
         const group = hitsByCategory.find((g) => g.tpls.length);
         if (group) return { tplId: group.tpls[0].id, widgetType: group.tpls[0].widgetType };
         const w = furtherHits[0];
-        return w ? { tplId: w.type, widgetType: w.type } : null;
+        return w ? { tplId: w.key, widgetType: w.widgetType } : null;
     })();
 
     const selectedTemplate = DP_TEMPLATES.find((tpl) => tpl.id === templateId);
-    const selectedFurther = furtherWidgets.find((w) => w.type === type && templateId === w.type);
+    const selectedFurther = furtherWidgets.find((w) => w.widgetType === type && templateId === w.key);
 
     // Picking a category ends the search - otherwise the two filters would fight
     // and an empty grid would look like a broken category.
@@ -261,12 +325,15 @@ export function ManualWidgetDialog({
         const isEvcc = widgetType === 'evcc';
         const isWeather = widgetType === 'weather';
         const isCamera = widgetType === 'camera';
+        // A web component entry: the widget shows that component of that adapter
+        const wc = widgetType === 'webcomponent' ? parseWebComponentKey(tplId) : null;
+        const wcEntry = wc ? wcEntries.find((e) => e.key === tplId) : undefined;
         // Persist to recently used
         const activeTpl = DP_TEMPLATES.find((tpl) => tpl.id === tplId);
         pushRecentTemplate({
             templateId: tplId || widgetType,
             widgetType,
-            label: activeTpl?.label ?? meta.shortLabel ?? widgetType,
+            label: activeTpl?.label ?? wcEntry?.label ?? meta.shortLabel ?? widgetType,
             icon: activeTpl?.icon ?? '',
         });
         setRecentTemplates(getRecentTemplates());
@@ -334,11 +401,22 @@ export function ManualWidgetDialog({
             id: `w-${Date.now()}`,
             type: widgetType,
             layout: widgetType === 'universal' ? 'custom' : 'default',
-            title: finalTitle || activeTpl?.label || meta.label,
+            title: finalTitle || activeTpl?.label || wcEntry?.label || meta.label,
             datapoint: dpId,
-            gridPos: { x: 0, y: 9999, ...getEffectiveSize(widgetType, widgetDefaults) },
+            gridPos: {
+                x: 0,
+                y: 9999,
+                // the size the component names for itself, else the type's default
+                ...(webComponentGridSize(wcEntry?.size, {
+                    rowHeight: gridRowHeight ?? 20,
+                    snapX: gridSnapX ?? gridRowHeight ?? 20,
+                    gap: gridGap ?? 10,
+                    padding: widgetPadding ?? 16,
+                }) ?? getEffectiveSize(widgetType, widgetDefaults)),
+            },
             options: {
                 icon: meta.iconName,
+                ...(wc ? { wcTag: wc.tag, wcAdapter: wc.adapter, wcSettings: {} } : {}),
                 ...(activeTemplate?.defaultOptions ?? {}),
                 ...secondaryDpOptions,
                 ...(isCalendar
@@ -543,6 +621,7 @@ export function ManualWidgetDialog({
                                 const meta = WIDGET_REGISTRY.find((w) => w.type === recent.widgetType);
                                 if (!meta) return null;
                                 const isActive = templateId === recent.templateId;
+                                const wcEntry = wcEntries.find((e) => e.key === recent.templateId);
                                 return (
                                     <button
                                         key={recent.templateId}
@@ -558,10 +637,12 @@ export function ManualWidgetDialog({
                                     >
                                         {recent.icon ? (
                                             <span style={{ fontSize: 12, lineHeight: 1 }}>{recent.icon}</span>
+                                        ) : wcEntry?.iconUrl ? (
+                                            <img src={wcEntry.iconUrl} alt="" className="w-3 h-3 object-contain" />
                                         ) : (
                                             <meta.Icon size={11} />
                                         )}
-                                        {recent.label}
+                                        {wcEntry?.label ?? recent.label}
                                     </button>
                                 );
                             })}
@@ -756,15 +837,16 @@ export function ManualWidgetDialog({
                                 </p>
                                 <div className="grid grid-cols-4 gap-2">
                                     {furtherHits.map((w) => {
-                                        const active = templateId === w.type;
+                                        const active = templateId === w.key;
                                         return (
                                             <button
-                                                key={w.type}
-                                                data-widget-type={w.type}
+                                                key={w.key}
+                                                data-widget-type={w.widgetType}
+                                                data-widget-key={w.key}
                                                 type="button"
                                                 title={w.hint}
-                                                onClick={() => selectTemplate(w.type, w.type)}
-                                                onDoubleClick={() => void handleAdd(w.type, w.type)}
+                                                onClick={() => selectTemplate(w.key, w.widgetType)}
+                                                onDoubleClick={() => void handleAdd(w.widgetType, w.key)}
                                                 className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
                                                 style={{
                                                     padding: '8px 12px',
@@ -773,11 +855,20 @@ export function ManualWidgetDialog({
                                                     boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
                                                 }}
                                             >
-                                                <w.Icon
-                                                    size={18}
-                                                    color={active ? 'var(--accent)' : w.color}
-                                                    style={{ flexShrink: 0 }}
-                                                />
+                                                {w.iconUrl ? (
+                                                    <img
+                                                        src={w.iconUrl}
+                                                        alt=""
+                                                        className="object-contain"
+                                                        style={{ width: 18, height: 18, flexShrink: 0 }}
+                                                    />
+                                                ) : (
+                                                    <w.Icon
+                                                        size={18}
+                                                        color={active ? 'var(--accent)' : w.color}
+                                                        style={{ flexShrink: 0 }}
+                                                    />
+                                                )}
                                                 <span
                                                     className="leading-tight font-medium truncate"
                                                     style={{

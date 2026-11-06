@@ -67,6 +67,7 @@ import {
     Megaphone,
     Images,
     Newspaper,
+    Puzzle,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType, ConditionSlot } from './types';
@@ -613,6 +614,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'HTML', v: '' },
         hint: 'Beliebigen HTML/CSS-Code frei einbetten',
+    },
+    {
+        type: 'webcomponent',
+        label: 'Web-Komponente',
+        shortLabel: 'Komponente',
+        Icon: Puzzle,
+        iconName: 'Puzzle',
+        color: '#0ea5e9',
+        defaultW: 10,
+        defaultH: 6,
+        addMode: 'free',
+        widgetGroup: 'special',
+        mock: { t: 'Komponente', v: '' },
+        hint: 'Web-Komponente eines installierten Adapters (z. B. flow) einbetten',
     },
     {
         type: 'datepicker',

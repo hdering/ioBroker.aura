@@ -25146,6 +25146,81 @@
         }
       }
     },
+    "webcomponent": {
+      "label": "Web-Komponente",
+      "group": "special",
+      "addMode": "free",
+      "hint": "Web-Komponente eines installierten Adapters (z. B. flow) einbetten",
+      "defaultSize": {
+        "w": 10,
+        "h": 6
+      },
+      "layouts": [
+        "default"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "badges",
+        "bgImage",
+        "clickAction",
+        "clickActionIcon",
+        "clickActionIconName",
+        "clickActionIconPosition",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenScreen",
+        "fullscreenWidget",
+        "headerItems",
+        "icon",
+        "iconColor",
+        "iconPlace",
+        "iconSize",
+        "lastChangeDatapoint",
+        "lastChangePosition",
+        "lastChangeSource",
+        "paddingX",
+        "paddingY",
+        "showLastChange",
+        "styleOverride",
+        "textLines",
+        "titleAlign",
+        "titleColor",
+        "titleRow",
+        "titleSize",
+        "transparency",
+        "transparent"
+      ],
+      "options": {
+        "showIcon": {
+          "type": "boolean",
+          "default": false,
+          "description": "Icon anzeigen."
+        },
+        "showTitle": {
+          "type": "boolean",
+          "default": false,
+          "description": "Titelzeile anzeigen."
+        },
+        "wcAdapter": {
+          "type": "string",
+          "description": "Adaptername der Komponente (ohne Instanz, z. B. \"flow\"). Entscheidet nur, wenn zwei Adapter denselben Tag anbieten; leer = der erste mit diesem Tag."
+        },
+        "wcSettings": {
+          "type": "object",
+          "description": "Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg."
+        },
+        "wcTag": {
+          "type": "string",
+          "description": "Tag der ioBroker-Web-Komponente (Custom Element, z. B. \"iob-flow-diagram\"). Nur Komponenten, die ein installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte selbst - es gibt kein dp-Feld."
+        }
+      }
+    },
     "windowcontact": {
       "label": "Fenster-/Türkontakt",
       "group": "control",

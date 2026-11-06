@@ -204,6 +204,7 @@
   "native": {
     "customUrl": "",
     "port": 8095,
+    "bind": "",
     "socketPort": 8082,
     "socketSecure": false,
     "webInstance": "",

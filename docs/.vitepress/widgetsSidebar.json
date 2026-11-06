@@ -222,6 +222,10 @@
         "link": "/widgets/uhrzeit"
       },
       {
+        "text": "Web-Komponente",
+        "link": "/widgets/web-komponente"
+      },
+      {
         "text": "Wetter",
         "link": "/widgets/wetter"
       },

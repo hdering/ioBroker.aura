@@ -293,6 +293,7 @@ import {
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlConfig } from '../config/HtmlConfig';
+import { WebComponentConfig } from '../config/WebComponentConfig';
 import { MapConfig } from '../config/MapConfig';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
@@ -581,6 +582,8 @@ const NO_MAIN_DP_TYPES = new Set<WidgetType>([
     'announcements',
     'slideshow',
     'feed',
+    // The component picks its datapoints in its own settings (wcSettings).
+    'webcomponent',
 ]);
 
 // ── Custom grid: row height control, leading column of the cell picker (#737) ──
@@ -13381,6 +13384,19 @@ function WidgetFrameInner({
                                             setPickerTarget('mp_dp');
                                         }
                                     }}
+                                />
+                            )}
+
+                            {/* ── Web component config ── */}
+                            {config.type === 'webcomponent' && (
+                                <WebComponentConfig
+                                    options={config.options ?? {}}
+                                    onChange={(patch) =>
+                                        onConfigChange({
+                                            ...config,
+                                            options: { ...(config.options ?? {}), ...patch },
+                                        })
+                                    }
                                 />
                             )}
 

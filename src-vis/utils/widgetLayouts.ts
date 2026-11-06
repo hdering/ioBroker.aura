@@ -80,6 +80,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     jsontable: ['default'],
     historytable: ['default'],
     html: ['default'],
+    webcomponent: ['default'],
     mirror: ['default'],
     menu: ['default'],
 };

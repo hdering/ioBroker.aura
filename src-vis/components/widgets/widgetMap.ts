@@ -24,6 +24,7 @@ import { TrashScheduleWidget } from './TrashScheduleWidget';
 import { ShutterWidget } from './ShutterWidget';
 import { JsonTableWidget } from './JsonTableWidget';
 import { HtmlWidget } from './HtmlWidget';
+import { WebComponentWidget } from './WebComponentWidget';
 import { WindowContactWidget } from './WindowContactWidget';
 import { BinarySensorWidget } from './BinarySensorWidget';
 import { StateImageWidget } from './StateImageWidget';
@@ -104,6 +105,7 @@ export function getWidgetMap() {
         shutter: ShutterWidget,
         jsontable: JsonTableWidget,
         html: HtmlWidget,
+        webcomponent: WebComponentWidget,
         windowcontact: WindowContactWidget,
         binarysensor: BinarySensorWidget,
         stateimage: StateImageWidget,

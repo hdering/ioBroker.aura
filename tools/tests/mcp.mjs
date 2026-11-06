@@ -7355,6 +7355,15 @@ check('both blocks come out of one address lookup and agree on the host', async 
     assert.ok(JSON.parse(both.desktop).mcpServers.aura.args.includes(url));
 });
 
+check('a server only on 127.0.0.1 is reached below /aura of the web instance', () => {
+    const ifaces = { eth0: [{ address: '192.168.188.140', family: 'IPv4', internal: false }] };
+    assert.equal(baseUrl({ port: 8082, pathPrefix: '/aura', interfaces: ifaces }), 'http://192.168.188.140:8082/aura');
+    assert.equal(baseUrl({ port: 8082, pathPrefix: 'aura/', interfaces: ifaces }), 'http://192.168.188.140:8082/aura');
+    assert.equal(baseUrl({ port: 8095, pathPrefix: '', interfaces: ifaces }), 'http://192.168.188.140:8095');
+    // A configured base URL still wins - it knows about the reverse proxy.
+    assert.equal(baseUrl({ customUrl: 'https://aura.example.org', pathPrefix: '/aura' }), 'https://aura.example.org');
+});
+
 check('a configured base URL wins and loses its trailing slash', () => {
     assert.equal(baseUrl({ customUrl: 'https://aura.example.org/', port: 8095 }), 'https://aura.example.org');
     assert.equal(baseUrl({ customUrl: 'https://aura.example.org//' }), 'https://aura.example.org');
