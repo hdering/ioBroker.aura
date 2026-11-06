@@ -282,7 +282,7 @@ function upgrade(path) {
         app3,
     );
     eq('socket.io: the web listener stays registered', web3.listeners('upgrade').includes(ioListener), true);
-    eq('socket.io: Aura only adds its own', web3.listenerCount('upgrade'), 2);
+    eq('socket.io: Aura adds no listener of its own', web3.listenerCount('upgrade'), 1);
     const port3 = await listen(web3);
     const raw = (path) =>
         new Promise((resolve) => {
@@ -313,6 +313,105 @@ function upgrade(path) {
     eq('socket.io: unload leaves only the web listener', web3.listeners('upgrade').length, 1);
     web3.closeAllConnections();
     await new Promise((r) => web3.close(r));
+}
+
+// ── 3b2. Other extensions that look at the listeners (victron-cerbo) ────────
+// victron-cerbo takes its own upgrades out of `emit` and adds a fallback that
+// destroys an upgrade when it is the only listener left. Loaded BEFORE Aura, the
+// old Aura took every listener off the server and called them itself - the
+// fallback then counted one listener and closed every socket connection of web
+// right after the handshake (CLOSE_ABNORMAL in the browser).
+{
+    const app4 = express();
+    const web4 = http.createServer(app4);
+    const wsUpgrades = [];
+    const held = [];
+    const wsListener = (req, socket) => {
+        wsUpgrades.push(req.url);
+        held.push(socket);
+        socket.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n\r\n');
+    };
+    web4.on('upgrade', wsListener);
+    // cerboProxy.interceptUpgrades, reduced to what matters here
+    const cerboEmit = web4.emit;
+    const cerboIntercepted = (event, ...args) =>
+        event === 'upgrade' && args[0].url.startsWith('/proxy/cerbo/')
+            ? (args[1].end('HTTP/1.1 418 cerbo\r\n\r\n'), true)
+            : cerboEmit.apply(web4, [event, ...args]);
+    web4.emit = cerboIntercepted;
+    const cerboFallback = (_req, socket) => {
+        if (web4.listenerCount('upgrade') === 1) {
+            socket.destroy();
+        }
+    };
+    web4.on('upgrade', cerboFallback);
+
+    const ext4 = new WebExtension(
+        web4,
+        { secure: false },
+        fakeAdapter,
+        { common: { host: 'host-a' }, native: { port: auraPort } },
+        app4,
+    );
+    const after = web4.listeners('upgrade');
+    check(
+        'other extensions: the listeners of the server stay as they are',
+        after.length === 2 && after[0] === wsListener && after[1] === cerboFallback,
+    );
+    const port4 = await listen(web4);
+    const raw = (path, wait = 400) =>
+        new Promise((resolve) => {
+            const sock = net.connect(port4, '127.0.0.1', () =>
+                sock.write(
+                    `GET ${path} HTTP/1.1\r\nHost: x\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n` +
+                        'Sec-WebSocket-Version: 13\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n\r\n',
+                ),
+            );
+            let buf = '';
+            let closed = false;
+            sock.on('data', (d) => (buf += d.toString()));
+            sock.on('close', () => (closed = true));
+            sock.on('error', () => {});
+            setTimeout(() => {
+                sock.destroy();
+                resolve({ buf, closed });
+            }, wait);
+        });
+    const root = await raw('/?sid=1');
+    check("other extensions: web's socket answers", root.buf.startsWith('HTTP/1.1 101'), root.buf.slice(0, 40));
+    eq('… and the connection stays open', root.closed, false);
+    check('cerbo still gets its own upgrades', (await raw('/proxy/cerbo/ws')).buf.includes('418'));
+    check('Aura still gets /aura/', (await raw('/aura/proxyws?url=x', 1500)).buf.startsWith('HTTP/1.1 101'));
+    eq("… and web's socket did not see it", wsUpgrades.includes('/aura/proxyws?url=x'), false);
+
+    // Somebody wraps `emit` after Aura, then Aura is unloaded (web reloads the
+    // extension): Aura must not cut them off, it only stops taking upgrades.
+    const outerEmit = web4.emit;
+    const outer = (event, ...args) => outerEmit.apply(web4, [event, ...args]);
+    web4.emit = outer;
+    await ext4.unload();
+    eq('unload: a later wrapper stays in place', web4.emit, outer);
+    await raw('/aura/proxyws?url=y');
+    eq('unload: /aura/ upgrades go to the listeners again', wsUpgrades.includes('/aura/proxyws?url=y'), true);
+    held.forEach((s) => s.destroy());
+    web4.closeAllConnections();
+    await new Promise((r) => web4.close(r));
+}
+
+// ── 3b3. No socket server in web at all ───────────────────────────────────────
+{
+    const app5 = express();
+    const web5 = http.createServer(app5);
+    const ext5 = new WebExtension(
+        web5,
+        { secure: false },
+        fakeAdapter,
+        { common: { host: 'host-a' }, native: { port: auraPort } },
+        app5,
+    );
+    eq('no socket server: Aura listens itself, or Node would never emit upgrades', web5.listenerCount('upgrade'), 1);
+    await ext5.unload();
+    eq('no socket server: unload removes it again', web5.listenerCount('upgrade'), 0);
 }
 
 // ── 3c. /aura/mcp in front of the web login (ExtAPI.publicRoutes) ────────────
@@ -483,6 +582,55 @@ function upgrade(path) {
     await ext2.ready;
     eq("Aura on another host: forwards to that host's address", ext2.host, '192.168.5.7');
     await ext2.unload();
+
+    // native.bind: Aura listens on exactly that address - there, not on 127.0.0.1.
+    const app3 = express();
+    const ext3 = new WebExtension(
+        http.createServer(app3),
+        { secure: false },
+        fakeAdapter,
+        { common: { host: 'host-a' }, native: { port: 8095, bind: '192.168.5.9' } },
+        app3,
+    );
+    eq('bind to one address: forwards there', ext3.host, '192.168.5.9');
+    await ext3.unload();
+
+    const app4 = express();
+    const ext4 = new WebExtension(
+        http.createServer(app4),
+        { secure: false },
+        fakeAdapter,
+        { common: { host: 'host-a' }, native: { port: 8095, bind: '127.0.0.1' } },
+        app4,
+    );
+    eq('bind to 127.0.0.1 on the same host: forwards there', ext4.host, '127.0.0.1');
+    await ext4.unload();
+
+    // Only 127.0.0.1 on ANOTHER host cannot be reached at all - say so instead of
+    // forwarding to an address that refuses.
+    const app5 = express();
+    const before = logs.length;
+    let asked = false;
+    const ext5 = new WebExtension(
+        http.createServer(app5),
+        { secure: false },
+        {
+            ...fakeAdapter,
+            getForeignObjectAsync: async () => {
+                asked = true;
+                return null;
+            },
+        },
+        { common: { host: 'host-b' }, native: { port: 8095, bind: '127.0.0.1' } },
+        app5,
+    );
+    await ext5.ready;
+    check(
+        'bind to 127.0.0.1 on another host: warns',
+        logs.slice(before).some((l) => l.includes('only listens on 127.0.0.1') && l.includes('host-b')),
+    );
+    eq('bind to 127.0.0.1 on another host: no address lookup', asked, false);
+    await ext5.unload();
 }
 
 // ── 7. main.js: the prefix written back ──────────────────────────────────────
