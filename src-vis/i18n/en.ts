@@ -3080,9 +3080,6 @@ export const en: Record<TranslationKey, string> = {
     'map.style.satellite': 'Satellite',
     'map.style.terrain': 'Terrain',
     'map.style.custom': 'Own map',
-    'map.day.prev': 'Previous day',
-    'map.day.next': 'Next day',
-    'map.day.today': 'Jump to today',
     'map.timeline.moving': 'On the way',
     'map.timeline.empty': 'No position data for this period.',
 

@@ -1811,15 +1811,24 @@ export const WIDGET_OPTION_NOTES = {
         styleChipsCorner: { description: 'In welcher Ecke die Stil-Umschalter liegen.' },
         lines: {
             description:
-                'Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source "route" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source "json" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; "name"/"lineColor" im Wert werden übernommen). source "history" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus.',
+                'Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source "route" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source "json" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; "name"/"lineColor" im Wert werden übernommen). source "history" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24 – gilt nur ohne rangeChips/dayNav/navGroup/navRangeDp). maxPoints? (json/history, Standard 2000) = höchstens so viele Punkte zeichnen; längere Strecken werden per Douglas-Peucker über den ganzen Zeitraum vereinfacht (Länge und Zeitleiste rechnen mit allen Punkten). Lange Zeiträume liest die Karte tageweise. showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus.',
         },
         lineInfo: {
             description:
                 'Ecke des Infokastens mit Name, Länge und Fahrzeit je Linie (top-left|top-right|bottom-left|bottom-right), "off" blendet ihn aus. Standard bottom-left.',
         },
+        ...navNotes(PLAIN_NAV),
+        rangeChips: {
+            description:
+                'Zeitraum-Chips über der Karte wie beim Diagramm, z. B. ["6h", "24h", "7d", "1M=Monat"]. Aufgezeichnete Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Zeitraum statt historyHours. Der erste Chip ist der Start-Zeitraum. "total" wird nicht angeboten. Mit navGroup teilen Karte und Diagramme Chip und Datum (Wohnmobil-Strecke neben Temperatur/Batterie).',
+        },
         dayNav: {
             description:
-                'Datumsleiste ‹ Datum › über der Karte. Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Tag statt der letzten historyHours; nur heute kommt der Live-Wert dazu.',
+                'Blätter-Leiste (‹ › ⇥ + Datum) über der Karte, Schritt = aktiver Zeitraum-Chip; ohne rangeChips ein Kalendertag (früher: Tagesleiste). Strecken zeigen das gewählte Fenster; nur ein Fenster bis jetzt bekommt den Live-Wert.',
+        },
+        dayNavDefault: {
+            description:
+                'Mit dayNav: startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00). Bei der Karte Standard an; false = rollend bis jetzt.',
         },
         lineChips: {
             description:
@@ -1830,7 +1839,7 @@ export const WIDGET_OPTION_NOTES = {
         },
         timeline: {
             description:
-                'Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav.',
+                'Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav bzw. rangeChips.',
         },
         stayRadius: {
             description: 'Zeitleiste: Radius in Metern, in dem man als „am selben Ort“ gilt (Standard 100).',

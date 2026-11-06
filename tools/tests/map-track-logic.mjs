@@ -290,6 +290,46 @@ const check = (name, ok, detail = '') => {
     check('pins on the ring do not overlap', minGap >= 30, minGap.toFixed(1));
 }
 
+// ── simplifyTrack: Douglas-Peucker down to a point budget (#929) ─────────────
+{
+    // An L: a long straight east, then a long straight north. 201 points.
+    const pts = [];
+    for (let i = 0; i <= 100; i++) pts.push({ pos: [50, 10 + i * 0.001], ts: i });
+    for (let i = 1; i <= 100; i++) pts.push({ pos: [50 + i * 0.001, 10.1], ts: 100 + i });
+    const s3 = m.simplifyTrack(pts, 3);
+    check(
+        'three points keep start, corner and end',
+        s3.length === 3 && s3[0] === pts[0] && s3[1] === pts[100] && s3[2] === pts[200],
+        JSON.stringify(s3.map((p) => p.ts)),
+    );
+    const s50 = m.simplifyTrack(pts, 50);
+    check('the budget is met exactly', s50.length === 50, String(s50.length));
+    check(
+        'order and both ends are kept',
+        s50[0] === pts[0] && s50[49] === pts[200] && s50.every((p, i) => i === 0 || p.ts > s50[i - 1].ts),
+    );
+    check('a short track stays untouched', m.simplifyTrack(pts, 500) === pts);
+    // A round trip that ends where it began: the far point is what matters.
+    const loop = [
+        { pos: [50, 10] },
+        { pos: [50, 10.0001] },
+        { pos: [50.01, 10.01] },
+        { pos: [50, 10.0002] },
+        { pos: [50, 10] },
+    ];
+    const sl = m.simplifyTrack(loop, 3);
+    check('a round trip keeps its far point', sl.length === 3 && sl[1] === loop[2], JSON.stringify(sl));
+    // A week of points (10 080) shrinks quickly enough for the frontend.
+    const week = Array.from({ length: 10_080 }, (_, i) => ({
+        pos: [50 + Math.sin(i / 300) * 0.1, 10 + i * 0.0001],
+        ts: i,
+    }));
+    const t0 = performance.now();
+    const sw = m.simplifyTrack(week, 2000);
+    const ms = performance.now() - t0;
+    check('a week of points simplifies fast', sw.length === 2000 && ms < 500, `${ms.toFixed(0)} ms`);
+}
+
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);
 process.exit(failed.length ? 1 : 0);

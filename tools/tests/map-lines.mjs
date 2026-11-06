@@ -363,8 +363,8 @@ const markers = [
         { 'test.0.pos': JSON.stringify(home) },
     );
     await linePath('d1').waitFor({ timeout: 8000 });
-    check('day bar shown', (await page.locator('[data-aura-map-daybar]').count()) === 1);
-    check('next day disabled on today', await page.locator('[data-aura-map-day="next"]').isDisabled());
+    check('paging bar shown (the charts’ bar, #929)', (await page.locator('[data-testid="echart-nav"]').count()) === 1);
+    check('next day disabled on today', await page.locator('[data-testid="echart-nav-next"]').isDisabled());
     await page.locator('[data-aura-map-timeline-row]').first().waitFor({ timeout: 8000 });
     const kinds = await page
         .locator('[data-aura-map-timeline-row]')
@@ -387,14 +387,89 @@ const markers = [
     await page.waitForTimeout(800);
 
     // Yesterday: the other track, and the timeline follows the day.
-    await page.locator('[data-aura-map-day="prev"]').click();
+    await page.locator('[data-testid="echart-nav-prev"]').click();
     await page.waitForTimeout(800);
-    check('next day enabled on yesterday', !(await page.locator('[data-aura-map-day="next"]').isDisabled()));
+    check('next day enabled on yesterday', !(await page.locator('[data-testid="echart-nav-next"]').isDisabled()));
     const vy = await vertexCount('d1').catch(() => 0);
     check('yesterday shows its own points only', vy === 2, String(vy));
-    await page.locator('[data-aura-map-day-label]').click();
+    await page.locator('[data-testid="echart-nav-today"]').click();
     await page.waitForTimeout(800);
-    check('tapping the date returns to today', await page.locator('[data-aura-map-day="next"]').isDisabled());
+    check('⇥ returns to today', await page.locator('[data-testid="echart-nav-next"]').isDisabled());
+
+    // Range chips (#929): a week holds yesterday's points too; paging steps by the week.
+    await render(
+        {
+            lines: [{ id: 'd1', source: 'history', dp: 'test.0.pos' }],
+            rangeChips: ['24h', '7d'],
+            dayNav: true,
+        },
+        { 'test.0.pos': JSON.stringify(home) },
+    );
+    await linePath('d1').waitFor({ timeout: 8000 });
+    check(
+        'first chip is lit on open',
+        (await page.locator('[data-aura-map-range="24h"]').getAttribute('aria-pressed')) === 'true',
+    );
+    // Leaflet thins the drawn path itself — the length in the info box counts every point.
+    const km = async () => parseFloat(((await infoRows())[0] ?? '').replace(',', '.').match(/[\d.]+/)?.[0] ?? '0');
+    const k24 = await km();
+    await page.locator('[data-aura-map-range="7d"]').click();
+    await page.waitForTimeout(800);
+    const k7 = await km();
+    check('7 days add yesterday’s points', k24 > 0 && k7 > k24 + 1, `${k24} km → ${k7} km`);
+    const label = (await page.locator('[data-testid="echart-nav-date"]').textContent()) ?? '';
+    check('the date button shows a week', /–/.test(label), label);
+
+    // The range datapoint picks the chip (the same DP a chart writes).
+    await render(
+        {
+            lines: [{ id: 'd1', source: 'history', dp: 'test.0.pos' }],
+            rangeChips: ['24h', '7d'],
+            navRangeDp: 'test.0.range',
+        },
+        { 'test.0.pos': JSON.stringify(home), 'test.0.range': '7d' },
+    );
+    await linePath('d1').waitFor({ timeout: 8000 });
+    await page.waitForTimeout(600);
+    check(
+        'range datapoint selects the chip',
+        (await page.locator('[data-aura-map-range="7d"]').getAttribute('aria-pressed')) === 'true',
+    );
+
+    // A link group: a chip picked on one map moves the other (charts share the same store, see
+    // chart-nav.mjs for the chart side).
+    await page.evaluate(() => {
+        const map = (id, x) => ({
+            id,
+            type: 'map',
+            title: 'Karte',
+            datapoint: '',
+            layout: 'default',
+            gridPos: { x, y: 0, w: 12, h: 12 },
+            options: { rangeChips: ['24h', '7d'], navGroup: 'reise' },
+        });
+        window.__auraShot.showWidgets([map('w-map-ga', 0), map('w-map-gb', 12)]);
+    });
+    const chipsOf = (id) => page.locator(`.react-grid-item:has([data-aura-map-range]) >> nth=${id}`);
+    await chipsOf(1).locator('[data-aura-map-range="7d"]').waitFor({ timeout: 15000 });
+    await chipsOf(0).locator('[data-aura-map-range="7d"]').click();
+    await page.waitForTimeout(500);
+    check(
+        'the linked map follows the chip',
+        (await chipsOf(1).locator('[data-aura-map-range="7d"]').getAttribute('aria-pressed')) === 'true',
+    );
+
+    // maxPoints simplifies over the whole window instead of keeping the newest points.
+    await render(
+        {
+            lines: [{ id: 'd1', source: 'history', dp: 'test.0.pos', maxPoints: 3 }],
+            rangeChips: ['7d'],
+        },
+        { 'test.0.pos': JSON.stringify(home) },
+    );
+    await linePath('d1').waitFor({ timeout: 8000 });
+    const vs = await vertexCount('d1').catch(() => 0);
+    check('maxPoints 3 draws three points', vs === 3, String(vs));
     await page.evaluate(() => window.__auraShot.mockHistory(false));
 }
 

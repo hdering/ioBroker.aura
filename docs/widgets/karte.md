@@ -107,8 +107,8 @@ Pro Linie zusätzlich:
 | `width` | `4` | Linienstärke in px |
 | `showPoints` | `false` | Punkt je Messung (`json`/`history`); Klick zeigt Zeit, Tempo, Genauigkeit |
 | `markerId` | — | Marker, den der Chip der Linie mit ein- und ausblendet (nur mit `lineChips`) |
-| `historyHours` | `24` | Zeitraum für `history` |
-| `maxPoints` | `500` | neueste Punkte für `history` |
+| `historyHours` | `24` | Zeitraum für `history`, nur ohne Zeitraum-Chips/Blättern/Gruppe |
+| `maxPoints` | `2000` | höchstens so viele Punkte zeichnen (`json`/`history`); längere Strecken werden vereinfacht (Douglas-Peucker), Länge und Zeitleiste zählen alle Punkte |
 
 | Option | Standard | |
 | --- | --- | --- |
@@ -117,13 +117,32 @@ Pro Linie zusätzlich:
 
 Bewegt sich ein Marker, wird die Route höchstens alle 30 s neu berechnet.
 
-### Tageschronik: Tag, Chips, Zeitleiste
+### Zeitraum & Blättern
+
+![](./assets/karte/zeitraum.png)
+
+Wie beim Diagramm: aufgezeichnete Strecken (`history`/`json` mit Zeitstempel) zeigen den gewählten Zeitraum. Lange Zeiträume werden tageweise gelesen.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `rangeChips` | `[]` | Zeitraum-Chips, z.B. `["6h", "24h", "7d", "1M=Monat"]`; der erste ist der Start |
+| `dayNav` | `false` | Blätter-Leiste ‹ › ⇥ + Datum; Schritt = aktiver Chip, ohne Chips ein Tag |
+| `dayNavDefault` | `true` | mit `dayNav` auf dem aktuellen Zeitraum (heute) starten statt rollend |
+| `navAnchor` | `end` | gewähltes Datum = letzter (`end`) oder erster (`start`) Tag des Fensters |
+| `navGroup` | — | Kopplungsgruppe: Karten und Diagramme mit gleichem Namen teilen Chip und Datum |
+| `navGroupMode` | `all` | `date` = nur das Datum teilen |
+| `navDateDp` · `navRangeDp` · `navCommandDp` | — | Datum, Zeitraum, Befehl (`prev`/`next`/`today`/`now`) als Datenpunkt, auch geräteübergreifend |
+| `rangeChipSize` · `navSize` | `sm` | `sm` · `md` · `lg` |
+| `rangeChipPosition` · `navPosition` | `top` | `top` · `bottom` |
+
+Gegenstück: [Diagramm](./echarts.md).
+
+### Tageschronik: Chips, Zeitleiste
 
 ![](./assets/karte/timeline.png)
 
 | Option | Standard | |
 | --- | --- | --- |
-| `dayNav` | `false` | Datumsleiste ‹ Datum ›; Strecken zeigen den gewählten Tag statt `historyHours`. Tippen aufs Datum springt zu heute |
 | `lineChips` | `false` | ein Chip je Linie über der Karte; immer nur eine Linie sichtbar |
 | `lineChipsMulti` | `false` | Chips schalten jede Linie einzeln ein/aus |
 | `timeline` | `false` | Aufenthalte und Fahrten der ersten sichtbaren Strecke unter der Karte; Tippen zoomt hin |

@@ -5,6 +5,8 @@ import { useT } from '../../i18n';
 import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import { ColorPicker } from '../common/ColorPicker';
 import { Unavailable } from './Unavailable';
+import { RangeChipsEditor } from './RangeChipsEditor';
+import { ChartNavSettings, PLAIN_NAV_KEYS } from './chart/ChartNavSettings';
 import type { WidgetConfig } from '../../types';
 import { MAX_MAP_ZOOM } from '../../utils/mapZoom';
 import type {
@@ -571,15 +573,6 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                 <div className="mb-2 space-y-2">
                                     <div className="flex items-center justify-between gap-2">
                                         <label className="text-[11px]" style={lblSty}>
-                                            Tag wählen (‹ Datum › über der Karte)
-                                        </label>
-                                        <Toggle
-                                            value={o.dayNav === true}
-                                            onToggle={() => set({ dayNav: o.dayNav === true ? undefined : true })}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between gap-2">
-                                        <label className="text-[11px]" style={lblSty}>
                                             Linien per Chips umschalten
                                         </label>
                                         <Toggle
@@ -911,7 +904,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                                                     <div className="grid grid-cols-2 gap-1">
                                                                         <div>
                                                                             <label className={lblCls} style={lblSty}>
-                                                                                Zeitraum (Stunden)
+                                                                                Zeitraum (Std., ohne Chips)
                                                                             </label>
                                                                             <input
                                                                                 type="number"
@@ -944,7 +937,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                                                                         ),
                                                                                     })
                                                                                 }
-                                                                                placeholder="500"
+                                                                                placeholder="2000"
                                                                                 className={iCls}
                                                                                 style={iSty}
                                                                             />
@@ -991,6 +984,33 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                 </div>
                             </>
                         )}
+                    </div>
+                </SubGroup>
+                {/* Range chips + paging like the charts, shared through the link group (#929). */}
+                <SubGroup title="Zeitraum">
+                    <div data-aura-map-time-settings>
+                        <Unavailable
+                            reason={
+                                lines.some((l) => l.source !== 'route')
+                                    ? undefined
+                                    : 'Gilt für aufgezeichnete Strecken (Verlauf oder Punkteliste) – noch keine angelegt.'
+                            }
+                        >
+                            <p className="text-[10px] mb-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                Mit Chips oder Blättern zeigen aufgezeichnete Strecken diesen Zeitraum statt des
+                                Zeitraums der Linie. Lange Strecken werden auf „Max. Punkte“ vereinfacht.
+                            </p>
+                            <RangeChipsEditor
+                                value={o.rangeChips}
+                                defaults={['24h', '7d', '30d']}
+                                onChange={(next) => set({ rangeChips: next })}
+                            />
+                            <ChartNavSettings
+                                o={{ ...o, dayNavDefault: o.dayNavDefault !== false }}
+                                set={set}
+                                keys={PLAIN_NAV_KEYS}
+                            />
+                        </Unavailable>
                     </div>
                 </SubGroup>
                 <SubGroup

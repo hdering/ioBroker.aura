@@ -12,15 +12,25 @@ import {
     useMapEvents,
 } from 'react-leaflet';
 import L from 'leaflet';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { getHistoryDirect, getObjectDirect, isHistoryStubbed, useIoBroker } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters } from '../../hooks/useChartHistory';
+import { useChartNav } from '../../hooks/useChartNav';
 import { useT, type Language, type TranslationKey } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { MAX_MAP_ZOOM } from '../../utils/mapZoom';
 import { spreadOffsets } from '../../utils/mapSpread';
+import { parseRangeChips } from '../../utils/rangeChips';
+import { shiftBy, type NavSpan, type NavWindow } from '../../utils/chartNav';
+import {
+    ChartControlsRow,
+    ChartNavBar,
+    chartControlCls,
+    chartControlGap,
+    chartControlSize,
+    chartControlsBelow,
+} from './ChartNavBar';
 import {
     extractLatLon,
     geocodeAddress,
@@ -32,7 +42,6 @@ import {
 } from '../../utils/geo';
 import {
     appendLivePoint,
-    dayRange,
     detectSegments,
     endBearing,
     filterDay,
@@ -42,6 +51,7 @@ import {
     historyToTrack,
     parseTrack,
     routeKey,
+    simplifyTrack,
     trackBounds,
     trackLengthKm,
     normalizeProfile,
@@ -111,7 +121,7 @@ export interface MapLine {
     historyInstance?: string;
     /** history: time window in hours (default 24). */
     historyHours?: number;
-    /** history: newest N points at most (default 500). */
+    /** json/history: points drawn at most (default 2000); longer tracks are simplified (Douglas-Peucker, #929). */
     maxPoints?: number;
     /** Draw a dot per recorded point; tapping it shows time, speed and accuracy. */
     showPoints?: boolean;
@@ -192,8 +202,28 @@ interface MapOptions {
     lines?: MapLine[];
     /** Corner of the box listing each line's length (default bottom-left), or 'off'. */
     lineInfo?: MapLineInfoMode;
-    /** Day bar ‹ date › above the map: recorded tracks show the picked day instead of the last hours. */
+    /** Range chips above the map (`"6h"`, `"7d"`, `"1M=Monat"`): recorded tracks show the picked
+     *  range instead of each line's historyHours (#929). The first chip is the start range. */
+    rangeChips?: string[];
+    /** Paging ‹ › ⇥ 📅 through the active range (one day without chips), like the charts (#871). */
     dayNav?: boolean;
+    /** With dayNav: open on the current window (today) instead of the rolling range. Default true. */
+    dayNavDefault?: boolean;
+    /** The picked date is the window's 'end' (default) or 'start'. */
+    navAnchor?: 'end' | 'start';
+    /** Link group: maps and charts with the same name share range and date. */
+    navGroup?: string;
+    navGroupMode?: 'all' | 'date';
+    /** Date datapoint (read + write). */
+    navDateDp?: string;
+    /** Range datapoint (read + write). */
+    navRangeDp?: string;
+    /** Command datapoint: prev, next, today, now. */
+    navCommandDp?: string;
+    rangeChipSize?: 'sm' | 'md' | 'lg';
+    rangeChipPosition?: 'top' | 'bottom';
+    navSize?: 'sm' | 'md' | 'lg';
+    navPosition?: 'top' | 'bottom';
     /** One chip per line above the map; tapping a chip shows that line. */
     lineChips?: boolean;
     /** Chips toggle lines independently instead of showing one line at a time. */
@@ -430,11 +460,18 @@ interface LineInfo {
     track?: TrackPoint[];
 }
 
-/** The day picked in the day bar: its window, and whether it is today (live data). */
-interface DayWindow {
-    start: number;
-    end: number;
-    isToday: boolean;
+/** The time of the range chips and the paging bar (#929): a fixed window while paging, else the
+ *  span rolling up to now. Without either, each line keeps its own historyHours. */
+interface TrackWindow {
+    fixed: NavWindow | null;
+    span: NavSpan | null;
+}
+
+/** Start and end of a track window right now; null = the line's own hours. */
+function resolveWindow(w: TrackWindow | null, now: number): NavWindow | null {
+    if (!w) return null;
+    if (w.fixed) return { start: w.fixed.start, end: Math.min(w.fixed.end, now) };
+    return w.span ? { start: shiftBy(now, -w.span.value, w.span.unit), end: now } : null;
 }
 
 const ROUTE_COLOR = '#2563eb';
@@ -445,6 +482,13 @@ const ROUTE_REFRESH_MS = 30_000;
 const HISTORY_REFRESH_MS = 5 * 60_000;
 /** More dots than this are thinned out — the line itself always keeps every point. */
 const MAX_DOTS = 1000;
+/** Points drawn per recorded line by default; more are simplified, not cut (#929). */
+const DEFAULT_MAX_POINTS = 2000;
+/** Rows one history query returns at most. Longer windows are read a day at a time, so a week
+ *  of a tracker that logs every few seconds is not cut to its last day. */
+const HISTORY_QUERY_CAP = 10_000;
+/** Day queries in flight at once. */
+const HISTORY_PARALLEL = 4;
 const EMPTY_TRACK: ParsedTrack = { points: [] };
 
 /** Route between two resolved positions, throttled for moving markers. */
@@ -476,9 +520,26 @@ function useRoute(from: LatLon | null, to: LatLon | null, profile: RouteProfile)
     return route;
 }
 
+/** The query windows of one track window: a single one up to a day, else split at local midnight. */
+function historyChunks(start: number, end: number): NavWindow[] {
+    if (end - start <= 26 * 3_600_000) return [{ start, end }];
+    const out: NavWindow[] = [];
+    const mid = new Date(start);
+    mid.setHours(0, 0, 0, 0);
+    let from = start;
+    let to = shiftBy(mid.getTime(), 1, 'd');
+    while (from < end) {
+        out.push({ start: from, end: Math.min(to, end) });
+        from = to;
+        to = shiftBy(to, 1, 'd');
+    }
+    return out;
+}
+
 /** History of a position DP as track points, plus the live value appended. With a
- *  picked day the window is that day; the live value only belongs to today. */
-function useHistoryTrack(line: MapLine, enabled: boolean, day: DayWindow | null): TrackPoint[] {
+ *  window from the range chips / paging bar that window is read (a day at a time when it is
+ *  longer); the live value only belongs to a window that reaches now. */
+function useHistoryTrack(line: MapLine, enabled: boolean, win: TrackWindow | null): TrackPoint[] {
     const { connected: socketConnected } = useIoBroker();
     // A stubbed history (screenshot harness) counts as connected, like the history table.
     const connected = socketConnected || isHistoryStubbed();
@@ -489,12 +550,13 @@ function useHistoryTrack(line: MapLine, enabled: boolean, day: DayWindow | null)
     const [tick, setTick] = useState(0);
     const instance = line.historyInstance || detected;
     const hours = Number.isFinite(line.historyHours) && (line.historyHours as number) > 0 ? line.historyHours! : 24;
-    // A whole day of a tracker easily exceeds the rolling-window default.
-    const maxPoints =
-        Number.isFinite(line.maxPoints) && (line.maxPoints as number) > 0 ? line.maxPoints! : day ? 2000 : 500;
-    const isLive = !day || day.isToday;
-    const dayStart = day?.start;
-    const dayEnd = day?.end;
+    const fixedStart = win?.fixed?.start;
+    const fixedEnd = win?.fixed?.end;
+    const spanValue = win?.span?.value;
+    const spanUnit = win?.span?.unit;
+    const isLive = fixedEnd === undefined || fixedEnd > Date.now();
+    // Whole past days do not change — re-reading a live week only fetches today again.
+    const dayCache = useRef(new Map<string, TrackPoint[]>());
 
     useEffect(() => {
         if (!dp || line.historyInstance) return;
@@ -523,22 +585,50 @@ function useHistoryTrack(line: MapLine, enabled: boolean, day: DayWindow | null)
         }
         let cancelled = false;
         const now = Date.now();
-        const end = dayEnd !== undefined ? Math.min(dayEnd, now) : now;
-        const start = dayStart ?? end - hours * 3_600_000;
-        void getHistoryDirect(dp, {
-            instance,
-            start,
-            end,
-            count: maxPoints,
-            aggregate: 'none',
-            returnNewestEntries: true,
-        }).then((entries) => {
-            if (!cancelled) setRows(historyToTrack(entries, line.latPath, line.lonPath));
-        });
+        const fixed = fixedStart !== undefined && fixedEnd !== undefined ? { start: fixedStart, end: fixedEnd } : null;
+        const span = spanValue !== undefined && spanUnit !== undefined ? { value: spanValue, unit: spanUnit } : null;
+        const w = resolveWindow(fixed || span ? { fixed, span } : null, now) ?? {
+            start: now - hours * 3_600_000,
+            end: now,
+        };
+        const cache = dayCache.current;
+        const keyOf = (c: NavWindow) =>
+            `${dp}|${instance}|${line.latPath ?? ''}|${line.lonPath ?? ''}|${c.start}|${c.end}`;
+        const read = async (c: NavWindow): Promise<TrackPoint[]> => {
+            const key = keyOf(c);
+            const hit = cache.get(key);
+            if (hit) return hit;
+            const entries = await getHistoryDirect(dp, {
+                instance,
+                start: c.start,
+                end: c.end,
+                count: HISTORY_QUERY_CAP,
+                aggregate: 'none',
+                returnNewestEntries: true,
+                removeBorderValues: true,
+            });
+            const pts = historyToTrack(entries, line.latPath, line.lonPath);
+            // Only a whole day that is over can be kept; today's keeps growing.
+            if (c.end - c.start >= 23 * 3_600_000 && c.end <= now) cache.set(key, pts);
+            return pts;
+        };
+        void (async () => {
+            const chunks = historyChunks(w.start, w.end);
+            const parts: TrackPoint[][] = new Array(chunks.length);
+            let next = 0;
+            const worker = async () => {
+                while (!cancelled && next < chunks.length) {
+                    const i = next++;
+                    parts[i] = await read(chunks[i]);
+                }
+            };
+            await Promise.all(Array.from({ length: Math.min(HISTORY_PARALLEL, chunks.length) }, worker));
+            if (!cancelled) setRows(parts.length === 1 ? parts[0] : parts.flat());
+        })();
         return () => {
             cancelled = true;
         };
-    }, [dp, instance, connected, hours, maxPoints, line.latPath, line.lonPath, tick, dayStart, dayEnd]);
+    }, [dp, instance, connected, hours, line.latPath, line.lonPath, tick, fixedStart, fixedEnd, spanValue, spanUnit]);
 
     const liveVal = live.state?.val;
     const liveTs = live.state?.ts;
@@ -587,14 +677,14 @@ function LineLayer({
     line,
     markers,
     positions,
-    day,
+    win,
     visible,
     onInfo,
 }: {
     line: MapLine;
     markers: MapMarker[];
     positions: Record<string, LatLon>;
-    day: DayWindow | null;
+    win: TrackWindow | null;
     /** Hidden by the line chips: still resolved (the chip needs its name), not drawn. */
     visible: boolean;
     onInfo: (id: string, info: LineInfo | null) => void;
@@ -612,22 +702,24 @@ function LineLayer({
                 : EMPTY_TRACK,
         [source, jsonState.state?.val, line.pointsPath, line.latPath, line.lonPath],
     );
-    const history = useHistoryTrack(line, source === 'history', day);
+    const history = useHistoryTrack(line, source === 'history', win);
 
-    const dayStart = day?.start;
-    const dayEnd = day?.end;
     const track = useMemo<TrackPoint[]>(() => {
         if (source === 'history') return history;
         if (source !== 'json') return EMPTY_TRACK.points;
-        return dayStart !== undefined && dayEnd !== undefined
-            ? filterDay(parsed.points, dayStart, dayEnd)
-            : parsed.points;
-    }, [source, parsed, history, dayStart, dayEnd]);
+        const w = resolveWindow(win, Date.now());
+        return w ? filterDay(parsed.points, w.start, w.end) : parsed.points;
+    }, [source, parsed, history, win]);
+    // Drawn: at most maxPoints, simplified over the whole window. Length and timeline keep every point.
+    const maxPoints =
+        Number.isFinite(line.maxPoints) && (line.maxPoints as number) >= 2 ? line.maxPoints! : DEFAULT_MAX_POINTS;
+    const drawn = useMemo(() => simplifyTrack(track, maxPoints), [track, maxPoints]);
     const hasEnds = !!from && !!to;
     const coords = useMemo<LatLon[]>(
-        () => (source === 'route' ? (route && hasEnds ? route.coords : []) : track.map((p) => p.pos)),
-        [source, route, hasEnds, track],
+        () => (source === 'route' ? (route && hasEnds ? route.coords : []) : drawn.map((p) => p.pos)),
+        [source, route, hasEnds, drawn],
     );
+    const trackKm = useMemo(() => (source === 'route' ? 0 : trackLengthKm(track.map((p) => p.pos))), [source, track]);
 
     const color = line.color || parsed.color || (source === 'route' ? ROUTE_COLOR : TRACK_COLOR);
     const markerLabel = (id?: string) => markers.find((m) => m.id === id)?.label || '';
@@ -641,12 +733,19 @@ function LineLayer({
         () => ({
             label,
             color,
-            km: coords.length > 1 ? (source === 'route' && route ? route.distanceKm : trackLengthKm(coords)) : null,
+            km:
+                coords.length > 1
+                    ? source === 'route'
+                        ? route
+                            ? route.distanceKm
+                            : trackLengthKm(coords)
+                        : trackKm
+                    : null,
             durationMin: source === 'route' && route && coords.length > 1 ? route.durationMin : undefined,
             bounds: trackBounds(coords),
             track: source === 'route' ? undefined : track,
         }),
-        [label, color, coords, source, route, track],
+        [label, color, coords, source, route, track, trackKm],
     );
 
     useEffect(() => {
@@ -656,7 +755,7 @@ function LineLayer({
 
     if (!visible || (coords.length < 2 && !(line.showPoints && coords.length === 1))) return null;
     const weight = Number.isFinite(line.width) && (line.width as number) > 0 ? (line.width as number) : 4;
-    const dots = line.showPoints && source !== 'route' ? track.slice(-MAX_DOTS) : [];
+    const dots = line.showPoints && source !== 'route' ? drawn.slice(-MAX_DOTS) : [];
     // A recorded track shows where it began and which way it went.
     const isTrack = source !== 'route' && coords.length > 1;
     const endDeg = isTrack ? endBearing(coords) : 0;
@@ -738,51 +837,21 @@ const barStyle: React.CSSProperties = {
     borderBottom: '1px solid var(--app-border)',
 };
 
-/** ‹ Tue, 08.09.2026 › — steps through days; tapping the date returns to today. */
-function DayBar({ offset, onChange, lang }: { offset: number; onChange: (o: number) => void; lang: Language }) {
-    const t = useT();
-    const label = new Date(dayRange(offset).start).toLocaleDateString(localeOf(lang), {
-        weekday: 'short',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-    });
-    const btn = 'px-2 py-1 rounded-lg hover:opacity-80 disabled:opacity-30 disabled:cursor-default';
+/** Range chips and paging bar of the charts (#929) on one edge of the map. */
+function TimeBar({ chips, bar, below }: { chips: React.ReactNode; bar: React.ReactNode; below: boolean }) {
+    if (!chips && !bar) return null;
     return (
-        <div className="flex items-center justify-between px-1 py-1" style={barStyle} data-aura-map-daybar>
-            <button
-                type="button"
-                className={btn}
-                style={{ color: 'var(--text-primary)' }}
-                onClick={() => onChange(offset - 1)}
-                title={t('map.day.prev')}
-                aria-label={t('map.day.prev')}
-                data-aura-map-day="prev"
-            >
-                <ChevronLeft size={18} />
-            </button>
-            <button
-                type="button"
-                className="text-sm font-semibold px-2 py-1 rounded-lg hover:opacity-80"
-                style={{ color: 'var(--text-primary)' }}
-                onClick={() => onChange(0)}
-                title={t('map.day.today')}
-                data-aura-map-day-label
-            >
-                {label}
-            </button>
-            <button
-                type="button"
-                className={btn}
-                style={{ color: 'var(--text-primary)' }}
-                onClick={() => onChange(offset + 1)}
-                disabled={offset >= 0}
-                title={t('map.day.next')}
-                aria-label={t('map.day.next')}
-                data-aura-map-day="next"
-            >
-                <ChevronRight size={18} />
-            </button>
+        <div
+            className="px-2 py-1"
+            style={
+                below ? { ...barStyle, borderBottom: undefined, borderTop: '1px solid var(--app-border)' } : barStyle
+            }
+            data-aura-map-timebar={below ? 'bottom' : 'top'}
+        >
+            {/* The row's own outer margin would only pad the bar further. */}
+            <div className="[&>.aura-chart-controls]:m-0">
+                <ChartControlsRow chips={chips} bar={bar} below={below} />
+            </div>
         </div>
     );
 }
@@ -1431,6 +1500,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const column =
         chipsBelow ||
         o.dayNav === true ||
+        parseRangeChips(o.rangeChips).some((c) => c.range !== 'total') ||
         (o.lineChips === true && Array.isArray(o.lines) && o.lines.length > 0) ||
         o.timeline === true;
 
@@ -1495,14 +1565,78 @@ export function MapWidget({ config, editMode }: WidgetProps) {
             return sameInfo(prev[id], info) ? prev : { ...prev, [id]: info };
         });
     }, []);
-    // ── Day bar: recorded tracks show one day instead of the last hours ──
+    // ── Time: range chips and paging like the charts (#929) ──
+    // Recorded tracks follow the chips / paging / link group; without any, each line keeps its
+    // own historyHours. Without chips the range is one day — the former day bar.
     const lang = useConfigStore((s) => (s.frontend.language ?? 'de') as Language);
-    const dayNav = o.dayNav === true;
-    const [dayOffset, setDayOffset] = useState(0);
-    const day = useMemo<DayWindow | null>(
-        () => (dayNav ? { ...dayRange(dayOffset), isToday: dayOffset === 0 } : null),
-        [dayNav, dayOffset],
-    );
+    const rangeChips = parseRangeChips(o.rangeChips).filter((c) => c.range !== 'total');
+    const firstChip = rangeChips[0];
+    const navGroup = typeof o.navGroup === 'string' ? o.navGroup.trim() : '';
+    const paging = o.dayNav === true;
+    const nav = useChartNav({
+        startRange: firstChip?.range ?? '24h',
+        startCustomValue: firstChip?.value ?? 24,
+        startCustomUnit: firstChip?.unit ?? 'h',
+        startLead: firstChip?.lead,
+        lockRange: false,
+        paging,
+        // A map pages to look at a day, so it opens on today unless switched off.
+        startOnCurrent: o.dayNavDefault !== false,
+        anchor: o.navAnchor === 'start' ? 'start' : 'end',
+        group: navGroup,
+        groupMode: o.navGroupMode === 'date' ? 'date' : 'all',
+        dateDp: o.navDateDp ?? '',
+        rangeDp: o.navRangeDp ?? '',
+        commandDp: o.navCommandDp ?? '',
+    });
+    const timeNav = rangeChips.length > 0 || paging || !!navGroup || !!(o.navRangeDp ?? '').trim();
+    const navFixedStart = nav.window?.start;
+    const navFixedEnd = nav.window?.end;
+    const navSpanValue = nav.span?.value;
+    const navSpanUnit = nav.span?.unit;
+    const trackWin = useMemo<TrackWindow | null>(() => {
+        if (!timeNav) return null;
+        return {
+            fixed:
+                navFixedStart !== undefined && navFixedEnd !== undefined
+                    ? { start: navFixedStart, end: navFixedEnd }
+                    : null,
+            span:
+                navSpanValue !== undefined && navSpanUnit !== undefined
+                    ? { value: navSpanValue, unit: navSpanUnit }
+                    : null,
+        };
+    }, [timeNav, navFixedStart, navFixedEnd, navSpanValue, navSpanUnit]);
+    const chipSize = chartControlSize(o.rangeChipSize);
+    const rangeSelector =
+        rangeChips.length > 0 ? (
+            <div className={`nodrag flex ${chartControlGap(chipSize)} min-w-0 overflow-x-auto aura-no-scrollbar`}>
+                {rangeChips.map((c) => {
+                    const active = nav.chipKey === c.key;
+                    return (
+                        <button
+                            key={c.key}
+                            type="button"
+                            className={`${chartControlCls(chipSize)} shrink-0 whitespace-nowrap`}
+                            style={{
+                                background: active ? 'var(--accent)' : 'var(--app-border)',
+                                color: active ? '#fff' : 'var(--text-secondary)',
+                            }}
+                            aria-pressed={active}
+                            data-aura-map-range={c.key}
+                            onClick={() => nav.selectChip(c)}
+                        >
+                            {c.label}
+                        </button>
+                    );
+                })}
+            </div>
+        ) : null;
+    const navBar = paging ? <ChartNavBar nav={nav} chips={rangeChips} size={chartControlSize(o.navSize)} /> : null;
+    const chipsAtBottom = chartControlsBelow(o.rangeChipPosition);
+    const navAtBottom = chartControlsBelow(o.navPosition);
+    const timeBarTop = (rangeSelector && !chipsAtBottom) || (navBar && !navAtBottom);
+    const timeBarBottom = (rangeSelector && chipsAtBottom) || (navBar && navAtBottom);
 
     // ── Line chips: one line at a time, or each toggled on its own ──
     const lineChips = o.lineChips === true && lines.length > 0;
@@ -1638,7 +1772,9 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                 <QuickViewResolver key={v.id} view={v} onResolve={onResolveChip} />
             ))}
 
-            {dayNav && <DayBar offset={dayOffset} onChange={setDayOffset} lang={lang} />}
+            {timeBarTop && (
+                <TimeBar chips={!chipsAtBottom && rangeSelector} bar={!navAtBottom && navBar} below={false} />
+            )}
             {lineChips && <LineChipBar chips={lineChipList} isActive={isLineVisible} onToggle={toggleLineChip} />}
 
             <div style={column ? { position: 'relative', flex: 1, minHeight: 0 } : { position: 'absolute', inset: 0 }}>
@@ -1682,7 +1818,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                             line={l}
                             markers={markers}
                             positions={positions}
-                            day={day}
+                            win={trackWin}
                             visible={isLineVisible(l.id)}
                             onInfo={onLineInfo}
                         />
@@ -1753,6 +1889,8 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                     );
                 })}
             </div>
+
+            {timeBarBottom && <TimeBar chips={chipsAtBottom && rangeSelector} bar={navAtBottom && navBar} below />}
 
             {/* Chip bar below the map (camera-widget style). */}
             {chipsBelow && (
