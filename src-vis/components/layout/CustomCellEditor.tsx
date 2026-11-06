@@ -3391,6 +3391,31 @@ export function CustomCellEditor({
                         </div>
                     )}
 
+                    {/* Line height (#933) — 1 lets a large value fit a flat cell */}
+                    {cell.type !== 'icon' && cell.type !== 'state-icon' && (
+                        <div className="flex items-center gap-2">
+                            <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                Zeilenhöhe
+                            </label>
+                            <input
+                                type="number"
+                                min={0.5}
+                                max={3}
+                                step={0.05}
+                                value={cell.lineHeight ?? ''}
+                                onChange={(e) =>
+                                    onChange({ lineHeight: e.target.value ? Number(e.target.value) : undefined })
+                                }
+                                placeholder="1.3"
+                                className="w-16 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputSty}
+                            />
+                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                × Schrift (leer = auto)
+                            </span>
+                        </div>
+                    )}
+
                     {/* Bold / Italic */}
                     <div className="flex items-center gap-4">
                         {(

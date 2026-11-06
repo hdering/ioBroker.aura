@@ -95,6 +95,11 @@ Klick auf eine Zelle öffnet den Zell-Editor (Schriftgröße, Farbe, Ausrichtung
 
 Eine zutreffende Bedingung mit Hintergrund ersetzt die feste Farbe an derselben Stelle.
 
+| Zeilenhöhe (`lineHeight`) | |
+| --- | --- |
+| leer | 1,3 × Schriftgröße + kleine Reserve für Unterlängen (Standard) |
+| Zahl, z. B. `1` | genau dieses Vielfache, ohne Reserve — große Werte passen in flache Zellen |
+
 | Textrichtung (`textDirection`) | |
 | --- | --- |
 | `horizontal` | Waagrecht (Standard) |

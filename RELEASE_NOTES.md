@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: AI access (MCP) - backups taken before each change are now gzipped, a burst of changes within a minute shares one, and old ones are deleted (keep count and days configurable in the instance settings; existing files are cleaned up on start)
 - fix: Chart - a series that drops out of a multi-series JSON datapoint now disappears from the time-series chart right away instead of staying drawn until reload (#926)
+- feat: Universal widget (custom grid) - new per-cell line height option, so large values fit flat cells instead of being cut at the top (#933)

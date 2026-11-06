@@ -259,9 +259,14 @@ function cellTextStyle(cell: CustomCell, defaultColor: string, cond?: CellCondRe
                 ? 'center'
                 : 'left',
         // 1.3 (not 1.15) so descenders (g, j, p, q, y) aren't clipped by overflow:hidden.
-        lineHeight: 1.3,
+        // An explicit lineHeight takes over completely, reserve included (#933).
+        lineHeight: cell.lineHeight ?? 1.3,
         // Descenders point to the block end — the bottom, or the left side of turned text.
-        ...(isVerticalText(cell) ? { paddingBlockEnd: '0.1em' } : { paddingBottom: '0.1em' }),
+        ...(cell.lineHeight !== undefined
+            ? {}
+            : isVerticalText(cell)
+              ? { paddingBlockEnd: '0.1em' }
+              : { paddingBottom: '0.1em' }),
         position: cell.allowOverflow ? 'relative' : undefined,
         zIndex: cell.allowOverflow ? 1 : undefined,
     };
