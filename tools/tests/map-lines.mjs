@@ -462,15 +462,15 @@ const markers = [
         (await modal.locator('input[placeholder="Positions-DP mit Verlauf"]').count()) === 1 &&
             (await modal.locator('input[placeholder="24"]').count()) === 1,
     );
-    check('no tile-server field for new maps', (await modal.locator('[data-aura-map-legacy-tiles]').count()) === 0);
+    check('no tile-server fields for preset maps', (await modal.locator('[data-aura-map-custom-tiles]').count()) === 0);
     await page.keyboard.press('Escape');
     await page.evaluate(() => window.__auraShot.setEditMode(false));
 }
 
-// ── 8. Legacy custom tile server: still used, only removable ───────────────
+// ── 8. Own tile server: older maps keep it, and it stays editable (#934) ────
 {
     const tileUrl = 'https://tiles.example.invalid/{z}/{x}/{y}.png';
-    await render({ markers, followMarkers: false, zoom: 8, tileUrl });
+    await render({ markers, followMarkers: false, zoom: 8, tileUrl, mapStyle: 'satellite' });
     const id = `w-map-${n}`;
     const srcs = await page.evaluate(() => [...document.querySelectorAll('img.leaflet-tile')].map((i) => i.src));
     check(
@@ -481,13 +481,29 @@ const markers = [
     await page.evaluate(() => window.__auraShot.setEditMode(true));
     await page.locator('.aura-edit-chrome button').first().click();
     await page.locator('button:text-is("Bearbeiten")').first().click();
-    const legacy = page.locator('[data-aura-map-legacy-tiles]');
-    await page.locator('.aura-widget-edit-modal details[data-aura-config-section="settings"] > summary').click();
-    check('legacy tile server shown read-only', await legacy.locator('input').evaluate((el) => el.readOnly));
-    await legacy.locator('button').click();
-    const opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
-    check('removing clears the tile server', opts?.tileUrl === undefined && opts?.tileAttribution === undefined);
-    check('section gone once removed', (await legacy.count()) === 0);
+    const custom = page.locator('[data-aura-map-custom-tiles]');
+    const modal = page.locator('.aura-widget-edit-modal');
+    await modal.locator('details[data-aura-config-section="settings"] > summary').click();
+    const styleSelect = modal.locator('select').filter({ hasText: 'Eigener Kachel-Server' });
+    check('older map shows the own server as type', (await styleSelect.inputValue()) === 'custom');
+    const urlInput = custom.locator('input').first();
+    check(
+        'tile url is editable',
+        (await urlInput.inputValue()) === tileUrl && !(await urlInput.evaluate((el) => el.readOnly)),
+    );
+    await urlInput.fill('https://tiles.example.invalid/{z}/{x}.png');
+    check('missing placeholder is pointed out', (await custom.textContent()).includes('Es fehlt: {y}'));
+    await urlInput.fill(tileUrl);
+    await custom.locator('input[placeholder="22"]').fill('16');
+    let opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check('max zoom is stored', opts?.tileMaxZoom === 16 && opts?.mapStyle === 'custom', JSON.stringify(opts));
+    await styleSelect.selectOption('standard');
+    opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check('a preset drops the tile url', opts?.tileUrl === undefined && opts?.mapStyle === 'standard');
+    check('fields gone for a preset', (await custom.count()) === 0);
+    await styleSelect.selectOption('custom');
+    opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check('switching back restores the url', opts?.tileUrl === tileUrl, String(opts?.tileUrl));
     await page.keyboard.press('Escape');
     await page.evaluate(() => window.__auraShot.setEditMode(false));
 }

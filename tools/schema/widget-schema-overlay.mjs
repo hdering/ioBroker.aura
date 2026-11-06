@@ -1776,16 +1776,27 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Zoomstufe der Karte, 1–22. Über der letzten Stufe des Kachel-Servers (19, Gelände 17) werden die Kacheln vergrößert. Bei followMarkers die Obergrenze des automatischen Zentrierens.',
         },
-        mapStyle: { description: 'Kartenstil.' },
+        mapStyle: {
+            description:
+                "Kartenstil. 'custom' = eigener Kachel-Server aus tileUrl (z. B. lokaler Kachel-Cache ohne Internet); ohne tileUrl gilt standard.",
+        },
         satelliteLabels: {
             description:
                 'Beim Kartentyp Satellit Ortsnamen und Grenzen (Esri) über das Luftbild legen, auch nach Umschalten im Frontend. Standard an.',
         },
         tileUrl: {
             description:
-                'Veraltet – nicht setzen. Eigener Kachel-Server älterer Karten; bestehende Werte bleiben wirksam (überschreiben mapStyle), neu konfigurieren lässt er sich nicht mehr. Für den Kartenstil mapStyle verwenden.',
+                "Eigener Kachel-Server: URL-Vorlage mit {z}/{x}/{y}, optional {s} für Subdomains. Zusammen mit mapStyle 'custom' setzen. Ist tileUrl gesetzt, gilt sie unabhängig von mapStyle; für einen festen Kartentyp tileUrl entfernen.",
         },
-        tileAttribution: { description: 'Veraltet – nicht setzen. Quellenangabe zu tileUrl.' },
+        tileAttribution: { description: 'Quellenangabe unter der Karte für den eigenen Kachel-Server (tileUrl).' },
+        tileMinZoom: {
+            description:
+                'Eigener Kachel-Server: kleinste Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinaus lässt sich die Karte nicht zoomen. Leer = 0.',
+        },
+        tileMaxZoom: {
+            description:
+                'Eigener Kachel-Server: größte Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinein lässt sich die Karte nicht zoomen, auch nicht bei followMarkers oder Schnellzugriff-Zoom. Leer = 22 (ab 19 vergrößert).',
+        },
         markers: { description: 'Die Markierungen auf der Karte.' },
         homeMarkerId: { description: 'Id der Markierung, die als Zuhause gilt.' },
         followMarkers: { description: 'Kartenausschnitt automatisch an die Markierungen anpassen.' },

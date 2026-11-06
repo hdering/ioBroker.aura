@@ -24,7 +24,11 @@ const MAP_STYLES: { value: MapStyle; label: string }[] = [
     { value: 'standard', label: 'Karte' },
     { value: 'satellite', label: 'Satellit' },
     { value: 'terrain', label: 'Gelände / Topo' },
+    { value: 'custom', label: 'Eigener Kachel-Server' },
 ];
+
+/** Placeholders a tile URL template needs, so missing ones can be pointed out. */
+const TILE_PLACEHOLDERS = ['{z}', '{x}', '{y}'];
 
 interface Props {
     config: WidgetConfig;
@@ -202,6 +206,22 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
     // which is why the option is stored as undefined once nothing is picked.
     const styleChipsCorner: MapChipsCorner = (o.styleChipsCorner as MapChipsCorner) || 'top-left';
     const styleChoices: MapStyle[] = Array.isArray(o.styleChoices) ? (o.styleChoices as MapStyle[]) : [];
+    // An own tile URL wins over mapStyle (older maps carry both), so it decides the type shown here.
+    const tileUrl = typeof o.tileUrl === 'string' ? o.tileUrl : '';
+    const isCustom = tileUrl.trim() !== '' || o.mapStyle === 'custom';
+    const styleValue: MapStyle = isCustom ? 'custom' : ((o.mapStyle as MapStyle | undefined) ?? 'standard');
+    // Picking a preset drops tileUrl (it would win otherwise); keep it for switching back.
+    const [stashedTileUrl, setStashedTileUrl] = useState('');
+    const pickStyle = (value: MapStyle) => {
+        if (value === 'custom') {
+            set({ mapStyle: 'custom', tileUrl: tileUrl || stashedTileUrl || undefined });
+            return;
+        }
+        if (tileUrl) setStashedTileUrl(tileUrl);
+        set({ mapStyle: value, tileUrl: undefined });
+    };
+    const missingPlaceholders = TILE_PLACEHOLDERS.filter((ph) => !tileUrl.includes(ph));
+    const tileMax = Number.isFinite(o.tileMaxZoom) ? Math.min(MAX_MAP_ZOOM, o.tileMaxZoom as number) : MAX_MAP_ZOOM;
     const toggleStyleChoice = (value: MapStyle) => {
         const on = styleChoices.includes(value);
         // Rebuild from MAP_STYLES so the chips keep the preset order while toggling.
@@ -240,7 +260,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                             Auswählbare Kartentypen
                         </label>
                         <div className="flex flex-wrap gap-1">
-                            {MAP_STYLES.map((s) => {
+                            {MAP_STYLES.filter((s) => s.value !== 'custom' || isCustom).map((s) => {
                                 const on = styleChoices.includes(s.value);
                                 return (
                                     <button
@@ -1272,11 +1292,10 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                             Kartentyp
                         </label>
                         <select
-                            value={(o.mapStyle as MapStyle | undefined) ?? 'standard'}
-                            onChange={(e) => set({ mapStyle: e.target.value as MapStyle })}
+                            value={styleValue}
+                            onChange={(e) => pickStyle(e.target.value as MapStyle)}
                             className={iCls}
                             style={iSty}
-                            disabled={!!o.tileUrl}
                         >
                             {MAP_STYLES.map((s) => (
                                 <option key={s.value} value={s.value}>
@@ -1284,12 +1303,89 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                 </option>
                             ))}
                         </select>
-                        {!!o.tileUrl && (
-                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                                Eigene Tile-URL ist gesetzt und überschreibt den Kartentyp.
-                            </p>
-                        )}
                     </div>
+                    {isCustom && (
+                        <div className="space-y-2" data-aura-map-custom-tiles>
+                            <div>
+                                <label className={lblCls} style={lblSty}>
+                                    URL-Vorlage
+                                </label>
+                                <input
+                                    type="text"
+                                    value={tileUrl}
+                                    onChange={(e) => set({ mapStyle: 'custom', tileUrl: e.target.value || undefined })}
+                                    placeholder="http://192.168.1.10:8080/tiles/{z}/{x}/{y}.png"
+                                    className={`${iCls} font-mono`}
+                                    style={iSty}
+                                />
+                                <p
+                                    className="text-[10px] mt-0.5"
+                                    style={{
+                                        color:
+                                            tileUrl && missingPlaceholders.length
+                                                ? 'var(--danger, #ef4444)'
+                                                : 'var(--text-secondary)',
+                                        opacity: tileUrl && missingPlaceholders.length ? 1 : 0.6,
+                                    }}
+                                >
+                                    {!tileUrl
+                                        ? 'Ohne URL zeigt die Karte den Standard-Kartentyp.'
+                                        : missingPlaceholders.length
+                                          ? `Es fehlt: ${missingPlaceholders.join(' ')}`
+                                          : 'Platzhalter {z}/{x}/{y}, optional {s} für Subdomains (a, b, c).'}
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                                <div>
+                                    <label className={lblCls} style={lblSty}>
+                                        Min. Zoom
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={MAX_MAP_ZOOM}
+                                        value={(o.tileMinZoom as number | undefined) ?? ''}
+                                        onChange={(e) => set({ tileMinZoom: numOrUndef(e.target.value) })}
+                                        placeholder="0"
+                                        className={iCls}
+                                        style={iSty}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={lblCls} style={lblSty}>
+                                        Max. Zoom
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        max={MAX_MAP_ZOOM}
+                                        value={(o.tileMaxZoom as number | undefined) ?? ''}
+                                        onChange={(e) => set({ tileMaxZoom: numOrUndef(e.target.value) })}
+                                        placeholder={String(MAX_MAP_ZOOM)}
+                                        className={iCls}
+                                        style={iSty}
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-[10px] -mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                Die Stufen, für die der Server Kacheln hat. Weiter hinein oder hinaus lässt sich die
+                                Karte nicht zoomen.
+                            </p>
+                            <div>
+                                <label className={lblCls} style={lblSty}>
+                                    Quellenangabe
+                                </label>
+                                <input
+                                    type="text"
+                                    value={(o.tileAttribution as string | undefined) ?? ''}
+                                    onChange={(e) => set({ tileAttribution: e.target.value || undefined })}
+                                    placeholder="© OpenStreetMap"
+                                    className={iCls}
+                                    style={iSty}
+                                />
+                            </div>
+                        </div>
+                    )}
                     <div className="flex items-center justify-between">
                         <label className={lblCls} style={lblSty}>
                             Ortsnamen auf Satellitenbild
@@ -1349,12 +1445,12 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                     {/* ── Zoom level (fixed zoom when not following; max zoom cap when following) ── */}
                     <div>
                         <label className={lblCls} style={lblSty}>
-                            {followMarkers ? 'Maximale Zoomstufe' : 'Zoomstufe'} (1–{MAX_MAP_ZOOM})
+                            {followMarkers ? 'Maximale Zoomstufe' : 'Zoomstufe'} (1–{isCustom ? tileMax : MAX_MAP_ZOOM})
                         </label>
                         <input
                             type="number"
                             min={1}
-                            max={MAX_MAP_ZOOM}
+                            max={isCustom ? tileMax : MAX_MAP_ZOOM}
                             value={(o.zoom as number | undefined) ?? ''}
                             onChange={(e) => set({ zoom: e.target.value === '' ? undefined : Number(e.target.value) })}
                             placeholder={followMarkers ? 'automatisch' : '6'}
@@ -1368,38 +1464,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                         </p>
                     </div>
                 </SubGroup>
-                {!!o.tileUrl && (
-                    <SubGroup title="Eigener Kachel-Server">
-                        <div data-aura-map-legacy-tiles>
-                            <div className="flex gap-1">
-                                <input
-                                    type="text"
-                                    value={o.tileUrl as string}
-                                    readOnly
-                                    className={`${iCls} flex-1 min-w-0 font-mono`}
-                                    style={{ ...iSty, opacity: 0.7 }}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => set({ tileUrl: undefined, tileAttribution: undefined })}
-                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                                    style={{ color: 'var(--danger, #ef4444)', border: '1px solid var(--app-border)' }}
-                                    title="Eigenen Kachel-Server entfernen"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            </div>
-                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                                Wird nicht mehr angeboten, bleibt aber in Betrieb. Nach dem Entfernen gilt der
-                                Kartentyp.
-                            </p>
-                        </div>
-                    </SubGroup>
-                )}
             </ConfigSection>
-
-            {/* ── Custom tile server: no longer offered. Maps that already have one keep
-                 using it (the widget still reads tileUrl); here it can only be removed. ── */}
         </div>
     );
 }

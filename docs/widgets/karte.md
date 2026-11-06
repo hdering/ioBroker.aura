@@ -27,15 +27,28 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `mapStyle` | `standard` | `standard` · `satellite` · `terrain` |
+| `mapStyle` | `standard` | `standard` · `satellite` · `terrain` · `custom` (eigener Kachel-Server) |
 | `center` | Deutschland | `[lat, lon]` Startmittelpunkt |
 | `zoom` | `6` | Start-Zoom (1–22, ab 19 bzw. 17 bei Gelände vergrößerte Kacheln); bei `followMarkers` = max. Zoom des Auto-Fit |
 | `followMarkers` | `false` | Ansicht automatisch an alle Marker anpassen |
 | `markerSpread` | `true` | Marker am selben Ort nebeneinander statt übereinander zeichnen |
 
+### Eigener Kachel-Server
+
+Für Installationen ohne Internet, z. B. mit lokalem Kachel-Cache auf einem Raspberry Pi. Kartentyp **Eigener Kachel-Server** wählen.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `tileUrl` | — | URL-Vorlage mit `{z}/{x}/{y}`, optional `{s}` für Subdomains |
+| `tileMinZoom` | `0` | kleinste Zoomstufe mit Kacheln, weiter hinaus geht es nicht |
+| `tileMaxZoom` | `22` | größte Zoomstufe mit Kacheln, weiter hinein geht es nicht |
+| `tileAttribution` | — | Quellenangabe unten rechts |
+
+Ist `tileUrl` gesetzt, gilt sie unabhängig von `mapStyle`.
+
 ### Kartentyp umschalten
 
-Chips über der Karte wechseln den Kartentyp im Frontend. Die Auswahl gilt nur für das jeweilige Gerät und fällt beim Neuladen auf den konfigurierten Kartentyp zurück. Ein eigener Kachel-Server (`tileUrl`, nur noch bei älteren Karten) wird angezeigt, bis im Frontend ein Kartentyp gewählt wird.
+Chips über der Karte wechseln den Kartentyp im Frontend. Die Auswahl gilt nur für das jeweilige Gerät und fällt beim Neuladen auf den konfigurierten Kartentyp zurück. Der Chip **Eigene Karte** erscheint nur, wenn ein eigener Kachel-Server eingetragen ist.
 
 | Option | Standard | |
 | --- | --- | --- |

@@ -3105,6 +3105,7 @@ export const de = {
     'map.style.standard': 'Karte',
     'map.style.satellite': 'Satellit',
     'map.style.terrain': 'Gelände',
+    'map.style.custom': 'Eigene Karte',
     'map.day.prev': 'Vorheriger Tag',
     'map.day.next': 'Nächster Tag',
     'map.day.today': 'Zu heute springen',

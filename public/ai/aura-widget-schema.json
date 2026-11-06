@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.106.1",
+    "auraVersion": "0.106.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -6333,7 +6333,8 @@
       "enum": [
         "standard",
         "satellite",
-        "terrain"
+        "terrain",
+        "custom"
       ]
     },
     "MapQuickView": {
@@ -18649,7 +18650,7 @@
         "mapStyle": {
           "type": "string",
           "ref": "MapStyle",
-          "description": "Kartenstil."
+          "description": "Kartenstil. 'custom' = eigener Kachel-Server aus tileUrl (z. B. lokaler Kachel-Cache ohne Internet); ohne tileUrl gilt standard."
         },
         "markerSpread": {
           "type": "boolean",
@@ -18716,12 +18717,20 @@
         "tileAttribution": {
           "type": "string",
           "default": "",
-          "description": "Veraltet – nicht setzen. Quellenangabe zu tileUrl."
+          "description": "Quellenangabe unter der Karte für den eigenen Kachel-Server (tileUrl)."
+        },
+        "tileMaxZoom": {
+          "type": "number",
+          "description": "Eigener Kachel-Server: größte Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinein lässt sich die Karte nicht zoomen, auch nicht bei followMarkers oder Schnellzugriff-Zoom. Leer = 22 (ab 19 vergrößert)."
+        },
+        "tileMinZoom": {
+          "type": "number",
+          "description": "Eigener Kachel-Server: kleinste Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinaus lässt sich die Karte nicht zoomen. Leer = 0.",
+          "default": 0
         },
         "tileUrl": {
           "type": "string",
-          "description": "Veraltet – nicht setzen. Eigener Kachel-Server älterer Karten; bestehende Werte bleiben wirksam (überschreiben mapStyle), neu konfigurieren lässt er sich nicht mehr. Für den Kartenstil mapStyle verwenden.",
-          "default": false
+          "description": "Eigener Kachel-Server: URL-Vorlage mit {z}/{x}/{y}, optional {s} für Subdomains. Zusammen mit mapStyle 'custom' setzen. Ist tileUrl gesetzt, gilt sie unabhängig von mapStyle; für einen festen Kartentyp tileUrl entfernen."
         },
         "timeline": {
           "type": "boolean",

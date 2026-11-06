@@ -75,7 +75,9 @@ export interface MapMarker {
     color?: string;
 }
 
-export type MapStyle = 'standard' | 'satellite' | 'terrain';
+/** `custom` = own tile server from `tileUrl` (offline installs, local tile cache — #934). */
+export type MapStyle = 'standard' | 'satellite' | 'terrain' | 'custom';
+type PresetStyle = Exclude<MapStyle, 'custom'>;
 
 /** Where a line's points come from: a route computed between two markers (#790),
  *  a points list in a datapoint, or the history of a position datapoint (#410). */
@@ -168,9 +170,12 @@ interface MapOptions {
     zoom?: number;
     followMarkers?: boolean;
     mapStyle?: MapStyle;
-    /** Custom tile URL — overrides mapStyle when set. Legacy: still honoured, no longer configurable. */
+    /** Own tile server ({z}/{x}/{y} template) — overrides mapStyle when set (#934). */
     tileUrl?: string;
     tileAttribution?: string;
+    /** Own tile server: lowest / highest level it delivers. Hard limits — the map cannot zoom past them. */
+    tileMinZoom?: number;
+    tileMaxZoom?: number;
     showDistance?: boolean;
     homeMarkerId?: string;
     quickViews?: MapQuickView[];
@@ -209,7 +214,7 @@ const DEFAULT_NATIVE_ZOOM = 19;
 /** Free tile presets (no API key required). `maxNativeZoom` is the last level the
  *  server delivers; beyond it the tiles are scaled up. */
 export const TILE_PRESETS: Record<
-    MapStyle,
+    PresetStyle,
     { url: string; attribution: string; maxNativeZoom: number; labelsUrl?: string }
 > = {
     standard: {
@@ -238,9 +243,18 @@ const STYLE_LABEL_KEYS: Record<MapStyle, TranslationKey> = {
     standard: 'map.style.standard',
     satellite: 'map.style.satellite',
     terrain: 'map.style.terrain',
+    custom: 'map.style.custom',
 };
 
-const ALL_STYLES = Object.keys(TILE_PRESETS) as MapStyle[];
+const ALL_STYLES = Object.keys(TILE_PRESETS) as PresetStyle[];
+
+/** A zoom limit of the own tile server, clamped to what the map supports; undefined when unset. */
+function tileZoom(value: unknown): number | undefined {
+    if (value === undefined || value === null || value === '') return undefined;
+    const n = Number(value);
+    if (!Number.isFinite(n)) return undefined;
+    return Math.min(MAX_MAP_ZOOM, Math.max(0, Math.round(n)));
+}
 
 const DEFAULT_CENTER: LatLon = [51.1657, 10.4515]; // Germany
 const DEFAULT_ZOOM = 6;
@@ -1046,6 +1060,17 @@ function FitController({ target }: { target: { bounds: [LatLon, LatLon]; nonce: 
     return null;
 }
 
+/** Applies the zoom range to the mounted map — MapContainer ignores later prop changes.
+ *  Leaflet then keeps the view and the zoom buttons inside the range. */
+function ZoomLimits({ min, max }: { min: number; max: number }) {
+    const map = useMap();
+    useEffect(() => {
+        map.setMinZoom(min);
+        map.setMaxZoom(max);
+    }, [map, min, max]);
+    return null;
+}
+
 /** Keeps the Leaflet canvas sized to the (resizable) widget body. */
 function ResizeHandler() {
     const map = useMap();
@@ -1347,19 +1372,32 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const markers = useMemo<MapMarker[]>(() => (Array.isArray(o.markers) ? o.markers : []), [o.markers]);
 
     // ── Map type: starts from the admin config, switchable at runtime via chips ──
-    const cfgStyle: MapStyle = o.mapStyle && o.mapStyle in TILE_PRESETS ? o.mapStyle : 'standard';
+    // An own tile URL wins over the preset, whatever mapStyle says — older maps carry
+    // tileUrl next to a preset mapStyle and must keep their server (#934).
+    const hasCustom = typeof o.tileUrl === 'string' && o.tileUrl.trim() !== '';
+    const cfgStyle: MapStyle = hasCustom
+        ? 'custom'
+        : o.mapStyle && o.mapStyle in TILE_PRESETS
+          ? o.mapStyle
+          : 'standard';
     const [styleOverride, setStyleOverride] = useState<MapStyle | null>(null);
     // Editing the type in the admin config drops a stale frontend selection.
     useEffect(() => setStyleOverride(null), [cfgStyle, o.tileUrl]);
     const activeStyle = styleOverride ?? cfgStyle;
-    const preset = TILE_PRESETS[activeStyle] ?? TILE_PRESETS.standard;
-    // A custom tile URL wins over the style preset — until the user picks a type
-    // in the frontend, because then that preset is exactly what they asked for.
-    const customTiles = !!o.tileUrl && !styleOverride;
-    const tileUrl = customTiles ? (o.tileUrl as string) : preset.url;
+    const customTiles = activeStyle === 'custom' && hasCustom;
+    const preset = TILE_PRESETS[activeStyle as PresetStyle] ?? TILE_PRESETS.standard;
+    const tileUrl = customTiles ? (o.tileUrl as string).trim() : preset.url;
     const attribution = customTiles ? (o.tileAttribution ?? '') : preset.attribution;
     const labelsUrl = !customTiles && o.satelliteLabels !== false ? preset.labelsUrl : undefined;
-    const nativeZoom = customTiles ? DEFAULT_NATIVE_ZOOM : preset.maxNativeZoom;
+    // Own server: min/max are hard limits — levels it has no tiles for cannot be chosen.
+    let zoomMin = customTiles ? (tileZoom(o.tileMinZoom) ?? 0) : 0;
+    let zoomMax = customTiles ? (tileZoom(o.tileMaxZoom) ?? MAX_MAP_ZOOM) : MAX_MAP_ZOOM;
+    if (zoomMin > zoomMax) [zoomMin, zoomMax] = [zoomMax, zoomMin];
+    const nativeZoom = customTiles
+        ? tileZoom(o.tileMaxZoom) !== undefined
+            ? zoomMax
+            : DEFAULT_NATIVE_ZOOM
+        : preset.maxNativeZoom;
     // react-leaflet ignores option changes on a mounted TileLayer and the base layer
     // must not be remounted (see below), so a style switch patches the option in place.
     const baseLayerRef = useRef<L.TileLayer | null>(null);
@@ -1373,10 +1411,12 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     const showStyleChips = o.showStyleChips === true;
     const styleCorner = normalizeCorner(o.styleChipsCorner, 'top-left');
     // An empty/garbled choice list offers every preset rather than no chip at all.
+    // The own server is offered only when one is configured.
     const styleChoices = useMemo<MapStyle[]>(() => {
-        const picked = Array.isArray(o.styleChoices) ? ALL_STYLES.filter((st) => o.styleChoices?.includes(st)) : [];
-        return picked.length ? picked : ALL_STYLES;
-    }, [o.styleChoices]);
+        const all: MapStyle[] = hasCustom ? [...ALL_STYLES, 'custom'] : ALL_STYLES;
+        const picked = Array.isArray(o.styleChoices) ? all.filter((st) => o.styleChoices?.includes(st)) : [];
+        return picked.length ? picked : all;
+    }, [o.styleChoices, hasCustom]);
 
     const followMarkers = o.followMarkers ?? true;
     const showDistance = !!o.showDistance;
@@ -1604,8 +1644,9 @@ export function MapWidget({ config, editMode }: WidgetProps) {
             <div style={column ? { position: 'relative', flex: 1, minHeight: 0 } : { position: 'absolute', inset: 0 }}>
                 <MapContainer
                     center={center}
-                    zoom={initialZoom}
-                    maxZoom={MAX_MAP_ZOOM}
+                    zoom={Math.min(zoomMax, Math.max(zoomMin, initialZoom))}
+                    minZoom={zoomMin}
+                    maxZoom={zoomMax}
                     style={{ width: '100%', height: '100%' }}
                     // Disable interaction in edit mode so the widget can be dragged/resized on the grid.
                     dragging={!editMode}
@@ -1624,6 +1665,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                         maxZoom={MAX_MAP_ZOOM}
                         maxNativeZoom={nativeZoom}
                     />
+                    <ZoomLimits min={zoomMin} max={zoomMax} />
                     {/* Own pane above the tiles, below markers/lines; no pointer events so the
                         map underneath stays draggable. Adding/removing this extra layer is safe —
                         only remounting the base layer trips _resetView. */}
@@ -1677,7 +1719,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                                         <StyleChip
                                             style={st}
                                             label={t(STYLE_LABEL_KEYS[st])}
-                                            active={st === activeStyle && !customTiles}
+                                            active={st === activeStyle}
                                             onSelect={() => setStyleOverride(st)}
                                         />
                                     </div>
