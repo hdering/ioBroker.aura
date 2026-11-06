@@ -549,12 +549,18 @@ export function LayoutDrawer({
         const needsGrid = hasExtras || alignment !== 'left';
 
         const divider = <div className="w-px self-stretch mx-1 shrink-0" style={{ background: 'var(--app-border)' }} />;
+        // Own gap-2 row, same spacing as the header slots — the bar's gap-1 is sized for
+        // the section buttons and left neighbouring values touching (forum #1361807).
         const renderBarItems = (group: LayoutMenuItem[]) =>
-            group.map((it) => (
-                <div key={it.id} className="shrink-0 flex items-center">
-                    <LayoutMenuItemView item={it} compact />
+            group.length > 0 && (
+                <div className="flex items-center gap-2 shrink-0">
+                    {group.map((it) => (
+                        <div key={it.id} className="shrink-0 flex items-center">
+                            <LayoutMenuItemView item={it} compact />
+                        </div>
+                    ))}
                 </div>
-            ));
+            );
         const sectionButtons = visibleSections.map((section) => (
             <SectionConditionWrapper key={section.id} section={section}>
                 {(cond) => {

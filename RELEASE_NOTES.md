@@ -18,3 +18,4 @@
 - feat: js-controller 8 - Aura's port and listen address show up in the host's used resources, and a port already held by another instance is named in the log
 - fix: Web adapter extension - together with another web extension that handles its own WebSockets (e.g. victron-cerbo), every socket connection of the web instance was closed right after connecting ("ws connection error: CLOSE_ABNORMAL", endless reconnects); Aura now leaves the web instance's WebSocket listeners untouched
 - fix: HTML widget - with "fit height to content" switched on, no scrollbar appears in the frame after resizing the browser window anymore; the "Allow scrolling" option is greyed out in that mode (#940)
+- fix: Section menu / tab bar - datapoint, clock and text elements in a docked section bar or the tab bar no longer stick together; they get the same spacing as in the header. In the docked section bar the element position is now labelled left / right instead of top / bottom

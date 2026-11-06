@@ -70,6 +70,13 @@ function renderTabBarItem(item: TabBarItem) {
     );
 }
 
+// Own gap-2 row, same spacing as the header slots — the bar's gap-1 is sized for the
+// tabs and left neighbouring values touching (forum #1361807).
+function renderTabBarItems(items: TabBarItem[]) {
+    if (items.length === 0) return null;
+    return <div className="flex items-center gap-2 shrink-0">{items.map(renderTabBarItem)}</div>;
+}
+
 // ── Computed tab styles based on indicatorStyle ────────────────────────────────
 // Uses var(--tab-*) with fallbacks so condition CSS vars can override per-tab.
 
@@ -906,14 +913,13 @@ export function TabBar({
                     {leadingExtras && (
                         <div className="flex items-center gap-1 pl-2 shrink-0">
                             {headerSlot}
-                            {leftItems.map(renderTabBarItem)}
+                            {renderTabBarItems(leftItems)}
                         </div>
                     )}
                     <div className="aura-nav-stretch flex items-center gap-1 flex-1 min-w-0 px-2">{renderTabs()}</div>
                     {trailingExtras && (
                         <div className="flex items-center gap-1 pr-2 shrink-0">
-                            {centerItems.map(renderTabBarItem)}
-                            {rightItems.map(renderTabBarItem)}
+                            {renderTabBarItems([...centerItems, ...rightItems])}
                             {addTabBtn}
                         </div>
                     )}
@@ -956,7 +962,7 @@ export function TabBar({
                     >
                         <div className="flex items-center gap-1 px-2">
                             {headerSlot}
-                            {leftItems.map(renderTabBarItem)}
+                            {renderTabBarItems(leftItems)}
                             {tabsAlignment === 'left' && leftItems.length > 0 && (
                                 <div
                                     className="w-px self-stretch mx-1 shrink-0"
@@ -983,7 +989,7 @@ export function TabBar({
                                     style={{ background: 'var(--app-border)' }}
                                 />
                             )}
-                            {centerItems.map(renderTabBarItem)}
+                            {renderTabBarItems(centerItems)}
                         </div>
                     </ScrollRow>
 
@@ -1003,7 +1009,7 @@ export function TabBar({
                                     style={{ background: 'var(--app-border)' }}
                                 />
                             )}
-                            {rightItems.map(renderTabBarItem)}
+                            {renderTabBarItems(rightItems)}
                         </div>
                     </ScrollRow>
                 </div>
@@ -1025,7 +1031,7 @@ export function TabBar({
                 >
                     <div className="flex items-center gap-1 px-4">
                         {headerSlot}
-                        {leftItems.map(renderTabBarItem)}
+                        {renderTabBarItems(leftItems)}
                         {leftItems.length > 0 && (
                             <div
                                 className="w-px self-stretch mx-1 shrink-0"

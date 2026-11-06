@@ -170,6 +170,10 @@ export const de = {
     'settings.frontend.layoutDrawerItems': 'Elemente',
     'settings.frontend.layoutDrawerItemPosTop': 'Oben',
     'settings.frontend.layoutDrawerItemPosBottom': 'Unten',
+    'settings.frontend.layoutDrawerItemPosLeft': 'Links',
+    'settings.frontend.layoutDrawerItemPosRight': 'Rechts',
+    'settings.frontend.layoutDrawerItemPosBarHint':
+        'In der Leiste links bzw. rechts der Bereiche, im ausklappbaren Menü (z. B. mobil) oben bzw. unten.',
     'settings.frontend.layoutDrawerItemMarginTop': 'Abstand oben',
     'settings.frontend.layoutDrawerItemMarginBottom': 'Abstand unten',
     'settings.frontend.layoutDrawerItemAlign': 'Ausrichtung',

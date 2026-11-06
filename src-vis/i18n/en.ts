@@ -171,6 +171,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerItems': 'Elements',
     'settings.frontend.layoutDrawerItemPosTop': 'Top',
     'settings.frontend.layoutDrawerItemPosBottom': 'Bottom',
+    'settings.frontend.layoutDrawerItemPosLeft': 'Left',
+    'settings.frontend.layoutDrawerItemPosRight': 'Right',
+    'settings.frontend.layoutDrawerItemPosBarHint':
+        'In the bar left or right of the sections; in the slide-out menu (e.g. on mobile) at the top or bottom.',
     'settings.frontend.layoutDrawerItemMarginTop': 'Space above',
     'settings.frontend.layoutDrawerItemMarginBottom': 'Space below',
     'settings.frontend.layoutDrawerItemAlign': 'Alignment',
