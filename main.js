@@ -25,7 +25,7 @@ const {
     lastDueWrite,
 } = require('./lib/timerException');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
-const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
+const { resolveBothConfigs } = require('./lib/mcp/clientConfig');
 const {
     listenAddress,
     isLoopbackOnly,

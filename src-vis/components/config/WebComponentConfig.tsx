@@ -495,8 +495,8 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                 </div>
                 {!loading && known && (
                     <p className="text-[11px] mt-1.5" style={{ color: 'var(--accent-yellow)' }}>
-                        Der Adapter „{known.adapter}“ fehlt: {knownName} braucht ioBroker.{known.adapter} ab Version{' '}
-                        {known.minVersion}. Nach der Installation mit ↻ neu einlesen.
+                        Der Adapter {`„${known.adapter}“`} fehlt: {knownName} braucht ioBroker.{known.adapter} ab
+                        Version {known.minVersion}. Nach der Installation mit ↻ neu einlesen.
                     </p>
                 )}
                 {!loading && !known && !components.length && (

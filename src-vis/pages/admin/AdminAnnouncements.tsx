@@ -749,8 +749,8 @@ export function AdminAnnouncements() {
                 </div>
 
                 <p className="text-[11px] mt-2" style={labelStyle}>
-                    Ansagen mit „vom Gerät …“ wurden im Dashboard (Widget Ansagen) angelegt und lassen sich dort weiter
-                    ändern; <strong>Übernehmen</strong> macht sie zur Admin-Ansage. Änderungen gelten nach dem
+                    Ansagen mit {'„vom Gerät …“'} wurden im Dashboard (Widget Ansagen) angelegt und lassen sich dort
+                    weiter ändern; <strong>Übernehmen</strong> macht sie zur Admin-Ansage. Änderungen gelten nach dem
                     Speichern. Die Ansage läuft über <span className="font-mono">{NS}.speech.say</span> —
                     Stummschaltung, Lautstärke und Autoplay-Hinweise der Geräte gelten wie bei jeder anderen Ansage.
                 </p>

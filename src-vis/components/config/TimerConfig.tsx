@@ -438,7 +438,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                     Ansage pro Ereignis
                                 </p>
                                 <p className={hintCls} style={hintStyle}>
-                                    Im Ereignis-Popup ein Feld „Ansage“ (Text oder Sounddatei), gesprochen, wenn das
+                                    Im Ereignis-Popup ein Feld {'„Ansage“'} (Text oder Sounddatei), gesprochen, wenn das
                                     Ereignis auslöst. Damit geht die Zeitschaltuhr auch ohne Ziel-Datenpunkt.
                                 </p>
                             </div>
