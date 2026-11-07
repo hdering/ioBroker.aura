@@ -176,6 +176,8 @@ export interface HeaderHeadProps {
     iconPickable: boolean;
     /** Own colour / size for title and icon (not on a group — its children would inherit them). */
     styleAllowed?: boolean;
+    /** Title and symbol stay off until switched on (the menu had no header before #949). */
+    offByDefault?: boolean;
     /** Writes plain widget options: showIcon, icon, iconSize, iconColor, showTitle, titleColor, titleSize. */
     onChange: (patch: Record<string, unknown>) => void;
 }
@@ -212,8 +214,8 @@ function HeadRows({
     const t = useT();
     const o = config.options ?? {};
     const [pickerOpen, setPickerOpen] = useState(false);
-    const iconOn = o.showIcon !== false;
-    const titleOn = o.showTitle !== false;
+    const iconOn = head.offByDefault ? o.showIcon === true : o.showIcon !== false;
+    const titleOn = head.offByDefault ? o.showTitle === true : o.showTitle !== false;
     const styled = head.styleAllowed !== false;
     const Icon = getWidgetIcon(o.icon as string | undefined, defaultIcon ?? Shapes) ?? Shapes;
     return (
@@ -788,8 +790,8 @@ export function HeaderItemsEditor({
     const titleSlot =
         `${titleRow2 ? 'r2' : 'r1'}-${titleAlign === 'center' || titleAlign === 'right' ? titleAlign : 'left'}` as WidgetHeaderSlot;
     const iconPlace = ((config.options?.iconPlace as string) ?? 'lead') as IconPlaceKey;
-    const titleOn = config.options?.showTitle !== false;
-    const iconOn = config.options?.showIcon !== false;
+    const titleOn = head?.offByDefault ? config.options?.showTitle === true : config.options?.showTitle !== false;
+    const iconOn = head?.offByDefault ? config.options?.showIcon === true : config.options?.showIcon !== false;
     const movable = !!onLayoutChange;
     const MapIcon = getWidgetIcon(config.options?.icon as string | undefined, defaultIcon ?? Shapes) ?? Shapes;
 

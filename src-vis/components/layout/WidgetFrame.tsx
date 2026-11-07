@@ -9996,6 +9996,7 @@ function WidgetFrameInner({
                                                                         iconAllowed: config.type !== 'stateimage',
                                                                         titleAllowed: config.type !== 'mediaplayer',
                                                                         iconPickable: config.type !== 'windowcontact',
+                                                                        offByDefault: config.type === 'menu',
                                                                         onChange: (patch) => setO(patch),
                                                                     }}
                                                                     onLayoutChange={(patch) => setO({ ...patch })}

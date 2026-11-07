@@ -19372,6 +19372,7 @@
         "fullscreenScreen",
         "fullscreenWidget",
         "headerItems",
+        "icon",
         "iconColor",
         "iconPlace",
         "lastChangeDatapoint",
@@ -19382,6 +19383,7 @@
         "showLastChange",
         "styleOverride",
         "textLines",
+        "titleAlign",
         "titleColor",
         "titleRow",
         "titleSize",
@@ -19441,7 +19443,7 @@
         "iconSize": {
           "type": "number",
           "default": 18,
-          "description": "Icongröße in px."
+          "description": "Icon-Größe der Einträge in px (Standard 18); gilt auch für das Kopfzeilen-Icon."
         },
         "indicatorStyle": {
           "type": "string",
@@ -19481,6 +19483,11 @@
           "default": false,
           "description": "Auch als hidden markierte Bereiche und Tabs auflisten (alle Modi). Typisch: Raum-Tabs aus der Tab-Leiste ausblenden und nur über ein Menü auf einem Übersichts-Tab erreichbar machen (#892). Ausgeblendete Layouts bleiben bei menuSource \"all\" weg."
         },
+        "showIcon": {
+          "type": "boolean",
+          "default": false,
+          "description": "Widget-Icon in der Kopfzeile. Beim Menü standardmäßig AUS — nur true blendet es ein; Größe = iconSize der Einträge (#949)."
+        },
         "showIcons": {
           "type": "boolean",
           "default": true,
@@ -19495,6 +19502,11 @@
           "type": "boolean",
           "default": false,
           "description": "Nur bei menuMode \"overview\": Suchfeld über den Gruppen, filtert die Chips live nach Tab- oder Bereichsname; Gruppen ohne Treffer verschwinden."
+        },
+        "showTitle": {
+          "type": "boolean",
+          "default": false,
+          "description": "Kopfzeile mit dem Widget-Titel über den Einträgen. Beim Menü standardmäßig AUS — nur true blendet sie ein (#949)."
         },
         "variant": {
           "type": "string",

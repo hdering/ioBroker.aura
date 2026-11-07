@@ -2226,6 +2226,15 @@ export const WIDGET_OPTION_NOTES = {
                 'Icons anzeigen: Bereiche ohne eigenes Icon bekommen ein Standard-Icon, Tabs ohne Icon nur Text.',
         },
         showLabels: { description: 'Text der Einträge anzeigen. Bei menuMode "overview" immer an.' },
+        showTitle: {
+            description:
+                'Kopfzeile mit dem Widget-Titel über den Einträgen. Beim Menü standardmäßig AUS — nur true blendet sie ein (#949).',
+        },
+        showIcon: {
+            description:
+                'Widget-Icon in der Kopfzeile. Beim Menü standardmäßig AUS — nur true blendet es ein; Größe = iconSize der Einträge (#949).',
+        },
+        iconSize: { description: 'Icon-Größe der Einträge in px (Standard 18); gilt auch für das Kopfzeilen-Icon.' },
         menuSource: {
             enum: ['layout', 'all'],
             description:
