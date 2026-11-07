@@ -1,5 +1,6 @@
 import { useT } from '../../../i18n';
 import type { EChartSeriesConfig, TimeShiftUnit } from '../../../hooks/useMultiSeriesData';
+import { usableInputs } from '../../../utils/formulaSeries';
 import { inputCls, inputStyle, type SeriesAdapterState } from './chartShared';
 
 /**
@@ -37,19 +38,22 @@ export function ChartSeriesHistoryPanel({
     showPeriod?: boolean;
 }) {
     const t = useT();
-    const isTpl = (s.datapointId ?? '').includes('{{');
+    const isFormula = s.source === 'formula';
+    const isTpl = !isFormula && (s.datapointId ?? '').includes('{{');
+    // A formula series has no datapoint of its own — its inputs stand in (issue #930).
+    const hasDp = isFormula ? usableInputs(s.formulaInputs).length > 0 : !!s.datapointId;
     return (
         <div>
             <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
             <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                 {t('echart.history')}
             </p>
-            {!s.datapointId && (
+            {!hasDp && (
                 <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     {t('echart.selectDpFirst')}
                 </p>
             )}
-            {s.datapointId && isTpl && (
+            {hasDp && isTpl && (
                 <div>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.instance')}
@@ -77,12 +81,12 @@ export function ChartSeriesHistoryPanel({
                     </p>
                 </div>
             )}
-            {s.datapointId && !isTpl && adState?.checking && (
+            {hasDp && !isTpl && adState?.checking && (
                 <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     {t('echart.checking')}
                 </p>
             )}
-            {s.datapointId && !isTpl && !adState?.checking && !adState && (
+            {hasDp && !isTpl && !adState?.checking && !adState && (
                 <button
                     onClick={() => onDetect()}
                     className="text-[11px] hover:opacity-80"
@@ -91,12 +95,12 @@ export function ChartSeriesHistoryPanel({
                     {t('echart.detect')}
                 </button>
             )}
-            {s.datapointId && !isTpl && adState && !adState.checking && adState.adapters.length === 0 && (
+            {hasDp && !isTpl && adState && !adState.checking && adState.adapters.length === 0 && (
                 <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     {t('echart.noAdapter')}
                 </p>
             )}
-            {s.datapointId && !isTpl && adState && !adState.checking && adState.adapters.length > 0 && (
+            {hasDp && !isTpl && adState && !adState.checking && adState.adapters.length > 0 && (
                 <div>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.instance')}
@@ -120,7 +124,7 @@ export function ChartSeriesHistoryPanel({
                     </select>
                 </div>
             )}
-            {s.datapointId && s.historyInstance && (
+            {hasDp && s.historyInstance && (
                 <div className="mt-1.5">
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.aggregation')}
@@ -157,7 +161,7 @@ export function ChartSeriesHistoryPanel({
                     </select>
                 </div>
             )}
-            {s.datapointId && s.historyInstance && s.aggregate === 'delta' && (
+            {hasDp && s.historyInstance && s.aggregate === 'delta' && (
                 <div className="mt-1.5">
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.deltaBucket')}
@@ -182,9 +186,14 @@ export function ChartSeriesHistoryPanel({
                     <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                         {s.deltaBucket === 'auto' ? t('echart.bucketAutoHint') : t('echart.deltaHint')}
                     </p>
+                    {isFormula && (
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.formulaDeltaHint')}
+                        </p>
+                    )}
                 </div>
             )}
-            {s.datapointId && showPeriod && (
+            {hasDp && showPeriod && (
                 <div className="mt-1.5">
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.periodValue')}
@@ -204,13 +213,14 @@ export function ChartSeriesHistoryPanel({
                         <option value="min">{t('echart.periodMin')}</option>
                         <option value="max">{t('echart.periodMax')}</option>
                         <option value="average">{t('echart.periodAverage')}</option>
+                        <option value="integral">{t('echart.periodIntegral')}</option>
                     </select>
                     <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                         {s.aggregate === 'delta' ? t('echart.periodBarsHint') : t('echart.periodHint')}
                     </p>
                 </div>
             )}
-            {s.datapointId && (
+            {hasDp && (
                 <div className="mt-1.5">
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.timeShift')}

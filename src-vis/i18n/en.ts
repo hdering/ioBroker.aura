@@ -2396,6 +2396,27 @@ export const en: Record<TranslationKey, string> = {
     'echart.periodMin': 'Minimum',
     'echart.periodMax': 'Maximum',
     'echart.periodAverage': 'Average',
+    'echart.sourceFormula': 'Formula',
+    'echart.unavailDatapointFormula': 'Formula series: the datapoints are listed below under Inputs.',
+    'echart.formulaInputs': 'Inputs',
+    'echart.formulaInputName': 'Name in the formula',
+    'echart.formulaAddInput': 'Input',
+    'echart.formulaRemoveInput': 'Remove input',
+    'echart.formula': 'Formula',
+    'echart.formulaNow': 'Now',
+    'echart.formulaStart': 'Add inputs, then compute with their names, e.g. a + b + c.',
+    'echart.formulaWaiting': 'Waiting for values of all inputs …',
+    'echart.formulaEmpty': 'Formula missing.',
+    'echart.formulaParse': 'Formula cannot be read.',
+    'echart.formulaBadName': 'Invalid name "{name}": letters, digits, _ — not starting with a digit.',
+    'echart.formulaDuplicate': 'Name "{name}" is used twice.',
+    'echart.formulaUnknown': 'Unknown variable "{name}" — add it as an input.',
+    'echart.formulaDatapoint': 'Datapoint "{id}" written into the formula — add it as an input instead.',
+    'echart.formulaHint':
+        '+ − * / %, brackets, comparisons, ?:, Math.max/min/abs/round … An input without a new value keeps its last one. Exact up to 7 days; longer ranges compute products and quotients from averages (approximation).',
+    'echart.formulaDeltaHint':
+        'Formula series: each input is differenced per period on its own, then computed — meant for sums and differences of meters.',
+    'echart.periodIntegral': 'Area over time (W → Wh)',
     'echart.periodHint':
         'One number over the range currently shown, e.g. the energy fed in over the last 30 days. Follows the range buttons, the day navigation and the time shift. "Consumption/yield" only counts the rises and stays correct for a day counter or a meter swap.',
     'echart.periodBarsHint':

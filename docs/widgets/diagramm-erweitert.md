@@ -345,6 +345,7 @@ Eine Zahl je Serie über den gerade gezeigten Zeitraum, z. B. die Einspeisung de
 | `change`        | Ende − Start                                                                     | Summe der Balken                      |
 | `min` · `max`   | kleinster / größter Wert im Zeitraum                                             | kleinster / größter Balken            |
 | `average`       | Mittelwert                                                                       | mittlerer Balken                      |
+| `integral`      | Fläche über die Zeit: W → Wh, kW → kWh (Einheit bekommt ein „h“)                 | Summe der Balken                      |
 
 | Thema           | Verhalten                                                                                       |
 | --------------- | ----------------------------------------------------------------------------------------------- |
@@ -352,6 +353,50 @@ Eine Zahl je Serie über den gerade gezeigten Zeitraum, z. B. die Einspeisung de
 | Live-Werte      | Verbrauch, Differenz, Min, Max laufen live mit; Mittelwert beim nächsten Nachladen                |
 | Format          | Nachkommastellen und Einheit der Serie bzw. ihrer Achse                                          |
 | Nicht verfügbar | Modus `comparison` und `json`, Serien mit `source: json`                                    |
+
+### Formel-Reihe
+
+Eine Reihe aus mehreren Datenpunkten berechnen, ohne Skript und ohne eigenen Datenpunkt: **Datenquelle → Formel**.
+
+![](./assets/diagramm-erweitert/bsp-formel-reihe.png)
+
+| Feld              | Inhalt                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| Eingänge          | je Zeile ein kurzer Name (`u`, `a`) und ein Datenpunkt; 🗄 schlägt den Namen vor          |
+| Formel            | Rechnung mit den Namen: `(is - ib) * u`, `a + b + c`, `Math.max(a - b, 0)`             |
+| Jetzt             | Ergebnis mit den aktuellen Werten bzw. Fehler („Unbekannte Variable …“)                  |
+| Verlauf           | History-Instanz, Aggregation, Kennzahl, Zeitversatz wie bei jeder Reihe                  |
+
+| Thema                      | Verhalten                                                                                     |
+| -------------------------- | --------------------------------------------------------------------------------------------- |
+| Fehlende Werte             | jeder Eingang hält seinen letzten Wert (auch von vor dem Zeitraum) — keine Lücken             |
+| Start                      | erst, wenn alle Eingänge einen Wert haben                                                     |
+| Division durch 0, Text     | an der Stelle eine Lücke                                                                      |
+| bis 7 Tage                 | Rohdaten, exakt für jede Formel                                                               |
+| länger                     | Mittelwerte der Eingänge: Summe/Differenz exakt, Produkt/Quotient Näherung                    |
+| `aggregate: delta`         | jeder Zähler für sich je Zeitraum differenziert, dann gerechnet — für Summen/Differenzen       |
+| Kennzahl                   | aus der berechneten Kurve; `integral` = Verbrauch in Wh aus W                                 |
+| Mischen                    | Formel-Reihen und normale Reihen im selben Diagramm                                           |
+| Formel-Syntax              | wie Bindings: `+ - * / %`, Klammern, Vergleiche, `?:`, `Math.*` — kein JavaScript           |
+
+```json
+{
+    "id": "last",
+    "name": "Hausverbrauch",
+    "source": "formula",
+    "datapointId": "",
+    "formulaInputs": [
+        { "name": "u", "datapointId": "alias.0.battery.raVoltage" },
+        { "name": "is", "datapointId": "alias.0.solar.raCurrent" },
+        { "name": "ib", "datapointId": "alias.0.battery.raCurrent" }
+    ],
+    "formula": "(is - ib) * u",
+    "unit": "W",
+    "periodValue": "integral"
+}
+```
+
+`historyInstance` kann je Eingang abweichen; sonst gilt die der Reihe.
 
 ### JSON-Quelle
 

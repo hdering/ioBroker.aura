@@ -11,6 +11,7 @@ import { JsonShapeHint } from '../JsonChartHints';
 import { Unavailable } from '../Unavailable';
 import { ChartSeriesJsonPanel, JsonMultiSeriesToggle } from './ChartSeriesJsonPanel';
 import { ChartSeriesHistoryPanel } from './ChartSeriesHistoryPanel';
+import { ChartSeriesFormulaPanel } from './ChartSeriesFormulaPanel';
 import {
     CHART_TYPES,
     SERIES_VALUE_MODES,
@@ -94,6 +95,8 @@ export function ChartSeriesDetail({
     // The JSON mode forces every series onto the payload source; in a timeseries chart each
     // series decides for itself (issue #595).
     const seriesIsJson = isJson || s.source === 'json';
+    // A computed series reads its inputs instead of the one datapoint (issue #930).
+    const seriesIsFormula = !isJson && !isComparison && s.source === 'formula';
     // A JSON series on a timeseries chart's shared axis needs timestamp labels — a category label
     // has no x coordinate there and its point is dropped. Only judged once the payload was read.
     const mixedProbe = !isComparison && !isJson && seriesIsJson && probe?.done && !probe.invalid ? probe : null;
@@ -133,42 +136,44 @@ export function ChartSeriesDetail({
                 </div>
             </Unavailable>
 
-            {/* Datapoint */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('echart.datapoint')}
-                </label>
-                <div className="flex gap-1">
-                    <input
-                        type="text"
-                        value={s.datapointId}
-                        onChange={(e) => onDatapointChange(e.target.value)}
-                        placeholder={t('echart.dpPlaceholder')}
-                        className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
-                        style={inputStyle}
-                    />
-                    <button
-                        onClick={() => setPickerOpen(true)}
-                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                        title={t('echart.fromIoBroker')}
-                    >
-                        <Database size={13} />
-                    </button>
-                    <ValueTransformButton
-                        factor={s.valueFactor}
-                        offset={s.valueOffset}
-                        presetId={s.valueTransform}
-                        dpId={s.datapointId}
-                        fillUnit
-                        onPatch={(patch) => onTransform(patch)}
-                    />
+            {/* Datapoint — a formula series takes its datapoints from the inputs below. */}
+            <Unavailable reason={seriesIsFormula ? t('echart.unavailDatapointFormula') : undefined}>
+                <div>
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.datapoint')}
+                    </label>
+                    <div className="flex gap-1">
+                        <input
+                            type="text"
+                            value={s.datapointId}
+                            onChange={(e) => onDatapointChange(e.target.value)}
+                            placeholder={t('echart.dpPlaceholder')}
+                            className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
+                            style={inputStyle}
+                        />
+                        <button
+                            onClick={() => setPickerOpen(true)}
+                            className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            title={t('echart.fromIoBroker')}
+                        >
+                            <Database size={13} />
+                        </button>
+                        <ValueTransformButton
+                            factor={s.valueFactor}
+                            offset={s.valueOffset}
+                            presetId={s.valueTransform}
+                            dpId={s.datapointId}
+                            fillUnit
+                            onPatch={(patch) => onTransform(patch)}
+                        />
+                    </div>
                 </div>
-            </div>
+            </Unavailable>
 
             {/* Data source — a timeseries chart draws history and JSON
                 payloads on the same time axis (issue #595). The other
@@ -187,7 +192,7 @@ export function ChartSeriesDetail({
                         {t('echart.seriesSource')}
                     </label>
                     <div className="aura-series-source flex gap-1">
-                        {(['history', 'json'] as const).map((src) => {
+                        {(['history', 'json', 'formula'] as const).map((src) => {
                             // Shown as what the mode reads: JSON forces the payload, comparison the live value.
                             const active = isComparison ? false : (isJson ? 'json' : (s.source ?? 'history')) === src;
                             return (
@@ -201,13 +206,19 @@ export function ChartSeriesDetail({
                                         border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                                     }}
                                 >
-                                    {src === 'history' ? t('echart.sourceHistory') : t('echart.sourceJson')}
+                                    {src === 'history'
+                                        ? t('echart.sourceHistory')
+                                        : src === 'json'
+                                          ? t('echart.sourceJson')
+                                          : t('echart.sourceFormula')}
                                 </button>
                             );
                         })}
                     </div>
                 </div>
             </Unavailable>
+
+            {seriesIsFormula && <ChartSeriesFormulaPanel s={s} update={update} />}
 
             {!isComparison && seriesIsJson && <JsonMultiSeriesToggle s={s} probe={probe} update={update} />}
 

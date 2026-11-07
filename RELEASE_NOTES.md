@@ -14,3 +14,4 @@
 - feat: Charts - pick a free date range from-to in the paging bar (e.g. a holiday); arrows page by its own length, linked charts follow, and an optional end datapoint makes it scriptable (#931)
 - feat: Charts - optionally return to the configured range and current date after N minutes without use, for wall tablets; linked charts follow (#932)
 - fix: Charts - windows up to 3 hours no longer break off for datapoints that log every few seconds; when the raw values exceed 1000 rows, the chart now fetches them in fine steps
+- feat: Charts - computed series from several datapoints with a formula (e.g. voltage x current, sum of three meters); inputs logged on change keep their last value, works with delta bars and the previous-year comparison, plus a new period value "area over time" (W to Wh) for any series (#930)

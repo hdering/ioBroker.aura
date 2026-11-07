@@ -2770,9 +2770,22 @@
           "type": "string",
           "enum": [
             "history",
-            "json"
+            "json",
+            "formula"
           ],
-          "description": "Where the series gets its points from. `history` (default) queries a history adapter; `json` reads a JSON array straight out of the datapoint's value — for datapoints that already hold pre-aggregated label/value pairs (issue #509)."
+          "description": "Where the series gets its points from. `history` (default) queries a history adapter; `json` reads a JSON array straight out of the datapoint's value — for datapoints that already hold pre-aggregated label/value pairs (issue #509). `formula` computes the series from several datapoints (`formulaInputs` + `formula`, issue #930) — `datapointId` stays empty."
+        },
+        "formulaInputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "FormulaInput"
+          },
+          "description": "Inputs of a `formula` series: variable name → datapoint, optionally with its own history instance. Inputs logged on change only hold their last value until the next one."
+        },
+        "formula": {
+          "type": "string",
+          "description": "Expression over the input names, e.g. `(is - ib) * u` or `a + b + c` (binding syntax, no JS)."
         },
         "jsonPath": {
           "type": "string",
@@ -2825,7 +2838,7 @@
         "periodValue": {
           "type": "string",
           "ref": "PeriodValueKind",
-          "description": "One number over the charted window, shown next to the series (issue #749) — e.g. the energy fed in over the selected 30 days. Follows the range buttons, the day navigation and a time shift. `consumption` = sum of every rise (meters, reset-aware), `change` = end − start, `min`/`max`/`average` over the readings; a `delta` series reads them off its bars. Placement: widget option `echartPeriodPlacement`. Unset = none. Ignored for JSON series and in comparison/JSON mode."
+          "description": "One number over the charted window, shown next to the series (issue #749) — e.g. the energy fed in over the selected 30 days. Follows the range buttons, the day navigation and a time shift. `consumption` = sum of every rise (meters, reset-aware), `change` = end − start, `min`/`max`/`average` over the readings, `integral` = area under the curve per hour (W → Wh, #930); a `delta` series reads them off its bars. Placement: widget option `echartPeriodPlacement`. Unset = none. Ignored for JSON series and in comparison/JSON mode."
         }
       }
     },
@@ -2853,6 +2866,26 @@
         "auto"
       ]
     },
+    "FormulaInput": {
+      "type": "object",
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Variable name in the formula (`u`, `is`)."
+        },
+        "datapointId": {
+          "type": "string",
+          "required": true,
+          "description": "State the variable reads — live value and history alike.",
+          "datapoint": true
+        },
+        "historyInstance": {
+          "type": "string",
+          "description": "Own history instance — otherwise the series' one."
+        }
+      }
+    },
     "TimeShiftUnit": {
       "type": "string",
       "enum": [
@@ -2870,7 +2903,8 @@
         "change",
         "min",
         "max",
-        "average"
+        "average",
+        "integral"
       ]
     },
     "GroupActionType": {
