@@ -2293,6 +2293,10 @@ export const en: Record<TranslationKey, string> = {
     'echart.navRangeFrom': 'From',
     'echart.navRangeTo': 'To',
     'echart.navRangePickTitle': 'Pick a range (from–to)',
+    'echart.navIdleReset': 'Reset after idle',
+    'echart.navIdleResetOff': 'off',
+    'echart.navIdleResetHint':
+        'After this many minutes without touching the page the chart returns to its configured range and start date — the link group follows. Empty = never.',
     'echart.navRangeDp': 'Range datapoint',
     'echart.navRangeDpHint': 'Read + write: tokens like 6h, 24h, 7d, 1M, total.',
     'echart.navCommandDp': 'Command datapoint',

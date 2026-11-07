@@ -321,6 +321,39 @@ await mount([chart('free-dp', 0, { echartNavDateDp: 'test.nav.from', echartNavEn
     );
 }
 
+// ── Back to the configured range after idle (#932) ───────────────────────────────────────
+// 0.04 min = 2.4 s; the option takes minutes, fractions only matter here.
+await mount([
+    chart('idle-a', 0, { echartNavIdleReset: 0.04, echartNavGroup: 'idle' }),
+    chart('idle-b', 8, { echartNavGroup: 'idle' }),
+]);
+{
+    await click(0, chip('7 Tage'));
+    await click(0, '[data-testid="echart-nav-prev"]');
+    let a = await windowOf(0);
+    check('browsed to the week before', a?.[0] === midnight(13) && a?.[1] === midnight(6), fmtWin(a));
+    // Use keeps it: the pointer moves for longer than the idle time.
+    for (let i = 0; i < 8; i++) {
+        await page.mouse.move(600 + (i % 2) * 20, 900);
+        await page.waitForTimeout(400);
+    }
+    a = await windowOf(0);
+    check('activity keeps the browsed window', a !== null, fmtWin(a));
+    await page.waitForTimeout(3200);
+    a = await windowOf(0);
+    const b = await windowOf(1);
+    check('idle: back to the rolling range', a === null, fmtWin(a));
+    check(
+        'and to the configured chip',
+        (
+            await item(0)
+                .locator(chip('24 Std'))
+                .evaluate((el) => el.style.background)
+        ).includes('accent'),
+    );
+    check('the linked chart follows', b === null, fmtWin(b));
+}
+
 // ── Across widget types: advanced, simple and distribution chart in one group ──────────────
 const simple = (id, y, opts = {}) => ({
     id,

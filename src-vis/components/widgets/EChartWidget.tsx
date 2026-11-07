@@ -562,6 +562,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
         dateDp: (o.echartNavDateDp as string | undefined) ?? '',
         endDp: (o.echartNavEndDp as string | undefined) ?? '',
         freeRange: o.echartNavFreeRange === true,
+        idleResetMinutes: Number(o.echartNavIdleReset) || 0,
         rangeDp: (o.echartNavRangeDp as string | undefined) ?? '',
         commandDp: (o.echartNavCommandDp as string | undefined) ?? '',
     });

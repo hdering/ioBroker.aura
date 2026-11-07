@@ -2314,6 +2314,10 @@ export const de = {
     'echart.navRangeFrom': 'Von',
     'echart.navRangeTo': 'Bis',
     'echart.navRangePickTitle': 'Zeitraum wählen (von–bis)',
+    'echart.navIdleReset': 'Nach Leerlauf zurücksetzen',
+    'echart.navIdleResetOff': 'aus',
+    'echart.navIdleResetHint':
+        'Ohne Bedienung der Seite springt das Diagramm nach so vielen Minuten auf den eingestellten Zeitraum und das Startdatum zurück — die Kopplungsgruppe folgt. Leer = nie.',
     'echart.navRangeDp': 'Zeitraum-Datenpunkt',
     'echart.navRangeDpHint': 'Lesen + schreiben: Kürzel wie 6h, 24h, 7d, 1M, total.',
     'echart.navCommandDp': 'Befehls-Datenpunkt',

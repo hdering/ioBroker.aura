@@ -439,6 +439,7 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartNavDateDp`        | —        | Datum-Datenpunkt, lesen + schreiben: `YYYY-MM-DD`, ms, leer = bis jetzt           |
 | `echartNavEndDp`         | —        | Ende-Datenpunkt (von–bis): gesetzt = `echartNavDateDp` ist der erste, dieser der letzte Tag |
 | `echartNavFreeRange`     | `false`  | Freier Zeitraum: 📅 wählt Von und Bis statt eines Tags                             |
+| `echartNavIdleReset`     | —        | Minuten ohne Bedienung → zurück auf Standard-Zeitraum und Startdatum; Gruppe folgt, DPs bleiben |
 | `echartNavCommandDp`     | —        | Befehls-Datenpunkt, nur lesen: `prev` · `next` · `today` · `now`                |
 | `echartRangeLead`        | —        | Prognose: rollender Zeitraum reicht so weit über jetzt hinaus, z. B. `36h`        |
 | `echartNavFuture`        | `none`   | Prognose: Blättern in die Zukunft — `none` · `data` (bis zum letzten Wert) · `16d` |

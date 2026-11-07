@@ -220,6 +220,8 @@ interface MapOptions {
     navEndDp?: string;
     /** The date button picks a free range from–to (#931). */
     navFreeRange?: boolean;
+    /** Minutes without use after which the chart returns to its configured range (#932). */
+    navIdleReset?: number;
     /** Range datapoint (read + write). */
     navRangeDp?: string;
     /** Command datapoint: prev, next, today, now. */
@@ -1592,6 +1594,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
         dateDp: o.navDateDp ?? '',
         endDp: o.navEndDp ?? '',
         freeRange: o.navFreeRange === true,
+        idleResetMinutes: Number(o.navIdleReset) || 0,
         rangeDp: o.navRangeDp ?? '',
         commandDp: o.navCommandDp ?? '',
     });

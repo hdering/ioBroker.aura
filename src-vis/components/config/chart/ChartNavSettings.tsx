@@ -20,6 +20,8 @@ export interface ChartNavKeys {
     endDp: string;
     /** The date button picks from–to (#931). */
     freeRange: string;
+    /** Minutes of idle after which the chart returns to its configured range (#932). */
+    idleReset: string;
     rangeDp: string;
     commandDp: string;
     /** Forecast keys — only the advanced chart has them. */
@@ -38,6 +40,7 @@ export const PLAIN_NAV_KEYS: ChartNavKeys = {
     dateDp: 'navDateDp',
     endDp: 'navEndDp',
     freeRange: 'navFreeRange',
+    idleReset: 'navIdleReset',
     rangeDp: 'navRangeDp',
     commandDp: 'navCommandDp',
 };
@@ -52,6 +55,7 @@ export const ECHART_NAV_KEYS: ChartNavKeys = {
     dateDp: 'echartNavDateDp',
     endDp: 'echartNavEndDp',
     freeRange: 'echartNavFreeRange',
+    idleReset: 'echartNavIdleReset',
     rangeDp: 'echartNavRangeDp',
     commandDp: 'echartNavCommandDp',
     future: 'echartNavFuture',
@@ -221,6 +225,28 @@ export function ChartNavSettings({
                     className="ml-5"
                 />
             </Unavailable>
+            <div className="flex items-center gap-2 mt-2" data-testid="chart-nav-idle-reset">
+                <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                    {t('echart.navIdleReset')}
+                </span>
+                <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={Number(o[keys.idleReset]) > 0 ? String(o[keys.idleReset]) : ''}
+                    onChange={(e) => {
+                        const n = Math.round(Number(e.target.value));
+                        set({ [keys.idleReset]: n > 0 ? n : undefined });
+                    }}
+                    placeholder={t('echart.navIdleResetOff')}
+                    className={`${inputCls} w-20`}
+                    style={inputStyle}
+                />
+                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    min
+                </span>
+            </div>
+            <Hint>{t('echart.navIdleResetHint')}</Hint>
             {keys.future && keys.current && keys.lead && (
                 <Unavailable reason={forecastUnavailable}>
                     <p className="text-[11px] mt-3 mb-1 font-medium" style={{ color: 'var(--text-secondary)' }}>

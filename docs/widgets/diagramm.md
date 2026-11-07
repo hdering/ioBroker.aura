@@ -76,6 +76,7 @@ Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeiche
 | `navDateDp`               | —        | Datum-Datenpunkt, lesen + schreiben (`YYYY-MM-DD`, ms) |
 | `navEndDp`                | —        | Ende-Datenpunkt (von–bis): gesetzt = `navDateDp` ist der erste, dieser der letzte Tag |
 | `navFreeRange`            | `false`  | Freier Zeitraum: 📅 wählt Von und Bis, ‹ › springen um dessen Länge |
+| `navIdleReset`            | —        | Minuten ohne Bedienung → zurück auf Standard-Zeitraum und Startdatum; Gruppe folgt |
 | `navCommandDp`            | —        | Befehls-Datenpunkt: `prev` · `next` · `today` · `now` |
 
 Blättern und Koppeln wie im [Diagramm (erweitert)](./diagramm-erweitert.md#verlauf) — gleicher Gruppenname koppelt auch über die Diagramm-Typen hinweg.

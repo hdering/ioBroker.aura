@@ -8,6 +8,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useDatapoint } from './useDatapoint';
+import { useIdleTimeout } from './useIdleTimeout';
 import type { EChartTimeRange } from './useMultiSeriesData';
 import { useChartNavStore } from '../store/chartNavStore';
 import { chipKeyOf, parseRangeToken, rangeKey, type RangeChip, type RangeUnit } from '../utils/rangeChips';
@@ -73,6 +74,12 @@ export interface ChartNavOptions {
     commandDp: string;
     /** The date button picks a free range from–to instead of one day (#931). */
     freeRange?: boolean;
+    /**
+     * Minutes without any touch on the page after which the chart falls back to its configured
+     * range and start date (#932). 0/undefined = never. A link group follows; datapoints are not
+     * written — other devices sharing them may be in use.
+     */
+    idleResetMinutes?: number;
 }
 
 export interface ChartNav {
@@ -243,6 +250,21 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         if (cmd === 'next' && !canStepForward(cur.ref, s, anchor, Date.now(), l)) return;
         navigate(null, stepRef(cur.ref, s, cmd === 'prev' ? -1 : 1, anchor, Date.now(), l), origin);
     };
+
+    // Back to the configured range and start date after idle (#932) — armed only while the chart
+    // stands elsewhere. With "open on the current window" that is today's window as of now, so a
+    // wall display left on yesterday's "today" moves on as well.
+    const startKey = chipKeyOf(rangeKey(startRange, startCustomValue, startCustomUnit), startLead);
+    const startRefNow = () => {
+        const s = navSpan(startRange, startCustomValue, startCustomUnit);
+        return startOnCurrent && s ? todayRef(s, anchor, Date.now(), lim()) : null;
+    };
+    const idleMs = Math.max(0, Number(opts.idleResetMinutes) || 0) * 60_000;
+    const away = chipKey !== startKey || ref !== startRefNow();
+    useIdleTimeout(away ? idleMs : 0, () => {
+        // Like a datapoint: the group follows, nothing is written back.
+        navigate(parseRangeToken(startKey), startRefNow(), 'dp');
+    });
 
     // Follow the group — including the state it already has when this chart mounts (a popup copy).
     useEffect(() => {

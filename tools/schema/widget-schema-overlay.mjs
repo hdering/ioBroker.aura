@@ -347,6 +347,15 @@ function navNotes(k) {
                 'die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen ' +
                 `(z. B. "20d"), ◀/▶ springen um seine Länge, ${k.group} gibt ihn wie einen Chip weiter.`,
         },
+        [k.idleReset]: {
+            type: 'number',
+            default: 0,
+            description:
+                'Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den ' +
+                `konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit ${k.startOnCurrent} = aktuelles ` +
+                `Fenster, sonst rollend). Die Kopplungsgruppe ${k.group} folgt; Navigations-Datenpunkte werden dabei ` +
+                'nicht geschrieben. 0 = nie. Für Wand-Tablets.',
+        },
         [k.rangeDp]: {
             description:
                 'Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips ("6h", "24h", "7d", ' +
@@ -369,6 +378,7 @@ const PLAIN_NAV = {
     dateDp: 'navDateDp',
     endDp: 'navEndDp',
     freeRange: 'navFreeRange',
+    idleReset: 'navIdleReset',
     rangeDp: 'navRangeDp',
     commandDp: 'navCommandDp',
 };
@@ -1681,6 +1691,7 @@ export const WIDGET_OPTION_NOTES = {
             dateDp: 'echartNavDateDp',
             endDp: 'echartNavEndDp',
             freeRange: 'echartNavFreeRange',
+            idleReset: 'echartNavIdleReset',
             rangeDp: 'echartNavRangeDp',
             commandDp: 'echartNavCommandDp',
         }),

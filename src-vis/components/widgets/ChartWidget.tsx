@@ -142,6 +142,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
         dateDp: (o.navDateDp as string | undefined) ?? '',
         endDp: (o.navEndDp as string | undefined) ?? '',
         freeRange: o.navFreeRange === true,
+        idleResetMinutes: Number(o.navIdleReset) || 0,
         rangeDp: (o.navRangeDp as string | undefined) ?? '',
         commandDp: (o.navCommandDp as string | undefined) ?? '',
     });
