@@ -55,6 +55,7 @@ const CLEAR_PIN: Partial<PinProtected> = {
     pin: undefined,
     pinRelock: undefined,
     pinHideLock: undefined,
+    pinShowMarkers: undefined,
     pinProtected: undefined,
     pinLength: undefined,
     pinFrom: undefined,

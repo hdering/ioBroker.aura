@@ -334,6 +334,7 @@ function installScreenshotApi(): void {
             pin?: string;
             pinProtected?: boolean;
             pinHideLock?: boolean;
+            pinShowMarkers?: boolean;
             pinFrom?: string;
             pinCode?: string;
             widgets: number;
@@ -347,6 +348,7 @@ function installScreenshotApi(): void {
                 pin: tab?.pin,
                 pinProtected: tab?.pinProtected,
                 pinHideLock: tab?.pinHideLock,
+                pinShowMarkers: tab?.pinShowMarkers,
                 pinFrom: tab?.pinFrom,
                 pinCode: tab?.pinCode,
                 widgets: tab?.widgets.length ?? 0,

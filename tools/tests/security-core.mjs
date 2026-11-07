@@ -416,6 +416,48 @@ const fullConfig = () => ({
     ok(withFlag.layouts[0].sections[2].tabs[1].pinHideLock === undefined, 'removing the PIN drops the flag too');
 }
 
+// ── #944: conditions/badges on the stub only when the view opts in ───────────
+{
+    const tabOf = (c) => c.layouts[0].sections[2].tabs[1];
+    const secOf = (c) => c.layouts[0].sections[1];
+
+    const closed = vault.splitDashboard(fullConfig()).publicConfig;
+    ok(tabOf(closed).conditions === undefined, 'without pinShowMarkers the tab conditions stay in the vault');
+    ok(secOf(closed).badges === undefined, 'without pinShowMarkers the section badges stay in the vault');
+
+    const cfg = fullConfig();
+    Object.assign(tabOf(cfg), { pinShowMarkers: true, badges: [{ id: 'bt' }], badgeAggregate: { enabled: true } });
+    Object.assign(secOf(cfg), { pinShowMarkers: true });
+    secOf(cfg).tabs[0].conditions = [{ id: 'cA' }];
+    const split = vault.splitDashboard(cfg);
+    const open = split.publicConfig;
+    ok(tabOf(open).pinShowMarkers === true, 'the flag rides on the stub');
+    ok(tabOf(open).conditions[0].dp === 'some.dp' && tabOf(open).badges[0].id === 'bt', 'tab markers on the stub');
+    ok(tabOf(open).badgeAggregate === undefined, 'the widget count never leaves the vault');
+    ok(tabOf(open).widgets.length === 0 && tabOf(open).pinProtected === true, 'the tab stays redacted');
+    ok(secOf(open).conditions[0].id === 'c1' && secOf(open).badges[0].id === 'b1', 'section markers on the stub');
+    ok(secOf(open).badgeAggregate === undefined, 'no section widget count on the stub');
+    ok(secOf(open).tabs[0].conditions === undefined, 'the tabs of a locked section keep theirs in the vault');
+    const byKey = Object.fromEntries(split.protected.map((p) => [p.key, p]));
+    ok(byKey['tab:sTabLock:tPin'].content.badgeAggregate.enabled === true, 'the vault still holds everything');
+
+    // A save that arrives as a stub (fromStub): the adapter swaps in the stored
+    // content and re-exposes — the markers come from the vault, not the stub.
+    const resaved = JSON.parse(JSON.stringify(open));
+    tabOf(resaved).pin = vault.KEEP_PIN;
+    const again = vault.splitDashboard(resaved);
+    const p = again.protected.find((x) => x.key === 'tab:sTabLock:tPin');
+    ok(p.fromStub === true, 'a stub save is recognised');
+    p.content = byKey['tab:sTabLock:tPin'].content;
+    tabOf(again.publicConfig).badges = [{ id: 'stale' }];
+    vault.exposeMarkers(again.publicConfig, again.protected);
+    ok(tabOf(again.publicConfig).badges[0].id === 'bt', 'markers are re-read from the vault content');
+
+    vault.restoreView(open, 'tab:sTabLock:tPin', byKey['tab:sTabLock:tPin'].content);
+    ok(tabOf(open).pinShowMarkers === undefined, 'removing the PIN drops pinShowMarkers');
+    ok(tabOf(open).badgeAggregate.enabled === true, 'and the full decoration is back');
+}
+
 // ── Named PINs (codes): one PIN, many views ───────────────────────────────────
 {
     // Migration: a section with its own PIN and a tab linked to it share one PIN.

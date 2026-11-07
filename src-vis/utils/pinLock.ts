@@ -42,6 +42,12 @@ export interface PinProtected {
      */
     pinHideLock?: boolean;
     /**
+     * Keep the entry's conditions and own badges visible while it is locked (#944).
+     * The adapter then copies them onto the public stub, which makes their DP ids
+     * readable for every socket client — hence opt-in.
+     */
+    pinShowMarkers?: boolean;
+    /**
      * Id of the named PIN this view uses (the vault's `codes`, managed under
      * Layouts › Zugriffsschutz). Set together with a KEEP/LINK sentinel in `pin`;
      * the adapter takes the hash from the named PIN on every save.

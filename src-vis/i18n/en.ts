@@ -687,6 +687,9 @@ export const en: Record<TranslationKey, string> = {
     'pin.showLock': 'Show padlock',
     'pin.showLockHint':
         'On (default): locked entries carry a padlock in the menu or the tab bar. Off: no icon – the PIN is still asked for.',
+    'pin.showMarkers': 'Show markers and conditions while locked',
+    'pin.showMarkersHint':
+        'On: conditions and own markers apply while the entry is locked. Their datapoint IDs are then readable without the PIN. The widget count marker only appears after unlocking.',
     'pin.mcpWrite': 'Editable via MCP',
     'pin.mcpWriteHint':
         'Lets the AI server (MCP) read and change the protected content. Off: structure only (id, type, size), ' +

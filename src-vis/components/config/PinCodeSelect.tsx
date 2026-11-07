@@ -105,6 +105,7 @@ export function PinCodeSelect({
                             pinFrom: undefined,
                             pinRelock: undefined,
                             pinHideLock: undefined,
+                            pinShowMarkers: undefined,
                         });
                     else if (v !== LEGACY) onChange(assignPinCode(node, v));
                 }}

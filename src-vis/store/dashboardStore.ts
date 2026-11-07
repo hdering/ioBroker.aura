@@ -286,6 +286,7 @@ export interface Tab {
     pinLength?: number; // digit count of the PIN (keypad hint), never the PIN itself
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the tab button - the gate stays, only the badge goes (#692)
+    pinShowMarkers?: boolean; // conditions + own badges stay visible while locked (DP ids become readable) (#944)
     pinFrom?: string; // vault key of the section/tab whose PIN this one follows (linked PIN)
     pinCode?: string; // id of the named PIN (vault `codes`) this view uses - no secret, only the id
     idleReturnExempt?: boolean; // never left automatically by the idle-return timer (#638)
@@ -327,6 +328,7 @@ export interface Section {
     pinLength?: number; // digit count of the PIN (keypad hint), never the PIN itself
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     pinHideLock?: boolean; // no padlock on the section menu entry - the gate stays, only the badge goes (#692)
+    pinShowMarkers?: boolean; // menu entry's conditions + own badges stay visible while locked (#944)
     pinFrom?: string; // vault key of the section/tab whose PIN this one follows (linked PIN)
     pinCode?: string; // id of the named PIN (vault `codes`) this view uses - no secret, only the id
     settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
@@ -573,6 +575,7 @@ interface DashboardState {
                 | 'pin'
                 | 'pinRelock'
                 | 'pinHideLock'
+                | 'pinShowMarkers'
                 | 'pinFrom'
                 | 'pinCode'
                 // Cleared together with `pin` when the protection is removed — a
@@ -932,7 +935,12 @@ export const useDashboardStore = create<DashboardState>()(
                                 let next = sec;
                                 const sEntry = entries[`section:${sec.id}`];
                                 const sContent = sEntry?.content as
-                                    | { tabs?: Tab[]; badges?: Section['badges']; badgeAggregate?: BadgeAggregate }
+                                    | {
+                                          tabs?: Tab[];
+                                          conditions?: Section['conditions'];
+                                          badges?: Section['badges'];
+                                          badgeAggregate?: BadgeAggregate;
+                                      }
                                     | undefined;
                                 if (sContent && Array.isArray(sContent.tabs)) {
                                     next = {
@@ -941,7 +949,8 @@ export const useDashboardStore = create<DashboardState>()(
                                         // The menu decoration is vault content too —
                                         // the stub never carries it, so a save that
                                         // did not put it back dropped the section's
-                                        // badgeAggregate for good.
+                                        // badgeAggregate (and its conditions) for good.
+                                        conditions: sContent.conditions,
                                         badges: sContent.badges,
                                         badgeAggregate: sContent.badgeAggregate,
                                         pin: sEntry?.open ? undefined : KEEP_PIN,

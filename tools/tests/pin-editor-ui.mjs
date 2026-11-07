@@ -163,6 +163,7 @@ const select = page.locator('select.aura-pin-code');
 const mcp = page.locator('.aura-pin-mcp');
 const remove = page.locator('.aura-pin-remove');
 const showLock = page.locator('.aura-pin-showlock');
+const showMarkers = page.locator('.aura-pin-showmarkers');
 const visible = async (loc) =>
     loc
         .first()
@@ -232,6 +233,19 @@ try {
     await showLock.locator('button').first().click();
     await page.waitForTimeout(200);
     eq('switching it back on clears the flag again', await tabState('tFree').then((t) => t.pinHideLock), undefined);
+    // ── markers while locked (#944) ──────────────────────────────────────────
+    eq('… and the markers switch', await visible(showMarkers), true);
+    eq(
+        'it starts off — markers name DPs, so they stay in the vault by default',
+        await tabState('tFree').then((t) => t.pinShowMarkers),
+        undefined,
+    );
+    await showMarkers.locator('button').first().click();
+    await page.waitForTimeout(200);
+    eq('switching it on sets pinShowMarkers', await tabState('tFree').then((t) => t.pinShowMarkers), true);
+    await showMarkers.locator('button').first().click();
+    await page.waitForTimeout(200);
+    eq('switching it off clears it again', await tabState('tFree').then((t) => t.pinShowMarkers), undefined);
 
     check(
         'the MCP hint text is the one the panel promises',

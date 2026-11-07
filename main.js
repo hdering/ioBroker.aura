@@ -39,6 +39,7 @@ const { mergeRenderReport, pruneBackups, renderReportEntry } = require('./lib/mc
 const { generateServerSecret } = require('./lib/security/authCore');
 const {
     splitDashboard,
+    exposeMarkers,
     buildVaultSections,
     unredactView,
     restoreView,
@@ -1619,6 +1620,8 @@ class Aura extends utils.Adapter {
                 p.content = data.sections[p.key].content;
             }
         }
+        // Shown markers (#944) come from the real view, not from the stub it arrived as.
+        exposeMarkers(publicConfig, prot);
         const { sections, unresolved } = buildVaultSections(prot, data.sections || {}, data.codes || {});
         if (unresolved.length) {
             // A "keep the current PIN" marker pointed at a PIN the vault does not

@@ -692,6 +692,9 @@ export const de = {
     'pin.showLock': 'Schloss-Symbol zeigen',
     'pin.showLockHint':
         'An (Standard): gesperrte Einträge tragen ein Schloss im Menü bzw. in der Tab-Leiste. Aus: kein Symbol – die PIN wird trotzdem abgefragt.',
+    'pin.showMarkers': 'Marker und Bedingungen gesperrt zeigen',
+    'pin.showMarkersHint':
+        'An: Bedingungen und eigene Marker wirken auch, solange gesperrt ist. Ihre Datenpunkt-IDs sind dann ohne PIN lesbar. Die Sammel-Zählung der Widgets erscheint erst nach dem Entsperren.',
     'pin.mcpWrite': 'Über MCP bearbeitbar',
     'pin.mcpWriteHint':
         'Der KI-Server (MCP) darf den geschützten Inhalt lesen und ändern. Aus: nur Struktur (Id, Typ, Größe), ' +
