@@ -119,6 +119,7 @@
     "test:header-items-sweep": "node tools/tests/header-items-sweep.mjs",
     "test:widget-collapse": "node tools/tests/widget-collapse.mjs",
     "test:widget-collapse-logic": "node tools/tests/widget-collapse-logic.mjs",
+    "test:widget-collapse-title": "node tools/tests/widget-collapse-title.mjs",
     "test:widget-style": "node tools/tests/widget-style-copy.mjs",
     "test:text-wrap": "node tools/tests/widget-text-wrap.mjs",
     "test:iframe-scheme": "node tools/tests/iframe-color-scheme.mjs",

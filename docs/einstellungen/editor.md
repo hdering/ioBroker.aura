@@ -124,7 +124,7 @@ Nicht für Widgets innerhalb einer Gruppe. Im Editor zeigt der Ziehgriff beim Ve
 
 ## Einklappen
 
-`Bearbeiten` → **Darstellung** → `Standardmäßig eingeklappt`. Das Widget startet als einzelne Zeile mit Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach.
+`Bearbeiten` → **Darstellung** → `Standardmäßig eingeklappt`. Das Widget startet als einzelne Zeile mit Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach. Ausgeklappt sieht die Titelzeile genauso aus (Pfeil vorne, Icon und Titel an derselben Stelle, Titel fett); ein Tipp auf die Titelzeile oder den Pfeil klappt wieder ein. Schalter und Knöpfe in der Zeile behalten ihren Klick; im Editor klappt nur der Pfeil ein.
 
 | Option | |
 | --- | --- |

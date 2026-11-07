@@ -131,7 +131,13 @@ import {
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { useHeaderItems } from '../../hooks/useHeaderItems';
 import { HeaderRowOne, HeaderRowTwo } from './HeaderItemSlots';
-import { HeaderSlotsContext, type HeaderRow, type HeaderSlotsValue, type IconPlace } from './HeaderSlotsContext';
+import {
+    HeaderSlotsContext,
+    isOwnControl,
+    type HeaderRow,
+    type HeaderSlotsValue,
+    type IconPlace,
+} from './HeaderSlotsContext';
 import { HeaderItemsEditor } from '../config/HeaderItemsEditor';
 import {
     groupBySlot,
@@ -7697,6 +7703,13 @@ function WidgetFrameInner({
             iconPlace: renderConfig.options?.iconPlace as IconPlace | undefined,
             titleRow: renderConfig.options?.titleRow as number | undefined,
             titleInRow2: hdrRows.t2 > 0,
+            // Expanded collapsible card (issue #941): the title row looks like the
+            // folded header and folds it. In the editor only the chevron does — a
+            // click on the row selects and drags there.
+            collapse:
+                frameCollapsible && !isCollapsed
+                    ? { onCollapse: () => toggleCollapse(rid), rowClick: !editMode, label: t('wf.collapse.collapse') }
+                    : undefined,
         }),
         [
             expandedHeaderItems,
@@ -7705,8 +7718,24 @@ function WidgetFrameInner({
             renderConfig.options?.iconPlace,
             renderConfig.options?.titleRow,
             hdrRows.t2,
+            frameCollapsible,
+            isCollapsed,
+            toggleCollapse,
+            rid,
+            editMode,
+            t,
         ],
     );
+    // A widget that draws its title without TitleRow (custom grid, media player …):
+    // a click on the title itself folds the card all the same (issue #941). Capture
+    // phase, so a card-wide click of the widget does not run as well.
+    const foldOnBareTitle = (e: React.MouseEvent<HTMLElement>) => {
+        const el = e.target instanceof Element ? e.target : null;
+        if (!el?.closest('.aura-widget-title') || el.closest('.aura-title-collapse')) return;
+        if (isOwnControl(el, e.currentTarget)) return;
+        e.stopPropagation();
+        toggleCollapse(rid);
+    };
     // An 'action' item puts the click-action icon on a slot; the corner button and the
     // folded header's trailing icon step back for it in the state it shows in.
     const storedHeaderItems = headerItems(config.options);
@@ -8792,6 +8821,7 @@ function WidgetFrameInner({
                     className={pointerLocked ? 'aura-widget-inert' : undefined}
                     style={{ display: 'contents' }}
                     data-aura-locked={pointerLocked ? '' : undefined}
+                    onClickCapture={headerSlots.collapse?.rowClick ? foldOnBareTitle : undefined}
                 >
                     <Suspense
                         fallback={

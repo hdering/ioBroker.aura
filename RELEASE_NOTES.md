@@ -17,3 +17,4 @@
 - feat: Charts - computed series from several datapoints with a formula (e.g. voltage x current, sum of three meters); inputs logged on change keep their last value, works with delta bars and the previous-year comparison, plus a new period value "area over time" (W to Wh) for any series (#930)
 - fix: Menu - the header settings now work: title and icon can be shown above the menu entries (off by default, so existing menus stay unchanged) (#949)
 - feat: JSON table - the last row can be shown as a highlighted footer (e.g. a sum row) with its own colours, bold/italic and pinned to the bottom; it stays in place when sorting, searching or limiting rows. Header and footer settings now live together under Look (#938)
+- feat: Collapsible widgets - when expanded, the title row looks like the folded header (chevron in front, icon and title in the same place, same weight) and a click on it folds the widget again; switches and buttons in the row keep their own click (#941)

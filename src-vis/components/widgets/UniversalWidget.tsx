@@ -8,6 +8,7 @@ import { LayoutGrid } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView, DEFAULT_UNIVERSAL_GRID } from './CustomGridView';
+import { TitleRow } from '../layout/HeaderSlotsContext';
 
 export function UniversalWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
@@ -24,7 +25,7 @@ export function UniversalWidget({ config }: WidgetProps) {
             style={{ position: 'relative' }}
         >
             {hasHeader && (
-                <div className="flex items-center gap-2 shrink-0">
+                <TitleRow align={titleAlign} className="flex items-center gap-2 shrink-0">
                     {showIcon && (
                         <Icon
                             className="aura-widget-icon"
@@ -48,7 +49,7 @@ export function UniversalWidget({ config }: WidgetProps) {
                             {config.title}
                         </p>
                     )}
-                </div>
+                </TitleRow>
             )}
             <div className="flex-1 min-h-0">
                 <CustomGridView config={config} value="" fallback={DEFAULT_UNIVERSAL_GRID} />
