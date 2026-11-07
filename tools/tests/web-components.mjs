@@ -154,6 +154,18 @@ function fakeApi() {
     await socket.unsubscribeObject('x.0.two', oc);
     await new Promise((r) => setTimeout(r, 20));
     check('socket: no object after unsubscribing', objs, []);
+
+    // Objects with object events (#946): every change reaches the component, until it unsubscribes
+    const objectCbs = new Map();
+    f.api.subscribeObject = (id, cb) => {
+        objectCbs.set(id, cb);
+        return () => objectCbs.delete(id);
+    };
+    await socket.subscribeObject('x.0.three', oc);
+    objectCbs.get('x.0.three')?.({ _id: 'x.0.three', native: { v: 2 } });
+    check('socket: subscribeObject hands on object changes', objs, [['x.0.three', 'x.0.three']]);
+    await socket.unsubscribeObject('x.0.three', oc);
+    check('socket: unsubscribeObject ends the object subscription', objectCbs.has('x.0.three'), false);
 }
 
 // ── theme ───────────────────────────────────────────────────────────────────

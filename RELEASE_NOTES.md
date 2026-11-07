@@ -10,3 +10,4 @@
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: PIN-protected tabs and sections can show their conditions and markers while locked - new option "Show markers and conditions while locked" in the PIN settings (#944)
 - fix: Mirror - a mirrored widget now shows its source's conditions, markers and click action; settings of the mirror itself still take precedence (#945)
+- fix: Web component - the flow diagram now updates as soon as it is changed and saved in the Flow tab of admin, without reloading the page (#946)
