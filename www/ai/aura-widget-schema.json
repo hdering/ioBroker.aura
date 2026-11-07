@@ -10104,6 +10104,11 @@
           "default": "all",
           "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
         },
+        "navIdleReset": {
+          "type": "number",
+          "default": 0,
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit dayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe navGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets."
+        },
         "navPosition": {
           "type": "string",
           "enum": [
@@ -12624,6 +12629,11 @@
           "default": "all",
           "description": "Was die Kopplungsgruppe (echartNavGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
         },
+        "echartNavIdleReset": {
+          "type": "number",
+          "default": 0,
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit echartDayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe echartNavGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets."
+        },
         "echartNavRangeDp": {
           "type": "string",
           "default": "",
@@ -13078,6 +13088,11 @@
           ],
           "default": "all",
           "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
+        },
+        "navIdleReset": {
+          "type": "number",
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit dayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe navGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets.",
+          "default": 0
         },
         "navPosition": {
           "type": "string",
@@ -18748,6 +18763,11 @@
           ],
           "default": "all",
           "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
+        },
+        "navIdleReset": {
+          "type": "number",
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit dayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe navGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets.",
+          "default": 0
         },
         "navPosition": {
           "type": "string",
