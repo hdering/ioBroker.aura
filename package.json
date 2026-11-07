@@ -176,6 +176,7 @@
     "test:jsontable-row-popup": "node tools/tests/jsontable-row-popup-ui.mjs",
     "test:common-states": "node tools/tests/common-states.mjs",
     "test:jsontable-sort": "node tools/tests/jsontable-default-sort.mjs",
+    "test:jsontable-footer": "node tools/tests/jsontable-footer.mjs",
     "test:apple-keys": "node tools/tests/apple-shortcut-keys.mjs",
     "test:aircontrol-daikin": "node tools/tests/aircontrol-daikin.mjs",
     "test:alarm-pin-disarm": "node tools/tests/alarm-pin-disarm.mjs",

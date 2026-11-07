@@ -415,6 +415,23 @@ export const WIDGET_OPTION_NOTES = {
         },
     },
     jsontable: {
+        footerRow: {
+            description:
+                'Letzte Datenzeile als Fußzeile (#938), z. B. eine Summenzeile Σ. Sie wird vor Suche, Sortierung und maxRows aus den Daten gelöst: bleibt immer unten, bleibt bei der Suche sichtbar, zählt im Trefferzähler nicht mit und ist nicht anklickbar. Spaltenformate gelten auch für sie. Erst ab 2 Datenzeilen. Standard false.',
+        },
+        footerBg: {
+            description:
+                'Hintergrund der Fußzeile (Hex, rgba(), CSS-Variable oder Hell/Dunkel-Paar). Standard var(--app-bg). Gewinnt über cellBg der Spalte; die Bezeichnungsspalte (firstColHeader) behält ihre Farben. Bei transparent ohne Hintergrund.',
+        },
+        footerColor: {
+            description: 'Textfarbe der Fußzeile. Standard var(--text-primary). Gewinnt über cellColor der Spalte.',
+        },
+        footerBold: { description: 'Fußzeile fett. Standard true.' },
+        footerItalic: { description: 'Fußzeile kursiv. Standard false.' },
+        footerSticky: {
+            description:
+                'Fußzeile beim Scrollen am unteren Rand fixiert (Gegenstück zum Kopf). Standard true; wirkt nicht bei transparent.',
+        },
         rowClickAction: {
             description:
                 'Klick auf eine Tabellenzeile (#858). Nicht gesetzt = Zeilen nicht anklickbar; "auto" gilt hier als aus (die Zeilen haben keinen Datenpunkt). Ein ClickAction-Objekt, meist popup-html oder popup-view. Im Popup stehen die Felder der geklickten Zeile als Platzhalter: {{row_<feld>}} = Rohwert (Objekte als JSON), {{rowtext_<feld>}} = Text wie in der Tabelle (Format, Zuordnung, Präfix/Suffix) — auch für ausgeblendete Spalten; andere Zeichen als Buchstaben/Ziffern/_ im Feldnamen werden zu _. Ohne rowPopupTitle ist der Titel die erste sichtbare Zelle. Rezept json-protokoll-detail.',

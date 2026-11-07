@@ -16,3 +16,4 @@
 - fix: Charts - windows up to 3 hours no longer break off for datapoints that log every few seconds; when the raw values exceed 1000 rows, the chart now fetches them in fine steps
 - feat: Charts - computed series from several datapoints with a formula (e.g. voltage x current, sum of three meters); inputs logged on change keep their last value, works with delta bars and the previous-year comparison, plus a new period value "area over time" (W to Wh) for any series (#930)
 - fix: Menu - the header settings now work: title and icon can be shown above the menu entries (off by default, so existing menus stay unchanged) (#949)
+- feat: JSON table - the last row can be shown as a highlighted footer (e.g. a sum row) with its own colours, bold/italic and pinned to the bottom; it stays in place when sorting, searching or limiting rows. Header and footer settings now live together under Look (#938)

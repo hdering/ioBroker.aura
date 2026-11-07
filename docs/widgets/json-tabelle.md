@@ -51,6 +51,21 @@ Nur wirksam bei `showHeader: true`.
 | `headerBg` | `var(--accent)` | Hintergrund der Kopfzeile |
 | `headerColor` | `#ffffff` | Textfarbe der Kopfzeile |
 
+### Fußzeile
+
+Letzte Datenzeile als Fußzeile, z. B. eine Summenzeile. Bleibt beim Sortieren, Suchen und mit `maxRows` unten stehen, zählt im Trefferzähler nicht mit und ist nicht anklickbar. Erst ab 2 Datenzeilen.
+
+![](./assets/json-tabelle/footer.png)
+
+| Option | Standard | |
+| --- | --- | --- |
+| `footerRow` | `false` | letzte Zeile als Fußzeile |
+| `footerBg` | `var(--app-bg)` | Hintergrund der Fußzeile |
+| `footerColor` | `var(--text-primary)` | Textfarbe der Fußzeile |
+| `footerBold` | `true` | fett |
+| `footerItalic` | `false` | kursiv |
+| `footerSticky` | `true` | beim Scrollen unten fixiert (nicht bei transparentem Hintergrund) |
+
 ### Erste Spalte als Bezeichnung
 
 Hebt die erste Spalte als Label-Spalte hervor.

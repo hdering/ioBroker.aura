@@ -16641,6 +16641,38 @@
           "default": 12,
           "description": "Schriftgröße in px. 0 = automatisch."
         },
+        "footerBg": {
+          "type": "string",
+          "default": "var(--app-bg)",
+          "description": "Hintergrund der Fußzeile (Hex, rgba(), CSS-Variable oder Hell/Dunkel-Paar). Standard var(--app-bg). Gewinnt über cellBg der Spalte; die Bezeichnungsspalte (firstColHeader) behält ihre Farben. Bei transparent ohne Hintergrund.",
+          "color": true
+        },
+        "footerBold": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fußzeile fett. Standard true."
+        },
+        "footerColor": {
+          "type": "string",
+          "default": "var(--text-primary)",
+          "description": "Textfarbe der Fußzeile. Standard var(--text-primary). Gewinnt über cellColor der Spalte.",
+          "color": true
+        },
+        "footerItalic": {
+          "type": "boolean",
+          "default": false,
+          "description": "Fußzeile kursiv. Standard false."
+        },
+        "footerRow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Letzte Datenzeile als Fußzeile (#938), z. B. eine Summenzeile Σ. Sie wird vor Suche, Sortierung und maxRows aus den Daten gelöst: bleibt immer unten, bleibt bei der Suche sichtbar, zählt im Trefferzähler nicht mit und ist nicht anklickbar. Spaltenformate gelten auch für sie. Erst ab 2 Datenzeilen. Standard false."
+        },
+        "footerSticky": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fußzeile beim Scrollen am unteren Rand fixiert (Gegenstück zum Kopf). Standard true; wirkt nicht bei transparent."
+        },
         "headerBg": {
           "type": "string",
           "default": "var(--accent)",
