@@ -331,6 +331,22 @@ function navNotes(k) {
                 `(Tag, nach ${k.anchor} eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), ` +
                 'leer/0/"now" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).',
         },
+        [k.endDp]: {
+            description:
+                `Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt ${k.paging} und ` +
+                `${k.dateDp} voraus, #931). Gesetzt = ${k.dateDp} ist der ERSTE gezeigte Tag (unabhängig von ` +
+                `${k.anchor}), dieser DP der LETZTE: "YYYY-MM-DD" oder ms. Beide zusammen ergeben einen Zeitraum aus ` +
+                'ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei ' +
+                'jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.',
+        },
+        [k.freeRange]: {
+            type: 'boolean',
+            default: false,
+            description:
+                `Freier Zeitraum (#931, setzt ${k.paging} voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet ` +
+                'die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen ' +
+                `(z. B. "20d"), ◀/▶ springen um seine Länge, ${k.group} gibt ihn wie einen Chip weiter.`,
+        },
         [k.rangeDp]: {
             description:
                 'Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips ("6h", "24h", "7d", ' +
@@ -351,6 +367,8 @@ const PLAIN_NAV = {
     group: 'navGroup',
     groupMode: 'navGroupMode',
     dateDp: 'navDateDp',
+    endDp: 'navEndDp',
+    freeRange: 'navFreeRange',
     rangeDp: 'navRangeDp',
     commandDp: 'navCommandDp',
 };
@@ -1661,6 +1679,8 @@ export const WIDGET_OPTION_NOTES = {
             group: 'echartNavGroup',
             groupMode: 'echartNavGroupMode',
             dateDp: 'echartNavDateDp',
+            endDp: 'echartNavEndDp',
+            freeRange: 'echartNavFreeRange',
             rangeDp: 'echartNavRangeDp',
             commandDp: 'echartNavCommandDp',
         }),

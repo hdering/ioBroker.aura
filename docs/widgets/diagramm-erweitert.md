@@ -437,6 +437,8 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartNavGroupMode`     | `all`    | `all` = Datum und Zeitraum-Chip gemeinsam · `date` = nur das Datum, jedes Diagramm behält seinen Zeitraum |
 | `echartNavRangeDp`       | —        | Zeitraum-Datenpunkt, lesen + schreiben: `6h` · `24h` · `7d` · `1M` · `total`    |
 | `echartNavDateDp`        | —        | Datum-Datenpunkt, lesen + schreiben: `YYYY-MM-DD`, ms, leer = bis jetzt           |
+| `echartNavEndDp`         | —        | Ende-Datenpunkt (von–bis): gesetzt = `echartNavDateDp` ist der erste, dieser der letzte Tag |
+| `echartNavFreeRange`     | `false`  | Freier Zeitraum: 📅 wählt Von und Bis statt eines Tags                             |
 | `echartNavCommandDp`     | —        | Befehls-Datenpunkt, nur lesen: `prev` · `next` · `today` · `now`                |
 | `echartRangeLead`        | —        | Prognose: rollender Zeitraum reicht so weit über jetzt hinaus, z. B. `36h`        |
 | `echartNavFuture`        | `none`   | Prognose: Blättern in die Zukunft — `none` · `data` (bis zum letzten Wert) · `16d` |
@@ -464,6 +466,17 @@ Blättern (`echartDayNav`):
 | ⇥                    | aktuelles Fenster; zweiter Klick auf das leuchtende ⇥ = rollend bis jetzt                 |
 | ▶ grau               | das nächste Fenster begänne in der Zukunft                                                |
 | `Gesamt`             | nichts zu blättern, Knöpfe ausgegraut                                                    |
+
+Freier Zeitraum (`echartNavFreeRange`):
+
+![](./assets/diagramm-erweitert/bsp-freier-zeitraum.png)
+
+| Aktion                     | Wirkung                                                              |
+| -------------------------- | -------------------------------------------------------------------- |
+| 📅 → Von / Bis              | Zeitraum aus ganzen Tagen, z. B. 14.08.–02.09. = `20d` (max. 999 Tage) |
+| ‹ / ›                      | springen um die Länge des Zeitraums                                  |
+| `echartNavGroup`           | gekoppelte Diagramme übernehmen den Zeitraum wie einen Chip          |
+| `echartNavDateDp` + `echartNavEndDp` | `2025-08-14` + `2025-09-02`; beide leer = rollend           |
 
 | `echartNavAnchor` | Datum 03.10., `7 Tage`        | Datum 03.10., `24 Std` |
 | ----------------- | ----------------------------- | ---------------------- |

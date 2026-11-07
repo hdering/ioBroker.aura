@@ -10079,6 +10079,17 @@
           "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
           "datapoint": true
         },
+        "navEndDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt dayNav und navDateDp voraus, #931). Gesetzt = navDateDp ist der ERSTE gezeigte Tag (unabhängig von navAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "datapoint": true
+        },
+        "navFreeRange": {
+          "type": "boolean",
+          "default": false,
+          "description": "Freier Zeitraum (#931, setzt dayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, navGroup gibt ihn wie einen Chip weiter."
+        },
         "navGroup": {
           "type": "string",
           "default": "",
@@ -12583,6 +12594,17 @@
           "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt echartDayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach echartNavAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
           "datapoint": true
         },
+        "echartNavEndDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt echartDayNav und echartNavDateDp voraus, #931). Gesetzt = echartNavDateDp ist der ERSTE gezeigte Tag (unabhängig von echartNavAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "datapoint": true
+        },
+        "echartNavFreeRange": {
+          "type": "boolean",
+          "default": false,
+          "description": "Freier Zeitraum (#931, setzt echartDayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, echartNavGroup gibt ihn wie einen Chip weiter."
+        },
         "echartNavFuture": {
           "type": "string",
           "default": "none",
@@ -13031,6 +13053,17 @@
           "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
           "default": "",
           "datapoint": true
+        },
+        "navEndDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt dayNav und navDateDp voraus, #931). Gesetzt = navDateDp ist der ERSTE gezeigte Tag (unabhängig von navAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "default": "",
+          "datapoint": true
+        },
+        "navFreeRange": {
+          "type": "boolean",
+          "description": "Freier Zeitraum (#931, setzt dayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, navGroup gibt ihn wie einen Chip weiter.",
+          "default": false
         },
         "navGroup": {
           "type": "string",
@@ -18690,6 +18723,17 @@
           "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
           "default": "",
           "datapoint": true
+        },
+        "navEndDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt dayNav und navDateDp voraus, #931). Gesetzt = navDateDp ist der ERSTE gezeigte Tag (unabhängig von navAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "default": "",
+          "datapoint": true
+        },
+        "navFreeRange": {
+          "type": "boolean",
+          "description": "Freier Zeitraum (#931, setzt dayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, navGroup gibt ihn wie einen Chip weiter.",
+          "default": false
         },
         "navGroup": {
           "type": "string",

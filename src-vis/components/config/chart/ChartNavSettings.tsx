@@ -16,6 +16,10 @@ export interface ChartNavKeys {
     group: string;
     groupMode: string;
     dateDp: string;
+    /** End of a free range (#931) — turns `dateDp` into the start. */
+    endDp: string;
+    /** The date button picks from–to (#931). */
+    freeRange: string;
     rangeDp: string;
     commandDp: string;
     /** Forecast keys — only the advanced chart has them. */
@@ -32,6 +36,8 @@ export const PLAIN_NAV_KEYS: ChartNavKeys = {
     group: 'navGroup',
     groupMode: 'navGroupMode',
     dateDp: 'navDateDp',
+    endDp: 'navEndDp',
+    freeRange: 'navFreeRange',
     rangeDp: 'navRangeDp',
     commandDp: 'navCommandDp',
 };
@@ -44,6 +50,8 @@ export const ECHART_NAV_KEYS: ChartNavKeys = {
     group: 'echartNavGroup',
     groupMode: 'echartNavGroupMode',
     dateDp: 'echartNavDateDp',
+    endDp: 'echartNavEndDp',
+    freeRange: 'echartNavFreeRange',
     rangeDp: 'echartNavRangeDp',
     commandDp: 'echartNavCommandDp',
     future: 'echartNavFuture',
@@ -171,6 +179,21 @@ export function ChartNavSettings({
                         {t('echart.dayNavDefaultToggle')}
                     </span>
                 </label>
+                <Unavailable reason={o.lockRange === true ? t('echart.rangeChipsLocked') : undefined}>
+                    <label className="flex items-center gap-2 mt-2 ml-5 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={o[keys.freeRange] === true}
+                            onChange={(e) => set({ [keys.freeRange]: e.target.checked || undefined })}
+                            className="rounded"
+                            data-testid="chart-nav-free-range"
+                        />
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.navFreeRange')}
+                        </span>
+                    </label>
+                    <Hint className="ml-5">{t('echart.navFreeRangeHint')}</Hint>
+                </Unavailable>
                 <div className="flex items-center gap-2 mt-2 ml-5">
                     <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.navAnchor')}
@@ -347,6 +370,13 @@ export function ChartNavSettings({
                         placeholder="0_userdata.0.chart.date"
                         value={str(keys.dateDp)}
                         onChange={(id) => set({ [keys.dateDp]: id })}
+                    />
+                    <StatusDpField
+                        label={t('echart.navEndDp')}
+                        hint={t('echart.navEndDpHint')}
+                        placeholder="0_userdata.0.chart.dateEnd"
+                        value={str(keys.endDp)}
+                        onChange={(id) => set({ [keys.endDp]: id })}
                     />
                     <StatusDpField
                         label={t('echart.navCommandDp')}

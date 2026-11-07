@@ -132,6 +132,8 @@ Wie beim Diagramm: aufgezeichnete Strecken (`history`/`json` mit Zeitstempel) ze
 | `navGroup` | — | Kopplungsgruppe: Karten und Diagramme mit gleichem Namen teilen Chip und Datum |
 | `navGroupMode` | `all` | `date` = nur das Datum teilen |
 | `navDateDp` · `navRangeDp` · `navCommandDp` | — | Datum, Zeitraum, Befehl (`prev`/`next`/`today`/`now`) als Datenpunkt, auch geräteübergreifend |
+| `navFreeRange` | `false` | Freier Zeitraum: 📅 wählt Von und Bis, ‹ › springen um dessen Länge |
+| `navEndDp` | — | Ende-Datenpunkt (von–bis): gesetzt = `navDateDp` ist der erste, dieser der letzte Tag |
 | `rangeChipSize` · `navSize` | `sm` | `sm` · `md` · `lg` |
 | `rangeChipPosition` · `navPosition` | `top` | `top` · `bottom` |
 

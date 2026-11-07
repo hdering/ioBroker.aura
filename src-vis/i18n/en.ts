@@ -2284,6 +2284,15 @@ export const en: Record<TranslationKey, string> = {
     'echart.navDpsTitle': 'Control via datapoints (optional)',
     'echart.navDateDp': 'Date datapoint',
     'echart.navDateDpHint': 'Read + write: YYYY-MM-DD, timestamp (ms) or empty = up to now.',
+    'echart.navEndDp': 'End datapoint (from–to)',
+    'echart.navEndDpHint':
+        'Optional. Once set, the date datapoint is the first and this one the last day shown (YYYY-MM-DD or ms). Read + write.',
+    'echart.navFreeRange': 'Free range: the date button picks from and to',
+    'echart.navFreeRangeHint':
+        'From–to becomes a range of whole days; ‹ › page by its length, the link group takes it over.',
+    'echart.navRangeFrom': 'From',
+    'echart.navRangeTo': 'To',
+    'echart.navRangePickTitle': 'Pick a range (from–to)',
     'echart.navRangeDp': 'Range datapoint',
     'echart.navRangeDpHint': 'Read + write: tokens like 6h, 24h, 7d, 1M, total.',
     'echart.navCommandDp': 'Command datapoint',

@@ -2305,6 +2305,15 @@ export const de = {
     'echart.navDpsTitle': 'Steuerung über Datenpunkte (optional)',
     'echart.navDateDp': 'Datum-Datenpunkt',
     'echart.navDateDpHint': 'Lesen + schreiben: YYYY-MM-DD, Zeitstempel (ms) oder leer = bis jetzt.',
+    'echart.navEndDp': 'Ende-Datenpunkt (Von–bis)',
+    'echart.navEndDpHint':
+        'Optional. Gesetzt = der Datum-Datenpunkt ist der erste, dieser der letzte gezeigte Tag (YYYY-MM-DD oder ms). Lesen + schreiben.',
+    'echart.navFreeRange': 'Freier Zeitraum: Datum-Knopf wählt Von und Bis',
+    'echart.navFreeRangeHint':
+        'Von–bis wird zu einem Zeitraum aus ganzen Tagen; ‹ › blättern um seine Länge, die Gruppe übernimmt ihn.',
+    'echart.navRangeFrom': 'Von',
+    'echart.navRangeTo': 'Bis',
+    'echart.navRangePickTitle': 'Zeitraum wählen (von–bis)',
     'echart.navRangeDp': 'Zeitraum-Datenpunkt',
     'echart.navRangeDpHint': 'Lesen + schreiben: Kürzel wie 6h, 24h, 7d, 1M, total.',
     'echart.navCommandDp': 'Befehls-Datenpunkt',

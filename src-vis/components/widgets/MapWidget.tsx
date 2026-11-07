@@ -216,6 +216,10 @@ interface MapOptions {
     navGroupMode?: 'all' | 'date';
     /** Date datapoint (read + write). */
     navDateDp?: string;
+    /** End of a free range (read + write) — makes navDateDp the start (#931). */
+    navEndDp?: string;
+    /** The date button picks a free range from–to (#931). */
+    navFreeRange?: boolean;
     /** Range datapoint (read + write). */
     navRangeDp?: string;
     /** Command datapoint: prev, next, today, now. */
@@ -1586,6 +1590,8 @@ export function MapWidget({ config, editMode }: WidgetProps) {
         group: navGroup,
         groupMode: o.navGroupMode === 'date' ? 'date' : 'all',
         dateDp: o.navDateDp ?? '',
+        endDp: o.navEndDp ?? '',
+        freeRange: o.navFreeRange === true,
         rangeDp: o.navRangeDp ?? '',
         commandDp: o.navCommandDp ?? '',
     });

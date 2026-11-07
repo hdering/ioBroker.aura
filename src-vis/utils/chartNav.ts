@@ -322,3 +322,47 @@ export function parseNavCommand(raw: unknown): NavCommand | null {
     if (s === 'now' || s === 'live' || s === 'jetzt') return 'now';
     return null;
 }
+
+/** Longest free range in days — a range token holds at most three digits. */
+export const FREE_RANGE_MAX_DAYS = 999;
+
+/**
+ * A free range from–to (issue #931) as the chip and reference point paging already knows: a range
+ * of N whole days, so ◀ ▶ step by its own length and a link group passes it on like any chip.
+ * `start` snaps back to midnight, `end` (exclusive) forward to it; at least one day, at most
+ * `FREE_RANGE_MAX_DAYS` (counted back from the end).
+ */
+export function freeRange(
+    start: number,
+    end: number,
+    anchor: NavAnchor,
+): { token: string; span: NavSpan; ref: number } {
+    const e = dayCeil(Math.max(end, start + 1));
+    let s = dayStart(Math.min(start, e - 1));
+    // Calendar days, not 24 h blocks — a range across a DST switch is one hour short or long.
+    let days = Math.max(1, Math.round((e - s) / 86_400_000));
+    if (days > FREE_RANGE_MAX_DAYS) {
+        days = FREE_RANGE_MAX_DAYS;
+        s = shiftBy(e, -days, 'd');
+    }
+    // One day is the `24h` preset: the chip of that name lights up instead of a lone `1d`.
+    const token = days === 1 ? '24h' : `${days}d`;
+    return { token, span: { value: days, unit: 'd' }, ref: anchor === 'start' ? s : e };
+}
+
+/**
+ * One end of a free range read from a datapoint — the start datapoint (`echartNavDateDp` once an
+ * end datapoint is set) or the end datapoint. `undefined` = not usable, `null` = rolling.
+ *   • `YYYY-MM-DD` → that day: its midnight for the start, the following midnight for the end
+ *     (the end datapoint names the LAST day shown);
+ *   • a number (ms) or a date-time string → that instant.
+ */
+export function parseNavBound(raw: unknown, side: 'start' | 'end'): number | null | undefined {
+    // A day as reference point is exactly that: the midnight before it for `start`, after it for `end`.
+    return parseNavDate(raw, side);
+}
+
+/** The counterpart of `parseNavBound`: the last day shown for the end, the first for the start. */
+export function formatNavBound(ms: number | null, side: 'start' | 'end', asNumber: boolean): string | number {
+    return formatNavDate(ms, side, asNumber);
+}

@@ -560,6 +560,8 @@ function EChartBody({ config, editMode }: WidgetProps) {
         group: typeof o.echartNavGroup === 'string' ? o.echartNavGroup.trim() : '',
         groupMode: o.echartNavGroupMode === 'date' ? 'date' : 'all',
         dateDp: (o.echartNavDateDp as string | undefined) ?? '',
+        endDp: (o.echartNavEndDp as string | undefined) ?? '',
+        freeRange: o.echartNavFreeRange === true,
         rangeDp: (o.echartNavRangeDp as string | undefined) ?? '',
         commandDp: (o.echartNavCommandDp as string | undefined) ?? '',
     });

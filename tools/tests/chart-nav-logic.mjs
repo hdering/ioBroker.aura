@@ -240,4 +240,39 @@ check('lead tokens', () => {
     assert.equal(nav.parseLead(undefined, NOW), null);
 });
 
+check('free range from–to (#931): whole days, steps by its own length', () => {
+    // Holiday 14.08.–02.09. = 20 days, inclusive of both.
+    for (const anchor of ['end', 'start']) {
+        const f = nav.freeRange(at(2025, 8, 14), at(2025, 9, 3), anchor);
+        assert.equal(f.token, '20d');
+        assert.deepEqual(f.span, { value: 20, unit: 'd' });
+        assert.equal(win(nav.navWindow(f.span, f.ref, anchor)), '2025-08-14 00:00 → 2025-09-03 00:00');
+        const back = nav.stepRef(f.ref, f.span, -1, anchor, NOW);
+        assert.equal(win(nav.navWindow(f.span, back, anchor)), '2025-07-25 00:00 → 2025-08-14 00:00');
+    }
+    // Times snap outward to whole days; across the DST switch still calendar days.
+    const dst = nav.freeRange(at(2025, 10, 20, 13), at(2025, 10, 27, 9), 'end');
+    assert.equal(dst.token, '8d');
+    assert.equal(win(nav.navWindow(dst.span, dst.ref, 'end')), '2025-10-20 00:00 → 2025-10-28 00:00');
+    // One day is the 24h preset; an empty or reversed range is still one day.
+    assert.equal(nav.freeRange(at(2025, 10, 1), at(2025, 10, 2), 'end').token, '24h');
+    assert.equal(nav.freeRange(at(2025, 10, 1), at(2025, 10, 1), 'end').token, '24h');
+    // Too long → the last 999 days up to the end.
+    const long = nav.freeRange(at(2020, 1, 1), at(2025, 10, 1), 'start');
+    assert.equal(long.token, '999d');
+    assert.equal(win(nav.navWindow(long.span, long.ref, 'start')).slice(-16), '2025-10-01 00:00');
+});
+
+check('free range datapoints: start = first day, end = last day shown', () => {
+    assert.equal(nav.parseNavBound('2025-08-14', 'start'), at(2025, 8, 14));
+    assert.equal(nav.parseNavBound('2025-09-02', 'end'), at(2025, 9, 3));
+    assert.equal(nav.parseNavBound('', 'end'), null);
+    assert.equal(nav.parseNavBound('kaputt', 'start'), undefined);
+    assert.equal(nav.parseNavBound(at(2025, 8, 14, 6), 'start'), at(2025, 8, 14, 6));
+    assert.equal(nav.formatNavBound(at(2025, 8, 14), 'start', false), '2025-08-14');
+    assert.equal(nav.formatNavBound(at(2025, 9, 3), 'end', false), '2025-09-02');
+    assert.equal(nav.formatNavBound(at(2025, 9, 3), 'end', true), at(2025, 9, 3));
+    assert.equal(nav.formatNavBound(null, 'end', false), '');
+});
+
 console.log(`chart-nav-logic: ${n} checks passed`);

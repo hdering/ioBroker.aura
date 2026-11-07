@@ -13,12 +13,15 @@ import { useChartNavStore } from '../store/chartNavStore';
 import { chipKeyOf, parseRangeToken, rangeKey, type RangeChip, type RangeUnit } from '../utils/rangeChips';
 import {
     canStepForward,
+    formatNavBound,
     formatNavDate,
+    freeRange,
     futureHorizon,
     isTodayRef,
     navSpan,
     navWindow,
     normalizeRef,
+    parseNavBound,
     parseNavCommand,
     parseNavDate,
     refFromDay,
@@ -61,8 +64,15 @@ export interface ChartNavOptions {
      */
     groupMode?: 'all' | 'date';
     dateDp: string;
+    /**
+     * End of a free range (#931). Once set, `dateDp` holds the START and this one the last day
+     * shown, whatever the anchor — both read and written.
+     */
+    endDp?: string;
     rangeDp: string;
     commandDp: string;
+    /** The date button picks a free range from–to instead of one day (#931). */
+    freeRange?: boolean;
 }
 
 export interface ChartNav {
@@ -89,6 +99,10 @@ export interface ChartNav {
     command: (cmd: NavCommand) => void;
     /** A calendar day from the date field (`YYYY-MM-DD`). */
     pickDay: (iso: string) => void;
+    /** The date button picks from–to (`echartNavFreeRange`, not with a locked range). */
+    freeRange: boolean;
+    /** A free range from the from–to fields: first and last day shown (`YYYY-MM-DD`). */
+    pickRange: (fromIso: string, toIso: string) => void;
 }
 
 type Origin = 'user' | 'dp' | 'group';
@@ -142,9 +156,11 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
     }, [startOnCurrent, anchor, opts.current]);
 
     const dateId = paging ? opts.dateDp.trim() : '';
+    const endId = dateId ? (opts.endDp ?? '').trim() : '';
     const rangeId = opts.rangeDp.trim();
     const cmdId = paging ? opts.commandDp.trim() : '';
     const dateDp = useDatapoint(dateId);
+    const endDp = useDatapoint(endId);
     const rangeDp = useDatapoint(rangeId);
     const cmdDp = useDatapoint(cmdId);
     // Values this widget wrote itself: their echo must not be applied — by the time it arrives
@@ -152,6 +168,18 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
     const ownWrites = useRef(new Set<string>());
     const publish = useChartNavStore((s) => s.publish);
     const groupState = useChartNavStore((s) => (group ? s.groups[group] : undefined));
+
+    /** Writes a navigation datapoint, remembering the value so its echo is not applied. */
+    const writeDp = (dp: ReturnType<typeof useDatapoint>, tag: string, v: string | number) => {
+        if (String(v) === String(dp.value ?? '')) return;
+        ownWrites.current.add(`${tag}:${v}`);
+        dp.setValue(v);
+    };
+
+    const spanOf = (key: string) => {
+        const c = parseRangeToken(key);
+        return c ? navSpan(c.range, c.value, c.unit) : null;
+    };
 
     /**
      * The one way the selection changes. `user` = clicked in this widget: tell the group and write
@@ -174,22 +202,24 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         now.current = { ref: r, chip: key };
         if (origin !== 'group' && group) publish(group, { chip: key, ref: r });
         if (origin !== 'user') return;
-        if (dateId) {
-            const v = formatNavDate(r, anchor, typeof dateDp.value === 'number');
-            if (String(v) !== String(dateDp.value ?? '')) {
-                ownWrites.current.add(`d:${v}`);
-                dateDp.setValue(v);
-            }
+        if (endId) {
+            // From–to: the window's first and last day, also for a chip or a step.
+            const s = spanOf(key);
+            const w = r !== null && s ? navWindow(s, r, anchor) : null;
+            writeDp(dateDp, 'd', formatNavBound(w?.start ?? null, 'start', typeof dateDp.value === 'number'));
+            writeDp(endDp, 'e', formatNavBound(w?.end ?? null, 'end', typeof endDp.value === 'number'));
+        } else if (dateId) {
+            writeDp(dateDp, 'd', formatNavDate(r, anchor, typeof dateDp.value === 'number'));
         }
-        if (rangeId && key !== String(rangeDp.value ?? '')) {
-            ownWrites.current.add(`r:${key}`);
-            rangeDp.setValue(key);
-        }
+        if (rangeId) writeDp(rangeDp, 'r', key);
     };
 
-    const spanOf = (key: string) => {
-        const c = parseRangeToken(key);
-        return c ? navSpan(c.range, c.value, c.unit) : null;
+    /** A free range [start, end) — becomes an N-day chip whose window is exactly that range. */
+    const applyRange = (start: number, end: number, origin: Origin) => {
+        const f = freeRange(start, end, anchor);
+        const chip = parseRangeToken(f.token);
+        if (!chip) return;
+        navigate(chip, normalizeRef(f.ref, f.span, anchor, Date.now(), lim()), origin);
     };
 
     /** A chip change keeps the browsed date — the current window stays the current window. */
@@ -235,15 +265,35 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [groupState]);
 
+    /** From–to datapoints: both ends together decide; a half-written pair (end before start) waits. */
+    const applyBounds = () => {
+        const start = parseNavBound(dateDp.value, 'start');
+        const end = parseNavBound(endDp.value, 'end');
+        if (start === null || end === null) {
+            if (now.current.ref !== null) navigate(null, null, 'dp');
+            return;
+        }
+        if (start === undefined || end === undefined || end <= start) return;
+        applyRange(start, end, 'dp');
+    };
+
+    useEffect(() => {
+        if (!endId) return;
+        if (ownWrites.current.delete(`e:${endDp.value}`)) return;
+        applyBounds();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [endDp.value, endId]);
+
     useEffect(() => {
         const raw = dateDp.value;
         if (ownWrites.current.delete(`d:${raw}`)) return;
+        if (endId) return applyBounds();
         const r = parseNavDate(raw, anchor);
         if (r === undefined || r === now.current.ref) return;
         const s = spanOf(now.current.chip);
         navigate(null, r !== null && s ? normalizeRef(r, s, anchor, Date.now(), lim()) : r, 'dp');
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [dateDp.value, anchor]);
+    }, [dateDp.value, anchor, endId]);
 
     useEffect(() => {
         const raw = rangeDp.value;
@@ -271,6 +321,7 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cmdDp.state]);
 
+    const free = !!opts.freeRange && !lockRange && paging;
     return {
         range,
         customValue,
@@ -296,6 +347,16 @@ export function useChartNav(opts: ChartNavOptions): ChartNav {
                 normalizeRef(refFromDay(new Date(y, m - 1, d).getTime(), anchor), span, anchor, Date.now(), lim()),
                 'user',
             );
+        },
+        freeRange: free,
+        pickRange: (fromIso, toIso) => {
+            if (!free) return;
+            // A "to" before the "from" is the range the other way round, not an error.
+            const [a, b] = toIso < fromIso ? [toIso, fromIso] : [fromIso, toIso];
+            const from = parseNavBound(a, 'start');
+            const to = parseNavBound(b, 'end');
+            if (typeof from !== 'number' || typeof to !== 'number') return;
+            applyRange(from, to, 'user');
         },
     };
 }
