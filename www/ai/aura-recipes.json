@@ -635,6 +635,84 @@
       ]
     },
     {
+      "id": "berechnete-reihe",
+      "title": "Diagramm-Reihe aus mehreren Datenpunkten berechnen",
+      "when": "Eine Kurve soll aus mehreren Datenpunkten gerechnet werden: Leistung = Spannung × Strom, Hausverbrauch aus Erzeugung, Netz und Batterie, Summe mehrerer Zähler, Differenz zweier Temperaturen.",
+      "instead": "einem Skript, das das Ergebnis in einen eigenen Datenpunkt schreibt und aufzeichnet",
+      "notes": [
+        "Reihe mit source \"formula\": formulaInputs [{name, datapointId}] + formula über die Namen; datapointId der Reihe bleibt leer.",
+        "Formel-Syntax wie Bindings (kein JavaScript): + - * / %, Klammern, Vergleiche, ?:, Math.max/min/abs/round.",
+        "Inputs, die nur bei Änderung geloggt werden, halten ihren letzten Wert — keine Lücken. Gerechnet wird erst, wenn alle Eingänge einen Wert haben.",
+        "Bis 7 Tage exakt (Rohdaten); länger rechnen Produkte/Quotienten aus Mittelwerten (Näherung), Summen/Differenzen bleiben exakt.",
+        "aggregate \"delta\" (Zähler): jeder Eingang wird für sich je Zeitraum differenziert, dann gerechnet — für Summen/Differenzen von Zählern.",
+        "periodValue \"integral\" = Fläche über die Zeit: aus W wird Wh (Einheit bekommt ein \"h\"). Geht auch für normale Reihen.",
+        "Mischen erlaubt: eine Formel-Reihe neben normalen Reihen im selben Diagramm; timeShift (Vorjahr) funktioniert auch."
+      ],
+      "widgets": [
+        {
+          "id": "w-formel-verbrauch",
+          "type": "echart",
+          "title": "Hausverbrauch",
+          "datapoint": "%dp.pv.leistung%",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 12,
+            "h": 6
+          },
+          "options": {
+            "echartMode": "timeseries",
+            "echartRange": "24h",
+            "echartVisibleRanges": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "echartLeftUnit": "W",
+            "echartShowLegend": true,
+            "echartPeriodPlacement": "legend",
+            "autoHistoryInstance": true,
+            "echartSeries": [
+              {
+                "id": "s-pv",
+                "name": "PV",
+                "datapointId": "%dp.pv.leistung%",
+                "chartType": "line",
+                "color": "var(--accent-yellow)",
+                "yAxisIndex": 0
+              },
+              {
+                "id": "s-haus",
+                "name": "Haus",
+                "datapointId": "",
+                "source": "formula",
+                "formulaInputs": [
+                  {
+                    "name": "pv",
+                    "datapointId": "%dp.pv.leistung%"
+                  },
+                  {
+                    "name": "netz",
+                    "datapointId": "%dp.netz.bezug%"
+                  },
+                  {
+                    "name": "akku",
+                    "datapointId": "%dp.akku.leistung%"
+                  }
+                ],
+                "formula": "pv + netz - akku",
+                "chartType": "area",
+                "color": "var(--accent)",
+                "periodValue": "integral",
+                "yAxisIndex": 0
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "id": "diagramme-koppeln",
       "title": "Mehrere Diagramme gemeinsam blättern",
       "when": "Mehrere Verlaufsdiagramme sollen immer denselben Zeitraum und dasselbe Datum zeigen, oder ein Taster/Skript soll blättern.",
