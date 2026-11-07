@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.106.2",
+    "auraVersion": "0.107.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -19596,7 +19596,7 @@
         },
         "targetWidgetId": {
           "type": "string",
-          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\")."
+          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\"). Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat."
         }
       }
     },
