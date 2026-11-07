@@ -645,7 +645,8 @@
         "Das geht über die Typen hinweg: chart und energiebilanz heißen die Optionen dayNav, navGroup, navAnchor, navDateDp, navRangeDp, navCommandDp — gleicher Gruppenname = gemeinsames Blättern mit einem echart.",
         "Geräteübergreifend: dieselben echartNavDateDp und echartNavRangeDp in allen Diagrammen (Zeichenketten-DPs, z. B. unter 0_userdata.0). Datum \"YYYY-MM-DD\", Zeitraum \"24h\"/\"7d\"/\"1M\"/\"total\".",
         "Ein Taster oder Skript blättert über echartNavCommandDp: \"prev\", \"next\", \"today\", \"now\".",
-        "echartNavAnchor \"start\" macht das Datum zum ersten Tag des Fensters statt zum letzten."
+        "echartNavAnchor \"start\" macht das Datum zum ersten Tag des Fensters statt zum letzten.",
+        "Freier Zeitraum von–bis (z. B. Urlaub): echartNavFreeRange true = der Datum-Knopf wählt Von und Bis; für Skripte zusätzlich echartNavEndDp — dann ist echartNavDateDp der erste, echartNavEndDp der letzte Tag."
       ],
       "widgets": [
         {
