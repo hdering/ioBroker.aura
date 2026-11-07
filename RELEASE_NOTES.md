@@ -9,3 +9,4 @@
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - fix: PIN-protected tabs and sections can show their conditions and markers while locked - new option "Show markers and conditions while locked" in the PIN settings (#944)
+- fix: Mirror - a mirrored widget now shows its source's conditions, markers and click action; settings of the mirror itself still take precedence (#945)

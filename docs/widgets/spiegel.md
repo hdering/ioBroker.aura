@@ -31,6 +31,7 @@ Beim Auswählen übernimmt der Spiegel einmalig Breite, Höhe und die Rahmen-Opt
 | Größe (`w` × `h`) | Spiegel — beim Auswählen von der Quelle übernommen |
 | Transparenz und Stil-Overrides des Rahmens | Spiegel |
 | „Letzte Änderung"-Overlay | Quelle |
+| Bedingungen, Marker, Klick-Aktion | Quelle — eigene am Spiegel ersetzen sie |
 | Widget-neu-laden per Bedingung | Quelle **und** eigener Rahmen |
 
 Der Spiegel ist bedienbar wie die Quelle — Schalter schalten, Regler regeln, alles auf demselben Datenpunkt. Option-Änderungen, die ein Widget selbst speichert, landen auf der **Quelle**; die Position des Spiegels bleibt davon unberührt.

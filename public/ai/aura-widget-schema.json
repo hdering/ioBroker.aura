@@ -19596,7 +19596,7 @@
         },
         "targetWidgetId": {
           "type": "string",
-          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\")."
+          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\"). Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat."
         }
       }
     },

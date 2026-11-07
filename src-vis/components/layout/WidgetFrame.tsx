@@ -6852,17 +6852,41 @@ function WidgetFrameInner({
     // comes off again with the other overrides on every write (stripRenderOverrides).
     const renderTransform = useRenderTransform();
     const baseConfig = useMemo(() => (renderTransform ? renderTransform(config) : config), [config, renderTransform]);
+    // A mirror widget takes its frame-level appearance (title/icon/size are handled
+    // by the mirrored inner component; last-change is a frame overlay) from its
+    // source. Resolve that source so the last-change overlay below reflects it —
+    // and so do conditions, badges and the click action, unless the mirror sets
+    // its own (#945).
+    const mirrorLcSource = useDashboardStore((s) => {
+        const tid = mirrorTargetWidgetId(config);
+        if (!tid) return undefined;
+        for (const l of s.layouts)
+            for (const sec of l.sections)
+                for (const tb of sec.tabs) {
+                    const found = tb.widgets.find((w) => w.id === tid);
+                    if (found) return found;
+                }
+        return undefined;
+    });
+    const mirrorBase = useMemo(
+        () => (mirrorLcSource && renderTransform ? renderTransform(mirrorLcSource) : mirrorLcSource),
+        [mirrorLcSource, renderTransform],
+    );
     // Inside a device card every child exists once per card under the same id — the
     // runtime registries below key on `rid` so the copies don't share a verdict (#743).
     const runtimeScope = useRuntimeScope();
     const rid = runtimeId(config.id, runtimeScope);
 
     // Stable reference: never create a new [] on every render (would cause infinite effect loop)
-    const conditions = (baseConfig.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
+    const ownConditions = baseConfig.options?.conditions as WidgetCondition[] | undefined;
+    const conditions =
+        (ownConditions?.length ? ownConditions : (mirrorBase?.options?.conditions as WidgetCondition[] | undefined)) ??
+        NO_CONDITIONS;
 
     // Value sources conditions / badges may reference without naming a DP:
-    // the widget's main datapoint and — for list widgets — its entries.
-    const sourceCtx = useMemo(() => widgetSourceCtx(baseConfig), [baseConfig]);
+    // the widget's main datapoint and — for list widgets — its entries. A mirror has
+    // none of its own; its source's stand in.
+    const sourceCtx = useMemo(() => widgetSourceCtx(mirrorBase ?? baseConfig), [mirrorBase, baseConfig]);
 
     // Evaluate conditions against live ioBroker values
     const conditionResult = useConditionStyle(conditions, rid, sourceCtx);
@@ -6874,7 +6898,9 @@ function WidgetFrameInner({
     const writeLock = editorLock || condDisabled || parentWriteLock;
 
     // Badges (overlay indicators) — stable reference like conditions above
-    const badges = (baseConfig.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
+    const ownBadges = baseConfig.options?.badges as BadgeDef[] | undefined;
+    const badges =
+        (ownBadges?.length ? ownBadges : (mirrorBase?.options?.badges as BadgeDef[] | undefined)) ?? NO_BADGES;
     const resolvedBadges = useBadges(badges, sourceCtx);
     // The editors work on the stored clauses, not the resolved ones: inside a device card
     // or the popup-view preview `{{dp}}` would otherwise show as the real datapoint and be
@@ -7195,20 +7221,6 @@ function WidgetFrameInner({
     const currentLayout = config.layout ?? 'default';
     const overrides = config.options?.styleOverride as Record<string, string> | undefined;
 
-    // A mirror widget takes its frame-level appearance (title/icon/size are handled
-    // by the mirrored inner component; last-change is a frame overlay) from its
-    // source. Resolve that source so the last-change overlay below reflects it.
-    const mirrorLcSource = useDashboardStore((s) => {
-        const tid = mirrorTargetWidgetId(config);
-        if (!tid) return undefined;
-        for (const l of s.layouts)
-            for (const sec of l.sections)
-                for (const tb of sec.tabs) {
-                    const found = tb.widgets.find((w) => w.id === tid);
-                    if (found) return found;
-                }
-        return undefined;
-    });
     // Source of a mirror whose status row the frame mounts (STATUS_ROW_FRAME_TYPES):
     // the mirror's body is the source's widget, which never draws that row itself.
     const mirrorStatusSource = useMemo(
@@ -7346,14 +7358,17 @@ function WidgetFrameInner({
     //          live in Ebene 2 as real type defaults instead.
     const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
     const popupTypeDefaultLayouts = usePopupConfigStore((s) => s.typeDefaultLayouts);
-    const storedClickAction = config.options?.clickAction as ClickAction | undefined;
+    // A mirror without an action of its own acts like its source (#945): the source's
+    // stored action or its type default, with the popup options read from the source.
+    const clickOwner = mirrorLcSource && config.options?.clickAction === undefined ? mirrorLcSource : config;
+    const storedClickAction = clickOwner.options?.clickAction as ClickAction | undefined;
     const rawClickAction = storedClickAction ?? { kind: 'none' as const };
     const clickAction: ClickAction = (() => {
         if (storedClickAction === undefined) {
-            const viewId = popupTypeDefaults[config.type];
+            const viewId = popupTypeDefaults[clickOwner.type];
             if (viewId) {
-                const allowed = popupTypeDefaultLayouts[config.type];
-                const wl = currentLayout as WidgetLayout;
+                const allowed = popupTypeDefaultLayouts[clickOwner.type];
+                const wl = (clickOwner.layout ?? 'default') as WidgetLayout;
                 if (!allowed?.length || allowed.includes(wl)) {
                     return { kind: 'popup-view', viewId };
                 }
@@ -7361,9 +7376,9 @@ function WidgetFrameInner({
             // An explicit empty type default ('— keine View —') means "no popup".
             // It must suppress the hardcoded fallback below — otherwise choosing it
             // in the backend has no effect (the fallback keeps opening).
-            const explicitNoView = config.type in popupTypeDefaults && !viewId;
+            const explicitNoView = clickOwner.type in popupTypeDefaults && !viewId;
             if (!explicitNoView) {
-                const builtIn = defaultActionForConfig(config);
+                const builtIn = defaultActionForConfig(clickOwner);
                 if (builtIn) return builtIn;
             }
         }
@@ -22514,7 +22529,15 @@ function WidgetFrameInner({
                 <WidgetClickPopup
                     // Resolved like the body (device card `{{parent}}` & co., #845), but
                     // under the real id: the popup looks the widget up by it.
-                    widget={baseConfig === config ? config : { ...baseConfig, id: config.id }}
+                    widget={
+                        clickOwner !== config && mirrorBase
+                            ? mirrorBase === mirrorLcSource
+                                ? mirrorBase
+                                : { ...mirrorBase, id: clickOwner.id }
+                            : baseConfig === config
+                              ? config
+                              : { ...baseConfig, id: config.id }
+                    }
                     action={clickAction}
                     onClose={() => setPopupOpen(false)}
                     allWidgets={useDashboardStore

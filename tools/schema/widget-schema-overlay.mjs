@@ -594,7 +594,11 @@ export const WIDGET_OPTION_NOTES = {
                 'Was gespiegelt wird: leer = ein Widget (targetWidgetId), "tab" = ein ganzer Tab (targetTabId). ' +
                 'Ein Tab-Spiegel zeigt den Tab live im eigenen Kasten; seine Höhe ist frei (h), Überhang scrollt.',
         },
-        targetWidgetId: { description: 'Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind "tab").' },
+        targetWidgetId: {
+            description:
+                'Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind "tab"). ' +
+                'Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat.',
+        },
         targetTabId: {
             description:
                 'Id des Tabs, der hier gespiegelt wird (sourceKind "tab"). Nicht der eigene Tab, keine PIN-geschützten Tabs.',
