@@ -430,6 +430,26 @@ function windowMs(s: EChartSeriesConfig): number {
     return getRangeMs(s);
 }
 
+/** Row cap of a raw (unstepped) history fetch. */
+export const RAW_FETCH_COUNT = 1000;
+
+const RAW_CAP_STEPS = [10_000, 15_000, 30_000, 60_000, 120_000, 300_000];
+
+/**
+ * Step for re-fetching a short window whose raw answer hit `RAW_FETCH_COUNT`. Up to 3 h a series
+ * is fetched raw, but a datapoint written every few seconds logs more than 1000 rows in that time:
+ * the adapter then hands back only part of the window and the curve breaks off — 180 minutes looked
+ * broken while 181 (the first 5-min-stepped span) was fine. The finest step whose rows stay below
+ * the cap; `minmax` comes back as up to four rows per step.
+ */
+export function rawCapStep(rangeMs: number, aggregate?: EChartSeriesConfig['aggregate']): number {
+    const perStep = aggregate === 'minmax' ? 4 : 1;
+    return (
+        RAW_CAP_STEPS.find((st) => Math.ceil(rangeMs / st) * perStep <= RAW_FETCH_COUNT * 0.9) ??
+        Math.ceil((rangeMs * perStep) / (RAW_FETCH_COUNT * 0.9) / 60_000) * 60_000
+    );
+}
+
 function getStepForMs(rangeMs: number): number | undefined {
     if (rangeMs <= 3 * 3_600_000) return undefined;
     if (rangeMs <= 12 * 3_600_000) return 300_000;
@@ -1619,7 +1639,7 @@ export function useMultiSeriesData(
                     });
             };
 
-            const fetchWindow = (start: number, end: number, rangeMs: number, isBool: boolean) => {
+            const fetchWindow = (start: number, end: number, rangeMs: number, isBool: boolean, capStep?: number) => {
                 // `none` = raw points: skip bucketing so the adapter returns the actual logged
                 // values instead of per-bucket averages.
                 const wantRaw = s.aggregate === 'none';
@@ -1629,9 +1649,8 @@ export function useMultiSeriesData(
                     ? deltaFetchStep(bucket, rangeMs)
                     : wantRaw
                       ? undefined
-                      : hasAbsWindow || isTotal || range === 'custom'
-                        ? getStepForMs(rangeMs)
-                        : RANGE_STEP[range];
+                      : (capStep ??
+                        (hasAbsWindow || isTotal || range === 'custom' ? getStepForMs(rangeMs) : RANGE_STEP[range]));
                 // Delta needs one bucket of run-up before the window: the first visible bar is the
                 // difference against the reading the counter had when the window opened. A `total`
                 // window has nothing before it — bucketDeltas then differences the first bucket
@@ -1670,11 +1689,17 @@ export function useMultiSeriesData(
                                 // instead: "was it on at all" (issue #718).
                                 (s.aggregate ?? (isBool ? 'max' : 'average'))
                               : 'none',
-                    count: isDelta ? deltaFetchCount(step as number, rangeMs) : 1000,
+                    count: isDelta ? deltaFetchCount(step as number, rangeMs) : RAW_FETCH_COUNT,
                     throwOnError: true,
                 })
                     .then((entries: HistoryEntry[]) => {
                         if (!mountedRef.current) return;
+                        // A short window fetched raw that filled the row cap is missing part of
+                        // itself — fetched again in fine steps. An explicit `none` stays raw.
+                        if (!step && !wantRaw && entries.length >= RAW_FETCH_COUNT) {
+                            fetchWindow(start, end, rangeMs, isBool, rawCapStep(rangeMs, s.aggregate));
+                            return;
+                        }
                         if (isBucketOnly(s.aggregate, step, isBool)) bucketOnlyRef.current.add(s.id);
                         else bucketOnlyRef.current.delete(s.id);
                         let data: [number, number][] = entries
