@@ -38,8 +38,11 @@ interface OpMeta {
     hint?: string;
 }
 
+/** The "›" separator is not on the keyboard — a typed ">" finds it too (#950). */
+const SEP_HINT = '„>“ findet auch den Trenner ›.';
+
 const OPS: OpMeta[] = [
-    { op: 'remove', label: 'Text entfernen', valueLabel: 'Text', valuePh: 'ACTUAL_' },
+    { op: 'remove', label: 'Text entfernen', valueLabel: 'Text', valuePh: 'ACTUAL_', hint: SEP_HINT },
     {
         op: 'replace',
         label: 'Text ersetzen',
@@ -47,20 +50,21 @@ const OPS: OpMeta[] = [
         valuePh: '_',
         value2Label: 'Ersetzen',
         value2Ph: 'Leerzeichen',
+        hint: SEP_HINT,
     },
     {
         op: 'keepBefore',
         label: 'Alles vor … behalten',
         valueLabel: 'Trenner',
         valuePh: ' ',
-        hint: 'Schneidet ab dem ersten Vorkommen ab.',
+        hint: `Schneidet ab dem ersten Vorkommen ab. ${SEP_HINT}`,
     },
     {
         op: 'keepAfter',
         label: 'Alles nach … behalten',
         valueLabel: 'Trenner',
         valuePh: '.',
-        hint: 'Nimmt den Teil nach dem letzten Vorkommen.',
+        hint: `Nimmt den Teil nach dem letzten Vorkommen. ${SEP_HINT}`,
     },
     {
         op: 'segment',
@@ -69,7 +73,7 @@ const OPS: OpMeta[] = [
         valuePh: '.',
         value2Label: 'Nr.',
         value2Ph: '-1',
-        hint: '1 = erstes Segment, -1 = letztes.',
+        hint: `1 = erstes Segment, -1 = letztes. ${SEP_HINT}`,
     },
     { op: 'stripPrefix', label: 'Präfix entfernen', valueLabel: 'Präfix', valuePh: 'zigbee.0.' },
     { op: 'stripSuffix', label: 'Suffix entfernen', valueLabel: 'Suffix', valuePh: '_STATE' },
@@ -138,6 +142,14 @@ const PRESETS: { label: string; rules: Omit<NameFilterRule, 'id'>[] }[] = [
     },
     { label: 'Erstes Wort behalten', rules: [{ field: 'Gerät', op: 'firstWords', value: '1' }] },
     { label: 'Zahlen weg', rules: [{ field: 'Gerät', op: 'stripDigits' }] },
+    // The "›" in composed names is not on the keyboard (#950) — these need no typing.
+    // On 'Ergebnis' so they work whatever the name pattern looks like.
+    { label: 'Nur Gerät (vor ›)', rules: [{ field: 'Ergebnis', op: 'segment', value: ' › ', value2: '1' }] },
+    {
+        label: 'Nur Datenpunkt (nach ›)',
+        rules: [{ field: 'Ergebnis', op: 'segment', value: ' › ', value2: '-1' }],
+    },
+    { label: '› durch Leerzeichen', rules: [{ field: 'Ergebnis', op: 'replace', value: ' › ', value2: ' ' }] },
 ];
 
 const newId = () => `nf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;

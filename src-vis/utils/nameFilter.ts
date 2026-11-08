@@ -34,7 +34,7 @@ export interface NameFilterRule {
     id: string;
     field: NameFilterField;
     op: NameFilterOp;
-    value?: string;
+    value?: string; // text, separator or /regex/; in text ops a ">" also matches the "›" of composed names ("Device › State")
     value2?: string;
     /** Rule kept in the list but not applied. */
     disabled?: boolean;
@@ -80,6 +80,31 @@ function num(v: string | undefined, fallback: number): number {
     return isNaN(n) ? fallback : n;
 }
 
+/** The separator composed names use ("Device › State") — not on any keyboard. */
+export const NAME_SEPARATOR = '›';
+
+/**
+ * A typed ">" stands in for the "›" separator (#950): when the text does not contain the
+ * value as written but does contain it with ">" → "›", the latter is used. Literal ">"
+ * in a name still wins, so existing rules keep their meaning.
+ */
+function resolveSeparator(text: string, v: string): string {
+    if (!v.includes('>') || text.includes(v)) return v;
+    const alt = v.replace(/>/g, NAME_SEPARATOR);
+    return text.includes(alt) ? alt : v;
+}
+
+/** Ops whose value is plain text to look for — the ones the ">" alias applies to. */
+const TEXT_VALUE_OPS = new Set<NameFilterOp>([
+    'remove',
+    'replace',
+    'keepBefore',
+    'keepAfter',
+    'segment',
+    'stripPrefix',
+    'stripSuffix',
+]);
+
 /**
  * Applies one rule to a text. Never throws: a rule that cannot be applied (missing value,
  * broken regex, no match) returns the text unchanged, so a half-typed rule in the editor
@@ -87,7 +112,8 @@ function num(v: string | undefined, fallback: number): number {
  */
 export function applyNameFilterRule(text: string, rule: NameFilterRule): string {
     if (rule.disabled) return text;
-    const v = rule.value ?? '';
+    const raw = rule.value ?? '';
+    const v = TEXT_VALUE_OPS.has(rule.op) ? resolveSeparator(text, raw) : raw;
     const v2 = rule.value2 ?? '';
 
     switch (rule.op) {
