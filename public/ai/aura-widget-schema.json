@@ -4161,7 +4161,8 @@
           "required": true
         },
         "value": {
-          "type": "string"
+          "type": "string",
+          "description": "text, separator or /regex/; in text ops a \">\" also matches the \"›\" of composed names (\"Device › State\")"
         },
         "value2": {
           "type": "string"

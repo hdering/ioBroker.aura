@@ -8,4 +8,5 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
+- feat: Dynamic list / status overview - name rules: a typed ">" now also matches the "›" separator, plus one-click presets "device only", "datapoint only" and "› to space" (#950)
 - feat: evcc - selectable power unit: kW (default), W or automatic (W below 1000 W) (#947)

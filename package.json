@@ -315,6 +315,7 @@
     "test:element-condition-disable": "node tools/tests/element-condition-disable.mjs",
     "test:dp-vars": "node tools/tests/dp-vars.mjs",
     "test:name-pattern": "node tools/tests/name-pattern.mjs",
+    "test:name-filter-separator": "node tools/tests/name-filter-separator.mjs",
     "test:list-dividers": "node tools/tests/list-dividers.mjs",
     "test:list-stepper-color": "node tools/tests/list-stepper-color.mjs",
     "test:color-thresholds": "node tools/tests/color-thresholds.mjs",
