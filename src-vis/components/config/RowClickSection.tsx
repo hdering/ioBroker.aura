@@ -322,9 +322,9 @@ export function RowClickSection({
                 <>
                     <p className="text-[10px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                         Das Popup wird aus der Rolle des Datenpunkts abgeleitet: ein eigenes Popup aus Admin › Popups ›
-                        Widget-Typ-Standards, sonst das passende „Liste: …“-Popup (Licht, Schalter, Dimmer, Rollladen,
-                        Thermostat, Fensterkontakt, Sensor, Wert), sonst das Datenpunkt-Popup. Klicks auf Schalter oder
-                        Regler in der Zeile schalten weiterhin direkt.
+                        Widget-Typ-Standards, sonst das passende {'„Liste: …“'}-Popup (Licht, Schalter, Dimmer,
+                        Rollladen, Thermostat, Fensterkontakt, Sensor, Wert), sonst das Datenpunkt-Popup. Klicks auf
+                        Schalter oder Regler in der Zeile schalten weiterhin direkt.
                     </p>
                     {entries && <RowAutoOverview entries={entries} listSetting="auto" />}
                 </>

@@ -17,7 +17,8 @@ Suche findet sie auch über den Adapter-Namen (`flow`) oder „Web-Komponente“
 bekommt die Größe, die die Komponente für sich angibt.
 
 Angeboten wird, was ein Adapter in seiner `io-package.json` unter `common.webComponents`
-anmeldet. Ist kein solcher Adapter installiert, gibt es keine solchen Einträge. Nach der
+anmeldet. Das **Fluss-Diagramm** steht auch ohne den Adapter `flow` im Dialog: Das Widget lässt
+sich schon platzieren, seine Einstellungen sagen, welcher Adapter (ab welcher Version) fehlt. Nach der
 Installation oder einem Update eines Adapters die Seite neu laden — oder in den Einstellungen
 eines Komponenten-Widgets mit **↻** neben der Auswahl **Komponente** neu einlesen. Dort lässt sich
 auch auf eine andere Komponente umstellen.
@@ -34,8 +35,9 @@ Unter der Auswahl zeigt der Editor die Einstellungen der gewählten Komponente: 
 Zahlen, Schalter, Farben, Auswahllisten, Datenpunkte, Objekte und Adapter-Instanzen — so, wie
 sie die Komponente beschreibt. Gespeichert wird nur, was vom Standard abweicht.
 
-Titel und Icon des Widgets sind standardmäßig ausgeblendet (`showTitle`, `showIcon`), weil die
-meisten Komponenten eine eigene Überschrift haben.
+Titel und Icon des Widgets sind standardmäßig an (`showTitle`, `showIcon`). Beim Fluss-Diagramm
+fehlen deshalb dessen eigene Felder **Titel** und **Bei Klick groß öffnen** — das übernehmen der
+Widget-Name und der **Vollbild-Knopf** unter **Darstellung**.
 
 ## Verhalten
 

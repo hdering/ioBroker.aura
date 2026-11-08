@@ -58,7 +58,7 @@ const VISIBLE = {
     slider: ['showValue', 'showUnit', 'showMinMax', 'showScale'],
     thermostat: ['showSetpoint', 'showActualTemp', 'showControls', 'showPresets'],
     shutter: ['showValue', 'showControls', 'showSlider'],
-    jsontable: ['showSearch', 'showHeader'],
+    jsontable: ['showSearch'],
     list: ['showCount', 'showRoom', 'showId', 'showDividers', 'hideFilterButton'],
     autolist: ['showCount', 'showRoom', 'showId', 'showDividers', 'showEntryLastChange', 'hideFilterButton'],
     carousel: ['hideScrollbar'],

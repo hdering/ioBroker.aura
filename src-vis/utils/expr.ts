@@ -568,6 +568,52 @@ export function exprRefs(src: string, declaredVars?: Iterable<string>): ExprRef[
     return [...out.values()];
 }
 
+/**
+ * The bare names an expression reads as variables (declared or not) and the state ids it reads
+ * directly — so a caller with a fixed set of variables (the chart's formula series, #930) can name
+ * what is unknown instead of silently computing with `null`. Null when it does not parse.
+ */
+export function exprNames(src: string, declaredVars?: Iterable<string>): { vars: string[]; dps: string[] } | null {
+    const ast = parseExpr(src);
+    if (!ast) return null;
+    const names = varNameSet(declaredVars);
+    const vars = new Set<string>();
+    const dps = new Set<string>();
+    const walk = (node: Node): void => {
+        switch (node.k) {
+            case 'chain': {
+                const r = resolveChain(node, names);
+                if (r.kind === 'var') vars.add(r.name);
+                else if (r.kind === 'dp') dps.add(r.ref);
+                return;
+            }
+            case 'un':
+                return walk(node.a);
+            case 'bin':
+                walk(node.a);
+                return walk(node.b);
+            case 'cond':
+                walk(node.c);
+                walk(node.a);
+                return walk(node.b);
+            case 'index':
+                walk(node.a);
+                return walk(node.i);
+            case 'call':
+                for (const a of node.args) walk(a);
+                return;
+            case 'pipe':
+                walk(node.a);
+                for (const a of node.args) walk(a);
+                return;
+            default:
+                return;
+        }
+    };
+    walk(ast);
+    return { vars: [...vars], dps: [...dps] };
+}
+
 // ── evaluation ────────────────────────────────────────────────────────────────
 
 /** Operation arguments are literals; an expression argument is reduced to one. */

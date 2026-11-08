@@ -331,6 +331,31 @@ function navNotes(k) {
                 `(Tag, nach ${k.anchor} eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), ` +
                 'leer/0/"now" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).',
         },
+        [k.endDp]: {
+            description:
+                `Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt ${k.paging} und ` +
+                `${k.dateDp} voraus, #931). Gesetzt = ${k.dateDp} ist der ERSTE gezeigte Tag (unabhängig von ` +
+                `${k.anchor}), dieser DP der LETZTE: "YYYY-MM-DD" oder ms. Beide zusammen ergeben einen Zeitraum aus ` +
+                'ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei ' +
+                'jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.',
+        },
+        [k.freeRange]: {
+            type: 'boolean',
+            default: false,
+            description:
+                `Freier Zeitraum (#931, setzt ${k.paging} voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet ` +
+                'die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen ' +
+                `(z. B. "20d"), ◀/▶ springen um seine Länge, ${k.group} gibt ihn wie einen Chip weiter.`,
+        },
+        [k.idleReset]: {
+            type: 'number',
+            default: 0,
+            description:
+                'Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den ' +
+                `konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit ${k.startOnCurrent} = aktuelles ` +
+                `Fenster, sonst rollend). Die Kopplungsgruppe ${k.group} folgt; Navigations-Datenpunkte werden dabei ` +
+                'nicht geschrieben. 0 = nie. Für Wand-Tablets.',
+        },
         [k.rangeDp]: {
             description:
                 'Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips ("6h", "24h", "7d", ' +
@@ -351,6 +376,9 @@ const PLAIN_NAV = {
     group: 'navGroup',
     groupMode: 'navGroupMode',
     dateDp: 'navDateDp',
+    endDp: 'navEndDp',
+    freeRange: 'navFreeRange',
+    idleReset: 'navIdleReset',
     rangeDp: 'navRangeDp',
     commandDp: 'navCommandDp',
 };
@@ -387,6 +415,23 @@ export const WIDGET_OPTION_NOTES = {
         },
     },
     jsontable: {
+        footerRow: {
+            description:
+                'Letzte Datenzeile als Fußzeile (#938), z. B. eine Summenzeile Σ. Sie wird vor Suche, Sortierung und maxRows aus den Daten gelöst: bleibt immer unten, bleibt bei der Suche sichtbar, zählt im Trefferzähler nicht mit und ist nicht anklickbar. Spaltenformate gelten auch für sie. Erst ab 2 Datenzeilen. Standard false.',
+        },
+        footerBg: {
+            description:
+                'Hintergrund der Fußzeile (Hex, rgba(), CSS-Variable oder Hell/Dunkel-Paar). Standard var(--app-bg). Gewinnt über cellBg der Spalte; die Bezeichnungsspalte (firstColHeader) behält ihre Farben. Bei transparent ohne Hintergrund.',
+        },
+        footerColor: {
+            description: 'Textfarbe der Fußzeile. Standard var(--text-primary). Gewinnt über cellColor der Spalte.',
+        },
+        footerBold: { description: 'Fußzeile fett. Standard true.' },
+        footerItalic: { description: 'Fußzeile kursiv. Standard false.' },
+        footerSticky: {
+            description:
+                'Fußzeile beim Scrollen am unteren Rand fixiert (Gegenstück zum Kopf). Standard true; wirkt nicht bei transparent.',
+        },
         rowClickAction: {
             description:
                 'Klick auf eine Tabellenzeile (#858). Nicht gesetzt = Zeilen nicht anklickbar; "auto" gilt hier als aus (die Zeilen haben keinen Datenpunkt). Ein ClickAction-Objekt, meist popup-html oder popup-view. Im Popup stehen die Felder der geklickten Zeile als Platzhalter: {{row_<feld>}} = Rohwert (Objekte als JSON), {{rowtext_<feld>}} = Text wie in der Tabelle (Format, Zuordnung, Präfix/Suffix) — auch für ausgeblendete Spalten; andere Zeichen als Buchstaben/Ziffern/_ im Feldnamen werden zu _. Ohne rowPopupTitle ist der Titel die erste sichtbare Zelle. Rezept json-protokoll-detail.',
@@ -541,6 +586,11 @@ export const WIDGET_OPTION_NOTES = {
     html: {
         htmlContent: { description: 'Fester HTML-Inhalt.' },
         htmlDatapoint: { description: 'Datenpunkt, der den HTML-Inhalt liefert.' },
+        scrollable: {
+            description:
+                'Scrollbalken im HTML-Rahmen erlauben. true = an (Standard). Wirkungslos bei autoHeight: true - ' +
+                'der Rahmen ist dann so hoch wie der Inhalt und scrollt nie.',
+        },
         htmlApi: {
             description:
                 'Stellt im HTML window.aura bereit: aura.setState(id, wert, ack?), aura.toggle(id), ' +
@@ -556,7 +606,8 @@ export const WIDGET_OPTION_NOTES = {
                 'Tag der ioBroker-Web-Komponente (Custom Element, z. B. "iob-flow-diagram"). Nur Komponenten, die ein ' +
                 'installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt ' +
                 'das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte ' +
-                'selbst - es gibt kein dp-Feld.',
+                'selbst - es gibt kein dp-Feld. Bekannt und auch ohne Adapter wählbar: "iob-flow-diagram" ' +
+                '(Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter flow.0.diagrams).',
         },
         wcAdapter: {
             type: 'string',
@@ -569,7 +620,9 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der ' +
                 'Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard ' +
-                'speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg.',
+                'speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg. ' +
+                'Beim Fluss-Diagramm werden "title" und "fullView" ignoriert - dafür gelten Widget-Titel ' +
+                '(showTitle) und der Vollbild-Knopf des Rahmens.',
         },
     },
     button: {
@@ -586,7 +639,11 @@ export const WIDGET_OPTION_NOTES = {
                 'Was gespiegelt wird: leer = ein Widget (targetWidgetId), "tab" = ein ganzer Tab (targetTabId). ' +
                 'Ein Tab-Spiegel zeigt den Tab live im eigenen Kasten; seine Höhe ist frei (h), Überhang scrollt.',
         },
-        targetWidgetId: { description: 'Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind "tab").' },
+        targetWidgetId: {
+            description:
+                'Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind "tab"). ' +
+                'Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat.',
+        },
         targetTabId: {
             description:
                 'Id des Tabs, der hier gespiegelt wird (sourceKind "tab"). Nicht der eigene Tab, keine PIN-geschützten Tabs.',
@@ -1649,6 +1706,9 @@ export const WIDGET_OPTION_NOTES = {
             group: 'echartNavGroup',
             groupMode: 'echartNavGroupMode',
             dateDp: 'echartNavDateDp',
+            endDp: 'echartNavEndDp',
+            freeRange: 'echartNavFreeRange',
+            idleReset: 'echartNavIdleReset',
             rangeDp: 'echartNavRangeDp',
             commandDp: 'echartNavCommandDp',
         }),
@@ -1768,16 +1828,27 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Zoomstufe der Karte, 1–22. Über der letzten Stufe des Kachel-Servers (19, Gelände 17) werden die Kacheln vergrößert. Bei followMarkers die Obergrenze des automatischen Zentrierens.',
         },
-        mapStyle: { description: 'Kartenstil.' },
+        mapStyle: {
+            description:
+                "Kartenstil. 'custom' = eigener Kachel-Server aus tileUrl (z. B. lokaler Kachel-Cache ohne Internet); ohne tileUrl gilt standard.",
+        },
         satelliteLabels: {
             description:
                 'Beim Kartentyp Satellit Ortsnamen und Grenzen (Esri) über das Luftbild legen, auch nach Umschalten im Frontend. Standard an.',
         },
         tileUrl: {
             description:
-                'Veraltet – nicht setzen. Eigener Kachel-Server älterer Karten; bestehende Werte bleiben wirksam (überschreiben mapStyle), neu konfigurieren lässt er sich nicht mehr. Für den Kartenstil mapStyle verwenden.',
+                "Eigener Kachel-Server: URL-Vorlage mit {z}/{x}/{y}, optional {s} für Subdomains. Zusammen mit mapStyle 'custom' setzen. Ist tileUrl gesetzt, gilt sie unabhängig von mapStyle; für einen festen Kartentyp tileUrl entfernen.",
         },
-        tileAttribution: { description: 'Veraltet – nicht setzen. Quellenangabe zu tileUrl.' },
+        tileAttribution: { description: 'Quellenangabe unter der Karte für den eigenen Kachel-Server (tileUrl).' },
+        tileMinZoom: {
+            description:
+                'Eigener Kachel-Server: kleinste Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinaus lässt sich die Karte nicht zoomen. Leer = 0.',
+        },
+        tileMaxZoom: {
+            description:
+                'Eigener Kachel-Server: größte Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinein lässt sich die Karte nicht zoomen, auch nicht bei followMarkers oder Schnellzugriff-Zoom. Leer = 22 (ab 19 vergrößert).',
+        },
         markers: { description: 'Die Markierungen auf der Karte.' },
         homeMarkerId: { description: 'Id der Markierung, die als Zuhause gilt.' },
         followMarkers: { description: 'Kartenausschnitt automatisch an die Markierungen anpassen.' },
@@ -1792,15 +1863,24 @@ export const WIDGET_OPTION_NOTES = {
         styleChipsCorner: { description: 'In welcher Ecke die Stil-Umschalter liegen.' },
         lines: {
             description:
-                'Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source "route" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source "json" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; "name"/"lineColor" im Wert werden übernommen). source "history" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus.',
+                'Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source "route" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source "json" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; "name"/"lineColor" im Wert werden übernommen). source "history" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24 – gilt nur ohne rangeChips/dayNav/navGroup/navRangeDp). maxPoints? (json/history, Standard 2000) = höchstens so viele Punkte zeichnen; längere Strecken werden per Douglas-Peucker über den ganzen Zeitraum vereinfacht (Länge und Zeitleiste rechnen mit allen Punkten). Lange Zeiträume liest die Karte tageweise. showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus.',
         },
         lineInfo: {
             description:
                 'Ecke des Infokastens mit Name, Länge und Fahrzeit je Linie (top-left|top-right|bottom-left|bottom-right), "off" blendet ihn aus. Standard bottom-left.',
         },
+        ...navNotes(PLAIN_NAV),
+        rangeChips: {
+            description:
+                'Zeitraum-Chips über der Karte wie beim Diagramm, z. B. ["6h", "24h", "7d", "1M=Monat"]. Aufgezeichnete Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Zeitraum statt historyHours. Der erste Chip ist der Start-Zeitraum. "total" wird nicht angeboten. Mit navGroup teilen Karte und Diagramme Chip und Datum (Wohnmobil-Strecke neben Temperatur/Batterie).',
+        },
         dayNav: {
             description:
-                'Datumsleiste ‹ Datum › über der Karte. Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Tag statt der letzten historyHours; nur heute kommt der Live-Wert dazu.',
+                'Blätter-Leiste (‹ › ⇥ + Datum) über der Karte, Schritt = aktiver Zeitraum-Chip; ohne rangeChips ein Kalendertag (früher: Tagesleiste). Strecken zeigen das gewählte Fenster; nur ein Fenster bis jetzt bekommt den Live-Wert.',
+        },
+        dayNavDefault: {
+            description:
+                'Mit dayNav: startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00). Bei der Karte Standard an; false = rollend bis jetzt.',
         },
         lineChips: {
             description:
@@ -1811,7 +1891,7 @@ export const WIDGET_OPTION_NOTES = {
         },
         timeline: {
             description:
-                'Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav.',
+                'Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav bzw. rangeChips.',
         },
         stayRadius: {
             description: 'Zeitleiste: Radius in Metern, in dem man als „am selben Ort“ gilt (Standard 100).',
@@ -2163,6 +2243,15 @@ export const WIDGET_OPTION_NOTES = {
                 'Icons anzeigen: Bereiche ohne eigenes Icon bekommen ein Standard-Icon, Tabs ohne Icon nur Text.',
         },
         showLabels: { description: 'Text der Einträge anzeigen. Bei menuMode "overview" immer an.' },
+        showTitle: {
+            description:
+                'Kopfzeile mit dem Widget-Titel über den Einträgen. Beim Menü standardmäßig AUS — nur true blendet sie ein (#949).',
+        },
+        showIcon: {
+            description:
+                'Widget-Icon in der Kopfzeile. Beim Menü standardmäßig AUS — nur true blendet es ein; Größe = iconSize der Einträge (#949).',
+        },
+        iconSize: { description: 'Icon-Größe der Einträge in px (Standard 18); gilt auch für das Kopfzeilen-Icon.' },
         menuSource: {
             enum: ['layout', 'all'],
             description:

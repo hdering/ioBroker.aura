@@ -1327,7 +1327,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
             {dt === 'stepper' && (
                 <div className="grid grid-cols-3 gap-1.5">
                     {/* Zeit-Formate (#827): Anzeige/Lesen als Dauer, Schreiben getrennt wählbar —
-                        Sprinkle Control zeigt „05:00“, nimmt aber Minuten als Zahl an. */}
+                        Sprinkle Control zeigt "05:00", nimmt aber Minuten als Zahl an. */}
                     <div>
                         <Label>Format</Label>
                         <select

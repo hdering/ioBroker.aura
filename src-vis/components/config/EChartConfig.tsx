@@ -31,6 +31,11 @@ import { ChartFormatPanel } from './chart/ChartFormatPanel';
 import { ChartSeriesDetail } from './chart/ChartSeriesDetail';
 import { ChartValuesPanel } from './chart/ChartValuesPanel';
 import { CHART_TYPES, inputCls, inputStyle, type JsonProbe, type SeriesAdapterState } from './chart/chartShared';
+import { usableInputs } from '../../utils/formulaSeries';
+
+/** The datapoint a series' history adapter is detected from — a formula series asks its first input (#930). */
+const detectDp = (s: EChartSeriesConfig): string =>
+    s.source === 'formula' ? (usableInputs(s.formulaInputs)[0]?.datapointId ?? '') : s.datapointId;
 
 interface EChartConfigProps {
     config: WidgetConfig;
@@ -204,8 +209,12 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
      */
     const managedEntries: ManagedEntry[] = series.map((s) => {
         const typeLabel = CHART_TYPES.find((ct) => ct.id === s.chartType)?.label() ?? s.chartType;
-        const source = s.source === 'json' || isJson ? t('echart.sourceJson') : null;
-        const dp = s.datapointId || t('echart.noDatapoint');
+        const formula = !isJson && s.source === 'formula';
+        const source =
+            s.source === 'json' || isJson ? t('echart.sourceJson') : formula ? t('echart.sourceFormula') : null;
+        const dp = formula
+            ? (s.formula ?? '').trim() || t('echart.noDatapoint')
+            : s.datapointId || t('echart.noDatapoint');
         return {
             id: s.id,
             label: s.name,
@@ -429,9 +438,10 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // Detect history adapters when datapoint changes
     useEffect(() => {
         for (const s of series) {
+            const dpId = detectDp(s);
             // Template datapoints ({{dp}}, {{parent}}.x) can't be resolved to a real object,
             // so adapter detection is skipped — a free-text instance field is shown instead.
-            if (!s.datapointId || s.datapointId.includes('{{')) continue;
+            if (!dpId || dpId.includes('{{')) continue;
             // JSON series read the datapoint value directly — no history adapter involved.
             // In the JSON mode that goes for every series, whatever its stored source says.
             if (isJson || s.source === 'json') continue;
@@ -439,7 +449,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
             // Only re-detect if we haven't already
             if (existing) continue;
             setAdapterStates((prev) => ({ ...prev, [s.id]: { adapters: [], checking: true } }));
-            getObjectDirect(s.datapointId)
+            getObjectDirect(dpId)
                 .then((obj) => {
                     const custom = obj?.common?.custom;
                     const adapters = custom
@@ -456,7 +466,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [series.map((s) => s.datapointId).join(',')]);
+    }, [series.map((s) => detectDp(s)).join(',')]);
 
     const refreshAdapters = (id: string, datapointId: string) => {
         if (!datapointId) return;
@@ -761,7 +771,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                         update={(patch) => updateSeries(s.id, patch)}
                                         onTransform={(patch) => setSeriesTransform(s.id, patch)}
                                         onDatapointChange={(dpId) => changeSeriesDatapoint(s.id, dpId)}
-                                        onDetect={() => refreshAdapters(s.id, s.datapointId)}
+                                        onDetect={() => refreshAdapters(s.id, detectDp(s))}
                                         onWidgetOption={setO}
                                         onAddComparison={() => addComparisonSeries(s.id)}
                                     />

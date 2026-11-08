@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.105.0",
+    "auraVersion": "0.107.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2770,9 +2770,22 @@
           "type": "string",
           "enum": [
             "history",
-            "json"
+            "json",
+            "formula"
           ],
-          "description": "Where the series gets its points from. `history` (default) queries a history adapter; `json` reads a JSON array straight out of the datapoint's value — for datapoints that already hold pre-aggregated label/value pairs (issue #509)."
+          "description": "Where the series gets its points from. `history` (default) queries a history adapter; `json` reads a JSON array straight out of the datapoint's value — for datapoints that already hold pre-aggregated label/value pairs (issue #509). `formula` computes the series from several datapoints (`formulaInputs` + `formula`, issue #930) — `datapointId` stays empty."
+        },
+        "formulaInputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "FormulaInput"
+          },
+          "description": "Inputs of a `formula` series: variable name → datapoint, optionally with its own history instance. Inputs logged on change only hold their last value until the next one."
+        },
+        "formula": {
+          "type": "string",
+          "description": "Expression over the input names, e.g. `(is - ib) * u` or `a + b + c` (binding syntax, no JS)."
         },
         "jsonPath": {
           "type": "string",
@@ -2825,7 +2838,7 @@
         "periodValue": {
           "type": "string",
           "ref": "PeriodValueKind",
-          "description": "One number over the charted window, shown next to the series (issue #749) — e.g. the energy fed in over the selected 30 days. Follows the range buttons, the day navigation and a time shift. `consumption` = sum of every rise (meters, reset-aware), `change` = end − start, `min`/`max`/`average` over the readings; a `delta` series reads them off its bars. Placement: widget option `echartPeriodPlacement`. Unset = none. Ignored for JSON series and in comparison/JSON mode."
+          "description": "One number over the charted window, shown next to the series (issue #749) — e.g. the energy fed in over the selected 30 days. Follows the range buttons, the day navigation and a time shift. `consumption` = sum of every rise (meters, reset-aware), `change` = end − start, `min`/`max`/`average` over the readings, `integral` = area under the curve per hour (W → Wh, #930); a `delta` series reads them off its bars. Placement: widget option `echartPeriodPlacement`. Unset = none. Ignored for JSON series and in comparison/JSON mode."
         }
       }
     },
@@ -2853,6 +2866,26 @@
         "auto"
       ]
     },
+    "FormulaInput": {
+      "type": "object",
+      "fields": {
+        "name": {
+          "type": "string",
+          "required": true,
+          "description": "Variable name in the formula (`u`, `is`)."
+        },
+        "datapointId": {
+          "type": "string",
+          "required": true,
+          "description": "State the variable reads — live value and history alike.",
+          "datapoint": true
+        },
+        "historyInstance": {
+          "type": "string",
+          "description": "Own history instance — otherwise the series' one."
+        }
+      }
+    },
     "TimeShiftUnit": {
       "type": "string",
       "enum": [
@@ -2870,7 +2903,8 @@
         "change",
         "min",
         "max",
-        "average"
+        "average",
+        "integral"
       ]
     },
     "GroupActionType": {
@@ -6333,7 +6367,8 @@
       "enum": [
         "standard",
         "satellite",
-        "terrain"
+        "terrain",
+        "custom"
       ]
     },
     "MapQuickView": {
@@ -6479,7 +6514,7 @@
         },
         "maxPoints": {
           "type": "number",
-          "description": "history: newest N points at most (default 500)."
+          "description": "json/history: points drawn at most (default 2000); longer tracks are simplified (Douglas-Peucker, #929)."
         },
         "showPoints": {
           "type": "boolean",
@@ -10078,6 +10113,17 @@
           "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
           "datapoint": true
         },
+        "navEndDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt dayNav und navDateDp voraus, #931). Gesetzt = navDateDp ist der ERSTE gezeigte Tag (unabhängig von navAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "datapoint": true
+        },
+        "navFreeRange": {
+          "type": "boolean",
+          "default": false,
+          "description": "Freier Zeitraum (#931, setzt dayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, navGroup gibt ihn wie einen Chip weiter."
+        },
         "navGroup": {
           "type": "string",
           "default": "",
@@ -10091,6 +10137,11 @@
           ],
           "default": "all",
           "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
+        },
+        "navIdleReset": {
+          "type": "number",
+          "default": 0,
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit dayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe navGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets."
         },
         "navPosition": {
           "type": "string",
@@ -12582,6 +12633,17 @@
           "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt echartDayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach echartNavAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
           "datapoint": true
         },
+        "echartNavEndDp": {
+          "type": "string",
+          "default": "",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt echartDayNav und echartNavDateDp voraus, #931). Gesetzt = echartNavDateDp ist der ERSTE gezeigte Tag (unabhängig von echartNavAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "datapoint": true
+        },
+        "echartNavFreeRange": {
+          "type": "boolean",
+          "default": false,
+          "description": "Freier Zeitraum (#931, setzt echartDayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, echartNavGroup gibt ihn wie einen Chip weiter."
+        },
         "echartNavFuture": {
           "type": "string",
           "default": "none",
@@ -12600,6 +12662,11 @@
           ],
           "default": "all",
           "description": "Was die Kopplungsgruppe (echartNavGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
+        },
+        "echartNavIdleReset": {
+          "type": "number",
+          "default": 0,
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit echartDayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe echartNavGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets."
         },
         "echartNavRangeDp": {
           "type": "string",
@@ -13031,6 +13098,17 @@
           "default": "",
           "datapoint": true
         },
+        "navEndDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt dayNav und navDateDp voraus, #931). Gesetzt = navDateDp ist der ERSTE gezeigte Tag (unabhängig von navAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "default": "",
+          "datapoint": true
+        },
+        "navFreeRange": {
+          "type": "boolean",
+          "description": "Freier Zeitraum (#931, setzt dayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, navGroup gibt ihn wie einen Chip weiter.",
+          "default": false
+        },
         "navGroup": {
           "type": "string",
           "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum (nur das Datum: navGroupMode \"date\") — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp.",
@@ -13044,6 +13122,11 @@
           ],
           "default": "all",
           "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
+        },
+        "navIdleReset": {
+          "type": "number",
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit dayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe navGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets.",
+          "default": 0
         },
         "navPosition": {
           "type": "string",
@@ -15738,7 +15821,8 @@
         },
         "scrollable": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Scrollbalken im HTML-Rahmen erlauben. true = an (Standard). Wirkungslos bei autoHeight: true - der Rahmen ist dann so hoch wie der Inhalt und scrollt nie."
         },
         "valueDatapoint": {
           "type": "string",
@@ -16556,6 +16640,38 @@
           "type": "number",
           "default": 12,
           "description": "Schriftgröße in px. 0 = automatisch."
+        },
+        "footerBg": {
+          "type": "string",
+          "default": "var(--app-bg)",
+          "description": "Hintergrund der Fußzeile (Hex, rgba(), CSS-Variable oder Hell/Dunkel-Paar). Standard var(--app-bg). Gewinnt über cellBg der Spalte; die Bezeichnungsspalte (firstColHeader) behält ihre Farben. Bei transparent ohne Hintergrund.",
+          "color": true
+        },
+        "footerBold": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fußzeile fett. Standard true."
+        },
+        "footerColor": {
+          "type": "string",
+          "default": "var(--text-primary)",
+          "description": "Textfarbe der Fußzeile. Standard var(--text-primary). Gewinnt über cellColor der Spalte.",
+          "color": true
+        },
+        "footerItalic": {
+          "type": "boolean",
+          "default": false,
+          "description": "Fußzeile kursiv. Standard false."
+        },
+        "footerRow": {
+          "type": "boolean",
+          "default": false,
+          "description": "Letzte Datenzeile als Fußzeile (#938), z. B. eine Summenzeile Σ. Sie wird vor Suche, Sortierung und maxRows aus den Daten gelöst: bleibt immer unten, bleibt bei der Suche sichtbar, zählt im Trefferzähler nicht mit und ist nicht anklickbar. Spaltenformate gelten auch für sie. Erst ab 2 Datenzeilen. Standard false."
+        },
+        "footerSticky": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fußzeile beim Scrollen am unteren Rand fixiert (Gegenstück zum Kopf). Standard true; wirkt nicht bei transparent."
         },
         "headerBg": {
           "type": "string",
@@ -18610,8 +18726,13 @@
         },
         "dayNav": {
           "type": "boolean",
-          "description": "Datumsleiste ‹ Datum › über der Karte. Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Tag statt der letzten historyHours; nur heute kommt der Live-Wert dazu.",
+          "description": "Blätter-Leiste (‹ › ⇥ + Datum) über der Karte, Schritt = aktiver Zeitraum-Chip; ohne rangeChips ein Kalendertag (früher: Tagesleiste). Strecken zeigen das gewählte Fenster; nur ein Fenster bis jetzt bekommt den Live-Wert.",
           "default": false
+        },
+        "dayNavDefault": {
+          "type": "boolean",
+          "description": "Mit dayNav: startet auf dem aktuellen Zeitraum (bei 24 Std: heute 00:00–24:00). Bei der Karte Standard an; false = rollend bis jetzt.",
+          "default": true
         },
         "followMarkers": {
           "type": "boolean",
@@ -18643,12 +18764,12 @@
             "type": "object",
             "ref": "MapLine"
           },
-          "description": "Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source \"route\" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source \"json\" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; \"name\"/\"lineColor\" im Wert werden übernommen). source \"history\" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24, maxPoints? Standard 500). showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus."
+          "description": "Linien auf der Karte: [{id, source, label?, color?, width?, …}]. source \"route\" = Route entlang der Straßen zwischen zwei Markierungen (fromMarkerId, toMarkerId, profile car|bike|foot; OSRM, Länge + Fahrzeit). source \"json\" = aufgezeichnete Strecke aus einem DP mit Punkteliste (dp, pointsPath?, latPath?, lonPath?; auch GeoJSON; \"name\"/\"lineColor\" im Wert werden übernommen). source \"history\" = Verlauf eines Positions-DPs (dp, historyInstance?, historyHours? Std. Standard 24 – gilt nur ohne rangeChips/dayNav/navGroup/navRangeDp). maxPoints? (json/history, Standard 2000) = höchstens so viele Punkte zeichnen; längere Strecken werden per Douglas-Peucker über den ganzen Zeitraum vereinfacht (Länge und Zeitleiste rechnen mit allen Punkten). Lange Zeiträume liest die Karte tageweise. showPoints zeigt bei json/history einen Punkt je Messung mit Zeit/Tempo/Genauigkeit. markerId (Id aus markers) koppelt eine Markierung an die Linie: mit lineChips blendet der Chip Linie und Markierung gemeinsam aus."
         },
         "mapStyle": {
           "type": "string",
           "ref": "MapStyle",
-          "description": "Kartenstil."
+          "description": "Kartenstil. 'custom' = eigener Kachel-Server aus tileUrl (z. B. lokaler Kachel-Cache ohne Internet); ohne tileUrl gilt standard."
         },
         "markerSpread": {
           "type": "boolean",
@@ -18663,6 +18784,80 @@
           },
           "description": "Die Markierungen auf der Karte."
         },
+        "navAnchor": {
+          "type": "string",
+          "enum": [
+            "end",
+            "start"
+          ],
+          "description": "Was das gewählte Datum beim Blättern ist: \"end\" (Standard) = letzter Tag des Fensters (7 Tage bis zum Datum), \"start\" = erster Tag (7 Tage ab dem Datum). Setzt dayNav voraus.",
+          "default": "end"
+        },
+        "navCommandDp": {
+          "type": "string",
+          "description": "Optionaler Befehls-Datenpunkt (nur lesen, setzt dayNav voraus): \"prev\", \"next\", \"today\", \"now\" (auch -1/1). Jede Aktualisierung zählt, auch derselbe Wert; der Wert beim Laden wird ignoriert, das Widget setzt den DP nicht zurück.",
+          "default": "",
+          "datapoint": true
+        },
+        "navDateDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für das Datum (lesen + schreiben, setzt dayNav voraus). Werte: \"YYYY-MM-DD\" (Tag, nach navAnchor eingeordnet), Zeitstempel in ms oder ISO-Zeit (Bezugszeitpunkt selbst), leer/0/\"now\" = rollend bis jetzt. Das Widget schreibt bei Bedienung zurück (Zahl-DP: ms, sonst YYYY-MM-DD).",
+          "default": "",
+          "datapoint": true
+        },
+        "navEndDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für das Ende eines freien Zeitraums (lesen + schreiben, setzt dayNav und navDateDp voraus, #931). Gesetzt = navDateDp ist der ERSTE gezeigte Tag (unabhängig von navAnchor), dieser DP der LETZTE: \"YYYY-MM-DD\" oder ms. Beide zusammen ergeben einen Zeitraum aus ganzen Tagen (max. 999), ◀/▶ blättern um seine Länge; beide leer = rollend. Das Widget schreibt bei jeder Bedienung (auch Chip/Pfeile) Anfang und Ende zurück.",
+          "default": "",
+          "datapoint": true
+        },
+        "navFreeRange": {
+          "type": "boolean",
+          "description": "Freier Zeitraum (#931, setzt dayNav voraus, wirkungslos mit lockRange): Der Datum-Knopf öffnet die Felder Von und Bis statt eines einzelnen Tags. Der Zeitraum wird zu einem Chip aus ganzen Tagen (z. B. \"20d\"), ◀/▶ springen um seine Länge, navGroup gibt ihn wie einen Chip weiter.",
+          "default": false
+        },
+        "navGroup": {
+          "type": "string",
+          "description": "Kopplungsgruppe: Diagramme mit gleichem Namen teilen Zeitraum-Chip und Datum (nur das Datum: navGroupMode \"date\") — blättert man in einem, blättern alle, auch über die Diagramm-Typen hinweg (echart, chart, energiebilanz). Nur im selben Browser; geräteübergreifend über navDateDp/navRangeDp.",
+          "default": ""
+        },
+        "navGroupMode": {
+          "type": "string",
+          "enum": [
+            "all",
+            "date"
+          ],
+          "default": "all",
+          "description": "Was die Kopplungsgruppe (navGroup) teilt: \"all\" (Standard) = Zeitraum-Chip und Datum, \"date\" = nur das Datum — jedes Diagramm behält seinen eigenen Zeitraum und zeigt sein Fenster um das Datum der Gruppe (z. B. Stunden-Diagramm über 2 Tage neben Tages-Diagramm über 2 Wochen). Gilt für das Empfangen: ein Diagramm mit \"date\" übernimmt keinen fremden Chip."
+        },
+        "navIdleReset": {
+          "type": "number",
+          "description": "Minuten ohne Bedienung der Seite (Zeiger, Tasten, Touch, Scrollen), nach denen das Diagramm auf den konfigurierten Zeitraum und das Startdatum zurückspringt (#932; mit dayNavDefault = aktuelles Fenster, sonst rollend). Die Kopplungsgruppe navGroup folgt; Navigations-Datenpunkte werden dabei nicht geschrieben. 0 = nie. Für Wand-Tablets.",
+          "default": 0
+        },
+        "navPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Blätter-Leiste: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Stehen Chips und Leiste am selben Rand, teilen sie sich eine Zeile."
+        },
+        "navRangeDp": {
+          "type": "string",
+          "description": "Optionaler Datenpunkt für den Zeitraum (lesen + schreiben): Kürzel wie in rangeChips (\"6h\", \"24h\", \"7d\", \"1M\", \"total\"). Gleicher DP in mehreren Diagrammen koppelt sie geräteübergreifend.",
+          "default": "",
+          "datapoint": true
+        },
+        "navSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Blätter-Leiste (‹ › ⇥ 📅): \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch). Unabhängig von rangeChipSize."
+        },
         "quickViews": {
           "type": "array",
           "items": {
@@ -18670,6 +18865,30 @@
             "ref": "MapQuickView"
           },
           "description": "Gespeicherte Kartenausschnitte zum Anspringen."
+        },
+        "rangeChipPosition": {
+          "type": "string",
+          "enum": [
+            "top",
+            "bottom"
+          ],
+          "description": "Position der Zeitraum-Chips: \"top\" (Standard, über dem Diagramm) oder \"bottom\" (darunter). Unabhängig von navPosition."
+        },
+        "rangeChipSize": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ],
+          "description": "Größe der Zeitraum-Chips: \"sm\" (Standard, kompakt), \"md\", \"lg\" (Touch, z. B. Handy/Wandtablet). Unabhängig von navSize; größer = höhere Bedienzeile."
+        },
+        "rangeChips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Zeitraum-Chips über der Karte wie beim Diagramm, z. B. [\"6h\", \"24h\", \"7d\", \"1M=Monat\"]. Aufgezeichnete Strecken (history/json mit Zeitstempeln) zeigen dann den gewählten Zeitraum statt historyHours. Der erste Chip ist der Start-Zeitraum. \"total\" wird nicht angeboten. Mit navGroup teilen Karte und Diagramme Chip und Datum (Wohnmobil-Strecke neben Temperatur/Batterie)."
         },
         "reachColor": {
           "type": "string",
@@ -18715,16 +18934,24 @@
         "tileAttribution": {
           "type": "string",
           "default": "",
-          "description": "Veraltet – nicht setzen. Quellenangabe zu tileUrl."
+          "description": "Quellenangabe unter der Karte für den eigenen Kachel-Server (tileUrl)."
+        },
+        "tileMaxZoom": {
+          "type": "number",
+          "description": "Eigener Kachel-Server: größte Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinein lässt sich die Karte nicht zoomen, auch nicht bei followMarkers oder Schnellzugriff-Zoom. Leer = 22 (ab 19 vergrößert)."
+        },
+        "tileMinZoom": {
+          "type": "number",
+          "description": "Eigener Kachel-Server: kleinste Zoomstufe mit Kacheln (0–22). Harte Grenze, weiter hinaus lässt sich die Karte nicht zoomen. Leer = 0.",
+          "default": 0
         },
         "tileUrl": {
           "type": "string",
-          "description": "Veraltet – nicht setzen. Eigener Kachel-Server älterer Karten; bestehende Werte bleiben wirksam (überschreiben mapStyle), neu konfigurieren lässt er sich nicht mehr. Für den Kartenstil mapStyle verwenden.",
-          "default": false
+          "description": "Eigener Kachel-Server: URL-Vorlage mit {z}/{x}/{y}, optional {s} für Subdomains. Zusammen mit mapStyle 'custom' setzen. Ist tileUrl gesetzt, gilt sie unabhängig von mapStyle; für einen festen Kartentyp tileUrl entfernen."
         },
         "timeline": {
           "type": "boolean",
-          "description": "Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav.",
+          "description": "Zeitleiste unter der Karte für die erste sichtbare Strecke (history/json mit Zeitstempeln): Aufenthalte mit Adresse (OpenStreetMap/Photon) und Fahrten mit Dauer und km. Liegt ein Aufenthalt an einem Marker mit festen Koordinaten oder Adresse, erscheint dessen Name mit ★. Gut zusammen mit dayNav bzw. rangeChips.",
           "default": false
         },
         "windowColor": {
@@ -19177,6 +19404,7 @@
         "fullscreenScreen",
         "fullscreenWidget",
         "headerItems",
+        "icon",
         "iconColor",
         "iconPlace",
         "lastChangeDatapoint",
@@ -19187,6 +19415,7 @@
         "showLastChange",
         "styleOverride",
         "textLines",
+        "titleAlign",
         "titleColor",
         "titleRow",
         "titleSize",
@@ -19246,7 +19475,7 @@
         "iconSize": {
           "type": "number",
           "default": 18,
-          "description": "Icongröße in px."
+          "description": "Icon-Größe der Einträge in px (Standard 18); gilt auch für das Kopfzeilen-Icon."
         },
         "indicatorStyle": {
           "type": "string",
@@ -19286,6 +19515,11 @@
           "default": false,
           "description": "Auch als hidden markierte Bereiche und Tabs auflisten (alle Modi). Typisch: Raum-Tabs aus der Tab-Leiste ausblenden und nur über ein Menü auf einem Übersichts-Tab erreichbar machen (#892). Ausgeblendete Layouts bleiben bei menuSource \"all\" weg."
         },
+        "showIcon": {
+          "type": "boolean",
+          "default": false,
+          "description": "Widget-Icon in der Kopfzeile. Beim Menü standardmäßig AUS — nur true blendet es ein; Größe = iconSize der Einträge (#949)."
+        },
         "showIcons": {
           "type": "boolean",
           "default": true,
@@ -19300,6 +19534,11 @@
           "type": "boolean",
           "default": false,
           "description": "Nur bei menuMode \"overview\": Suchfeld über den Gruppen, filtert die Chips live nach Tab- oder Bereichsname; Gruppen ohne Treffer verschwinden."
+        },
+        "showTitle": {
+          "type": "boolean",
+          "default": false,
+          "description": "Kopfzeile mit dem Widget-Titel über den Einträgen. Beim Menü standardmäßig AUS — nur true blendet sie ein (#949)."
         },
         "variant": {
           "type": "string",
@@ -19499,7 +19738,7 @@
         },
         "targetWidgetId": {
           "type": "string",
-          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\")."
+          "description": "Id des Widgets, das hier gespiegelt wird (nur ohne sourceKind \"tab\"). Bedingungen, Marker und Klick-Aktion kommen von der Quelle, solange der Spiegel keine eigenen hat."
         }
       }
     },
@@ -25186,7 +25425,9 @@
         "lastChangeSource",
         "paddingX",
         "paddingY",
+        "showIcon",
         "showLastChange",
+        "showTitle",
         "styleOverride",
         "textLines",
         "titleAlign",
@@ -25197,27 +25438,17 @@
         "transparent"
       ],
       "options": {
-        "showIcon": {
-          "type": "boolean",
-          "default": false,
-          "description": "Icon anzeigen."
-        },
-        "showTitle": {
-          "type": "boolean",
-          "default": false,
-          "description": "Titelzeile anzeigen."
-        },
         "wcAdapter": {
           "type": "string",
           "description": "Adaptername der Komponente (ohne Instanz, z. B. \"flow\"). Entscheidet nur, wenn zwei Adapter denselben Tag anbieten; leer = der erste mit diesem Tag."
         },
         "wcSettings": {
           "type": "object",
-          "description": "Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg."
+          "description": "Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg. Beim Fluss-Diagramm werden \"title\" und \"fullView\" ignoriert - dafür gelten Widget-Titel (showTitle) und der Vollbild-Knopf des Rahmens."
         },
         "wcTag": {
           "type": "string",
-          "description": "Tag der ioBroker-Web-Komponente (Custom Element, z. B. \"iob-flow-diagram\"). Nur Komponenten, die ein installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte selbst - es gibt kein dp-Feld."
+          "description": "Tag der ioBroker-Web-Komponente (Custom Element, z. B. \"iob-flow-diagram\"). Nur Komponenten, die ein installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte selbst - es gibt kein dp-Feld. Bekannt und auch ohne Adapter wählbar: \"iob-flow-diagram\" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter flow.0.diagrams)."
         }
       }
     },

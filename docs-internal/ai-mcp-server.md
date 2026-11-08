@@ -550,7 +550,7 @@ aktiv ist. `historyReads()` sammelt dafür, was ein Widget wirklich bei der Hist
 abfragt: beim einfachen `chart` den eigenen Datenpunkt, beim `echart` je Serie —
 und nur, wenn die Serie überhaupt aus der History liest (`source: 'json'` und
 `echartMode: 'json'` lesen den Datenpunktwert selbst, dort wäre die Warnung
-falsch). Zweiter Fall: ein gesetztes `historyInstance`, das diesen Datenpunkt
+falsch). Eine Formel-Reihe (`source: 'formula'`, #930) liest jeden ihrer `formulaInputs` aus der History — jeder Eingang wird einzeln geprüft, mit seinem eigenen `historyInstance` oder dem der Reihe. Zweiter Fall: ein gesetztes `historyInstance`, das diesen Datenpunkt
 nicht aufzeichnet — die Abfrage geht an die falsche Instanz und liefert nichts.
 Die Regel ist wörtlich die des Frontends (`detectHistoryAdapters` in
 `hooks/useChartHistory.ts`), damit Prüfung und Anzeige nicht auseinanderlaufen.

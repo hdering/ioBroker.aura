@@ -27,15 +27,28 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `mapStyle` | `standard` | `standard` · `satellite` · `terrain` |
+| `mapStyle` | `standard` | `standard` · `satellite` · `terrain` · `custom` (eigener Kachel-Server) |
 | `center` | Deutschland | `[lat, lon]` Startmittelpunkt |
 | `zoom` | `6` | Start-Zoom (1–22, ab 19 bzw. 17 bei Gelände vergrößerte Kacheln); bei `followMarkers` = max. Zoom des Auto-Fit |
 | `followMarkers` | `false` | Ansicht automatisch an alle Marker anpassen |
 | `markerSpread` | `true` | Marker am selben Ort nebeneinander statt übereinander zeichnen |
 
+### Eigener Kachel-Server
+
+Für Installationen ohne Internet, z. B. mit lokalem Kachel-Cache auf einem Raspberry Pi. Kartentyp **Eigener Kachel-Server** wählen.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `tileUrl` | — | URL-Vorlage mit `{z}/{x}/{y}`, optional `{s}` für Subdomains |
+| `tileMinZoom` | `0` | kleinste Zoomstufe mit Kacheln, weiter hinaus geht es nicht |
+| `tileMaxZoom` | `22` | größte Zoomstufe mit Kacheln, weiter hinein geht es nicht |
+| `tileAttribution` | — | Quellenangabe unten rechts |
+
+Ist `tileUrl` gesetzt, gilt sie unabhängig von `mapStyle`.
+
 ### Kartentyp umschalten
 
-Chips über der Karte wechseln den Kartentyp im Frontend. Die Auswahl gilt nur für das jeweilige Gerät und fällt beim Neuladen auf den konfigurierten Kartentyp zurück. Ein eigener Kachel-Server (`tileUrl`, nur noch bei älteren Karten) wird angezeigt, bis im Frontend ein Kartentyp gewählt wird.
+Chips über der Karte wechseln den Kartentyp im Frontend. Die Auswahl gilt nur für das jeweilige Gerät und fällt beim Neuladen auf den konfigurierten Kartentyp zurück. Der Chip **Eigene Karte** erscheint nur, wenn ein eigener Kachel-Server eingetragen ist.
 
 | Option | Standard | |
 | --- | --- | --- |
@@ -94,8 +107,8 @@ Pro Linie zusätzlich:
 | `width` | `4` | Linienstärke in px |
 | `showPoints` | `false` | Punkt je Messung (`json`/`history`); Klick zeigt Zeit, Tempo, Genauigkeit |
 | `markerId` | — | Marker, den der Chip der Linie mit ein- und ausblendet (nur mit `lineChips`) |
-| `historyHours` | `24` | Zeitraum für `history` |
-| `maxPoints` | `500` | neueste Punkte für `history` |
+| `historyHours` | `24` | Zeitraum für `history`, nur ohne Zeitraum-Chips/Blättern/Gruppe |
+| `maxPoints` | `2000` | höchstens so viele Punkte zeichnen (`json`/`history`); längere Strecken werden vereinfacht (Douglas-Peucker), Länge und Zeitleiste zählen alle Punkte |
 
 | Option | Standard | |
 | --- | --- | --- |
@@ -104,13 +117,35 @@ Pro Linie zusätzlich:
 
 Bewegt sich ein Marker, wird die Route höchstens alle 30 s neu berechnet.
 
-### Tageschronik: Tag, Chips, Zeitleiste
+### Zeitraum & Blättern
+
+![](./assets/karte/zeitraum.png)
+
+Wie beim Diagramm: aufgezeichnete Strecken (`history`/`json` mit Zeitstempel) zeigen den gewählten Zeitraum. Lange Zeiträume werden tageweise gelesen.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `rangeChips` | `[]` | Zeitraum-Chips, z.B. `["6h", "24h", "7d", "1M=Monat"]`; der erste ist der Start |
+| `dayNav` | `false` | Blätter-Leiste ‹ › ⇥ + Datum; Schritt = aktiver Chip, ohne Chips ein Tag |
+| `dayNavDefault` | `true` | mit `dayNav` auf dem aktuellen Zeitraum (heute) starten statt rollend |
+| `navAnchor` | `end` | gewähltes Datum = letzter (`end`) oder erster (`start`) Tag des Fensters |
+| `navGroup` | — | Kopplungsgruppe: Karten und Diagramme mit gleichem Namen teilen Chip und Datum |
+| `navGroupMode` | `all` | `date` = nur das Datum teilen |
+| `navDateDp` · `navRangeDp` · `navCommandDp` | — | Datum, Zeitraum, Befehl (`prev`/`next`/`today`/`now`) als Datenpunkt, auch geräteübergreifend |
+| `navFreeRange` | `false` | Freier Zeitraum: 📅 wählt Von und Bis, ‹ › springen um dessen Länge |
+| `navIdleReset` | — | Minuten ohne Bedienung → zurück auf Standard-Zeitraum und Startdatum; Gruppe folgt |
+| `navEndDp` | — | Ende-Datenpunkt (von–bis): gesetzt = `navDateDp` ist der erste, dieser der letzte Tag |
+| `rangeChipSize` · `navSize` | `sm` | `sm` · `md` · `lg` |
+| `rangeChipPosition` · `navPosition` | `top` | `top` · `bottom` |
+
+Gegenstück: [Diagramm](./echarts.md).
+
+### Tageschronik: Chips, Zeitleiste
 
 ![](./assets/karte/timeline.png)
 
 | Option | Standard | |
 | --- | --- | --- |
-| `dayNav` | `false` | Datumsleiste ‹ Datum ›; Strecken zeigen den gewählten Tag statt `historyHours`. Tippen aufs Datum springt zu heute |
 | `lineChips` | `false` | ein Chip je Linie über der Karte; immer nur eine Linie sichtbar |
 | `lineChipsMulti` | `false` | Chips schalten jede Linie einzeln ein/aus |
 | `timeline` | `false` | Aufenthalte und Fahrten der ersten sichtbaren Strecke unter der Karte; Tippen zoomt hin |

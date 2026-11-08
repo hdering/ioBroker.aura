@@ -58,6 +58,9 @@ const traffic = { stateChanges: 0, connects: 0, disconnects: 0 };
 // Module-level singleton
 let socket: IoBrokerSocket | null = null;
 const subscribers = new Map<string, Set<(state: ioBrokerState) => void>>();
+// Object subscriptions (subscribeObjectDirect): per object ID, renewed on every reconnect.
+const objectSubscribers = new Map<string, Set<(obj: unknown) => void>>();
+const objectCache = new Map<string, ioBrokerObject | null>();
 const connectionListeners = new Set<(connected: boolean) => void>();
 
 // When the connection went away — null while connected. Kept at module level so
@@ -623,6 +626,13 @@ function createSocket(url: string): IoBrokerSocket {
             maintained.add(id);
         });
         revalidateStates(s);
+        // Objects: subscribe again and hand out the current object - it may have changed while offline.
+        objectSubscribers.forEach((_callbacks, id) => {
+            s.emit('subscribeObjects', id);
+            void getObjectDirect(id, { skipCache: true }).then((obj) =>
+                objectSubscribers.get(id)?.forEach((fn) => fn(obj)),
+            );
+        });
     };
 
     s.on('connect', () => handleConnected(false));
@@ -644,6 +654,13 @@ function createSocket(url: string): IoBrokerSocket {
             'background:#ef4444;color:#fff;font-weight:bold;border-radius:0 3px 3px 0;padding:2px 6px;',
         );
         notifyConnection(false);
+    });
+    s.on('objectChange', (...args: unknown[]) => {
+        const id = args[0] as string;
+        const obj = (args[1] as ioBrokerObject | null | undefined) ?? null;
+        // Keep the session cache current for every reader, subscribed or not
+        if (objectCache.has(id)) objectCache.set(id, obj);
+        objectSubscribers.get(id)?.forEach((fn) => fn(obj));
     });
     s.on('stateChange', (...args: unknown[]) => {
         const id = args[0] as string;
@@ -875,9 +892,9 @@ export interface ioBrokerObject {
     };
 }
 
-// Object cache: definitions change rarely, so we cache them for the session.
-// Invalidated automatically by setObjectDirect / extendObjectDirect / deleteObjectDirect.
-const objectCache = new Map<string, ioBrokerObject | null>();
+// Object cache (objectCache, declared above): definitions change rarely, so we cache them
+// for the session. Invalidated automatically by setObjectDirect / extendObjectDirect /
+// deleteObjectDirect, and kept current by the events of subscribed objects.
 const objectInflight = new Map<string, Promise<ioBrokerObject | null>>();
 
 export function invalidateObjectCache(id?: string): void {
@@ -912,6 +929,30 @@ export function getObjectDirect(id: string, opts?: { skipCache?: boolean }): Pro
     });
     objectInflight.set(id, p);
     return p;
+}
+
+/**
+ * Subscribe one object: the callback gets the object after every change (`null` once
+ * it is deleted) - not the current one, read that with getObjectDirect. After a
+ * reconnect it gets the object as it is then. Returns the unsubscribe function.
+ */
+export function subscribeObjectDirect(id: string, callback: (obj: ioBrokerObject | null) => void): () => void {
+    if (!id) return () => {};
+    const cb = callback as (obj: unknown) => void;
+    if (!objectSubscribers.has(id)) {
+        objectSubscribers.set(id, new Set());
+        getSocket().emit('subscribeObjects', id);
+    }
+    objectSubscribers.get(id)!.add(cb);
+    return () => {
+        const subs = objectSubscribers.get(id);
+        if (!subs) return;
+        subs.delete(cb);
+        if (subs.size === 0) {
+            objectSubscribers.delete(id);
+            getSocket().emit('unsubscribeObjects', id);
+        }
+    };
 }
 
 // ── History adapter ────────────────────────────────────────────────────────────

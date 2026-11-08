@@ -16,6 +16,7 @@
  * title row, a widget that was never wired, title and icon both off — is drawn
  * by the frame as a strip above the body instead, so an item is never lost.
  */
+import { ChevronDown } from 'lucide-react';
 import {
     Children,
     cloneElement,
@@ -25,6 +26,8 @@ import {
     useLayoutEffect,
     type CSSProperties,
     type HTMLAttributes,
+    type KeyboardEvent,
+    type MouseEvent,
     type ReactElement,
     type ReactNode,
 } from 'react';
@@ -47,6 +50,11 @@ export interface HeaderSlotsValue {
     titleRow?: number;
     /** A TitleRow drew the title in row 2 — it draws that row, HeaderSlotsRow2 steps back. */
     titleInRow2?: boolean;
+    /**
+     * Expanded collapsible widget (issue #941): TitleRow leads with the ⌄ chevron,
+     * like the folded header, and — rowClick — the whole row folds the card.
+     */
+    collapse?: { onCollapse: () => void; rowClick: boolean; label: string };
 }
 
 export type { IconPlace } from '../../utils/headerItems';
@@ -228,7 +236,74 @@ function withCenterIcon(kids: Kids, icon: ReactNode): Kids {
  * lifted first (liftWrappers). Left/right alignment with the symbol in its place,
  * or no title at all: a plain flex row, exactly as before.
  */
-export function TitleRow({ align, children, ...rest }: { align?: string } & HTMLAttributes<HTMLDivElement>): ReactNode {
+export function TitleRow(props: { align?: string } & HTMLAttributes<HTMLDivElement>): ReactNode {
+    const collapse = useContext(HeaderSlotsContext)?.collapse;
+    // Expanded collapsible widget (issue #941): the same row as the folded header —
+    // chevron first, 8 px apart (the folded row's gap), the title as bold — and the
+    // row folds the card, except where a control of its own takes the click.
+    const { children, style, className, ...rest } = props;
+    const fold = (e: MouseEvent | KeyboardEvent) => {
+        e.stopPropagation();
+        collapse?.onCollapse();
+    };
+    const chevron = collapse && (
+        <span
+            key="collapse-chevron"
+            className="aura-collapse-chevron nodrag shrink-0 flex items-center cursor-pointer"
+            style={{ color: 'var(--text-secondary)' }}
+            role="button"
+            tabIndex={0}
+            aria-expanded={true}
+            aria-label={collapse.label}
+            title={collapse.label}
+            data-collapse-chevron=""
+            onClick={fold}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    fold(e);
+                }
+            }}
+        >
+            <ChevronDown size={16} />
+        </span>
+    );
+    const node = useTitleRow(
+        collapse
+            ? {
+                  ...rest,
+                  className: `${className ?? ''} aura-title-collapse`,
+                  style: { ...style, columnGap: 8 },
+                  children: [chevron, ...Children.toArray(children)],
+              }
+            : props,
+    );
+    if (!collapse || !isValidElement(node)) return node;
+    // The root may be a column round two rows (title or symbol on row 2) — the
+    // class and the click go there, so row 2 folds the card as well.
+    const root = node as ReactElement<HTMLAttributes<HTMLElement>>;
+    const cls = `${root.props.className ?? ''} aura-title-collapse`;
+    if (!collapse.rowClick) return cloneElement(root, { className: cls });
+    return cloneElement(root, {
+        className: `${cls} aura-title-collapse-click`,
+        onClick: (e: MouseEvent<HTMLElement>) => {
+            root.props.onClick?.(e);
+            if (e.defaultPrevented || isOwnControl(e.target, e.currentTarget)) return;
+            fold(e);
+        },
+    });
+}
+
+/** A control in the title row (switch, button, link, header item …) keeps its click. */
+export function isOwnControl(target: EventTarget, row: Element): boolean {
+    const el = target instanceof Element ? target : null;
+    const hit = el?.closest(
+        'button, a, input, select, textarea, label, [role="button"], [role="switch"], [role="slider"], [role="checkbox"], [contenteditable="true"]',
+    );
+    return !!hit && hit !== row && row.contains(hit);
+}
+
+function useTitleRow({ align, children, ...rest }: { align?: string } & HTMLAttributes<HTMLDivElement>): ReactNode {
     const ctx = useContext(HeaderSlotsContext);
     const centered = align === 'center';
     const toRow2 = ctx?.titleRow === 2;

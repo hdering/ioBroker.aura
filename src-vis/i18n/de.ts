@@ -170,6 +170,10 @@ export const de = {
     'settings.frontend.layoutDrawerItems': 'Elemente',
     'settings.frontend.layoutDrawerItemPosTop': 'Oben',
     'settings.frontend.layoutDrawerItemPosBottom': 'Unten',
+    'settings.frontend.layoutDrawerItemPosLeft': 'Links',
+    'settings.frontend.layoutDrawerItemPosRight': 'Rechts',
+    'settings.frontend.layoutDrawerItemPosBarHint':
+        'In der Leiste links bzw. rechts der Bereiche, im ausklappbaren Menü (z. B. mobil) oben bzw. unten.',
     'settings.frontend.layoutDrawerItemMarginTop': 'Abstand oben',
     'settings.frontend.layoutDrawerItemMarginBottom': 'Abstand unten',
     'settings.frontend.layoutDrawerItemAlign': 'Ausrichtung',
@@ -688,6 +692,9 @@ export const de = {
     'pin.showLock': 'Schloss-Symbol zeigen',
     'pin.showLockHint':
         'An (Standard): gesperrte Einträge tragen ein Schloss im Menü bzw. in der Tab-Leiste. Aus: kein Symbol – die PIN wird trotzdem abgefragt.',
+    'pin.showMarkers': 'Marker und Bedingungen gesperrt zeigen',
+    'pin.showMarkersHint':
+        'An: Bedingungen und eigene Marker wirken auch, solange gesperrt ist. Ihre Datenpunkt-IDs sind dann ohne PIN lesbar. Die Sammel-Zählung der Widgets erscheint erst nach dem Entsperren.',
     'pin.mcpWrite': 'Über MCP bearbeitbar',
     'pin.mcpWriteHint':
         'Der KI-Server (MCP) darf den geschützten Inhalt lesen und ändern. Aus: nur Struktur (Id, Typ, Größe), ' +
@@ -2298,6 +2305,19 @@ export const de = {
     'echart.navDpsTitle': 'Steuerung über Datenpunkte (optional)',
     'echart.navDateDp': 'Datum-Datenpunkt',
     'echart.navDateDpHint': 'Lesen + schreiben: YYYY-MM-DD, Zeitstempel (ms) oder leer = bis jetzt.',
+    'echart.navEndDp': 'Ende-Datenpunkt (Von–bis)',
+    'echart.navEndDpHint':
+        'Optional. Gesetzt = der Datum-Datenpunkt ist der erste, dieser der letzte gezeigte Tag (YYYY-MM-DD oder ms). Lesen + schreiben.',
+    'echart.navFreeRange': 'Freier Zeitraum: Datum-Knopf wählt Von und Bis',
+    'echart.navFreeRangeHint':
+        'Von–bis wird zu einem Zeitraum aus ganzen Tagen; ‹ › blättern um seine Länge, die Gruppe übernimmt ihn.',
+    'echart.navRangeFrom': 'Von',
+    'echart.navRangeTo': 'Bis',
+    'echart.navRangePickTitle': 'Zeitraum wählen (von–bis)',
+    'echart.navIdleReset': 'Nach Leerlauf zurücksetzen',
+    'echart.navIdleResetOff': 'aus',
+    'echart.navIdleResetHint':
+        'Ohne Bedienung der Seite springt das Diagramm nach so vielen Minuten auf den eingestellten Zeitraum und das Startdatum zurück — die Kopplungsgruppe folgt. Leer = nie.',
     'echart.navRangeDp': 'Zeitraum-Datenpunkt',
     'echart.navRangeDpHint': 'Lesen + schreiben: Kürzel wie 6h, 24h, 7d, 1M, total.',
     'echart.navCommandDp': 'Befehls-Datenpunkt',
@@ -2400,6 +2420,27 @@ export const de = {
     'echart.periodMin': 'Minimum',
     'echart.periodMax': 'Maximum',
     'echart.periodAverage': 'Mittelwert',
+    'echart.sourceFormula': 'Formel',
+    'echart.unavailDatapointFormula': 'Formel-Reihe: Die Datenpunkte stehen unten bei den Eingängen.',
+    'echart.formulaInputs': 'Eingänge',
+    'echart.formulaInputName': 'Name in der Formel',
+    'echart.formulaAddInput': 'Eingang',
+    'echart.formulaRemoveInput': 'Eingang entfernen',
+    'echart.formula': 'Formel',
+    'echart.formulaNow': 'Jetzt',
+    'echart.formulaStart': 'Eingänge anlegen, dann mit ihren Namen rechnen, z. B. a + b + c.',
+    'echart.formulaWaiting': 'Warte auf Werte aller Eingänge …',
+    'echart.formulaEmpty': 'Formel fehlt.',
+    'echart.formulaParse': 'Formel nicht lesbar.',
+    'echart.formulaBadName': 'Ungültiger Name „{name}“: Buchstaben, Ziffern, _ — nicht mit einer Ziffer beginnen.',
+    'echart.formulaDuplicate': 'Name „{name}“ ist doppelt.',
+    'echart.formulaUnknown': 'Unbekannte Variable „{name}“ — als Eingang anlegen.',
+    'echart.formulaDatapoint': 'Datenpunkt „{id}“ direkt in der Formel — bitte als Eingang anlegen.',
+    'echart.formulaHint':
+        '+ − * / %, Klammern, Vergleiche, ?:, Math.max/min/abs/round … Fehlt einem Eingang ein Wert, gilt sein letzter. Bis 7 Tage exakt; länger rechnen Produkte und Quotienten mit Mittelwerten (Näherung).',
+    'echart.formulaDeltaHint':
+        'Formel-Reihe: Jeder Eingang wird für sich je Zeitraum differenziert, dann gerechnet — sinnvoll für Summen und Differenzen von Zählern.',
+    'echart.periodIntegral': 'Fläche über die Zeit (W → Wh)',
     'echart.periodHint':
         'Eine Zahl über den gerade gezeigten Zeitraum, z.B. die Einspeisung der letzten 30 Tage. Geht mit den Zeitraum-Knöpfen, der Tagesnavigation und dem Zeitversatz mit. „Verbrauch/Ertrag“ zählt nur die Anstiege und bleibt bei einem Tageszähler oder Zählertausch richtig.',
     'echart.periodBarsHint':
@@ -3101,9 +3142,7 @@ export const de = {
     'map.style.standard': 'Karte',
     'map.style.satellite': 'Satellit',
     'map.style.terrain': 'Gelände',
-    'map.day.prev': 'Vorheriger Tag',
-    'map.day.next': 'Nächster Tag',
-    'map.day.today': 'Zu heute springen',
+    'map.style.custom': 'Eigene Karte',
     'map.timeline.moving': 'Unterwegs',
     'map.timeline.empty': 'Keine Positionsdaten für diesen Zeitraum.',
 
@@ -3557,6 +3596,7 @@ export const de = {
     // ── Web-Komponente ──────────────────────────────────────────────────────────
     'wc.unset': 'Keine Komponente gewählt',
     'wc.missing': 'Komponente <{tag}> ist nicht installiert',
+    'wc.missingAdapter': '{name}: Adapter „{adapter}“ fehlt (ab Version {version})',
     'wc.failed': 'Komponente <{tag}> lässt sich nicht laden: {error}',
 } as const;
 

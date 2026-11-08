@@ -124,7 +124,7 @@ Nicht für Widgets innerhalb einer Gruppe. Im Editor zeigt der Ziehgriff beim Ve
 
 ## Einklappen
 
-`Bearbeiten` → **Darstellung** → `Standardmäßig eingeklappt`. Das Widget startet als einzelne Zeile mit Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach.
+`Bearbeiten` → **Darstellung** → `Standardmäßig eingeklappt`. Das Widget startet als einzelne Zeile mit Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach. Ausgeklappt sieht die Titelzeile genauso aus (Pfeil vorne, Icon und Titel an derselben Stelle, Titel fett); ein Tipp auf die Titelzeile oder den Pfeil klappt wieder ein. Schalter und Knöpfe in der Zeile behalten ihren Klick; im Editor klappt nur der Pfeil ein.
 
 | Option | |
 | --- | --- |
@@ -229,6 +229,7 @@ Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach E
 | PIN | Auswahl einer benannten PIN (z. B. „Kinder“) oder **+ Neue PIN anlegen …** (Name + mindestens 4 Ziffern). **Kein PIN-Schutz** = offen. Bereich im Zahnrad des Bereichs-Chips, Tab im Zahnrad des Tabs |
 | Offen lassen | Aus (Standard): sperrt beim Verlassen sofort wieder. An: bleibt bis zum Neuladen der Seite offen |
 | Schloss-Symbol zeigen | An (Standard): gesperrte Einträge tragen ein Schloss im Bereichs-Menü bzw. in der Tab-Leiste. Aus: kein Symbol – die PIN wird trotzdem abgefragt |
+| Marker und Bedingungen gesperrt zeigen | Aus (Standard): Bedingungen und Marker des Eintrags wirken erst nach dem Entsperren. An: sie wirken auch gesperrt – ihre Datenpunkt-IDs sind dann ohne PIN lesbar. Die Sammel-Zählung der Widgets erscheint weiterhin erst nach dem Entsperren |
 | Über MCP bearbeitbar | Aus (Standard): der [KI-Zugriff](./mcp#pin-geschützte-bereiche-und-tabs) sieht nur die Struktur und darf nicht schreiben. An: liest und ändert den Inhalt. Erscheint, sobald eine PIN gewählt ist; vor dem ersten Speichern wird die Freigabe vorgemerkt |
 | PIN entfernen | Hebt den Schutz auf. Der Adapter schreibt den Inhalt zurück in die Konfiguration und löscht den Tresor-Eintrag — in einem Schritt, ohne Speichern und ohne die PIN |
 

@@ -156,6 +156,9 @@ Ein gemeinsamer Zeitraum für alle Gruppen und Einträge.
 | `navGroupMode`            | `all`    | `date` = nur das Datum koppeln, jedes Diagramm behält seinen Zeitraum |
 | `navRangeDp`              | —        | Zeitraum-Datenpunkt, lesen + schreiben (`7d`, `1M` …) |
 | `navDateDp`               | —        | Datum-Datenpunkt, lesen + schreiben (`YYYY-MM-DD`, ms) |
+| `navEndDp`                | —        | Ende-Datenpunkt (von–bis): gesetzt = `navDateDp` ist der erste, dieser der letzte Tag |
+| `navFreeRange`            | `false`  | Freier Zeitraum: 📅 wählt Von und Bis, ‹ › springen um dessen Länge |
+| `navIdleReset`            | —        | Minuten ohne Bedienung → zurück auf Standard-Zeitraum und Startdatum; Gruppe folgt |
 | `navCommandDp`            | —        | Befehls-Datenpunkt: `prev` · `next` · `today` · `now` |
 
 Blättern zeigt z. B. den Verbrauch je Woche oder Monat: ‹ › springen um den aktiven Zeitraum, 📅 wählt den Tag. Blättern und Koppeln wie im [Diagramm (erweitert)](./diagramm-erweitert.md#verlauf) — gleicher Gruppenname koppelt auch über die Diagramm-Typen hinweg.

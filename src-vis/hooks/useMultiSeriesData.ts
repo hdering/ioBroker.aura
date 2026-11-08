@@ -6,6 +6,20 @@ import { parseCommonStates } from '../utils/chartAxis';
 import type { NumberFormat } from '../utils/formatValue';
 import type { ioBrokerState } from '../types';
 import { unitSpanMs, type RangeUnit } from '../utils/rangeChips';
+import {
+    bucketFormula,
+    combineBuckets,
+    combineFormula,
+    evalFormula,
+    formulaProblem,
+    FORMULA_RAW_COUNT,
+    FORMULA_RAW_MAX_MS,
+    integrate,
+    timeAverage,
+    usableInputs,
+    type FormulaBucketMode,
+    type FormulaInput,
+} from '../utils/formulaSeries';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'total' | 'custom';
 
@@ -130,9 +144,17 @@ export interface EChartSeriesConfig {
     /**
      * Where the series gets its points from. `history` (default) queries a history adapter;
      * `json` reads a JSON array straight out of the datapoint's value — for datapoints that
-     * already hold pre-aggregated label/value pairs (issue #509).
+     * already hold pre-aggregated label/value pairs (issue #509). `formula` computes the series
+     * from several datapoints (`formulaInputs` + `formula`, issue #930) — `datapointId` stays empty.
      */
-    source?: 'history' | 'json';
+    source?: 'history' | 'json' | 'formula';
+    /**
+     * Inputs of a `formula` series: variable name → datapoint, optionally with its own history
+     * instance. Inputs logged on change only hold their last value until the next one.
+     */
+    formulaInputs?: FormulaInput[];
+    /** Expression over the input names, e.g. `(is - ib) * u` or `a + b + c` (binding syntax, no JS). */
+    formula?: string;
     /** Dotted path into the parsed JSON value down to the array, e.g. `data.hours`. Empty = root. */
     jsonPath?: string;
     /**
@@ -189,7 +211,8 @@ export interface EChartSeriesConfig {
      * One number over the charted window, shown next to the series (issue #749) — e.g. the energy
      * fed in over the selected 30 days. Follows the range buttons, the day navigation and a time
      * shift. `consumption` = sum of every rise (meters, reset-aware), `change` = end − start,
-     * `min`/`max`/`average` over the readings; a `delta` series reads them off its bars. Placement:
+     * `min`/`max`/`average` over the readings, `integral` = area under the curve per hour (W → Wh,
+     * #930); a `delta` series reads them off its bars. Placement:
      * widget option `echartPeriodPlacement`. Unset = none. Ignored for JSON series and in
      * comparison/JSON mode.
      */
@@ -200,12 +223,13 @@ export interface EChartSeriesConfig {
  * What `EChartSeriesConfig.periodValue` computes over the window:
  * - `consumption`: sum of every rise of a counter — reset-aware like the `delta` bars;
  * - `change`: last reading minus first (end − start);
- * - `min` / `max` / `average`: over the readings.
+ * - `min` / `max` / `average`: over the readings;
+ * - `integral`: area under the curve per hour, each reading held until the next (W → Wh).
  *
  * A `delta` series reads its bars instead: `consumption` and `change` are their sum, the other three
  * the smallest/largest/mean bar ("highest daily consumption").
  */
-export type PeriodValueKind = 'consumption' | 'change' | 'min' | 'max' | 'average';
+export type PeriodValueKind = 'consumption' | 'change' | 'min' | 'max' | 'average' | 'integral';
 
 /** Calendar unit a comparison series is shifted by — see `EChartSeriesConfig.timeShift`. */
 export type TimeShiftUnit = 'hour' | 'day' | 'week' | 'month' | 'year';
@@ -428,6 +452,26 @@ function windowMs(s: EChartSeriesConfig): number {
         return s.historyEnd - s.historyStart;
     }
     return getRangeMs(s);
+}
+
+/** Row cap of a raw (unstepped) history fetch. */
+export const RAW_FETCH_COUNT = 1000;
+
+const RAW_CAP_STEPS = [10_000, 15_000, 30_000, 60_000, 120_000, 300_000];
+
+/**
+ * Step for re-fetching a short window whose raw answer hit `RAW_FETCH_COUNT`. Up to 3 h a series
+ * is fetched raw, but a datapoint written every few seconds logs more than 1000 rows in that time:
+ * the adapter then hands back only part of the window and the curve breaks off — 180 minutes looked
+ * broken while 181 (the first 5-min-stepped span) was fine. The finest step whose rows stay below
+ * the cap; `minmax` comes back as up to four rows per step.
+ */
+export function rawCapStep(rangeMs: number, aggregate?: EChartSeriesConfig['aggregate']): number {
+    const perStep = aggregate === 'minmax' ? 4 : 1;
+    return (
+        RAW_CAP_STEPS.find((st) => Math.ceil(rangeMs / st) * perStep <= RAW_FETCH_COUNT * 0.9) ??
+        Math.ceil((rangeMs * perStep) / (RAW_FETCH_COUNT * 0.9) / 60_000) * 60_000
+    );
 }
 
 function getStepForMs(rangeMs: number): number | undefined {
@@ -861,8 +905,9 @@ export function periodFetch(
         };
     }
     const step = getStepForMs(rangeMs);
-    // A bucket's own max/min keeps the real extreme; an average of averages is still the average.
-    return { step, aggregate: step ? kind : 'none', count: 1000 };
+    // A bucket's own max/min keeps the real extreme; an average of averages is still the average —
+    // and so is the area under bucket averages.
+    return { step, aggregate: step ? (kind === 'integral' ? 'average' : kind) : 'none', count: 1000 };
 }
 
 /**
@@ -884,6 +929,7 @@ export function reducePeriod(
         if (kind === 'consumption') return counterIncrease(upToEnd, start);
         return upToEnd.length > 0 ? upToEnd[upToEnd.length - 1][1] - upToEnd[0][1] : null;
     }
+    if (kind === 'integral') return integrate(data, start, Math.min(end, Date.now()));
     const inside = data.filter((p) => p[0] >= start && p[0] <= end);
     const rows = inside.length > 0 ? inside : data;
     if (rows.length === 0) return null;
@@ -1301,10 +1347,12 @@ export function useAutoHistoryInstances(
     }, []);
 
     // Series needing detection: enabled, no configured instance, and a resolvable (non-template) DP.
+    const detectId = (s: EChartSeriesConfig) =>
+        s.source === 'formula' ? (usableInputs(s.formulaInputs)[0]?.datapointId ?? '') : s.datapointId;
     const targets = enabled
-        ? series.filter((s) => !s.historyInstance && s.datapointId && !s.datapointId.includes('{{'))
+        ? series.filter((s) => !s.historyInstance && detectId(s) && !detectId(s).includes('{{'))
         : [];
-    const depKey = targets.map((s) => `${s.id}:${s.datapointId}`).join(',');
+    const depKey = targets.map((s) => `${s.id}:${detectId(s)}`).join(',');
 
     useEffect(() => {
         if (!enabled) {
@@ -1312,7 +1360,7 @@ export function useAutoHistoryInstances(
             return;
         }
         targets.forEach((s) => {
-            getObjectDirect(s.datapointId)
+            getObjectDirect(detectId(s))
                 .then((obj) => {
                     if (!mountedRef.current) return;
                     const custom = obj?.common?.custom;
@@ -1360,6 +1408,188 @@ export function isBucketOnly(
     return averaged && step > 3_600_000;
 }
 
+interface FormulaLoad {
+    data: [number, number][];
+    current: number | null;
+    period: number | null;
+    /** The curve came back in buckets a single live value is not comparable with. */
+    bucketOnly: boolean;
+    deltaBucket?: DeltaBucket;
+    /** The inputs' current values — the live recompute starts from them. */
+    vars: Record<string, number>;
+    error?: string;
+}
+
+/**
+ * Fetch and compute one `formula` series (#930): every input over the window, laid on one
+ * timeline with each input holding its last value, the formula on top, then the series'
+ * conversion. Up to `FORMULA_RAW_MAX_MS` the inputs come raw and the result is bucketed here
+ * (exact for any formula); beyond it they come as bucket averages. `delta` differences each input
+ * on its own and applies the formula per bucket.
+ */
+async function loadFormulaSeries(
+    s: EChartSeriesConfig,
+    all: EChartSeriesConfig[],
+    readState: (id: string) => Promise<ioBrokerState | null>,
+): Promise<FormulaLoad> {
+    const formula = (s.formula ?? '').trim();
+    const inputs = usableInputs(s.formulaInputs);
+    const empty: FormulaLoad = { data: [], current: null, period: null, bucketOnly: false, vars: {} };
+    if (inputs.length === 0 || formulaProblem(formula, s.formulaInputs)) return empty;
+
+    const states = await Promise.all(inputs.map((i) => readState(i.datapointId)));
+    const vars: Record<string, number> = {};
+    inputs.forEach((i, k) => {
+        const n = chartNumber(states[k]?.val);
+        if (n !== null) vars[i.name] = n;
+    });
+    const liveRaw = Object.keys(vars).length === inputs.length ? evalFormula(formula, vars) : null;
+    const live = liveRaw !== null ? seriesValue(s, liveRaw) : null;
+
+    const instanceOf = (i: FormulaInput) => i.historyInstance || s.historyInstance;
+    if (inputs.some((i) => !instanceOf(i))) return { ...empty, current: live, vars };
+
+    const now = Date.now();
+    const range = s.historyRange ?? '24h';
+    const hasAbsWindow = typeof s.historyStart === 'number' && typeof s.historyEnd === 'number';
+    const isTotal = !hasAbsWindow && range === 'total';
+    const shift = isTotal ? null : seriesTimeShift(s);
+    const back = (ts: number) => (shift ? shiftTime(ts, -shift.amount, shift.unit) : ts);
+    const fwd = (ts: number) => (shift ? shiftTime(ts, shift.amount, shift.unit) : ts);
+
+    let start: number;
+    let end: number;
+    let rangeMs: number;
+    if (isTotal) {
+        const first = await probeHistoryStart(inputs[0].datapointId, instanceOf(inputs[0]) as string, now);
+        start = first ?? now - TOTAL_FLOOR_MS;
+        end = now;
+        rangeMs = now - start;
+    } else {
+        rangeMs = hasAbsWindow ? (s.historyEnd as number) - (s.historyStart as number) : getRangeMs(s);
+        end = hasAbsWindow
+            ? s.historyFuture
+                ? (s.historyEnd as number)
+                : Math.min(s.historyEnd as number, now)
+            : now + (s.historyLead ?? 0);
+        start = hasAbsWindow ? (s.historyStart as number) : rollingWindowStart(all, rangeMs, end);
+    }
+    const frozen = !!shift || (hasAbsWindow && (s.historyEnd as number) < now);
+    const qStart = back(start);
+
+    const toRows = (entries: HistoryEntry[]): [number, number][] =>
+        entries
+            .map((e) => ({ ts: e.ts, num: chartNumber(e.val) }))
+            .filter((e): e is { ts: number; num: number } => e.num !== null)
+            .map((e): [number, number] => [e.ts, e.num])
+            .sort((a, b) => a[0] - b[0]);
+
+    try {
+        if (s.aggregate === 'delta') {
+            const bucket = resolveDeltaBucket(s.deltaBucket, rangeMs);
+            const step = deltaFetchStep(bucket, rangeMs);
+            const qEnd = shift ? Math.min(nextBucketStart(back(end), bucket), now) : back(end);
+            const windowStart = bucketStart(qStart, bucket);
+            const sources = await Promise.all(
+                inputs.map(async (i) => {
+                    const entries = await getHistoryDirect(i.datapointId, {
+                        instance: instanceOf(i) as string,
+                        start: prevBucketStart(qStart, bucket),
+                        end: qEnd,
+                        step,
+                        aggregate: step >= 86_400_000 ? 'minmax' : 'max',
+                        count: deltaFetchCount(step, rangeMs),
+                        throwOnError: true,
+                    });
+                    return { name: i.name, data: bucketDeltas(toRows(entries), bucket, windowStart).points };
+                }),
+            );
+            const lastShown = bucketStart(end, bucket);
+            let bars = combineBuckets(formula, sources).map(([b, v]): [number, number] => [
+                shift ? bucketStart(fwd(b), bucket) : b,
+                applyValueTransform(v, s.valueFactor) as number,
+            ]);
+            if (shift) bars = bars.filter((p) => p[0] <= lastShown);
+            if (hasAbsWindow) {
+                bars = bars.filter((p) => p[0] >= (s.historyStart as number) && p[0] < (s.historyEnd as number));
+            }
+            return {
+                data: bars,
+                current: bars.length > 0 ? bars[bars.length - 1][1] : null,
+                period: null,
+                bucketOnly: true,
+                deltaBucket: bucket,
+                vars,
+            };
+        }
+
+        const qEnd = back(end);
+        // Buckets stop at now — a forecast reads on.
+        const qTo = s.historyFuture ? qEnd : Math.min(qEnd, back(now));
+        const raw = s.aggregate === 'none' || rangeMs <= FORMULA_RAW_MAX_MS;
+        const step =
+            s.aggregate === 'none'
+                ? undefined
+                : hasAbsWindow || isTotal || range === 'custom'
+                  ? getStepForMs(rangeMs)
+                  : RANGE_STEP[range];
+        const sources = await Promise.all(
+            inputs.map(async (i) => ({
+                name: i.name,
+                data: toRows(
+                    await getHistoryDirect(i.datapointId, {
+                        instance: instanceOf(i) as string,
+                        start: qStart,
+                        end: qEnd,
+                        ...(raw || !step
+                            ? { aggregate: 'none' as const, count: FORMULA_RAW_COUNT }
+                            : { step, aggregate: 'average' as const, count: 1000 }),
+                        throwOnError: true,
+                    }),
+                ),
+            })),
+        );
+        const combined = combineFormula(formula, sources, qStart).map(([t, v]): [number, number] => [
+            t,
+            seriesValue(s, v),
+        ]);
+
+        let period: number | null = null;
+        const kind = s.periodValue;
+        if (kind === 'integral') period = integrate(combined, qStart, qTo);
+        else if (kind === 'average') period = timeAverage(combined, qStart, qTo);
+        else if (kind) period = reducePeriod(kind, combined, qStart, qEnd);
+
+        const mode: FormulaBucketMode =
+            s.aggregate === 'min' || s.aggregate === 'max' || s.aggregate === 'minmax' || s.aggregate === 'total'
+                ? s.aggregate
+                : 'average';
+        const bucketed = raw && !!step;
+        let data = (bucketed ? bucketFormula(combined, qStart, qTo, step as number, mode) : combined).map(
+            ([t, v]): [number, number] => [fwd(t), v],
+        );
+        if (hasAbsWindow) {
+            data = data.filter((p) => p[0] >= (s.historyStart as number) && p[0] < (s.historyEnd as number));
+        }
+        const bucketOnly = !!step && isBucketOnly(s.aggregate, step, false);
+        if (frozen) {
+            return { data, current: data.length > 0 ? data[data.length - 1][1] : null, period, bucketOnly, vars };
+        }
+        if (!bucketOnly && live !== null && data.length > 0 && data[data.length - 1][1] !== live) {
+            data = [...data, [now, live]];
+        }
+        return {
+            data,
+            current: live ?? (data.length > 0 ? data[data.length - 1][1] : null),
+            period,
+            bucketOnly,
+            vars,
+        };
+    } catch (err) {
+        return { ...empty, current: live, vars, error: err instanceof Error ? err.message : String(err) };
+    }
+}
+
 export function useMultiSeriesData(
     series: EChartSeriesConfig[],
     connected: boolean,
@@ -1393,6 +1623,8 @@ export function useMultiSeriesData(
             // into a different bucket.
             s.aggregate === 'delta' ? resolveDeltaBucket(s.deltaBucket, windowMs(s)) : undefined,
             s.source,
+            s.source === 'formula' ? s.formula : undefined,
+            s.source === 'formula' ? s.formulaInputs : undefined,
             s.jsonPath,
             (s as JsonFannedSeries).jsonSeriesEntry,
             s.jsonLabelKey,
@@ -1433,6 +1665,10 @@ export function useMultiSeriesData(
     // a year of daily minima ending in this afternoon's temperature. Such a series takes no live
     // POINTS; its "current" still follows the live state, which is what the value block shows.
     const bucketOnlyRef = useRef<Set<string>>(new Set());
+
+    // Per formula series the inputs' latest values — what a live reading of one input recomputes
+    // the formula with (#930).
+    const formulaVarsRef = useRef<Map<string, Record<string, number>>>(new Map());
 
     // ── Periodic refresh so a long-open browser does not drift away from the database ─────────
     // Without it the history is read exactly once and everything after that is live socket
@@ -1491,6 +1727,36 @@ export function useMultiSeriesData(
         }
 
         series.forEach((s) => {
+            if (s.source === 'formula') {
+                const readState = (id: string): Promise<ioBrokerState | null> => {
+                    const cached = getStateFromCache(id);
+                    if (cached) return Promise.resolve(cached);
+                    return getState ? getState(id).catch(() => null) : Promise.resolve(null);
+                };
+                loadFormulaSeries(s, series, readState).then((r) => {
+                    if (!mountedRef.current) return;
+                    if (r.bucketOnly) bucketOnlyRef.current.add(s.id);
+                    else bucketOnlyRef.current.delete(s.id);
+                    formulaVarsRef.current.set(s.id, r.vars);
+                    setResultsMap((prev) => {
+                        const next = new Map(prev);
+                        next.set(s.id, {
+                            data: r.data,
+                            current: r.current,
+                            loading: false,
+                            ...(r.deltaBucket ? { deltaBucket: r.deltaBucket } : {}),
+                            ...(r.error ? { error: r.error } : {}),
+                        });
+                        return next;
+                    });
+                    if (s.periodValue && s.aggregate !== 'delta') {
+                        setPeriodMap((prev) =>
+                            prev.get(s.id) === r.period ? prev : new Map(prev).set(s.id, r.period),
+                        );
+                    }
+                });
+                return;
+            }
             if (!s.datapointId) {
                 setResultsMap((prev) => {
                     const next = new Map(prev);
@@ -1619,7 +1885,7 @@ export function useMultiSeriesData(
                     });
             };
 
-            const fetchWindow = (start: number, end: number, rangeMs: number, isBool: boolean) => {
+            const fetchWindow = (start: number, end: number, rangeMs: number, isBool: boolean, capStep?: number) => {
                 // `none` = raw points: skip bucketing so the adapter returns the actual logged
                 // values instead of per-bucket averages.
                 const wantRaw = s.aggregate === 'none';
@@ -1629,9 +1895,8 @@ export function useMultiSeriesData(
                     ? deltaFetchStep(bucket, rangeMs)
                     : wantRaw
                       ? undefined
-                      : hasAbsWindow || isTotal || range === 'custom'
-                        ? getStepForMs(rangeMs)
-                        : RANGE_STEP[range];
+                      : (capStep ??
+                        (hasAbsWindow || isTotal || range === 'custom' ? getStepForMs(rangeMs) : RANGE_STEP[range]));
                 // Delta needs one bucket of run-up before the window: the first visible bar is the
                 // difference against the reading the counter had when the window opened. A `total`
                 // window has nothing before it — bucketDeltas then differences the first bucket
@@ -1670,11 +1935,17 @@ export function useMultiSeriesData(
                                 // instead: "was it on at all" (issue #718).
                                 (s.aggregate ?? (isBool ? 'max' : 'average'))
                               : 'none',
-                    count: isDelta ? deltaFetchCount(step as number, rangeMs) : 1000,
+                    count: isDelta ? deltaFetchCount(step as number, rangeMs) : RAW_FETCH_COUNT,
                     throwOnError: true,
                 })
                     .then((entries: HistoryEntry[]) => {
                         if (!mountedRef.current) return;
+                        // A short window fetched raw that filled the row cap is missing part of
+                        // itself — fetched again in fine steps. An explicit `none` stays raw.
+                        if (!step && !wantRaw && entries.length >= RAW_FETCH_COUNT) {
+                            fetchWindow(start, end, rangeMs, isBool, rawCapStep(rangeMs, s.aggregate));
+                            return;
+                        }
                         if (isBucketOnly(s.aggregate, step, isBool)) bucketOnlyRef.current.add(s.id);
                         else bucketOnlyRef.current.delete(s.id);
                         let data: [number, number][] = entries
@@ -1904,7 +2175,52 @@ export function useMultiSeriesData(
             if (next === info.value) return;
             setPeriodMap((prev) => new Map(prev).set(s.id, next));
         };
+        // A formula series recomputes on every reading of any input (#930); delta bars wait for the
+        // periodic refetch, a frozen view takes nothing.
+        const formulaUnsubs = series
+            .filter(
+                (s) =>
+                    s.source === 'formula' &&
+                    s.aggregate !== 'delta' &&
+                    !seriesTimeShift(s) &&
+                    !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()),
+            )
+            .flatMap((s) => {
+                const formula = (s.formula ?? '').trim();
+                if (formulaProblem(formula, s.formulaInputs)) return [];
+                const inputs = usableInputs(s.formulaInputs);
+                return inputs.map((input) =>
+                    subscribe(input.datapointId, (state: ioBrokerState) => {
+                        const num = chartNumber(state.val);
+                        if (num === null) return;
+                        const vars = { ...(formulaVarsRef.current.get(s.id) ?? {}), [input.name]: num };
+                        formulaVarsRef.current.set(s.id, vars);
+                        if (inputs.some((i) => !(i.name in vars))) return;
+                        const raw = evalFormula(formula, vars);
+                        if (raw === null) return;
+                        const val = seriesValue(s, raw);
+                        setResultsMap((prev) => {
+                            const existing = prev.get(s.id);
+                            if (!existing || existing.loading || existing.current === val) return prev;
+                            const next = new Map(prev);
+                            // Without history there is no curve, and buckets take no single reading.
+                            if (bucketOnlyRef.current.has(s.id) || existing.data.length === 0) {
+                                next.set(s.id, { ...existing, current: val });
+                                return next;
+                            }
+                            const cutoff =
+                                typeof s.historyStart === 'number'
+                                    ? s.historyStart
+                                    : rollingWindowStart(series, getRangeMs(s), Date.now() + (s.historyLead ?? 0));
+                            const kept = existing.data.filter((p) => p[0] >= cutoff && p[0] < state.ts);
+                            next.set(s.id, { ...existing, data: [...kept, [state.ts, val]], current: val });
+                            return next;
+                        });
+                    }),
+                );
+            });
         const unsubs = series
+            .filter((s) => s.source !== 'formula')
             // Series pinned to a past absolute window are a frozen view — no live appends.
             .filter(
                 (s) =>
@@ -2036,6 +2352,7 @@ export function useMultiSeriesData(
             });
         return () => {
             unsubs.forEach((u) => u());
+            formulaUnsubs.forEach((u) => u());
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [depKey, connected, subscribe]);

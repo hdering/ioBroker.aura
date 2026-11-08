@@ -11,6 +11,8 @@
  * - `findTabForView` - where the `iob-navigate` event of a component leads.
  * - `webComponentPickerEntries` / `parseWebComponentKey` / `webComponentGridSize` -
  *   every installed component as an entry of its own in the "add widget" dialog.
+ * - `KNOWN_WEB_COMPONENTS` / `findKnownWebComponent` - components offered even
+ *   before their adapter is installed.
  */
 import {
     getDefaultSettings,
@@ -289,6 +291,67 @@ export interface WebComponentPickerEntry {
     iconUrl?: string;
     /** The size it looks best in (px), if the manifest names one */
     size?: { width: number; height: number };
+    /** A known component whose adapter is not installed (or too old) */
+    missing?: boolean;
+}
+
+/**
+ * A component Aura offers by name even while its adapter is missing: the widget can
+ * be placed right away, its settings say which adapter to install.
+ */
+export interface KnownWebComponent {
+    adapter: string;
+    tag: string;
+    /** The first adapter version that brings the component */
+    minVersion: string;
+    name: { de: string; en: string };
+    description: { de: string; en: string };
+    size: { width: number; height: number };
+    /**
+     * Settings of the manifest that Aura's widget frame already covers: not offered
+     * in the editor and never handed to the element, so it keeps their defaults
+     */
+    hostSettings: readonly string[];
+}
+
+/** Name, description and size as in the component's own manifest */
+export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
+    {
+        adapter: 'flow',
+        tag: 'iob-flow-diagram',
+        minVersion: '0.2.0',
+        name: { de: 'Fluss-Diagramm', en: 'Flow diagram' },
+        description: {
+            de: 'Animiertes Fluss-Diagramm für Energie, Wasser, Gas oder Wärme. Zeigt ein Diagramm, das im Tab „Fluss“ des Admins gezeichnet wird.',
+            en: 'Animated flow diagram for energy, water, gas or heat. Shows a diagram that is drawn in the Flow tab of admin.',
+        },
+        size: { width: 480, height: 340 },
+        // title = the widget's own title row; fullView = the fullscreen button under "Darstellung"
+        hostSettings: ['title', 'fullView'],
+    },
+];
+
+/** The known component of a widget: by tag, the adapter only as a tie-breaker */
+export function findKnownWebComponent(tag: unknown, adapter?: unknown): KnownWebComponent | undefined {
+    if (typeof tag !== 'string' || !tag) return undefined;
+    const withTag = KNOWN_WEB_COMPONENTS.filter((k) => k.tag === tag);
+    return withTag.find((k) => k.adapter === adapter) ?? withTag[0];
+}
+
+/** Manifest settings of a component that Aura covers itself (see `hostSettings`) */
+export function hostOwnedSettings(tag: unknown, adapter?: unknown): readonly string[] {
+    return findKnownWebComponent(tag, adapter)?.hostSettings ?? [];
+}
+
+/** `settings` without the keys Aura covers itself */
+export function withoutHostSettings<T extends Record<string, unknown>>(
+    settings: T,
+    tag: unknown,
+    adapter?: unknown,
+): T {
+    const drop = hostOwnedSettings(tag, adapter);
+    if (!drop.length) return settings;
+    return Object.fromEntries(Object.entries(settings).filter(([key]) => !drop.includes(key))) as T;
 }
 
 const KEY_PREFIX = 'wc:';
@@ -309,7 +372,8 @@ export function parseWebComponentKey(key: unknown): { adapter: string; tag: stri
 
 /**
  * The installed components as entries of the dialog: once per adapter and tag,
- * named in the frontend's language (English, then the tag, as fallback).
+ * named in the frontend's language (English, then the tag, as fallback). The known
+ * components that are not installed follow, marked `missing`.
  *
  * @param components the catalog (`loadWebComponentCatalog`)
  * @param lang language of the frontend
@@ -336,6 +400,19 @@ export function webComponentPickerEntries(components: LoadedWebComponent[], lang
                 size && Number(size.width) > 0 && Number(size.height) > 0
                     ? { width: Number(size.width), height: Number(size.height) }
                     : undefined,
+        });
+    }
+    const de = lang === 'de';
+    for (const k of KNOWN_WEB_COMPONENTS) {
+        if (entries.some((e) => e.tag === k.tag)) continue;
+        entries.push({
+            key: webComponentKey(k.adapter, k.tag),
+            adapter: k.adapter,
+            tag: k.tag,
+            label: de ? k.name.de : k.name.en,
+            hint: `${de ? k.description.de : k.description.en} – Adapter ${k.adapter} ${de ? '(nicht installiert)' : '(not installed)'}`,
+            size: k.size,
+            missing: true,
         });
     }
     return entries;

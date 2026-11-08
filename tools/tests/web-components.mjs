@@ -154,6 +154,18 @@ function fakeApi() {
     await socket.unsubscribeObject('x.0.two', oc);
     await new Promise((r) => setTimeout(r, 20));
     check('socket: no object after unsubscribing', objs, []);
+
+    // Objects with object events (#946): every change reaches the component, until it unsubscribes
+    const objectCbs = new Map();
+    f.api.subscribeObject = (id, cb) => {
+        objectCbs.set(id, cb);
+        return () => objectCbs.delete(id);
+    };
+    await socket.subscribeObject('x.0.three', oc);
+    objectCbs.get('x.0.three')?.({ _id: 'x.0.three', native: { v: 2 } });
+    check('socket: subscribeObject hands on object changes', objs, [['x.0.three', 'x.0.three']]);
+    await socket.unsubscribeObject('x.0.three', oc);
+    check('socket: unsubscribeObject ends the object subscription', objectCbs.has('x.0.three'), false);
 }
 
 // ── theme ───────────────────────────────────────────────────────────────────
@@ -316,6 +328,36 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check('entry: no description - only the adapter', entries[1].hint, 'Adapter other');
     check('entry: no icon, no size', [entries[1].iconUrl, entries[1].size], [undefined, undefined]);
     check('entries: English frontend', m.webComponentPickerEntries([flow], 'en')[0].label, 'Flow diagram');
+    check('entries: installed flow - no known entry on top', entries.filter((e) => e.missing).length, 0);
+
+    // A known component is offered while its adapter is missing (#891)
+    const none = m.webComponentPickerEntries([], 'de');
+    check('known: offered without any adapter', none.length, 1);
+    check('known: same key as the installed one', none[0].key, 'wc:flow|iob-flow-diagram');
+    check('known: name in the frontend language', none[0].label, 'Fluss-Diagramm');
+    check('known: marked missing', none[0].missing, true);
+    check('known: hint names the missing adapter', none[0].hint.endsWith('Adapter flow (nicht installiert)'), true);
+    check('known: preferred size', none[0].size, { width: 480, height: 340 });
+    check('known: English', m.webComponentPickerEntries([], 'en')[0].label, 'Flow diagram');
+    check(
+        'known: after the installed ones',
+        m.webComponentPickerEntries([bare], 'de').map((e) => e.tag),
+        ['iob-other-tile', 'iob-flow-diagram'],
+    );
+    check('known: found by tag', m.findKnownWebComponent('iob-flow-diagram')?.adapter, 'flow');
+    check('known: unknown tag', m.findKnownWebComponent('iob-other-tile'), undefined);
+
+    // Title and "open large" of the flow diagram belong to Aura's widget frame
+    check(
+        'host settings: dropped for the flow diagram',
+        m.withoutHostSettings({ diagram: 'flow.0.diagrams.a', title: 'x', fullView: true }, 'iob-flow-diagram', 'flow'),
+        { diagram: 'flow.0.diagrams.a' },
+    );
+    check(
+        'host settings: other components keep everything',
+        m.withoutHostSettings({ title: 'x' }, 'iob-other-tile', 'other'),
+        { title: 'x' },
+    );
 
     check('key: parsed', m.parseWebComponentKey('wc:flow|iob-flow-diagram'), {
         adapter: 'flow',

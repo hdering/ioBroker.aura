@@ -68,10 +68,18 @@ function LayoutMenuItemRow({
     t: ReturnType<typeof useT>;
 }) {
     const [expanded, setExpanded] = useState(defaultExpanded);
-    const posLabels: Record<'top' | 'bottom', string> = {
-        top: t('settings.frontend.layoutDrawerItemPosTop'),
-        bottom: t('settings.frontend.layoutDrawerItemPosBottom'),
-    };
+    // The docked bar lays 'top' out at the leading and 'bottom' at the trailing edge —
+    // name them by what the user sees there; the hint covers the drawer meaning.
+    const inBar = host.variant === 'bar';
+    const posLabels: Record<'top' | 'bottom', string> = inBar
+        ? {
+              top: t('settings.frontend.layoutDrawerItemPosLeft'),
+              bottom: t('settings.frontend.layoutDrawerItemPosRight'),
+          }
+        : {
+              top: t('settings.frontend.layoutDrawerItemPosTop'),
+              bottom: t('settings.frontend.layoutDrawerItemPosBottom'),
+          };
     const typeLabel = t(menuItemTypeLabelKey(item.type));
 
     const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
@@ -90,6 +98,7 @@ function LayoutMenuItemRow({
                         <button
                             key={pos}
                             onClick={() => onUpdate({ position: pos })}
+                            title={inBar ? t('settings.frontend.layoutDrawerItemPosBarHint') : undefined}
                             className="px-1.5 h-5 rounded text-[10px] font-bold flex items-center justify-center transition-colors"
                             style={{
                                 background: item.position === pos ? 'var(--accent)' : 'var(--app-surface)',

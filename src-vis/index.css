@@ -944,7 +944,20 @@ input[type='range']::-moz-range-thumb {
     }
 }
 
-/* ── Message HTML (issue #429) ────────────────────────────────────
+/* Expanded collapsible card (issue #941): its title row matches the folded header
+   (.aura-collapsed-header) — chevron in front (TitleRow), the title as bold — and,
+   outside the editor, is the fold toggle itself. */
+.aura-title-collapse .aura-widget-title {
+    font-weight: 600;
+}
+.aura-title-collapse-click {
+    cursor: pointer;
+}
+.aura-title-collapse-click :is(.aura-widget-title, .aura-widget-icon) {
+    user-select: none;
+}
+
+/* ── Message HTML (issue #429)────────────────────────────────────
    Title and body of a message render sanitised HTML, so a notice can carry a
    table, a list or some emphasis. Tailwind's preflight strips the browser
    defaults from those elements, so without this a <table> would come out as a

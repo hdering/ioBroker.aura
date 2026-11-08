@@ -271,6 +271,89 @@ await mount(
     check('the chip writes its token', rangeW.at(-1) === '30d', JSON.stringify(rangeW));
 }
 
+// ── Free range from–to (#931): fields, own step length, group, start/end datapoints ─────────
+await mount([
+    chart('free-a', 0, { echartNavFreeRange: true, echartNavGroup: 'frei' }),
+    chart('free-b', 8, { echartNavGroup: 'frei' }),
+]);
+{
+    const fill = async (testId, day) => {
+        await page.locator(`[data-testid="${testId}"]`).fill(day);
+        await page.waitForTimeout(500);
+    };
+    await click(0, '[data-testid="echart-nav-date"]');
+    check('the date button opens from–to', await page.locator('[data-testid="echart-nav-range"]').isVisible());
+    await fill('echart-nav-range-from', iso(midnight(20)));
+    let w = await windowOf(0);
+    check(
+        'Von moves the start, the end stays today',
+        w?.[0] === midnight(20) && w?.[1] === midnight(0) + DAY,
+        fmtWin(w),
+    );
+    await fill('echart-nav-range-to', iso(midnight(11)));
+    w = await windowOf(0);
+    check('Bis moves the end: 10 days', w?.[0] === midnight(20) && w?.[1] === midnight(10), fmtWin(w));
+    const b = await windowOf(1);
+    check('the linked chart takes the free range', b?.[0] === midnight(20) && b?.[1] === midnight(10), fmtWin(b));
+    await page.keyboard.press('Escape');
+    await click(0, '[data-testid="echart-nav-prev"]');
+    w = await windowOf(0);
+    check('◀ steps by the range itself', w?.[0] === midnight(30) && w?.[1] === midnight(20), fmtWin(w));
+}
+
+await mount([chart('free-dp', 0, { echartNavDateDp: 'test.nav.from', echartNavEndDp: 'test.nav.to' })], {
+    'test.nav.from': iso(midnight(15)),
+    'test.nav.to': iso(midnight(6)),
+});
+{
+    const w = await windowOf(0);
+    check('start + end datapoint set the range', w?.[0] === midnight(15) && w?.[1] === midnight(5), fmtWin(w));
+    await page.evaluate(() => window.__auraShot.writes(true));
+    await page.evaluate(() => window.__auraShot.captureWrites(true));
+    await click(0, '[data-testid="echart-nav-prev"]');
+    const writes = await page.evaluate(() => window.__auraShot.writes());
+    const from = writes.filter((x) => x.id === 'test.nav.from').map((x) => x.val);
+    const to = writes.filter((x) => x.id === 'test.nav.to').map((x) => x.val);
+    check(
+        '◀ writes first and last day',
+        from.at(-1) === iso(midnight(25)) && to.at(-1) === iso(midnight(16)),
+        JSON.stringify({ from, to }),
+    );
+}
+
+// ── Back to the configured range after idle (#932) ───────────────────────────────────────
+// 0.04 min = 2.4 s; the option takes minutes, fractions only matter here.
+await mount([
+    chart('idle-a', 0, { echartNavIdleReset: 0.04, echartNavGroup: 'idle' }),
+    chart('idle-b', 8, { echartNavGroup: 'idle' }),
+]);
+{
+    await click(0, chip('7 Tage'));
+    await click(0, '[data-testid="echart-nav-prev"]');
+    let a = await windowOf(0);
+    check('browsed to the week before', a?.[0] === midnight(13) && a?.[1] === midnight(6), fmtWin(a));
+    // Use keeps it: the pointer moves for longer than the idle time.
+    for (let i = 0; i < 8; i++) {
+        await page.mouse.move(600 + (i % 2) * 20, 900);
+        await page.waitForTimeout(400);
+    }
+    a = await windowOf(0);
+    check('activity keeps the browsed window', a !== null, fmtWin(a));
+    await page.waitForTimeout(3200);
+    a = await windowOf(0);
+    const b = await windowOf(1);
+    check('idle: back to the rolling range', a === null, fmtWin(a));
+    check(
+        'and to the configured chip',
+        (
+            await item(0)
+                .locator(chip('24 Std'))
+                .evaluate((el) => el.style.background)
+        ).includes('accent'),
+    );
+    check('the linked chart follows', b === null, fmtWin(b));
+}
+
 // ── Across widget types: advanced, simple and distribution chart in one group ──────────────
 const simple = (id, y, opts = {}) => ({
     id,

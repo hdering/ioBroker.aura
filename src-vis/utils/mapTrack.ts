@@ -232,6 +232,65 @@ export function filterDay(points: TrackPoint[], start: number, end: number): Tra
     return points.filter((p) => p.ts === undefined || (p.ts >= start && p.ts < end));
 }
 
+// ── Simplification (#929) ─────────────────────────────────────────────────────
+
+/**
+ * At most `max` points of a track, chosen by Douglas-Peucker: first and last always stay, then the
+ * points that bend the line most. Unlike cutting to the newest points the whole window keeps its
+ * shape — a week of driving loses detail on the straights, not its first six days.
+ *
+ * Every point is ranked by the deviation at which Douglas-Peucker would keep it (capped by its
+ * parent's, so the ranking nests), and the `max` best are kept in their original order — the
+ * target count instead of a tolerance nobody can pick for every zoom level.
+ */
+export function simplifyTrack(points: TrackPoint[], max: number): TrackPoint[] {
+    const n = points.length;
+    if (n <= max || n <= 2) return points;
+    if (max < 2) return [points[0], points[n - 1]];
+    // Plane projection around the track: degrees of longitude shrink with the latitude.
+    const k = Math.cos((points[0].pos[0] * Math.PI) / 180);
+    const x = (i: number) => points[i].pos[1] * k;
+    const y = (i: number) => points[i].pos[0];
+    const rank = new Float64Array(n);
+    rank[0] = Infinity;
+    rank[n - 1] = Infinity;
+    const stack: [number, number, number][] = [[0, n - 1, Infinity]];
+    while (stack.length) {
+        const [a, b, cap] = stack.pop()!;
+        if (b - a < 2) continue;
+        const ax = x(a);
+        const ay = y(a);
+        const dx = x(b) - ax;
+        const dy = y(b) - ay;
+        const len = Math.hypot(dx, dy);
+        let best = a + 1;
+        let bestD = -1;
+        for (let i = a + 1; i < b; i++) {
+            // Distance to the segment a–b; with a and b on the same spot (a round trip), to a.
+            const d =
+                len === 0 ? Math.hypot(x(i) - ax, y(i) - ay) : Math.abs(dx * (ay - y(i)) - dy * (ax - x(i))) / len;
+            if (d > bestD) {
+                bestD = d;
+                best = i;
+            }
+        }
+        const r = Math.min(bestD, cap);
+        rank[best] = r;
+        stack.push([a, best, r], [best, b, r]);
+    }
+    // The rank the max-th best point has; ties at that rank fill up in track order.
+    const sorted = Array.from(rank).sort((p, q) => q - p);
+    const cut = sorted[max - 1];
+    let above = 0;
+    for (let i = 0; i < n; i++) if (rank[i] > cut) above++;
+    let ties = max - above;
+    const out: TrackPoint[] = [];
+    for (let i = 0; i < n; i++) {
+        if (rank[i] > cut || (rank[i] === cut && ties-- > 0)) out.push(points[i]);
+    }
+    return out;
+}
+
 // ── Stays and trips (timeline) ───────────────────────────────────────────────
 
 export interface StaySegment {

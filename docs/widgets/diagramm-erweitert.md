@@ -345,6 +345,7 @@ Eine Zahl je Serie über den gerade gezeigten Zeitraum, z. B. die Einspeisung de
 | `change`        | Ende − Start                                                                     | Summe der Balken                      |
 | `min` · `max`   | kleinster / größter Wert im Zeitraum                                             | kleinster / größter Balken            |
 | `average`       | Mittelwert                                                                       | mittlerer Balken                      |
+| `integral`      | Fläche über die Zeit: W → Wh, kW → kWh (Einheit bekommt ein „h“)                 | Summe der Balken                      |
 
 | Thema           | Verhalten                                                                                       |
 | --------------- | ----------------------------------------------------------------------------------------------- |
@@ -352,6 +353,50 @@ Eine Zahl je Serie über den gerade gezeigten Zeitraum, z. B. die Einspeisung de
 | Live-Werte      | Verbrauch, Differenz, Min, Max laufen live mit; Mittelwert beim nächsten Nachladen                |
 | Format          | Nachkommastellen und Einheit der Serie bzw. ihrer Achse                                          |
 | Nicht verfügbar | Modus `comparison` und `json`, Serien mit `source: json`                                    |
+
+### Formel-Reihe
+
+Eine Reihe aus mehreren Datenpunkten berechnen, ohne Skript und ohne eigenen Datenpunkt: **Datenquelle → Formel**.
+
+![](./assets/diagramm-erweitert/bsp-formel-reihe.png)
+
+| Feld              | Inhalt                                                                                   |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| Eingänge          | je Zeile ein kurzer Name (`u`, `a`) und ein Datenpunkt; 🗄 schlägt den Namen vor          |
+| Formel            | Rechnung mit den Namen: `(is - ib) * u`, `a + b + c`, `Math.max(a - b, 0)`             |
+| Jetzt             | Ergebnis mit den aktuellen Werten bzw. Fehler („Unbekannte Variable …“)                  |
+| Verlauf           | History-Instanz, Aggregation, Kennzahl, Zeitversatz wie bei jeder Reihe                  |
+
+| Thema                      | Verhalten                                                                                     |
+| -------------------------- | --------------------------------------------------------------------------------------------- |
+| Fehlende Werte             | jeder Eingang hält seinen letzten Wert (auch von vor dem Zeitraum) — keine Lücken             |
+| Start                      | erst, wenn alle Eingänge einen Wert haben                                                     |
+| Division durch 0, Text     | an der Stelle eine Lücke                                                                      |
+| bis 7 Tage                 | Rohdaten, exakt für jede Formel                                                               |
+| länger                     | Mittelwerte der Eingänge: Summe/Differenz exakt, Produkt/Quotient Näherung                    |
+| `aggregate: delta`         | jeder Zähler für sich je Zeitraum differenziert, dann gerechnet — für Summen/Differenzen       |
+| Kennzahl                   | aus der berechneten Kurve; `integral` = Verbrauch in Wh aus W                                 |
+| Mischen                    | Formel-Reihen und normale Reihen im selben Diagramm                                           |
+| Formel-Syntax              | wie Bindings: `+ - * / %`, Klammern, Vergleiche, `?:`, `Math.*` — kein JavaScript           |
+
+```json
+{
+    "id": "last",
+    "name": "Hausverbrauch",
+    "source": "formula",
+    "datapointId": "",
+    "formulaInputs": [
+        { "name": "u", "datapointId": "alias.0.battery.raVoltage" },
+        { "name": "is", "datapointId": "alias.0.solar.raCurrent" },
+        { "name": "ib", "datapointId": "alias.0.battery.raCurrent" }
+    ],
+    "formula": "(is - ib) * u",
+    "unit": "W",
+    "periodValue": "integral"
+}
+```
+
+`historyInstance` kann je Eingang abweichen; sonst gilt die der Reihe.
 
 ### JSON-Quelle
 
@@ -437,6 +482,9 @@ Ein gemeinsamer Zeitraum für alle Serien.
 | `echartNavGroupMode`     | `all`    | `all` = Datum und Zeitraum-Chip gemeinsam · `date` = nur das Datum, jedes Diagramm behält seinen Zeitraum |
 | `echartNavRangeDp`       | —        | Zeitraum-Datenpunkt, lesen + schreiben: `6h` · `24h` · `7d` · `1M` · `total`    |
 | `echartNavDateDp`        | —        | Datum-Datenpunkt, lesen + schreiben: `YYYY-MM-DD`, ms, leer = bis jetzt           |
+| `echartNavEndDp`         | —        | Ende-Datenpunkt (von–bis): gesetzt = `echartNavDateDp` ist der erste, dieser der letzte Tag |
+| `echartNavFreeRange`     | `false`  | Freier Zeitraum: 📅 wählt Von und Bis statt eines Tags                             |
+| `echartNavIdleReset`     | —        | Minuten ohne Bedienung → zurück auf Standard-Zeitraum und Startdatum; Gruppe folgt, DPs bleiben |
 | `echartNavCommandDp`     | —        | Befehls-Datenpunkt, nur lesen: `prev` · `next` · `today` · `now`                |
 | `echartRangeLead`        | —        | Prognose: rollender Zeitraum reicht so weit über jetzt hinaus, z. B. `36h`        |
 | `echartNavFuture`        | `none`   | Prognose: Blättern in die Zukunft — `none` · `data` (bis zum letzten Wert) · `16d` |
@@ -464,6 +512,17 @@ Blättern (`echartDayNav`):
 | ⇥                    | aktuelles Fenster; zweiter Klick auf das leuchtende ⇥ = rollend bis jetzt                 |
 | ▶ grau               | das nächste Fenster begänne in der Zukunft                                                |
 | `Gesamt`             | nichts zu blättern, Knöpfe ausgegraut                                                    |
+
+Freier Zeitraum (`echartNavFreeRange`):
+
+![](./assets/diagramm-erweitert/bsp-freier-zeitraum.png)
+
+| Aktion                     | Wirkung                                                              |
+| -------------------------- | -------------------------------------------------------------------- |
+| 📅 → Von / Bis              | Zeitraum aus ganzen Tagen, z. B. 14.08.–02.09. = `20d` (max. 999 Tage) |
+| ‹ / ›                      | springen um die Länge des Zeitraums                                  |
+| `echartNavGroup`           | gekoppelte Diagramme übernehmen den Zeitraum wie einen Chip          |
+| `echartNavDateDp` + `echartNavEndDp` | `2025-08-14` + `2025-09-02`; beide leer = rollend           |
 
 | `echartNavAnchor` | Datum 03.10., `7 Tage`        | Datum 03.10., `24 Std` |
 | ----------------- | ----------------------------- | ---------------------- |

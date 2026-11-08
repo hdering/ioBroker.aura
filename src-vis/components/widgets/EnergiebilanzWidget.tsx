@@ -113,6 +113,12 @@ export interface EnergyBalanceOptions {
     navGroupMode?: 'all' | 'date';
     /** Date datapoint (read + write). */
     navDateDp?: string;
+    /** End of a free range (read + write) — makes navDateDp the start (#931). */
+    navEndDp?: string;
+    /** The date button picks a free range from–to (#931). */
+    navFreeRange?: boolean;
+    /** Minutes without use after which the chart returns to its configured range (#932). */
+    navIdleReset?: number;
     /** Range datapoint (read + write). */
     navRangeDp?: string;
     /** Command datapoint: prev, next, today, now. */
@@ -322,6 +328,9 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
         group: typeof o.navGroup === 'string' ? o.navGroup.trim() : '',
         groupMode: o.navGroupMode === 'date' ? 'date' : 'all',
         dateDp: o.navDateDp ?? '',
+        endDp: o.navEndDp ?? '',
+        freeRange: o.navFreeRange === true,
+        idleResetMinutes: Number(o.navIdleReset) || 0,
         rangeDp: o.navRangeDp ?? '',
         commandDp: o.navCommandDp ?? '',
     });

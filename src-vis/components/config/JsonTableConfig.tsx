@@ -13,7 +13,7 @@ import { rowTokenName } from '../../utils/jsonTableFormat';
 import type { WidgetConfig } from '../../types';
 import { JsonTableSortSection } from './JsonTableSortSection';
 import { ConfigSection, SubGroup } from './ConfigSection';
-import { VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
+import { ToggleRow, VisibleFieldsSection, type VisibleField } from './VisibleFieldsSection';
 import type { JsonSortRule } from '../../utils/jsonTableSort';
 import { getStateDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -61,6 +61,51 @@ function Toggle({ value, onToggle }: { value: boolean; onToggle: () => void }) {
                 style={{ left: value ? '18px' : '2px' }}
             />
         </button>
+    );
+}
+
+/**
+ * Colour row of the look options: a picker plus a text field for theme tokens and CSS
+ * values. The picker gets the whole value — it takes a theme token and a light/dark
+ * pair, and handing it a default instead would write that default back over the
+ * pair (#689); `pickerFallback` only fills an unset value.
+ */
+function ColorField({
+    label,
+    value,
+    fallback,
+    pickerFallback,
+    onChange,
+}: {
+    label: string;
+    value: string | undefined;
+    /** What the widget uses while unset — shown in the text field and as placeholder. */
+    fallback: string;
+    pickerFallback: string;
+    onChange: (v: string | undefined) => void;
+}) {
+    return (
+        <div className="flex items-center gap-2">
+            <ColorPicker
+                value={value || pickerFallback}
+                onChange={(v) => onChange(v)}
+                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+            />
+            <div className="flex-1">
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    {label}
+                </label>
+                <input
+                    type="text"
+                    value={value ?? fallback}
+                    onChange={(e) => onChange(e.target.value || undefined)}
+                    placeholder={fallback}
+                    className={jCls}
+                    style={jSty}
+                />
+            </div>
+        </div>
     );
 }
 
@@ -253,62 +298,7 @@ export function JsonTableConfig({ config, datapoint, options: o, onChange, mainD
     // Columns a sort rule can read: the configured ones (hidden ones too — a hidden
     // timestamp is a fine sort key) plus whatever else the data holds.
     const sortKeys = [...new Set([...colDefs.map((c) => c.key), ...(liveTable?.headers ?? [])])];
-    const visibleFields: VisibleField[] = [
-        { key: 'showSearch', label: 'Suche', def: false },
-        {
-            key: 'showHeader',
-            label: 'Kopfzeile',
-            children: (
-                <>
-                    <div className="flex items-center gap-2">
-                        <ColorPicker
-                            // The whole value: the picker takes a theme token and a
-                            // light/dark pair, and handing it a default instead would
-                            // write that default back over the pair (#689).
-                            value={(o.headerBg as string) || '#6366f1'}
-                            onChange={(v) => set({ headerBg: v })}
-                            className="w-8 h-7 rounded cursor-pointer shrink-0"
-                            style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                        />
-                        <div className="flex-1">
-                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                Header-Hintergrund
-                            </label>
-                            <input
-                                type="text"
-                                value={(o.headerBg as string) ?? 'var(--accent)'}
-                                onChange={(e) => set({ headerBg: e.target.value || undefined })}
-                                placeholder="var(--accent)"
-                                className={jCls}
-                                style={jSty}
-                            />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <ColorPicker
-                            value={(o.headerColor as string) || '#ffffff'}
-                            onChange={(v) => set({ headerColor: v })}
-                            className="w-8 h-7 rounded cursor-pointer shrink-0"
-                            style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                        />
-                        <div className="flex-1">
-                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                Header-Textfarbe
-                            </label>
-                            <input
-                                type="text"
-                                value={(o.headerColor as string) ?? '#ffffff'}
-                                onChange={(e) => set({ headerColor: e.target.value || undefined })}
-                                placeholder="#ffffff"
-                                className={jCls}
-                                style={jSty}
-                            />
-                        </div>
-                    </div>
-                </>
-            ),
-        },
-    ];
+    const visibleFields: VisibleField[] = [{ key: 'showSearch', label: 'Suche', def: false }];
 
     return (
         <>
@@ -1051,6 +1041,80 @@ export function JsonTableConfig({ config, datapoint, options: o, onChange, mainD
             </ConfigSection>
             <ConfigSection title={t('cfg.section.look')} sectionKey="look">
                 <>
+                    <SubGroup title="Kopf- & Fußzeile">
+                        <div data-testid="jsontable-header">
+                            <ToggleRow
+                                label="Kopfzeile"
+                                on={boolOpt('showHeader', true)}
+                                onChange={(v) => set({ showHeader: v })}
+                            >
+                                {boolOpt('showHeader', true) && (
+                                    <>
+                                        <ColorField
+                                            label="Header-Hintergrund"
+                                            value={o.headerBg as string | undefined}
+                                            fallback="var(--accent)"
+                                            pickerFallback="#6366f1"
+                                            onChange={(v) => set({ headerBg: v })}
+                                        />
+                                        <ColorField
+                                            label="Header-Textfarbe"
+                                            value={o.headerColor as string | undefined}
+                                            fallback="#ffffff"
+                                            pickerFallback="#ffffff"
+                                            onChange={(v) => set({ headerColor: v })}
+                                        />
+                                    </>
+                                )}
+                            </ToggleRow>
+                        </div>
+                        <div data-testid="jsontable-footer">
+                            <ToggleRow
+                                label="Fußzeile (letzte Zeile)"
+                                hint="Letzte Datenzeile, z. B. eine Summe – bleibt beim Sortieren und Suchen unten"
+                                on={boolOpt('footerRow', false)}
+                                onChange={(v) => set({ footerRow: v })}
+                            >
+                                {boolOpt('footerRow', false) && (
+                                    <>
+                                        <ColorField
+                                            label="Fußzeile Hintergrund"
+                                            value={o.footerBg as string | undefined}
+                                            fallback="var(--app-bg)"
+                                            pickerFallback="#1e1e2e"
+                                            onChange={(v) => set({ footerBg: v })}
+                                        />
+                                        <ColorField
+                                            label="Fußzeile Textfarbe"
+                                            value={o.footerColor as string | undefined}
+                                            fallback="var(--text-primary)"
+                                            pickerFallback="#ffffff"
+                                            onChange={(v) => set({ footerColor: v })}
+                                        />
+                                        <ToggleRow
+                                            label="Fett"
+                                            on={boolOpt('footerBold', true)}
+                                            onChange={(v) => set({ footerBold: v })}
+                                        />
+                                        <ToggleRow
+                                            label="Kursiv"
+                                            on={boolOpt('footerItalic', false)}
+                                            onChange={(v) => set({ footerItalic: v })}
+                                        />
+                                        <ToggleRow
+                                            label="Unten fixiert"
+                                            hint="Bleibt beim Scrollen am unteren Rand stehen"
+                                            on={boolOpt('footerSticky', true)}
+                                            disabledReason={
+                                                o.transparent ? 'Nicht bei transparentem Hintergrund' : undefined
+                                            }
+                                            onChange={(v) => set({ footerSticky: v })}
+                                        />
+                                    </>
+                                )}
+                            </ToggleRow>
+                        </div>
+                    </SubGroup>
                     {/* First column as label */}
                     <div className="flex items-center justify-between">
                         <div>
@@ -1065,54 +1129,20 @@ export function JsonTableConfig({ config, datapoint, options: o, onChange, mainD
                     </div>
                     {firstColHeader && (
                         <>
-                            <div className="flex items-center gap-2">
-                                <ColorPicker
-                                    value={(o.firstColBg as string) || '#1e1e2e'}
-                                    onChange={(v) => set({ firstColBg: v })}
-                                    className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                                />
-                                <div className="flex-1">
-                                    <label
-                                        className="text-[11px] mb-1 block"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        Bezeichnungsspalte Hintergrund
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={(o.firstColBg as string) ?? 'var(--app-bg)'}
-                                        onChange={(e) => set({ firstColBg: e.target.value || undefined })}
-                                        placeholder="var(--app-bg)"
-                                        className={jCls}
-                                        style={jSty}
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <ColorPicker
-                                    value={(o.firstColColor as string) || '#8b8b9e'}
-                                    onChange={(v) => set({ firstColColor: v })}
-                                    className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                                />
-                                <div className="flex-1">
-                                    <label
-                                        className="text-[11px] mb-1 block"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        Bezeichnungsspalte Textfarbe
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={(o.firstColColor as string) ?? 'var(--text-secondary)'}
-                                        onChange={(e) => set({ firstColColor: e.target.value || undefined })}
-                                        placeholder="var(--text-secondary)"
-                                        className={jCls}
-                                        style={jSty}
-                                    />
-                                </div>
-                            </div>
+                            <ColorField
+                                label="Bezeichnungsspalte Hintergrund"
+                                value={o.firstColBg as string | undefined}
+                                fallback="var(--app-bg)"
+                                pickerFallback="#1e1e2e"
+                                onChange={(v) => set({ firstColBg: v })}
+                            />
+                            <ColorField
+                                label="Bezeichnungsspalte Textfarbe"
+                                value={o.firstColColor as string | undefined}
+                                fallback="var(--text-secondary)"
+                                pickerFallback="#8b8b9e"
+                                onChange={(v) => set({ firstColColor: v })}
+                            />
                         </>
                     )}
 

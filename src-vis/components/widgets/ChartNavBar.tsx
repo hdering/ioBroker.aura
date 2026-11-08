@@ -2,9 +2,10 @@
  * Paging bar of the chart widgets (issue #871): the date button shows the window and opens the
  * browser's date picker, ‹ › step by the active chip, ⇥ jumps to the current window (lit there; a
  * second click returns to the rolling range). `Gesamt` has no window to page through, so the controls
- * grey out rather than disappear. State and logic: hooks/useChartNav.
+ * grey out rather than disappear. With a free range (#931) the date button opens a from–to panel
+ * instead. State and logic: hooks/useChartNav.
  */
-import { useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ArrowRightToLine, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useT } from '../../i18n';
 import type { ChartNav } from '../../hooks/useChartNav';
@@ -15,11 +16,13 @@ import {
     isoDay,
     navWindow,
     shiftBy,
+    todayRef,
     type NavWindow,
     type NavSpan,
 } from '../../utils/chartNav';
 import { rangeLabel, type RangeChip } from '../../utils/rangeChips';
-import { openNativePicker } from '../common/DateTimeInput';
+import { DateTimeInput, openNativePicker } from '../common/DateTimeInput';
+import { PickerPopover } from '../common/PickerPopover';
 
 /** Size of a chart control group — the range chips (`rangeChipSize`) or this bar (`navSize`), each
  *  on its own. `sm` is the compact default; `md`/`lg` give a phone or a wall tablet something to
@@ -98,6 +101,51 @@ function widestLabels(span: NavSpan, locale: string): string[] {
     );
 }
 
+/** From–to fields of a free range (#931). Each field applies at once, so moving one end is one pick. */
+function FreeRangePanel({
+    nav,
+    anchorRef,
+    onClose,
+}: {
+    nav: ChartNav;
+    anchorRef: React.RefObject<HTMLElement>;
+    onClose: () => void;
+}) {
+    const t = useT();
+    const w = nav.window;
+    // Rolling: the fields start on today's window, the one ⇥ would show.
+    const cur = w ?? (nav.span ? navWindow(nav.span, todayRef(nav.span, nav.anchor), nav.anchor) : null);
+    const from = cur ? isoDay(cur.start) : '';
+    const to = cur ? isoDay(cur.end - 1) : '';
+    const max = Number.isFinite(nav.horizon) ? isoDay(nav.horizon) : undefined;
+    const field = (label: string, value: string, onValue: (v: string) => void, testId: string) => (
+        <label className="flex items-center justify-between gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+            {label}
+            <DateTimeInput
+                kind="date"
+                value={value}
+                max={max}
+                onValue={(v) => v && onValue(v)}
+                className="nodrag rounded px-1.5 py-1 text-xs"
+                style={{
+                    background: 'var(--app-bg)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--app-border)',
+                }}
+                data-testid={testId}
+            />
+        </label>
+    );
+    return (
+        <PickerPopover anchorRef={anchorRef} onClose={onClose}>
+            <div className="flex flex-col gap-2 p-2.5" data-testid="echart-nav-range">
+                {field(t('echart.navRangeFrom'), from, (v) => nav.pickRange(v, to || v), 'echart-nav-range-from')}
+                {field(t('echart.navRangeTo'), to, (v) => nav.pickRange(from || v, v), 'echart-nav-range-to')}
+            </div>
+        </PickerPopover>
+    );
+}
+
 export function ChartNavBar({
     nav,
     chips,
@@ -112,6 +160,9 @@ export function ChartNavBar({
     const icon = ICON_SIZE[size];
     const gap = chartControlGap(size);
     const inputRef = useRef<HTMLInputElement>(null);
+    const dateBtnRef = useRef<HTMLButtonElement>(null);
+    const [rangeOpen, setRangeOpen] = useState(false);
+    const closeRange = useCallback(() => setRangeOpen(false), []);
     const off = !nav.span;
     // What one arrow step is, for the tooltips: the active chip's caption ("7 Tage", "Quartal").
     const step =
@@ -171,16 +222,21 @@ export function ChartNavBar({
                         onChange={(e) => nav.pickDay(e.target.value)}
                     />
                     <button
+                        ref={dateBtnRef}
                         className={`${btnCls} flex items-center gap-1 whitespace-nowrap tabular-nums`}
                         style={btnStyle(false)}
-                        title={t('echart.dayPickTitle')}
+                        title={nav.freeRange ? t('echart.navRangePickTitle') : t('echart.dayPickTitle')}
+                        aria-expanded={nav.freeRange ? rangeOpen : undefined}
                         disabled={off}
                         data-testid="echart-nav-date"
-                        onClick={() => openNativePicker(inputRef.current)}
+                        onClick={() => (nav.freeRange ? setRangeOpen((v) => !v) : openNativePicker(inputRef.current))}
                     >
                         <CalendarDays size={icon} />
                         {label}
                     </button>
+                    {rangeOpen && nav.freeRange && !off && (
+                        <FreeRangePanel nav={nav} anchorRef={dateBtnRef} onClose={closeRange} />
+                    )}
                 </span>
                 <button
                     className={btnCls}

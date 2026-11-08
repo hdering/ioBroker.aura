@@ -1085,8 +1085,8 @@ function RowTypeViewsSection() {
                 })}
             </div>
             <p className="text-[11px] mt-2" style={labelStyle}>
-                Gilt für alle Listen, deren Klick auf Zeile auf „Automatisch“ steht – Widgets sind nicht betroffen. Eine
-                kopierte „Liste: …“-View hier auswählen, um sie statt der mitgelieferten zu verwenden.
+                Gilt für alle Listen, deren Klick auf Zeile auf {'„Automatisch“'} steht – Widgets sind nicht betroffen.
+                Eine kopierte {'„Liste: …“'}-View hier auswählen, um sie statt der mitgelieferten zu verwenden.
             </p>
         </section>
     );

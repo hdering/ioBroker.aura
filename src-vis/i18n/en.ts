@@ -171,6 +171,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerItems': 'Elements',
     'settings.frontend.layoutDrawerItemPosTop': 'Top',
     'settings.frontend.layoutDrawerItemPosBottom': 'Bottom',
+    'settings.frontend.layoutDrawerItemPosLeft': 'Left',
+    'settings.frontend.layoutDrawerItemPosRight': 'Right',
+    'settings.frontend.layoutDrawerItemPosBarHint':
+        'In the bar left or right of the sections; in the slide-out menu (e.g. on mobile) at the top or bottom.',
     'settings.frontend.layoutDrawerItemMarginTop': 'Space above',
     'settings.frontend.layoutDrawerItemMarginBottom': 'Space below',
     'settings.frontend.layoutDrawerItemAlign': 'Alignment',
@@ -683,6 +687,9 @@ export const en: Record<TranslationKey, string> = {
     'pin.showLock': 'Show padlock',
     'pin.showLockHint':
         'On (default): locked entries carry a padlock in the menu or the tab bar. Off: no icon – the PIN is still asked for.',
+    'pin.showMarkers': 'Show markers and conditions while locked',
+    'pin.showMarkersHint':
+        'On: conditions and own markers apply while the entry is locked. Their datapoint IDs are then readable without the PIN. The widget count marker only appears after unlocking.',
     'pin.mcpWrite': 'Editable via MCP',
     'pin.mcpWriteHint':
         'Lets the AI server (MCP) read and change the protected content. Off: structure only (id, type, size), ' +
@@ -2277,6 +2284,19 @@ export const en: Record<TranslationKey, string> = {
     'echart.navDpsTitle': 'Control via datapoints (optional)',
     'echart.navDateDp': 'Date datapoint',
     'echart.navDateDpHint': 'Read + write: YYYY-MM-DD, timestamp (ms) or empty = up to now.',
+    'echart.navEndDp': 'End datapoint (from–to)',
+    'echart.navEndDpHint':
+        'Optional. Once set, the date datapoint is the first and this one the last day shown (YYYY-MM-DD or ms). Read + write.',
+    'echart.navFreeRange': 'Free range: the date button picks from and to',
+    'echart.navFreeRangeHint':
+        'From–to becomes a range of whole days; ‹ › page by its length, the link group takes it over.',
+    'echart.navRangeFrom': 'From',
+    'echart.navRangeTo': 'To',
+    'echart.navRangePickTitle': 'Pick a range (from–to)',
+    'echart.navIdleReset': 'Reset after idle',
+    'echart.navIdleResetOff': 'off',
+    'echart.navIdleResetHint':
+        'After this many minutes without touching the page the chart returns to its configured range and start date — the link group follows. Empty = never.',
     'echart.navRangeDp': 'Range datapoint',
     'echart.navRangeDpHint': 'Read + write: tokens like 6h, 24h, 7d, 1M, total.',
     'echart.navCommandDp': 'Command datapoint',
@@ -2376,6 +2396,27 @@ export const en: Record<TranslationKey, string> = {
     'echart.periodMin': 'Minimum',
     'echart.periodMax': 'Maximum',
     'echart.periodAverage': 'Average',
+    'echart.sourceFormula': 'Formula',
+    'echart.unavailDatapointFormula': 'Formula series: the datapoints are listed below under Inputs.',
+    'echart.formulaInputs': 'Inputs',
+    'echart.formulaInputName': 'Name in the formula',
+    'echart.formulaAddInput': 'Input',
+    'echart.formulaRemoveInput': 'Remove input',
+    'echart.formula': 'Formula',
+    'echart.formulaNow': 'Now',
+    'echart.formulaStart': 'Add inputs, then compute with their names, e.g. a + b + c.',
+    'echart.formulaWaiting': 'Waiting for values of all inputs …',
+    'echart.formulaEmpty': 'Formula missing.',
+    'echart.formulaParse': 'Formula cannot be read.',
+    'echart.formulaBadName': 'Invalid name "{name}": letters, digits, _ — not starting with a digit.',
+    'echart.formulaDuplicate': 'Name "{name}" is used twice.',
+    'echart.formulaUnknown': 'Unknown variable "{name}" — add it as an input.',
+    'echart.formulaDatapoint': 'Datapoint "{id}" written into the formula — add it as an input instead.',
+    'echart.formulaHint':
+        '+ − * / %, brackets, comparisons, ?:, Math.max/min/abs/round … An input without a new value keeps its last one. Exact up to 7 days; longer ranges compute products and quotients from averages (approximation).',
+    'echart.formulaDeltaHint':
+        'Formula series: each input is differenced per period on its own, then computed — meant for sums and differences of meters.',
+    'echart.periodIntegral': 'Area over time (W → Wh)',
     'echart.periodHint':
         'One number over the range currently shown, e.g. the energy fed in over the last 30 days. Follows the range buttons, the day navigation and the time shift. "Consumption/yield" only counts the rises and stays correct for a day counter or a meter swap.',
     'echart.periodBarsHint':
@@ -3075,9 +3116,7 @@ export const en: Record<TranslationKey, string> = {
     'map.style.standard': 'Map',
     'map.style.satellite': 'Satellite',
     'map.style.terrain': 'Terrain',
-    'map.day.prev': 'Previous day',
-    'map.day.next': 'Next day',
-    'map.day.today': 'Jump to today',
+    'map.style.custom': 'Own map',
     'map.timeline.moving': 'On the way',
     'map.timeline.empty': 'No position data for this period.',
 
@@ -3527,5 +3566,6 @@ export const en: Record<TranslationKey, string> = {
     // ── Web component ───────────────────────────────────────────────────────────
     'wc.unset': 'No component selected',
     'wc.missing': 'Component <{tag}> is not installed',
+    'wc.missingAdapter': '{name}: adapter "{adapter}" is missing (version {version} or newer)',
     'wc.failed': 'Component <{tag}> could not be loaded: {error}',
 };

@@ -1,5 +1,54 @@
 # Changelog (older entries)
 
+## 0.93.0 (2026-10-25)
+- 🌟 **New feature:** Camera - intercom: an "Answer" button opens a two-way call through go2rtc (webrtc.html), with an optional call datapoint for the doorbell ([#836](https://github.com/hdering/ioBroker.aura/issues/836))
+- 🐛 **Bug fix:** Universal - conditions on a switch cell in button mode now apply bold, italic, font size and text colour to the button caption; button, input and dropdown cells pick up the condition font size too ([#842](https://github.com/hdering/ioBroker.aura/issues/842))
+- 🐛 **Bug fix:** Connected devices - two identical devices (e.g. two Fire tablets of the same model running Fully) no longer share one client ID; the second one moves to its own ID on its next connect ([#844](https://github.com/hdering/ioBroker.aura/issues/844))
+- 🌟 New feature: Speech output - write a text, a sound file or "volume;text" to speech.say (all devices) or clients.<id>.speech.say and the dashboard speaks or plays it, queued one after another; JSON adds voice, language, rate, interrupt, "only with display on" and a target; per device: muted, volume, playing and lastResult; several tabs of one browser play an announcement once, and one older than 10 minutes (e.g. reaching a tab the browser had put to sleep) is skipped. If the browser blocks sound until a tap, an "Enable sound" button appears and the announcement plays on the next touch ([#834](https://github.com/hdering/ioBroker.aura/issues/834))
+- 🌟 **New feature:** SayIt - announcements of a SayIt instance with output type "Browser" now also play on the Aura dashboards, the existing sayit.0.tts.text scripts stay unchanged ([#834](https://github.com/hdering/ioBroker.aura/issues/834))
+- 🐛 **Bug fix:** Messages - new "speak" option reads title and text out on the device that shows the message; Admin → Messages → Defaults can switch it on per severity, e.g. for warnings and errors ([#834](https://github.com/hdering/ioBroker.aura/issues/834))
+- 🌟 **New feature:** Room climate - new "Custom" layout: switching to it rebuilds the current layout as a custom grid, including the history chart, the value columns and the comfort badge ([#838](https://github.com/hdering/ioBroker.aura/issues/838))
+- 🌟 **New feature:** Room climate - the target temperature can be set from the widget: "Target adjustable" adds -/+ beside the target and quick-select buttons, and the custom layout offers the circle menu as in the thermostat ([#838](https://github.com/hdering/ioBroker.aura/issues/838))
+- 🐛 **Bug fix:** Thermostat, shutter, select - the circle menu is now also a component of the custom layout, and switching a circle layout to Custom keeps the round button ([#838](https://github.com/hdering/ioBroker.aura/issues/838))
+- 🌟 **New feature:** Custom layout - the select cell can be shown as a circle menu: a round button with the current entry that fans all entries out, optionally with -/+ steps for numbers ([#838](https://github.com/hdering/ioBroker.aura/issues/838))
+- 🌟 **New feature:** Custom layout - new cell type "Chart": mirrors an existing chart widget inside one cell, so a device and its history fit into one widget ([#838](https://github.com/hdering/ioBroker.aura/issues/838))
+- 🐛 **Bug fix:** Device card - "Popup: widget content" on a child widget now shows the data of the card's own device instead of an empty chart or value ([#845](https://github.com/hdering/ioBroker.aura/issues/845))
+- 🐛 **Bug fix:** Static list - the rule of a separator now also shows in borderless themes (Lovelace, Material 3, ...), where it stayed invisible ([#846](https://github.com/hdering/ioBroker.aura/issues/846))
+
+## 0.92.0 (2026-10-24)
+- 🌟 **New feature:** Background image - also accepts CSS colours and gradients (e.g. linear-gradient(#e66465, e5)), typed in or composed with the new gradient builder ([#9198](https://github.com/hdering/ioBroker.aura/issues/9198), [#830](https://github.com/hdering/ioBroker.aura/issues/830))
+- Group - header items now sit in the group's own header bar (divider and spacing kept even with title and icon off, no more jumping row), and the title and icon colour can be set for the group header ([#832](https://github.com/hdering/ioBroker.aura/issues/832))
+- 🌟 **New feature:** Alarm - with "Disarm only with PIN" the Off button now opens the PIN entry while the system is merely armed (it did nothing before); the PIN field has a cancel button and brings up the numeric keypad on phones and tablets
+- Map - zoom in beyond level 19 (up to 22); past the tile server's last level the tiles are scaled up, handy for small plots like a mower's track ([#837](https://github.com/hdering/ioBroker.aura/issues/837))
+- 🌟 **New feature:** Scenes - new widget for the ioBroker scenes adapter: trigger scenes with a tap and create them in Aura - pick any writable datapoint, set its value by hand or take the current one, and order the devices; scenes are managed in the widget settings and, optionally, right in the dashboard ([#825](https://github.com/hdering/ioBroker.aura/issues/825))
+- 🌟 **New feature:** Mirror - can now show a whole tab: pick "Whole tab" as the source and the tab appears live inside the widget, scaled to its width, fitted entirely without scrolling, or at its original size; tabs behind a PIN and the mirror's own tab are not offered; the mirror editor is now translated
+- Menu - entries de-selected in the menu widget stay hidden when a tab is renamed (renaming used to change the tab's URL slug and bring them back) ([#840](https://github.com/hdering/ioBroker.aura/issues/840))
+- 🌟 **New feature:** Device card - new placeholders {{dpname}}, {{parentname}}, {{parent2name}} … show the object name (common.name) of the card's datapoint and of the channel/device above it, e.g. as card title; they work in popup views and popup titles as well ([#841](https://github.com/hdering/ioBroker.aura/issues/841))
+
+## 0.91.0 (2026-10-22)
+- Section menu - a popup opened by a widget inside the open section menu now appears on top of the menu instead of behind it
+- Custom grid - clicking a cell in the edit dialog now highlights it in the preview even when an image or another spanning cell covers it
+- 🌟 **New feature:** Thermostat and selection widgets - new circle menu layout: a round button fans out the preset temperatures with -/+ or all selection entries around it, like the shutter's circle menu ([#815](https://github.com/hdering/ioBroker.aura/issues/815))
+- Universal widget: status icon and static icon cells now have an icon size slider in their content settings
+- Connection lost banner - now has an opaque background in glass themes so the message stays readable over the dashboard ([#826](https://github.com/hdering/ioBroker.aura/issues/826))
+- 🌟 **New feature:** List widgets - the -/+ stepper can show and read durations (mm:ss, hh:mm, hh:mm:ss) and write the value as number, text or time string, e.g. for Sprinkle Control running times ([#827](https://github.com/hdering/ioBroker.aura/issues/827))
+- 🌟 **New feature:** Input, selection, dial, slider, dimmer and thermostat widgets - new optional status datapoint: the widget shows the confirmed value from there while still writing to the main datapoint, like the switch ([#828](https://github.com/hdering/ioBroker.aura/issues/828))
+- Custom grid - cells placed on a spanning cell (e.g. lamps and values on a floor-plan image covering the whole grid) are now drawn on top of it, also as single cells
+- Popups - click actions of widgets inside a popup view now work: a tab jump navigates and closes the popup, a popup action opens a further popup on top (up to three levels, Escape closes the topmost) ([#829](https://github.com/hdering/ioBroker.aura/issues/829))
+
+## 0.90.0 (2026-10-21)
+- Fill level - a narrow vertical battery now shows the limit value next to the battery instead of hiding it ([#819](https://github.com/hdering/ioBroker.aura/issues/819))
+- 🌟 **New feature:** Screensaver - each device reports its idle state in clients.<id>.idle.active after a configurable time without input; a popup trigger on it (with {{clientId}} for every device) opens a screensaver popup that closes on the next touch ([#822](https://github.com/hdering/ioBroker.aura/issues/822))
+- 🌟 **New feature:** Popups - new "Fullscreen" option makes a popup cover the whole screen without margin or frame; also available as "fullscreen": true in popup.open ([#822](https://github.com/hdering/ioBroker.aura/issues/822))
+- Tab bar - a menu element set to "Center" now stands in the middle of the bar even when the tabs are aligned left or right; it used to appear on the right ([#820](https://github.com/hdering/ioBroker.aura/issues/820))
+- Aura now ships a web app manifest with proper icons, so "Install" / "Add to Home Screen" in Chrome, Edge, Android and iOS creates an app named Aura with its own icon that opens without browser bars ([#823](https://github.com/hdering/ioBroker.aura/issues/823))
+- 🌟 **New feature:** Shutter - new control mode "Move DP (up/down)" for actuators with a single up/down object such as KNX (DPT 1.008): one datapoint gets false for up and true for down, the values are configurable; the shutter popup now also uses the up/down datapoints of push-button and move mode
+- Timer - astro events (sunrise/sunset) now reliably show their time in the frontend; on a slow connection the location was read before the connection was up, so only the sun symbol appeared until the next reload ([#498](https://github.com/hdering/ioBroker.aura/issues/498))
+
+## 0.89.0 (2026-10-21)
+- Settings - CSS/JS context chips mark the layouts where custom CSS or JS is switched on ([#818](https://github.com/hdering/ioBroker.aura/issues/818))
+- 🌟 **New feature:** Shutter - new "Circle menu" layout: a round button that fans out open, quick-select positions, close and stop in a circle, in an adjustable order ([#815](https://github.com/hdering/ioBroker.aura/issues/815))
+
 ## 0.88.0 (2026-10-20)
 - 🌟 **New feature:** Countdown - font size of the preset chips and the status text can now be set individually ([#812](https://github.com/hdering/ioBroker.aura/issues/812))
 - 🌟 **New feature:** Switch - new control style "Button" with per-state caption and colours; the universal widget's switch cell gains the control style "Image"; both image modes take a URL, Base64, a file from the server or an upload from the PC

@@ -142,15 +142,26 @@ const tileHosts = () =>
     check('quick chip stays clickable', await page.getByTitle('Zuhause').isVisible());
 }
 
-// ── 7. A custom tile url stays in charge until a type is picked ─────────────
+// ── 7. Own tile server: its own chip, in charge until a type is picked (#934) ──
 {
+    await render({ showStyleChips: true, mapStyle: 'standard' });
+    check('no own-map chip without a tile url', (await page.locator('[data-aura-map-style="custom"]').count()) === 0);
+
+    // An older map: tileUrl next to a preset mapStyle still shows the own server.
     await render({
         showStyleChips: true,
+        mapStyle: 'terrain',
         tileUrl: 'https://tile.openstreetmap.de/{z}/{x}/{y}.png',
         tileAttribution: 'Custom',
     });
-    check('custom tiles win over the presets', (await activeStyle()) === null, String(await activeStyle()));
+    check('custom tiles win over the presets', (await activeStyle()) === 'custom', String(await activeStyle()));
     check('custom attribution is shown', (await attribution()).includes('Custom'), await attribution());
+    const srcs = await page.evaluate(() => [...document.querySelectorAll('img.leaflet-tile')].map((i) => i.src));
+    check(
+        'tiles come from the own server',
+        srcs.length > 0 && srcs.every((u) => u.startsWith('https://tile.openstreetmap.de/')),
+        srcs[0],
+    );
 
     await page.locator('[data-aura-map-style="satellite"]').click();
     await page.waitForTimeout(400);
@@ -160,6 +171,48 @@ const tileHosts = () =>
         String(await activeStyle()),
     );
     check('preset attribution takes over', (await attribution()).includes('Esri'), await attribution());
+    await page.locator('[data-aura-map-style="custom"]').click();
+    await page.waitForTimeout(400);
+    check('own-map chip switches back', (await activeStyle()) === 'custom', String(await activeStyle()));
+
+    // min/max are hard limits: the zoom buttons stop there.
+    await render({
+        mapStyle: 'custom',
+        tileUrl: 'https://tile.openstreetmap.de/{z}/{x}/{y}.png',
+        tileMinZoom: 6,
+        tileMaxZoom: 9,
+        zoom: 8,
+    });
+    const zoomIn = page.locator('.leaflet-control-zoom-in');
+    const zoomOut = page.locator('.leaflet-control-zoom-out');
+    for (let i = 0; i < 3; i++) {
+        await zoomIn.click({ force: true }).catch(() => {});
+        await page.waitForTimeout(350);
+    }
+    await page.waitForTimeout(500);
+    const inZ = await page.evaluate(() => {
+        const img = document.querySelector('img.leaflet-tile');
+        return img ? Number(new URL(img.src).pathname.split('/')[1]) : null;
+    });
+    check('cannot zoom past tileMaxZoom', inZ === 9, String(inZ));
+    check('zoom-in button disabled at the limit', (await zoomIn.getAttribute('class')).includes('leaflet-disabled'));
+    for (let i = 0; i < 5; i++) {
+        await zoomOut.click({ force: true }).catch(() => {});
+        await page.waitForTimeout(350);
+    }
+    await page.waitForTimeout(500);
+    check(
+        'zoom-out button disabled at tileMinZoom',
+        (await zoomOut.getAttribute('class')).includes('leaflet-disabled'),
+    );
+    const outZ = await page.evaluate(() =>
+        Math.min(
+            ...[...document.querySelectorAll('img.leaflet-tile')].map((i) =>
+                Number(new URL(i.src).pathname.split('/')[1]),
+            ),
+        ),
+    );
+    check('cannot zoom out past tileMinZoom', outZ === 6, String(outZ));
 }
 
 // ── 8. Satellite gets a place-name overlay (issue #797) ─────────────────────

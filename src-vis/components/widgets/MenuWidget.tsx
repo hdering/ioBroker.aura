@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Search } from 'lucide-react';
+import { LayoutDashboard, Menu, Search } from 'lucide-react';
 import {
     useDashboardStore,
     useActiveLayout,
@@ -16,6 +16,8 @@ import { useT } from '../../i18n';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import type { WidgetProps } from '../../types';
 import { AuraIcon } from '../common/AuraIcon';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
 
 type MenuMode = 'section' | 'tab' | 'overview';
 type MenuVariant = 'hbar' | 'vlist' | 'grid' | 'pills';
@@ -100,6 +102,12 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
     const isListed = (it: Section | Tab) => showHidden || !it.hidden;
     const groupTitle = (o.groupTitle as GroupTitle) ?? 'iconName';
     const chipSize = (o.chipSize as ChipSize) ?? 'md';
+    // Own title and symbol (#949): off unless switched on — menus placed before
+    // had no header, and the widget's default title would suddenly appear on them.
+    const showTitle = o.showTitle === true;
+    const showIcon = o.showIcon === true;
+    const titleAlign = (o.titleAlign as string) ?? 'left';
+    const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Menu);
 
     const t = useT();
     const [query, setQuery] = useState('');
@@ -270,6 +278,36 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
         );
     };
 
+    // Title row like the chips widget; the symbol shares the entries' icon size.
+    const header = (
+        <HeaderGroup>
+            {(showTitle || showIcon) && (
+                <TitleRow align={titleAlign} className="flex items-center gap-1.5 shrink-0 min-w-0 mb-1.5">
+                    {showIcon && (
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ '--aura-icon-color': 'var(--text-secondary)', flexShrink: 0 }}
+                        />
+                    )}
+                    {showTitle && (
+                        <p
+                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                            style={{
+                                '--aura-title-color': 'var(--text-secondary)',
+                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                            }}
+                        >
+                            {config.title}
+                        </p>
+                    )}
+                    <HeaderSlotsInline />
+                </TitleRow>
+            )}
+            <HeaderSlotsRow2 />
+        </HeaderGroup>
+    );
+
     // ── Overview (#669) ───────────────────────────────────────────────────────
     if (menuMode === 'overview') {
         const chip = CHIP_SIZE[chipSize] ?? CHIP_SIZE.md;
@@ -277,6 +315,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
         let lastLayoutId = '';
         return (
             <div className="aura-widget-row relative w-full h-full flex flex-col" data-menu-overview="">
+                {header}
                 {showSearch && (
                     <div
                         className="nodrag flex items-center gap-1.5 rounded-lg px-2 py-1 mb-2 shrink-0"
@@ -374,6 +413,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
 
     return (
         <div className="aura-widget-row relative w-full h-full flex flex-col">
+            {header}
             <div
                 className="nodrag flex-1 min-h-0"
                 style={variant === 'vlist' ? { overflowY: 'auto' } : { display: 'flex', alignItems: 'center' }}

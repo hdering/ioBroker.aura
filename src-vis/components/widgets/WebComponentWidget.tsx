@@ -12,7 +12,14 @@ import { useThemeEpoch } from '../../store/themeEpoch';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useNavigationStore } from '../../store/navigationStore';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { findTabForView, themeFromVars, typedSettings } from '../../utils/webComponentHost';
+import { useConfigStore } from '../../store/configStore';
+import {
+    findKnownWebComponent,
+    findTabForView,
+    themeFromVars,
+    typedSettings,
+    withoutHostSettings,
+} from '../../utils/webComponentHost';
 import { findWebComponent, getWebComponentSocket, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import type { WidgetProps } from '../../types';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../layout/HeaderSlotsContext';
@@ -31,14 +38,16 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const t = useT();
     const opts = config.options ?? {};
     const tag = typeof opts.wcTag === 'string' ? opts.wcTag : '';
-    const showTitle = opts.showTitle === true;
-    const showIcon = opts.showIcon === true;
+    const showTitle = opts.showTitle !== false;
+    const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Puzzle);
 
     const { components, loading } = useWebComponentCatalog();
     const component = findWebComponent(components, tag, opts.wcAdapter);
+    const known = component ? undefined : findKnownWebComponent(tag, opts.wcAdapter);
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de');
 
     const [status, setStatus] = useState<Status>(tag ? 'loading' : 'unset');
     const [error, setError] = useState('');
@@ -83,7 +92,12 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     }, [status]);
 
     // settings: a new object only when the values changed - the element subscribes anew on each one
-    const settingsJson = JSON.stringify(component ? typedSettings(component.manifest, opts.wcSettings) : {});
+    // (without what the widget frame covers itself - the element keeps its defaults there)
+    const settingsJson = JSON.stringify(
+        component
+            ? withoutHostSettings(typedSettings(component.manifest, opts.wcSettings), tag, component.adapter)
+            : {},
+    );
     const settings = useMemo(
         () => JSON.parse(settingsJson) as Record<string, string | number | boolean>,
         [settingsJson],
@@ -140,7 +154,13 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
             status === 'unset'
                 ? t('wc.unset')
                 : status === 'missing'
-                  ? t('wc.missing', { tag })
+                  ? known
+                      ? t('wc.missingAdapter', {
+                            name: lang === 'de' ? known.name.de : known.name.en,
+                            adapter: known.adapter,
+                            version: known.minVersion,
+                        })
+                      : t('wc.missing', { tag })
                   : status === 'failed'
                     ? t('wc.failed', { tag, error })
                     : t('common.loading');

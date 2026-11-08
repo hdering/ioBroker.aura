@@ -62,10 +62,7 @@
         "de": "„Nur über die Web-Instanz“ lässt den Server auf 127.0.0.1 lauschen: Der Port oben ist dann im Netzwerk zu, Aura wird nur noch als <Web-Port>/aura/ geöffnet. Braucht eine Web-Instanz auf demselben Host unter „Zusätzlich erreichbar über Web-Instanz“ weiter unten."
       },
       "validator": "data.bind !== '127.0.0.1' || !!data.webInstance",
-      "validatorErrorText": {
-        "en": "Pick a web instance below - otherwise Aura can only be opened on the ioBroker machine itself.",
-        "de": "Unten eine Web-Instanz wählen – sonst lässt sich Aura nur noch auf dem ioBroker-Rechner selbst öffnen."
-      },
+      "validatorErrorText": "Pick a web instance below - otherwise Aura can only be opened on the ioBroker machine itself.",
       "validatorNoSaveOnError": true,
       "xs": 12,
       "sm": 12,

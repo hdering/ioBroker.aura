@@ -270,6 +270,14 @@ export function JsonTableWidget({ config, editMode }: WidgetProps) {
     const firstColColor = (opts.firstColColor as string) ?? 'var(--text-secondary)';
     const striped = (opts.striped as boolean) ?? true;
     const showHeader = (opts.showHeader as boolean) ?? true;
+    // Fußzeile (#938): the last data row (typically a sum row) as a footer.
+    const footerRow = (opts.footerRow as boolean) ?? false;
+    const footerBg = (opts.footerBg as string) ?? 'var(--app-bg)';
+    const footerColor = (opts.footerColor as string) ?? 'var(--text-primary)';
+    const footerBold = (opts.footerBold as boolean) ?? true;
+    const footerItalic = (opts.footerItalic as boolean) ?? false;
+    // Pinning needs an opaque background, otherwise the rows scroll through it visibly.
+    const footerStickyOn = ((opts.footerSticky as boolean) ?? true) && !transparent;
     const showSearch = (opts.showSearch as boolean) ?? false;
     const fontSize = (opts.fontSize as number) ?? 12;
     const sortable = (opts.sortable as boolean) ?? false;
@@ -317,11 +325,21 @@ export function JsonTableWidget({ config, editMode }: WidgetProps) {
         return all.filter((c) => !c.hidden).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }, [tableData, opts.columns]);
 
+    // The footer row leaves the data before search, sort and the row cap, so none of
+    // them can move, hide or cut it — it sums up the whole table, not the matches.
+    // A single row stays a data row; a table of nothing but a footer reads as empty.
+    const { bodyRows, footer } = useMemo(() => {
+        const rows = tableData?.rows ?? [];
+        return footerRow && rows.length >= 2
+            ? { bodyRows: rows.slice(0, -1), footer: rows[rows.length - 1] }
+            : { bodyRows: rows, footer: null };
+    }, [tableData, footerRow]);
+
     // Filter rows by search query (searches all visible column values). A formatted
     // column is searchable by both texts — the date on screen and the timestamp behind it.
     const filteredRows = useMemo(() => {
         if (!tableData) return [];
-        if (!query.trim()) return tableData.rows;
+        if (!query.trim()) return bodyRows;
         const q = query.toLowerCase();
         const haystack = (col: JsonColumnDef, raw: unknown) => {
             const base = hasCellFormat(col)
@@ -331,10 +349,8 @@ export function JsonTableWidget({ config, editMode }: WidgetProps) {
             const entry = col.mapValues && !col.image && !col.html ? findCellEntry(col.valueMap, raw) : undefined;
             return entry?.label ? `${base} ${entry.label}` : base;
         };
-        return tableData.rows.filter((row) =>
-            columns.some((col) => haystack(col, row[col.key]).toLowerCase().includes(q)),
-        );
-    }, [tableData, columns, query, t, numFmt]);
+        return bodyRows.filter((row) => columns.some((col) => haystack(col, row[col.key]).toLowerCase().includes(q)));
+    }, [tableData, bodyRows, columns, query, t, numFmt]);
 
     // Configured order (#706): the same rule chain as the static list, one rule per
     // column. It applies with or without clickable headers; a header click takes the
@@ -524,6 +540,91 @@ export function JsonTableWidget({ config, editMode }: WidgetProps) {
         );
     }
 
+    // One data cell. The footer row (#938) runs the same formatting, only its colours,
+    // weight and border are its own.
+    const renderCell = (row: Record<string, unknown>, col: JsonColumnDef, ci: number, inFooter: boolean) => {
+        const isLabel = firstColHeader && ci === 0;
+        const raw = row[col.key];
+        const isImage = col.image ?? false;
+        const imgSrc = isImage ? resolveImageSrc(raw, adminBaseUrl, col.imagePathPrefix) : '';
+        const isHtml = !isImage && (col.html ?? false);
+        const mapped = !isImage && !isHtml && col.mapValues ? findCellEntry(col.valueMap, raw) : undefined;
+        const useIconify = !isImage && !isHtml && !col.mapValues && (col.iconify ?? false);
+        const imgSize = col.imageSize && col.imageSize > 0 ? col.imageSize : Math.round(fs * 2.4);
+        const wrap = col.wrap ?? false;
+        const hasWidth = !!(col.width && col.width > 0);
+        // Prefix/suffix decorate real values only — the "–" placeholder
+        // for empty cells stays bare. Not applied to image cells.
+        const hasValue = raw !== null && raw !== undefined && raw !== '';
+        // Image and HTML cells carry a path / markup, not a value — the
+        // display conversion only ever touches plain text cells.
+        const text = isImage || isHtml ? cellText(raw) : formatCellValue(col, raw, t, numFmt);
+        const decorated =
+            hasValue && (col.prefix || col.suffix) ? `${col.prefix ?? ''}${text}${col.suffix ?? ''}` : text;
+        // The footer is a row-level highlight like the header: its colours win over the
+        // column colours, only the label column keeps its own (as in the header).
+        const footerCell = inFooter && !isLabel;
+        return (
+            <td
+                key={col.key}
+                className={inFooter && footerStickyOn ? 'sticky bottom-0' : undefined}
+                style={{
+                    padding: pad,
+                    // A column colour (#715) is the more specific setting and
+                    // wins over the label column's colours.
+                    color: footerCell
+                        ? footerColor
+                        : col.cellColor || (isLabel ? firstColColor : 'var(--text-primary)'),
+                    background: footerCell
+                        ? transparent
+                            ? undefined
+                            : footerBg
+                        : col.cellBg || (isLabel ? firstColBg : undefined),
+                    fontWeight: isLabel || (inFooter && footerBold) ? 600 : 400,
+                    fontStyle: inFooter && footerItalic ? 'italic' : undefined,
+                    textAlign: col.align ?? 'left',
+                    width: hasWidth ? col.width : undefined,
+                    borderRight: isLabel ? '2px solid var(--app-border)' : undefined,
+                    borderTop: inFooter ? '2px solid var(--app-border)' : undefined,
+                    borderBottom: inFooter
+                        ? undefined
+                        : `1px solid color-mix(in srgb, var(--app-border) 50%, transparent)`,
+                    zIndex: inFooter && footerStickyOn ? 1 : undefined,
+                    maxWidth: isHtml || isImage || wrap || hasWidth ? undefined : '20em',
+                    overflow: isHtml || isImage || wrap ? undefined : 'hidden',
+                    textOverflow: isHtml || isImage || wrap ? undefined : 'ellipsis',
+                    whiteSpace: isHtml || isImage || wrap ? undefined : 'nowrap',
+                }}
+            >
+                {isImage ? (
+                    imgSrc ? (
+                        <TableImage
+                            src={imgSrc}
+                            fallback={col.imagePathPrefix ? '' : legacyImageSrc(raw)}
+                            size={imgSize}
+                        />
+                    ) : (
+                        <span style={{ opacity: 0.5 }}>–</span>
+                    )
+                ) : isHtml ? (
+                    <span
+                        className={htmlWidthOf(col) === 'auto' ? 'aura-html-cell' : 'aura-html-cell aura-html-fill'}
+                        data-aura-html-scale={htmlWidthOf(col) === 'scale' ? col.key : undefined}
+                        dangerouslySetInnerHTML={{
+                            __html: resolveHtmlAssets(decorated),
+                        }}
+                    />
+                ) : mapped ? (
+                    <MappedCell entry={mapped} text={decorated} fontSize={fs} />
+                ) : useIconify ? (
+                    renderTextWithIcons(decorated, fs)
+                ) : (
+                    decorated
+                )}
+            </td>
+        );
+    };
+
     return (
         <div ref={rootRef} className={`aura-widget-row flex flex-col gap-1 ${autoHeight ? '' : 'h-full'}`}>
             {/* Title */}
@@ -688,96 +789,18 @@ export function JsonTableWidget({ config, editMode }: WidgetProps) {
                                                 : 'transparent',
                                     }}
                                 >
-                                    {columns.map((col, ci) => {
-                                        const isLabel = firstColHeader && ci === 0;
-                                        const raw = row[col.key];
-                                        const isImage = col.image ?? false;
-                                        const imgSrc = isImage
-                                            ? resolveImageSrc(raw, adminBaseUrl, col.imagePathPrefix)
-                                            : '';
-                                        const isHtml = !isImage && (col.html ?? false);
-                                        const mapped =
-                                            !isImage && !isHtml && col.mapValues
-                                                ? findCellEntry(col.valueMap, raw)
-                                                : undefined;
-                                        const useIconify =
-                                            !isImage && !isHtml && !col.mapValues && (col.iconify ?? false);
-                                        const imgSize =
-                                            col.imageSize && col.imageSize > 0 ? col.imageSize : Math.round(fs * 2.4);
-                                        const wrap = col.wrap ?? false;
-                                        const hasWidth = !!(col.width && col.width > 0);
-                                        // Prefix/suffix decorate real values only — the "–" placeholder
-                                        // for empty cells stays bare. Not applied to image cells.
-                                        const hasValue = raw !== null && raw !== undefined && raw !== '';
-                                        // Image and HTML cells carry a path / markup, not a value — the
-                                        // display conversion only ever touches plain text cells.
-                                        const text =
-                                            isImage || isHtml ? cellText(raw) : formatCellValue(col, raw, t, numFmt);
-                                        const decorated =
-                                            hasValue && (col.prefix || col.suffix)
-                                                ? `${col.prefix ?? ''}${text}${col.suffix ?? ''}`
-                                                : text;
-                                        return (
-                                            <td
-                                                key={col.key}
-                                                style={{
-                                                    padding: pad,
-                                                    // A column colour (#715) is the more specific setting and
-                                                    // wins over the label column's colours.
-                                                    color:
-                                                        col.cellColor ||
-                                                        (isLabel ? firstColColor : 'var(--text-primary)'),
-                                                    background: col.cellBg || (isLabel ? firstColBg : undefined),
-                                                    fontWeight: isLabel ? 600 : 400,
-                                                    textAlign: col.align ?? 'left',
-                                                    width: hasWidth ? col.width : undefined,
-                                                    borderRight: isLabel ? '2px solid var(--app-border)' : undefined,
-                                                    borderBottom: `1px solid color-mix(in srgb, var(--app-border) 50%, transparent)`,
-                                                    maxWidth:
-                                                        isHtml || isImage || wrap || hasWidth ? undefined : '20em',
-                                                    overflow: isHtml || isImage || wrap ? undefined : 'hidden',
-                                                    textOverflow: isHtml || isImage || wrap ? undefined : 'ellipsis',
-                                                    whiteSpace: isHtml || isImage || wrap ? undefined : 'nowrap',
-                                                }}
-                                            >
-                                                {isImage ? (
-                                                    imgSrc ? (
-                                                        <TableImage
-                                                            src={imgSrc}
-                                                            fallback={col.imagePathPrefix ? '' : legacyImageSrc(raw)}
-                                                            size={imgSize}
-                                                        />
-                                                    ) : (
-                                                        <span style={{ opacity: 0.5 }}>–</span>
-                                                    )
-                                                ) : isHtml ? (
-                                                    <span
-                                                        className={
-                                                            htmlWidthOf(col) === 'auto'
-                                                                ? 'aura-html-cell'
-                                                                : 'aura-html-cell aura-html-fill'
-                                                        }
-                                                        data-aura-html-scale={
-                                                            htmlWidthOf(col) === 'scale' ? col.key : undefined
-                                                        }
-                                                        dangerouslySetInnerHTML={{
-                                                            __html: resolveHtmlAssets(decorated),
-                                                        }}
-                                                    />
-                                                ) : mapped ? (
-                                                    <MappedCell entry={mapped} text={decorated} fontSize={fs} />
-                                                ) : useIconify ? (
-                                                    renderTextWithIcons(decorated, fs)
-                                                ) : (
-                                                    decorated
-                                                )}
-                                            </td>
-                                        );
-                                    })}
+                                    {columns.map((col, ci) => renderCell(row, col, ci, false))}
                                 </tr>
                             ))
                         )}
                     </tbody>
+                    {footer && columns.length > 0 && (
+                        <tfoot>
+                            <tr className="aura-jsontable-footer">
+                                {columns.map((col, ci) => renderCell(footer, col, ci, true))}
+                            </tr>
+                        </tfoot>
+                    )}
                 </table>
             </div>
 
@@ -786,7 +809,7 @@ export function JsonTableWidget({ config, editMode }: WidgetProps) {
             {/* Row count when search active */}
             {showSearch && query && (
                 <p className="shrink-0 text-right" style={{ fontSize: fs - 2, color: 'var(--text-secondary)' }}>
-                    {filteredRows.length} / {tableData.rows.length}
+                    {filteredRows.length} / {bodyRows.length}
                 </p>
             )}
         </div>

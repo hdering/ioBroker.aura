@@ -560,6 +560,9 @@ function EChartBody({ config, editMode }: WidgetProps) {
         group: typeof o.echartNavGroup === 'string' ? o.echartNavGroup.trim() : '',
         groupMode: o.echartNavGroupMode === 'date' ? 'date' : 'all',
         dateDp: (o.echartNavDateDp as string | undefined) ?? '',
+        endDp: (o.echartNavEndDp as string | undefined) ?? '',
+        freeRange: o.echartNavFreeRange === true,
+        idleResetMinutes: Number(o.echartNavIdleReset) || 0,
         rangeDp: (o.echartNavRangeDp as string | undefined) ?? '',
         commandDp: (o.echartNavCommandDp as string | undefined) ?? '',
     });
@@ -589,7 +592,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
      * stored source instead of rewriting it: switching the mode has to be lossless, or a chart
      * that once passed through another mode comes back with its sources flattened.
      */
-    const sourceOf = (s: EChartSeriesConfig): 'history' | 'json' =>
+    const sourceOf = (s: EChartSeriesConfig): 'history' | 'json' | 'formula' =>
         echartMode === 'json' ? 'json' : (s.source ?? 'history');
 
     // All series share the single widget-level range; auto-resolved instances fill in where none
@@ -610,7 +613,10 @@ function EChartBody({ config, editMode }: WidgetProps) {
         historyFuture: futureOn || undefined,
     }));
 
-    const hasHistory = effectiveSeries.some((s) => !!s.historyInstance);
+    // A formula series may read every input from its own instance (#930).
+    const hasHistory = effectiveSeries.some(
+        (s) => !!s.historyInstance || (s.source === 'formula' && !!s.formulaInputs?.some((i) => !!i.historyInstance)),
+    );
 
     // Series whose resolved DP has several history adapters → render a selection field each.
     const instancePickers = autoHistory
@@ -877,7 +883,8 @@ function EChartBody({ config, editMode }: WidgetProps) {
         const v = periodValues[idx];
         if (v === null) return null;
         const cfg = echartSeries[idx];
-        const unit = unitFor(cfg);
+        // The area under a curve carries an hour in its unit: W → Wh, kW → kWh (#930).
+        const unit = cfg.periodValue === 'integral' && unitFor(cfg) ? `${unitFor(cfg)}h` : unitFor(cfg);
         return `${fmtSeries(v, cfg)}${unit ? ` ${unit}` : ''}`;
     };
     const periodInLegend = echartShowLegend && echartPeriodPlacement === 'legend';

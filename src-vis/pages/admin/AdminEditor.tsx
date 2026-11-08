@@ -448,6 +448,19 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                     }
                                 />
                             )}
+                            {sectionHasPin && (
+                                <PinSwitch
+                                    className="aura-pin-showmarkers"
+                                    label={t('pin.showMarkers')}
+                                    hint={t('pin.showMarkersHint')}
+                                    on={openSection.pinShowMarkers === true}
+                                    onToggle={() =>
+                                        updateSection(openSection.id, {
+                                            pinShowMarkers: openSection.pinShowMarkers ? undefined : true,
+                                        })
+                                    }
+                                />
+                            )}
                             {sectionHasPin && <McpReleaseToggle vaultKey={`section:${openSection.id}`} />}
                             {sectionHasPin && (
                                 <PinRemoveButton
@@ -458,6 +471,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                             pin: undefined,
                                             pinRelock: undefined,
                                             pinHideLock: undefined,
+                                            pinShowMarkers: undefined,
                                             pinProtected: undefined,
                                             pinLength: undefined,
                                             pinFrom: undefined,
@@ -1372,6 +1386,19 @@ const TabBar = memo(function TabBar() {
                                             }
                                         />
                                     )}
+                                    {tabHasPin && (
+                                        <PinSwitch
+                                            className="aura-pin-showmarkers"
+                                            label={t('pin.showMarkers')}
+                                            hint={t('pin.showMarkersHint')}
+                                            on={settingsTab.pinShowMarkers === true}
+                                            onToggle={() =>
+                                                updateTab(settingsTabId, {
+                                                    pinShowMarkers: settingsTab.pinShowMarkers ? undefined : true,
+                                                })
+                                            }
+                                        />
+                                    )}
                                     {tabHasPin && <McpReleaseToggle vaultKey={tabVaultKey} />}
                                     {tabHasPin && (
                                         <PinRemoveButton
@@ -1382,6 +1409,7 @@ const TabBar = memo(function TabBar() {
                                                     pin: undefined,
                                                     pinRelock: undefined,
                                                     pinHideLock: undefined,
+                                                    pinShowMarkers: undefined,
                                                     pinProtected: undefined,
                                                     pinLength: undefined,
                                                     pinFrom: undefined,

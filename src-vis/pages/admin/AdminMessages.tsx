@@ -433,7 +433,7 @@ function DefaultsSection() {
                     </label>
                     <p className="text-[11px] mb-2 opacity-60" style={labelStyle}>
                         Meldungen dieser Schweregrade liest das Gerät vor, das sie anzeigt (Titel und Text). Eine
-                        Meldung kann das mit „speak“ einzeln ein- oder ausschalten.
+                        Meldung kann das mit {'„speak“'} einzeln ein- oder ausschalten.
                     </p>
                     <div className="flex flex-wrap gap-2">
                         {MESSAGE_SEVERITIES.map((sev) => {

@@ -2,6 +2,7 @@ import { Database } from 'lucide-react';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { EmbedMobileHeightField } from './EmbedMobileHeightField';
 import { HtmlApiExamples } from './HtmlApiExamples';
+import { Unavailable } from './Unavailable';
 
 interface Props {
     options: Record<string, unknown>;
@@ -148,16 +149,20 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker, interactionSlot
                 />
             </div>
 
-            {/* Scrollable */}
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    Scrollen erlauben
-                </label>
-                <Toggle
-                    value={(o.scrollable as boolean) ?? true}
-                    onToggle={() => set({ scrollable: !((o.scrollable as boolean) ?? true) })}
-                />
-            </div>
+            {/* Scrollable — moot under autoHeight, the frame takes the content's height (#940) */}
+            <Unavailable
+                reason={o.autoHeight === true ? 'Die Höhe folgt dem Inhalt – es gibt nichts zu scrollen.' : undefined}
+            >
+                <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Scrollen erlauben
+                    </label>
+                    <Toggle
+                        value={(o.scrollable as boolean) ?? true}
+                        onToggle={() => set({ scrollable: !((o.scrollable as boolean) ?? true) })}
+                    />
+                </div>
+            </Unavailable>
 
             {interactionSlot}
 
