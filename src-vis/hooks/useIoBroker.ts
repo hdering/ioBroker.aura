@@ -5,6 +5,7 @@ import { version as appVersion } from '../../package.json';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { NS } from '../utils/namespace';
 import { BEHIND_WEB_EXTENSION } from '../utils/basePath';
+import { coerceToDpType } from '../utils/dpValueCoerce';
 
 interface IoBrokerSocket {
     connected: boolean;
@@ -1194,7 +1195,35 @@ export async function readValueDirect(id: string): Promise<unknown> {
 export function setStateDirect(id: string, val: boolean | number | string, ack = false): void {
     noteWrite(id, val);
     if (devBlockWrites) return;
-    getSocket().emit('setState', id, { val, ack });
+    withDpType(id, val, (v) => getSocket().emit('setState', id, { val: v, ack }));
+}
+
+/**
+ * Hands `send` the value fitted to the datapoint's `common.type` (coerceToDpType):
+ * an option text "1" written to a string DP goes out as "1", not 1. Synchronous
+ * once the object is cached; the first write to a datapoint waits for its object.
+ * Writes queued behind the same lookup keep their order (promise callbacks run in
+ * registration order). Should the lookup hang, the raw value goes out after a
+ * short wait rather than never.
+ */
+const DP_TYPE_WAIT_MS = 1500;
+function withDpType(id: string, val: boolean | number | string, send: (v: boolean | number | string) => void): void {
+    if (objectCache.has(id)) {
+        send(coerceToDpType(val, objectCache.get(id)?.common?.type));
+        return;
+    }
+    // The first of lookup or timeout sends; the loser finds `done` set and does nothing.
+    let done = false;
+    const finish = (v: boolean | number | string) => {
+        if (done) return;
+        done = true;
+        send(v);
+    };
+    setTimeout(() => finish(val), DP_TYPE_WAIT_MS);
+    getObjectDirect(id).then(
+        (obj) => finish(coerceToDpType(val, obj?.common?.type)),
+        () => finish(val),
+    );
 }
 
 /**
@@ -1230,7 +1259,7 @@ export function setStateDirectAsync(id: string, val: boolean | number | string, 
     noteWrite(id, val);
     if (devBlockWrites) return Promise.resolve();
     return new Promise((resolve) => {
-        getSocket().emit('setState', id, { val, ack }, () => resolve());
+        withDpType(id, val, (v) => getSocket().emit('setState', id, { val: v, ack }, () => resolve()));
     });
 }
 
@@ -1244,7 +1273,7 @@ export function setStateConfirmed(id: string, val: boolean | number | string, ac
     noteWrite(id, val);
     if (devBlockWrites) return Promise.resolve(true);
     return new Promise((resolve) => {
-        getSocket().emit('setState', id, { val, ack }, (err?: unknown) => resolve(!err));
+        withDpType(id, val, (v) => getSocket().emit('setState', id, { val: v, ack }, (err?: unknown) => resolve(!err)));
     });
 }
 
