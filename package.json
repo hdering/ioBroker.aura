@@ -99,6 +99,7 @@
     "test:chart-formula": "node tools/tests/chart-formula.mjs",
     "test:chart-forecast": "node tools/tests/chart-forecast.mjs",
     "test:chart-own-axis": "node tools/tests/chart-own-axis.mjs",
+    "test:chart-ref-lines": "node tools/tests/chart-ref-lines.mjs",
     "test:slider-scale": "node tools/tests/slider-scale.mjs",
     "test:dual-color": "node tools/tests/dual-color.mjs",
     "test:color-binding": "node tools/tests/color-binding.mjs",

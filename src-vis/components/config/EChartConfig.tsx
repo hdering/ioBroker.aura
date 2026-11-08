@@ -30,6 +30,8 @@ import { ChartModePanel, type EChartMode } from './chart/ChartModePanel';
 import { ChartFormatPanel } from './chart/ChartFormatPanel';
 import { ChartSeriesDetail } from './chart/ChartSeriesDetail';
 import { ChartValuesPanel } from './chart/ChartValuesPanel';
+import { ChartRefLinesPanel } from './chart/ChartRefLinesPanel';
+import type { EChartRefLine } from '../../utils/chartRefLines';
 import { CHART_TYPES, inputCls, inputStyle, type JsonProbe, type SeriesAdapterState } from './chart/chartShared';
 import { usableInputs } from '../../utils/formulaSeries';
 
@@ -742,6 +744,20 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                 (o.echartPeriodPlacement as 'legend' | 'row' | undefined) ?? 'legend'
                                             }
                                             onChange={setO}
+                                        />
+                                    ),
+                                },
+                                {
+                                    key: 'lines',
+                                    label: t('echart.refTab'),
+                                    node: (
+                                        <ChartRefLinesPanel
+                                            lines={(o.echartRefLines as EChartRefLine[] | undefined) ?? []}
+                                            isComparison={isComparison}
+                                            hasRightAxis={usesRightAxis}
+                                            onChange={(lines) =>
+                                                setO({ echartRefLines: lines.length > 0 ? lines : undefined })
+                                            }
                                         />
                                     ),
                                 },

@@ -2923,6 +2923,59 @@
         "integral"
       ]
     },
+    "EChartRefLine": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "value": {
+          "type": "number",
+          "description": "Fixed value of the line."
+        },
+        "valueDp": {
+          "type": "string",
+          "description": "Datapoint whose value places the line — wins over `value`; empty or non-numeric falls back to it.",
+          "datapoint": true
+        },
+        "valueTo": {
+          "type": "number",
+          "description": "End of a band: with it the line becomes a shaded area from the value up to this one."
+        },
+        "valueToDp": {
+          "type": "string",
+          "description": "Datapoint for the band's end — wins over `valueTo`.",
+          "datapoint": true
+        },
+        "axis": {
+          "type": "number",
+          "description": "Y axis the value is read against: 0 = left (default), 1 = right. Without series on the right it falls back to the left."
+        },
+        "color": {
+          "type": "string",
+          "description": "Colour, a token like 'var(--accent-red)' or a fixed value. Default a muted red.",
+          "color": true
+        },
+        "lineType": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "dashed",
+            "dotted"
+          ],
+          "description": "Stroke of the line. Default `dashed`."
+        },
+        "label": {
+          "type": "string",
+          "description": "Text at the right end of the line, e.g. \"Soll\"."
+        },
+        "showValue": {
+          "type": "boolean",
+          "description": "Append the current value (with the axis unit) to the text."
+        }
+      }
+    },
     "GroupActionType": {
       "type": "string",
       "enum": [
@@ -12741,6 +12794,14 @@
           "type": "string",
           "default": "",
           "description": "Prognosen (nur echartMode \"timeseries\"): Vorlauf des rollenden Zeitraums in die Zukunft, Kürzel wie rangeChips (\"36h\", \"1d\"). Die Länge bleibt, das Fenster endet so weit nach jetzt: Chip \"2d\" + \"36h\" = jetzt − 12 h bis jetzt + 36 h; die Abfrage liest bis dorthin, die Achse endet dort (Jetzt-Linie mittendrin, echartNowLine). Gilt für Chips ohne eigenes \"+…\". Leer = endet bei jetzt. Die Prognosewerte müssen mit eigenem Zeitstempel im History-Adapter liegen (storeState)."
+        },
+        "echartRefLines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "EChartRefLine"
+          },
+          "description": "Waagerechte Referenzlinien (Sollwert, Grenzwert): fester value oder valueDp (gewinnt); mit valueTo/valueToDp ein Band. axis 0/1 = linke/rechte Achse. Linie außerhalb der Daten zieht die Achse mit. Nicht im Vergleichs-Modus."
         },
         "echartRightMax": {
           "type": [

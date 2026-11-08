@@ -9,3 +9,4 @@
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - feat: Advanced chart - a series can get its own y scale (e.g. valve position 0-100 % next to temperatures), hidden or shown on the far left or right in the series colour (#959)
+- feat: Advanced chart - reference lines and bands at a fixed value or a datapoint value (e.g. setpoint, comfort range), with label and value (#959)

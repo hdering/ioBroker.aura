@@ -58,6 +58,16 @@ import {
 } from '../../utils/chartAxis';
 import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
+import {
+    DEFAULT_REF_LINE_COLOR,
+    firstX,
+    refLineCarriers,
+    refLineDatapoints,
+    resolveRefLines,
+    type EChartRefLine,
+    type ResolvedRefLine,
+} from '../../utils/chartRefLines';
+import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { HistoryErrorNote } from './HistoryErrorNote';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import { parseRangeChips, rangeKey, rangeLabel, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
@@ -75,6 +85,7 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 
 /** Stable fallback, so a chart without series does not hand the name hook a fresh array. */
 const NO_SERIES: EChartSeriesConfig[] = [];
+const NO_REF_LINES: EChartRefLine[] = [];
 
 // Series are replaced, not merged: ECharts keeps a series that drops out of the option (a JSON
 // entry removed while the chart is open, issue #926); everything else stays merged. The same goes
@@ -375,6 +386,16 @@ function EChartBody({ config, editMode }: WidgetProps) {
     const leftMaxDp = useDatapoint((o.echartLeftMaxDp as string | undefined) ?? '');
     const rightMinDp = useDatapoint((o.echartRightMinDp as string | undefined) ?? '');
     const rightMaxDp = useDatapoint((o.echartRightMaxDp as string | undefined) ?? '');
+    // Reference lines and bands (issue #959): fixed values or datapoint values, not in comparison mode.
+    const refLineCfg =
+        o.echartMode === 'comparison'
+            ? NO_REF_LINES
+            : ((o.echartRefLines as EChartRefLine[] | undefined) ?? NO_REF_LINES);
+    const refLineStates = useTemplateStates(refLineDatapoints(refLineCfg));
+    const refLineColors = useResolvedColors(
+        containerRef,
+        refLineCfg.map((l) => l.color || DEFAULT_REF_LINE_COLOR),
+    );
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     // The right axis can be silenced on its own: a second series often only needs its own scale,
     // not a second set of numbers eating widget width (issue #541). Master switch still wins.
@@ -1140,6 +1161,24 @@ function EChartBody({ config, editMode }: WidgetProps) {
         return { ...opt, yAxis };
     };
 
+    // ── Reference lines (issue #959) ──
+    const refLines = resolveRefLines(refLineCfg, (id) => refLineStates[id]?.val, hasRightAxis);
+    const refColorOf = (r: ResolvedRefLine) => refLineColors[r.index] ?? DEFAULT_REF_LINE_COLOR;
+    const refTextOf = (r: ResolvedRefLine) => {
+        const unit = r.axis === 1 ? echartRightUnit : echartLeftUnit;
+        const fmt = (v: number) => `${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`;
+        const value = r.to === undefined ? fmt(r.from) : `${fmt(r.from)} – ${fmt(r.to)}`;
+        const text = r.line.label?.trim() ?? '';
+        return r.line.showValue ? (text ? `${text}: ${value}` : value) : text;
+    };
+    /** Carriers of the lines, appended behind the series; `x` pulls their values into the axis range. */
+    const refSeries = (x: number | undefined) => refLineCarriers(refLines, x, refColorOf, refTextOf);
+    /** Tooltip rows of the configured series only — the line carriers have nothing to say there. */
+    const plottedOnly = (params: unknown): unknown =>
+        Array.isArray(params)
+            ? params.filter((p: { seriesIndex?: number }) => (p.seriesIndex ?? 0) < echartSeries.length)
+            : params;
+
     // Current value(s) shown top-right — one per series, tinted with its colour.
     const currentValues = echartSeries
         .map((s, idx) => ({
@@ -1271,7 +1310,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                 borderColor: 'var(--app-border, #333)',
                 textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
                 formatter: (params: unknown) => {
-                    const items = params as {
+                    const items = plottedOnly(params) as {
                         seriesName: string;
                         value: number | null;
                         marker: string;
@@ -1506,7 +1545,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                 borderColor: 'var(--app-border, #333)',
                 textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
                 formatter: (params: unknown) => {
-                    const items = params as {
+                    const items = plottedOnly(params) as {
                         axisValue: string | number;
                         seriesName: string;
                         value: number | [number, number] | null;
@@ -1540,7 +1579,12 @@ function EChartBody({ config, editMode }: WidgetProps) {
                 },
             },
             legend: echartShowLegend
-                ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: LEGEND_TOP }
+                ? {
+                      show: true,
+                      textStyle: { color: onCanvasMuted, fontSize: 11 },
+                      top: LEGEND_TOP,
+                      data: jsonLegendNames,
+                  }
                 : { show: false },
             grid: {
                 left: gridLeft,
@@ -1578,7 +1622,10 @@ function EChartBody({ config, editMode }: WidgetProps) {
                       splitLine: { show: false },
                   },
             yAxis: [leftAxis, rightAxis, ...ownAxisList],
-            series: withNowLine(jsonSeriesList, jsonTimeAxis ? nowWithin(jsonTimeExtent) : nowCategory),
+            series: [
+                ...withNowLine(jsonSeriesList, jsonTimeAxis ? nowWithin(jsonTimeExtent) : nowCategory),
+                ...refSeries(jsonTimeAxis ? firstX(jsonData as unknown[][]) : categories.length > 0 ? 0 : undefined),
+            ],
         };
 
         let mergedJson = jsonOption;
@@ -1765,7 +1812,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
             borderColor: 'var(--app-border, #333)',
             textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
             formatter: (params: unknown) => {
-                const items = params as {
+                const items = plottedOnly(params) as {
                     axisValue: number;
                     seriesName: string;
                     value: [number, number | null];
@@ -1913,7 +1960,10 @@ function EChartBody({ config, editMode }: WidgetProps) {
             max: framed ? framed.end : rollingAxisMax,
         },
         yAxis: [leftAxis, rightAxis, ...ownAxisList],
-        series: withNowLine(seriesList, nowWithin(nowLineExtent)),
+        series: [
+            ...withNowLine(seriesList, nowWithin(nowLineExtent)),
+            ...refSeries(firstX(seriesList.map((ser) => (ser.data ?? []) as unknown[]))),
+        ],
     };
 
     let merged = option;

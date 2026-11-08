@@ -996,7 +996,8 @@
         "ownAxis true gibt der Reihe eine eigene Skala, unabhängig von linker und rechter Achse; yAxisIndex wählt nur die Seite.",
         "ownAxisMin/ownAxisMax legen die Skala fest (Ventil 0/100); leer = nach Daten.",
         "ownAxisShow false (Standard) = unsichtbare Skala; true = Beschriftung außen neben der Achse dieser Seite, in der Reihenfarbe.",
-        "Die Einheit der eigenen Skala ist series.unit — ohne sie zeigt der Tooltip die Zahl ohne Einheit."
+        "Die Einheit der eigenen Skala ist series.unit — ohne sie zeigt der Tooltip die Zahl ohne Einheit.",
+        "echartRefLines: waagerechte Linie bei festem value oder valueDp (Sollwert aus Datenpunkt), mit valueTo ein Band (Komfortbereich). label + showValue beschriften sie."
       ],
       "widgets": [
         {
@@ -1068,6 +1069,15 @@
                 "ownAxisMax": 100,
                 "unit": "%",
                 "decimals": 0
+              }
+            ],
+            "echartRefLines": [
+              {
+                "id": "rl-komfort",
+                "value": 20,
+                "valueTo": 22,
+                "label": "Komfort",
+                "color": "var(--accent-green)"
               }
             ]
           }

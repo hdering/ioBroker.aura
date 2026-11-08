@@ -1814,6 +1814,11 @@ export const WIDGET_OPTION_NOTES = {
         echartLeftMax: { description: 'Festes Ende der linken Y-Achse.' },
         echartRightMin: { description: 'Fester Anfang der rechten Y-Achse.' },
         echartRightMax: { description: 'Festes Ende der rechten Y-Achse.' },
+        echartRefLines: {
+            description:
+                'Waagerechte Referenzlinien (Sollwert, Grenzwert): fester value oder valueDp (gewinnt); mit valueTo/valueToDp ein Band. ' +
+                'axis 0/1 = linke/rechte Achse. Linie außerhalb der Daten zieht die Achse mit. Nicht im Vergleichs-Modus.',
+        },
         echartLeftMinDp: { description: 'Datenpunkt, der den Anfang der linken Y-Achse liefert.' },
         echartLeftMaxDp: { description: 'Datenpunkt, der das Ende der linken Y-Achse liefert.' },
         echartRightMinDp: { description: 'Datenpunkt, der den Anfang der rechten Y-Achse liefert.' },

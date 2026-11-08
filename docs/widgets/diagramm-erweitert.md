@@ -296,6 +296,26 @@ für Einspeisung und Batterie-Ladung, die als positive Werte geliefert werden.
 
 Die Seite (**Links**/**Rechts**) zählt nur bei angezeigter Skala. Einheit der Skala = `unit` der Serie.
 
+### Referenzlinien
+
+Tab **Linien** in **Datenpunkte verwalten** — Option `echartRefLines`, eine Liste:
+
+| Feld        | Standard     |                                                                     |
+| ----------- | ------------ | ------------------------------------------------------------------- |
+| `value`     | —            | fester Wert der Linie                                               |
+| `valueDp`   | —            | Datenpunkt liefert den Wert — gewinnt; leer/keine Zahl = `value`    |
+| `valueTo`   | —            | Ende eines Bands (z. B. Komfortbereich 20–22 °C)                    |
+| `valueToDp` | —            | Datenpunkt für das Bandende — gewinnt über `valueTo`                |
+| `axis`      | `0`          | `0` = links, `1` = rechts (ohne Serie rechts: links)                |
+| `color`     | Rot          | Farbe der Linie / des Bands                                         |
+| `lineType`  | `dashed`     | `dashed` · `dotted` · `solid`                                       |
+| `label`     | —            | Text am rechten Ende                                                |
+| `showValue` | `false`      | aktuellen Wert mit Einheit anhängen                                 |
+
+![](./assets/diagramm-erweitert/referenzlinien.png)
+
+Liegt eine Linie außerhalb der Daten, wächst die Achse mit. Nicht im Vergleichs-Modus.
+
 ### Verbrauch aus Zählerständen
 
 `aggregate: delta` für Zähler. Statt des Zählerstands wird der Zuwachs je Zeiteinheit gezeichnet — also der Verbrauch bzw. Ertrag pro Stunde, Tag, Woche, Monat oder Jahr.
