@@ -34,10 +34,14 @@ function normalizePowerUnit(v: unknown): PowerUnit {
 /**
  * Formats a power value given in watts.
  * kW = original behaviour, W = always watts, auto = below 1000 W in watts, above in kW.
+ * Watts carry no thousands separator: the kW branch prints a dot as decimal mark,
+ * and a locale-grouped "1.234 W" next to "1.2 kW" would read as the same number.
+ * `auto` compares the rounded value, so 999.6 W shows "1.0 kW", not "1000 W".
  */
 function formatPower(w: number, unit: PowerUnit): string {
-    if (unit === 'W' || (unit === 'auto' && Math.abs(w) < 1000)) {
-        return `${Math.round(w).toLocaleString()} W`;
+    const rounded = Math.round(w);
+    if (unit === 'W' || (unit === 'auto' && Math.abs(rounded) < 1000)) {
+        return `${rounded} W`;
     }
     if (w < 100) return `${(w / 1000).toFixed(2)} kW`;
     return `${(w / 1000).toFixed(1)} kW`;
@@ -2225,7 +2229,7 @@ export function EvccConfig({
                 <>
                     <div className="mb-3">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            Einheit der Leistung
+                            {t('evcc.powerUnit')}
                         </label>
                         <select
                             value={powerUnit}
@@ -2235,7 +2239,7 @@ export function EvccConfig({
                         >
                             <option value="kW">kW</option>
                             <option value="W">W</option>
-                            <option value="auto">Automatisch (W unter 1000 W, sonst kW)</option>
+                            <option value="auto">{t('evcc.powerUnitAuto')}</option>
                         </select>
                     </div>
 

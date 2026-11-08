@@ -2963,6 +2963,8 @@ export const de = {
     'evcc.scanMissing': 'Nicht gefunden: {slots}.',
     'evcc.scanAgain': 'Auto-Erkennen',
     'evcc.pickDp': 'Datenpunkt wählen',
+    'evcc.powerUnit': 'Einheit der Leistung',
+    'evcc.powerUnitAuto': 'Automatisch (W unter 1000 W, sonst kW)',
     'evcc.slot.pv': 'Erzeugung',
     'evcc.slot.home': 'Hausverbrauch',
     'evcc.slot.grid': 'Netz',

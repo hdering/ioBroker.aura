@@ -104,6 +104,7 @@ Bei `1` entspricht die Darstellung der übrigen Widgets (12 px Titel, 20 px Icon
 
 | Option | Standard | |
 | --- | --- | --- |
+| `powerUnit` | `kW` | Einheit der Leistungswerte: `kW`, `W` oder `auto` (unter 1000 W in Watt) |
 | `autoScale` | `true` | bei schmalem Widget verkleinern |
 | `autoScaleMin` | `0.6` | untere Skalierungsgrenze |
 | `autoScaleMax` | `1` | obere Skalierungsgrenze |

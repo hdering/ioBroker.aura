@@ -2171,6 +2171,13 @@ export const WIDGET_OPTION_NOTES = {
         },
         batterySocDatapoint: { description: 'Datenpunkt des Speicherladestands.' },
         sourceAdapter: { description: 'Instanz, aus der die Datenpunkte automatisch zugeordnet wurden (z.B. sma.0).' },
+        powerUnit: {
+            type: 'string',
+            enum: ['kW', 'W', 'auto'],
+            default: 'kW',
+            description:
+                'Einheit aller Leistungswerte: "kW" (Standard), "W" (immer ganze Watt) oder "auto" (unter 1000 W in Watt, sonst kW).',
+        },
         autoScale: { description: 'Darstellung automatisch an die Kachelgröße anpassen.' },
         autoScaleMin: { description: 'Untere Grenze der automatischen Skalierung.' },
         autoScaleMax: { description: 'Obere Grenze der automatischen Skalierung.' },

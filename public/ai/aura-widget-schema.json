@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.107.0",
+    "auraVersion": "0.108.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -14446,6 +14446,16 @@
           "type": "number",
           "default": 1,
           "description": "Skaliert den Hauptbereich."
+        },
+        "powerUnit": {
+          "type": "string",
+          "enum": [
+            "kW",
+            "W",
+            "auto"
+          ],
+          "default": "kW",
+          "description": "Einheit aller Leistungswerte: \"kW\" (Standard), \"W\" (immer ganze Watt) oder \"auto\" (unter 1000 W in Watt, sonst kW)."
         },
         "pvPowerDatapoint": {
           "type": "string",

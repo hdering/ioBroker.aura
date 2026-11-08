@@ -2938,6 +2938,8 @@ export const en: Record<TranslationKey, string> = {
     'evcc.scanMissing': 'Not found: {slots}.',
     'evcc.scanAgain': 'Auto-Detect',
     'evcc.pickDp': 'Pick datapoint',
+    'evcc.powerUnit': 'Power unit',
+    'evcc.powerUnitAuto': 'Automatic (W below 1000 W, else kW)',
     'evcc.slot.pv': 'Production',
     'evcc.slot.home': 'House consumption',
     'evcc.slot.grid': 'Grid',
