@@ -14448,6 +14448,16 @@
           "default": 1,
           "description": "Skaliert den Hauptbereich."
         },
+        "powerUnit": {
+          "type": "string",
+          "enum": [
+            "kW",
+            "W",
+            "auto"
+          ],
+          "default": "kW",
+          "description": "Einheit aller Leistungswerte: \"kW\" (Standard), \"W\" (immer ganze Watt) oder \"auto\" (unter 1000 W in Watt, sonst kW)."
+        },
         "pvPowerDatapoint": {
           "type": "string",
           "default": "",
