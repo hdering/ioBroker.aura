@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.93.1 (2026-10-25)
+- 🐛 **Bug fix:** Camera - .mp4/.webm clips (e.g. Ring Livestream.mp4) now play in a video player; new optional ready datapoint starts the stream when the recording is finished instead of after a fixed delay ([#843](https://github.com/hdering/ioBroker.aura/issues/843))
+
 ## 0.93.0 (2026-10-25)
 - 🌟 **New feature:** Camera - intercom: an "Answer" button opens a two-way call through go2rtc (webrtc.html), with an optional call datapoint for the doorbell ([#836](https://github.com/hdering/ioBroker.aura/issues/836))
 - 🐛 **Bug fix:** Universal - conditions on a switch cell in button mode now apply bold, italic, font size and text colour to the button caption; button, input and dropdown cells pick up the condition font size too ([#842](https://github.com/hdering/ioBroker.aura/issues/842))

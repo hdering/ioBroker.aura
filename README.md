@@ -122,6 +122,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.109.0 (2026-11-08)
+- 🌟 **New feature:** Dynamic list / status overview - name rules: a typed ">" now also matches the "›" separator, plus one-click presets "device only", "datapoint only" and "› to space" ([#950](https://github.com/hdering/ioBroker.aura/issues/950))
+- 🌟 **New feature:** evcc - selectable power unit: kW (default), W or automatic (W below 1000 W) ([#947](https://github.com/hdering/ioBroker.aura/issues/947))
+
+
 ### 0.108.0 (2026-11-07)
 - 🐛 **Bug fix:** PIN-protected tabs and sections can show their conditions and markers while locked - new option "Show markers and conditions while locked" in the PIN settings ([#944](https://github.com/hdering/ioBroker.aura/issues/944))
 - 🐛 **Bug fix:** Mirror - a mirrored widget now shows its source's conditions, markers and click action; settings of the mirror itself still take precedence ([#945](https://github.com/hdering/ioBroker.aura/issues/945))
@@ -337,10 +342,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Connected devices - a device keeps its client id when the browser wipes its web storage (e.g. Fully kiosk), a ?client= link only applies while it is in the URL instead of sticking to the device for good, two identical tablets that start at the same time are told apart within a minute, and giving a device a fixed id no longer deletes an id that belongs to another device ([#844](https://github.com/hdering/ioBroker.aura/issues/844))
 
 
-### 0.93.1 (2026-10-25)
-- 🐛 **Bug fix:** Camera - .mp4/.webm clips (e.g. Ring Livestream.mp4) now play in a video player; new optional ready datapoint starts the stream when the recording is finished instead of after a fixed delay ([#843](https://github.com/hdering/ioBroker.aura/issues/843))
-
-
 ## License
 
 MIT License
@@ -352,6 +353,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
