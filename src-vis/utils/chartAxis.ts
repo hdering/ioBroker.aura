@@ -13,10 +13,10 @@ export interface AxisSeries {
     aggregate?: string;
 }
 
-const on = (s: AxisSeries, axis: 0 | 1) => (s.yAxisIndex ?? 0) === axis;
+const on = (s: AxisSeries, axis: number) => (s.yAxisIndex ?? 0) === axis;
 
 /** Does anything at all hang on this axis? */
-export function axisHasSeries(series: AxisSeries[], axis: 0 | 1): boolean {
+export function axisHasSeries(series: AxisSeries[], axis: number): boolean {
     return series.some((s) => on(s, axis));
 }
 
@@ -35,7 +35,7 @@ export function axisHasSeries(series: AxisSeries[], axis: 0 | 1): boolean {
  *
  * `delta` ("Verbrauch") is always drawn as bars, whatever the stored chart type says.
  */
-export function axisIsZeroBased(series: AxisSeries[], axis: 0 | 1): boolean {
+export function axisIsZeroBased(series: AxisSeries[], axis: number): boolean {
     return series.some((s) => on(s, axis) && (s.stack || s.chartType === 'bar' || s.aggregate === 'delta'));
 }
 
@@ -102,7 +102,7 @@ export function parseCommonStates(states: unknown): Map<number, string> {
  */
 export function axisValueLabels<S extends AxisSeries>(
     series: S[],
-    axis: 0 | 1,
+    axis: number,
     labelsOf: (s: S) => Map<number, string>,
 ): Map<number, string> {
     const maps = series.filter((s) => on(s, axis)).map(labelsOf);
@@ -116,7 +116,56 @@ export function axisValueLabels<S extends AxisSeries>(
  * Does this axis carry nothing but booleans (issue #718)? Then it spans exactly 0…1 in one step,
  * instead of echarts' 0.2 grid. `isBool` decides per series — see the widget for what counts.
  */
-export function axisIsBoolean<S extends AxisSeries>(series: S[], axis: 0 | 1, isBool: (s: S) => boolean): boolean {
+export function axisIsBoolean<S extends AxisSeries>(series: S[], axis: number, isBool: (s: S) => boolean): boolean {
     const onAxis = series.filter((s) => on(s, axis));
     return onAxis.length > 0 && onAxis.every(isBool);
+}
+
+/** The bits of a series that decide whether it gets a y scale of its own (issue #959). */
+export interface OwnAxisSeries extends AxisSeries {
+    id: string;
+    ownAxis?: boolean;
+}
+
+/** An own scale the widget appends behind the left/right axis. */
+export interface OwnAxis<S> {
+    /** Index of the axis in the option's `yAxis` array. */
+    index: number;
+    /** The series the scale belongs to — the first one when a JSON template fanned out into several lines. */
+    series: S;
+    /** Side the scale is drawn on when shown — the side the series picked (`yAxisIndex` 1 = right). */
+    side: 'left' | 'right';
+}
+
+/**
+ * Moves every series with `ownAxis` onto a y axis of its own (issue #959): a valve position in %
+ * next to temperatures in °C wants the full height, not a strip at the edge of the °C scale.
+ *
+ * The own axes come after every axis the other series use — 0/1, but also 2+ from a `yAxis` array
+ * in `echartJsonExtra`, which must not be taken over. The lines a multi-series JSON template fans
+ * out into (`<id>~<entry>`) share one scale: they are one series in the editor.
+ *
+ * Returns the very same array when no series asks for its own scale.
+ */
+export function assignOwnAxes<S extends OwnAxisSeries>(series: S[]): { series: S[]; ownAxes: OwnAxis<S>[] } {
+    if (!series.some((s) => s.ownAxis)) return { series, ownAxes: [] };
+    const taken = series.filter((s) => !s.ownAxis).map((s) => s.yAxisIndex ?? 0);
+    let next = Math.max(1, ...taken) + 1;
+    const byGroup = new Map<string, number>();
+    const ownAxes: OwnAxis<S>[] = [];
+    const out = series.map((s) => {
+        if (!s.ownAxis) return s;
+        const group = s.id.split('~')[0];
+        let index = byGroup.get(group);
+        const isFirst = index === undefined;
+        if (index === undefined) {
+            index = next++;
+            byGroup.set(group, index);
+        }
+        const moved = { ...s, yAxisIndex: index };
+        // The moved copy, not the input: it is the object the widget finds in its series list.
+        if (isFirst) ownAxes.push({ index, series: moved, side: (s.yAxisIndex ?? 0) === 1 ? 'right' : 'left' });
+        return moved;
+    });
+    return { series: out, ownAxes };
 }

@@ -1,5 +1,5 @@
 import ReactECharts from 'echarts-for-react';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useMemo } from 'react';
 import { BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useResolvedColors } from '../../hooks/useResolvedColors';
@@ -48,7 +48,14 @@ import {
     type StackDatum,
 } from '../../utils/stackedSeries';
 import { transformSign } from '../../utils/valueTransform';
-import { axisIsBoolean, axisIsZeroBased, axisValueLabels, gridLineAxis, parseValueLabels } from '../../utils/chartAxis';
+import {
+    assignOwnAxes,
+    axisIsBoolean,
+    axisIsZeroBased,
+    axisValueLabels,
+    gridLineAxis,
+    parseValueLabels,
+} from '../../utils/chartAxis';
 import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { HistoryErrorNote } from './HistoryErrorNote';
@@ -70,8 +77,9 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 const NO_SERIES: EChartSeriesConfig[] = [];
 
 // Series are replaced, not merged: ECharts keeps a series that drops out of the option (a JSON
-// entry removed while the chart is open, issue #926); everything else stays merged.
-const REPLACE_SERIES = ['series'];
+// entry removed while the chart is open, issue #926); everything else stays merged. The same goes
+// for the y axes: an own scale switched off in the editor would otherwise linger (issue #959).
+const REPLACE_SERIES = ['series', 'yAxis'];
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -84,6 +92,27 @@ const AXIS_GAP = 6;
 const AXIS_GAP_V = 14;
 // Least distance of a value label from the left/right canvas edge.
 const LABEL_INSET = 2;
+
+// Own scales stacked on the right (issue #959): echarts' default label margin, the slack for a
+// rounded tick one digit longer than the data, and the space between two label strips.
+const OWN_AXIS_LABEL_MARGIN = 8;
+const OWN_AXIS_DIGIT = 6;
+const OWN_AXIS_GAP = 8;
+
+let measureCtx: CanvasRenderingContext2D | null | undefined;
+/** Width of an axis label in px — echarts draws them at 10px in its default sans-serif. */
+function labelTextWidth(text: string): number {
+    if (measureCtx === undefined) {
+        try {
+            measureCtx = document.createElement('canvas').getContext('2d');
+        } catch {
+            measureCtx = null;
+        }
+    }
+    if (!measureCtx) return text.length * 6;
+    measureCtx.font = '10px sans-serif';
+    return measureCtx.measureText(text).width;
+}
 
 /** The plot area of the first grid in px, or null before the first layout. Reaches into the
  *  echarts model — there is no public API for the laid-out grid rectangle. */
@@ -202,10 +231,18 @@ function EChartBody({ config, editMode }: WidgetProps) {
     // Series names may carry bindings (issue #919) — resolved once here, so the axis, legend,
     // tooltip and period row all read the same text. A multi-series JSON template (issue #926)
     // becomes one plain JSON series per payload entry before anything else sees the list.
-    const echartSeries = useJsonSeriesFanOut(
+    const fannedSeries = useJsonSeriesFanOut(
         useBoundSeriesNames((o.echartSeries as EChartSeriesConfig[] | undefined) ?? NO_SERIES, config),
         o.echartMode === 'json',
         DEFAULT_COLORS,
+    );
+    // A series with a scale of its own (issue #959) moves onto an axis behind left/right from here
+    // on, so every per-axis rule below (zero line, stacks, units, texts) treats it apart. Comparison
+    // mode plots current values on one scale and has no use for it.
+    const ownAxesOff = o.echartMode === 'comparison';
+    const { series: echartSeries, ownAxes } = useMemo(
+        () => (ownAxesOff ? { series: fannedSeries, ownAxes: [] } : assignOwnAxes(fannedSeries)),
+        [fannedSeries, ownAxesOff],
     );
     // Boolean datapoints (issue #718): they plot as 0/1, draw as a step line by default and give an
     // axis of their own exactly the two ticks 0 and 1.
@@ -944,7 +981,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
     // heights stop being proportional to the values (issue #541). An explicit min still wins.
     // Bars and stacks are read from the zero line, and the grid lines have to come from an axis
     // that actually carries series — see utils/chartAxis (issue #594).
-    const zeroBased = (axis: 0 | 1) => axisIsZeroBased(echartSeries, axis);
+    const zeroBased = (axis: number) => axisIsZeroBased(echartSeries, axis);
     const gridAxis = gridLineAxis(echartSeries);
     const showGridOn = (axis: 0 | 1) => echartShowYAxis && echartShowGridLines && gridAxis === axis;
 
@@ -956,13 +993,13 @@ function EChartBody({ config, editMode }: WidgetProps) {
         (v: number): string =>
             labels.get(v) ?? `${formatNum(v, bool ? 0 : decimals, numFmt)}${unit ? ` ${unit}` : ''}`;
     // A boolean axis spans exactly 0…1 in one step; an explicit bound still wins (issue #718).
-    const boolAxis = (axis: 0 | 1) => axisIsBoolean(echartSeries, axis, isBoolSeries);
+    const boolAxis = (axis: number) => axisIsBoolean(echartSeries, axis, isBoolSeries);
     /**
      * Extra keys of an axis with booleans or value texts. Texts sit on whole numbers as a rule
      * (0/1/2 = Aus/Heizen/Kühlen), so such an axis keeps its ticks on integers — an interval of 0.5
      * would label only every second tick.
      */
-    const axisExtras = (axis: 0 | 1, labels: Map<number, string>, min: unknown, max: unknown) => {
+    const axisExtras = (axis: number, labels: Map<number, string>, min: unknown, max: unknown) => {
         if (boolAxis(axis)) {
             return {
                 interval: 1,
@@ -1011,6 +1048,97 @@ function EChartBody({ config, editMode }: WidgetProps) {
               ...axisExtras(1, rightValueLabels, rightMin, rightMax),
           }
         : { show: false };
+
+    // ── Own scales (issue #959) ──
+    // Width of an axis' label strip, estimated from the numbers it will carry: echarts places an
+    // axis with `offset` but does not move the next one out of its way, so a visible own scale has
+    // to start behind the right axis' labels, and the plot has to leave room for them.
+    const axisValues = (axis: number): number[] =>
+        echartSeries
+            .filter((s) => (s.yAxisIndex ?? 0) === axis)
+            .flatMap((s) => {
+                const r = seriesDataMap.get(s.id);
+                return [...(r?.data ?? []).map((p) => p[1]), ...(r?.points ?? []).map((p) => p.value)];
+            })
+            .filter((v) => Number.isFinite(v));
+    const axisStripWidth = (
+        axis: number,
+        format: (v: number) => string,
+        min?: number | string,
+        max?: number | string,
+    ): number => {
+        const values = axisValues(axis);
+        const lo = boundValue(min) ?? (values.length ? Math.min(...values) : 0);
+        const hi = boundValue(max) ?? (values.length ? Math.max(...values) : 0);
+        // A rounded tick beyond the data (96 → 100) can be a digit longer than either extreme.
+        const widest = Math.max(...[lo, hi, 0].map((v) => labelTextWidth(format(v)))) + OWN_AXIS_DIGIT;
+        return OWN_AXIS_LABEL_MARGIN + widest;
+    };
+    // Label strips per side, from the plot edge outwards: the left/right axis when it shows
+    // labels, then every visible own scale on that side.
+    const strips: Record<'left' | 'right', number[]> = {
+        left: echartShowYAxis
+            ? [axisStripWidth(0, axisLabelFormatter(echartLeftUnit, leftValueLabels, boolAxis(0)), leftMin, leftMax)]
+            : [],
+        right:
+            hasRightAxis && echartShowYAxisRight
+                ? [
+                      axisStripWidth(
+                          1,
+                          axisLabelFormatter(echartRightUnit, rightValueLabels, boolAxis(1)),
+                          rightMin,
+                          rightMax,
+                      ),
+                  ]
+                : [],
+    };
+    const ownAxisList: Record<string, unknown>[] = ownAxes.map(({ index, series: s, side }) => {
+        const show = s.ownAxisShow === true;
+        const min = s.ownAxisMin;
+        const max = s.ownAxisMax;
+        const labels = axisValueLabels(echartSeries, index, seriesLabels);
+        const format = axisLabelFormatter(unitFor(s), labels, boolAxis(index));
+        const color = colorAt(echartSeries.indexOf(s));
+        const offset = strips[side].reduce((sum, w) => sum + w + OWN_AXIS_GAP, 0);
+        if (show) strips[side].push(axisStripWidth(index, format, min, max));
+        return {
+            type: 'value',
+            position: side,
+            offset: show ? offset : 0,
+            show,
+            scale: !zeroBased(index) || min !== undefined,
+            axisLabel: { show, color, fontSize: 10, formatter: format },
+            axisTick: { show },
+            axisLine: { show, lineStyle: { color } },
+            // One set of grid lines only — the left/right axis draws them (see gridLineAxis).
+            splitLine: { show: false },
+            ...(min !== undefined ? { min } : {}),
+            ...(max !== undefined ? { max } : {}),
+            ...axisExtras(index, labels, min, max),
+        };
+    });
+    // The legacy containLabel measures every axis as if it sat at offset 0, so it reserves only
+    // the widest strip; the stacked ones beyond it need the rest as extra grid margin.
+    const extraMargin = (list: number[]) =>
+        list.length > 1
+            ? list.reduce((sum, w) => sum + w, 0) + OWN_AXIS_GAP * (list.length - 1) - Math.max(...list)
+            : 0;
+    const gridLeft = AXIS_GAP + extraMargin(strips.left);
+    const gridRight = AXIS_GAP + extraMargin(strips.right);
+    /**
+     * A full `yAxis` array in echartJsonExtra replaces the widget's axes wholesale — own scales
+     * included, and a series pointing at a missing axis breaks the whole chart. Put them back
+     * behind whatever the array defines.
+     */
+    const keepOwnAxes = (opt: Record<string, unknown>): Record<string, unknown> => {
+        if (ownAxes.length === 0 || !Array.isArray(opt.yAxis)) return opt;
+        const yAxis = [...(opt.yAxis as unknown[])];
+        ownAxes.forEach(({ index }, k) => {
+            if (yAxis[index] === undefined) yAxis[index] = ownAxisList[k];
+        });
+        for (let i = 0; i < yAxis.length; i++) if (yAxis[i] === undefined) yAxis[i] = { show: false };
+        return { ...opt, yAxis };
+    };
 
     // Current value(s) shown top-right — one per series, tinted with its colour.
     const currentValues = echartSeries
@@ -1415,8 +1543,8 @@ function EChartBody({ config, editMode }: WidgetProps) {
                 ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: LEGEND_TOP }
                 : { show: false },
             grid: {
-                left: AXIS_GAP,
-                right: AXIS_GAP,
+                left: gridLeft,
+                right: gridRight,
                 top: gridTop(jsonLegendNames, echartShowLegend),
                 bottom: AXIS_GAP_V,
                 containLabel: true,
@@ -1449,7 +1577,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
                       axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
                       splitLine: { show: false },
                   },
-            yAxis: [leftAxis, rightAxis],
+            yAxis: [leftAxis, rightAxis, ...ownAxisList],
             series: withNowLine(jsonSeriesList, jsonTimeAxis ? nowWithin(jsonTimeExtent) : nowCategory),
         };
 
@@ -1457,7 +1585,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
         if (echartJsonExtra) {
             try {
                 const extra = JSON.parse(echartJsonExtra) as Record<string, unknown>;
-                mergedJson = deepMerge(jsonOption, extra);
+                mergedJson = keepOwnAxes(deepMerge(jsonOption, extra));
             } catch {
                 /* ignore invalid JSON */
             }
@@ -1749,8 +1877,8 @@ function EChartBody({ config, editMode }: WidgetProps) {
               }
             : { show: false },
         grid: {
-            left: AXIS_GAP,
-            right: AXIS_GAP,
+            left: gridLeft,
+            right: gridRight,
             top: gridTop(legendNames, echartShowLegend),
             bottom: AXIS_GAP_V,
             containLabel: true,
@@ -1784,7 +1912,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
             min: framed ? framed.start : null,
             max: framed ? framed.end : rollingAxisMax,
         },
-        yAxis: [leftAxis, rightAxis],
+        yAxis: [leftAxis, rightAxis, ...ownAxisList],
         series: withNowLine(seriesList, nowWithin(nowLineExtent)),
     };
 
@@ -1792,7 +1920,7 @@ function EChartBody({ config, editMode }: WidgetProps) {
     if (echartJsonExtra) {
         try {
             const extra = JSON.parse(echartJsonExtra) as Record<string, unknown>;
-            merged = deepMerge(option, extra);
+            merged = keepOwnAxes(deepMerge(option, extra));
         } catch {
             // ignore invalid JSON
         }

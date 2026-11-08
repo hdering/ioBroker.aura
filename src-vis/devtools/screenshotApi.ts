@@ -889,6 +889,63 @@ function installScreenshotApi(): void {
                 .filter((t): t is string => typeof t === 'string' && t.trim() !== '');
         },
 
+        /** Every painted text with its box in canvas px — whether axis label strips overlap or
+         *  run off the canvas cannot be told from the texts alone (issue #959). */
+        chartTextBoxes(index = 0): { text: string; x: number; y: number; width: number; height: number }[] | null {
+            const el = document.querySelectorAll('[_echarts_instance_]')[index];
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return null;
+            type Box = { x: number; y: number; width: number; height: number };
+            type Rect = Box & { clone(): Rect; applyTransform(m: unknown): void };
+            const zr = inst.getZr() as unknown as {
+                storage: {
+                    getDisplayList(update?: boolean): {
+                        style?: { text?: unknown };
+                        getBoundingRect(): Rect;
+                        getComputedTransform(): unknown;
+                    }[];
+                };
+            };
+            return zr.storage
+                .getDisplayList(true)
+                .filter((d) => typeof d.style?.text === 'string' && (d.style.text as string).trim() !== '')
+                .map((d) => {
+                    // The bounding rect is local to the text; its transform carries the axis offset.
+                    const r = d.getBoundingRect().clone();
+                    const m = d.getComputedTransform();
+                    if (m) r.applyTransform(m);
+                    return { text: d.style!.text as string, x: r.x, y: r.y, width: r.width, height: r.height };
+                });
+        },
+
+        /** The value range every y axis of the chart really spans, in axis order (issue #959). */
+        chartYExtents(index = 0): [number, number][] | null {
+            const el = document.querySelectorAll('[_echarts_instance_]')[index];
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return null;
+            try {
+                const model = (
+                    inst as unknown as {
+                        getModel(): {
+                            getComponent(
+                                t: string,
+                                i: number,
+                            ): { axis: { scale: { getExtent(): [number, number] } } } | undefined;
+                        };
+                    }
+                ).getModel();
+                const out: [number, number][] = [];
+                for (let i = 0; ; i++) {
+                    const c = model.getComponent('yAxis', i);
+                    if (!c) break;
+                    out.push(c.axis.scale.getExtent());
+                }
+                return out;
+            } catch {
+                return null;
+            }
+        },
+
         /** Record the editor's undo history (off in screenshot mode, on in the admin)
          *  and install its Ctrl+Z / Ctrl+Y handler, so a test can drive the real
          *  store → persist → history chain. `false` stops and forgets everything. */

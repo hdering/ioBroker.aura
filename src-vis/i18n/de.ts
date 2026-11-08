@@ -2108,6 +2108,16 @@ export const de = {
     'echart.yAxis': 'Y-Achse',
     'echart.yLeft': 'Links',
     'echart.yRight': 'Rechts',
+    'echart.yOwn': 'Eigene Skala',
+    'echart.ownAxisMin': 'Skala von',
+    'echart.ownAxisMax': 'Skala bis',
+    'echart.ownAxisAuto': 'Auto',
+    'echart.ownAxisShow': 'Skala anzeigen',
+    'echart.ownAxisHint':
+        'Eigener Wertebereich, unabhängig von linker und rechter Achse – die Reihe nutzt die volle Diagrammhöhe, z. B. Ventilstellung 0–100 %. Angezeigt steht die Skala außen auf der gewählten Seite, in der Farbe der Reihe; die Einheit kommt aus dem Feld „Einheit“.',
+    'echart.ownAxisOffHint': 'Aus: Die Reihe teilt sich die Skala der gewählten Achse.',
+    'echart.unavailSideHiddenScale':
+        'Die eigene Skala ist ausgeblendet – erst mit „Skala anzeigen“ steht sie auf einer Seite.',
     'echart.smooth': 'Glatt',
     'echart.step': 'Treppenkurve',
     'echart.stepHint': 'Jeder Wert gilt bis zum nächsten — für Schalter und Betriebsarten.',

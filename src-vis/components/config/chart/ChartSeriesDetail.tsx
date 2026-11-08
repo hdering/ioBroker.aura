@@ -355,26 +355,62 @@ export function ChartSeriesDetail({
                 className="space-y-2.5"
             >
                 <>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {t('echart.yAxis')}
-                        </label>
-                        <div className="flex gap-1">
-                            {([0, 1] as const).map((yi) => (
-                                <button
-                                    key={yi}
-                                    onClick={() => update({ yAxisIndex: yi })}
-                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
-                                    style={{
-                                        background: (s.yAxisIndex ?? 0) === yi ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: (s.yAxisIndex ?? 0) === yi ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${(s.yAxisIndex ?? 0) === yi ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    }}
-                                >
-                                    {yi === 0 ? t('echart.yLeft') : t('echart.yRight')}
-                                </button>
-                            ))}
+                    {/* Side of the axis. With an own scale it is the side that scale is drawn on —
+                        a hidden own scale has no side (issue #959). */}
+                    <Unavailable
+                        reason={s.ownAxis && s.ownAxisShow !== true ? t('echart.unavailSideHiddenScale') : undefined}
+                    >
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.yAxis')}
+                            </label>
+                            <div className="flex gap-1">
+                                {([0, 1] as const).map((yi) => {
+                                    const active = ((s.yAxisIndex ?? 0) === 1 ? 1 : 0) === yi;
+                                    return (
+                                        <button
+                                            key={yi}
+                                            onClick={() => update({ yAxisIndex: yi })}
+                                            className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                            data-testid={`echart-axis-${yi === 0 ? 'left' : 'right'}`}
+                                        >
+                                            {yi === 0 ? t('echart.yLeft') : t('echart.yRight')}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
+                    </Unavailable>
+
+                    <div>
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.yOwn')}
+                            </label>
+                            <button
+                                onClick={() => update({ ownAxis: s.ownAxis ? undefined : true })}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: s.ownAxis ? 'var(--accent)' : 'var(--app-border)' }}
+                                data-testid="echart-ownAxis"
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: s.ownAxis ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {s.ownAxis ? (
+                            <OwnAxisFields s={s} update={update} />
+                        ) : (
+                            <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.ownAxisOffHint')}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -688,5 +724,64 @@ export function ChartSeriesDetail({
                 />
             )}
         </>
+    );
+}
+
+/**
+ * Bounds and visibility of a series' own y scale (issue #959). Hidden by default: the usual case
+ * is a valve position or a percentage that should use the full height without a third label strip.
+ */
+function OwnAxisFields({ s, update }: { s: EChartSeriesConfig; update: (patch: Partial<EChartSeriesConfig>) => void }) {
+    const t = useT();
+    const num = (raw: string): number | undefined => {
+        const v = Number(raw.replace(',', '.'));
+        return raw.trim() === '' || !Number.isFinite(v) ? undefined : v;
+    };
+    const show = s.ownAxisShow === true;
+    return (
+        <div className="mt-2 space-y-2" data-testid="echart-own-axis">
+            <div className="flex gap-2">
+                {(['ownAxisMin', 'ownAxisMax'] as const).map((key) => (
+                    <div key={key} className="flex-1 min-w-0">
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {key === 'ownAxisMin' ? t('echart.ownAxisMin') : t('echart.ownAxisMax')}
+                        </label>
+                        <input
+                            type="text"
+                            inputMode="decimal"
+                            defaultValue={s[key] ?? ''}
+                            key={`${key}-${s.id}-${s[key] ?? ''}`}
+                            onBlur={(e) => update({ [key]: num(e.target.value) })}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                            }}
+                            placeholder={t('echart.ownAxisAuto')}
+                            className={`${inputCls} w-full`}
+                            style={inputStyle}
+                            data-testid={`echart-${key}`}
+                        />
+                    </div>
+                ))}
+            </div>
+            <div className="flex items-center justify-between">
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    {t('echart.ownAxisShow')}
+                </label>
+                <button
+                    onClick={() => update({ ownAxisShow: show ? undefined : true })}
+                    className="relative w-9 h-5 rounded-full transition-colors"
+                    style={{ background: show ? 'var(--accent)' : 'var(--app-border)' }}
+                    data-testid="echart-ownAxisShow"
+                >
+                    <span
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: show ? '18px' : '2px' }}
+                    />
+                </button>
+            </div>
+            <p className="text-[10px] leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                {t('echart.ownAxisHint')}
+            </p>
+        </div>
     );
 }

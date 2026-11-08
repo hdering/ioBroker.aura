@@ -71,9 +71,21 @@ export interface EChartSeriesConfig {
     /**
      * Y axis the series is plotted against: 0 = left, 1 = right. 2 and up only work with further
      * axes added through `echartJsonExtra` (a full `yAxis` array); such an axis has no widget unit,
-     * so the series wants its own `unit`.
+     * so the series wants its own `unit`. With `ownAxis` only the side counts (0 left, 1 right).
      */
     yAxisIndex?: number;
+    /**
+     * Plot the series against a y scale of its own instead of the left/right axis (issue #959) —
+     * e.g. a valve position 0–100 % across the full chart height next to temperatures in °C. The
+     * scale's unit is the series' own `unit`. Not in comparison mode.
+     */
+    ownAxis?: boolean;
+    /** Draw the own scale's labels outside the left/right axis (side from `yAxisIndex`), in the series colour. Default off = a hidden scale. */
+    ownAxisShow?: boolean;
+    /** Fixed start of the own scale (e.g. 0). Unset = fit to the data (bars and stacks start at 0). */
+    ownAxisMin?: number;
+    /** Fixed end of the own scale (e.g. 100). Unset = fit to the data. */
+    ownAxisMax?: number;
     /**
      * Unit of this series' numbers in the tooltip, the value labels, the current-value block and the
      * period value — wins over the unit of its axis (`echartLeftUnit`/`echartRightUnit`). Empty

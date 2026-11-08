@@ -190,6 +190,10 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].color`         | Palette      | Linien-/Balkenfarbe: `var(--accent-green)` wie überall sonst (das Widget löst das Token auf, bevor es ans Canvas geht — das Diagramm folgt also dem Theme) oder ein fester Wert wie `#eab308`. Ohne Angabe die nächste Farbe der Palette. |
 | `echartSeries[].yAxisIndex`    | `0`          | `0` = links, `1` = rechte Y-Achse; ab `2` nur mit eigenen Achsen in `echartJsonExtra` (vollständiges `yAxis`-Array)                                                                                                |
 | `echartSeries[].unit`          | —            | Einheit der Serie in Tooltip, Werten und Aktuell-Anzeige — vor der Einheit ihrer Achse; `""` = ohne Einheit                                                                                                         |
+| `echartSeries[].ownAxis`       | `false`      | eigene Skala: die Serie nutzt die volle Höhe, unabhängig von linker/rechter Achse (z. B. Ventil 0–100 %) — siehe [Eigene Skala](#eigene-skala) |
+| `echartSeries[].ownAxisMin`    | —            | Anfang der eigenen Skala; leer = nach Daten |
+| `echartSeries[].ownAxisMax`    | —            | Ende der eigenen Skala; leer = nach Daten |
+| `echartSeries[].ownAxisShow`   | `false`      | eigene Skala beschriften — außen auf der Seite aus `yAxisIndex`, in der Farbe der Serie |
 | `echartSeries[].smooth`        | `true`       | geglättete Linie (nur Linie/Fläche)                                                                                                                                                                                |
 | `echartSeries[].step`          | boolescher DP: `true`, sonst `false` | Treppenkurve — jeder Wert gilt bis zum nächsten (nur Linie/Fläche, ersetzt `smooth`) |
 | `echartSeries[].valueLabels`   | `common.states` des DP | Texte statt Zahlen, z. B. `0=An; 1=Aus` — im Tooltip, an den Werten und im aktuellen Wert; an der Achse, wenn alle Serien darauf dieselben Texte haben. Leer = Texte aus `common.states` (nicht bei ƒx-Umrechnung) |
@@ -278,6 +282,19 @@ für Einspeisung und Batterie-Ladung, die als positive Werte geliefert werden.
 | Bei `aggregate: delta`    | der Zählerstand wird unverändert differenziert, das Vorzeichen kommt auf die Balken |
 | Gestapelt                 | positive Serien nach oben, negative nach unten                                      |
 | Wertelabels               | wandern unter den Balken                                                            |
+
+### Eigene Skala
+
+| Einstellung (Serie)                 | Wirkung                                                                 |
+| ----------------------------------- | ----------------------------------------------------------------------- |
+| **Eigene Skala** aus                | Serie teilt sich die Skala der gewählten Y-Achse                         |
+| **Eigene Skala** an                 | eigener Wertebereich (`Skala von`/`bis`), volle Diagrammhöhe           |
+| **Skala anzeigen** aus              | Skala unsichtbar — Werte stehen in Tooltip und aktuellem Wert           |
+| **Skala anzeigen** an               | Skala außen neben der linken bzw. rechten Achse, in der Farbe der Serie  |
+
+![](./assets/diagramm-erweitert/eigene-skala.png)
+
+Die Seite (**Links**/**Rechts**) zählt nur bei angezeigter Skala. Einheit der Skala = `unit` der Serie.
 
 ### Verbrauch aus Zählerständen
 
