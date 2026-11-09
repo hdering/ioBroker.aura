@@ -44,7 +44,8 @@ Widget-Name und der **Vollbild-Knopf** unter **Darstellung**.
 
 Manche Komponenten bearbeiten einen Wert — zum Beispiel einen Zeitplan, eine Liste von Zeiten
 oder eine Farbe. Diesen Wert hält ein Datenpunkt: in den Einstellungen des Widgets unter
-**Wert-Datenpunkt** (`wcValueDp`) wählen.
+**Wert-Datenpunkt** (`wcValueDp`) wählen. Das Feld erscheint nur bei Komponenten, die das in
+ihrem Manifest angeben (`editsValue: true`), oder wenn bereits ein Datenpunkt eingetragen ist.
 
 - Aura gibt der Komponente den Wert des Datenpunkts. JSON-Text kommt als Objekt bzw. Liste an —
   bei einem Datenpunkt vom Typ `json`, `object` oder `array` immer, sonst, wenn der Text ein

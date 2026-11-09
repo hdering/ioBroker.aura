@@ -104,6 +104,12 @@ check('same: undefined and null differ', m.sameValue(undefined, null), false);
 check('same: undefined and undefined', m.sameValue(undefined, undefined), true);
 check('same: different values', m.sameValue({ a: 1 }, { a: 2 }), false);
 
+// ── the manifest declares it ─
+check('editsValue: declared', m.editsValue({ editsValue: true }), true);
+check('editsValue: missing means no', m.editsValue({}), false);
+check('editsValue: false', m.editsValue({ editsValue: false }), false);
+check('editsValue: only true counts', m.editsValue({ editsValue: 'true' }), false);
+
 // ── echoes of own writes ────────────────────────────────────────────────────
 {
     let t = 1000;

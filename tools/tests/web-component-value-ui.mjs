@@ -43,18 +43,29 @@ const manifest = {
     tag: 'aura-value-demo',
     name: { en: 'Value demo', de: 'Wert-Demo' },
     module: 'aura-value-demo.js',
+    editsValue: true,
     settings: { type: 'panel', items: {} },
 };
 
+// a second component that does not declare editsValue: no value field in its settings
+const plainManifest = {
+    manifestVersion: 1,
+    tag: 'aura-plain-demo',
+    name: { en: 'Plain demo', de: 'Einfache Demo' },
+    module: 'aura-plain-demo.js',
+    settings: { type: 'panel', items: {} },
+};
+const plainJs = "customElements.get('aura-plain-demo') || customElements.define('aura-plain-demo', class extends HTMLElement {});";
+
 const LIST = 'demo.wc.list';
 const RO = 'demo.wc.readonly';
-const widget = (id, dp, y) => ({
+const widget = (id, dp, y, tag = 'aura-value-demo') => ({
     id,
     type: 'webcomponent',
     title: id,
     datapoint: '',
     gridPos: { x: 0, y, w: 12, h: 6 },
-    options: { wcTag: 'aura-value-demo', wcAdapter: 'aura-demo', wcValueDp: dp },
+    options: { wcTag: tag, wcAdapter: 'aura-demo', ...(dp ? { wcValueDp: dp } : {}) },
 });
 
 const browser = await chromium.launch();
@@ -62,11 +73,17 @@ const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, i
 const page = await ctx.newPage();
 const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
-await page.route('**/adapter/aura-demo/webcomponents/**', (route) =>
-    route.request().url().endsWith('.json')
-        ? route.fulfill({ contentType: 'application/json', body: JSON.stringify(manifest) })
-        : route.fulfill({ contentType: 'text/javascript', body: moduleJs }),
-);
+await page.route('**/adapter/aura-demo/webcomponents/**', (route) => {
+    const url = route.request().url().split('?')[0];
+    if (url.endsWith('.json')) {
+        const body = url.includes('aura-plain-demo') ? plainManifest : manifest;
+        return route.fulfill({ contentType: 'application/json', body: JSON.stringify(body) });
+    }
+    return route.fulfill({
+        contentType: 'text/javascript',
+        body: url.includes('aura-plain-demo') ? plainJs : moduleJs,
+    });
+});
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
 await page.evaluate(
@@ -85,7 +102,10 @@ await page.evaluate(
                     id: 'system.adapter.aura-demo.0',
                     value: {
                         _id: 'system.adapter.aura-demo.0',
-                        common: { version: '1.0.0', webComponents: ['webcomponents/aura-value-demo.json'] },
+                        common: {
+                            version: '1.0.0',
+                            webComponents: ['webcomponents/aura-value-demo.json', 'webcomponents/aura-plain-demo.json'],
+                        },
                     },
                 },
             ],
@@ -93,7 +113,16 @@ await page.evaluate(
         shot.captureWrites(true);
         shot.showWidgets(widgets);
     },
-    { list: LIST, ro: RO, widgets: [widget('wc-list', LIST, 0), widget('wc-ro', RO, 7)] },
+    {
+        list: LIST,
+        ro: RO,
+        widgets: [
+            widget('wc-list', LIST, 0),
+            widget('wc-ro', RO, 7),
+            widget('wc-plain', undefined, 14, 'aura-plain-demo'),
+            widget('wc-plain-bound', LIST, 21, 'aura-plain-demo'),
+        ],
+    },
 );
 const list = page.locator('aura-value-demo').nth(0);
 const ro = page.locator('aura-value-demo').nth(1);
@@ -195,7 +224,24 @@ await field.fill('');
 await page.waitForTimeout(300);
 const opts = await page.evaluate(() => window.__auraShot.widgetOptions('wc-list'));
 check('settings: clearing it removes the option', opts && opts.wcValueDp === undefined, JSON.stringify(opts));
+eq('settings: declared by the manifest, the empty field stays', await field.count(), 1);
 await page.keyboard.press('Escape');
+await dlg.waitFor({ state: 'hidden', timeout: 5000 });
+
+const openSettings = async (index) => {
+    await page.locator('.aura-edit-chrome').nth(index).locator('button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    await dlg.waitFor({ timeout: 10000 });
+    await page.waitForTimeout(300);
+};
+await openSettings(2);
+eq('settings: not declared, no value field', await field.count(), 0);
+await page.keyboard.press('Escape');
+await dlg.waitFor({ state: 'hidden', timeout: 5000 });
+await openSettings(3);
+eq('settings: not declared but set, it can still be removed', await field.inputValue(), LIST);
+await page.keyboard.press('Escape');
+await dlg.waitFor({ state: 'hidden', timeout: 5000 });
 await page.evaluate(() => window.__auraShot.setEditMode(false));
 await page.waitForTimeout(400);
 eq('unbound: the element has no value any more', await valueOf(list), undefined);

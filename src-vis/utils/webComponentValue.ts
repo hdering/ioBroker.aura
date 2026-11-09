@@ -4,6 +4,7 @@
  * `iob-change` event of the element is written to the state. Kept free of React and
  * of the socket so it can be tested on its own.
  *
+ * - `editsValue` - whether the manifest of a component declares that it edits a value.
  * - `fromStateValue` - the value of a state as the element gets it (JSON text of a
  *   json/object/array state becomes the object or array it describes).
  * - `toStateValue` - the value of the element as the state takes it (objects and
@@ -12,6 +13,16 @@
  * - `createEchoGuard` - tells the element's own writes coming back from the ones
  *   that are news, so the element is not reset to an older value.
  */
+
+/**
+ * Whether a component declares in its manifest that it edits a value. Missing means
+ * no. The cast goes once `@iobroker/web-components` with `editsValue` is released.
+ *
+ * @param manifest the manifest of the component
+ */
+export function editsValue(manifest: object): boolean {
+    return (manifest as { editsValue?: unknown }).editsValue === true;
+}
 
 /** `common.type` of a state whose value is JSON text */
 const JSON_TYPES = new Set(['json', 'object', 'array']);

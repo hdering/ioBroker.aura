@@ -633,8 +633,8 @@ export const WIDGET_OPTION_NOTES = {
                 'an das Element - JSON-Text als Objekt/Array (bei common.type json/object/array jede JSON-Zeichenkette, ' +
                 'sonst nur Text mit JSON-Objekt/-Array); Zahlen und Booleans bleiben. Ändert der Nutzer den Wert in der ' +
                 'Komponente, schreibt Aura ihn in den Datapoint (ack=false; Objekte/Arrays als JSON-Text). Nur für ' +
-                'Komponenten, die einen Wert bearbeiten - die meisten lesen ihre Datenpunkte über wcSettings und ' +
-                'brauchen ihn nicht. Leer = kein Wert. Kein JSON-Pfad; im Bearbeitungsmodus und bei schreibgeschützten ' +
+                'Komponenten, die im Manifest editsValue: true angeben - die übrigen lesen ihre Datenpunkte über ' +
+                'wcSettings und brauchen ihn nicht. Leer = kein Wert. Kein JSON-Pfad; im Bearbeitungsmodus und bei schreibgeschützten ' +
                 'States wird nichts geschrieben.',
         },
     },

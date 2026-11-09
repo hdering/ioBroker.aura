@@ -19,8 +19,8 @@ const hintSty: React.CSSProperties = { color: 'var(--text-secondary)', opacity: 
 /**
  * "Wert-Datenpunkt" of the webcomponent widget (`options.wcValueDp`): the datapoint
  * that holds the value a component edits (`value` / `iob-change` of the contract).
- * Every component can take one, so the field is offered for all; only components
- * that edit a value use it.
+ * Offered for components that declare `editsValue` in their manifest, and whenever
+ * one is set, so it can be removed again.
  */
 export function WebComponentValueField({ value, onChange }: Props) {
     const [picking, setPicking] = useState(false);
@@ -50,9 +50,8 @@ export function WebComponentValueField({ value, onChange }: Props) {
                 </button>
             </div>
             <p className="text-[10px] mt-0.5" style={hintSty}>
-                Für Komponenten, die einen Wert bearbeiten (z. B. einen Zeitplan oder eine Liste): Der Datenpunkt
-                liefert ihn, Änderungen in der Komponente werden hineingeschrieben. JSON-Text kommt als Objekt an. Die
-                meisten Komponenten brauchen ihn nicht.
+                Der Datenpunkt liefert den Wert, den diese Komponente bearbeitet (z. B. einen Zeitplan oder eine Liste).
+                Änderungen in der Komponente werden hineingeschrieben. JSON-Text kommt als Objekt an.
             </p>
             {picking && (
                 <DatapointPicker

@@ -10,6 +10,7 @@ import {
     objectIdOfRow,
     typedSettings,
 } from '../../utils/webComponentHost';
+import { editsValue } from '../../utils/webComponentValue';
 import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { DatapointPicker } from './DatapointPicker';
 import { WebComponentValueField } from './WebComponentValueField';
@@ -515,7 +516,7 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                     </div>
                 )}
             </div>
-            {(component || !!o.wcValueDp) && (
+            {((component && editsValue(component.manifest)) || !!o.wcValueDp) && (
                 <WebComponentValueField value={o.wcValueDp} onChange={(dp) => onChange({ wcValueDp: dp })} />
             )}
 
