@@ -119,7 +119,8 @@ export function getWebComponentSocket(): Promise<WebComponentSocket> {
             const lang = sys?.common?.language || 'en';
             return createWebComponentSocket(
                 {
-                    subscribeState: (id, cb) => subscribeStateDirect(id, (state) => cb(state as unknown as HostState)),
+                    subscribeState: (id, cb) =>
+                        subscribeStateDirect(id, (state, stateId) => cb(state as unknown as HostState, stateId)),
                     getState: async (id) => (await getStateDirect(id)) as unknown as HostState | null,
                     setState: (id, val, ack) =>
                         setStateDirectAsync(

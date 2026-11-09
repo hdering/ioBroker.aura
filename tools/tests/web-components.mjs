@@ -210,6 +210,201 @@ function fakeApi() {
     );
 }
 
+// ── wildcard state subscriptions: the pattern, the bridge, hooks/useIoBroker ──
+{
+    const patternBundle = join(cache, `aura-web-components-pattern-${process.pid}.mjs`);
+    await build({
+        entryPoints: [join(process.cwd(), 'src-vis/utils/idPattern.ts')],
+        bundle: true,
+        platform: 'node',
+        format: 'esm',
+        outfile: patternBundle,
+        logLevel: 'warning',
+    });
+    const p = await import(pathToFileURL(patternBundle).href);
+    rmSync(patternBundle, { force: true });
+    const matches = (pattern, id) => p.idPatternToRegExp(pattern).test(id);
+    check(
+        'pattern: is one',
+        ['a.0.x.*', '*.STATE', 'a.0.x'].map((id) => p.isIdPattern(id)),
+        [true, true, false],
+    );
+    check(
+        'pattern: * at the end covers everything below, dots included',
+        [matches('a.0.x.*', 'a.0.x.y'), matches('a.0.x.*', 'a.0.x.y.z'), matches('a.0.x.*', 'a.0.xy')],
+        [true, true, false],
+    );
+    check(
+        'pattern: * in the middle, the rest literal and anchored',
+        [
+            matches('hm-rpc.0.*.STATE', 'hm-rpc.0.ABC.1.STATE'),
+            matches('hm-rpc.0.*.STATE', 'hm-rpc.0.ABC.STATE_X'),
+            matches('hm-rpc.0.*.STATE', 'xhm-rpc.0.A.STATE'),
+        ],
+        [true, false, false],
+    );
+    check(
+        'pattern: regex characters of an ID are literal (js-controller pattern2RegEx)',
+        [matches('a.0.(x)+$.*', 'a.0.(x)+$.y'), matches('a.0.x.*', 'a10x.y'), matches('*', 'anything')],
+        [true, false, true],
+    );
+}
+{
+    // the bridge: a pattern calls back with the concrete ID; it has no state or object of its own
+    const f = fakeApi();
+    const reads = [];
+    f.api.getState = async (id) => (reads.push(id), { val: id });
+    f.api.getObject = async (id) => (reads.push(id), { _id: id });
+    f.api.subscribeState = (id, cb) => {
+        f.subs.set(id, new Set([cb]));
+        return () => f.subs.get(id).delete(cb);
+    };
+    const socket = m.createWebComponentSocket(f.api, 'en');
+    const got = [];
+    const cb = (id, state) => got.push([id, state?.val]);
+    await socket.subscribeState(['a.0.x.*', 'a.0.y'], cb);
+    for (const fn of f.subs.get('a.0.x.*')) {
+        fn({ val: 1 }, 'a.0.x.one');
+    }
+    for (const fn of f.subs.get('a.0.y')) {
+        fn({ val: 2 }); // an exact subscription may leave the ID out
+    }
+    check('patterns: the bridge passes the ID of the state that changed', got, [
+        ['a.0.x.one', 1],
+        ['a.0.y', 2],
+    ]);
+    check(
+        'patterns: no state and no object of a pattern, and no read for them',
+        [await socket.getState('a.0.x.*'), await socket.getObject('a.0.x.*'), reads],
+        [null, null, []],
+    );
+    socket.unsubscribeState('a.0.x.*', cb);
+    check('patterns: unsubscribed through the bridge', f.subs.get('a.0.x.*').size, 0);
+}
+{
+    // the real socket layer, bundled with a fake socket library in place of /socket.io/socket.io.js
+    const ioBundle = join(cache, `aura-web-components-io-patterns-${process.pid}.mjs`);
+    await build({
+        entryPoints: [join(process.cwd(), 'src-vis/hooks/useIoBroker.ts')],
+        bundle: true,
+        platform: 'node',
+        format: 'esm',
+        outfile: ioBundle,
+        define: { 'import.meta.env.DEV': 'false' },
+        logLevel: 'warning',
+    });
+    const sockets = [];
+    let serverValue = 1;
+    globalThis.window ??= { location: { origin: 'http://aura.test', protocol: 'http:' } };
+    globalThis.io = {
+        connect() {
+            const handlers = {};
+            const sock = {
+                connected: true,
+                emitted: [],
+                on(event, cb) {
+                    (handlers[event] ??= []).push(cb);
+                },
+                emit(event, ...args) {
+                    const cb = typeof args.at(-1) === 'function' ? args.pop() : null;
+                    sock.emitted.push([event, ...args]);
+                    if (cb && event === 'getState') {
+                        setTimeout(() => cb(null, { val: serverValue, ack: true, ts: serverValue }), 0);
+                    }
+                },
+                disconnect() {},
+                fire(event, ...args) {
+                    for (const h of handlers[event] ?? []) {
+                        h(...args);
+                    }
+                },
+            };
+            sockets.push(sock);
+            return sock;
+        },
+    };
+    const quiet = console.log;
+    console.log = () => {}; // the connect banner
+    const io = await import(pathToFileURL(ioBundle).href);
+    rmSync(ioBundle, { force: true });
+    const s = io.getSocket();
+    s.fire('connect');
+    console.log = quiet;
+    const sent = (command) => s.emitted.filter((e) => e[0] === command).map((e) => e[1]);
+    const state = (val) => ({ val, ack: true, ts: Date.now() });
+
+    const got = [];
+    const onPattern = (st, id) => got.push(['pattern', id, st.val]);
+    const onMiddle = (st, id) => got.push(['middle', id, st.val]);
+    const onExact = (st, id) => got.push(['exact', id, st.val]);
+    const offP = io.subscribeStateDirect('a.0.x.*', onPattern);
+    const offP2 = io.subscribeStateDirect('a.0.x.*', onExact);
+    offP2();
+    const offM = io.subscribeStateDirect('hm-rpc.0.*.STATE', onMiddle);
+    const offE = io.subscribeStateDirect('a.0.x.one', onExact);
+    check('io patterns: the server is subscribed once per pattern', sent('subscribe'), [
+        'a.0.x.*',
+        'hm-rpc.0.*.STATE',
+        'a.0.x.one',
+    ]);
+    s.fire('stateChange', 'a.0.x.one', state(1));
+    s.fire('stateChange', 'a.0.x.two', state(2));
+    s.fire('stateChange', 'hm-rpc.0.ABC.1.STATE', state(3));
+    s.fire('stateChange', 'a.0.y', state(4));
+    check('io patterns: matching changes reach pattern and exact subscribers, with their ID', got, [
+        ['exact', 'a.0.x.one', 1],
+        ['pattern', 'a.0.x.one', 1],
+        ['pattern', 'a.0.x.two', 2],
+        ['middle', 'hm-rpc.0.ABC.1.STATE', 3],
+    ]);
+    check(
+        'io patterns: what a pattern delivered is cached; the exact ID stays maintained',
+        [io.getStateFromCache('a.0.x.two')?.val, io.isStateFresh('a.0.x.one')],
+        [2, true],
+    );
+
+    // a write is echoed to the pattern subscribers as well
+    got.length = 0;
+    io.setStateEchoed('a.0.x.three', 5);
+    await tick();
+    check('io patterns: the optimistic echo of a write reaches a pattern', got, [['pattern', 'a.0.x.three', 5]]);
+
+    // reconnect: patterns subscribed again, but never read as a state
+    s.emitted.length = 0;
+    got.length = 0;
+    console.log = () => {};
+    s.fire('disconnect');
+    serverValue = 9;
+    s.fire('reconnect');
+    console.log = quiet;
+    await new Promise((r) => setTimeout(r, 5));
+    check(
+        'io patterns: subscribed again after a reconnect',
+        sent('subscribe').filter((id) => id.includes('*')),
+        ['a.0.x.*', 'hm-rpc.0.*.STATE'],
+    );
+    check(
+        'io patterns: a pattern is not read as a state on reconnect',
+        sent('getState').filter((id) => id.includes('*')),
+        [],
+    );
+    check(
+        'io patterns: a cached state that changed while offline reaches its pattern',
+        got.filter((g) => g[1] === 'a.0.x.two'),
+        [['pattern', 'a.0.x.two', 9]],
+    );
+
+    // unsubscribing ends the pattern; the exact path keeps working without one
+    got.length = 0;
+    offP();
+    offM();
+    check('io patterns: unsubscribed after the last subscriber', sent('unsubscribe'), ['a.0.x.*', 'hm-rpc.0.*.STATE']);
+    s.fire('stateChange', 'a.0.x.one', state(6));
+    s.fire('stateChange', 'a.0.x.two', state(7));
+    check('io patterns: without patterns only the exact subscriber hears', got, [['exact', 'a.0.x.one', 6]]);
+    offE();
+}
+
 // ── settings ────────────────────────────────────────────────────────────────
 const manifest = {
     manifestVersion: 1,

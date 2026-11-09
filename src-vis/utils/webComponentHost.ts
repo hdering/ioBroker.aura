@@ -27,6 +27,7 @@ import {
     type WebComponentSocket,
     type WebComponentTheme,
 } from '@iobroker/web-components';
+import { isIdPattern } from './idPattern';
 
 /** A state as the socket delivers it */
 export interface HostState {
@@ -44,8 +45,11 @@ type ObjectHandler = (id: string, obj: unknown) => void;
 
 /** What the bridge needs from Aura's socket layer (hooks/useIoBroker), injected for tests */
 export interface HostSocketApi {
-    /** Subscribe one state; returns the unsubscribe function */
-    subscribeState(id: string, cb: (state: HostState) => void): () => void;
+    /**
+     * Subscribe one state or a pattern (`a.0.x.*`); returns the unsubscribe function. `cb` gets the
+     * state and, for a pattern, the ID of the state that changed
+     */
+    subscribeState(id: string, cb: (state: HostState, id?: string) => void): () => void;
     getState(id: string): Promise<HostState | null>;
     setState(id: string, val: unknown, ack: boolean): Promise<void>;
     getObject(id: string): Promise<unknown>;
@@ -87,9 +91,10 @@ export function createWebComponentSocket(api: HostSocketApi, systemLang: string)
             for (const one of ids(id)) {
                 const forId = stateSubs.get(one) ?? new Map<StateHandler, () => void>();
                 if (forId.has(cb)) continue;
+                // a pattern calls back with the ID of the state that changed, as socket-client does
                 forId.set(
                     cb,
-                    api.subscribeState(one, (state) => cb(one, state)),
+                    api.subscribeState(one, (state, stateId) => cb(stateId || one, state)),
                 );
                 stateSubs.set(one, forId);
             }
@@ -99,7 +104,8 @@ export function createWebComponentSocket(api: HostSocketApi, systemLang: string)
             for (const one of ids(id)) drop(stateSubs, one, cb);
         },
         getState(id: string) {
-            return api.getState(id);
+            // a pattern has no state of its own - asking the server would only cost a round trip
+            return isIdPattern(id) ? Promise.resolve(null) : api.getState(id);
         },
         async setState(id: string, val: unknown, ack?: boolean): Promise<void> {
             // A SettableState object ({ val, ack }) or the bare value, as in socket-client
@@ -111,7 +117,8 @@ export function createWebComponentSocket(api: HostSocketApi, systemLang: string)
             await api.setState(id, val, !!ack);
         },
         getObject(id: string) {
-            return api.getObject(id);
+            // the base class reads the object of every subscribed state ID, a pattern included
+            return isIdPattern(id) ? Promise.resolve(null) : api.getObject(id);
         },
         async subscribeObject(id: string | string[], cb: ObjectHandler): Promise<void> {
             for (const one of ids(id)) {
