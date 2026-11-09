@@ -606,8 +606,9 @@ export const WIDGET_OPTION_NOTES = {
                 'Tag der ioBroker-Web-Komponente (Custom Element, z. B. "iob-flow-diagram"). Nur Komponenten, die ein ' +
                 'installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt ' +
                 'das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte ' +
-                'selbst - es gibt kein dp-Feld. Bekannt und auch ohne Adapter wählbar: "iob-flow-diagram" ' +
-                '(Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter flow.0.diagrams).',
+                'selbst - es gibt kein dp-Feld (nur wcValueDp für einen Wert, den sie bearbeitet). Bekannt und auch ' +
+                'ohne Adapter wählbar: "iob-flow-diagram" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram ' +
+                '= Objekt-ID unter flow.0.diagrams).',
         },
         wcAdapter: {
             type: 'string',
@@ -623,6 +624,18 @@ export const WIDGET_OPTION_NOTES = {
                 'speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg. ' +
                 'Beim Fluss-Diagramm werden "title" und "fullView" ignoriert - dafür gelten Widget-Titel ' +
                 '(showTitle) und der Vollbild-Knopf des Rahmens.',
+        },
+        wcValueDp: {
+            type: 'string',
+            description:
+                'Optional: Datapoint-ID für den Wert, den die Komponente bearbeitet (Eigenschaft value / Ereignis ' +
+                'iob-change des Vertrags, z. B. ein Zeitplan, eine Liste, eine Farbe). Der State-Wert geht als value ' +
+                'an das Element - JSON-Text als Objekt/Array (bei common.type json/object/array jede JSON-Zeichenkette, ' +
+                'sonst nur Text mit JSON-Objekt/-Array); Zahlen und Booleans bleiben. Ändert der Nutzer den Wert in der ' +
+                'Komponente, schreibt Aura ihn in den Datapoint (ack=false; Objekte/Arrays als JSON-Text). Nur für ' +
+                'Komponenten, die im Manifest editsValue: true angeben - die übrigen lesen ihre Datenpunkte über ' +
+                'wcSettings und brauchen ihn nicht. Leer = kein Wert. Kein JSON-Pfad; im Bearbeitungsmodus und bei schreibgeschützten ' +
+                'States wird nichts geschrieben.',
         },
     },
     button: {
