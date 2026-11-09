@@ -124,6 +124,53 @@ function astroTimeStr(t: Extract<TimerTrigger, { kind: 'astro' }>, lat: number |
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+/** Rough astro times (minutes since 00:00) for sorting when no location is known. */
+const ASTRO_FALLBACK_MIN: Record<TimerAstroEvent, number> = {
+    dawn: 330,
+    sunrise: 360,
+    solarNoon: 720,
+    sunset: 1080,
+    dusk: 1110,
+};
+
+/**
+ * Sort key of an event: recurring triggers (time / astro) by time of day,
+ * then dated ones (once / range) by their start, in calendar order (#960).
+ */
+function eventSortKey(t: TimerTrigger, lat: number | null, lon: number | null): [number, string | number] {
+    switch (t.kind) {
+        case 'time':
+            return [0, t.hour * 60 + t.minute];
+        case 'astro': {
+            let base = ASTRO_FALLBACK_MIN[t.event] ?? 720;
+            if (lat != null && lon != null) {
+                const d = SunCalc.getTimes(new Date(), lat, lon)[ASTRO_SUNCALC_KEY[t.event]];
+                if (d instanceof Date && !isNaN(d.getTime())) base = d.getHours() * 60 + d.getMinutes();
+            }
+            return [0, base + t.offsetMin];
+        }
+        case 'once':
+            return [1, t.iso ?? ''];
+        case 'range':
+            return [1, t.fromIso ?? ''];
+        default:
+            return [2, 0];
+    }
+}
+
+/** Events ascending by time; equal times keep their order of entry. */
+export function sortEventsByTime(events: TimerEvent[], lat: number | null, lon: number | null): TimerEvent[] {
+    const keyed = events.map((ev, i) => ({ ev, i, k: eventSortKey(ev.trigger, lat, lon) }));
+    keyed.sort((a, b) => {
+        if (a.k[0] !== b.k[0]) return a.k[0] - b.k[0];
+        const x = a.k[1];
+        const y = b.k[1];
+        if (x !== y) return typeof x === 'number' && typeof y === 'number' ? x - y : String(x) < String(y) ? -1 : 1;
+        return a.i - b.i;
+    });
+    return keyed.map((k) => k.ev);
+}
+
 /**
  * Preview string for an event's trigger. For astro triggers, pass the resolved
  * wall-clock time (astroTimeStr) so the widget shows e.g. "06:45 ☀↑ +30m"
@@ -536,8 +583,12 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const isCompact = layout === 'compact';
     const isCustom = layout === 'custom';
     // Show every event — the list scrolls inside the widget rather than being
-    // truncated with a "+N weitere" note the user can't expand.
-    const visibleEvents = events;
+    // truncated with a "+N weitere" note the user can't expand. Sorted by time
+    // of day (#960); the stored order stays the order of entry.
+    const visibleEvents = useMemo(
+        () => sortEventsByTime(events, sys.latitude, sys.longitude),
+        [events, sys.latitude, sys.longitude],
+    );
 
     // In edit mode the widget is shown inside the admin editor for layout/styling
     // only — interaction is disabled so the admin can't accidentally toggle the
