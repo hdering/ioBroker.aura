@@ -3598,4 +3598,8 @@ export const en: Record<TranslationKey, string> = {
     'wc.missing': 'Component <{tag}> is not installed',
     'wc.missingAdapter': '{name}: adapter "{adapter}" is missing (version {version} or newer)',
     'wc.failed': 'Component <{tag}> could not be loaded: {error}',
+    'wc.noObjects': 'No objects found',
+    'wc.objectNotFound': '{id} (not found)',
+    'wc.pickDatapoint': 'Pick from ioBroker',
+    'wc.dialog': 'Dialog of the component',
 };

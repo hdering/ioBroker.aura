@@ -3629,6 +3629,10 @@ export const de = {
     'wc.missing': 'Komponente <{tag}> ist nicht installiert',
     'wc.missingAdapter': '{name}: Adapter „{adapter}“ fehlt (ab Version {version})',
     'wc.failed': 'Komponente <{tag}> lässt sich nicht laden: {error}',
+    'wc.noObjects': 'Keine Objekte gefunden',
+    'wc.objectNotFound': '{id} (nicht gefunden)',
+    'wc.pickDatapoint': 'Aus ioBroker wählen',
+    'wc.dialog': 'Dialog der Komponente',
 } as const;
 
 export type TranslationKey = keyof typeof de;
