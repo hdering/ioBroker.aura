@@ -12,6 +12,7 @@ import {
 } from '../../utils/webComponentHost';
 import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { DatapointPicker } from './DatapointPicker';
+import { WebComponentValueField } from './WebComponentValueField';
 
 interface Props {
     options: Record<string, unknown>;
@@ -514,6 +515,9 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                     </div>
                 )}
             </div>
+            {(component || !!o.wcValueDp) && (
+                <WebComponentValueField value={o.wcValueDp} onChange={(dp) => onChange({ wcValueDp: dp })} />
+            )}
 
             {component &&
                 getSettingsGroups(component.manifest).map((group) => (
