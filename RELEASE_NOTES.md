@@ -9,3 +9,5 @@
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - feat: Timer - switching times are listed in ascending order of time instead of order of entry (#960)
+- fix: Web components - a component that subscribes to datapoints with a wildcard (e.g. `assistant-satellite.0.*`) now gets their changes (#955)
+- feat: Web components - a component can watch every object of a pattern (e.g. events of the calendar adapter); a component that throws in its object callback no longer breaks the object updates of the others (#953)
