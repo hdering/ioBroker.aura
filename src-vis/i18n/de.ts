@@ -164,6 +164,15 @@ export const de = {
     'settings.frontend.layoutDrawerEntryStyleIconOnly': 'Nur Icon',
     'settings.frontend.layoutDrawerEntryStyleNameOnly': 'Nur Name',
     'settings.frontend.layoutDrawerEntryStyleBulletAndName': 'Aufzählungspunkt + Name',
+    'settings.frontend.layoutDrawerTabs': 'Tabs im Menü',
+    'settings.frontend.layoutDrawerTabsOff': 'Aus',
+    'settings.frontend.layoutDrawerTabsCollapsible': 'Aufklappbar',
+    'settings.frontend.layoutDrawerTabsExpanded': 'Immer offen',
+    'settings.frontend.layoutDrawerTabsHint':
+        'Zeigt die Tabs eines Bereichs als Unterpunkte – ein Tipp springt direkt auf den Tab. Ab zwei sichtbaren Tabs.',
+    'settings.frontend.layoutDrawerTabsBarReason':
+        'Nur im aufgeklappten Menü und in der Seitenleiste, nicht in der Leiste oben/unten.',
+    'settings.frontend.layoutDrawerTabsIconOnlyReason': 'Nicht bei der Darstellung „Nur Icon“.',
     'settings.frontend.layoutDrawerIndicatorStyle': 'Stil des ausgewählten Bereichs',
     'settings.frontend.layoutDrawerFontSize': 'Schriftgröße',
     'settings.frontend.layoutDrawerIconSize': 'Icon-Größe',
@@ -648,6 +657,9 @@ export const de = {
     'sections.hideMenuHere': 'Menü hier verbergen',
     'sections.hideMenuHereHint':
         'Bereichs-Menü ausblenden, wenn dieser Bereich geöffnet ist – z.B. für ein festgelegtes Tablet.',
+    'sections.drawerTabs': 'Tabs im Bereichs-Menü',
+    'sections.drawerTabsHint': 'Abweichend vom Layout festlegen, ob die Tabs dieses Bereichs im Menü erscheinen.',
+    'sections.drawerTabsInherit': 'Wie Layout',
     // ── PIN protection (sections / tabs) ────────────────────────────────────────
     'pin.field': 'PIN',
     'pin.hint': 'Ohne PIN frei sichtbar. Mit PIN erscheint der Inhalt erst nach der Eingabe.',
@@ -842,6 +854,8 @@ export const de = {
     // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
     'layoutDrawer.title': 'Bereiche',
     'layoutDrawer.open': 'Bereichs-Menü öffnen',
+    'layoutDrawer.expandTabs': 'Tabs anzeigen',
+    'layoutDrawer.collapseTabs': 'Tabs ausblenden',
 
     // ── Endpoints ─────────────────────────────────────────────────────────────────
     'endpoints.title': 'Endpunkte & Gruppen',

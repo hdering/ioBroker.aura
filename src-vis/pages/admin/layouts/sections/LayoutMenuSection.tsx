@@ -10,6 +10,7 @@ import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
 import { makeMenuItem, sectionMenuItemHost } from '../../../../utils/menuItems';
 import { MenuItemFields, menuItemTypeLabelKey } from '../shared/MenuItemFields';
 import { TitleActionField } from '../shared/TitleActionField';
+import { Unavailable } from '../../../../components/config/Unavailable';
 
 // layoutDrawer* keys reset together by the per-scope "reset" button.
 const DRAWER_KEYS: (keyof LayoutSettings)[] = [
@@ -33,6 +34,7 @@ const DRAWER_KEYS: (keyof LayoutSettings)[] = [
     'layoutDrawerIndicatorStyle',
     'layoutDrawerFontSize',
     'layoutDrawerIconSize',
+    'layoutDrawerTabs',
     'layoutDrawerBarAlignment',
     'layoutDrawerHideMobileScrollbar',
     'layoutDrawerItems',
@@ -259,6 +261,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         layoutDrawerIndicatorStyle: eff('layoutDrawerIndicatorStyle')[0],
         layoutDrawerFontSize: eff('layoutDrawerFontSize')[0],
         layoutDrawerIconSize: eff('layoutDrawerIconSize')[0],
+        layoutDrawerTabs: eff('layoutDrawerTabs')[0],
         layoutDrawerBarAlignment: eff('layoutDrawerBarAlignment')[0],
         layoutDrawerHideMobileScrollbar: eff('layoutDrawerHideMobileScrollbar')[0],
         layoutDrawerItems: eff('layoutDrawerItems')[0],
@@ -277,6 +280,20 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
             />
         ),
     });
+
+    // Tab sub-entries (#951) live in the stacked menu only: greyed out with icon-only
+    // entries, or when every screen size shows the menu as a horizontal bar.
+    const isBar = (p?: string) => p === 'top' || p === 'bottom';
+    const desktopPl = frontend.layoutDrawerPlacement ?? 'floating';
+    const narrowPl = (p?: string) => (!p || p === 'auto' ? desktopPl : p);
+    const drawerTabsReason =
+        (frontend.layoutDrawerEntryStyle ?? 'iconAndName') === 'iconOnly'
+            ? t('settings.frontend.layoutDrawerTabsIconOnlyReason')
+            : isBar(desktopPl) &&
+                isBar(narrowPl(frontend.layoutDrawerMobilePlacement)) &&
+                isBar(narrowPl(frontend.layoutDrawerTabletPlacement))
+              ? t('settings.frontend.layoutDrawerTabsBarReason')
+              : undefined;
 
     const items = frontend.layoutDrawerItems ?? [];
     const itemHost = sectionMenuItemHost(frontend.layoutDrawerPlacement, frontend.layoutDrawerWidth);
@@ -813,6 +830,41 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                             })}
                         </div>
                     </OverrideField>
+                    <Unavailable reason={drawerTabsReason}>
+                        <OverrideField {...mark('layoutDrawerTabs', 'settings.frontend.layoutDrawerTabs')}>
+                            <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                                {t('settings.frontend.layoutDrawerTabs')}
+                            </p>
+                            <div className="flex gap-1.5 flex-wrap" data-testid="drawer-tabs-mode">
+                                {(['off', 'collapsible', 'expanded'] as const).map((v) => {
+                                    const labels = {
+                                        off: t('settings.frontend.layoutDrawerTabsOff'),
+                                        collapsible: t('settings.frontend.layoutDrawerTabsCollapsible'),
+                                        expanded: t('settings.frontend.layoutDrawerTabsExpanded'),
+                                    };
+                                    const active = (frontend.layoutDrawerTabs ?? 'off') === v;
+                                    return (
+                                        <button
+                                            key={v}
+                                            data-value={v}
+                                            onClick={() => updateFrontend({ layoutDrawerTabs: v })}
+                                            className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {labels[v]}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-xs mt-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('settings.frontend.layoutDrawerTabsHint')}
+                            </p>
+                        </OverrideField>
+                    </Unavailable>
                     <OverrideField
                         {...mark('layoutDrawerIndicatorStyle', 'settings.frontend.layoutDrawerIndicatorStyle')}
                     >

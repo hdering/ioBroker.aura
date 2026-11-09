@@ -1469,6 +1469,7 @@ export default function App() {
     const drawerIndicatorStyle = effectiveSettings.layoutDrawerIndicatorStyle ?? 'filled';
     const drawerFontSize = effectiveSettings.layoutDrawerFontSize ?? 14;
     const drawerIconSize = effectiveSettings.layoutDrawerIconSize ?? 16;
+    const drawerTabsMode = effectiveSettings.layoutDrawerTabs ?? 'off';
     const drawerItems = effectiveSettings.layoutDrawerItems ?? [];
 
     // Click on the header / menu title (#922). Undefined keeps the title a plain label.
@@ -1522,6 +1523,8 @@ export default function App() {
                     <LayoutDrawer
                         activeLayoutId={layout?.id}
                         activeSectionId={section?.id}
+                        activeTabId={activeTabId}
+                        tabsMode={drawerTabsMode}
                         size={drawerSize}
                         iconOnly
                         showTitle={drawerShowTitle}
@@ -1547,6 +1550,8 @@ export default function App() {
         <LayoutDrawer
             activeLayoutId={layout?.id}
             activeSectionId={section?.id}
+            activeTabId={activeTabId}
+            tabsMode={drawerTabsMode}
             variant="bar"
             barPosition={drawerBarBottom ? 'bottom' : 'top'}
             barAlignment={effectiveSettings.layoutDrawerBarAlignment ?? 'left'}
@@ -1607,6 +1612,8 @@ export default function App() {
                 <LayoutDrawer
                     activeLayoutId={layout?.id}
                     activeSectionId={section?.id}
+                    activeTabId={activeTabId}
+                    tabsMode={drawerTabsMode}
                     floating
                     size={drawerSize}
                     autoHide={drawerAutoHide}
@@ -1628,6 +1635,8 @@ export default function App() {
                     <LayoutDrawer
                         activeLayoutId={layout?.id}
                         activeSectionId={section?.id}
+                        activeTabId={activeTabId}
+                        tabsMode={drawerTabsMode}
                         variant="sidebar"
                         width={drawerWidth}
                         topOffset={effectiveSettings.layoutDrawerTopOffset ?? 0}
@@ -1656,6 +1665,8 @@ export default function App() {
                                     <LayoutDrawer
                                         activeLayoutId={layout?.id}
                                         activeSectionId={section?.id}
+                                        activeTabId={activeTabId}
+                                        tabsMode={drawerTabsMode}
                                         size={drawerSize}
                                         showTitle={drawerShowTitle}
                                         drawerTitle={drawerTitle}

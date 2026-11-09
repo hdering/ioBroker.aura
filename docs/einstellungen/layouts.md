@@ -30,7 +30,7 @@ Links der Baum aus Layouts und ihren Bereichen, rechts das gewählte Element. Di
 | Im Editor öffnen   | Bereich im [Dashboard-Editor](./editor)                                                 |
 | ⋯                  | Duplizieren, in anderes Layout verschieben/kopieren, Exportieren, Löschen               |
 | Allgemein          | Name, URL-Slug (`/s/…`), Icon, [Hintergrundbild](./editor#hintergrundbild)               |
-| Sichtbarkeit       | Layout-Standard, aus Menü ausblenden, Menü in diesem Bereich verbergen                  |
+| Sichtbarkeit       | Layout-Standard, aus Menü ausblenden, Menü in diesem Bereich verbergen, [Tabs im Bereichs-Menü](#tabs-im-bereichs-menu) abweichend vom Layout |
 | Tabs               | Reihenfolge = Tab-Leiste; Standard-Tab (Radio), Auge = aus Tab-Leiste ausblenden, Editor |
 | Tab suchen         | Filtert die Liste nach Name oder Slug                                                   |
 | Neuer Tab          | Legt einen leeren Tab im Bereich an                                                      |
@@ -179,6 +179,20 @@ Darstellung der Tab-Leiste im Frontend.
 Die Leiste erscheint erst ab zwei sichtbaren Tabs. Ausgeblendete und deaktivierte Tabs zählen nicht mit — ein Bereich mit zwei Tabs, von denen einer ausgeblendet ist, zeigt keine Leiste. Ausnahmen: **Leiste schon ab einem Tab anzeigen** oder ein Menü-Element in der Leiste.
 
 **Tableiste im Frontend ausblenden** schaltet die Leiste ganz ab — auch bei mehreren Tabs, Menü-Elementen oder „ab einem Tab anzeigen“. Die Tabs bleiben über ihre Adresse (`…/tab/<slug>`) erreichbar, etwa per Navigations-Widget. Ein Bereichs-Menü, das in der Tab-Leiste säße, wandert in den Header bzw. auf den schwebenden Knopf. Global, je Layout oder je Bereich einstellbar; im Editor bleibt die Leiste sichtbar.
+
+## Tabs im Bereichs-Menü
+
+Bereichs-Menü → **Tabs im Menü**: die Tabs eines Bereichs als Unterpunkte, ein Tipp springt direkt auf den Tab.
+
+| Wert / Fall      |                                                                                       |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| `Aus`            | Nur Bereiche (Standard)                                                               |
+| `Aufklappbar`    | Pfeil neben dem Bereich klappt auf/zu; der aktive Bereich ist offen. Klick auf den Namen öffnet den Standard-Tab |
+| `Immer offen`    | Alle Bereiche zeigen ihre Tabs                                                        |
+| Je Bereich       | Layouts → Bereich → Sichtbarkeit → **Tabs im Bereichs-Menü** (`Wie Layout` = erben)  |
+| Angezeigt ab     | zwei sichtbaren Tabs; ausgeblendete und per Bedingung verborgene Tabs fehlen          |
+| PIN              | Gesperrter Bereich lässt sich aufklappen, der Tab fragt beim Öffnen nach der PIN     |
+| Wirkt nicht      | In der Bereichsleiste oben/unten und bei der Darstellung „Nur Icon“                  |
 
 ## Menü-Elemente
 

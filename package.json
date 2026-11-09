@@ -422,6 +422,7 @@
     "test:menu-items": "node tools/tests/menu-items.mjs",
     "test:menu-widget-size": "node tools/tests/menu-widget-size.mjs",
     "test:menu-widget-host-width": "node tools/tests/menu-widget-host-width.mjs",
+    "test:drawer-tabs": "node tools/tests/drawer-tabs.mjs",
     "test:section-menu-item-align": "node tools/tests/section-menu-item-align.mjs",
     "test:section-conditions": "node tools/tests/section-conditions.mjs",
     "test:swipe-nav": "node tools/tests/swipe-nav.mjs",

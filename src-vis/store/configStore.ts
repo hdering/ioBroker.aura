@@ -125,6 +125,8 @@ export interface FrontendSettings {
     layoutDrawerFontSize: number;
     /** Entry icon size in px. */
     layoutDrawerIconSize: number;
+    /** Tabs of each section as sub-entries in the stacked menu (#951): off, foldable per section, always open. */
+    layoutDrawerTabs: 'off' | 'collapsible' | 'expanded';
     /** Horizontal-bar placement (top/bottom): alignment of the section entries in the bar. */
     layoutDrawerBarAlignment: 'left' | 'center' | 'right' | 'stretch';
     /** Horizontal-bar placement (top/bottom): hide the custom scroll indicator on mobile. */
@@ -272,6 +274,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerIndicatorStyle: 'filled',
     layoutDrawerFontSize: 14,
     layoutDrawerIconSize: 16,
+    layoutDrawerTabs: 'off',
     layoutDrawerBarAlignment: 'left',
     layoutDrawerHideMobileScrollbar: false,
     layoutDrawerItems: [],

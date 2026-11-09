@@ -95,6 +95,7 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
         'layoutDrawerIndicatorStyle',
         'layoutDrawerFontSize',
         'layoutDrawerIconSize',
+        'layoutDrawerTabs',
         'layoutDrawerBarAlignment',
         'layoutDrawerHideMobileScrollbar',
         'layoutDrawerItems',

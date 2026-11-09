@@ -228,6 +228,9 @@ export interface LayoutSettings {
     layoutDrawerIndicatorStyle?: 'text' | 'underline' | 'filled' | 'pills';
     layoutDrawerFontSize?: number;
     layoutDrawerIconSize?: number;
+    // Tabs as sub-entries in the stacked section menu (#951). Layout-wide; a section
+    // may set its own value in section.settings, read per entry by the menu itself.
+    layoutDrawerTabs?: 'off' | 'collapsible' | 'expanded';
     // Horizontal-bar placement only (top/bottom): where the section entries sit and
     // whether the mobile scroll indicator is hidden — mirrors the tab bar.
     layoutDrawerBarAlignment?: 'left' | 'center' | 'right' | 'stretch';

@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard, Lock } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Lock, ChevronRight } from 'lucide-react';
 import { useDashboardStore } from '../../store/dashboardStore';
-import type { Section, LayoutMenuItem } from '../../store/dashboardStore';
+import type { Section, Tab, LayoutMenuItem, DashboardLayout } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { ScrollRow } from './ScrollRow';
 import { MenuItemView } from './MenuItemView';
 import { useT } from '../../i18n';
-import { hasPin, showsPinLock, sectionPinKey } from '../../utils/pinLock';
+import { hasPin, showsPinLock, sectionPinKey, tabPinKey, pendingPinTarget } from '../../utils/pinLock';
+import { findLinkSource } from '../../utils/tabLink';
 import { usePinStore } from '../../store/pinStore';
 import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks/useBadges';
 import { Badge } from '../common/Badge';
@@ -26,6 +27,13 @@ interface LayoutDrawerProps {
     activeLayoutId?: string;
     /** Currently active section id — the menu lists the sections of the active layout. */
     activeSectionId?: string;
+    /** Currently active tab id (of the active section) — marks the tab sub-entry (#951). */
+    activeTabId?: string;
+    /**
+     * Tabs as sub-entries under each section in the stacked menu (#951). A section's own
+     * `settings.layoutDrawerTabs` wins. Ignored by the horizontal bar and with icon-only entries.
+     */
+    tabsMode?: 'off' | 'collapsible' | 'expanded';
     /** When true the trigger renders as a fixed floating button (used when header is hidden). */
     floating?: boolean;
     /** Hamburger size — controls icon and button dimensions. */
@@ -252,6 +260,124 @@ function SectionBadges({ section, overlay = false }: { section: Section; overlay
     );
 }
 
+// ── Tab sub-entries (#951) ──────────────────────────────────────────────────────
+
+/** Own badges + aggregate count of a tab, inline at the trailing edge like a section's. */
+function DrawerTabBadges({ tab }: { tab: Tab }) {
+    const own = useBadges(tab.badges);
+    const aggEnabled = tab.badgeAggregate?.enabled ?? false;
+    const agg = useTabBadgeAggregate(aggEnabled ? tab.widgets : undefined, tab.badgeAggregate?.mode);
+    const badges: ResolvedBadge[] = [...own];
+    if (aggEnabled && agg.value !== 0) {
+        badges.push({
+            id: `__agg_${tab.id}`,
+            style: 'count',
+            corner: (tab.badgeAggregate?.corner as BadgeCorner) ?? 'top-right',
+            color: tab.badgeAggregate?.color,
+            size: (tab.badgeAggregate?.size as BadgeSize) ?? 'sm',
+            text: agg.text,
+        });
+    }
+    if (!badges.length) return null;
+    return (
+        <span className="ml-auto shrink-0 flex items-center gap-1">
+            {badges.map((b) => (
+                <Badge key={b.id} style={b.style} size={b.size} color={b.color} text={b.text} icon={b.icon} />
+            ))}
+        </span>
+    );
+}
+
+/**
+ * Padlock on a tab sub-entry: the tab's own PIN, or for a linked tab its original's
+ * (mirrors the tab bar). Inside a locked section the section's padlock already says
+ * it, the tab stubs there carry no PIN of their own.
+ */
+function drawerTabLocked(
+    layouts: DashboardLayout[],
+    section: Section,
+    tab: Tab,
+    unlocked: Record<string, unknown>,
+): boolean {
+    const src = tab.link ? findLinkSource(layouts, tab.link) : undefined;
+    if (src) {
+        const gate = hasPin(src.section) ? src.section : hasPin(src.tab) ? src.tab : null;
+        return !!gate && showsPinLock(gate) && !!pendingPinTarget(src.section, src.tab, (k) => k in unlocked);
+    }
+    return hasPin(tab) && showsPinLock(tab) && !(tabPinKey(section.id, tab.id) in unlocked);
+}
+
+function DrawerTabEntry({
+    tab,
+    isActive,
+    locked,
+    onSelect,
+    indicatorStyle,
+    fontSize,
+    iconSize,
+    height,
+    showIcon,
+}: {
+    tab: Tab;
+    isActive: boolean;
+    locked: boolean;
+    onSelect: () => void;
+    indicatorStyle: NonNullable<LayoutDrawerProps['indicatorStyle']>;
+    fontSize: number;
+    iconSize: number;
+    height: number;
+    showIcon: boolean;
+}) {
+    const cond = useTabConditionStyle(tab.conditions);
+    if (cond.hidden) return null;
+    const condIcon = conditionIconColor(isActive, indicatorStyle, cond);
+    return (
+        <button
+            type="button"
+            data-aura-drawer-tab={tab.id}
+            aria-current={isActive ? 'page' : undefined}
+            aria-disabled={cond.disabled || undefined}
+            onClick={() => {
+                if (!cond.disabled) onSelect();
+            }}
+            className={`aura-drawer-tab relative w-full flex items-center gap-2 px-3 py-1 transition-colors hover:opacity-90 text-left ${conditionEntryClass(cond)}`}
+            style={{
+                minHeight: height,
+                ...conditionEntryStyle(
+                    entryActiveStyle(isActive, indicatorStyle),
+                    isActive,
+                    indicatorStyle,
+                    'borderLeft',
+                    cond,
+                ),
+            }}
+        >
+            {showIcon && tab.icon && (
+                <span
+                    data-aura-nav-icon="tab"
+                    className="shrink-0 inline-flex items-center justify-center"
+                    style={{
+                        color:
+                            condIcon ??
+                            (isActive && indicatorStyle === 'pills'
+                                ? 'currentColor'
+                                : navIcon(isActive, isActive ? NAV_ACTIVE : navText())),
+                    }}
+                >
+                    <AuraIcon icon={tab.icon} width={iconSize} height={iconSize} />
+                </span>
+            )}
+            <span className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`} style={{ fontSize }}>
+                {tab.name}
+            </span>
+            {locked && (
+                <Lock data-aura-pin-lock="tab" size={Math.round(fontSize * 0.85)} className="shrink-0 opacity-70" />
+            )}
+            <DrawerTabBadges tab={tab} />
+        </button>
+    );
+}
+
 function LayoutMenuItemView({ item, compact = false }: { item: LayoutMenuItem; compact?: boolean }) {
     return <MenuItemView item={item} variant={compact ? 'bar' : 'block'} />;
 }
@@ -269,6 +395,8 @@ const SIZE_MAP: Record<
 export function LayoutDrawer({
     activeLayoutId,
     activeSectionId,
+    activeTabId,
+    tabsMode = 'off',
     floating = false,
     size = 'md',
     autoHide = false,
@@ -403,6 +531,19 @@ export function LayoutDrawer({
         // The menu only shows with >1 section, so always encode the section segment.
         navigate(`/view/${activeLayout.slug}/s/${section.slug}`);
     };
+    const goToTab = (section: Section, tab: Tab) => {
+        setOpen(false);
+        if (!activeLayout) return;
+        navigate(`/view/${activeLayout.slug}/s/${section.slug}/tab/${tab.slug || tab.id}`);
+    };
+
+    // Tab sub-entries (#951). Folded state per section only once the viewer toggled it;
+    // until then the active section is the open one.
+    const [folds, setFolds] = useState<Record<string, boolean>>({});
+    const tabsModeOf = (section: Section) =>
+        entryStyle === 'iconOnly' ? 'off' : (section.settings?.layoutDrawerTabs ?? tabsMode);
+    const subTabsOf = (section: Section): Tab[] =>
+        tabsModeOf(section) === 'off' ? [] : section.tabs.filter((tb) => !tb.hidden);
 
     const showIcon = entryStyle === 'iconAndName' || entryStyle === 'iconOnly';
     const showName = entryStyle !== 'iconOnly';
@@ -423,7 +564,16 @@ export function LayoutDrawer({
                         const isActive = section.id === activeSection?.id;
                         if (cond.hidden) return null;
                         const condIcon = conditionIconColor(isActive, indicatorStyle, cond);
-                        return (
+                        // Tab sub-entries (#951): only worth it from two visible tabs on.
+                        const subTabs = subTabsOf(section);
+                        const hasSubTabs = subTabs.length > 1;
+                        const foldable = hasSubTabs && tabsModeOf(section) === 'collapsible';
+                        const expanded =
+                            hasSubTabs && (!foldable || (folds[section.id] ?? section.id === activeSection?.id));
+                        // With its tabs open below, the active section only colours its text —
+                        // the full indicator moves to the active tab, not twice in a row.
+                        const sectionIndicator = isActive && expanded ? 'text' : indicatorStyle;
+                        const sectionButton = (
                             <button
                                 onClick={() => {
                                     if (!cond.disabled) goToSection(section);
@@ -433,10 +583,11 @@ export function LayoutDrawer({
                                 className={`relative w-full flex items-center gap-3 px-3 py-1.5 transition-colors hover:opacity-90 text-left ${entryStyle === 'iconOnly' ? 'justify-center' : ''} ${conditionEntryClass(cond)}`}
                                 style={{
                                     minHeight: entryHeight,
+                                    ...(foldable ? { paddingRight: 40 } : null),
                                     ...conditionEntryStyle(
-                                        entryActiveStyle(isActive, indicatorStyle),
+                                        entryActiveStyle(isActive, sectionIndicator),
                                         isActive,
-                                        indicatorStyle,
+                                        sectionIndicator,
                                         'borderLeft',
                                         cond,
                                     ),
@@ -493,6 +644,65 @@ export function LayoutDrawer({
                                 )}
                                 <SectionBadges section={section} />
                             </button>
+                        );
+                        if (!hasSubTabs) return sectionButton;
+                        const tabIndent = showIcon ? iconBox + 12 : showBullet ? 19 : 12;
+                        return (
+                            <div className="aura-drawer-section relative" data-aura-drawer-section={section.id}>
+                                {sectionButton}
+                                {foldable && (
+                                    <button
+                                        type="button"
+                                        data-aura-drawer-fold={section.id}
+                                        aria-expanded={expanded}
+                                        aria-label={t(
+                                            expanded ? 'layoutDrawer.collapseTabs' : 'layoutDrawer.expandTabs',
+                                        )}
+                                        title={t(expanded ? 'layoutDrawer.collapseTabs' : 'layoutDrawer.expandTabs')}
+                                        onClick={() => setFolds((f) => ({ ...f, [section.id]: !expanded }))}
+                                        className="absolute right-1.5 w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-70"
+                                        style={{
+                                            top: entryHeight / 2,
+                                            transform: 'translateY(-50%)',
+                                            color: navText('var(--text-secondary)'),
+                                        }}
+                                    >
+                                        <ChevronRight
+                                            size={Math.max(14, Math.round(fontSize * 1.05))}
+                                            style={{
+                                                transform: expanded ? 'rotate(90deg)' : undefined,
+                                                transition: 'transform 150ms ease',
+                                            }}
+                                        />
+                                    </button>
+                                )}
+                                {expanded && (
+                                    <div
+                                        className="aura-drawer-tabs flex flex-col gap-0.5 py-0.5"
+                                        style={{ marginLeft: tabIndent }}
+                                    >
+                                        {subTabs.map((tab) => (
+                                            <DrawerTabEntry
+                                                key={tab.id}
+                                                tab={tab}
+                                                isActive={isActive && tab.id === activeTabId}
+                                                locked={
+                                                    !sectionLocked(section) &&
+                                                    drawerTabLocked(layouts, section, tab, unlockedPins)
+                                                }
+                                                onSelect={() => {
+                                                    if (!cond.disabled) goToTab(section, tab);
+                                                }}
+                                                indicatorStyle={indicatorStyle}
+                                                fontSize={Math.max(10, fontSize - 1)}
+                                                iconSize={Math.max(12, iconSize - 2)}
+                                                height={Math.max(28, Math.round(entryHeight * 0.75))}
+                                                showIcon={showIcon}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         );
                     }}
                 </SectionConditionWrapper>

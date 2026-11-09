@@ -165,6 +165,15 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerEntryStyleIconOnly': 'Icon only',
     'settings.frontend.layoutDrawerEntryStyleNameOnly': 'Name only',
     'settings.frontend.layoutDrawerEntryStyleBulletAndName': 'Bullet + name',
+    'settings.frontend.layoutDrawerTabs': 'Tabs in the menu',
+    'settings.frontend.layoutDrawerTabsOff': 'Off',
+    'settings.frontend.layoutDrawerTabsCollapsible': 'Collapsible',
+    'settings.frontend.layoutDrawerTabsExpanded': 'Always open',
+    'settings.frontend.layoutDrawerTabsHint':
+        "Lists a section's tabs as sub-entries – a tap jumps straight to the tab. From two visible tabs on.",
+    'settings.frontend.layoutDrawerTabsBarReason':
+        'Only in the slide-in menu and the sidebar, not in the top/bottom bar.',
+    'settings.frontend.layoutDrawerTabsIconOnlyReason': 'Not with the "Icon only" entry style.',
     'settings.frontend.layoutDrawerIndicatorStyle': 'Selected style',
     'settings.frontend.layoutDrawerFontSize': 'Font size',
     'settings.frontend.layoutDrawerIconSize': 'Icon size',
@@ -643,6 +652,9 @@ export const en: Record<TranslationKey, string> = {
     'sections.hideFromMenuHint': 'Remove this section from the left-hand menu. Still reachable via its direct URL.',
     'sections.hideMenuHere': 'Hide menu here',
     'sections.hideMenuHereHint': 'Hide the section menu while this section is open – e.g. for a fixed tablet.',
+    'sections.drawerTabs': 'Tabs in the section menu',
+    'sections.drawerTabsHint': "Override the layout: whether this section's tabs appear in the menu.",
+    'sections.drawerTabsInherit': 'Like layout',
     // ── PIN protection (sections / tabs) ────────────────────────────────────────
     'pin.field': 'PIN',
     'pin.hint': 'Without a PIN the view is open. With one, the content only appears once it was entered.',
@@ -836,6 +848,8 @@ export const en: Record<TranslationKey, string> = {
     // ── Layout drawer (Hamburger) ─────────────────────────────────────────────────
     'layoutDrawer.title': 'Sections',
     'layoutDrawer.open': 'Open section menu',
+    'layoutDrawer.expandTabs': 'Show tabs',
+    'layoutDrawer.collapseTabs': 'Hide tabs',
 
     // ── Endpoints ─────────────────────────────────────────────────────────────────
     'endpoints.title': 'Endpoints & Groups',

@@ -418,6 +418,28 @@ export function SectionDetail({ layout, section, isFirstLayout, onSelect }: Sect
                             }
                         />
                     </SettingRow>
+                    <SettingRow label={t('sections.drawerTabs')} hint={t('sections.drawerTabsHint')}>
+                        <select
+                            data-testid="section-drawer-tabs"
+                            value={section.settings?.layoutDrawerTabs ?? ''}
+                            onChange={(e) => {
+                                const v = e.target.value as '' | 'off' | 'collapsible' | 'expanded';
+                                if (v) updateSectionSettings(layout.id, section.id, { layoutDrawerTabs: v });
+                                else clearSectionSettings(layout.id, section.id, 'layoutDrawerTabs');
+                            }}
+                            className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <option value="">{t('sections.drawerTabsInherit')}</option>
+                            <option value="off">{t('settings.frontend.layoutDrawerTabsOff')}</option>
+                            <option value="collapsible">{t('settings.frontend.layoutDrawerTabsCollapsible')}</option>
+                            <option value="expanded">{t('settings.frontend.layoutDrawerTabsExpanded')}</option>
+                        </select>
+                    </SettingRow>
                 </Card>
             </div>
 

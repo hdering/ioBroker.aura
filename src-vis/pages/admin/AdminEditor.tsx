@@ -2159,6 +2159,7 @@ export function AdminEditor() {
                                 indicatorStyle={editorSettings.layoutDrawerIndicatorStyle ?? 'filled'}
                                 fontSize={editorSettings.layoutDrawerFontSize ?? 14}
                                 iconSize={editorSettings.layoutDrawerIconSize ?? 16}
+                                tabsMode={editorSettings.layoutDrawerTabs ?? 'off'}
                                 items={editorSettings.layoutDrawerItems ?? []}
                             />
                         </div>
