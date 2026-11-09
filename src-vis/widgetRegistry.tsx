@@ -78,7 +78,7 @@ export type AddMode =
     | 'free' // no datapoint / special config (clock, header, …)
     | 'wizard-only'; // not offered in the widget type switcher / panels list (calendar)
 
-export type WidgetGroup = 'control' | 'special' | 'layout';
+export type WidgetGroup = 'control' | 'special' | 'layout' | 'webcomponent';
 
 export interface WidgetMeta {
     type: WidgetType;
@@ -126,6 +126,8 @@ export const WIDGET_GROUPS: { id: WidgetGroup; label: string }[] = [
     { id: 'control', label: 'Steuerung & Anzeige' },
     { id: 'special', label: 'Spezial' },
     { id: 'layout', label: 'Layout' },
+    // One widget type that shows building blocks of adapters - set apart on purpose
+    { id: 'webcomponent', label: 'Web-Komponenten (aus Adaptern)' },
 ];
 
 export const WIDGET_REGISTRY: WidgetMeta[] = [
@@ -625,9 +627,9 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         defaultW: 10,
         defaultH: 6,
         addMode: 'free',
-        widgetGroup: 'special',
+        widgetGroup: 'webcomponent',
         mock: { t: 'Komponente', v: '' },
-        hint: 'Web-Komponente eines installierten Adapters (z. B. flow) einbetten',
+        hint: 'Baustein, den ein Adapter mitbringt (z. B. flow) – Inhalt und Verhalten kommen vom Adapter',
     },
     {
         type: 'datepicker',

@@ -11,17 +11,32 @@ Bearbeitungsmodus.
 
 ## Hinzufügen
 
-Jede Komponente eines installierten Adapters steht im Dialog **Neues Widget** als eigenes
-Widget unter **Weitere Widgets** — mit ihrem Namen und Bild, z. B. **Fluss-Diagramm**. Die
-Suche findet sie auch über den Adapter-Namen (`flow`) oder „Web-Komponente“. Ein neues Widget
-bekommt die Größe, die die Komponente für sich angibt.
+„Web-Komponente“ ist **ein** Widget-Typ. Im Dialog **Neues Widget** steht er in einer eigenen,
+farbig abgesetzten Gruppe **Web-Komponenten** (auch als Rubrik oben wählbar) — mit einem Eintrag
+je Komponente:
+
+![Gruppe Web-Komponenten im Dialog Neues Widget](assets/web-komponente/gruppe.png)
+
+| Eintrag | Bedeutung |
+| --- | --- |
+| Name + Adapter (z. B. **Kalender** · `fullcalendar`) | Komponente eines installierten Adapters, mit Aura getestet |
+| … · **nicht getestet** | automatisch aufgenommen, noch nicht mit Aura geprüft — funktioniert meist, ohne Gewähr |
+| … · **Adapter fehlt** (ausgegraut) | bekannte Komponente, Adapter nicht installiert oder zu alt — lässt sich trotzdem platzieren |
+| **Andere Web-Komponente …** | der Typ ohne Vorauswahl, die Komponente wird in den Einstellungen gewählt |
+
+Mit Aura getestet (auch ohne Adapter im Dialog): **Fluss-Diagramm** (`flow` ab 0.2.0),
+**Kalender** (`fullcalendar` ab 3.4.1). Die Suche findet Komponenten auch über den Adapter-Namen
+oder „Web-Komponente“. Ein neues Widget bekommt die Größe, die die Komponente für sich angibt.
+
+Im Dialog **Widget bearbeiten** steht der Typ in der Liste unter **Web-Komponenten (aus
+Adaptern)**; darunter zeigt eine Karte Komponente, Adapter und Version.
+
+![Typ Web-Komponente mit Info-Karte](assets/web-komponente/bearbeiten.png)
 
 Angeboten wird, was ein Adapter in seiner `io-package.json` unter `common.webComponents`
-anmeldet. Das **Fluss-Diagramm** steht auch ohne den Adapter `flow` im Dialog: Das Widget lässt
-sich schon platzieren, seine Einstellungen sagen, welcher Adapter (ab welcher Version) fehlt. Nach der
-Installation oder einem Update eines Adapters die Seite neu laden — oder in den Einstellungen
-eines Komponenten-Widgets mit **↻** neben der Auswahl **Komponente** neu einlesen. Dort lässt sich
-auch auf eine andere Komponente umstellen.
+anmeldet. Nach der Installation oder einem Update eines Adapters die Seite neu laden — oder in den
+Einstellungen mit **↻** neben der Auswahl **Komponente** neu einlesen. Dort lässt sich auch auf eine
+andere Komponente umstellen.
 
 ## Einstellungen
 

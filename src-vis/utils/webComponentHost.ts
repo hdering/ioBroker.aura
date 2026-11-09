@@ -304,6 +304,10 @@ export interface WebComponentPickerEntry {
     size?: { width: number; height: number };
     /** A known component whose adapter is not installed (or too old) */
     missing?: boolean;
+    /** Not among the components tested with Aura (`KNOWN_WEB_COMPONENTS`) - offered, but marked */
+    untested?: boolean;
+    /** Version of the installed adapter */
+    version?: string;
 }
 
 /**
@@ -340,6 +344,19 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         // title = the widget's own title row; fullView = the fullscreen button under "Darstellung"
         hostSettings: ['title', 'fullView'],
     },
+    {
+        // tested live 2026-11-09: events of the instance, new and changed ones by object pattern (#953)
+        adapter: 'fullcalendar',
+        tag: 'iob-fullcalendar',
+        minVersion: '3.4.1',
+        name: { de: 'Kalender', en: 'Calendar' },
+        description: {
+            de: 'Die geplanten Ereignisse einer Instanz von fullcalendar als Monat, Woche, Tag oder Liste; Ereignisse lassen sich anlegen, verschieben und bearbeiten',
+            en: 'The planned events of an instance of fullcalendar as a month, week, day or list; events can be created, moved and edited',
+        },
+        size: { width: 520, height: 420 },
+        hostSettings: [],
+    },
 ];
 
 /** The known component of a widget: by tag, the adapter only as a tie-breaker */
@@ -347,6 +364,11 @@ export function findKnownWebComponent(tag: unknown, adapter?: unknown): KnownWeb
     if (typeof tag !== 'string' || !tag) return undefined;
     const withTag = KNOWN_WEB_COMPONENTS.filter((k) => k.tag === tag);
     return withTag.find((k) => k.adapter === adapter) ?? withTag[0];
+}
+
+/** Whether Aura has tested this component of this adapter (it is in `KNOWN_WEB_COMPONENTS`) */
+export function isTestedWebComponent(tag: unknown, adapter: unknown): boolean {
+    return KNOWN_WEB_COMPONENTS.some((k) => k.tag === tag && k.adapter === adapter);
 }
 
 /** Manifest settings of a component that Aura covers itself (see `hostSettings`) */
@@ -407,6 +429,8 @@ export function webComponentPickerEntries(components: LoadedWebComponent[], lang
             label: getText(c.manifest.name, language) || tag,
             hint: [description, from].filter(Boolean).join(' – '),
             iconUrl: resolveManifestUrl(c.manifest.icon, c.url),
+            untested: !isTestedWebComponent(tag, c.adapter),
+            version: typeof c.version === 'string' && c.version ? c.version : undefined,
             size:
                 size && Number(size.width) > 0 && Number(size.height) > 0
                     ? { width: Number(size.width), height: Number(size.height) }

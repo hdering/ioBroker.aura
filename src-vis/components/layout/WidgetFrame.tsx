@@ -299,7 +299,7 @@ import {
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlConfig } from '../config/HtmlConfig';
-import { WebComponentConfig, WebComponentTypeLabel } from '../config/WebComponentConfig';
+import { WebComponentConfig, WebComponentInfoCard, WebComponentTypeLabel } from '../config/WebComponentConfig';
 import { MapConfig } from '../config/MapConfig';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
@@ -9719,54 +9719,37 @@ function WidgetFrameInner({
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 {t('wf.edit.widgetType')}
                             </label>
-                            {(() => {
-                                // Sorted by the name shown - a web component widget shows its
-                                // component's name ("Fluss-Diagramm"), not "Web-Komponente"
-                                const typeSelect = (wcName?: string) => {
-                                    const label = (m: (typeof WIDGET_REGISTRY)[number]) =>
-                                        m.type === 'webcomponent' && wcName ? wcName : m.label;
-                                    return (
-                                        <select
-                                            value={config.type}
-                                            onChange={(e) =>
-                                                onConfigChange({
-                                                    ...config,
-                                                    type: e.target.value as WidgetConfig['type'],
-                                                })
-                                            }
-                                            className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-primary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                        >
-                                            {WIDGET_GROUPS.map((g) => (
-                                                <optgroup key={g.id} label={g.label}>
-                                                    {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && !m.hidden)
-                                                        .slice()
-                                                        .sort((a, b) => label(a).localeCompare(label(b), 'de'))
-                                                        .map((m) => (
-                                                            <option key={m.type} value={m.type}>
-                                                                {label(m)}
-                                                            </option>
-                                                        ))}
-                                                </optgroup>
+                            {/* "Web-Komponente" is one type in a group of its own; which component
+                                it shows is said by the card under the list, not by the type name. */}
+                            <select
+                                value={config.type}
+                                onChange={(e) =>
+                                    onConfigChange({
+                                        ...config,
+                                        type: e.target.value as WidgetConfig['type'],
+                                    })
+                                }
+                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                {WIDGET_GROUPS.map((g) => (
+                                    <optgroup key={g.id} label={g.label}>
+                                        {WIDGET_REGISTRY.filter((m) => m.widgetGroup === g.id && !m.hidden)
+                                            .slice()
+                                            .sort((a, b) => a.label.localeCompare(b.label, 'de'))
+                                            .map((m) => (
+                                                <option key={m.type} value={m.type}>
+                                                    {m.label}
+                                                </option>
                                             ))}
-                                        </select>
-                                    );
-                                };
-                                return config.type === 'webcomponent' ? (
-                                    <WebComponentTypeLabel
-                                        options={config.options ?? {}}
-                                        fallback={WIDGET_BY_TYPE.webcomponent.label}
-                                    >
-                                        {typeSelect}
-                                    </WebComponentTypeLabel>
-                                ) : (
-                                    typeSelect()
-                                );
-                            })()}
+                                    </optgroup>
+                                ))}
+                            </select>
+                            {config.type === 'webcomponent' && <WebComponentInfoCard options={config.options ?? {}} />}
                         </div>
 
                         {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
@@ -10942,11 +10925,14 @@ function WidgetFrameInner({
                                 style={{ color: 'var(--accent)' }}
                             >
                                 {config.type === 'webcomponent' ? (
-                                    // the component's own name, e.g. "Fluss-Diagramm"
-                                    <WebComponentTypeLabel
-                                        options={config.options ?? {}}
-                                        fallback={WIDGET_BY_TYPE.webcomponent.label}
-                                    />
+                                    // type and component, e.g. "Web-Komponente · Fluss-Diagramm"
+                                    <WebComponentTypeLabel options={config.options ?? {}} fallback="">
+                                        {(name) =>
+                                            name
+                                                ? `${WIDGET_BY_TYPE.webcomponent.label} · ${name}`
+                                                : WIDGET_BY_TYPE.webcomponent.label
+                                        }
+                                    </WebComponentTypeLabel>
                                 ) : (
                                     (WIDGET_BY_TYPE[config.type]?.label ?? config.type)
                                 )}

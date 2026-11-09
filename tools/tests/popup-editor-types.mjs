@@ -56,10 +56,10 @@ const offered = await page.evaluate(() => [
 await closeDialog();
 check('alte Typ-Auswahlliste ist weg', (await page.locator('select option[value="value"]').count()) === 0);
 
-// Deprecated types (registry `hidden`) stay out of every add picker on purpose,
-// and `webcomponent` is offered once per installed web component, not bare.
+// Deprecated types (registry `hidden`) stay out of every add picker on purpose;
+// `webcomponent` is in its own section ("Andere Web-Komponente …" is the bare type).
 const missing = Object.entries(schema.widgets)
-    .filter(([t, def]) => !def.deprecated && t !== 'webcomponent' && !offered.includes(t))
+    .filter(([t, def]) => !def.deprecated && !offered.includes(t))
     .map(([t]) => t);
 check('jeder Schema-Typ steht im Dialog', missing.length === 0, missing.join(', '));
 

@@ -661,7 +661,7 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
         manifest: { manifestVersion: 1, tag: 'iob-other-tile', name: { fr: 'Tuile' }, settings: { items: {} } },
     };
     const entries = m.webComponentPickerEntries([flow, flow, bare, { adapter: 'x', manifest: {} }, null], 'de');
-    check('entries: once per adapter and tag, without a tag none', entries.length, 2);
+    check('entries: once per adapter and tag, without a tag none', entries.filter((e) => !e.missing).length, 2);
     check('entry: key', entries[0].key, 'wc:flow|iob-flow-diagram');
     check('entry: name in the frontend language', entries[0].label, 'Fluss-Diagramm');
     check('entry: description and adapter as hint', entries[0].hint, 'Animiertes Fluss-Diagramm – Adapter flow');
@@ -676,11 +676,31 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check('entry: no description - only the adapter', entries[1].hint, 'Adapter other');
     check('entry: no icon, no size', [entries[1].iconUrl, entries[1].size], [undefined, undefined]);
     check('entries: English frontend', m.webComponentPickerEntries([flow], 'en')[0].label, 'Flow diagram');
-    check('entries: installed flow - no known entry on top', entries.filter((e) => e.missing).length, 0);
+    check(
+        'entries: installed flow - no known entry on top, only the missing calendar',
+        entries.filter((e) => e.missing).map((e) => e.tag),
+        ['iob-fullcalendar'],
+    );
+    check('entry: tested component (KNOWN_WEB_COMPONENTS) is not marked', entries[0].untested, false);
+    check('entry: any other component is marked untested', entries[1].untested, true);
+    check('entry: version of the installed adapter', [entries[0].version, entries[1].version], ['0.1.0', '1.0.0']);
+    check(
+        'tested: tag and adapter must both match',
+        [
+            m.isTestedWebComponent('iob-flow-diagram', 'flow'),
+            m.isTestedWebComponent('iob-flow-diagram', 'other'),
+            m.isTestedWebComponent('iob-other-tile', 'other'),
+        ],
+        [true, false, false],
+    );
 
     // A known component is offered while its adapter is missing (#891)
     const none = m.webComponentPickerEntries([], 'de');
-    check('known: offered without any adapter', none.length, 1);
+    check(
+        'known: offered without any adapter',
+        none.map((e) => e.tag),
+        ['iob-flow-diagram', 'iob-fullcalendar'],
+    );
     check('known: same key as the installed one', none[0].key, 'wc:flow|iob-flow-diagram');
     check('known: name in the frontend language', none[0].label, 'Fluss-Diagramm');
     check('known: marked missing', none[0].missing, true);
@@ -690,7 +710,7 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check(
         'known: after the installed ones',
         m.webComponentPickerEntries([bare], 'de').map((e) => e.tag),
-        ['iob-other-tile', 'iob-flow-diagram'],
+        ['iob-other-tile', 'iob-flow-diagram', 'iob-fullcalendar'],
     );
     check('known: found by tag', m.findKnownWebComponent('iob-flow-diagram')?.adapter, 'flow');
     check('known: unknown tag', m.findKnownWebComponent('iob-other-tile'), undefined);

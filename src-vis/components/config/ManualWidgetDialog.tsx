@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Plus, Check, Database, X, Shapes, Search } from 'lucide-react';
+import { Plus, Check, Database, X, Shapes, Search, Puzzle } from 'lucide-react';
 import {
     buildHaystack,
     matchesQuery,
@@ -30,21 +30,38 @@ import { useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { parseWebComponentKey, webComponentGridSize, webComponentPickerEntries } from '../../utils/webComponentHost';
 import type { LucideIcon } from 'lucide-react';
 
-/**
- * An entry of "Weitere Widgets": a widget type of its own, or one installed web
- * component - shown and added like a widget, stored as type `webcomponent`.
- */
+/** An entry of "Weitere Widgets": a widget type of its own */
 interface FurtherEntry {
-    /** The widget type, or `wc:<adapter>|<tag>` for a web component */
     key: string;
     widgetType: WidgetType;
     label: string;
     hint?: string;
     Icon: LucideIcon;
     color: string;
-    /** Picture of a web component (its manifest's icon) */
-    iconUrl?: string;
 }
+
+/**
+ * An entry of the "Web-Komponenten" section: one component (stored as type
+ * `webcomponent` with its tag), or the bare type to pick a component later.
+ */
+interface WebComponentEntry {
+    /** `wc:<adapter>|<tag>`, or `webcomponent` for "Andere Web-Komponente …" */
+    key: string;
+    label: string;
+    hint?: string;
+    /** Picture of the component (its manifest's icon) */
+    iconUrl?: string;
+    adapter?: string;
+    /** Known component whose adapter is missing - still placeable */
+    missing?: boolean;
+    /** Not tested with Aura yet */
+    untested?: boolean;
+}
+
+/** Key of "Andere Web-Komponente …": the bare type, the component is chosen in its settings */
+const WC_OTHER_KEY = 'webcomponent';
+/** Accent of the web component section and chip - the colour of the widget type */
+const WC_COLOR = WIDGET_BY_TYPE.webcomponent.color;
 
 // ── Recently used templates (persisted in localStorage) ──────────────────────
 const RECENT_TEMPLATES_KEY = 'aura-recent-templates';
@@ -114,8 +131,8 @@ export function ManualWidgetDialog({
     const [showPicker, setShowPicker] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [storedRecent, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
-    // A web component that is no longer installed drops out (once the catalog is read);
-    // the bare "Web-Komponente" type is no entry of the dialog any more.
+    // A web component that is no longer offered drops out (once the catalog is read);
+    // the bare type stays - it is "Andere Web-Komponente …".
     const recentTemplates = useMemo(
         () =>
             storedRecent.filter((r) =>
@@ -123,7 +140,7 @@ export function ManualWidgetDialog({
                     ? true
                     : parseWebComponentKey(r.templateId)
                       ? webComponentsLoading || wcEntries.some((e) => e.key === r.templateId)
-                      : false,
+                      : r.templateId === WC_OTHER_KEY,
             ),
         [storedRecent, wcEntries, webComponentsLoading],
     );
@@ -202,38 +219,43 @@ export function ManualWidgetDialog({
         return () => document.removeEventListener('keydown', onKey);
     }, [showPicker, insertPreset, query, onClose]);
 
-    // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE, and the
-    // installed web components in place of the bare "Web-Komponente" type
+    // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE. The web
+    // components have a section of their own (below), not a place in this list.
     const coveredWidgetTypes = useMemo(() => new Set(DP_TEMPLATES.map((t) => t.widgetType)), []);
-    const furtherWidgets = useMemo((): FurtherEntry[] => {
-        const wcMeta = WIDGET_BY_TYPE.webcomponent;
-        return (
-            [
-                ...WIDGET_REGISTRY.filter(
-                    (w) => !w.hidden && !coveredWidgetTypes.has(w.type) && w.type !== 'webcomponent',
-                ).map((w) => ({
+    const furtherWidgets = useMemo(
+        (): FurtherEntry[] =>
+            WIDGET_REGISTRY.filter((w) => !w.hidden && !coveredWidgetTypes.has(w.type) && w.type !== 'webcomponent')
+                .map((w) => ({
                     key: w.type as string,
                     widgetType: w.type,
                     label: w.label,
                     hint: w.hint,
                     Icon: w.Icon,
                     color: w.color,
-                })),
-                ...wcEntries.map((e) => ({
-                    key: e.key,
-                    widgetType: 'webcomponent' as WidgetType,
-                    label: e.label,
-                    hint: e.hint,
-                    Icon: wcMeta.Icon,
-                    color: wcMeta.color,
-                    iconUrl: e.iconUrl,
-                })),
-            ]
+                }))
                 // Sort by the displayed label (de locale) so new widget types are
                 // inserted alphabetically automatically – no manual ordering needed.
-                .sort((a, b) => a.label.localeCompare(b.label, 'de'))
-        );
-    }, [coveredWidgetTypes, wcEntries]);
+                .sort((a, b) => a.label.localeCompare(b.label, 'de')),
+        [coveredWidgetTypes],
+    );
+    // The web components: installed and known ones by name, "Andere …" last
+    const webComponentList = useMemo(
+        (): WebComponentEntry[] => [
+            ...wcEntries
+                .map((e) => ({
+                    key: e.key,
+                    label: e.label,
+                    hint: e.untested ? `${e.hint} – ${t('editor.manual.wc.untestedHint')}` : e.hint,
+                    iconUrl: e.iconUrl,
+                    adapter: e.adapter,
+                    missing: e.missing,
+                    untested: e.untested,
+                }))
+                .sort((a, b) => a.label.localeCompare(b.label, 'de')),
+            { key: WC_OTHER_KEY, label: t('editor.manual.wc.other'), hint: t('editor.manual.wc.otherHint') },
+        ],
+        [wcEntries, t],
+    );
 
     // Searchable text per entry - see utils/widgetSearch for what goes in.
     const templateHaystacks = useMemo(() => {
@@ -250,8 +272,12 @@ export function ManualWidgetDialog({
         for (const e of wcEntries) {
             map.set(e.key, buildHaystack([e.label, e.hint, e.adapter, e.tag, WIDGET_BY_TYPE.webcomponent.label]));
         }
+        map.set(
+            WC_OTHER_KEY,
+            `${widgetHaystack(WIDGET_BY_TYPE.webcomponent)} ${buildHaystack([t('editor.manual.wc.other')])}`,
+        );
         return map;
-    }, [wcEntries]);
+    }, [wcEntries, t]);
 
     // Hits in the order the grid draws them: category by category, each sorted by
     // label, "Weitere Widgets" last. A search looks through every category, so the
@@ -272,6 +298,10 @@ export function ManualWidgetDialog({
         () => furtherWidgets.filter((w) => !searching || matchesQuery(widgetHaystacks.get(w.key) ?? '', q)),
         [furtherWidgets, q, searching, widgetHaystacks],
     );
+    const webComponentHits = useMemo(
+        () => webComponentList.filter((w) => !searching || matchesQuery(widgetHaystacks.get(w.key) ?? '', q)),
+        [webComponentList, q, searching, widgetHaystacks],
+    );
     const recentHits = useMemo(() => {
         if (!searching) return recentTemplates;
         return recentTemplates.filter((r) =>
@@ -285,16 +315,21 @@ export function ManualWidgetDialog({
         () => (searching ? presets.filter((p) => matchesQuery(buildHaystack([p.name]), q)) : presets),
         [presets, q, searching],
     );
-    const hitCount = hitsByCategory.reduce((n, g) => n + g.tpls.length, 0) + furtherHits.length;
+    const hitCount =
+        hitsByCategory.reduce((n, g) => n + g.tpls.length, 0) + furtherHits.length + webComponentHits.length;
     const firstHit = (() => {
         const group = hitsByCategory.find((g) => g.tpls.length);
         if (group) return { tplId: group.tpls[0].id, widgetType: group.tpls[0].widgetType };
         const w = furtherHits[0];
-        return w ? { tplId: w.key, widgetType: w.widgetType } : null;
+        if (w) return { tplId: w.key, widgetType: w.widgetType };
+        const c = webComponentHits[0];
+        return c ? { tplId: c.key, widgetType: 'webcomponent' as WidgetType } : null;
     })();
 
     const selectedTemplate = DP_TEMPLATES.find((tpl) => tpl.id === templateId);
-    const selectedFurther = furtherWidgets.find((w) => w.widgetType === type && templateId === w.key);
+    const selectedFurther =
+        furtherWidgets.find((w) => w.widgetType === type && templateId === w.key) ??
+        (type === 'webcomponent' ? webComponentList.find((w) => w.key === templateId) : undefined);
 
     // Picking a category ends the search - otherwise the two filters would fight
     // and an empty grid would look like a broken category.
@@ -333,7 +368,11 @@ export function ManualWidgetDialog({
         pushRecentTemplate({
             templateId: tplId || widgetType,
             widgetType,
-            label: activeTpl?.label ?? wcEntry?.label ?? meta.shortLabel ?? widgetType,
+            label:
+                activeTpl?.label ??
+                wcEntry?.label ??
+                (widgetType === 'webcomponent' ? meta.label : meta.shortLabel) ??
+                widgetType,
             icon: activeTpl?.icon ?? '',
         });
         setRecentTemplates(getRecentTemplates());
@@ -729,6 +768,24 @@ export function ManualWidgetDialog({
                         >
                             Weitere
                         </button>
+                        <button
+                            type="button"
+                            data-category="webcomponents"
+                            onClick={() => pickCategory('webcomponents')}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                            style={{
+                                background:
+                                    activeCategory === 'webcomponents'
+                                        ? WC_COLOR
+                                        : `color-mix(in srgb, ${WC_COLOR} 10%, var(--app-bg))`,
+                                color: activeCategory === 'webcomponents' ? 'white' : 'var(--text-secondary)',
+                                border: `1px solid color-mix(in srgb, ${WC_COLOR} 45%, var(--app-border))`,
+                                opacity: searching && !webComponentHits.length ? 0.35 : 1,
+                            }}
+                        >
+                            <Puzzle size={11} />
+                            {t('editor.manual.wc.chip')}
+                        </button>
                     </div>
                 </div>
 
@@ -789,42 +846,46 @@ export function ManualWidgetDialog({
                         )}
 
                         {/* Einzelne Kategorie gefiltert */}
-                        {activeCategory !== 'all' && activeCategory !== 'further' && (
-                            <div className="grid grid-cols-3 gap-2">
-                                {(hitsByCategory.find((g) => g.cat.id === activeCategory)?.tpls ?? []).map((tpl) => {
-                                    const active = templateId === tpl.id;
-                                    return (
-                                        <button
-                                            key={tpl.id}
-                                            data-widget-type={tpl.widgetType}
-                                            type="button"
-                                            onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
-                                            onDoubleClick={() => void handleAdd(tpl.widgetType, tpl.id)}
-                                            className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
-                                            style={{
-                                                padding: '8px 12px',
-                                                background: active ? 'var(--accent)1a' : 'var(--app-bg)',
-                                                border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
-                                            }}
-                                        >
-                                            <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>
-                                                {tpl.icon}
-                                            </span>
-                                            <span
-                                                className="leading-tight font-medium truncate"
-                                                style={{
-                                                    fontSize: 12,
-                                                    color: active ? 'var(--accent)' : 'var(--text-secondary)',
-                                                }}
-                                            >
-                                                {tpl.label}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        )}
+                        {activeCategory !== 'all' &&
+                            activeCategory !== 'further' &&
+                            activeCategory !== 'webcomponents' && (
+                                <div className="grid grid-cols-3 gap-2">
+                                    {(hitsByCategory.find((g) => g.cat.id === activeCategory)?.tpls ?? []).map(
+                                        (tpl) => {
+                                            const active = templateId === tpl.id;
+                                            return (
+                                                <button
+                                                    key={tpl.id}
+                                                    data-widget-type={tpl.widgetType}
+                                                    type="button"
+                                                    onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                                                    onDoubleClick={() => void handleAdd(tpl.widgetType, tpl.id)}
+                                                    className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
+                                                    style={{
+                                                        padding: '8px 12px',
+                                                        background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                                                        border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                                                    }}
+                                                >
+                                                    <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>
+                                                        {tpl.icon}
+                                                    </span>
+                                                    <span
+                                                        className="leading-tight font-medium truncate"
+                                                        style={{
+                                                            fontSize: 12,
+                                                            color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                                                        }}
+                                                    >
+                                                        {tpl.label}
+                                                    </span>
+                                                </button>
+                                            );
+                                        },
+                                    )}
+                                </div>
+                            )}
 
                         {/* Weitere Widgets */}
                         {(activeCategory === 'all' || activeCategory === 'further') && furtherHits.length > 0 && (
@@ -855,20 +916,11 @@ export function ManualWidgetDialog({
                                                     boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
                                                 }}
                                             >
-                                                {w.iconUrl ? (
-                                                    <img
-                                                        src={w.iconUrl}
-                                                        alt=""
-                                                        className="object-contain"
-                                                        style={{ width: 18, height: 18, flexShrink: 0 }}
-                                                    />
-                                                ) : (
-                                                    <w.Icon
-                                                        size={18}
-                                                        color={active ? 'var(--accent)' : w.color}
-                                                        style={{ flexShrink: 0 }}
-                                                    />
-                                                )}
+                                                <w.Icon
+                                                    size={18}
+                                                    color={active ? 'var(--accent)' : w.color}
+                                                    style={{ flexShrink: 0 }}
+                                                />
                                                 <span
                                                     className="leading-tight font-medium truncate"
                                                     style={{
@@ -884,6 +936,98 @@ export function ManualWidgetDialog({
                                 </div>
                             </div>
                         )}
+
+                        {/* Web-Komponenten: one widget type, set apart - its content comes from adapters */}
+                        {(activeCategory === 'all' || activeCategory === 'webcomponents') &&
+                            webComponentHits.length > 0 && (
+                                <div
+                                    data-section="webcomponents"
+                                    className="rounded-xl p-3"
+                                    style={{
+                                        background: `color-mix(in srgb, ${WC_COLOR} 7%, var(--app-bg))`,
+                                        border: `1px solid color-mix(in srgb, ${WC_COLOR} 35%, var(--app-border))`,
+                                    }}
+                                >
+                                    <div className="flex items-center gap-1.5">
+                                        <Puzzle size={13} color={WC_COLOR} style={{ flexShrink: 0 }} />
+                                        <p
+                                            className="text-[10px] font-semibold uppercase tracking-wider"
+                                            style={{ color: 'var(--text-primary)' }}
+                                        >
+                                            {t('editor.manual.wc.title')}
+                                        </p>
+                                    </div>
+                                    <p
+                                        className="text-[11px] mt-0.5 mb-2 leading-snug"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('editor.manual.wc.intro')}
+                                    </p>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {webComponentHits.map((w) => {
+                                            const active = templateId === w.key;
+                                            const other = w.key === WC_OTHER_KEY;
+                                            return (
+                                                <button
+                                                    key={w.key}
+                                                    data-widget-type="webcomponent"
+                                                    data-widget-key={w.key}
+                                                    data-missing={w.missing ? 'true' : undefined}
+                                                    data-untested={w.untested ? 'true' : undefined}
+                                                    type="button"
+                                                    title={w.hint}
+                                                    onClick={() => selectTemplate(w.key, 'webcomponent')}
+                                                    onDoubleClick={() => void handleAdd('webcomponent', w.key)}
+                                                    className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left min-w-0"
+                                                    style={{
+                                                        padding: '7px 12px',
+                                                        background: active ? 'var(--accent)1a' : 'var(--app-surface)',
+                                                        border: `1.5px ${other ? 'dashed' : 'solid'} ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                                                        opacity: w.missing && !active ? 0.6 : 1,
+                                                    }}
+                                                >
+                                                    {w.iconUrl ? (
+                                                        <img
+                                                            src={w.iconUrl}
+                                                            alt=""
+                                                            className="object-contain"
+                                                            style={{ width: 20, height: 20, flexShrink: 0 }}
+                                                        />
+                                                    ) : (
+                                                        <Puzzle
+                                                            size={18}
+                                                            color={active ? 'var(--accent)' : WC_COLOR}
+                                                            style={{ flexShrink: 0 }}
+                                                        />
+                                                    )}
+                                                    <span className="min-w-0 flex flex-col">
+                                                        <span
+                                                            className="leading-tight font-medium truncate"
+                                                            style={{
+                                                                fontSize: 12,
+                                                                color: active ? 'var(--accent)' : 'var(--text-primary)',
+                                                            }}
+                                                        >
+                                                            {w.label}
+                                                        </span>
+                                                        {!other && (
+                                                            <span
+                                                                className="leading-tight truncate text-[10px]"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {w.adapter}
+                                                                {w.missing && ` · ${t('editor.manual.wc.missing')}`}
+                                                                {w.untested && ` · ${t('editor.manual.wc.untested')}`}
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
                         {searching && hitCount === 0 && (
                             <p className="py-8 text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
                                 {t('editor.manual.searchNoHits', { q: query })}

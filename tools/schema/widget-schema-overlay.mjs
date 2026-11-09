@@ -606,8 +606,12 @@ export const WIDGET_OPTION_NOTES = {
                 'Tag der ioBroker-Web-Komponente (Custom Element, z. B. "iob-flow-diagram"). Nur Komponenten, die ein ' +
                 'installierter Adapter in io-package common.webComponents anbietet; ohne passende Komponente bleibt ' +
                 'das Widget leer (im Editor steht ein Hinweis). Die Komponente liest und schreibt ihre Datenpunkte ' +
-                'selbst - es gibt kein dp-Feld. Bekannt und auch ohne Adapter wählbar: "iob-flow-diagram" ' +
-                '(Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter flow.0.diagrams).',
+                'selbst - es gibt kein dp-Feld. Bekannt (mit Aura getestet) und auch ohne Adapter wählbar: ' +
+                '"iob-flow-diagram" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter ' +
+                'flow.0.diagrams) und "iob-fullcalendar" (Kalender, Adapter fullcalendar ab 3.4.1, ' +
+                'wcSettings.instance = Instanznummer z. B. "0", optional wcSettings.calendar = ' +
+                'fullcalendar.0.Calendars.<id>, viewMode dayGridMonth|timeGridWeek|timeGridDay|listMonth). ' +
+                'Alle anderen Komponenten gelten als nicht getestet.',
         },
         wcAdapter: {
             type: 'string',

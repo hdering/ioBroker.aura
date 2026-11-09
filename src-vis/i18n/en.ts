@@ -1128,6 +1128,19 @@ export const en: Record<TranslationKey, string> = {
     'editor.manual.searchHint': 'Tip: just start typing – the list filters as you go.',
     'editor.manual.searchHits': '{n} matches – Enter picks the first one.',
     'editor.manual.searchNoHits': 'No widget matches "{q}".',
+    'editor.manual.wc.chip': 'Web components',
+    'editor.manual.wc.title': 'Web components · building blocks from adapters',
+    'editor.manual.wc.intro':
+        'Content and behaviour come from the adapter; Aura provides the frame, the connection and the settings.',
+    'editor.manual.wc.other': 'Other web component …',
+    'editor.manual.wc.otherHint':
+        'A web component that is not listed here - it is chosen in the settings of the widget.',
+    'editor.manual.wc.missing': 'Adapter missing',
+    'editor.manual.wc.untested': 'not tested',
+    'editor.manual.wc.untestedHint': 'Added automatically, not tested with Aura yet.',
+    'wf.edit.wc.fromAdapter': 'Content comes from the adapter',
+    'wf.edit.wc.adapterMissing': 'Adapter {adapter} missing',
+    'wf.edit.wc.none': 'No component chosen yet - pick one in the settings below.',
 
     'editor.tab.addDevice': '+ Devices',
     'editor.tab.addManual': '+ Manual',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Database, RefreshCw } from 'lucide-react';
+import { Database, Puzzle, RefreshCw } from 'lucide-react';
 import { getSettingsGroups, getText, resolveManifestUrl, type WebComponentSetting } from '@iobroker/web-components';
 import { useConfigStore } from '../../store/configStore';
 import { getObjectViewDirect } from '../../hooks/useIoBroker';
@@ -7,11 +7,13 @@ import {
     evalSettingExpr,
     findKnownWebComponent,
     hostOwnedSettings,
+    isTestedWebComponent,
     objectIdOfRow,
     typedSettings,
 } from '../../utils/webComponentHost';
 import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { DatapointPicker } from './DatapointPicker';
+import { useT } from '../../i18n';
 
 interface Props {
     options: Record<string, unknown>;
@@ -207,6 +209,76 @@ export function WebComponentTypeLabel({
         (known && (lang === 'de' ? known.name.de : known.name.en)) ||
         fallback;
     return <>{children ? children(name) : name}</>;
+}
+
+/**
+ * Under the type list of the edit dialog: which component the "Web-Komponente"
+ * widget shows, from which adapter (and version), and that its content comes
+ * from that adapter - marked when the adapter is missing or the component is not
+ * tested with Aura yet. The component itself is chosen in the settings below.
+ */
+export function WebComponentInfoCard({ options: o }: { options: Record<string, unknown> }) {
+    const t = useT();
+    const lang = useConfigStore((s) => s.frontend.language ?? 'de') as ioBrokerLang;
+    const { components, loading } = useWebComponentCatalog();
+    const component = findWebComponent(components, o.wcTag, o.wcAdapter);
+    const known = findKnownWebComponent(o.wcTag, o.wcAdapter);
+    const chosen = typeof o.wcTag === 'string' && !!o.wcTag;
+    const name =
+        (component && getText(component.manifest.name, lang)) ||
+        (known && (lang === 'de' ? known.name.de : known.name.en)) ||
+        (chosen ? String(o.wcTag) : '');
+    const adapter = component?.adapter ?? known?.adapter ?? (typeof o.wcAdapter === 'string' ? o.wcAdapter : '');
+    const iconUrl = component?.manifest.icon ? resolveManifestUrl(component.manifest.icon, component.url) : undefined;
+    const missing = chosen && !loading && !component;
+    const untested = !!component && !isTestedWebComponent(component.manifest.tag, component.adapter);
+    const color = '#0ea5e9'; // the colour of the widget type (widgetRegistry)
+    return (
+        <div
+            data-wc-info
+            className="mt-1.5 rounded-lg px-2.5 py-2 flex items-center gap-2.5"
+            style={{
+                background: `color-mix(in srgb, ${color} 8%, var(--app-bg))`,
+                border: `1px solid color-mix(in srgb, ${color} 35%, var(--app-border))`,
+            }}
+        >
+            {iconUrl ? (
+                <img src={iconUrl} alt="" className="object-contain shrink-0" style={{ width: 24, height: 24 }} />
+            ) : (
+                <Puzzle size={20} className="shrink-0" style={{ color }} />
+            )}
+            <div className="min-w-0 flex-1">
+                {chosen ? (
+                    <>
+                        <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                            {name}
+                        </p>
+                        <p className="text-[11px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                            {adapter && (
+                                <>
+                                    Adapter <code>{adapter}</code>
+                                    {component?.version ? ` ${component.version}` : ''}
+                                    {' · '}
+                                </>
+                            )}
+                            {missing ? (
+                                <span style={{ color: 'var(--accent-yellow)' }}>
+                                    {t('wf.edit.wc.adapterMissing', { adapter: adapter || '?' })}
+                                </span>
+                            ) : (
+                                t('wf.edit.wc.fromAdapter')
+                            )}
+                            {untested && ` · ${t('editor.manual.wc.untested')}`}
+                        </p>
+                    </>
+                ) : (
+                    <p className="text-[11px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                        {t('wf.edit.wc.none')}
+                    </p>
+                )}
+            </div>
+        </div>
+    );
 }
 
 /**

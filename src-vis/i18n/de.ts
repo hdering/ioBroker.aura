@@ -1137,6 +1137,19 @@ export const de = {
     'editor.manual.searchHint': 'Tipp: einfach lostippen – die Liste filtert sich sofort.',
     'editor.manual.searchHits': '{n} Treffer – Enter wählt den ersten aus.',
     'editor.manual.searchNoHits': 'Kein Widget passt zu „{q}“.',
+    'editor.manual.wc.chip': 'Web-Komponenten',
+    'editor.manual.wc.title': 'Web-Komponenten · Bausteine aus Adaptern',
+    'editor.manual.wc.intro':
+        'Inhalt und Verhalten kommen vom Adapter, Aura liefert Rahmen, Verbindung und Einstellungen.',
+    'editor.manual.wc.other': 'Andere Web-Komponente …',
+    'editor.manual.wc.otherHint':
+        'Eine Web-Komponente, die hier nicht aufgeführt ist – sie wird in den Einstellungen des Widgets gewählt.',
+    'editor.manual.wc.missing': 'Adapter fehlt',
+    'editor.manual.wc.untested': 'nicht getestet',
+    'editor.manual.wc.untestedHint': 'Automatisch aufgenommen, noch nicht mit Aura getestet.',
+    'wf.edit.wc.fromAdapter': 'Inhalt kommt vom Adapter',
+    'wf.edit.wc.adapterMissing': 'Adapter {adapter} fehlt',
+    'wf.edit.wc.none': 'Noch keine Komponente gewählt – unten in den Einstellungen auswählen.',
 
     'editor.tab.addDevice': '+ Geräte',
     'editor.tab.addManual': '+ Manuell',
