@@ -6,6 +6,7 @@ import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { NS } from '../utils/namespace';
 import { BEHIND_WEB_EXTENSION } from '../utils/basePath';
 import { coerceToDpType } from '../utils/dpValueCoerce';
+import { idPatternToRegExp, isIdPattern } from '../utils/idPattern';
 
 interface IoBrokerSocket {
     connected: boolean;
@@ -56,9 +57,16 @@ export interface LogEntry {
  * loop most often has, and neither could be ruled out without them. */
 const traffic = { stateChanges: 0, connects: 0, disconnects: 0 };
 
+/** Gets the new state and its ID - for a pattern subscription the ID of the state that changed */
+export type StateChangeHandler = (state: ioBrokerState, id: string) => void;
+
 // Module-level singleton
 let socket: IoBrokerSocket | null = null;
-const subscribers = new Map<string, Set<(state: ioBrokerState) => void>>();
+// By state ID or by pattern (`hm-rpc.0.*.STATE`) - the server is subscribed to each key once.
+const subscribers = new Map<string, Set<StateChangeHandler>>();
+// The keys of `subscribers` that are patterns, with their regex. Empty on almost
+// every dashboard, so a state change costs no more than the exact lookup then.
+const statePatterns = new Map<string, RegExp>();
 // Object subscriptions (subscribeObjectDirect): per object ID, renewed on every reconnect.
 const objectSubscribers = new Map<string, Set<(obj: unknown) => void>>();
 const objectCache = new Map<string, ioBrokerObject | null>();
@@ -134,6 +142,15 @@ function cacheState(id: string, state: ioBrokerState): void {
     verifiedAt.set(id, Date.now());
 }
 
+/** Hand a state to the subscribers of its ID and of every pattern that matches it. */
+function notifyState(id: string, state: ioBrokerState): void {
+    subscribers.get(id)?.forEach((fn) => fn(state, id));
+    if (statePatterns.size === 0) return;
+    for (const [pattern, regex] of statePatterns) {
+        if (regex.test(id)) subscribers.get(pattern)?.forEach((fn) => fn(state, id));
+    }
+}
+
 /** True when the cached value for `id` can be trusted without a round-trip: either a
  *  live subscription is keeping it current, or it was confirmed within FRESH_TTL_MS.
  *  A stale cached value is still worth rendering immediately (no null-flash), but has
@@ -155,7 +172,7 @@ export function __devInjectState(id: string, state: ioBrokerState): void {
     // no consumer re-fetches them and overwrites the fabricated value with the real
     // one mid-screenshot.
     maintained.add(id);
-    subscribers.get(id)?.forEach((fn) => fn(state));
+    notifyState(id, state);
 }
 
 /** DEV-only: play a connection drop for the screenshot harness — every consumer
@@ -172,7 +189,7 @@ export function __devSimulateDisconnect(): void {
 export function __devSimulateReconnect(states: Record<string, ioBrokerState>): void {
     for (const [id, state] of Object.entries(states)) {
         cacheState(id, state);
-        subscribers.get(id)?.forEach((fn) => fn(state));
+        notifyState(id, state);
     }
     notifyConnection(true);
 }
@@ -435,8 +452,9 @@ export function revalidateItself(id: string): void {
  * giant burst at a socket that has just come up.
  */
 function revalidateStates(s: IoBrokerSocket): void {
+    // A pattern has no value of its own; the states it delivered are in the cache.
     const ids = [...new Set([...subscribers.keys(), ...stateCache.keys()])].filter(
-        (id) => isValidStateId(id) && !ownRevalidation.has(id),
+        (id) => isValidStateId(id) && !ownRevalidation.has(id) && !isIdPattern(id),
     );
     if (ids.length === 0) return;
     const CHUNK = 50;
@@ -453,7 +471,7 @@ function revalidateStates(s: IoBrokerSocket): void {
                 // Only wake subscribers on an actual change — a reconnect on a
                 // large dashboard would otherwise re-render every widget.
                 if (prev && prev.val === next.val && prev.ts === next.ts && prev.ack === next.ack) return;
-                subscribers.get(id)?.forEach((fn) => fn(next));
+                notifyState(id, next);
             });
         }
         if (from + CHUNK < ids.length) globalThis.setTimeout(() => emitChunk(from + CHUNK), 25);
@@ -487,7 +505,7 @@ function checkConnectionAlive(opts?: { ignoreVisibility?: boolean }): void {
     }
 
     let answered = false;
-    const probeId = subscribers.keys().next().value ?? 'system.config';
+    const probeId = [...subscribers.keys()].find((id) => !isIdPattern(id)) ?? 'system.config';
     s.emit('getState', probeId, () => {
         answered = true;
         if (socket === s) revalidateStates(s);
@@ -668,7 +686,7 @@ function createSocket(url: string): IoBrokerSocket {
         const state = args[1] as ioBrokerState;
         traffic.stateChanges++;
         if (state) cacheState(id, state);
-        subscribers.get(id)?.forEach((fn) => fn(state));
+        notifyState(id, state);
         // Perf: first live data after connect. Reported inline (rather than via
         // perfMetrics) to avoid an import cycle back into this module.
         if (!firstStateReported && connectPerfMark > 0 && typeof performance !== 'undefined') {
@@ -820,29 +838,10 @@ export function useIoBroker() {
         };
     }, []);
 
-    const subscribe = useCallback((id: string, callback: (state: ioBrokerState) => void): (() => void) => {
-        if (!isValidStateId(id)) {
-            if (import.meta.env.DEV) console.warn('[useIoBroker] refused subscribe with invalid ID pattern:', id);
-            return () => {};
-        }
-        if (!subscribers.has(id)) {
-            subscribers.set(id, new Set());
-            getSocket().emit('subscribe', id);
-            maintained.add(id);
-        }
-        subscribers.get(id)!.add(callback);
-        return () => {
-            const subs = subscribers.get(id);
-            if (subs) {
-                subs.delete(callback);
-                if (subs.size === 0) {
-                    subscribers.delete(id);
-                    maintained.delete(id);
-                    getSocket().emit('unsubscribe', id);
-                }
-            }
-        };
-    }, []);
+    const subscribe = useCallback(
+        (id: string, callback: StateChangeHandler): (() => void) => subscribeStateDirect(id, callback),
+        [],
+    );
 
     // Writes from inside a locked widget body go nowhere: the admin editor is a
     // design surface, and a stray click (or an effect that syncs a datapoint on
@@ -1049,8 +1048,14 @@ export function getHistoryDirect(
 }
 
 // ── Direct state subscription (non-hook) ──────────────────────────────────────
-/** Subscribe to a datapoint without a React hook. Returns an unsubscribe function. */
-export function subscribeStateDirect(id: string, callback: (state: ioBrokerState) => void): () => void {
+/**
+ * Subscribe to a datapoint without a React hook. Returns an unsubscribe function.
+ *
+ * `id` may also be a pattern (`hm-rpc.0.*.STATE`, `0_userdata.0.lights.*`): the
+ * callback then gets every matching state as it changes, with its ID as second
+ * argument - changes only, there is no value of a pattern to read first.
+ */
+export function subscribeStateDirect(id: string, callback: StateChangeHandler): () => void {
     if (!isValidStateId(id)) {
         if (import.meta.env.DEV)
             console.warn('[useIoBroker] refused subscribeStateDirect with invalid ID pattern:', id);
@@ -1059,7 +1064,9 @@ export function subscribeStateDirect(id: string, callback: (state: ioBrokerState
     if (!subscribers.has(id)) {
         subscribers.set(id, new Set());
         getSocket().emit('subscribe', id);
-        maintained.add(id);
+        // The reconnect handler subscribes every key again, a pattern included.
+        if (isIdPattern(id)) statePatterns.set(id, idPatternToRegExp(id));
+        else maintained.add(id);
     }
     subscribers.get(id)!.add(callback);
     return () => {
@@ -1068,6 +1075,7 @@ export function subscribeStateDirect(id: string, callback: (state: ioBrokerState
             subs.delete(callback);
             if (subs.size === 0) {
                 subscribers.delete(id);
+                statePatterns.delete(id);
                 maintained.delete(id);
                 getSocket().emit('unsubscribe', id);
             }
@@ -1249,7 +1257,7 @@ export function setStateEchoed(id: string, val: boolean | number | string, ack =
     stateCache.set(id, echo);
     // Notify in a microtask so the caller's click handler finishes first
     // (keeps React batching predictable for the writing component).
-    queueMicrotask(() => subscribers.get(id)?.forEach((fn) => fn(echo)));
+    queueMicrotask(() => notifyState(id, echo));
 }
 
 /** Promise variant of setStateDirect: resolves once the server acks the write.

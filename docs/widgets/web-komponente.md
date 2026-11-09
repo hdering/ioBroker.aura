@@ -48,6 +48,9 @@ Widget-Name und der **Vollbild-Knopf** unter **Darstellung**.
 - **Nicht installiert:** Fehlt die Komponente (Adapter entfernt), bleibt das Widget im
   Dashboard leer; im Bearbeitungsmodus steht ein Hinweis.
 - **Größe:** Die Komponente füllt die ganze Widget-Fläche.
+- **Datenpunkt-Muster:** Abonniert eine Komponente Datenpunkte mit `*` (z. B. alle Zustände
+  unter `assistant-satellite.0.*`), bekommt sie jede Änderung eines passenden Datenpunkts
+  sofort mit — ohne regelmäßig neu zu suchen.
 
 ## Für Adapter-Entwickler
 
