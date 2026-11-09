@@ -49,8 +49,11 @@ export interface HostSocketApi {
     getState(id: string): Promise<HostState | null>;
     setState(id: string, val: unknown, ack: boolean): Promise<void>;
     getObject(id: string): Promise<unknown>;
-    /** Subscribe one object; returns the unsubscribe function. Optional: without it, objects are read once */
-    subscribeObject?(id: string, cb: (obj: unknown) => void): () => void;
+    /**
+     * Subscribe one object or a pattern of them; returns the unsubscribe function. `cb` gets the new
+     * object (null when deleted) and its ID. Optional: without it, objects are read once
+     */
+    subscribeObject?(id: string, cb: (obj: unknown, id?: string) => void): () => void;
     getHistory(id: string, options: Record<string, unknown>): Promise<unknown>;
     getObjectView(type: string, start: string, end: string): Promise<Record<string, unknown>>;
     sendTo(instance: string, command: string, data: unknown): Promise<unknown>;
@@ -118,9 +121,10 @@ export function createWebComponentSocket(api: HostSocketApi, systemLang: string)
                 const forId = objectSubs.get(one) ?? new Map<ObjectHandler, () => void>();
                 if (forId.has(cb)) continue;
                 if (api.subscribeObject) {
+                    // a pattern calls back with the ID of the object that changed
                     forId.set(
                         cb,
-                        api.subscribeObject(one, (obj) => cb(one, obj)),
+                        api.subscribeObject(one, (obj, objId) => cb(objId ?? one, obj)),
                     );
                 } else {
                     // No object events on this socket: the current object once, so the
