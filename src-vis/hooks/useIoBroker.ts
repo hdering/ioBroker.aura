@@ -68,7 +68,9 @@ const subscribers = new Map<string, Set<StateChangeHandler>>();
 // every dashboard, so a state change costs no more than the exact lookup then.
 const statePatterns = new Map<string, RegExp>();
 // Object subscriptions (subscribeObjectDirect): per object ID, renewed on every reconnect.
-const objectSubscribers = new Map<string, Set<(obj: unknown) => void>>();
+const objectSubscribers = new Map<string, Set<ObjectChangeHandler>>();
+// The keys of objectSubscribers that are patterns, with their regex.
+const objectPatterns = new Map<string, RegExp>();
 const objectCache = new Map<string, ioBrokerObject | null>();
 const connectionListeners = new Set<(connected: boolean) => void>();
 
@@ -646,11 +648,11 @@ function createSocket(url: string): IoBrokerSocket {
         });
         revalidateStates(s);
         // Objects: subscribe again and hand out the current object - it may have changed while offline.
+        // A pattern names no object to read: its subscribers hear of the next change.
         objectSubscribers.forEach((_callbacks, id) => {
             s.emit('subscribeObjects', id);
-            void getObjectDirect(id, { skipCache: true }).then((obj) =>
-                objectSubscribers.get(id)?.forEach((fn) => fn(obj)),
-            );
+            if (objectPatterns.has(id)) return;
+            void getObjectDirect(id, { skipCache: true }).then((obj) => deliverObject(id, obj, id));
         });
     };
 
@@ -679,7 +681,10 @@ function createSocket(url: string): IoBrokerSocket {
         const obj = (args[1] as ioBrokerObject | null | undefined) ?? null;
         // Keep the session cache current for every reader, subscribed or not
         if (objectCache.has(id)) objectCache.set(id, obj);
-        objectSubscribers.get(id)?.forEach((fn) => fn(obj));
+        deliverObject(id, obj, id);
+        objectPatterns.forEach((regex, pattern) => {
+            if (regex.test(id)) deliverObject(pattern, obj, id);
+        });
     });
     s.on('stateChange', (...args: unknown[]) => {
         const id = args[0] as string;
@@ -931,25 +936,43 @@ export function getObjectDirect(id: string, opts?: { skipCache?: boolean }): Pro
     return p;
 }
 
+/** Gets the new object, or null when it was deleted, and the object's own ID - also for a pattern */
+export type ObjectChangeHandler = (obj: ioBrokerObject | null, id: string) => void;
+
+function deliverObject(key: string, obj: ioBrokerObject | null, id: string): void {
+    objectSubscribers.get(key)?.forEach((fn) => {
+        // A subscriber can be foreign code (a web component): one that throws must not
+        // keep the change from the others.
+        try {
+            fn(obj, id);
+        } catch (e) {
+            console.error(`[useIoBroker] object subscriber of ${key} failed:`, e);
+        }
+    });
+}
+
 /**
- * Subscribe one object: the callback gets the object after every change (`null` once
- * it is deleted) - not the current one, read that with getObjectDirect. After a
- * reconnect it gets the object as it is then. Returns the unsubscribe function.
+ * Subscribe one object or a pattern of them (`system.adapter.*`): the callback gets the
+ * object after every change (`null` once it is deleted) and its ID - not the current one,
+ * read that with getObjectDirect. After a reconnect the subscribers of one object get it
+ * as it is then. Returns the unsubscribe function.
  */
-export function subscribeObjectDirect(id: string, callback: (obj: ioBrokerObject | null) => void): () => void {
-    if (!id) return () => {};
-    const cb = callback as (obj: unknown) => void;
+export function subscribeObjectDirect(id: string, callback: ObjectChangeHandler): () => void {
+    // Components name their own IDs, and the backend does not take an invalid pattern.
+    if (!isValidStateId(id)) return () => {};
     if (!objectSubscribers.has(id)) {
         objectSubscribers.set(id, new Set());
+        if (isIdPattern(id)) objectPatterns.set(id, idPatternToRegExp(id));
         getSocket().emit('subscribeObjects', id);
     }
-    objectSubscribers.get(id)!.add(cb);
+    objectSubscribers.get(id)!.add(callback);
     return () => {
         const subs = objectSubscribers.get(id);
         if (!subs) return;
-        subs.delete(cb);
+        subs.delete(callback);
         if (subs.size === 0) {
             objectSubscribers.delete(id);
+            objectPatterns.delete(id);
             getSocket().emit('unsubscribeObjects', id);
         }
     };
