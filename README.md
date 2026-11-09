@@ -122,6 +122,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.111.0 (2026-11-09)
+- 🌟 **New feature:** Timer - switching times are listed in ascending order of time instead of order of entry ([#960](https://github.com/hdering/ioBroker.aura/issues/960))
+- 🐛 **Bug fix:** Web components - a component that subscribes to datapoints with a wildcard (e.g. `assistant-satellite.0.*`) now gets their changes ([#955](https://github.com/hdering/ioBroker.aura/issues/955))
+- 🌟 **New feature:** Web components - a component can watch every object of a pattern (e.g. events of the calendar adapter); a component that throws in its object callback no longer breaks the object updates of the others ([#953](https://github.com/hdering/ioBroker.aura/issues/953))
+- 🌟 **New feature:** Section menu - tabs can be listed as sub-entries under each section (collapsible or always open, per layout with a per-section override); a tap opens the tab directly ([#951](https://github.com/hdering/ioBroker.aura/issues/951))
+- 🌟 **New feature:** Web components - own highlighted group "Web components" in "New widget" (tested, untested and missing-adapter entries plus "Other web component …") and in the widget type list; the edit dialog shows the component, its adapter and version; the fullcalendar calendar is now a tested component
+
+
 ### 0.110.0 (2026-11-08)
 - 🌟 **New feature:** Advanced chart - a series can get its own y scale (e.g. valve position 0-100 % next to temperatures), hidden or shown on the far left or right in the series colour ([#959](https://github.com/hdering/ioBroker.aura/issues/959))
 - 🌟 **New feature:** Advanced chart - reference lines and bands at a fixed value or a datapoint value (e.g. setpoint, comfort range), with label and value ([#959](https://github.com/hdering/ioBroker.aura/issues/959))
@@ -305,23 +313,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Shutter - the position inversion option ("Actuator convention") is no longer labelled as HmIP-only; the hint now also names KNX actuators where 0 % means open ([#876](https://github.com/hdering/ioBroker.aura/issues/876))
 
 
-### 0.96.0 (2026-10-28)
-- 🌟 **New feature:** Phone/tablet column flow - a column block can split its width unevenly (e.g. 2:1, 1:2:1), so a widget can take two thirds next to one taking one third ([#851](https://github.com/hdering/ioBroker.aura/issues/851))
-- 🌟 **New feature:** Announcements - new admin page "Ansagen": datapoint + condition → spoken text on chosen devices, with time window, weekdays and a lock such as at most once a day, no script needed ([#834](https://github.com/hdering/ioBroker.aura/issues/834))
-- 🐛 **Bug fix:** Advanced chart - time axis labels no longer overlap on narrow charts; labels that would collide are left out; the approximate number of labels can be set under X axis ([#869](https://github.com/hdering/ioBroker.aura/issues/869))
-- 🐛 **Bug fix:** Advanced chart - settings that do not apply to the selected mode are shown greyed out with the reason instead of disappearing; the horizontal lines switch now also works in comparison mode ([#869](https://github.com/hdering/ioBroker.aura/issues/869))
-- 🐛 **Bug fix:** Universal widget - vertical and horizontal grid lines are now visible in borderless themes such as Lovelace and Material 3 ([#870](https://github.com/hdering/ioBroker.aura/issues/870))
-- 🐛 **Bug fix:** Admin - all admin pages (overview, layouts, popups, messages, announcements, widgets, frontend design, settings …) now use the same heading size, the same distance to the top and the same gap between heading and content
-- 🐛 **Bug fix:** Universal widget - a select cell shown as circle menu can show a second datapoint large in the button (e.g. the measured temperature), with the selected entry small below ([#864](https://github.com/hdering/ioBroker.aura/issues/864))
-- 🌟 **New feature:** Image, slideshow and camera - new option "Fill tab" like the iFrame: the widget covers the whole tab area, e.g. as a photo frame on a wall tablet; "Fill tab" now also works in popup views, where the widget fills the fullscreen popup or the set popup size, and the popup view editor shows it covering the whole canvas ([#865](https://github.com/hdering/ioBroker.aura/issues/865))
-- 🐛 **Bug fix:** Universal widget - slider cell gets an optional status datapoint like the slider widget: the position and value come from it, dragging still writes the main datapoint ([#866](https://github.com/hdering/ioBroker.aura/issues/866))
-- 🌟 **New feature:** Advanced chart - paging steps by the selected range (day, week, month …) and switching the range keeps the browsed date; the picked date can be the end or the start of the window; charts with the same link group page together, and optional datapoints set or report date and range or page from a script/button (prev, next, today, now) ([#871](https://github.com/hdering/ioBroker.aura/issues/871))
-- 🌟 **New feature:** Simple chart and distribution chart - same paging as the advanced chart (prev/next by the selected range, jump to current, date picker), link groups that work across all three chart types, and the date/range/command datapoints; the distribution chart also gets weeks, calendar months and years for its own range, a 1-year preset and own range chips ([#871](https://github.com/hdering/ioBroker.aura/issues/871))
-- 🐛 **Bug fix:** Screensaver - new datapoints idle.allIdle (true once no panel is in use) and idle.inUse (number of panels in use) summarise the idle state of all devices; switched-off devices and devices with idle detection off are not counted ([#868](https://github.com/hdering/ioBroker.aura/issues/868))
-- 🐛 **Bug fix:** Popups - in a fullscreen popup a single iFrame, camera, chart or other widget without its own content height now fills the whole screen edge to edge, also when embedded directly ("Show widget") and without "Fill tab"
-- 🐛 **Bug fix:** Timer - new datapoint timers.<id>.reapply: set it to true (e.g. from a script) and the timer writes the value its schedule wants right now (the last due event or the active holiday/vacation value), e.g. after a power cut or manual switching; optional "Catch up on adapter start" does the same on every adapter start ([#872](https://github.com/hdering/ioBroker.aura/issues/872))
-
-
 ## License
 
 MIT License
@@ -333,6 +324,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
