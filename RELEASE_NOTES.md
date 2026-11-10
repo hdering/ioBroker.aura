@@ -8,4 +8,3 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- fix: MCP - a tab created in a PIN-protected section now goes into the PIN vault when the section is released for MCP editing, and is refused otherwise; the editor and "remove PIN" no longer drop tabs that exist only in the tab bar
