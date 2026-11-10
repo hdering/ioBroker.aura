@@ -677,9 +677,9 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check('entry: no icon, no size', [entries[1].iconUrl, entries[1].size], [undefined, undefined]);
     check('entries: English frontend', m.webComponentPickerEntries([flow], 'en')[0].label, 'Flow diagram');
     check(
-        'entries: installed flow - no known entry on top, only the missing calendar',
+        'entries: installed flow - no known entry on top, only the missing others',
         entries.filter((e) => e.missing).map((e) => e.tag),
-        ['iob-fullcalendar'],
+        ['iob-fullcalendar', 'iob-cameras-rtsp', 'iob-cameras-snapshot'],
     );
     check('entry: tested component (KNOWN_WEB_COMPONENTS) is not marked', entries[0].untested, false);
     check('entry: any other component is marked untested', entries[1].untested, true);
@@ -699,7 +699,7 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check(
         'known: offered without any adapter',
         none.map((e) => e.tag),
-        ['iob-flow-diagram', 'iob-fullcalendar'],
+        ['iob-flow-diagram', 'iob-fullcalendar', 'iob-cameras-rtsp', 'iob-cameras-snapshot'],
     );
     check('known: same key as the installed one', none[0].key, 'wc:flow|iob-flow-diagram');
     check('known: name in the frontend language', none[0].label, 'Fluss-Diagramm');
@@ -710,7 +710,7 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     check(
         'known: after the installed ones',
         m.webComponentPickerEntries([bare], 'de').map((e) => e.tag),
-        ['iob-other-tile', 'iob-flow-diagram', 'iob-fullcalendar'],
+        ['iob-other-tile', 'iob-flow-diagram', 'iob-fullcalendar', 'iob-cameras-rtsp', 'iob-cameras-snapshot'],
     );
     check('known: found by tag', m.findKnownWebComponent('iob-flow-diagram')?.adapter, 'flow');
     check('known: unknown tag', m.findKnownWebComponent('iob-other-tile'), undefined);
@@ -726,6 +726,96 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
         m.withoutHostSettings({ title: 'x' }, 'iob-other-tile', 'other'),
         { title: 'x' },
     );
+    check(
+        'host settings: the cameras draw no title of their own',
+        m.withoutHostSettings({ camera: 'cameras.0.cam1', title: 'Einfahrt' }, 'iob-cameras-rtsp', 'cameras'),
+        { camera: 'cameras.0.cam1' },
+    );
+    check('host settings: the snapshot camera too', m.hostOwnedSettings('iob-cameras-snapshot', 'cameras'), ['title']);
+    {
+        const withTitle = {
+            manifestVersion: 1,
+            tag: 'iob-other-tile',
+            module: 'x.js',
+            settings: { type: 'panel', items: { title: { type: 'text' }, dp: { type: 'objectId' } } },
+        };
+        const numberTitle = { ...withTitle, settings: { type: 'panel', items: { title: { type: 'number' } } } };
+        check(
+            'host settings: any text setting "title" (generic)',
+            m.hostOwnedSettings('iob-other-tile', 'other', withTitle),
+            ['title'],
+        );
+        check(
+            'host settings: generic rule drops it',
+            m.withoutHostSettings({ title: 'x', dp: 'a.0.b' }, 'iob-other-tile', 'other', withTitle),
+            { dp: 'a.0.b' },
+        );
+        check(
+            'host settings: "title" of another type stays',
+            m.hostOwnedSettings('iob-other-tile', 'other', numberTitle),
+            [],
+        );
+        check(
+            'host settings: known list and generic rule merge without doubles',
+            m.hostOwnedSettings('iob-flow-diagram', 'flow', { ...withTitle, tag: 'iob-flow-diagram' }),
+            ['title', 'fullView'],
+        );
+    }
+    check('host settings: reason keys', ['title', 'fullView', 'x'].map(m.hostSettingReasonKey), [
+        'wc.host.title',
+        'wc.host.fullView',
+        'wc.host.other',
+    ]);
+
+    // title row from the component (wcTitleSource / wcIconSource, event iob-header)
+    check('header: strings only, trimmed', m.parseComponentHeader({ title: ' Einfahrt ', icon: 5 }), {
+        title: 'Einfahrt',
+    });
+    check('header: nothing usable', [m.parseComponentHeader(null), m.parseComponentHeader({ title: '  ' })], [{}, {}]);
+    check(
+        'header: source defaults to aura',
+        [m.headerSource(undefined), m.headerSource('x'), m.headerSource('component')],
+        ['aura', 'aura', 'component'],
+    );
+    {
+        const aura = { titleSource: 'aura', iconSource: 'aura' };
+        const comp = { titleSource: 'component', iconSource: 'component' };
+        const hdr = { title: 'Einfahrt', icon: 'cam.png' };
+        const res = (u) => `https://h/adapter/cameras/${u}`;
+        check(
+            'header: aura ignores the component',
+            m.resolveWidgetHeader(aura, 'Kamera', hdr, 'https://h/m.png', res),
+            {
+                title: 'Kamera',
+            },
+        );
+        check('header: component title and icon', m.resolveWidgetHeader(comp, 'Kamera', hdr, 'https://h/m.png', res), {
+            title: 'Einfahrt',
+            iconUrl: 'https://h/adapter/cameras/cam.png',
+        });
+        check(
+            'header: nothing reported - widget title, manifest icon',
+            m.resolveWidgetHeader(comp, 'Kamera', {}, 'https://h/m.png', res),
+            {
+                title: 'Kamera',
+                iconUrl: 'https://h/m.png',
+            },
+        );
+        check('header: no picture at all - Aura icon', m.resolveWidgetHeader(comp, 'Kamera', {}, undefined, res), {
+            title: 'Kamera',
+        });
+        check(
+            'header: title from the component, icon from Aura',
+            m.resolveWidgetHeader(
+                { titleSource: 'component', iconSource: 'aura' },
+                'Kamera',
+                hdr,
+                'https://h/m.png',
+                res,
+            ),
+            { title: 'Einfahrt' },
+        );
+    }
 
     check('key: parsed', m.parseWebComponentKey('wc:flow|iob-flow-diagram'), {
         adapter: 'flow',

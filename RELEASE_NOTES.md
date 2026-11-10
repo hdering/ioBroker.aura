@@ -9,3 +9,5 @@
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - feat: List - shutter rows get a button size option, like the Rollladen widget (#943)
+- fix: Web component - Aura draws the title, the component no longer adds its own second title (e.g. the name of the cameras' RTSP picture)
+- feat: Web component - title and icon can come from the component instead of the widget (Title from / Icon from)

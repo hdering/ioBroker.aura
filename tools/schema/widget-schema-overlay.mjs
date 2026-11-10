@@ -610,7 +610,9 @@ export const WIDGET_OPTION_NOTES = {
                 '"iob-flow-diagram" (Fluss-Diagramm, Adapter flow ab 0.2.0, wcSettings.diagram = Objekt-ID unter ' +
                 'flow.0.diagrams) und "iob-fullcalendar" (Kalender, Adapter fullcalendar ab 3.4.1, ' +
                 'wcSettings.instance = Instanznummer z. B. "0", optional wcSettings.calendar = ' +
-                'fullcalendar.0.Calendars.<id>, viewMode dayGridMonth|timeGridWeek|timeGridDay|listMonth). ' +
+                'fullcalendar.0.Calendars.<id>, viewMode dayGridMonth|timeGridWeek|timeGridDay|listMonth), ' +
+                '"iob-cameras-rtsp" (Livebild) und "iob-cameras-snapshot" (Standbild; beide Adapter cameras ab ' +
+                '3.4.0, wcSettings.camera = State der Kamera z. B. cameras.0.cam1.running, width, rotate). ' +
                 'Alle anderen Komponenten gelten als nicht getestet.',
         },
         wcAdapter: {
@@ -625,8 +627,26 @@ export const WIDGET_OPTION_NOTES = {
                 'Einstellungen der Komponente als { schlüssel: wert } - die Schlüssel legt das Manifest der ' +
                 'Komponente fest (settings, JSON-Config-Teilmenge), nicht Aura. Nur Abweichungen vom Standard ' +
                 'speichern; die Defaults des Manifests ergänzen den Rest, unbekannte Schlüssel fallen weg. ' +
-                'Beim Fluss-Diagramm werden "title" und "fullView" ignoriert - dafür gelten Widget-Titel ' +
-                '(showTitle) und der Vollbild-Knopf des Rahmens.',
+                'Ein Text-Setting "title" wird bei jeder Komponente ignoriert (dafür gilt der Widget-Titel, ' +
+                'showTitle bzw. wcTitleSource), beim Fluss-Diagramm zusätzlich "fullView" (Vollbild-Knopf des ' +
+                'Rahmens).',
+        },
+        wcTitleSource: {
+            type: 'string',
+            enum: ['aura', 'component'],
+            default: 'aura',
+            description:
+                'Woher der Titel in der Titelzeile kommt: "aura" = Widget-Titel; "component" = der Name, den die ' +
+                'Komponente zur Laufzeit meldet (Ereignis iob-header, z. B. Kameraname aus dem Adapter) - meldet ' +
+                'sie keinen, gilt der Widget-Titel. Die Komponente zeichnet nie einen eigenen Titel.',
+        },
+        wcIconSource: {
+            type: 'string',
+            enum: ['aura', 'component'],
+            default: 'aura',
+            description:
+                'Woher das Icon der Titelzeile kommt: "aura" = options.icon; "component" = das Bild, das die ' +
+                'Komponente meldet (iob-header), sonst das Bild ihres Manifests, sonst options.icon.',
         },
     },
     button: {

@@ -25,7 +25,7 @@ je Komponente:
 | **Andere Web-Komponente …** | der Typ ohne Vorauswahl, die Komponente wird in den Einstellungen gewählt |
 
 Mit Aura getestet (auch ohne Adapter im Dialog): **Fluss-Diagramm** (`flow` ab 0.2.0),
-**Kalender** (`fullcalendar` ab 3.4.1). Die Suche findet Komponenten auch über den Adapter-Namen
+**Kalender** (`fullcalendar` ab 3.4.1), **RTSP Camera** und **Snapshot Camera** (`cameras` ab 3.4.0). Die Suche findet Komponenten auch über den Adapter-Namen
 oder „Web-Komponente“. Ein neues Widget bekommt die Größe, die die Komponente für sich angibt.
 
 Im Dialog **Widget bearbeiten** steht der Typ in der Liste unter **Web-Komponenten (aus
@@ -46,14 +46,30 @@ dabei noch eine Komponente (Upload läuft), versucht Aura es eine Minute lang al
 | `wcTag` | Komponente | Tag des Elements, z. B. `iob-flow-diagram` |
 | `wcAdapter` | — | Adapter der Komponente, z. B. `flow`; nur wichtig, wenn zwei Adapter denselben Tag anbieten |
 | `wcSettings` | Einstellungen der Komponente | `{ schlüssel: wert }` — welche Felder es gibt, legt die Komponente fest |
+| `wcTitleSource` | Titel aus | `aura` (Standard) = Widget-Titel · `component` = Name, den die Komponente meldet |
+| `wcIconSource` | Icon aus | `aura` (Standard) = Widget-Icon · `component` = Bild der Komponente bzw. ihres Manifests |
 
 Unter der Auswahl zeigt der Editor die Einstellungen der gewählten Komponente: Textfelder,
 Zahlen, Schalter, Farben, Auswahllisten, Datenpunkte, Objekte und Adapter-Instanzen — so, wie
 sie die Komponente beschreibt. Gespeichert wird nur, was vom Standard abweicht.
 
-Titel und Icon des Widgets sind standardmäßig an (`showTitle`, `showIcon`). Beim Fluss-Diagramm
-fehlen deshalb dessen eigene Felder **Titel** und **Bei Klick groß öffnen** — das übernehmen der
-Widget-Name und der **Vollbild-Knopf** unter **Darstellung**.
+## Titel und Icon
+
+Titel und Icon zeichnet immer Aura in der Titelzeile des Widgets (`showTitle`, `showIcon`) — die
+Komponente nie einen zweiten Titel darüber.
+
+| Feld der Komponente | im Editor | übernimmt |
+| --- | --- | --- |
+| Text-Feld `title` (z. B. **Name** der Kameras) | ausgegraut mit Grund | Widget-Titel |
+| **Bei Klick groß öffnen** (Fluss-Diagramm) | ausgegraut mit Grund | **Vollbild-Knopf** unter **Darstellung** |
+
+| Titel aus / Icon aus | Titel | Icon |
+| --- | --- | --- |
+| **Aura (Widget)** | Widget-Titel | Widget-Icon |
+| **Komponente** | Name, den die Komponente meldet (z. B. Kameraname aus dem Adapter); sonst Widget-Titel | Bild, das die Komponente meldet; sonst Bild aus dem Manifest; sonst Widget-Icon |
+
+Stand in einem älteren Widget noch ein Name in den Einstellungen der Komponente, bietet der Editor
+**Als Widget-Titel übernehmen** oder **Verwerfen** an.
 
 ## Verhalten
 
@@ -101,7 +117,10 @@ nicht als Fenster des Browsers:
 Wie eine Komponente gebaut und angemeldet wird, beschreibt das Paket
 [`@iobroker/web-components`](https://github.com/ioBroker/web-components). Aura setzt die
 Eigenschaft `dialogs`: `openDialog()` der Basisklasse öffnet damit den Aura-Dialog, ein
-Element-Dialog schließt mit dem Ereignis `iob-dialog-close`. Aura lädt das Manifest
+Element-Dialog schließt mit dem Ereignis `iob-dialog-close`. Mit dem Ereignis `iob-header`
+(`detail: { title?, icon? }`, `bubbles`, `composed`; bei jeder Änderung erneut) oder der
+Eigenschaft `header` meldet eine Komponente Namen und Bild für die Titelzeile — Vorschlag, noch
+nicht Teil des Pakets. Aura lädt das Manifest
 und das Modul über `/adapter/<adapter>/…`; Komponenten mit React importieren
 `/lib/esm/react-19.js` bzw. `react-18.js` — beides liefert Auras eigener Server (Port 8095)
 aus, hinter der web-Erweiterung (`/aura/`) der web-Adapter.

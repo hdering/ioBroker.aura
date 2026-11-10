@@ -3,12 +3,15 @@ import { getSettingsGroups, getText, resolveManifestUrl } from '@iobroker/web-co
 import { useConfigStore } from '../../store/configStore';
 import {
     findKnownWebComponent,
+    headerSource,
     hostOwnedSettings,
+    hostSettingReasonKey,
     isTestedWebComponent,
     typedSettings,
 } from '../../utils/webComponentHost';
 import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { useT } from '../../i18n';
+import { Unavailable } from './Unavailable';
 import {
     WebComponentFields,
     wcHintStyle as hintSty,
@@ -21,6 +24,10 @@ import {
 interface Props {
     options: Record<string, unknown>;
     onChange: (patch: Record<string, unknown>) => void;
+    /** The widget's title - a title the component kept in its own settings can be moved there */
+    title?: string;
+    /** Sets the title and patches the options in one change */
+    onTitle?: (title: string, patch: Record<string, unknown>) => void;
 }
 
 /**
@@ -126,7 +133,8 @@ export function WebComponentInfoCard({ options: o }: { options: Record<string, u
  * the manifest fill in the rest when the element gets them. The fields are those
  * of the form dialogs a component opens at runtime (WebComponentFields).
  */
-export function WebComponentConfig({ options: o, onChange }: Props) {
+export function WebComponentConfig({ options: o, onChange, title, onTitle }: Props) {
+    const t = useT();
     const lang = useConfigStore((s) => s.frontend.language ?? 'de') as WebComponentLang;
     const { components, loading, reload } = useWebComponentCatalog();
     const component = findWebComponent(components, o.wcTag, o.wcAdapter);
@@ -134,9 +142,21 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
     const known = component ? undefined : findKnownWebComponent(o.wcTag, o.wcAdapter);
     const knownName = known ? (lang === 'de' ? known.name.de : known.name.en) : '';
     // Title and "open large" come from the widget frame, not from the component
-    const hostKeys = component ? hostOwnedSettings(component.manifest.tag, component.adapter) : [];
+    const hostKeys = component ? hostOwnedSettings(component.manifest.tag, component.adapter, component.manifest) : [];
     const stored = (o.wcSettings && typeof o.wcSettings === 'object' ? o.wcSettings : {}) as Record<string, unknown>;
     const data = component ? (typedSettings(component.manifest, stored) as Record<string, unknown>) : {};
+    // a title the component kept before Aura took it over: offered for the widget's title
+    const oldTitle =
+        hostKeys.includes('title') && typeof stored.title === 'string' && stored.title.trim()
+            ? stored.title.trim()
+            : '';
+    const withoutOldTitle = (): Record<string, unknown> => {
+        const next = { ...stored };
+        delete next.title;
+        return { wcSettings: next };
+    };
+    const titleSource = headerSource(o.wcTitleSource);
+    const iconSource = headerSource(o.wcIconSource);
 
     const setValue = (key: string, value: unknown): void => {
         const next = { ...stored };
@@ -214,24 +234,116 @@ export function WebComponentConfig({ options: o, onChange }: Props) {
                 )}
             </div>
 
-            {component &&
-                getSettingsGroups(component.manifest).map((group) => (
-                    <div key={group.name} className="space-y-2">
-                        {group.label && (
-                            <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                {getText(group.label, lang)}
-                            </p>
-                        )}
-                        <WebComponentFields
-                            items={Object.fromEntries(
-                                Object.entries(group.panel.items).filter(([key]) => !hostKeys.includes(key)),
-                            )}
-                            data={data}
-                            lang={lang}
-                            onSet={setValue}
-                        />
+            {component && (
+                <div className="grid grid-cols-2 gap-2">
+                    <div data-wc-source="title">
+                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                            {t('wc.source.title')}
+                        </label>
+                        <select
+                            value={titleSource}
+                            onChange={(e) =>
+                                onChange({ wcTitleSource: e.target.value === 'component' ? 'component' : undefined })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            <option value="aura">{t('wc.source.aura')}</option>
+                            <option value="component">{t('wc.source.component')}</option>
+                        </select>
                     </div>
-                ))}
+                    <div data-wc-source="icon">
+                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                            {t('wc.source.icon')}
+                        </label>
+                        <select
+                            value={iconSource}
+                            onChange={(e) =>
+                                onChange({ wcIconSource: e.target.value === 'component' ? 'component' : undefined })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            <option value="aura">{t('wc.source.aura')}</option>
+                            <option value="component">{t('wc.source.component')}</option>
+                        </select>
+                    </div>
+                    {(titleSource === 'component' || iconSource === 'component') && (
+                        <p className="col-span-2 text-[10px]" style={hintSty}>
+                            {titleSource === 'component' ? t('wc.source.titleHint') : ''}
+                            {titleSource === 'component' && iconSource === 'component' ? ' ' : ''}
+                            {iconSource === 'component' ? t('wc.source.iconHint') : ''}
+                        </p>
+                    )}
+                </div>
+            )}
+
+            {component && oldTitle && onTitle && (
+                <div
+                    data-wc-old-title
+                    className="rounded-lg px-2.5 py-2 text-[11px] space-y-1.5"
+                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                >
+                    <p style={{ color: 'var(--text-secondary)' }}>
+                        {t('wc.oldTitle.text', { title: oldTitle, current: title ?? '' })}
+                    </p>
+                    <div className="flex gap-2">
+                        <button
+                            type="button"
+                            data-action="take"
+                            onClick={() => onTitle(oldTitle, withoutOldTitle())}
+                            className="px-2 py-1 rounded-md text-white"
+                            style={{ background: 'var(--accent)' }}
+                        >
+                            {t('wc.oldTitle.take')}
+                        </button>
+                        <button
+                            type="button"
+                            data-action="drop"
+                            onClick={() => onChange(withoutOldTitle())}
+                            className="px-2 py-1 rounded-md"
+                            style={{ ...iSty, color: 'var(--text-secondary)' }}
+                        >
+                            {t('wc.oldTitle.drop')}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {component &&
+                getSettingsGroups(component.manifest).map((group) => {
+                    const entries = Object.entries(group.panel.items);
+                    const own = entries.filter(([key]) => !hostKeys.includes(key));
+                    const covered = entries.filter(([key]) => hostKeys.includes(key));
+                    return (
+                        <div key={group.name} className="space-y-2">
+                            {group.label && (
+                                <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    {getText(group.label, lang)}
+                                </p>
+                            )}
+                            <WebComponentFields
+                                items={Object.fromEntries(own)}
+                                data={data}
+                                lang={lang}
+                                onSet={setValue}
+                            />
+                            {/* covered by the widget frame: shown greyed with the reason, never handed over */}
+                            {covered.map(([key, item]) => (
+                                <div key={key} data-wc-host-setting={key}>
+                                    <Unavailable reason={t(hostSettingReasonKey(key))}>
+                                        <WebComponentFields
+                                            items={{ [key]: item }}
+                                            data={{ [key]: undefined }}
+                                            lang={lang}
+                                            onSet={() => undefined}
+                                        />
+                                    </Unavailable>
+                                </div>
+                            ))}
+                        </div>
+                    );
+                })}
         </>
     );
 }

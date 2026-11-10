@@ -3660,6 +3660,20 @@ export const de = {
     'wc.objectNotFound': '{id} (nicht gefunden)',
     'wc.pickDatapoint': 'Aus ioBroker wählen',
     'wc.dialog': 'Dialog der Komponente',
+    'wc.host.title': 'Kommt vom Widget-Titel (Titel/Icon oben bzw. Titel-Quelle)',
+    'wc.host.fullView': 'Kommt vom Vollbild-Knopf des Widgets (Darstellung)',
+    'wc.host.other': 'Übernimmt Aura selbst',
+    'wc.source.title': 'Titel aus',
+    'wc.source.icon': 'Icon aus',
+    'wc.source.aura': 'Aura (Widget)',
+    'wc.source.component': 'Komponente',
+    'wc.source.titleHint':
+        'Titel: der Name, den die Komponente meldet (z. B. aus dem Adapter); meldet sie keinen, gilt der Widget-Titel.',
+    'wc.source.iconHint': 'Icon: das Bild, das die Komponente meldet, sonst das Bild aus ihrem Manifest.',
+    'wc.oldTitle.text':
+        'In den Einstellungen der Komponente steht noch der Name „{title}“. Aura zeigt ihn nicht mehr, sondern den Widget-Titel „{current}“.',
+    'wc.oldTitle.take': 'Als Widget-Titel übernehmen',
+    'wc.oldTitle.drop': 'Verwerfen',
 } as const;
 
 export type TranslationKey = keyof typeof de;

@@ -13460,6 +13460,14 @@ function WidgetFrameInner({
                                             options: { ...(config.options ?? {}), ...patch },
                                         })
                                     }
+                                    title={config.title}
+                                    onTitle={(title, patch) =>
+                                        onConfigChange({
+                                            ...config,
+                                            title,
+                                            options: { ...(config.options ?? {}), ...patch },
+                                        })
+                                    }
                                 />
                             )}
 

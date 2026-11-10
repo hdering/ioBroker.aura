@@ -3629,4 +3629,18 @@ export const en: Record<TranslationKey, string> = {
     'wc.objectNotFound': '{id} (not found)',
     'wc.pickDatapoint': 'Pick from ioBroker',
     'wc.dialog': 'Dialog of the component',
+    'wc.host.title': "Comes from the widget's title (title/icon above or title source)",
+    'wc.host.fullView': "Comes from the widget's fullscreen button (Look)",
+    'wc.host.other': 'Aura covers this itself',
+    'wc.source.title': 'Title from',
+    'wc.source.icon': 'Icon from',
+    'wc.source.aura': 'Aura (widget)',
+    'wc.source.component': 'Component',
+    'wc.source.titleHint':
+        "Title: the name the component reports (e.g. from the adapter); if it reports none, the widget's title applies.",
+    'wc.source.iconHint': 'Icon: the picture the component reports, else the picture of its manifest.',
+    'wc.oldTitle.text':
+        'The settings of the component still hold the name "{title}". Aura no longer shows it but the widget title "{current}".',
+    'wc.oldTitle.take': 'Use as widget title',
+    'wc.oldTitle.drop': 'Discard',
 };

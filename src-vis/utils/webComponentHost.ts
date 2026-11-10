@@ -239,6 +239,74 @@ export function evalSettingExpr(expr: string | undefined, data: Record<string, u
     }
 }
 
+// ── title and icon from the component ─────────────────────────────────────
+
+/**
+ * Event a component dispatches to name what Aura shows in the widget's title row
+ * when the widget takes its title or icon from the component (`wcTitleSource` /
+ * `wcIconSource: 'component'`) - e.g. a camera the name it has in its adapter.
+ * `detail`: `{ title?: string, icon?: string }`, again on every change. The same
+ * object may sit in the element's `header` property, read once it is ready.
+ * Not part of `@iobroker/web-components` yet (proposed there); a component
+ * without it leaves the widget's own title and the manifest's icon.
+ */
+export const HEADER_EVENT = 'iob-header';
+
+/** What a component reported for the title row */
+export interface ComponentHeader {
+    title?: string;
+    /** URL of a picture, absolute or relative to the component's manifest */
+    icon?: string;
+}
+
+/** `detail` of `HEADER_EVENT` (or the `header` property) as a header - strings only, empty ones dropped */
+export function parseComponentHeader(detail: unknown): ComponentHeader {
+    if (!detail || typeof detail !== 'object') return {};
+    const d = detail as Record<string, unknown>;
+    const str = (v: unknown): string | undefined => (typeof v === 'string' && v.trim() ? v.trim() : undefined);
+    const header: ComponentHeader = {};
+    const title = str(d.title);
+    const icon = str(d.icon);
+    if (title) header.title = title;
+    if (icon) header.icon = icon;
+    return header;
+}
+
+/** Where a widget takes its title or icon from: Aura's own (default) or the component */
+export type HeaderSource = 'aura' | 'component';
+
+/** `options.wcTitleSource` / `options.wcIconSource` as a source - anything unknown is Aura's */
+export function headerSource(value: unknown): HeaderSource {
+    return value === 'component' ? 'component' : 'aura';
+}
+
+/**
+ * The title row of a webcomponent widget: with source `component` the title the
+ * component reported, else (or while it reported none) the widget's title; the
+ * icon the component reported, else the picture of its manifest - `iconUrl`
+ * undefined means Aura's icon of the widget.
+ *
+ * @param opts the sources (`wcTitleSource`, `wcIconSource`)
+ * @param opts.titleSource where the title comes from
+ * @param opts.iconSource where the icon comes from
+ * @param widgetTitle `config.title`
+ * @param header what the component reported
+ * @param manifestIcon URL of the manifest's picture, resolved
+ * @param resolve makes a reported icon URL absolute (relative to the manifest)
+ */
+export function resolveWidgetHeader(
+    opts: { titleSource: HeaderSource; iconSource: HeaderSource },
+    widgetTitle: string,
+    header: ComponentHeader,
+    manifestIcon: string | undefined,
+    resolve: (url: string) => string | undefined = (url) => url,
+): { title: string; iconUrl?: string } {
+    const title = (opts.titleSource === 'component' && header.title) || widgetTitle;
+    if (opts.iconSource !== 'component') return { title };
+    const iconUrl = (header.icon && resolve(header.icon)) || manifestIcon;
+    return iconUrl ? { title, iconUrl } : { title };
+}
+
 interface NavTab {
     id: string;
     name: string;
@@ -357,6 +425,28 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         size: { width: 520, height: 420 },
         hostSettings: [],
     },
+    {
+        adapter: 'cameras',
+        tag: 'iob-cameras-rtsp',
+        minVersion: '3.4.0',
+        name: { de: 'RTSP Camera', en: 'RTSP Camera' },
+        description: { de: 'Livebild einer RTSP-Kamera', en: 'Live picture of an RTSP camera' },
+        size: { width: 320, height: 240 },
+        // title = the widget's own title row (the component would draw a second one above the picture)
+        hostSettings: ['title'],
+    },
+    {
+        adapter: 'cameras',
+        tag: 'iob-cameras-snapshot',
+        minVersion: '3.4.0',
+        name: { de: 'Snapshot Camera', en: 'Snapshot Camera' },
+        description: {
+            de: 'Regelmäßig aktualisiertes Standbild einer Kamera',
+            en: 'Periodically updated snapshot of a camera',
+        },
+        size: { width: 320, height: 240 },
+        hostSettings: ['title'],
+    },
 ];
 
 /** The known component of a widget: by tag, the adapter only as a tie-breaker */
@@ -371,9 +461,26 @@ export function isTestedWebComponent(tag: unknown, adapter: unknown): boolean {
     return KNOWN_WEB_COMPONENTS.some((k) => k.tag === tag && k.adapter === adapter);
 }
 
-/** Manifest settings of a component that Aura covers itself (see `hostSettings`) */
-export function hostOwnedSettings(tag: unknown, adapter?: unknown): readonly string[] {
-    return findKnownWebComponent(tag, adapter)?.hostSettings ?? [];
+/**
+ * Manifest settings of a component that Aura covers itself: the `hostSettings` of a
+ * known component, and for any component a text setting `title` - a caption the
+ * component would draw above its content, next to the widget's own title row.
+ *
+ * @param tag tag of the component
+ * @param adapter adapter of the component (tie-breaker among known ones)
+ * @param manifest its manifest, for the rule that applies to every component
+ */
+export function hostOwnedSettings(tag: unknown, adapter?: unknown, manifest?: WebComponentManifest): readonly string[] {
+    const known = findKnownWebComponent(tag, adapter)?.hostSettings ?? [];
+    const generic = manifest && getSettingTypes(manifest).title === 'text' ? ['title'] : [];
+    return generic.length && !known.includes('title') ? [...known, ...generic] : known;
+}
+
+/** Why the editor greys out a setting Aura covers itself - an i18n key */
+export function hostSettingReasonKey(key: string): 'wc.host.title' | 'wc.host.fullView' | 'wc.host.other' {
+    if (key === 'title') return 'wc.host.title';
+    if (key === 'fullView') return 'wc.host.fullView';
+    return 'wc.host.other';
 }
 
 /** `settings` without the keys Aura covers itself */
@@ -381,8 +488,9 @@ export function withoutHostSettings<T extends Record<string, unknown>>(
     settings: T,
     tag: unknown,
     adapter?: unknown,
+    manifest?: WebComponentManifest,
 ): T {
-    const drop = hostOwnedSettings(tag, adapter);
+    const drop = hostOwnedSettings(tag, adapter, manifest);
     if (!drop.length) return settings;
     return Object.fromEntries(Object.entries(settings).filter(([key]) => !drop.includes(key))) as T;
 }
