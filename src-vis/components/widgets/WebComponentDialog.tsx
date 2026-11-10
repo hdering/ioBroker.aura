@@ -1,9 +1,10 @@
 /**
  * Dialogs of ioBroker web components in Aura's look (`dialogs` property of the
  * element, `@iobroker/web-components`). Without it a component falls back to the
- * `<dialog>` of the browser; with it a dialog looks like Aura's popups: the
- * backdrop and surface of the popup settings, rounded panel, a title bar with a
- * close button, full width on a phone.
+ * `<dialog>` of the browser; with it a dialog IS a popup of the widget
+ * (WidgetPopupDialog): the widget's popup options (size, fullscreen, colours,
+ * backdrop, title) apply as to any popup of it, the request's width and height
+ * where the widget sets none.
  *
  * Two kinds, as the component asks:
  * - element: the component renders the content; Aura moves `request.element`
@@ -12,9 +13,16 @@
  *   (WebComponentFields) and resolves with the typed values on OK.
  * Close button, backdrop, Escape and Cancel resolve with null.
  */
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode, type RefObject } from 'react';
-import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type ReactNode,
+    type RefObject,
+} from 'react';
 import {
     DIALOG_CLOSE_EVENT,
     getText,
@@ -27,18 +35,13 @@ import {
 } from '@iobroker/web-components';
 import { useT } from '../../i18n';
 import { useConfigStore } from '../../store/configStore';
-import { usePortalTarget, usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { usePopupLayer } from '../../contexts/PopupLayerContext';
-import {
-    DEFAULT_BACKDROP_DIM,
-    DEFAULT_POPUP_BACKGROUND,
-    DEFAULT_POPUP_BORDER,
-    usePopupConfigStore,
-} from '../../store/popupConfigStore';
-import { useEscapeLayer } from '../../utils/escapeStack';
+import { DEFAULT_POPUP_BORDER } from '../../store/popupConfigStore';
+import type { ClickAction, WidgetConfig } from '../../types';
+import { WidgetPopupDialog } from './popup/WidgetClickPopup';
 import {
     createDialogController,
-    dialogFrameSize,
+    DEFAULT_DIALOG_WIDTH,
     formResult,
     initialFormValues,
     type ActiveDialog,
@@ -59,12 +62,14 @@ interface DialogContext {
  * @param elRef the element of the component
  * @param ready true once the element is defined and mounted
  * @param editMode the widget is in the editor
+ * @param widget the widget - its popup options shape the dialog
  * @returns the dialog to render (a portal), or null
  */
 export function useWebComponentDialogs(
     elRef: RefObject<WebComponentElement | null>,
     ready: boolean,
     editMode: boolean,
+    widget: WidgetConfig,
 ): ReactNode {
     const [active, setActive] = useState<ActiveDialog<DialogContext> | null>(null);
     const editRef = useRef(editMode);
@@ -90,95 +95,94 @@ export function useWebComponentDialogs(
 
     if (!active) return null;
     return (
-        <WebComponentDialog key={active.id} dialog={active} onClose={(result) => controller.close(active.id, result)} />
+        <WebComponentDialog
+            key={active.id}
+            dialog={active}
+            widget={widget}
+            onClose={(result) => controller.close(active.id, result)}
+        />
     );
 }
 
-/** The size of the browser window, kept up to date */
-function useViewportSize(): { width: number; height: number } {
-    const read = () => ({ width: window.innerWidth, height: window.innerHeight });
-    const [size, setSize] = useState(read);
-    useEffect(() => {
-        const onResize = () => setSize(read());
-        window.addEventListener('resize', onResize);
-        window.addEventListener('orientationchange', onResize);
-        return () => {
-            window.removeEventListener('resize', onResize);
-            window.removeEventListener('orientationchange', onResize);
-        };
-    }, []);
-    return size;
-}
-
 const stop = (e: React.SyntheticEvent): void => e.stopPropagation();
+const NO_ACTION: ClickAction = { kind: 'none' };
+const positive = (n: unknown): number | undefined => (typeof n === 'number' && n > 0 ? n : undefined);
 
+/**
+ * One dialog of a component, in the popup of the widget (WidgetPopupDialog): the
+ * widget's popup options size and colour it like any popup of that widget, the
+ * request's width and height apply where the widget sets none.
+ */
 function WebComponentDialog({
     dialog,
+    widget,
     onClose,
 }: {
     dialog: ActiveDialog<DialogContext>;
+    widget: WidgetConfig;
     onClose: (result: unknown) => void;
 }) {
     const t = useT();
     const lang = useConfigStore((s) => s.frontend.language ?? 'de') as WebComponentLang;
-    const portal = usePortalTarget();
-    const themeVars = usePortalThemeVars();
     const layer = usePopupLayer();
-    const viewport = useViewportSize();
-    const background = usePopupConfigStore((s) => s.globalPopupBackground) ?? DEFAULT_POPUP_BACKGROUND;
-    const backdropDim = usePopupConfigStore((s) => s.globalBackdropDim) ?? DEFAULT_BACKDROP_DIM;
     const { request } = dialog;
     const form = isFormDialog(request);
-    const size = dialogFrameSize(request, viewport);
-    const title = getText(request.title, lang);
-    const titleId = useId();
-    const panelRef = useRef<HTMLDivElement | null>(null);
-    const downOnBackdrop = useRef(false);
+    const title = getText(request.title, lang) || t('wc.dialog');
+    const focusRef = useRef<HTMLDivElement | null>(null);
 
-    // Escape closes the topmost layer only - this dialog lies above the popup it may sit in
-    useEscapeLayer(() => onClose(null));
-
-    // Focus into the dialog: on a desktop the first field of a form, else the panel -
+    // Focus into the dialog: on a desktop the first field of a form, else the content -
     // a tablet must not pop up its keyboard on its own.
     useEffect(() => {
-        const panel = panelRef.current;
-        if (!panel) return;
+        const box = focusRef.current;
+        if (!box) return;
         const fine = typeof window.matchMedia === 'function' && window.matchMedia('(pointer: fine)').matches;
         const first =
             form && fine
-                ? panel.querySelector<HTMLElement>(
+                ? box.querySelector<HTMLElement>(
                       'input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled])',
                   )
                 : null;
-        (first ?? panel).focus({ preventScroll: true });
+        (first ?? box).focus({ preventScroll: true });
     }, [form]);
 
     // A popup this widget sits in must not close itself on its timer while the user works in here
     const keepAlive = (): void => layer?.keepAlive();
+    // closing without a result: close button, backdrop, Escape
+    const cancel = useCallback(() => onClose(null), [onClose]);
 
-    return createPortal(
+    const body = (
         <div
-            data-aura-app="frontend"
-            data-aura-wc-dialog={form ? 'form' : 'element'}
-            className={`fixed inset-0 z-[9000] flex items-center justify-center ${size.compact ? 'p-2' : 'p-4'}`}
-            style={{ background: `rgba(0,0,0,${backdropDim / 100})`, color: 'var(--text-primary)', ...themeVars }}
-            // The dialog is a React child of the widget: nothing done in here may reach
-            // the widget's own handlers (click action, selection in the editor).
+            ref={focusRef}
+            tabIndex={-1}
+            className="aura-wc-dialog h-full flex flex-col focus:outline-none"
+            style={{ color: 'var(--text-primary)', minWidth: 'min(280px, calc(100vw - 32px))' }}
+        >
+            {form ? (
+                <FormBody request={request} lang={lang} onClose={onClose} />
+            ) : (
+                <ElementBody
+                    request={request as WebComponentElementDialog}
+                    theme={dialog.context?.theme}
+                    onClose={onClose}
+                />
+            )}
+        </div>
+    );
+
+    return (
+        // The dialog is a React child of the widget: nothing done in here may reach the
+        // widget's own handlers (click action, selection in the editor).
+        <div
+            style={{ display: 'contents' }}
             onPointerDown={(e) => {
-                downOnBackdrop.current = e.target === e.currentTarget;
                 e.stopPropagation();
                 keepAlive();
-            }}
-            onClick={(e) => {
-                e.stopPropagation();
-                // only a tap that started on the backdrop - not a text selection dragged out of a field
-                if (e.target === e.currentTarget && downOnBackdrop.current) onClose(null);
-                downOnBackdrop.current = false;
             }}
             onKeyDown={(e) => {
                 e.stopPropagation();
                 keepAlive();
             }}
+            onClick={stop}
             onPointerUp={stop}
             onMouseDown={stop}
             onMouseUp={stop}
@@ -190,56 +194,20 @@ function WebComponentDialog({
             onWheel={stop}
             onKeyUp={stop}
         >
-            <div
-                ref={panelRef}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={title ? titleId : undefined}
-                aria-label={title ? undefined : t('wc.dialog')}
-                tabIndex={-1}
-                className="aura-wc-dialog relative flex flex-col overflow-hidden rounded-2xl shadow-2xl focus:outline-none"
-                style={{
-                    width: size.width,
-                    height: size.height,
-                    maxHeight: size.maxHeight,
-                    background,
-                    border: `1px solid ${DEFAULT_POPUP_BORDER}`,
+            <WidgetPopupDialog
+                widget={widget}
+                action={NO_ACTION}
+                onClose={cancel}
+                custom={{
+                    body,
+                    title,
+                    // a form or element without a width of its own gets the usual dialog width
+                    width: positive(request.width) ?? DEFAULT_DIALOG_WIDTH,
+                    height: positive(request.height),
+                    attrs: { 'data-aura-wc-dialog': form ? 'form' : 'element' },
                 }}
-            >
-                <div
-                    className="shrink-0 flex items-center gap-2 pl-5 pr-2.5 py-2.5"
-                    style={{ borderBottom: `1px solid ${DEFAULT_POPUP_BORDER}` }}
-                >
-                    <span id={titleId} className="flex-1 min-w-0 truncate font-semibold text-sm">
-                        {title}
-                    </span>
-                    <button
-                        type="button"
-                        onClick={() => onClose(null)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-70 transition-opacity shrink-0"
-                        style={{
-                            color: 'var(--text-secondary)',
-                            background: 'var(--app-bg)',
-                            border: `1px solid ${DEFAULT_POPUP_BORDER}`,
-                        }}
-                        title={t('common.close')}
-                        aria-label={t('common.close')}
-                    >
-                        <X size={14} />
-                    </button>
-                </div>
-                {form ? (
-                    <FormBody request={request} lang={lang} onClose={onClose} />
-                ) : (
-                    <ElementBody
-                        request={request as WebComponentElementDialog}
-                        theme={dialog.context?.theme}
-                        onClose={onClose}
-                    />
-                )}
-            </div>
-        </div>,
-        portal,
+            />
+        </div>
     );
 }
 
@@ -280,7 +248,7 @@ function ElementBody({
         };
     }, [request, theme]);
 
-    return <div ref={bodyRef} className="flex-1 min-h-0 overflow-auto flex flex-col p-4" />;
+    return <div ref={bodyRef} className="flex-1 min-h-0 flex flex-col p-4" />;
 }
 
 /** A form: the fields of the settings editor, typed values on OK */
@@ -314,7 +282,7 @@ function FormBody({
                 onClose(formResult(request.form, values));
             }}
         >
-            <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-3">
+            <div className="flex-1 min-h-0 px-5 py-4 space-y-3">
                 <WebComponentFields items={request.form.items} data={data} lang={lang} onSet={onSet} />
             </div>
             <div

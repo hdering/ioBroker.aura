@@ -229,7 +229,8 @@ const reset = (page) => page.evaluate(() => (document.querySelector('aura-dialog
     const form = page.locator('[data-aura-wc-dialog="form"]');
     await form.waitFor({ timeout: 5000 });
     const box = await form.locator('[role="dialog"]').evaluate((el) => el.getBoundingClientRect().width);
-    eq('phone: the form spans the screen', Math.round(box), 390 - 16);
+    // like every popup: the screen minus the popup margin
+    eq('phone: the form spans the screen', Math.round(box), 390 - 32);
     if (SHOTS) await page.screenshot({ path: join(SHOTS, 'wc-dialog-form-phone-dark.png') });
     await form.locator('[data-action="ok"]').tap();
     await waitResult(page);
@@ -240,7 +241,7 @@ const reset = (page) => page.evaluate(() => (document.querySelector('aura-dialog
     const element = page.locator('[data-aura-wc-dialog="element"]');
     await element.waitFor({ timeout: 5000 });
     const w = await element.locator('[role="dialog"]').evaluate((el) => el.getBoundingClientRect().width);
-    eq('phone: the element dialog spans the screen', Math.round(w), 390 - 16);
+    eq('phone: the element dialog spans the screen', Math.round(w), 390 - 32);
     if (SHOTS) await page.screenshot({ path: join(SHOTS, 'wc-dialog-element-phone-dark.png') });
     await element.locator('.aura-demo-content button#done').tap();
     await waitResult(page);

@@ -11,3 +11,5 @@
 - feat: List - shutter rows get a button size option, like the Rollladen widget (#943)
 - fix: Web component - Aura draws the title, the component no longer adds its own second title (e.g. the name of the cameras' RTSP picture)
 - feat: Web component - title and icon can come from the component instead of the widget (Title from / Icon from)
+- feat: Web component - new option "Click on the component": the component itself, the widget's click action or off; cameras open the picture large in Aura's popup by default
+- feat: Web component - dialogs of a component open as a popup of the widget and follow its popup options (size, fullscreen, look)

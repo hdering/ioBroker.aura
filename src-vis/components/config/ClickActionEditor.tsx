@@ -18,6 +18,7 @@ import { activeBgImage } from '../../utils/backgroundImage';
 import { DatapointPicker } from './DatapointPicker';
 import { ImagePathHint } from './ImagePathHint';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
+import { webComponentClick } from '../../utils/webComponentHost';
 
 function normalizeAction(action: ClickAction): ClickAction {
     switch (action.kind) {
@@ -49,6 +50,12 @@ export function defaultActionForConfig(config: WidgetConfig): ClickAction | null
     switch (config.type) {
         case 'slider':
             return { kind: 'popup-widget', widgetId: '' };
+        case 'webcomponent':
+            // Aura answers the click (wcClick 'aura', default of the cameras): the widget itself large
+            return webComponentClick(config.options?.wcClick, config.options?.wcTag, config.options?.wcAdapter) ===
+                'aura'
+                ? { kind: 'popup-widget', widgetId: '' }
+                : null;
         default:
             return null;
     }

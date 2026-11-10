@@ -48,6 +48,7 @@ dabei noch eine Komponente (Upload läuft), versucht Aura es eine Minute lang al
 | `wcSettings` | Einstellungen der Komponente | `{ schlüssel: wert }` — welche Felder es gibt, legt die Komponente fest |
 | `wcTitleSource` | Titel aus | `aura` (Standard) = Widget-Titel · `component` = Name, den die Komponente meldet |
 | `wcIconSource` | Icon aus | `aura` (Standard) = Widget-Icon · `component` = Bild der Komponente bzw. ihres Manifests |
+| `wcClick` | Klick auf die Komponente | `component` · `aura` · `off` — siehe [Klick](#klick) |
 
 Unter der Auswahl zeigt der Editor die Einstellungen der gewählten Komponente: Textfelder,
 Zahlen, Schalter, Farben, Auswahllisten, Datenpunkte, Objekte und Adapter-Instanzen — so, wie
@@ -71,6 +72,14 @@ Komponente nie einen zweiten Titel darüber.
 Stand in einem älteren Widget noch ein Name in den Einstellungen der Komponente, bietet der Editor
 **Als Widget-Titel übernehmen** oder **Verwerfen** an.
 
+## Klick
+
+| Klick auf die Komponente | Verhalten |
+| --- | --- |
+| **Komponente** (Standard außer Kameras) | Die Komponente bedient sich selbst (Knöpfe, eigener Dialog). Die **Aktion** des Widgets bleibt still. |
+| **Aura-Aktion** (Standard der Kameras) | Die **Aktion** des Widgets gilt; ohne eigene Aktion öffnet ein Klick das Widget **groß im Popup**. Die Komponente bekommt weder Klicks noch Tasten. |
+| **Aus** | Reine Anzeige. |
+
 ## Verhalten
 
 - **Navigation:** Will die Komponente zu einer anderen Ansicht springen, öffnet Aura den Tab
@@ -93,10 +102,11 @@ nicht als Fenster des Browsers:
 
 ![Formular-Dialog der Sprach-Satelliten (assistant)](assets/web-komponente/dialog.png)
 
-- **Rahmen wie ein Popup:** abgedunkelter Hintergrund, abgerundete Fläche, Titelzeile mit
-  Schließen-Knopf. Fläche und Abdunklung folgen den
-  [globalen Popup-Einstellungen](../einstellungen/popups#globale-popup-einstellungen)
-  (Hintergrundfarbe, Hintergrund abdunkeln).
+- **Ein Popup des Widgets:** Der Dialog ist dasselbe Popup wie bei der **Aktion** des Widgets —
+  dessen Popup-Optionen gelten (Breite, Höhe, Vollbild, Titel ausblenden, Hintergrund, Abdunklung,
+  Innenabstand), sonst die
+  [globalen Popup-Einstellungen](../einstellungen/popups#globale-popup-einstellungen).
+  Automatisch schließen gilt hier nicht — ein Formular verschwindet nicht beim Ausfüllen.
 - **Formular:** Fragt die Komponente nach Werten, zeigt Aura dieselben Felder wie im
   Einstellungs-Editor des Widgets (Text, Zahl, Schieberegler, Schalter, Farbe, Auswahl,
   Datenpunkt, Instanz) mit **Abbruch** und **OK** — bzw. den Beschriftungen, die die
@@ -106,8 +116,8 @@ nicht als Fenster des Browsers:
   einem eigenen **Fertig**-Knopf).
 - **Abbrechen:** Schließen-Knopf, Tippen neben den Dialog oder `Esc` schließen ihn, ohne etwas
   zu übernehmen.
-- **Größe:** Breite und Höhe wählt die Komponente; auf dem Handy nimmt der Dialog die ganze
-  Bildschirmbreite ein, er ist nie größer als der Bildschirm.
+- **Größe:** Breite/Höhe des Widget-Popups, sonst die der Komponente (ohne Angabe 480 px); nie
+  größer als der Bildschirm abzüglich des üblichen Popup-Rands.
 - Pro Widget ist immer nur ein Dialog offen. Liegt das Widget in einem Popup, öffnet sich der
   Dialog darüber; solange darin gearbeitet wird, schließt sich das Popup nicht von selbst.
 - Im **Bearbeitungsmodus** öffnet sich kein Dialog.

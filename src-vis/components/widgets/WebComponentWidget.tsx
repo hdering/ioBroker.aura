@@ -24,6 +24,7 @@ import {
     themeFromVars,
     type ComponentHeader,
     typedSettings,
+    webComponentClick,
     withoutHostSettings,
 } from '../../utils/webComponentHost';
 import { findWebComponent, getWebComponentSocket, useWebComponentCatalog } from '../../utils/webComponentRegistry';
@@ -32,6 +33,8 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 import { useWebComponentDialogs } from './WebComponentDialog';
 
 const FILL = { display: 'block', width: '100%', height: '100%' } as const;
+/** The component keeps its hands off: Aura's click action (or nothing) answers */
+const INERT = { ...FILL, pointerEvents: 'none' } as const;
 
 type Status = 'loading' | 'ready' | 'missing' | 'failed' | 'unset';
 
@@ -48,6 +51,9 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
+    // who answers a click: the component, Aura's click action of the frame, or nobody
+    const click = webComponentClick(opts.wcClick, opts.wcTag, opts.wcAdapter);
+    const inert = !editMode && click !== 'component';
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Puzzle);
 
@@ -141,7 +147,7 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     }, [status, themeEpoch]);
 
     // dialogs: in Aura's look instead of the browser's <dialog>
-    const dialog = useWebComponentDialogs(elRef, status === 'ready', editMode);
+    const dialog = useWebComponentDialogs(elRef, status === 'ready', editMode, config);
 
     // iob-navigate: show a tab of this layout, named by slug, id or name
     useEffect(() => {
@@ -194,7 +200,12 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
 
     let body: React.ReactNode;
     if (status === 'ready' && component) {
-        body = createElement(component.manifest.tag, { ref: elRef, style: FILL });
+        // inert: no pointer, no focus, no keys - the frame's click action gets the click
+        body = createElement(component.manifest.tag, {
+            ref: elRef,
+            style: inert ? INERT : FILL,
+            ...(inert ? { inert: '' } : {}),
+        });
     } else if (editMode || status === 'unset') {
         const text =
             status === 'unset'
@@ -259,6 +270,9 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
             </HeaderGroup>
             <div
                 ref={hostRef}
+                // the component answers its clicks itself: the frame's click action stays quiet
+                data-no-popup={!editMode && click === 'component' ? '' : undefined}
+                data-wc-click={click}
                 className="aura-widget-value relative flex-1 min-h-0"
                 style={{ color: 'var(--text-primary)' }}
             >

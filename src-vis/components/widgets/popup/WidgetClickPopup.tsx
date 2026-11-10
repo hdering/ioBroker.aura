@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { WidgetConfig, ClickAction, PopupCountdownPosition } from '../../../types';
 import { usePortalTarget } from '../../../contexts/PortalTargetContext';
+import { useT } from '../../../i18n';
 import {
     usePopupConfigStore,
     DEFAULT_POPUP_TRANSPARENCY,
@@ -76,6 +77,25 @@ interface Props {
     /** Overrides the popup heading — e.g. the carousel item's label so the popup
      *  shows the element name instead of the (shared) carousel widget name. */
     titleOverride?: string;
+    /**
+     * Content no click action describes - the dialog of a web component: body and
+     * heading come from the caller, everything else (size, fullscreen, colours,
+     * backdrop, closing) from the widget's popup options like any popup of it.
+     * Never closes on a timer: a form must not vanish while it is filled in.
+     */
+    custom?: CustomPopupContent;
+}
+
+/** See `Props.custom` */
+export interface CustomPopupContent {
+    body: ReactNode;
+    /** Plain text - no placeholders resolved */
+    title: string;
+    /** Size the content asks for (px); the widget's popupWidth / popupHeight win */
+    width?: number;
+    height?: number;
+    /** Extra attributes on the backdrop element (e.g. a test hook) */
+    attrs?: Record<string, string>;
 }
 
 function getTitle(widget: WidgetConfig, action: ClickAction, titleOverride?: string): string {
@@ -133,7 +153,13 @@ function ReplaceTopPopup({ layer, content }: { layer: PopupLayer; content: Popup
     return null;
 }
 
-function PopupDialog({ onClose, ...initial }: Props) {
+/** The popup itself, without the depth cap of WidgetClickPopup - for `custom` content that must stay its own layer */
+export function WidgetPopupDialog(props: Props) {
+    return <PopupDialog {...props} />;
+}
+
+function PopupDialog({ onClose, custom, ...initial }: Props) {
+    const t = useT();
     const parent = usePopupLayer();
     // Content swapped in by a popup opened past the depth cap (see ReplaceTopPopup);
     // `swaps` keys the body so the swapped-in view starts from a clean state.
@@ -168,7 +194,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
     // Auto-close. Tri-state: undefined = inherit, 0 = explicit off, >0 = seconds.
     const actionAutoClose = widget.options?.popupAutoCloseSec as number | undefined;
     const globalAutoClose = usePopupConfigStore((s) => s.globalAutoCloseSec);
-    const effectiveAutoCloseSec = actionAutoClose ?? view?.autoCloseSec ?? globalAutoClose ?? 0;
+    const effectiveAutoCloseSec = custom ? 0 : (actionAutoClose ?? view?.autoCloseSec ?? globalAutoClose ?? 0);
     // Countdown corner, same three levels; only shown while an auto-close is pending.
     const globalCountdown = usePopupConfigStore((s) => s.globalAutoCloseCountdown);
     const countdownPos =
@@ -266,9 +292,9 @@ function PopupDialog({ onClose, ...initial }: Props) {
     const mainDp = popupMainDp(widget, action.kind === 'popup-view' ? action.dp : undefined);
     const nameVars = useDpNameVars(mainDp);
     const subMap = { ...nameVars, ...buildPopupSubMap(widget, mainDp) };
-    const title = subAll(getTitle(widget, action, titleOverride), subMap);
-    const customWidth = widget.options?.popupWidth as number | undefined;
-    const customHeight = widget.options?.popupHeight as number | undefined;
+    const title = custom ? custom.title : subAll(getTitle(widget, action, titleOverride), subMap);
+    const customWidth = (widget.options?.popupWidth as number | undefined) ?? custom?.width;
+    const customHeight = (widget.options?.popupHeight as number | undefined) ?? custom?.height;
     // Fullscreen: the dialog covers the whole viewport — no margin, corners or frame.
     // Width/height are ignored then; the screensaver popup (#822) is the use case.
     const fullscreen = !!widget.options?.popupFullscreen;
@@ -285,7 +311,9 @@ function PopupDialog({ onClose, ...initial }: Props) {
         fillsFullscreenPopup(
             (action.widgetId ? allWidgets.find((w) => w.id === action.widgetId) : undefined) ?? widget,
         );
-    const fillBody = (fullscreen && (isIframe || viewFills || embedFills)) || sizedView;
+    // custom content with a size of its own (or fullscreen) fills the dialog like a sized view
+    const customFills = !!custom && (fullscreen || !!customHeight);
+    const fillBody = (fullscreen && (isIframe || viewFills || embedFills)) || sizedView || customFills;
     // Without a configured width the dialog sizes to its body: popup views and embedded
     // widgets report their designed grid width, the device/media bodies their own fixed
     // width. Only free-flowing HTML keeps a reading cap — its paragraphs would otherwise
@@ -328,6 +356,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
     }, [held, bodyPending]);
 
     const body = (() => {
+        if (custom) return custom.body;
         switch (action.kind) {
             case 'popup-dimmer':
                 return <DimmerPopupBody widget={widget} />;
@@ -376,12 +405,16 @@ function PopupDialog({ onClose, ...initial }: Props) {
 
     return createPortal(
         <div
-            data-aura-click-popup={action.kind}
+            data-aura-click-popup={custom ? undefined : action.kind}
+            {...custom?.attrs}
             className={`fixed inset-0 flex items-center justify-center z-[300] ${fullscreen ? 'p-0' : 'p-4'}`}
             style={{ background: `rgba(0,0,0,${backdropDim / 100})` }}
             onClick={onClose}
         >
             <div
+                role={custom ? 'dialog' : undefined}
+                aria-modal={custom ? true : undefined}
+                aria-label={custom ? title || undefined : undefined}
                 className={`relative flex flex-col overflow-hidden ${fullscreen ? '' : 'rounded-2xl shadow-2xl'}`}
                 style={{
                     background,
@@ -406,7 +439,10 @@ function PopupDialog({ onClose, ...initial }: Props) {
                                   : customHeight
                                     ? `min(85dvh, ${customHeight}px)`
                                     : '85dvh',
-                              height: sizedView && customHeight ? `min(85dvh, ${customHeight}px)` : undefined,
+                              height:
+                                  (sizedView || customFills) && customHeight
+                                      ? `min(85dvh, ${customHeight}px)`
+                                      : undefined,
                           }),
                 }}
                 onClick={(e) => e.stopPropagation()}
@@ -417,7 +453,10 @@ function PopupDialog({ onClose, ...initial }: Props) {
                 {backgroundImage && <BackgroundImageLayer image={backgroundImage} />}
                 {/* Close button — always absolute top-right of popup */}
                 <button
+                    type="button"
                     onClick={onClose}
+                    title={t('common.close')}
+                    aria-label={t('common.close')}
                     className="absolute top-2.5 right-2.5 z-20 w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-70 transition-opacity"
                     style={{
                         color: 'var(--text-secondary)',
@@ -437,7 +476,7 @@ function PopupDialog({ onClose, ...initial }: Props) {
                         style={{ borderBottom: `1px solid ${DEFAULT_POPUP_BORDER}` }}
                     >
                         <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-                            <DynamicTitle text={title} />
+                            {custom ? title : <DynamicTitle text={title} />}
                         </span>
                     </div>
                 )}
@@ -459,7 +498,10 @@ function PopupDialog({ onClose, ...initial }: Props) {
                         scrollbarGutter: !isIframe && scrolls ? 'stable both-edges' : undefined,
                     }}
                 >
-                    <div key={swapped?.n ?? 0} className={fillBody ? 'w-full h-full' : 'm-auto'}>
+                    <div
+                        key={swapped?.n ?? 0}
+                        className={fillBody ? 'w-full h-full' : custom && customWidth ? 'w-full' : 'm-auto'}
+                    >
                         <PopupLayerContext.Provider value={layer}>{body}</PopupLayerContext.Provider>
                     </div>
                 </div>

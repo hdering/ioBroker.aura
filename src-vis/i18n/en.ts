@@ -3643,4 +3643,14 @@ export const en: Record<TranslationKey, string> = {
         'The settings of the component still hold the name "{title}". Aura no longer shows it but the widget title "{current}".',
     'wc.oldTitle.take': 'Use as widget title',
     'wc.oldTitle.drop': 'Discard',
+    'wc.click.label': 'Click on the component',
+    'wc.click.component': 'Component',
+    'wc.click.aura': 'Aura action',
+    'wc.click.off': 'Off',
+    'wc.click.default': 'default',
+    'wc.click.componentHint':
+        "The component handles clicks itself (its own buttons, its own dialog in Aura's popup). The widget's click action stays quiet.",
+    'wc.click.auraHint':
+        "The widget's click action (Action section) applies - without one, a click shows the widget large in a popup. The component itself does not react.",
+    'wc.click.offHint': 'Display only: neither the component nor Aura react to clicks.',
 };

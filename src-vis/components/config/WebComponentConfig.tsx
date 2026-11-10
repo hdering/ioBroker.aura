@@ -8,6 +8,7 @@ import {
     hostSettingReasonKey,
     isTestedWebComponent,
     typedSettings,
+    webComponentClick,
 } from '../../utils/webComponentHost';
 import { findWebComponent, useWebComponentCatalog } from '../../utils/webComponentRegistry';
 import { useT } from '../../i18n';
@@ -157,6 +158,9 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
     };
     const titleSource = headerSource(o.wcTitleSource);
     const iconSource = headerSource(o.wcIconSource);
+    const click = webComponentClick(o.wcClick, o.wcTag, o.wcAdapter);
+    // the mode the component has without an own choice (cameras: Aura)
+    const defaultClick = webComponentClick(undefined, o.wcTag, o.wcAdapter);
 
     const setValue = (key: string, value: unknown): void => {
         const next = { ...stored };
@@ -275,6 +279,29 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
                             {iconSource === 'component' ? t('wc.source.iconHint') : ''}
                         </p>
                     )}
+                    <div className="col-span-2" data-wc-click-select>
+                        <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
+                            {t('wc.click.label')}
+                        </label>
+                        <select
+                            value={click}
+                            onChange={(e) =>
+                                onChange({ wcClick: e.target.value === defaultClick ? undefined : e.target.value })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            {(['component', 'aura', 'off'] as const).map((mode) => (
+                                <option key={mode} value={mode}>
+                                    {t(`wc.click.${mode}`)}
+                                    {mode === defaultClick ? ` (${t('wc.click.default')})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-[10px] mt-0.5" style={hintSty}>
+                            {t(`wc.click.${click}Hint`)}
+                        </p>
+                    </div>
                 </div>
             )}
 

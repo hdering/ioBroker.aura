@@ -767,6 +767,31 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
         'wc.host.other',
     ]);
 
+    // who answers a click (wcClick)
+    check(
+        'click: cameras default to Aura',
+        [m.webComponentClick(undefined, 'iob-cameras-rtsp'), m.webComponentClick(undefined, 'iob-cameras-snapshot')],
+        ['aura', 'aura'],
+    );
+    check(
+        'click: other components default to the component',
+        [
+            m.webComponentClick(undefined, 'iob-fullcalendar'),
+            m.webComponentClick(undefined, 'iob-other-tile'),
+            m.webComponentClick(undefined, undefined),
+        ],
+        ['component', 'component', 'component'],
+    );
+    check(
+        'click: own choice of the widget wins',
+        [
+            m.webComponentClick('component', 'iob-cameras-rtsp'),
+            m.webComponentClick('off', 'iob-fullcalendar'),
+            m.webComponentClick('nonsense', 'iob-cameras-rtsp'),
+        ],
+        ['component', 'off', 'aura'],
+    );
+
     // title row from the component (wcTitleSource / wcIconSource, event iob-header)
     check('header: strings only, trimmed', m.parseComponentHeader({ title: ' Einfahrt ', icon: 5 }), {
         title: 'Einfahrt',

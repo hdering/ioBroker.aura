@@ -648,6 +648,17 @@ export const WIDGET_OPTION_NOTES = {
                 'Woher das Icon der Titelzeile kommt: "aura" = options.icon; "component" = das Bild, das die ' +
                 'Komponente meldet (iob-header), sonst das Bild ihres Manifests, sonst options.icon.',
         },
+        wcClick: {
+            type: 'string',
+            enum: ['component', 'aura', 'off'],
+            description:
+                'Wer einen Klick auf die Komponente beantwortet. "component" = die Komponente selbst (eigene ' +
+                'Bedienung, eigener Dialog - der erscheint im Popup des Widgets mit dessen Popup-Optionen); ' +
+                'clickAction des Widgets bleibt still. "aura" = clickAction des Widgets, ohne eigene zeigt ein ' +
+                'Klick das Widget selbst groß im Popup; die Komponente bekommt keine Klicks/Tasten. "off" = reine ' +
+                'Anzeige. Leer = Standard der Komponente: "aura" bei iob-cameras-rtsp/-snapshot, sonst "component" ' +
+                '(z. B. Kalender und Fluss-Diagramm brauchen ihre eigene Bedienung).',
+        },
     },
     button: {
         buttonLabel: { description: 'Beschriftung der Taste. Leer = Widget-Titel.' },

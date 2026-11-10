@@ -64,6 +64,7 @@
     "test:web-component-dialogs-ui": "node tools/tests/web-component-dialogs-ui.mjs",
     "test:web-component-catalog-ui": "node tools/tests/web-component-catalog-ui.mjs",
     "test:web-component-header-ui": "node tools/tests/web-component-header-ui.mjs",
+    "test:web-component-click-ui": "node tools/tests/web-component-click-ui.mjs",
     "test:countdowns": "node test/countdowns.test.js && node test/countdown-adapter.test.js",
     "test:countdown-format": "node tools/tests/countdown-format.mjs",
     "test:countdown-ui": "node tools/tests/countdown-widget.mjs",

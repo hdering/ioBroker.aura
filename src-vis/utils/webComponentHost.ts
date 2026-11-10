@@ -395,6 +395,8 @@ export interface KnownWebComponent {
      * in the editor and never handed to the element, so it keeps their defaults
      */
     hostSettings: readonly string[];
+    /** What a click does unless the widget says otherwise (`wcClick`); missing: `component` */
+    defaultClick?: WebComponentClick;
 }
 
 /** Name, description and size as in the component's own manifest */
@@ -434,6 +436,8 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         size: { width: 320, height: 240 },
         // title = the widget's own title row (the component would draw a second one above the picture)
         hostSettings: ['title'],
+        // a click shows the picture large in Aura's popup, not in the component's own dialog
+        defaultClick: 'aura',
     },
     {
         adapter: 'cameras',
@@ -446,6 +450,7 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         },
         size: { width: 320, height: 240 },
         hostSettings: ['title'],
+        defaultClick: 'aura',
     },
 ];
 
@@ -474,6 +479,28 @@ export function hostOwnedSettings(tag: unknown, adapter?: unknown, manifest?: We
     const known = findKnownWebComponent(tag, adapter)?.hostSettings ?? [];
     const generic = manifest && getSettingTypes(manifest).title === 'text' ? ['title'] : [];
     return generic.length && !known.includes('title') ? [...known, ...generic] : known;
+}
+
+/**
+ * Who answers a click on the component (`options.wcClick`):
+ * - `component`: the component itself (its own dialog, its controls); Aura's click action stays quiet
+ * - `aura`: Aura's click action of the widget - without one, the widget itself large in a popup;
+ *   the component gets no pointer, no focus, no keys (`inert`)
+ * - `off`: nobody - a picture only, inert as well
+ */
+export type WebComponentClick = 'component' | 'aura' | 'off';
+
+/**
+ * The click mode of a widget: its own `wcClick`, else the default of a known
+ * component, else `component`.
+ *
+ * @param own `options.wcClick`
+ * @param tag `options.wcTag`
+ * @param adapter `options.wcAdapter`
+ */
+export function webComponentClick(own: unknown, tag: unknown, adapter?: unknown): WebComponentClick {
+    if (own === 'component' || own === 'aura' || own === 'off') return own;
+    return findKnownWebComponent(tag, adapter)?.defaultClick ?? 'component';
 }
 
 /** Why the editor greys out a setting Aura covers itself - an i18n key */
