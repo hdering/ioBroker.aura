@@ -3676,14 +3676,12 @@ export const de = {
     'wc.oldTitle.drop': 'Verwerfen',
     'wc.click.label': 'Klick auf die Komponente',
     'wc.click.component': 'Komponente',
-    'wc.click.aura': 'Aura-Aktion',
     'wc.click.off': 'Aus',
     'wc.click.default': 'Standard',
     'wc.click.componentHint':
-        'Die Komponente bedient Klicks selbst (eigene Knöpfe, eigener Dialog im Aura-Popup). Die Klick-Aktion des Widgets bleibt still.',
-    'wc.click.auraHint':
-        'Die Klick-Aktion des Widgets (Bereich „Aktion“) gilt – ohne eigene Aktion zeigt ein Klick das Widget groß im Popup. Die Komponente selbst reagiert nicht.',
-    'wc.click.offHint': 'Reine Anzeige: weder Komponente noch Aura reagieren auf Klicks.',
+        'Die Komponente bedient Klicks selbst (eigene Knöpfe, eigener Dialog im Aura-Popup). Eine Klick-Aktion des Widgets bleibt still.',
+    'wc.click.offHint':
+        'Die Komponente reagiert nicht auf Klicks. Ein Klick gehört dem Widget – eine Klick-Aktion wie bei jedem Widget unter „Aktion“ einstellen.',
 } as const;
 
 export type TranslationKey = keyof typeof de;

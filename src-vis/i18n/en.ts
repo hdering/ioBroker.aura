@@ -3645,12 +3645,10 @@ export const en: Record<TranslationKey, string> = {
     'wc.oldTitle.drop': 'Discard',
     'wc.click.label': 'Click on the component',
     'wc.click.component': 'Component',
-    'wc.click.aura': 'Aura action',
     'wc.click.off': 'Off',
     'wc.click.default': 'default',
     'wc.click.componentHint':
-        "The component handles clicks itself (its own buttons, its own dialog in Aura's popup). The widget's click action stays quiet.",
-    'wc.click.auraHint':
-        "The widget's click action (Action section) applies - without one, a click shows the widget large in a popup. The component itself does not react.",
-    'wc.click.offHint': 'Display only: neither the component nor Aura react to clicks.',
+        "The component handles clicks itself (its own buttons, its own dialog in Aura's popup). A click action of the widget stays quiet.",
+    'wc.click.offHint':
+        'The component does not react to clicks. A click belongs to the widget - set a click action under Action as for any widget.',
 };

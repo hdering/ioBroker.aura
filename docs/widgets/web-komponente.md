@@ -48,7 +48,7 @@ dabei noch eine Komponente (Upload läuft), versucht Aura es eine Minute lang al
 | `wcSettings` | Einstellungen der Komponente | `{ schlüssel: wert }` — welche Felder es gibt, legt die Komponente fest |
 | `wcTitleSource` | Titel aus | `aura` (Standard) = Widget-Titel · `component` = Name, den die Komponente meldet |
 | `wcIconSource` | Icon aus | `aura` (Standard) = Widget-Icon · `component` = Bild der Komponente bzw. ihres Manifests |
-| `wcClick` | Klick auf die Komponente | `component` · `aura` · `off` — siehe [Klick](#klick) |
+| `wcClick` | Klick auf die Komponente | `off` · `component` — siehe [Klick](#klick) |
 
 Unter der Auswahl zeigt der Editor die Einstellungen der gewählten Komponente: Textfelder,
 Zahlen, Schalter, Farben, Auswahllisten, Datenpunkte, Objekte und Adapter-Instanzen — so, wie
@@ -76,9 +76,8 @@ Stand in einem älteren Widget noch ein Name in den Einstellungen der Komponente
 
 | Klick auf die Komponente | Verhalten |
 | --- | --- |
-| **Komponente** (Standard außer Kameras) | Die Komponente bedient sich selbst (Knöpfe, eigener Dialog). Die **Aktion** des Widgets bleibt still. |
-| **Aura-Aktion** (Standard der Kameras) | Die **Aktion** des Widgets gilt; ohne eigene Aktion öffnet ein Klick das Widget **groß im Popup**. Die Komponente bekommt weder Klicks noch Tasten. |
-| **Aus** | Reine Anzeige. |
+| **Aus** (Standard der Kameras) | Die Komponente bekommt weder Klicks noch Tasten. Ein Klick gehört dem Widget: es gilt seine **Aktion** wie bei jedem Widget — ohne Aktion passiert nichts. |
+| **Komponente** (Standard sonst, z. B. Kalender) | Die Komponente bedient sich selbst (Knöpfe, eigener Dialog). Eine **Aktion** des Widgets bleibt still. |
 
 ## Verhalten
 

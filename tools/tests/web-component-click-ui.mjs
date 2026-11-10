@@ -3,9 +3,8 @@
 // - component (default of unknown components): the component gets the click and opens
 //   its dialog - in the widget's popup, sized by the widget's popup options; the
 //   widget's click action stays quiet
-// - aura (default of the cameras): the component gets nothing (inert); the widget's
-//   click action runs, without one the widget itself opens large in a popup
-// - off: nobody reacts
+// - off (default of the cameras): the component gets nothing (inert); a click is the
+//   widget's - its click action runs if one is set, else nothing happens
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/web-component-click-ui.mjs
@@ -160,50 +159,63 @@ const clickOn = async (page, el) => {
     await ctx.close();
 }
 
-// ── aura: the widget's click action, the component inert ────────────────────
+// ── off: the component inert, a click is the widget's ───────────────────────
 {
-    const { ctx, page, errors, el, tag } = await openPage({ wcClick: 'aura' });
-    eq('aura: element inert', await el.getAttribute('inert'), '');
+    const { ctx, page, errors, el, tag } = await openPage({ wcClick: 'off' });
+    eq('off: element inert', await el.getAttribute('inert'), '');
     await clickOn(page, el);
-    eq('aura: the component got no click', await clicks(page, tag), 0);
-    eq('aura: no dialog of the component', await wcDialog(page).count(), 0);
-    const popup = page.locator('[data-aura-click-popup="popup-widget"]');
-    await popup.waitFor({ timeout: 5000 });
-    eq('aura: without an action - the widget itself large', await popup.locator(tag).count(), 1);
-    // inside the popup the large copy is inert too and opens nothing more
-    await clickOn(page, popup.locator(tag));
-    eq('aura: a click on the large copy opens no second popup', await clickPopup(page).count(), 1);
-    eq('aura: no page errors', errors, []);
+    eq('off: the component got no click', await clicks(page, tag), 0);
+    eq(
+        'off: without a click action nothing opens',
+        [await clickPopup(page).count(), await wcDialog(page).count()],
+        [0, 0],
+    );
+    eq('off: no page errors', errors, []);
     await ctx.close();
 }
 {
-    const { ctx, page, el } = await openPage({
-        wcClick: 'aura',
+    const { ctx, page, el, tag } = await openPage({
+        wcClick: 'off',
         clickAction: { kind: 'popup-html', html: '<p>aura</p>' },
     });
     await clickOn(page, el);
     await page.locator('[data-aura-click-popup="popup-html"]').waitFor({ timeout: 5000 });
-    eq('aura: own click action runs', await page.locator('[data-aura-click-popup="popup-html"]').count(), 1);
+    eq(
+        'off: the click action of the widget runs',
+        await page.locator('[data-aura-click-popup="popup-html"]').count(),
+        1,
+    );
+    eq('off: the component still got no click', await clicks(page, tag), 0);
     await ctx.close();
 }
-
-// ── off: nobody ─────────────────────────────────────────────────────────────
 {
-    const { ctx, page, el, tag } = await openPage({ wcClick: 'off' });
+    // a large copy of itself as click action: a click inside opens no second popup
+    const { ctx, page, el } = await openPage({ wcClick: 'off', clickAction: { kind: 'popup-widget', widgetId: '' } });
     await clickOn(page, el);
-    eq('off: the component got no click', await clicks(page, tag), 0);
-    eq('off: no popup, no dialog', [await clickPopup(page).count(), await wcDialog(page).count()], [0, 0]);
+    const popup = page.locator('[data-aura-click-popup="popup-widget"]');
+    await popup.waitFor({ timeout: 5000 });
+    await clickOn(page, popup.locator('aura-click-demo'));
+    eq('off: a click on the large copy opens no second popup', await clickPopup(page).count(), 1);
+    await ctx.close();
+}
+{
+    // the value of an earlier build
+    const { ctx, page, el } = await openPage({ wcClick: 'aura' });
+    eq('legacy "aura": treated as off', await el.getAttribute('inert'), '');
     await ctx.close();
 }
 
-// ── the cameras default to aura ─────────────────────────────────────────────
+// ── the cameras default to off ──────────────────────────────────────────────
 {
     const { ctx, page, el, tag } = await openPage({}, { tag: 'iob-cameras-rtsp', adapter: 'cameras' });
     eq('camera: inert by default', await el.getAttribute('inert'), '');
     await clickOn(page, el);
     eq('camera: the component got no click', await clicks(page, tag), 0);
-    await page.locator('[data-aura-click-popup="popup-widget"]').waitFor({ timeout: 5000 });
-    eq('camera: picture large in Aura popup', await clickPopup(page).count(), 1);
+    eq(
+        'camera: nothing opens without a click action',
+        [await clickPopup(page).count(), await wcDialog(page).count()],
+        [0, 0],
+    );
     await ctx.close();
 }
 {

@@ -769,9 +769,9 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
 
     // who answers a click (wcClick)
     check(
-        'click: cameras default to Aura',
+        'click: cameras default to off',
         [m.webComponentClick(undefined, 'iob-cameras-rtsp'), m.webComponentClick(undefined, 'iob-cameras-snapshot')],
-        ['aura', 'aura'],
+        ['off', 'off'],
     );
     check(
         'click: other components default to the component',
@@ -788,8 +788,9 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
             m.webComponentClick('component', 'iob-cameras-rtsp'),
             m.webComponentClick('off', 'iob-fullcalendar'),
             m.webComponentClick('nonsense', 'iob-cameras-rtsp'),
+            m.webComponentClick('aura', 'iob-fullcalendar'),
         ],
-        ['component', 'off', 'aura'],
+        ['component', 'off', 'off', 'off'],
     );
 
     // title row from the component (wcTitleSource / wcIconSource, event iob-header)

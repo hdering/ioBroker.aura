@@ -159,7 +159,7 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
     const titleSource = headerSource(o.wcTitleSource);
     const iconSource = headerSource(o.wcIconSource);
     const click = webComponentClick(o.wcClick, o.wcTag, o.wcAdapter);
-    // the mode the component has without an own choice (cameras: Aura)
+    // the mode the component has without an own choice (cameras: off)
     const defaultClick = webComponentClick(undefined, o.wcTag, o.wcAdapter);
 
     const setValue = (key: string, value: unknown): void => {
@@ -291,7 +291,7 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
                             className={iCls}
                             style={iSty}
                         >
-                            {(['component', 'aura', 'off'] as const).map((mode) => (
+                            {(['off', 'component'] as const).map((mode) => (
                                 <option key={mode} value={mode}>
                                     {t(`wc.click.${mode}`)}
                                     {mode === defaultClick ? ` (${t('wc.click.default')})` : ''}

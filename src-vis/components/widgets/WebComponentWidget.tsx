@@ -33,7 +33,7 @@ import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2, TitleRow } from '../la
 import { useWebComponentDialogs } from './WebComponentDialog';
 
 const FILL = { display: 'block', width: '100%', height: '100%' } as const;
-/** The component keeps its hands off: Aura's click action (or nothing) answers */
+/** The component takes no clicks: the widget's click action (if any) answers */
 const INERT = { ...FILL, pointerEvents: 'none' } as const;
 
 type Status = 'loading' | 'ready' | 'missing' | 'failed' | 'unset';
@@ -51,9 +51,9 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
-    // who answers a click: the component, Aura's click action of the frame, or nobody
+    // does the component take clicks? If not, a click is the widget's (its click action, if set)
     const click = webComponentClick(opts.wcClick, opts.wcTag, opts.wcAdapter);
-    const inert = !editMode && click !== 'component';
+    const inert = !editMode && click === 'off';
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Puzzle);
 

@@ -436,8 +436,8 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         size: { width: 320, height: 240 },
         // title = the widget's own title row (the component would draw a second one above the picture)
         hostSettings: ['title'],
-        // a click shows the picture large in Aura's popup, not in the component's own dialog
-        defaultClick: 'aura',
+        // a picture: no own dialog - a popup is the widget's click action, as on any widget
+        defaultClick: 'off',
     },
     {
         adapter: 'cameras',
@@ -450,7 +450,7 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         },
         size: { width: 320, height: 240 },
         hostSettings: ['title'],
-        defaultClick: 'aura',
+        defaultClick: 'off',
     },
 ];
 
@@ -482,13 +482,12 @@ export function hostOwnedSettings(tag: unknown, adapter?: unknown, manifest?: We
 }
 
 /**
- * Who answers a click on the component (`options.wcClick`):
- * - `component`: the component itself (its own dialog, its controls); Aura's click action stays quiet
- * - `aura`: Aura's click action of the widget - without one, the widget itself large in a popup;
- *   the component gets no pointer, no focus, no keys (`inert`)
- * - `off`: nobody - a picture only, inert as well
+ * Whether the component takes clicks (`options.wcClick`):
+ * - `off`: no - it gets no pointer, no focus, no keys (`inert`); a click is the widget's like on
+ *   any widget, so the click action of the widget applies if one is set (Aktion), else nothing
+ * - `component`: yes - its own controls and dialog; the widget's click action stays quiet
  */
-export type WebComponentClick = 'component' | 'aura' | 'off';
+export type WebComponentClick = 'off' | 'component';
 
 /**
  * The click mode of a widget: its own `wcClick`, else the default of a known
@@ -499,7 +498,8 @@ export type WebComponentClick = 'component' | 'aura' | 'off';
  * @param adapter `options.wcAdapter`
  */
 export function webComponentClick(own: unknown, tag: unknown, adapter?: unknown): WebComponentClick {
-    if (own === 'component' || own === 'aura' || own === 'off') return own;
+    if (own === 'component' || own === 'off') return own;
+    if (own === 'aura') return 'off'; // the third mode of an earlier build
     return findKnownWebComponent(tag, adapter)?.defaultClick ?? 'component';
 }
 

@@ -650,14 +650,14 @@ export const WIDGET_OPTION_NOTES = {
         },
         wcClick: {
             type: 'string',
-            enum: ['component', 'aura', 'off'],
+            enum: ['off', 'component'],
             description:
-                'Wer einen Klick auf die Komponente beantwortet. "component" = die Komponente selbst (eigene ' +
-                'Bedienung, eigener Dialog - der erscheint im Popup des Widgets mit dessen Popup-Optionen); ' +
-                'clickAction des Widgets bleibt still. "aura" = clickAction des Widgets, ohne eigene zeigt ein ' +
-                'Klick das Widget selbst groß im Popup; die Komponente bekommt keine Klicks/Tasten. "off" = reine ' +
-                'Anzeige. Leer = Standard der Komponente: "aura" bei iob-cameras-rtsp/-snapshot, sonst "component" ' +
-                '(z. B. Kalender und Fluss-Diagramm brauchen ihre eigene Bedienung).',
+                'Ob die Komponente Klicks bekommt. "off" = nein (keine Klicks/Tasten); ein Klick gehört dem ' +
+                'Widget, es gilt dessen clickAction wie bei jedem Widget (ohne clickAction passiert nichts). ' +
+                '"component" = die Komponente bedient sich selbst (eigene Knöpfe, eigener Dialog - der erscheint ' +
+                'im Popup des Widgets mit dessen Popup-Optionen); clickAction bleibt still. Leer = Standard der ' +
+                'Komponente: "off" bei iob-cameras-rtsp/-snapshot, sonst "component" (Kalender, Fluss-Diagramm ' +
+                'und unbekannte Komponenten brauchen ihre eigene Bedienung).',
         },
     },
     button: {
