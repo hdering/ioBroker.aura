@@ -74,13 +74,15 @@ Manche Komponenten fragen in einem Dialog nach (z. B. Grenzwerte) oder zeigen De
 größeren Fenster (z. B. den Verlauf einer Batterie). Aura öffnet diese Dialoge im eigenen Stil —
 nicht als Fenster des Browsers:
 
+![Formular-Dialog der Sprach-Satelliten (assistant)](assets/web-komponente/dialog.png)
+
 - **Rahmen wie ein Popup:** abgedunkelter Hintergrund, abgerundete Fläche, Titelzeile mit
   Schließen-Knopf. Fläche und Abdunklung folgen den
   [globalen Popup-Einstellungen](../einstellungen/popups#globale-popup-einstellungen)
   (Hintergrundfarbe, Hintergrund abdunkeln).
 - **Formular:** Fragt die Komponente nach Werten, zeigt Aura dieselben Felder wie im
   Einstellungs-Editor des Widgets (Text, Zahl, Schieberegler, Schalter, Farbe, Auswahl,
-  Datenpunkt, Instanz) mit **Abbrechen** und **OK** — bzw. den Beschriftungen, die die
+  Datenpunkt, Instanz) mit **Abbruch** und **OK** — bzw. den Beschriftungen, die die
   Komponente mitgibt. Titel und Beschriftungen erscheinen in der Sprache des Frontends.
 - **Inhalt der Komponente:** Zeichnet die Komponente den Inhalt selbst, setzt Aura ihn in den
   Rahmen; er bekommt die Farben des Themes. Die Komponente schließt den Dialog selbst (z. B. mit
