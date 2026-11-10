@@ -36,7 +36,8 @@ Adaptern)**; darunter zeigt eine Karte Komponente, Adapter und Version.
 Angeboten wird, was ein Adapter in seiner `io-package.json` unter `common.webComponents`
 anmeldet. Nach der Installation oder einem Update eines Adapters die Seite neu laden — oder in den
 Einstellungen mit **↻** neben der Auswahl **Komponente** neu einlesen. Dort lässt sich auch auf eine
-andere Komponente umstellen.
+andere Komponente umstellen. Nach einem Neustart von ioBroker liest Aura die Liste selbst neu; fehlt
+dabei noch eine Komponente (Upload läuft), versucht Aura es eine Minute lang alle 10 s erneut.
 
 ## Einstellungen
 

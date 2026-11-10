@@ -62,6 +62,7 @@
     "test:web-extension": "node tools/tests/web-extension.mjs",
     "test:web-extension-e2e": "node tools/tests/web-extension-e2e.mjs",
     "test:web-component-dialogs-ui": "node tools/tests/web-component-dialogs-ui.mjs",
+    "test:web-component-catalog-ui": "node tools/tests/web-component-catalog-ui.mjs",
     "test:countdowns": "node test/countdowns.test.js && node test/countdown-adapter.test.js",
     "test:countdown-format": "node tools/tests/countdown-format.mjs",
     "test:countdown-ui": "node tools/tests/countdown-widget.mjs",

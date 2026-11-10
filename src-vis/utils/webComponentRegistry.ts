@@ -17,10 +17,12 @@ import {
     type WebComponentSocket,
 } from '@iobroker/web-components';
 import {
+    getDisconnectedSince,
     getObjectDirect,
     getObjectViewDirect,
     getSocket,
     getStateDirect,
+    onDisconnectedSinceChange,
     sendToDirect,
     setStateDirectAsync,
     subscribeObjectDirect,
@@ -31,32 +33,82 @@ import { createWebComponentSocket, objectIdOfRow, type HostState } from './webCo
 let catalog: Promise<LoadedWebComponent[]> | null = null;
 const catalogListeners = new Set<() => void>();
 
-async function readCatalog(): Promise<LoadedWebComponent[]> {
+/** A short catalog (none or not every component) is read again after this long ... */
+export const SHORT_CATALOG_RETRY_MS = 10_000;
+/** ... at most this often in a row - a system without components stays short for good */
+export const SHORT_CATALOG_MAX_RETRIES = 6;
+let shortRetries = 0;
+let shortRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function readCatalog(): Promise<{ list: LoadedWebComponent[]; complete: boolean }> {
     const view = await getObjectViewDirect('instance', 'system.adapter.', 'system.adapter.\u9999');
     const instances = (view.rows ?? [])
         .map((row) => row.value as unknown as { _id: string; common?: { version?: string; webComponents?: unknown } })
         .filter((obj) => obj && Array.isArray(obj.common?.webComponents) && obj.common.webComponents.length)
         .map((obj) => ({ _id: obj._id, common: obj.common ?? {} }));
-    if (!instances.length) return [];
-    return loadWebComponents(getWebComponentSources(instances, document.baseURI), { log: console });
+    if (!instances.length) return { list: [], complete: false };
+    const sources = getWebComponentSources(instances, document.baseURI);
+    const list = await loadWebComponents(sources, { log: console });
+    return { list, complete: list.length >= sources.length };
 }
 
 /**
- * The components of all installed adapters, read once per page and shared.
+ * Read once more, a while after a short catalog: right after an ioBroker restart or
+ * an adapter update the instances or the uploaded files may not all be there yet,
+ * and such a list would otherwise stay until the page is reloaded. Only while
+ * something shows the catalog, and only a few times in a row.
+ */
+function scheduleShortRetry(): void {
+    if (shortRetryTimer || shortRetries >= SHORT_CATALOG_MAX_RETRIES) return;
+    shortRetryTimer = setTimeout(() => {
+        shortRetryTimer = null;
+        if (!catalogListeners.size) return;
+        shortRetries++;
+        void loadWebComponentCatalog(true);
+    }, SHORT_CATALOG_RETRY_MS);
+}
+
+/**
+ * The components of all installed adapters, read once per page and shared. A
+ * short result is read again later (scheduleShortRetry), and after a reconnect.
  *
  * @param force read again (after an adapter was installed or updated)
  */
 export function loadWebComponentCatalog(force = false): Promise<LoadedWebComponent[]> {
     if (!catalog || force) {
-        catalog = readCatalog().catch((e: unknown) => {
-            console.warn('[webcomponent] reading the components failed:', e);
-            catalog = null; // the next widget may try again
-            return [];
-        });
+        catalog = readCatalog().then(
+            ({ list, complete }) => {
+                if (complete) shortRetries = 0;
+                else scheduleShortRetry();
+                return list;
+            },
+            (e: unknown) => {
+                console.warn('[webcomponent] reading the components failed:', e);
+                catalog = null; // the next widget may try again
+                scheduleShortRetry();
+                return [];
+            },
+        );
         if (force) void catalog.then(() => catalogListeners.forEach((fn) => fn()));
     }
     return catalog;
 }
+
+// After a reconnect (ioBroker restarted, an adapter was updated) the catalog read
+// before may be stale or short: read it again once - if anything had read it.
+let wasConnected = false;
+let wasOffline = getDisconnectedSince() !== null;
+onDisconnectedSinceChange(() => {
+    const offline = getDisconnectedSince() !== null;
+    if (wasOffline && !offline) {
+        if (wasConnected && catalog) {
+            shortRetries = 0;
+            void loadWebComponentCatalog(true);
+        }
+        wasConnected = true;
+    }
+    wasOffline = offline;
+});
 
 /** The component of a widget: by tag, the adapter only as a tie-breaker */
 export function findWebComponent(
