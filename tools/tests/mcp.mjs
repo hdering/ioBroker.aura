@@ -3399,7 +3399,7 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all thirty-seven tools are announced with descriptions', () => {
+check('all thirty-eight tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_backups',
@@ -3433,6 +3433,7 @@ check('all thirty-seven tools are announced with descriptions', () => {
         'aura_update_widget',
         'aura_update_widgets',
         'aura_validate',
+        'aura_web_components',
         'aura_widget_schema',
         'aura_widget_types',
         'aura_write_group',
@@ -7716,6 +7717,213 @@ check('a valid token is accepted, a near-miss and a truncation are not', () => {
     assert.equal(nearMiss, 403);
     assert.equal(truncated, 403);
 });
+
+// ── aura_web_components: the installed web components, read from the file storage ──
+console.log('\nmcp — Web-Komponenten');
+{
+    const { callTool } = require('../../lib/mcp/tools.js');
+    const { fileText, gridSizeOf } = require('../../lib/mcp/webComponents.js');
+
+    const flowManifest = {
+        manifestVersion: 1,
+        tag: 'iob-flow-diagram',
+        name: { en: 'Flow diagram', de: 'Fluss-Diagramm' },
+        description: { en: 'Animated energy flow', de: 'Animierter Energiefluss' },
+        module: 'flow-diagram.js',
+        size: { width: 480, height: 340 },
+        settings: {
+            type: 'panel',
+            items: {
+                diagram: {
+                    type: 'objectId',
+                    label: { en: 'Diagram', de: 'Diagramm' },
+                    types: 'config',
+                    root: 'flow.0.diagrams',
+                },
+                display: { type: 'header', text: { en: 'Display', de: 'Anzeige' } },
+                legend: { type: 'checkbox', label: { en: 'Legend', de: 'Legende' }, default: true },
+                speed: { type: 'slider', label: 'Speed', min: 0, max: 10, step: 0.5, default: 5 },
+                unit: {
+                    type: 'select',
+                    label: 'Unit',
+                    default: 'w',
+                    options: [
+                        { value: 'w', label: 'w' },
+                        { value: 'kw', label: 'kW' },
+                    ],
+                },
+                inst: { type: 'instance', label: 'Instance', adapter: 'flow' },
+                note: { type: 'text', label: 'Note', minRows: 3, hidden: '!data.legend' },
+                line: { type: 'divider' },
+            },
+        },
+    };
+    const tabsManifest = {
+        manifestVersion: 1,
+        tag: 'iob-cal-month',
+        name: 'Calendar',
+        module: 'month.js',
+        settings: {
+            type: 'tabs',
+            items: {
+                main: { type: 'panel', label: { en: 'General', de: 'Allgemein' }, items: { color: { type: 'color' } } },
+                more: { type: 'panel', label: 'More', items: { weeks: { type: 'number', min: 1 } } },
+            },
+        },
+    };
+    const inst = (id, version, list) => ({ _id: id, type: 'instance', common: { version, webComponents: list } });
+    const makeWcAdapter = (instances, files) => {
+        const reads = [];
+        const warnings = [];
+        return {
+            namespace: 'aura.0',
+            reads,
+            warnings,
+            log: { warn: (m) => warnings.push(m), info() {}, debug() {}, error() {} },
+            getStateAsync: async (id) =>
+                id === 'config.app-config'
+                    ? { val: JSON.stringify({ version: 0, state: { frontend: { gridRowHeight: 20, gridGap: 10 } } }) }
+                    : null,
+            getObjectViewAsync: async (_design, type) => ({
+                rows: type === 'instance' ? instances.map((value) => ({ id: value._id, value })) : [],
+            }),
+            readFileAsync: async (id, name) => {
+                reads.push(`${id}/${name}`);
+                if (!(`${id}/${name}` in files)) {
+                    throw new Error('Not exists');
+                }
+                return { file: Buffer.from(JSON.stringify(files[`${id}/${name}`])), mimeType: 'application/json' };
+            },
+            getForeignObjectAsync: async (id) => (id === 'system.config' ? { common: { language: 'de' } } : null),
+        };
+    };
+    const instances = [
+        inst('system.adapter.flow.0', '0.1.0', ['webcomponents/flow-diagram.json']),
+        inst('system.adapter.flow.1', '0.1.0', ['webcomponents/flow-diagram.json']),
+        inst('system.adapter.cal.0', '2.0.0', ['wc/month.json', 'wc/missing.json']),
+        { _id: 'system.adapter.admin.0', type: 'instance', common: { version: '7.0.0' } },
+    ];
+    const files = {
+        'flow.admin/webcomponents/flow-diagram.json': flowManifest,
+        'cal.admin/wc/month.json': tabsManifest,
+    };
+    const wcAdapter = makeWcAdapter(instances, files);
+    const call = async (args = {}, a = wcAdapter) =>
+        (await callTool('aura_web_components', args, { adapter: a, schema })).content[0].text;
+
+    const all = await call();
+    check('aura_web_components lists every installed component once, with the widget it goes into', () => {
+        assert.match(all, /^Installierte Web-Komponenten: 2$/m);
+        assert.match(all, /"type": "webcomponent", "options": \{ "wcTag": "<tag>", "wcAdapter": "<adapter>"/);
+        assert.match(all, /^### iob-flow-diagram — Flow diagram \/ Fluss-Diagramm$/m);
+        assert.match(all, /^### iob-cal-month — Calendar$/m);
+        assert.equal(all.match(/### iob-flow-diagram/g).length, 1, 'two instances of flow, one component');
+    });
+    check('… with adapter, version, description in both languages and the size in grid cells', () => {
+        assert.match(all, /Adapter flow 0\.1\.0 \(wcAdapter\) · Größe 480 × 340 px → gridPos w 17, h 13/);
+        assert.match(all, /^Animated energy flow \/ Animierter Energiefluss$/m);
+        // the same cells as the "new widget" dialog (utils/webComponentHost webComponentGridSize)
+        assert.deepEqual(gridSizeOf({ width: 480, height: 340 }, { rowHeight: 20, snapX: 20, gap: 10, padding: 16 }), {
+            w: 17,
+            h: 13,
+        });
+    });
+    check('… and every setting wcSettings takes, as the manifest declares it', () => {
+        const lines = all.split('\n');
+        const line = (key) => lines.find((l) => l.startsWith(`- ${key}:`));
+        assert.equal(
+            line('diagram'),
+            '- diagram: string (objectId) — „Diagramm“; Objekt-ID vom Typ config unter flow.0.diagrams',
+        );
+        assert.equal(line('legend'), '- legend: boolean (checkbox) — „Legende“; Standard true');
+        assert.equal(line('speed'), '- speed: number (slider) — „Speed“; 0 … 10; Schritt 0.5; Standard 5');
+        assert.equal(line('unit'), '- unit: string (select) — „Unit“; Werte "w", "kw" (kW); Standard "w"');
+        assert.equal(line('inst'), '- inst: string (instance) — „Instance“; Instanz des Adapters flow, z. B. "flow.0"');
+        assert.equal(line('note'), '- note: string (text) — „Note“; mehrzeilig; ausgeblendet, wenn !data.legend');
+        assert.ok(lines.includes('  (Anzeige)'), 'a header is shown as a note');
+        assert.ok(!line('line') && !line('display'), 'decorations are no settings');
+        assert.match(
+            all,
+            /Reiter „Allgemein“:\n- color: string \(color\) — CSS-Farbe\nReiter „More“:\n- weeks: number \(number\) — 1 … /,
+        );
+    });
+    check('a manifest that cannot be read is left out and reported', () => {
+        assert.ok(!all.includes('missing'));
+        assert.ok(wcAdapter.warnings.some((w) => w.includes('cal.admin/wc/missing.json')));
+    });
+
+    const readsBefore = wcAdapter.reads.length;
+    await call();
+    const readAgain = wcAdapter.reads.slice(readsBefore);
+    check('the manifests are read once per adapter version; an adapter with a missing file is asked again', () => {
+        assert.deepEqual(readAgain, ['cal.admin/wc/month.json', 'cal.admin/wc/missing.json']);
+    });
+    instances[0].common.version = '0.2.0';
+    instances[1].common.version = '0.2.0';
+    const readsBeforeUpdate = wcAdapter.reads.length;
+    const updated = await call({ adapter: 'flow' });
+    check('an update is read anew; adapter narrows the list', () => {
+        assert.ok(wcAdapter.reads.slice(readsBeforeUpdate).includes('flow.admin/webcomponents/flow-diagram.json'));
+        assert.match(updated, /^Installierte Web-Komponenten: 1 von 2$/m);
+        assert.match(updated, /Adapter flow 0\.2\.0/);
+        assert.ok(!updated.includes('iob-cal-month'));
+    });
+    const one = await call({ tag: 'iob-cal-month' });
+    const unknown = await call({ tag: 'iob-nope' });
+    check('tag narrows the list to one component; an unknown tag names the installed ones', () => {
+        assert.match(one, /^### iob-cal-month/m);
+        assert.ok(!one.includes('iob-flow-diagram'));
+        assert.match(
+            unknown,
+            /Keine Web-Komponente "iob-nope"\. Installiert: iob-flow-diagram \(flow\), iob-cal-month \(cal\)\./,
+        );
+    });
+
+    const twice = makeWcAdapter(
+        [
+            inst('system.adapter.flow.0', '0.1.0', ['webcomponents/flow-diagram.json']),
+            inst('system.adapter.clone.0', '1.0.0', ['wc/d.json']),
+        ],
+        { 'flow.admin/webcomponents/flow-diagram.json': flowManifest, 'clone.admin/wc/d.json': flowManifest },
+    );
+    const clash = await call({}, twice);
+    check('a tag that two adapters bring asks for wcAdapter', () => {
+        assert.equal(clash.match(/derselbe Tag kommt von mehreren Adaptern: wcAdapter angeben/g).length, 2);
+    });
+    const none = await call({}, makeWcAdapter([{ _id: 'system.adapter.admin.0', common: { version: '7.0.0' } }], {}));
+    check('without any component the answer says the widget would stay empty', () => {
+        assert.match(none, /Keine Web-Komponenten installiert/);
+    });
+    const broken = await callTool(
+        'aura_web_components',
+        {},
+        {
+            adapter: {
+                ...makeWcAdapter([], {}),
+                getObjectViewAsync: async () => {
+                    throw new Error('permissionError');
+                },
+            },
+            schema,
+        },
+    );
+    check('an instance list that cannot be read is an error, not "none installed"', () => {
+        assert.equal(broken.isError, true);
+        assert.match(broken.content[0].text, /nicht lesbar: permissionError/);
+    });
+    check('a file of the storage arrives as text in any of its shapes', () => {
+        assert.deepEqual(
+            [
+                fileText({ file: Buffer.from('a'), mimeType: 'x' }),
+                fileText([Buffer.from('b'), 'x']),
+                fileText('c'),
+                fileText({ file: 'd' }),
+                fileText(null),
+            ],
+            ['a', 'b', 'c', 'd', ''],
+        );
+    });
+}
 
 await client.close();
 server.close();
