@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.97.1 (2026-10-29)
+- 🐛 **Bug fix:** Advanced chart - forecasts: the time series can reach into the future: a rolling lead per chip (`2d+36h`) or for all chips, paging forward up to the last forecast point or a fixed limit, and a current period that starts today
+
 ## 0.97.0 (2026-10-29)
 - 🐛 **Bug fix:** Charts - a failing history query (e.g. InfluxDB refusing to average a datapoint) is now shown on the chart and logged to the browser console instead of drawing an empty or flat curve
 - 🐛 **Bug fix:** Datapoints with a colon (or other characters ioBroker allows, like & = /) in their ID now update live instead of only after a page reload ([#874](https://github.com/hdering/ioBroker.aura/issues/874))
