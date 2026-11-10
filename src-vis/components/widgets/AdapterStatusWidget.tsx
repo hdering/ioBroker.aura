@@ -371,14 +371,53 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
         return () => unsubs.forEach((u) => u());
     }, [idsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Subscribe to admin.0.info.updatesJson (or first admin instance found)
+    // Available updates. The aura backend compares the installed versions against
+    // the *active* repositories, like the admin's adapter list does.
+    // admin.X.info.updatesJson is only the fallback (older aura backend, no repo
+    // data): admin rewrites it on its own schedule, so after switching the
+    // repository back from Beta to Stable it kept listing the Beta offers (#962).
+    const [refreshTick, setRefreshTick] = useState(0);
     useEffect(() => {
         if (!connected) return;
+        let cancelled = false;
+        let fallback: Record<string, UpdateInfo> = {};
+        let backendOk = false;
+        const askBackend = async (refresh: boolean) => {
+            const r = (await sendToDirect(auraInstance, 'adapterUpdates', { refresh })) as {
+                ok?: boolean;
+                updates?: Record<string, { availableVersion?: string; installedVersion?: string }>;
+            } | null;
+            if (cancelled) return;
+            if (r && typeof r === 'object' && r.ok === true && r.updates && typeof r.updates === 'object') {
+                backendOk = true;
+                setUpdates(parseUpdatesJson(JSON.stringify(r.updates)));
+            } else {
+                backendOk = false;
+                setUpdates(fallback);
+            }
+        };
         const id = `${adminInstance}.info.updatesJson`;
-        void getStateDirect(id).then((s) => setUpdates(parseUpdatesJson(s?.val as string | undefined)));
-        const u = subscribeStateDirect(id, (s) => setUpdates(parseUpdatesJson(s?.val as string | undefined)));
-        return () => u();
-    }, [connected, adminInstance]);
+        const onAdminList = (s: ioBrokerState | null | undefined) => {
+            fallback = parseUpdatesJson(s?.val as string | undefined);
+            if (!backendOk) setUpdates(fallback);
+        };
+        void getStateDirect(id).then((s) => {
+            if (!cancelled) onAdminList(s);
+        });
+        const u = subscribeStateDirect(id, (s) => {
+            onAdminList(s);
+            // Admin just refreshed its repository — re-measure, skipping the cache.
+            void askBackend(true);
+        });
+        void askBackend(refreshTick > 0);
+        // A repository switch writes nothing the widget could subscribe to cheaply.
+        const timer = window.setInterval(() => void askBackend(false), 5 * 60 * 1000);
+        return () => {
+            cancelled = true;
+            u();
+            window.clearInterval(timer);
+        };
+    }, [connected, adminInstance, auraInstance, refreshTick]);
 
     // Actions — go through aura backend so we don't depend on socket-port permissions.
     // Backend handler in main.js spawns `iobroker upgrade <name>` via the host's cmdExec.
@@ -417,7 +456,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
         setActionError(null);
         // Upgrades take longer than the default 30s — npm install can run 1-3 minutes.
         const result = await sendToDirect(auraInstance, 'upgradeAdapter', { name: inst.adapter }, 5 * 60 * 1000);
-        handleResult(`Update ${inst.adapter}`, result);
+        if (handleResult(`Update ${inst.adapter}`, result)) setRefreshTick((t) => t + 1);
     };
 
     // Filter + sort

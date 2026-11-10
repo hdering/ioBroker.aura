@@ -64,6 +64,7 @@ const { createFeedProxy } = require('./lib/feedProxy');
 const { createTtsProxy } = require('./lib/ttsProxy');
 const { createStatusDiscovery } = require('./lib/statusDiscovery');
 const { createAutoListSync } = require('./lib/autoListSync');
+const { compareVersions, usableRepoNames, bestRepoVersion, computeAdapterUpdates } = require('./lib/adapterUpdates');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -264,49 +265,8 @@ const UPDATE_CHECK_INTERVAL_MS = 3600_000;
 /** Message ids carry the version so a fresh release is a new entry, not a silent replace. */
 const UPDATE_MESSAGE_ID_PREFIX = 'aura-update-';
 
-/**
- * Split a version into comparable parts. Returns null for anything that is not
- * `x.y.z` with an optional `-prerelease` tail (build metadata is ignored).
- */
-function parseVersion(raw) {
-    const m = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?/.exec(String(raw ?? '').trim());
-    if (!m) return null;
-    return {
-        core: [Number(m[1]), Number(m[2]), Number(m[3])],
-        pre: m[4] ? m[4].split('.') : null,
-    };
-}
-
-/**
- * Semver ordering, so a beta install is never told to "update" to the older
- * stable it came from. Returns -1 / 0 / 1, or null when either side is unparsable.
- */
-function compareVersions(a, b) {
-    const va = parseVersion(a);
-    const vb = parseVersion(b);
-    if (!va || !vb) return null;
-    for (let i = 0; i < 3; i++) {
-        if (va.core[i] !== vb.core[i]) return va.core[i] < vb.core[i] ? -1 : 1;
-    }
-    // 1.0.0-beta.1 < 1.0.0 — a release without a prerelease tail always wins.
-    if (va.pre && !vb.pre) return -1;
-    if (!va.pre && vb.pre) return 1;
-    if (!va.pre && !vb.pre) return 0;
-    for (let i = 0; i < Math.max(va.pre.length, vb.pre.length); i++) {
-        const x = va.pre[i];
-        const y = vb.pre[i];
-        if (x === undefined) return -1;
-        if (y === undefined) return 1;
-        const nx = /^\d+$/.test(x) ? Number(x) : null;
-        const ny = /^\d+$/.test(y) ? Number(y) : null;
-        if (nx !== null && ny !== null) {
-            if (nx !== ny) return nx < ny ? -1 : 1;
-        } else if (x !== y) {
-            return x < y ? -1 : 1;
-        }
-    }
-    return 0;
-}
+// parseVersion / compareVersions live in lib/adapterUpdates.js (shared with the
+// adapter-status update list, issue #962).
 
 /** ioBroker object ids allow a restricted charset — layout slugs are free user text. */
 function sanitizeIdSegment(raw) {
@@ -3798,16 +3758,41 @@ class Aura extends utils.Adapter {
         /** @type {Record<string, any>} */
         const repos = (await this.getForeignObjectAsync('system.repositories'))?.native?.repositories || {};
         // js-controller 5 allows several repositories at once; the highest offer wins.
-        const usable = names.filter((n) => repos[n]);
-        let best = null;
-        for (const name of usable.length ? usable : Object.keys(repos)) {
-            const version = repos[name]?.json?.[this.name]?.version;
-            if (!parseVersion(version)) continue;
-            if (!best || compareVersions(best.version, version) === -1) {
-                best = { version: String(version).trim(), repo: name };
-            }
+        return bestRepoVersion(repos, usableRepoNames(names, repos), this.name);
+    }
+
+    /**
+     * Available adapter updates measured against the *active* repositories —
+     * what the admin's adapter list shows. `admin.X.info.updatesJson` lags behind
+     * a repository switch until admin's next scheduled refresh (issue #962).
+     *
+     * Cached for a minute: system.repositories is several MB, and every open
+     * adapter-status widget asks on its own.
+     */
+    async _adapterUpdates(force = false) {
+        const now = Date.now();
+        if (!force && this._adapterUpdatesCache && now - this._adapterUpdatesCache.at < 60_000) {
+            return this._adapterUpdatesCache.result;
         }
-        return best;
+        const sys = await this.getForeignObjectAsync('system.config');
+        const repos = (await this.getForeignObjectAsync('system.repositories'))?.native?.repositories || {};
+        const view = await this.getObjectViewAsync('system', 'adapter', {
+            startkey: 'system.adapter.',
+            endkey: 'system.adapter.香',
+        });
+        const adapters = [];
+        for (const row of (view && view.rows) || []) {
+            const c = row.value?.common;
+            const name = c?.name || String(row.id).slice('system.adapter.'.length);
+            if (!name) continue;
+            adapters.push({ name, version: c?.version, ignoreVersion: c?.ignoreVersion });
+        }
+        const computed = computeAdapterUpdates({ activeRepo: sys?.common?.activeRepo, repos, adapters });
+        const result = computed
+            ? { ok: true, repos: computed.repos, updates: computed.updates, checkedAt: now }
+            : { ok: false, error: 'no active repository data' };
+        this._adapterUpdatesCache = { at: now, result };
+        return result;
     }
 
     /** Language for the update notice. system.config decides, English otherwise. */
@@ -6430,6 +6415,13 @@ class Aura extends utils.Adapter {
                 return;
             }
 
+            // Adapter-status widget: updates against the active repositories
+            // (issue #962). { refresh: true } bypasses the one-minute cache.
+            if (msg.command === 'adapterUpdates') {
+                reply(await this._adapterUpdates(!!(msg.message && msg.message.refresh === true)));
+                return;
+            }
+
             // ── Messages (issue #429) ─────────────────────────────────────────
             // sendTo('aura.0', 'notify', {...}, cb) — the scripting counterpart to
             // writing messages.send. Takes an object or a plain string, and replies
@@ -6903,6 +6895,7 @@ class Aura extends utils.Adapter {
                         exitCode = subMsg.message.data;
                         this.removeListener('message', onSubMsg);
                         this.log.info(`[adapter-status] upgrade ${name} exit ${exitCode}`);
+                        this._adapterUpdatesCache = null; // installed version just changed
                         reply({ ok: exitCode === 0, exitCode, stdout: out.join('\n'), stderr: err.join('\n') });
                     }
                 };
