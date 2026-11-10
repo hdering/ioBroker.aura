@@ -768,27 +768,14 @@ check('navigate: no view', m.findTabForView(undefined, layouts, 'L1'), null);
     ]);
 
     // who answers a click (wcClick)
+    check('click: off by default', m.webComponentClick(undefined), 'off');
     check(
-        'click: cameras default to off',
-        [m.webComponentClick(undefined, 'iob-cameras-rtsp'), m.webComponentClick(undefined, 'iob-cameras-snapshot')],
-        ['off', 'off'],
-    );
-    check(
-        'click: other components default to the component',
+        'click: component only on request, anything else off',
         [
-            m.webComponentClick(undefined, 'iob-fullcalendar'),
-            m.webComponentClick(undefined, 'iob-other-tile'),
-            m.webComponentClick(undefined, undefined),
-        ],
-        ['component', 'component', 'component'],
-    );
-    check(
-        'click: own choice of the widget wins',
-        [
-            m.webComponentClick('component', 'iob-cameras-rtsp'),
-            m.webComponentClick('off', 'iob-fullcalendar'),
-            m.webComponentClick('nonsense', 'iob-cameras-rtsp'),
-            m.webComponentClick('aura', 'iob-fullcalendar'),
+            m.webComponentClick('component'),
+            m.webComponentClick('off'),
+            m.webComponentClick('nonsense'),
+            m.webComponentClick('aura'),
         ],
         ['component', 'off', 'off', 'off'],
     );

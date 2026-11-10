@@ -395,8 +395,6 @@ export interface KnownWebComponent {
      * in the editor and never handed to the element, so it keeps their defaults
      */
     hostSettings: readonly string[];
-    /** What a click does unless the widget says otherwise (`wcClick`); missing: `component` */
-    defaultClick?: WebComponentClick;
 }
 
 /** Name, description and size as in the component's own manifest */
@@ -436,8 +434,6 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         size: { width: 320, height: 240 },
         // title = the widget's own title row (the component would draw a second one above the picture)
         hostSettings: ['title'],
-        // a picture: no own dialog - a popup is the widget's click action, as on any widget
-        defaultClick: 'off',
     },
     {
         adapter: 'cameras',
@@ -450,7 +446,6 @@ export const KNOWN_WEB_COMPONENTS: readonly KnownWebComponent[] = [
         },
         size: { width: 320, height: 240 },
         hostSettings: ['title'],
-        defaultClick: 'off',
     },
 ];
 
@@ -490,17 +485,13 @@ export function hostOwnedSettings(tag: unknown, adapter?: unknown, manifest?: We
 export type WebComponentClick = 'off' | 'component';
 
 /**
- * The click mode of a widget: its own `wcClick`, else the default of a known
- * component, else `component`.
+ * The click mode of a widget: `component` only when the widget says so - by default
+ * a click belongs to the widget, as on any other (an earlier build's `aura` too).
  *
  * @param own `options.wcClick`
- * @param tag `options.wcTag`
- * @param adapter `options.wcAdapter`
  */
-export function webComponentClick(own: unknown, tag: unknown, adapter?: unknown): WebComponentClick {
-    if (own === 'component' || own === 'off') return own;
-    if (own === 'aura') return 'off'; // the third mode of an earlier build
-    return findKnownWebComponent(tag, adapter)?.defaultClick ?? 'component';
+export function webComponentClick(own: unknown): WebComponentClick {
+    return own === 'component' ? 'component' : 'off';
 }
 
 /** Why the editor greys out a setting Aura covers itself - an i18n key */

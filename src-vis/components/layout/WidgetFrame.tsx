@@ -9749,7 +9749,6 @@ function WidgetFrameInner({
                                     </optgroup>
                                 ))}
                             </select>
-                            {config.type === 'webcomponent' && <WebComponentInfoCard options={config.options ?? {}} />}
                         </div>
 
                         {/* ── Layout & Sichtbare Felder (kombiniert, eingeklappt) ── */}
@@ -10938,6 +10937,8 @@ function WidgetFrameInner({
                                 )}
                             </p>
                         )}
+                        {/* which component, from which adapter - right under its name, above its settings */}
+                        {config.type === 'webcomponent' && <WebComponentInfoCard options={config.options ?? {}} />}
                         {/* Sichtbare Felder — always the first section of the widget's own settings
                             (docs-internal/widget-config-template.md). The light's status row carries
                             its alignment as an extra control next to the switch. */}

@@ -1,9 +1,9 @@
 // Who answers a click on a web component (options.wcClick), and the component's own
 // dialog as a popup of the widget:
-// - component (default of unknown components): the component gets the click and opens
+// - component: the component gets the click and opens
 //   its dialog - in the widget's popup, sized by the widget's popup options; the
 //   widget's click action stays quiet
-// - off (default of the cameras): the component gets nothing (inert); a click is the
+// - off (default of every component): the component gets nothing (inert); a click is the
 //   widget's - its click action runs if one is set, else nothing happens
 //
 //   npm run dev            (or set AURA_BASE)
@@ -124,6 +124,7 @@ const clickOn = async (page, el) => {
 // ── component: its own dialog, as a popup of the widget ──────────────────────
 {
     const { ctx, page, errors, el, tag } = await openPage({
+        wcClick: 'component',
         clickAction: { kind: 'popup-html', html: '<p>aura</p>' },
     });
     eq('component: no inert', await el.getAttribute('inert'), null);
@@ -141,7 +142,7 @@ const clickOn = async (page, el) => {
 }
 {
     // the widget's popup options shape the dialog like any popup of the widget
-    const { ctx, page, el } = await openPage({ popupWidth: 700, popupHideTitle: true });
+    const { ctx, page, el } = await openPage({ wcClick: 'component', popupWidth: 700, popupHideTitle: true });
     await clickOn(page, el);
     const panel = wcDialog(page).locator('[role="dialog"]');
     await panel.waitFor({ timeout: 5000 });
@@ -150,7 +151,7 @@ const clickOn = async (page, el) => {
     await ctx.close();
 }
 {
-    const { ctx, page, el } = await openPage({ popupFullscreen: true });
+    const { ctx, page, el } = await openPage({ wcClick: 'component', popupFullscreen: true });
     await clickOn(page, el);
     const panel = wcDialog(page).locator('[role="dialog"]');
     await panel.waitFor({ timeout: 5000 });
@@ -205,7 +206,7 @@ const clickOn = async (page, el) => {
     await ctx.close();
 }
 
-// ── the cameras default to off ──────────────────────────────────────────────
+// ── off by default, the cameras as any other ──────────────────────────────────────────────
 {
     const { ctx, page, el, tag } = await openPage({}, { tag: 'iob-cameras-rtsp', adapter: 'cameras' });
     eq('camera: inert by default', await el.getAttribute('inert'), '');

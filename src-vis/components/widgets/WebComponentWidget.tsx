@@ -52,7 +52,7 @@ export function WebComponentWidget({ config, editMode }: WidgetProps) {
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
     // does the component take clicks? If not, a click is the widget's (its click action, if set)
-    const click = webComponentClick(opts.wcClick, opts.wcTag, opts.wcAdapter);
+    const click = webComponentClick(opts.wcClick);
     const inert = !editMode && click === 'off';
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Puzzle);

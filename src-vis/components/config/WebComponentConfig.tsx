@@ -82,7 +82,7 @@ export function WebComponentInfoCard({ options: o }: { options: Record<string, u
     return (
         <div
             data-wc-info
-            className="mt-1.5 rounded-lg px-2.5 py-2 flex items-center gap-2.5"
+            className="rounded-lg px-2.5 py-2 flex items-center gap-2.5"
             style={{
                 background: `color-mix(in srgb, ${color} 8%, var(--app-bg))`,
                 border: `1px solid color-mix(in srgb, ${color} 35%, var(--app-border))`,
@@ -158,9 +158,9 @@ export function WebComponentConfig({ options: o, onChange, title, onTitle }: Pro
     };
     const titleSource = headerSource(o.wcTitleSource);
     const iconSource = headerSource(o.wcIconSource);
-    const click = webComponentClick(o.wcClick, o.wcTag, o.wcAdapter);
-    // the mode the component has without an own choice (cameras: off)
-    const defaultClick = webComponentClick(undefined, o.wcTag, o.wcAdapter);
+    const click = webComponentClick(o.wcClick);
+    // without an own choice a click belongs to the widget
+    const defaultClick = webComponentClick(undefined);
 
     const setValue = (key: string, value: unknown): void => {
         const next = { ...stored };

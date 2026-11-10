@@ -655,9 +655,9 @@ export const WIDGET_OPTION_NOTES = {
                 'Ob die Komponente Klicks bekommt. "off" = nein (keine Klicks/Tasten); ein Klick gehört dem ' +
                 'Widget, es gilt dessen clickAction wie bei jedem Widget (ohne clickAction passiert nichts). ' +
                 '"component" = die Komponente bedient sich selbst (eigene Knöpfe, eigener Dialog - der erscheint ' +
-                'im Popup des Widgets mit dessen Popup-Optionen); clickAction bleibt still. Leer = Standard der ' +
-                'Komponente: "off" bei iob-cameras-rtsp/-snapshot, sonst "component" (Kalender, Fluss-Diagramm ' +
-                'und unbekannte Komponenten brauchen ihre eigene Bedienung).',
+                'im Popup des Widgets mit dessen Popup-Optionen); clickAction bleibt still. Standard (leer) = "off" ' +
+                'für jede Komponente - interaktive Komponenten (Kalender, Fluss-Diagramm, Komponenten mit Knöpfen) ' +
+                'brauchen "component".',
         },
     },
     button: {

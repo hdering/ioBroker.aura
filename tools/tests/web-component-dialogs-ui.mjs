@@ -100,7 +100,7 @@ async function openPage(viewport, theme = 'light') {
                 title: 'Dialog demo',
                 datapoint: '',
                 gridPos: { x: 0, y: 0, w: 12, h: 8 },
-                options: { wcTag: 'aura-dialog-demo', wcAdapter: 'aura-demo' },
+                options: { wcTag: 'aura-dialog-demo', wcAdapter: 'aura-demo', wcClick: 'component' },
             },
         ]);
     }, theme);

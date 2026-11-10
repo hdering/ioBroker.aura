@@ -29,7 +29,8 @@ Mit Aura getestet (auch ohne Adapter im Dialog): **Fluss-Diagramm** (`flow` ab 0
 oder „Web-Komponente“. Ein neues Widget bekommt die Größe, die die Komponente für sich angibt.
 
 Im Dialog **Widget bearbeiten** steht der Typ in der Liste unter **Web-Komponenten (aus
-Adaptern)**; darunter zeigt eine Karte Komponente, Adapter und Version.
+Adaptern)**. Im Einstellungsteil **Web-Komponente · …** zeigt oben eine Karte Komponente, Adapter
+und Version.
 
 ![Typ Web-Komponente mit Info-Karte](assets/web-komponente/bearbeiten.png)
 
@@ -76,8 +77,8 @@ Stand in einem älteren Widget noch ein Name in den Einstellungen der Komponente
 
 | Klick auf die Komponente | Verhalten |
 | --- | --- |
-| **Aus** (Standard der Kameras) | Die Komponente bekommt weder Klicks noch Tasten. Ein Klick gehört dem Widget: es gilt seine **Aktion** wie bei jedem Widget — ohne Aktion passiert nichts. |
-| **Komponente** (Standard sonst, z. B. Kalender) | Die Komponente bedient sich selbst (Knöpfe, eigener Dialog). Eine **Aktion** des Widgets bleibt still. |
+| **Aus** (Standard) | Die Komponente bekommt weder Klicks noch Tasten. Ein Klick gehört dem Widget: es gilt seine **Aktion** wie bei jedem Widget — ohne Aktion passiert nichts. |
+| **Komponente** | Die Komponente bedient sich selbst (Knöpfe, eigener Dialog). Eine **Aktion** des Widgets bleibt still. Nötig für bedienbare Komponenten wie Kalender oder Fluss-Diagramm. |
 
 ## Verhalten
 
