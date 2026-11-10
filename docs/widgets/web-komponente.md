@@ -6,8 +6,8 @@ mitbringt und die in Aura, vis-2 und devices gleich aussehen und funktionieren
 ([`@iobroker/web-components`](https://github.com/ioBroker/web-components)).
 
 Die Komponente liest und schreibt ihre Datenpunkte selbst. Aura gibt ihr die Verbindung zu
-ioBroker, die gewählten Einstellungen, die Farben und die Schrift des aktiven Themes und den
-Bearbeitungsmodus.
+ioBroker, die gewählten Einstellungen, die Farben und die Schrift des aktiven Themes, den
+Bearbeitungsmodus und Dialoge im Aura-Stil.
 
 ## Hinzufügen
 
@@ -59,7 +59,8 @@ Widget-Name und der **Vollbild-Knopf** unter **Darstellung**.
 - **Navigation:** Will die Komponente zu einer anderen Ansicht springen, öffnet Aura den Tab
   mit diesem Namen, Slug oder dieser ID — zuerst im aktiven Bereich, dann in den übrigen
   Bereichen des Layouts. Im Bearbeitungsmodus wird nicht gesprungen.
-- **Dialoge** der Komponente öffnen sich als Dialog des Browsers in den Farben des Themes.
+- **Dialoge:** Öffnet die Komponente einen Dialog, zeigt Aura ihn wie ein eigenes Popup — siehe
+  [Dialoge](#dialoge).
 - **Nicht installiert:** Fehlt die Komponente (Adapter entfernt), bleibt das Widget im
   Dashboard leer; im Bearbeitungsmodus steht ein Hinweis.
 - **Größe:** Die Komponente füllt die ganze Widget-Fläche.
@@ -67,10 +68,37 @@ Widget-Name und der **Vollbild-Knopf** unter **Darstellung**.
   unter `assistant-satellite.0.*`), bekommt sie jede Änderung eines passenden Datenpunkts
   sofort mit — ohne regelmäßig neu zu suchen.
 
+## Dialoge
+
+Manche Komponenten fragen in einem Dialog nach (z. B. Grenzwerte) oder zeigen Details in einem
+größeren Fenster (z. B. den Verlauf einer Batterie). Aura öffnet diese Dialoge im eigenen Stil —
+nicht als Fenster des Browsers:
+
+- **Rahmen wie ein Popup:** abgedunkelter Hintergrund, abgerundete Fläche, Titelzeile mit
+  Schließen-Knopf. Fläche und Abdunklung folgen den
+  [globalen Popup-Einstellungen](../einstellungen/popups#globale-popup-einstellungen)
+  (Hintergrundfarbe, Hintergrund abdunkeln).
+- **Formular:** Fragt die Komponente nach Werten, zeigt Aura dieselben Felder wie im
+  Einstellungs-Editor des Widgets (Text, Zahl, Schieberegler, Schalter, Farbe, Auswahl,
+  Datenpunkt, Instanz) mit **Abbrechen** und **OK** — bzw. den Beschriftungen, die die
+  Komponente mitgibt. Titel und Beschriftungen erscheinen in der Sprache des Frontends.
+- **Inhalt der Komponente:** Zeichnet die Komponente den Inhalt selbst, setzt Aura ihn in den
+  Rahmen; er bekommt die Farben des Themes. Die Komponente schließt den Dialog selbst (z. B. mit
+  einem eigenen **Fertig**-Knopf).
+- **Abbrechen:** Schließen-Knopf, Tippen neben den Dialog oder `Esc` schließen ihn, ohne etwas
+  zu übernehmen.
+- **Größe:** Breite und Höhe wählt die Komponente; auf dem Handy nimmt der Dialog die ganze
+  Bildschirmbreite ein, er ist nie größer als der Bildschirm.
+- Pro Widget ist immer nur ein Dialog offen. Liegt das Widget in einem Popup, öffnet sich der
+  Dialog darüber; solange darin gearbeitet wird, schließt sich das Popup nicht von selbst.
+- Im **Bearbeitungsmodus** öffnet sich kein Dialog.
+
 ## Für Adapter-Entwickler
 
 Wie eine Komponente gebaut und angemeldet wird, beschreibt das Paket
-[`@iobroker/web-components`](https://github.com/ioBroker/web-components). Aura lädt das Manifest
+[`@iobroker/web-components`](https://github.com/ioBroker/web-components). Aura setzt die
+Eigenschaft `dialogs`: `openDialog()` der Basisklasse öffnet damit den Aura-Dialog, ein
+Element-Dialog schließt mit dem Ereignis `iob-dialog-close`. Aura lädt das Manifest
 und das Modul über `/adapter/<adapter>/…`; Komponenten mit React importieren
 `/lib/esm/react-19.js` bzw. `react-18.js` — beides liefert Auras eigener Server (Port 8095)
 aus, hinter der web-Erweiterung (`/aura/`) der web-Adapter.
