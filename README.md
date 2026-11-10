@@ -122,6 +122,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.111.1 (2026-11-10)
+- 🌟 **New feature:** Web components - dialogs of a component (a form or its own content) open in Aura's popup style instead of the browser dialog, full width on phones ([#957](https://github.com/hdering/ioBroker.aura/issues/957))
+- 🌟 **New feature:** AI access (MCP) - new tool aura_web_components lists the installed web components with their tag, adapter, name, size and settings, so an AI can build web component widgets without guessing ([#956](https://github.com/hdering/ioBroker.aura/issues/956))
+- 🐛 **Bug fix:** Web components - after an ioBroker restart or an adapter update the list of components no longer stays incomplete until the page is reloaded
+
+
 ### 0.111.0 (2026-11-09)
 - 🌟 **New feature:** Timer - switching times are listed in ascending order of time instead of order of entry ([#960](https://github.com/hdering/ioBroker.aura/issues/960))
 - 🐛 **Bug fix:** Web components - a component that subscribes to datapoints with a wildcard (e.g. `assistant-satellite.0.*`) now gets their changes ([#955](https://github.com/hdering/ioBroker.aura/issues/955))
@@ -305,14 +311,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Advanced chart - forecasts: the time series can reach into the future: a rolling lead per chip (`2d+36h`) or for all chips, paging forward up to the last forecast point or a fixed limit, and a current period that starts today
 
 
-### 0.97.0 (2026-10-29)
-- 🐛 **Bug fix:** Charts - a failing history query (e.g. InfluxDB refusing to average a datapoint) is now shown on the chart and logged to the browser console instead of drawing an empty or flat curve
-- 🐛 **Bug fix:** Datapoints with a colon (or other characters ioBroker allows, like & = /) in their ID now update live instead of only after a page reload ([#874](https://github.com/hdering/ioBroker.aura/issues/874))
-- 🐛 **Bug fix:** Speech output - devices whose browser has no voice of its own (e.g. Fully Kiosk on Android) now speak text announcements through an online voice served by Aura; can be switched off in the instance settings, then speech.lastResult reports unsupported ([#834](https://github.com/hdering/ioBroker.aura/issues/834))
-- 🌟 **New feature:** Status symbols - an own status entry can now show its datapoint as a value (number with unit or text with bindings) instead of an icon, in any corner of the widget; optional highlight rule with comparisons like >30 ([#875](https://github.com/hdering/ioBroker.aura/issues/875))
-- 🐛 **Bug fix:** Shutter - the position inversion option ("Actuator convention") is no longer labelled as HmIP-only; the hint now also names KNX actuators where 0 % means open ([#876](https://github.com/hdering/ioBroker.aura/issues/876))
-
-
 ## License
 
 MIT License
@@ -324,6 +322,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

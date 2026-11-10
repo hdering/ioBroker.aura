@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.97.0 (2026-10-29)
+- 🐛 **Bug fix:** Charts - a failing history query (e.g. InfluxDB refusing to average a datapoint) is now shown on the chart and logged to the browser console instead of drawing an empty or flat curve
+- 🐛 **Bug fix:** Datapoints with a colon (or other characters ioBroker allows, like & = /) in their ID now update live instead of only after a page reload ([#874](https://github.com/hdering/ioBroker.aura/issues/874))
+- 🐛 **Bug fix:** Speech output - devices whose browser has no voice of its own (e.g. Fully Kiosk on Android) now speak text announcements through an online voice served by Aura; can be switched off in the instance settings, then speech.lastResult reports unsupported ([#834](https://github.com/hdering/ioBroker.aura/issues/834))
+- 🌟 **New feature:** Status symbols - an own status entry can now show its datapoint as a value (number with unit or text with bindings) instead of an icon, in any corner of the widget; optional highlight rule with comparisons like >30 ([#875](https://github.com/hdering/ioBroker.aura/issues/875))
+- 🐛 **Bug fix:** Shutter - the position inversion option ("Actuator convention") is no longer labelled as HmIP-only; the hint now also names KNX actuators where 0 % means open ([#876](https://github.com/hdering/ioBroker.aura/issues/876))
+
 ## 0.96.0 (2026-10-28)
 - 🌟 **New feature:** Phone/tablet column flow - a column block can split its width unevenly (e.g. 2:1, 1:2:1), so a widget can take two thirds next to one taking one third ([#851](https://github.com/hdering/ioBroker.aura/issues/851))
 - 🌟 **New feature:** Announcements - new admin page "Ansagen": datapoint + condition → spoken text on chosen devices, with time window, weekdays and a lock such as at most once a day, no script needed ([#834](https://github.com/hdering/ioBroker.aura/issues/834))
