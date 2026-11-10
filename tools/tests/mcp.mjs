@@ -4375,7 +4375,7 @@ vaultData.sections['tab:s1:t9'].mcpWrite = true;
 
 const dashReleased = await client.callTool({ name: 'aura_dashboard', arguments: {} });
 check('a released view is marked as such', () => {
-    assert.match(dashReleased.content[0].text, /\[über MCP bearbeitbar\]/);
+    assert.match(dashReleased.content[0].text, /\[über MCP bearbeitbar: Tab\]/);
 });
 
 const tabReleased = await client.callTool({ name: 'aura_tab', arguments: { tab: 'Geheim' } });
@@ -4413,6 +4413,202 @@ check('a released view takes a geometry change — into the vault, not into the 
     );
     assert.deepEqual(tab.widgets, [], 'protected content must never land in config.dashboard');
     assert.ok(!adapter.states['config.dashboard'].includes('wSecret'));
+});
+
+// ── A new tab in a PIN-protected section ─────────────────────────────────────
+// Reported from use: aura_create_tab into a section with a section PIN reported
+// success, but the tab landed in the stub only — in the frontend's tab bar with
+// nothing behind it, missing from the editor (which takes the vault's tab list),
+// and deleted by the next editor save. The tab has to go into the vault, or not
+// be created at all.
+vaultData.sections['section:s2'] = {
+    scope: 'section',
+    name: 'Haupt',
+    salt: 's',
+    hash: 'h',
+    len: 4,
+    pinRelock: 'leave',
+    content: {
+        tabs: [
+            {
+                id: 't3',
+                name: 'Licht',
+                slug: 'licht',
+                widgets: [{ ...OK_SWITCH, id: 'wHaupt', title: 'Haupt-Geheim' }],
+            },
+        ],
+    },
+};
+const filesBeforeLockedCreate = Object.keys(adapter.files).length;
+const dashBeforeLockedCreate = adapter.states['config.dashboard'];
+const createLockedRefused = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: {
+        layout: 'Tablet',
+        section: 'Haupt',
+        name: 'Bearbeiten',
+        widgets: JSON.stringify([{ ...OK_SWITCH, id: 'wNeuTab' }]),
+    },
+});
+check('aura_create_tab into a locked section without a release is refused — nothing written', () => {
+    assert.ok(createLockedRefused.isError, createLockedRefused.content[0].text);
+    assert.match(createLockedRefused.content[0].text, /nicht für den MCP freigegeben/);
+    assert.match(createLockedRefused.content[0].text, /auch für später angelegte/);
+    assert.equal(adapter.states['config.dashboard'], dashBeforeLockedCreate, 'config unchanged');
+    assert.equal(Object.keys(adapter.files).length, filesBeforeLockedCreate, 'no backup');
+    assert.equal(vaultData.sections['section:s2'].content.tabs.length, 1);
+});
+
+const copyIntoLocked = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'tab', target: 'Klima', toLayout: 'Tablet', toSection: 'Haupt' },
+});
+check('aura_copy_node into a locked section without a release is refused as well', () => {
+    assert.ok(copyIntoLocked.isError, copyIntoLocked.content[0].text);
+    assert.match(copyIntoLocked.content[0].text, /nicht für den MCP freigegeben/);
+    assert.equal(adapter.states['config.dashboard'], dashBeforeLockedCreate);
+});
+
+// The release on the SECTION (the switch at the section in the editor) covers
+// every tab in it, the ones created later included.
+vaultData.sections['section:s2'].mcpWrite = true;
+const createLocked = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: {
+        layout: 'Tablet',
+        section: 'Haupt',
+        name: 'Bearbeiten',
+        widgets: JSON.stringify([{ ...OK_SWITCH, id: 'wNeuTab', title: 'Neu-Geheim' }]),
+    },
+});
+check('with a section release the new tab goes into the vault, with its widgets', () => {
+    assert.ok(!createLocked.isError, createLocked.content[0].text);
+    assert.match(createLocked.content[0].text, /im PIN-Tresor, über MCP bearbeitbar/);
+    const tabs = vaultData.sections['section:s2'].content.tabs;
+    assert.deepEqual(
+        tabs.map((t) => t.name),
+        ['Licht', 'Bearbeiten'],
+    );
+    assert.equal(tabs[1].widgets.length, 1);
+    assert.equal(tabs[1].widgets[0].title, 'Neu-Geheim');
+    assert.equal(tabs[0].widgets[0].title, 'Haupt-Geheim', 'the existing tab is untouched');
+    assert.ok(!('_mcpHydrated' in tabs[0]) && !('_mcpHydrated' in tabs[1]));
+    // The state keeps a menu stub for it, and nothing protected.
+    const state = adapter.states['config.dashboard'];
+    assert.ok(!state.includes('Neu-Geheim') && !state.includes('wNeuTab') && !state.includes('Haupt-Geheim'));
+    assert.ok(!state.includes('_mcpHydrated'));
+    const stubTabs = JSON.parse(state).state.layouts[1].sections[0].tabs;
+    assert.deepEqual(
+        stubTabs.map((t) => [t.name, t.widgets.length]),
+        [
+            ['Licht', 0],
+            ['Bearbeiten', 0],
+        ],
+    );
+});
+
+const dashSectionReleased = await client.callTool({ name: 'aura_dashboard', arguments: {} });
+check('aura_dashboard says where a release comes from', () => {
+    const t = dashSectionReleased.content[0].text;
+    assert.match(t, /· Bearbeiten — PIN-geschützt.*1 Widget\(s\).*\[über MCP bearbeitbar: Bereich\]/);
+    assert.match(t, /· Geheim — PIN-geschützt.*\[über MCP bearbeitbar: Tab\]/);
+});
+
+const tabNewLocked = await client.callTool({
+    name: 'aura_tab',
+    arguments: { tab: 'Bearbeiten', layout: 'Tablet', section: 'Haupt' },
+});
+check('the new tab reads back through aura_tab', () => {
+    assert.ok(!tabNewLocked.isError, tabNewLocked.content[0].text);
+    assert.match(tabNewLocked.content[0].text, /Neu-Geheim/);
+});
+
+// A tab that is already stub-only (the state the bug left behind): without a
+// release the answer names the missing content, not a release that was on.
+{
+    const env = JSON.parse(adapter.states['config.dashboard']);
+    env.state.layouts[1].sections[0].tabs.push({ id: 'tGhost', name: 'Geist', slug: 'geist', widgets: [] });
+    adapter.states['config.dashboard'] = JSON.stringify(env);
+}
+delete vaultData.sections['section:s2'].mcpWrite;
+const ghostRead = await client.callTool({ name: 'aura_tab', arguments: { tab: 'Geist' } });
+const ghostAdd = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: { tab: 'Geist', widget: JSON.stringify({ ...OK_SWITCH, id: 'wGhost' }) },
+});
+const ghostDash = await client.callTool({ name: 'aura_dashboard', arguments: {} });
+check('a stub-only tab says it has no vault content', () => {
+    assert.ok(ghostRead.isError);
+    assert.match(ghostRead.content[0].text, /keinen Tresor-Inhalt/);
+    assert.ok(ghostAdd.isError);
+    assert.match(ghostAdd.content[0].text, /keinen Tresor-Inhalt/);
+    assert.match(ghostDash.content[0].text, /· Geist — PIN-geschützt.*kein Tresor-Inhalt/);
+});
+
+// With the release back on, the next write takes the stub-only tab into the vault.
+vaultData.sections['section:s2'].mcpWrite = true;
+const ghostAddReleased = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: { tab: 'Geist', widget: JSON.stringify({ ...OK_SWITCH, id: 'wGhost', title: 'Geist-Geheim' }) },
+});
+check('a released section heals a stub-only tab on the next write', () => {
+    assert.ok(!ghostAddReleased.isError, ghostAddReleased.content[0].text);
+    const ghost = vaultData.sections['section:s2'].content.tabs.find((t) => t.id === 'tGhost');
+    assert.ok(ghost, 'the tab is in the vault now');
+    assert.equal(ghost.widgets[0].title, 'Geist-Geheim');
+    assert.ok(!adapter.states['config.dashboard'].includes('Geist-Geheim'));
+});
+
+check('syncedSectionTabs keeps vault-only tabs and follows the stub for order and names', () => {
+    const { syncedSectionTabs } = require('../../lib/mcp/protectedView.js');
+    const out = syncedSectionTabs(
+        [
+            { id: 'a', name: 'A', widgets: [{ id: 'x' }] },
+            { id: 'b', name: 'B', widgets: [{ id: 'y' }] },
+        ],
+        [
+            { id: 'b', name: 'B2', widgets: [] },
+            { id: 'c', name: 'C', widgets: [{ id: 'z' }], pinProtected: true },
+        ],
+    );
+    assert.deepEqual(
+        out.map((t) => [t.id, t.name, t.widgets.map((w) => w.id)]),
+        [
+            ['b', 'B2', ['y']],
+            ['c', 'C', ['z']],
+            ['a', 'A', ['x']],
+        ],
+    );
+    assert.ok(!('pinProtected' in out[1]));
+});
+
+check('removing a section PIN keeps a tab only the stub had', () => {
+    const { restoreView } = require('../../lib/security/dashboardVault.js');
+    const cfg = {
+        layouts: [
+            {
+                id: 'l',
+                sections: [
+                    {
+                        id: 's',
+                        pinProtected: true,
+                        tabs: [
+                            { id: 'a', name: 'A', widgets: [] },
+                            { id: 'g', name: 'G', widgets: [] },
+                        ],
+                    },
+                ],
+            },
+        ],
+    };
+    assert.ok(restoreView(cfg, 'section:s', { tabs: [{ id: 'a', name: 'A', widgets: [{ id: 'x' }] }] }));
+    assert.deepEqual(
+        cfg.layouts[0].sections[0].tabs.map((t) => [t.id, t.widgets.length]),
+        [
+            ['a', 1],
+            ['g', 0],
+        ],
+    );
 });
 
 delete adapter.vault;

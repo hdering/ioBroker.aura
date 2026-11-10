@@ -946,9 +946,16 @@ export const useDashboardStore = create<DashboardState>()(
                                       }
                                     | undefined;
                                 if (sContent && Array.isArray(sContent.tabs)) {
+                                    // The vault's tabs, plus any tab only the stub has
+                                    // (created next to the vault, e.g. by an older MCP).
+                                    // Dropping those made the editor's tab list differ
+                                    // from the frontend's tab bar, and the next save
+                                    // deleted the tab without a word.
+                                    const known = new Set(sContent.tabs.map((tb) => tb.id));
+                                    const stubOnly = next.tabs.filter((tb) => !known.has(tb.id));
                                     next = {
                                         ...next,
-                                        tabs: sContent.tabs,
+                                        tabs: [...sContent.tabs, ...stubOnly],
                                         // The menu decoration is vault content too —
                                         // the stub never carries it, so a save that
                                         // did not put it back dropped the section's

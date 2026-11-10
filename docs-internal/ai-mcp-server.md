@@ -2323,3 +2323,19 @@ dem Original.
 | Übersicht | `aura_dashboard` druckt den Link als „verknüpft mit Layout / Bereich / Tab (Widgets nur im Original)“, ohne Zeilenbudget |
 | Frontend | `App.tsx`: `tabsOfSection` setzt die Widgets des Originals ein (inkl. entsperrtem Inhalt), die PIN-Abfrage läuft mit dem Schlüssel des Originals (`pinGate`) |
 | Tests | `tools/tests/tab-link-logic.mjs` |
+
+## Neuer Tab in einem PIN-geschützten Bereich
+
+Ein Bereichs-PIN hält die Tabs des Bereichs im Tresor (`content.tabs`); der Stub in `config.dashboard`
+ist nur das Menü. Ein Tab, der nur im Stub steht, ist im Frontend ein leerer Eintrag in der Tab-Leiste
+und fiel früher beim nächsten Speichern im Editor bzw. bei „PIN entfernen“ weg.
+
+| Stelle | Verhalten |
+| --- | --- |
+| `aura_create_tab`, `aura_copy_node` (Ziel) | `sectionGate`: Bereich nicht freigegeben → Ablehnung vor der Sicherung; freigegeben → Tab landet im Tresor |
+| `flushHydrated` | Freigegebener Bereich: Tab-Liste im Tresor folgt dem Stub (neue Tabs, Reihenfolge, Name/Icon); Tabs nur im Tresor bleiben erhalten |
+| `hydrateReleased` | markiert eingesetzte Tabs (`_mcpHydrated`, wird beim Schreiben entfernt) — ein geleerter Tab wird als leer geschrieben |
+| `lockedView` | `missing: true` für Tabs ohne Tresor-Eintrag → `missingContentHint` statt „nicht freigegeben“ |
+| `aura_dashboard` | `[über MCP bearbeitbar: Bereich]` bzw. `: Tab` |
+| Editor / Adapter | `mergeProtectedContent` und `restoreView` behalten Tabs, die nur im Stub stehen |
+| Tests | `tools/tests/mcp.mjs` („A new tab in a PIN-protected section“) |
