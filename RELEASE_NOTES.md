@@ -8,3 +8,5 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
+- feat: Web components - dialogs of a component (a form or its own content) open in Aura's popup style instead of the browser dialog, full width on phones (#957)
+- feat: AI access (MCP) - new tool aura_web_components lists the installed web components with their tag, adapter, name, size and settings, so an AI can build web component widgets without guessing (#956)
