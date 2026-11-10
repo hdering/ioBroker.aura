@@ -224,6 +224,8 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     shutterShowSlider?: boolean;
     /** Slider width in px (row layouts). Default 64; the card fills its cell. */
     shutterSliderWidth?: number;
+    /** Edge length of the up/stop/down (and slat) buttons in px. Default 26; the icons scale along (#943). */
+    shutterButtonSize?: number;
     /** Write once the drag ends. Default true, like the widget. */
     shutterSendOnRelease?: boolean;
     /** Let the printed position follow the drag instead of the datapoint. */
@@ -757,7 +759,7 @@ export function ShutterControl({
     entry,
     val,
     setState,
-    size = 26,
+    size: sizeProp = 26,
     dpStates,
     card,
 }: {
@@ -771,6 +773,8 @@ export function ShutterControl({
     /** Card layouts stack vertically: the position slider fills the cell. */
     card?: boolean;
 }) {
+    // The entry's own button size wins over the caller's default (#943).
+    const size = entry.shutterButtonSize && entry.shutterButtonSize > 0 ? entry.shutterButtonSize : sizeProp;
     const iconSize = Math.round(size * 0.5);
     const read = (dp?: string): ioBrokerState['val'] | undefined => (dp && dpStates ? dpStates[dp]?.val : undefined);
 

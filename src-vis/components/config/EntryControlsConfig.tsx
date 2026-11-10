@@ -1136,6 +1136,23 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                         </>
                     )}
 
+                    <div>
+                        <Label>Knopfgröße (px, leer = 26)</Label>
+                        <input
+                            type="number"
+                            min={16}
+                            max={80}
+                            className={iCls}
+                            style={iSty}
+                            placeholder="26"
+                            value={entry.shutterButtonSize ?? ''}
+                            onChange={(e) => {
+                                const n = parseInt(e.target.value, 10);
+                                onUpdate({ shutterButtonSize: isFinite(n) && n > 0 ? n : undefined });
+                            }}
+                        />
+                    </div>
+
                     {/* ── Position: Anzeige und Regler in der Zeile ── */}
                     <div className="pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
                         <Label>Position</Label>
