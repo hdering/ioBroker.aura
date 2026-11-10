@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.111.0",
+    "auraVersion": "0.111.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -3315,6 +3315,10 @@
           "type": "number",
           "description": "Slider width in px (row layouts). Default 64; the card fills its cell."
         },
+        "shutterButtonSize": {
+          "type": "number",
+          "description": "Edge length of the up/stop/down (and slat) buttons in px. Default 26; the icons scale along (#943)."
+        },
         "shutterSendOnRelease": {
           "type": "boolean",
           "description": "Write once the drag ends. Default true, like the widget."
@@ -4451,6 +4455,10 @@
           "type": "number",
           "description": "Slider width in px (row layouts). Default 64; the card fills its cell."
         },
+        "shutterButtonSize": {
+          "type": "number",
+          "description": "Edge length of the up/stop/down (and slat) buttons in px. Default 26; the icons scale along (#943)."
+        },
         "shutterSendOnRelease": {
           "type": "boolean",
           "description": "Write once the drag ends. Default true, like the widget."
@@ -5154,6 +5162,10 @@
         "shutterSliderWidth": {
           "type": "number",
           "description": "Slider width in px (row layouts). Default 64; the card fills its cell."
+        },
+        "shutterButtonSize": {
+          "type": "number",
+          "description": "Edge length of the up/stop/down (and slat) buttons in px. Default 26; the icons scale along (#943)."
         },
         "shutterSendOnRelease": {
           "type": "boolean",
