@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.113.0",
+    "version": "0.113.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -108,6 +108,19 @@
       }
     ],
     "news": {
+      "0.113.1": {
+        "en": "🐛 Bug fix: PIN-protected sections - an unlocked view now picks up changes made via MCP (edited widgets, new tabs) without a page reload",
+        "de": "🐛 Fehlerbehebung: PIN-geschützte Abschnitte – eine entsperrte Ansicht übernimmt jetzt über MCP vorgenommene Änderungen (bearbeitete Widgets, neue Tabs), ohne dass die Seite neu geladen werden muss",
+        "ru": "🐛 Исправлена ​​ошибка: разделы, защищенные PIN-кодом: разблокированный вид теперь учитывает изменения, внесенные через MCP (отредактированные виджеты, новые вкладки), без перезагрузки страницы.",
+        "pt": "🐛 Correção de bug: seções protegidas por PIN – uma visualização desbloqueada agora coleta alterações feitas via MCP (widgets editados, novas guias) sem recarregar a página",
+        "nl": "🐛 Bugfix: met een pincode beveiligde secties - een ontgrendelde weergave pikt nu wijzigingen op die zijn aangebracht via MCP (bewerkte widgets, nieuwe tabbladen) zonder dat de pagina opnieuw hoeft te worden geladen",
+        "fr": "🐛 Correction d'un bug : sections protégées par code PIN - une vue déverrouillée récupère désormais les modifications apportées via MCP (widgets modifiés, nouveaux onglets) sans rechargement de page",
+        "it": "🐛 Correzione del bug: sezioni protette da PIN: una vista sbloccata ora rileva le modifiche apportate tramite MCP (widget modificati, nuove schede) senza ricaricare la pagina",
+        "es": "🐛 Corrección de errores: secciones protegidas con PIN: una vista desbloqueada ahora recoge los cambios realizados a través de MCP (widgets editados, pestañas nuevas) sin recargar la página",
+        "pl": "🐛 Poprawka błędu: sekcje chronione kodem PIN - odblokowany widok wyświetla teraz zmiany wprowadzone za pomocą MCP (edytowane widżety, nowe karty) bez ponownego ładowania strony",
+        "uk": "🐛 Виправлено помилку: розділи, захищені PIN-кодом, тепер у розблокованому режимі перегляду відображаються зміни, внесені через MCP (відредаговані віджети, нові вкладки), без перезавантаження сторінки",
+        "zh-cn": "🐛 错误修复：PIN 保护的部分 - 解锁视图现在可以拾取通过 MCP 所做的更改（编辑的小部件、新选项卡），而无需重新加载页面"
+      },
       "0.113.0": {
         "en": "🌟 New feature: Adapter logs - all five ioBroker log levels (Silly, Debug, Info, Warn, Error) can be filtered separately; Silly entries no longer appear under Debug (#969)\n🌟 New feature: Adapter logs - adjustable font size for the log table (#970)\n🌟 New feature: Adapter status - adjustable font size and larger restart/update buttons with bigger touch targets (#971)\n🌟 New feature: Layouts - flow columns can be filled by height (masonry) or compactly with as few columns as needed, centred; columns are only re-dealt when a tab opens or the window width changes (#939)",
         "de": "🌟 Neue Funktion: Adapterprotokolle – alle fünf ioBroker-Protokollebenen (Silly, Debug, Info, Warn, Error) können separat gefiltert werden; Unter Debug erscheinen keine albernen Einträge mehr (#969)\n🌟 Neue Funktion: Adapterprotokolle – anpassbare Schriftgröße für die Protokolltabelle (#970)\n🌟 Neue Funktion: Adapterstatus – anpassbare Schriftgröße und größere Neustart-/Update-Schaltflächen mit größeren Touch-Zielen (#971)\n🌟 Neue Funktion: Layouts – Fließsäulen können nach Höhe (Mauerwerk) oder kompakt mit so wenigen Säulen wie nötig, zentriert gefüllt werden; Spalten werden nur neu angeordnet, wenn ein Tab geöffnet wird oder sich die Fensterbreite ändert (#939)",
@@ -185,19 +198,6 @@
         "pl": "🐛 Poprawka błędu: wartości zapisywane przez widżety są teraz zgodne z typem punktu danych - np. polecenie migawki „1” dociera do punktu danych w postaci ciągu (bramka Mediola) jako tekst, a nie jest odrzucane jako liczba",
         "uk": "🐛 Виправлено помилку: значення, записані віджетами, тепер відповідають типу точки даних - напр. команда затвора \"1\" досягає точки даних рядка (шлюз Mediola) як текст замість відхилення як числа",
         "zh-cn": "🐛 错误修复：小部件写入的值现在遵循数据点类型 - 例如快门命令“1”以文本形式到达字符串数据点（Mediola 网关），而不是以数字形式被拒绝"
-      },
-      "0.109.0": {
-        "en": "🌟 New feature: Dynamic list / status overview - name rules: a typed \">\" now also matches the \"›\" separator, plus one-click presets \"device only\", \"datapoint only\" and \"› to space\" (#950)\n🌟 New feature: evcc - selectable power unit: kW (default), W or automatic (W below 1000 W) (#947)",
-        "de": "🌟 Neues Feature: Dynamische Liste / Statusübersicht – Namensregeln: Ein eingegebenes „>“ entspricht jetzt auch dem Trennzeichen „›“, plus Ein-Klick-Voreinstellungen „nur Gerät“, „nur Datenpunkt“ und „› in Leerzeichen“ (#950)\n🌟 Neue Funktion: evcc – wählbare Leistungseinheit: kW (Standard), W oder automatisch (W unter 1000 W) (#947)",
-        "ru": "🌟 Новая функция: динамический список/обзор статуса — правила для имен: введенный «>» теперь также соответствует разделителю «►», а также предустановки «только устройство», «только точка данных» и «> в пробел» (#950) для быстрого запуска.\n🌟 Новая функция: evcc - выбор единицы мощности: кВт (по умолчанию), Вт или автоматическая (Вт ниже 1000 Вт) (#947).",
-        "pt": "🌟 Novo recurso: lista dinâmica / visão geral de status - regras de nome: um \">\" digitado agora também corresponde ao separador \"›\", além de predefinições de um clique \"somente dispositivo\", \"somente ponto de dados\" e \"› para espaço\" (#950)\n🌟 Novo recurso: evcc - unidade de potência selecionável: kW (padrão), W ou automático (W abaixo de 1000 W) (#947)",
-        "nl": "🌟 Nieuwe functie: Dynamisch lijst-/statusoverzicht - naamregels: een getypte \">\" komt nu ook overeen met het scheidingsteken \">\", plus voorinstellingen met één klik \"alleen apparaat\", \"alleen datapunt\" en \"> naar spatie\" (#950)\n🌟 Nieuwe functie: evcc - selecteerbare vermogenseenheid: kW (standaard), W of automatisch (W onder 1000 W) (#947)",
-        "fr": "🌟 Nouvelle fonctionnalité : liste dynamique/aperçu de l'état - règles de nom : un \">\" saisi correspond désormais également au séparateur \"›\", ainsi que des préréglages en un clic \"appareil uniquement\", \"point de données uniquement\" et \"› vers l'espace\" (#950)\n🌟 Nouvelle fonctionnalité : evcc - unité de puissance sélectionnable : kW (par défaut), W ou automatique (W inférieur à 1000 W) (#947)",
-        "it": "🌟 Nuova funzionalità: elenco dinamico/panoramica dello stato - regole per i nomi: un \">\" digitato ora corrisponde anche al separatore \"›\", oltre alle preimpostazioni con un clic \"solo dispositivo\", \"solo punto dati\" e \"› nello spazio\" (#950)\n🌟 Nuova funzionalità: evcc - unità di potenza selezionabile: kW (predefinita), W o automatica (W inferiore a 1000 W) (#947)",
-        "es": "🌟 Nueva característica: Lista dinámica/resumen de estado - reglas de nombre: un \">\" escrito ahora también coincide con el separador \"›\", además de ajustes preestablecidos de un clic \"solo dispositivo\", \"solo punto de datos\" y \"› al espacio\" (#950)\n🌟 Nueva característica: evcc - unidad de potencia seleccionable: kW (predeterminado), W o automático (W por debajo de 1000 W) (#947)",
-        "pl": "🌟 Nowa funkcja: Dynamiczny przegląd listy/stanu — zasady nazw: wpisane „>” pasuje teraz także do separatora „›”, a także gotowe ustawienia jednym kliknięciem „tylko urządzenie”, „tylko punkt danych” i „› do spacji” (#950)\n🌟 Nowa funkcja: evcc - możliwość wyboru jednostki mocy: kW (domyślnie), W lub automatyczna (W poniżej 1000 W) (#947)",
-        "uk": "🌟 Нова функція: огляд динамічного списку/статусу — правила назви: введене «>» тепер також відповідає роздільнику «›», а також налаштування одним клацанням «лише пристрій», «лише точка даних» і «› у простір» (#950)\n🌟 Нова функція: evcc - вибір одиниці потужності: кВт (за замовчуванням), Вт або автоматичний (Вт нижче 1000 Вт) (#947)",
-        "zh-cn": "🌟 新功能：动态列表/状态概览 - 命名规则：输入的“>”现在也匹配“›”分隔符，加上一键预设“仅设备”、“仅数据点”和“›到空格”(#950)\n🌟 新功能：evcc - 可选择功率单位：kW（默认）、W 或自动（W 低于 1000 W）(#947)"
       }
     }
   },

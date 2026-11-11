@@ -122,6 +122,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.113.1 (2026-11-11)
+- 🐛 **Bug fix:** PIN-protected sections - an unlocked view now picks up changes made via MCP (edited widgets, new tabs) without a page reload
+
+
 ### 0.113.0 (2026-11-11)
 - 🌟 **New feature:** Adapter logs - all five ioBroker log levels (Silly, Debug, Info, Warn, Error) can be filtered separately; Silly entries no longer appear under Debug ([#969](https://github.com/hdering/ioBroker.aura/issues/969))
 - 🌟 **New feature:** Adapter logs - adjustable font size for the log table ([#970](https://github.com/hdering/ioBroker.aura/issues/970))
@@ -275,20 +279,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** iOS - Safari now also shows the Aura icon in the browser tab; the PNG favicon was missing from the 0.100.0 bundle ([#899](https://github.com/hdering/ioBroker.aura/issues/899))
 
 
-### 0.100.0 (2026-11-01)
-- 🌟 **New feature:** Header items - text items support HTML (e.g. an image per moon phase); every item carries a CSS class by slot and position, e.g. .aura-header-item-r1-right-0 ([#883](https://github.com/hdering/ioBroker.aura/issues/883))
-- 🌟 **New feature:** Header editor - tapping a slot in the overview no longer creates an item; use "Add item" ([#883](https://github.com/hdering/ioBroker.aura/issues/883))
-- 🌟 **New feature:** Dynamic list, list and status overview - the name pattern resolves {{dpname}}, {{parentname}}, {{parent2name}} ... to the object names, like the device card ([#888](https://github.com/hdering/ioBroker.aura/issues/888))
-- 🌟 **New feature:** Menu widget - new option "Show hidden" also lists sections and tabs hidden in the tab bar, e.g. room tabs reachable only from an overview tab ([#892](https://github.com/hdering/ioBroker.aura/issues/892))
-- 🌟 **New feature:** HTML widget - option "Fit height to content": the tile grows and shrinks with the HTML, e.g. a table from a datapoint, on every screen width ([#884](https://github.com/hdering/ioBroker.aura/issues/884))
-- 🌟 **New feature:** Conditions - list rows, list values, custom-grid cells and tabs can now be shown disabled (greyed out, not operable) while a rule matches ([#889](https://github.com/hdering/ioBroker.aura/issues/889))
-- 🐛 **Bug fix:** Group - on the phone, a group inside a group grows to show all its children instead of scrolling inside its desktop height ([#897](https://github.com/hdering/ioBroker.aura/issues/897))
-- 🌟 **New feature:** Map - markers on the same spot are drawn side by side instead of on top of each other, and a line chip can show/hide the person's marker together with the track (lines.markerId) ([#895](https://github.com/hdering/ioBroker.aura/issues/895))
-- 🐛 **Bug fix:** Advanced chart - the tooltip lists every visible series at the hovered moment; a series without a point at exactly that time shows its last known value instead of disappearing ([#898](https://github.com/hdering/ioBroker.aura/issues/898))
-- 🌟 **New feature:** List and dynamic list - new option "Row spacing" (compact / normal / spacious) sets the space between rows independently of the text size ([#890](https://github.com/hdering/ioBroker.aura/issues/890))
-- 🐛 **Bug fix:** Datapoints - after a dropped connection, widgets show the values fetched on reconnect instead of keeping their old ones until the next change; most visible on "last update" timestamps of rarely reporting sensors ([#900](https://github.com/hdering/ioBroker.aura/issues/900))
-
-
 ## License
 
 MIT License
@@ -300,6 +290,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

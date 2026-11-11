@@ -8,4 +8,3 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
-- fix: PIN-protected sections - an unlocked view now picks up changes made via MCP (edited widgets, new tabs) without a page reload
