@@ -39,7 +39,8 @@ import { isGroupType } from '../../utils/groupTypes';
 import { runtimeId, useRuntimeScope } from '../../contexts/RenderTransformContext';
 import { TabChainProvider } from '../../contexts/TabChainContext';
 import { mirrorTargetWidgetId } from '../../utils/mirrorSource';
-import { flowBands, flowGridTemplate, flowModeFor } from '../../utils/flowOrder';
+import { flowBands, flowGridTemplate, flowModeFor, normalizeFlowFill } from '../../utils/flowOrder';
+import { useFlowHeights } from '../../hooks/useFlowHeights';
 import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridRowHeightContext, GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
@@ -658,6 +659,18 @@ export function Dashboard({
               { container: containerWidth, viewport: viewportWidth },
               { mobileBreakpoint, tabletBreakpoint, editMode },
           );
+    const flowCols = flowMode === 'tablet' ? tabletCols : mobileCols;
+    // Filling the columns by height (#939) needs the cards' real heights. They are
+    // measured on the active tab and frozen while the user works — see useFlowHeights.
+    const flowFill = normalizeFlowFill(settings.flowFill);
+    const fillByHeight = !!flowMode && flowCols > 1 && flowFill !== 'count';
+    const activeTabWidgetIds = (tabs.find((tb) => tb.id === activeTabId)?.widgets ?? []).map((w) => w.id).join(',');
+    const flowHeights = useFlowHeights(
+        scrollEl,
+        activeTabId,
+        `${activeTabId}|${containerWidth}|${flowMode}|${flowCols}|${flowFill}|${activeTabWidgetIds}`,
+        fillByHeight,
+    );
     // Embedded in a mirror: no scrollbar gutters (the mirror computes the grid's
     // width without them) and a slim scrollbar-free scroller — wheel and touch still scroll.
     const scrollerStyle: React.CSSProperties = embedded
@@ -681,7 +694,9 @@ export function Dashboard({
         </DashboardMobileContext.Provider>
     );
     if (flowMode) {
-        const flowCols = flowMode === 'tablet' ? tabletCols : mobileCols;
+        // Until a card is measured, its stored row height stands in.
+        const flowHeightOf = (w: WidgetConfig) =>
+            flowHeights[w.id] ?? w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN;
         return (
             <>
                 <DashboardMobileContext.Provider value={true}>
@@ -732,7 +747,14 @@ export function Dashboard({
                                             const tabWidgets = (tab.widgets ?? []).filter(
                                                 (w) => !reflowHiddenIds.has(rid(w.id)) && !fillTabIds.has(w.id),
                                             );
-                                            const bands = flowBands(tabWidgets, flowMode, flowCols);
+                                            const bands = flowBands(
+                                                tabWidgets,
+                                                flowMode,
+                                                flowCols,
+                                                fillByHeight
+                                                    ? { fill: flowFill, heightOf: flowHeightOf, gap: MARGIN }
+                                                    : {},
+                                            );
                                             // One box per widget — the same height rules whether it sits in the phone
                                             // stack, a tablet column or a full-width band; `span` only feeds the test hook.
                                             const renderBox = (w: WidgetConfig, span: number) => {
@@ -858,14 +880,21 @@ export function Dashboard({
                                                                                 data-aura-flow-band-cols={
                                                                                     band.columns.length
                                                                                 }
+                                                                                data-aura-flow-band-slots={band.slots}
                                                                                 style={{
                                                                                     display: 'grid',
                                                                                     // A block may have its own column count and shares (#851).
-                                                                                    gridTemplateColumns:
-                                                                                        flowGridTemplate(
-                                                                                            band.columns.length,
-                                                                                            band.widths,
-                                                                                        ),
+                                                                                    // A compact block (#939) keeps the column width of the
+                                                                                    // full count and is centred.
+                                                                                    gridTemplateColumns: band.slots
+                                                                                        ? `repeat(${band.columns.length}, calc((100% - ${(band.slots - 1) * MARGIN}px) / ${band.slots}))`
+                                                                                        : flowGridTemplate(
+                                                                                              band.columns.length,
+                                                                                              band.widths,
+                                                                                          ),
+                                                                                    justifyContent: band.slots
+                                                                                        ? 'center'
+                                                                                        : undefined,
                                                                                     gap: MARGIN,
                                                                                     alignItems: 'start',
                                                                                 }}

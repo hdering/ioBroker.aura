@@ -338,6 +338,16 @@ export const de = {
     'settings.grid.groupMobile': 'Mobile',
     'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile-Spalten',
+    'settings.grid.flowFill': 'Spalten füllen',
+    'settings.grid.flowFillCount': 'Nach Anzahl',
+    'settings.grid.flowFillHeight': 'Nach Höhe',
+    'settings.grid.flowFillCompact': 'Kompakt',
+    'settings.grid.flowFillCountHint': 'Jede Karte kommt in die Spalte mit den wenigsten Karten.',
+    'settings.grid.flowFillHeightHint':
+        'Jede Karte kommt in die niedrigste Spalte, gemessen an der Höhe der Karten. Fest angeordnete Karten bleiben in ihrer Spalte.',
+    'settings.grid.flowFillCompactHint':
+        'Nach Höhe, aber mit so wenigen Spalten wie nötig: Der Block wird nicht höher als seine längste Karte und steht mittig. Blöcke mit fest angeordneten Karten oder eigener Spaltenzahl werden nur nach Höhe gefüllt.',
+    'settings.grid.flowFillUnavailable': 'Wirkt erst, wenn Tablet- oder Mobile-Fluss mehr als eine Spalte hat.',
     'settings.grid.wizardMaxDp': 'Wizard Max-Datenpunkte',
     'settings.grid.mobileOff': 'Aus',
     'settings.grid.hideScrollbar': 'Scrollbalken ausblenden',
@@ -1171,6 +1181,8 @@ export const de = {
     'editor.mobile.colsHint':
         'Spalten wie unterhalb des Mobile-Breakpoints. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge. Jeder Block hat eine eigene Spaltenzahl; ▲ ▼ verschieben auch zwischen Blöcken.',
     'editor.tablet.title': 'Tablet-Reihenfolge',
+    'editor.tablet.pinnedHint': '{n} Karten sind fest einer Spalte zugeordnet und werden nicht nach Höhe verteilt.',
+    'editor.tablet.releaseCols': 'Spalten-Zuordnung zurücksetzen',
     'editor.tablet.hint':
         'Spalten wie im Tablet-Bereich. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge. Jeder Block hat eine eigene Spaltenzahl; ▲ ▼ verschieben auch zwischen Blöcken.',
     'editor.tablet.columns': 'Spalten',

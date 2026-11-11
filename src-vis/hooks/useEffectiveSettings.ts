@@ -25,6 +25,7 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     'mobileCols',
     'tabletBreakpoint',
     'tabletCols',
+    'flowFill',
     'gridWidthMode',
     'fluidDesignWidth',
     'fluidMinScale',

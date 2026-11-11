@@ -32,7 +32,7 @@ import {
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { ManualWidgetDialog } from '../../components/config/ManualWidgetDialog';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { flowOrderField, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
+import { flowOrderField, normalizeFlowFill, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
 import { FlowSettingsLink, TabletOrderPanel } from './editor/TabletOrderPanel';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
@@ -2213,7 +2213,12 @@ export function AdminEditor() {
                 </div>
                 {orderPanel === 'mobile' &&
                     (mobileCols > 1 ? (
-                        <TabletOrderPanel layoutId={activeLayoutId} cols={mobileCols} mode="mobile" />
+                        <TabletOrderPanel
+                            layoutId={activeLayoutId}
+                            cols={mobileCols}
+                            mode="mobile"
+                            fill={normalizeFlowFill(editorSettings.flowFill)}
+                        />
                     ) : (
                         <OrderPanel layoutId={activeLayoutId} mode="mobile" />
                     ))}
@@ -2221,6 +2226,7 @@ export function AdminEditor() {
                     <TabletOrderPanel
                         layoutId={activeLayoutId}
                         cols={Math.min(4, Math.max(1, Math.round(editorSettings.tabletCols ?? 2)))}
+                        fill={normalizeFlowFill(editorSettings.flowFill)}
                     />
                 )}
             </div>

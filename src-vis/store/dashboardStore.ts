@@ -189,6 +189,7 @@ export interface LayoutSettings {
     mobileCols?: number;
     tabletBreakpoint?: number;
     tabletCols?: number;
+    flowFill?: 'count' | 'height' | 'compact';
     gridWidthMode?: 'fixed' | 'fluid';
     fluidDesignWidth?: number;
     fluidMinScale?: number;

@@ -138,6 +138,7 @@ Schriftart, Schriftgrößen und Abstände.
 | Mobile-Spalten             | Spaltenzahl unter dem Mobile-Breakpoint (1–4, Vorgabe 1); breite Widgets belegen anteilig mehrere Spalten |
 | Tablet-Breakpoint          | Fensterbreite, unter der Widgets in Tablet-Spalten fließen (Aus = Desktop-Raster, ggf. mit Scrollbalken); das Bereichs-Menü hat dort seine eigene „Platzierung auf Tablets“ |
 | Tablet-Spalten             | Spaltenzahl im Tablet-Bereich (1–4); breite Widgets belegen anteilig mehrere Spalten |
+| Spalten füllen             | Wie Karten ohne feste Spalte verteilt werden, gilt für Tablet- und mehrspaltigen Mobile-Fluss (siehe unten) |
 | Fensterbreite füllen       | Aus = feste Spaltenbreite (breites Fenster lässt rechts Platz, schmales scrollt). An = Spaltenzahl bleibt, die Widgets strecken sich auf die volle Fensterbreite; Höhen bleiben. Der Editor zeigt die Entwurfsansicht |
 | Entwurfsbreite             | Breite, auf die das Layout gestreckt wird. Auto = belegte Breite des Bereichs (Inhalt füllt immer die volle Breite) |
 | Höchstens stauchen auf     | Schmaler als dieser Anteil der Entwurfsbreite wird nicht gestaucht, darunter wird gescrollt |
@@ -149,6 +150,14 @@ Schriftart, Schriftgrößen und Abstände.
 | unter Mobile-Breakpoint              | Mobile-Spalten                               |
 | zwischen Mobile- und Tablet-Breakpoint | Tablet-Spalten                             |
 | darüber                              | Raster — fest oder auf Fensterbreite gestreckt, Höhe wahlweise mit |
+
+| Spalten füllen | Verteilung | Spalten |
+| -------------- | ---------- | ------- |
+| Nach Anzahl    | Spalte mit den wenigsten Karten | fest |
+| Nach Höhe      | niedrigste Spalte | fest |
+| Kompakt        | nach Höhe, längste Karte gibt die Blockhöhe vor | so wenige wie nötig, Block mittig |
+
+Im Reihenfolge-Panel angeordnete Karten bleiben in ihrer Spalte; „Spalten-Zuordnung zurücksetzen“ gibt sie der Verteilung zurück. Neu verteilt wird beim Öffnen des Tabs und bei geänderter Fensterbreite, nicht beim Aufklappen einer Karte.
 
 ## Verhalten
 

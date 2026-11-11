@@ -963,7 +963,9 @@ async function build() {
                 type: 'number',
                 description:
                     'Spalte im Tablet-Fluss, 0-basiert, auf die Spaltenzahl gekappt. ' +
-                    'Fehlt sie, füllt das Widget die Spalte mit den wenigsten Widgets (ohne Zuordnung: abwechselnd).',
+                    'Fehlt sie, verteilt die Einstellung flowFill: count = Spalte mit den wenigsten Widgets ' +
+                    '(ohne Zuordnung: abwechselnd), height = niedrigste Spalte, compact = so wenige Spalten wie nötig, ' +
+                    'Block zentriert. Ein gesetztes tabletCol schließt den Block von compact aus.',
             },
             tabletWide: {
                 type: 'boolean',

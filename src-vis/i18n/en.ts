@@ -337,6 +337,16 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.groupMobile': 'Mobile',
     'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile columns',
+    'settings.grid.flowFill': 'Fill columns',
+    'settings.grid.flowFillCount': 'By count',
+    'settings.grid.flowFillHeight': 'By height',
+    'settings.grid.flowFillCompact': 'Compact',
+    'settings.grid.flowFillCountHint': 'Each card goes into the column with the fewest cards.',
+    'settings.grid.flowFillHeightHint':
+        'Each card goes into the lowest column, measured by card height. Cards arranged into a column stay there.',
+    'settings.grid.flowFillCompactHint':
+        'By height, but with as few columns as needed: the block gets no taller than its longest card and is centred. Blocks with arranged cards or their own column count are only filled by height.',
+    'settings.grid.flowFillUnavailable': 'Takes effect once the tablet or mobile flow has more than one column.',
     'settings.grid.wizardMaxDp': 'Wizard Max Datapoints',
     'settings.grid.mobileOff': 'Off',
     'settings.grid.hideScrollbar': 'Hide scroll bar',
@@ -1162,6 +1172,8 @@ export const en: Record<TranslationKey, string> = {
     'editor.mobile.colsHint':
         'Columns as below the mobile breakpoint. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order. Every block has its own column count; ▲ ▼ also move between blocks.',
     'editor.tablet.title': 'Tablet Order',
+    'editor.tablet.pinnedHint': '{n} cards are pinned to a column and are not dealt by height.',
+    'editor.tablet.releaseCols': 'Reset column assignment',
     'editor.tablet.hint':
         'Columns as on the tablet. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order. Every block has its own column count; ▲ ▼ also move between blocks.',
     'editor.tablet.columns': 'columns',

@@ -49,6 +49,9 @@ export interface FrontendSettings {
      *  into `tabletCols` columns instead of the desktop grid. 0 (or ≤ mobileBreakpoint) = off. */
     tabletBreakpoint: number;
     tabletCols: number;
+    /** How a column flow (tablet, or a phone with mobileCols > 1) deals its unpinned cards (#939):
+     *  'count' = fewest cards, 'height' = shortest column, 'compact' = as few columns as needed. */
+    flowFill: 'count' | 'height' | 'compact';
     /** Desktop grid width (#413): 'fixed' keeps every column ≈ gridSnapX px wide (a wider
      *  window leaves space, a narrower one scrolls); 'fluid' keeps the column count and
      *  stretches the columns so the widgets fill the window. Heights stay in px. */
@@ -236,6 +239,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     // layout or globally in the Grid section.
     tabletBreakpoint: 0,
     tabletCols: 2,
+    flowFill: 'count',
     // Off by default like the tablet band: a stretched grid would change every
     // existing dashboard after an update (#413).
     gridWidthMode: 'fixed',
