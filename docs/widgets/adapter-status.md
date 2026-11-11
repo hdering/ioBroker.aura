@@ -19,6 +19,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `showVersion` | `true` | Versionsnummer je Instanz |
 | `compact` | `false` | kompakte Zeilen ohne Untertitel |
+| `fontSize` | – | Schriftgröße der Liste in px (8–32), leer = Standard |
+| `buttonSize` | `14` | Größe der Neustart-/Update-Symbole in px (10–48), Klickfläche wächst mit |
 
 ### Filter & Suche
 

@@ -135,6 +135,7 @@
     "test:mirror-tab": "node tools/tests/mirror-tab.mjs",
     "test:mirror-inherit": "node tools/tests/mirror-frame-inherit.mjs",
     "test:menu-overview": "node tools/tests/menu-overview.mjs",
+    "test:adapterstatus-sizes": "node tools/tests/adapterstatus-sizes.mjs",
     "test:menu-header": "node tools/tests/menu-header.mjs",
     "test:timer-extra-targets": "node tools/tests/timer-extra-targets.mjs",
     "test:timer-shared-template": "node tools/tests/timer-shared-template.mjs",

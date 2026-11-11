@@ -1610,6 +1610,19 @@ export const WIDGET_OPTION_NOTES = {
         fontSize: { type: 'number', default: 12, description: 'Schriftgröße der Tabelle in px.' },
         showHeader: { description: 'Zeile mit den Spaltentiteln anzeigen.' },
     },
+    adapterstatus: {
+        fontSize: {
+            type: 'number',
+            description:
+                'Schriftgröße der Instanzliste in px (8–32) für Name, Version, Status, Zusammenfassung, Filter-Pillen und Suche; Nebentexte folgen mit 0,833em. Nicht gesetzt = 12 px mal globaler Schriftskalierung. Der Titel bleibt unberührt.',
+        },
+        buttonSize: {
+            type: 'number',
+            default: 14,
+            description:
+                'Symbolgröße der Neustart- und Update-Schaltflächen in px (10–48); der Innenabstand wächst mit (30 %), damit die Touchfläche auf Tablets größer wird.',
+        },
+    },
     adapterlogs: {
         levels: {
             description:

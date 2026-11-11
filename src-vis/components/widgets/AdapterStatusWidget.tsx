@@ -48,6 +48,11 @@ interface UpdateInfo {
     installed?: string;
 }
 
+// Body text follows the "fontSize" option (#971); secondary texts keep the old
+// 10:12 ratio to the row text, so the default look is unchanged.
+const SMALL = '0.833em';
+const DEFAULT_BUTTON_SIZE = 14;
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function resolveTitle(obj: ioBrokerObject, fallback: string): string {
@@ -94,6 +99,7 @@ function InstanceRow({
     transparent,
     striped,
     index,
+    buttonSize,
     onRestart,
     onUpdate,
 }: {
@@ -108,6 +114,7 @@ function InstanceRow({
     transparent: boolean;
     striped: boolean;
     index: number;
+    buttonSize: number;
     onRestart: (inst: AdapterInstance) => void;
     onUpdate: (inst: AdapterInstance) => void;
 }) {
@@ -148,6 +155,8 @@ function InstanceRow({
           ? 'transparent'
           : 'var(--app-bg)';
     const rowBorder = striped || transparent ? 'transparent' : 'var(--app-border)';
+    // Touch target grows with the icon (#971): 14 px icon -> 4 px padding (old p-1).
+    const buttonPad = Math.round(buttonSize * 0.3);
 
     const runRestart = async () => {
         if (busy) return;
@@ -170,7 +179,7 @@ function InstanceRow({
 
     return (
         <div
-            className={`flex items-center gap-2 px-2 py-1.5 text-xs ${striped ? '' : 'rounded-md'}`}
+            className={`flex items-center gap-2 px-2 py-1.5 ${striped ? '' : 'rounded-md'}`}
             style={{
                 background: rowBg,
                 border: `1px solid ${rowBorder}`,
@@ -180,8 +189,8 @@ function InstanceRow({
             <span
                 className="shrink-0 inline-block rounded-full"
                 style={{
-                    width: 8,
-                    height: 8,
+                    width: '0.67em',
+                    height: '0.67em',
                     background: statusColor,
                     boxShadow: isAlive ? `0 0 6px ${statusColor}` : 'none',
                 }}
@@ -196,16 +205,21 @@ function InstanceRow({
                     </span>
                     {showVersion && inst.version && (
                         <span
-                            className="shrink-0 text-[10px] font-mono opacity-60"
-                            style={{ color: 'var(--text-secondary)' }}
+                            className="shrink-0 font-mono opacity-60"
+                            style={{ fontSize: SMALL, color: 'var(--text-secondary)' }}
                         >
                             v{inst.version}
                         </span>
                     )}
                     {hasUpdate && (
                         <span
-                            className="shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded"
-                            style={{ background: '#f59e0b22', color: '#f59e0b', border: '1px solid #f59e0b55' }}
+                            className="shrink-0 font-semibold px-1.5 py-0.5 rounded"
+                            style={{
+                                fontSize: SMALL,
+                                background: '#f59e0b22',
+                                color: '#f59e0b',
+                                border: '1px solid #f59e0b55',
+                            }}
                             title={
                                 updateInfo!.installed
                                     ? `${updateInfo!.installed} → ${updateInfo!.version}`
@@ -217,7 +231,7 @@ function InstanceRow({
                     )}
                 </div>
                 {!compact && inst.title && inst.title !== inst.id && (
-                    <div className="truncate text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    <div className="truncate" style={{ fontSize: SMALL, color: 'var(--text-secondary)' }}>
                         {inst.title}
                     </div>
                 )}
@@ -226,14 +240,14 @@ function InstanceRow({
             {/* Connected indicator (only when applicable & alive) */}
             {connected !== null && isAlive && (
                 <CircleDot
-                    size={12}
+                    size="1em"
                     className="shrink-0"
                     style={{ color: connected ? '#22c55e' : '#94a3b8', opacity: connected ? 1 : 0.6 }}
                 />
             )}
 
             {/* Status label */}
-            <span className="shrink-0 text-[10px] font-medium" style={{ color: statusColor }}>
+            <span className="shrink-0 font-medium" style={{ fontSize: SMALL, color: statusColor }}>
                 {statusLabel}
             </span>
 
@@ -242,15 +256,16 @@ function InstanceRow({
                 <button
                     onClick={runRestart}
                     disabled={!!busy || !enabled}
-                    className="shrink-0 p-1 rounded transition-opacity"
+                    className="shrink-0 rounded transition-opacity"
                     style={{
+                        padding: buttonPad,
                         color: 'var(--text-secondary)',
                         opacity: !enabled || busy === 'restart' ? 0.4 : 1,
                         cursor: !enabled || busy ? 'default' : 'pointer',
                     }}
                     title={enabled ? 'Neustart' : 'Adapter ist deaktiviert'}
                 >
-                    <RotateCcw size={14} className={busy === 'restart' ? 'animate-spin' : ''} />
+                    <RotateCcw size={buttonSize} className={busy === 'restart' ? 'animate-spin' : ''} />
                 </button>
             )}
 
@@ -259,15 +274,16 @@ function InstanceRow({
                 <button
                     onClick={runUpdate}
                     disabled={!!busy}
-                    className="shrink-0 p-1 rounded transition-opacity"
+                    className="shrink-0 rounded transition-opacity"
                     style={{
+                        padding: buttonPad,
                         color: '#f59e0b',
                         opacity: busy === 'update' ? 0.5 : 1,
                         cursor: busy ? 'default' : 'pointer',
                     }}
                     title={`Update auf v${updateInfo!.version} installieren`}
                 >
-                    <Download size={14} className={busy === 'update' ? 'animate-bounce' : ''} />
+                    <Download size={buttonSize} className={busy === 'update' ? 'animate-bounce' : ''} />
                 </button>
             )}
         </div>
@@ -293,6 +309,10 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
     const transparent = !!o.transparent;
     const striped = o.striped !== false;
     const sortBy = (o.sortBy as 'name' | 'status') ?? 'name';
+    // Unset = text-xs (follows the global font scale); set = fixed px (#971).
+    const fontSizePx = Number(o.fontSize) > 0 ? Math.max(8, Math.min(32, Number(o.fontSize))) : null;
+    const bodyFontSize = fontSizePx ? `${fontSizePx}px` : 'calc(0.75rem * var(--font-scale, 1))';
+    const buttonSize = Math.max(10, Math.min(48, Number(o.buttonSize) || DEFAULT_BUTTON_SIZE));
 
     const { connected } = useIoBroker();
 
@@ -506,7 +526,10 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
     }, [instances, states, updates]);
 
     return (
-        <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden">
+        <div
+            className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden"
+            style={{ fontSize: bodyFontSize, lineHeight: 1.333 }}
+        >
             {/* Header */}
             <HeaderGroup>
                 {(showTitle || showIcon) && (
@@ -536,28 +559,34 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
             </HeaderGroup>
 
             {/* Summary */}
-            <div className="flex items-center gap-2 text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+            <div
+                className="flex items-center gap-2 shrink-0"
+                style={{ fontSize: SMALL, color: 'var(--text-secondary)' }}
+            >
                 <span className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#22c55e' }} />
+                    <span className="rounded-full" style={{ width: '0.5em', height: '0.5em', background: '#22c55e' }} />
                     {counts.running}
                 </span>
                 {counts.scheduled > 0 && (
                     <span className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#3b82f6' }} />
+                        <span
+                            className="rounded-full"
+                            style={{ width: '0.5em', height: '0.5em', background: '#3b82f6' }}
+                        />
                         {counts.scheduled}
                     </span>
                 )}
                 <span className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#ef4444' }} />
+                    <span className="rounded-full" style={{ width: '0.5em', height: '0.5em', background: '#ef4444' }} />
                     {counts.stopped}
                 </span>
                 <span className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#64748b' }} />
+                    <span className="rounded-full" style={{ width: '0.5em', height: '0.5em', background: '#64748b' }} />
                     {counts.disabled}
                 </span>
                 {counts.hasUpdate > 0 && (
                     <span className="flex items-center gap-1 ml-auto" style={{ color: '#f59e0b' }}>
-                        <Download size={10} />
+                        <Download size="1em" />
                         {counts.hasUpdate} Update{counts.hasUpdate === 1 ? '' : 's'}
                     </span>
                 )}
@@ -588,8 +617,10 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                             <button
                                 key={f}
                                 onClick={() => setFilter(f)}
-                                className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                className="rounded-full transition-colors"
                                 style={{
+                                    fontSize: SMALL,
+                                    padding: '0.2em 0.8em',
                                     background: active
                                         ? 'var(--accent)'
                                         : transparent
@@ -615,14 +646,14 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                         border: '1px solid var(--app-border)',
                     }}
                 >
-                    <Search size={12} style={{ color: 'var(--text-secondary)' }} />
+                    <Search size="1em" style={{ color: 'var(--text-secondary)' }} />
                     <input
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Filter…"
-                        className="flex-1 bg-transparent text-xs focus:outline-none"
-                        style={{ color: 'var(--text-primary)' }}
+                        className="flex-1 bg-transparent focus:outline-none"
+                        style={{ fontSize: '1em', color: 'var(--text-primary)' }}
                     />
                 </div>
             )}
@@ -630,8 +661,13 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
             {/* Error toast */}
             {actionError && (
                 <div
-                    className="flex items-start gap-1.5 text-[10px] px-2 py-1 rounded shrink-0"
-                    style={{ background: '#ef444422', color: '#ef4444', border: '1px solid #ef444455' }}
+                    className="flex items-start gap-1.5 px-2 py-1 rounded shrink-0"
+                    style={{
+                        fontSize: SMALL,
+                        background: '#ef444422',
+                        color: '#ef4444',
+                        border: '1px solid #ef444455',
+                    }}
                 >
                     <AlertTriangle size={12} className="shrink-0 mt-0.5" />
                     <span className="flex-1 break-words">{actionError}</span>
@@ -649,8 +685,8 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
             <div className={`flex-1 min-h-0 overflow-y-auto flex flex-col ${striped ? 'gap-0' : 'gap-1'} pr-1`}>
                 {visible.length === 0 ? (
                     <div
-                        className="flex flex-col items-center justify-center h-full text-[11px] gap-1"
-                        style={{ color: 'var(--text-secondary)' }}
+                        className="flex flex-col items-center justify-center h-full gap-1"
+                        style={{ fontSize: '0.92em', color: 'var(--text-secondary)' }}
                     >
                         {connected ? (
                             instances.length === 0 ? (
@@ -680,6 +716,7 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
                             transparent={transparent}
                             striped={striped}
                             index={i}
+                            buttonSize={buttonSize}
                             onRestart={restartInstance}
                             onUpdate={installUpdate}
                         />

@@ -15873,6 +15873,62 @@ function WidgetFrameInner({
                                                     def={true}
                                                     hint="Zeilen abwechselnd einfärben statt als Karten"
                                                 />
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Schriftgröße{' '}
+                                                        <span className="opacity-60">(px, 8–32, leer = Standard)</span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={8}
+                                                        max={32}
+                                                        step={1}
+                                                        placeholder="12"
+                                                        value={(o.fontSize as number | undefined) ?? ''}
+                                                        onChange={(e) =>
+                                                            set({
+                                                                fontSize:
+                                                                    e.target.value === ''
+                                                                        ? undefined
+                                                                        : Number(e.target.value),
+                                                            })
+                                                        }
+                                                        className={`${aCls} font-mono`}
+                                                        style={aSty}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Größe Bedienelemente{' '}
+                                                        <span className="opacity-60">
+                                                            (px, 10–48, Klickfläche wächst mit)
+                                                        </span>
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={10}
+                                                        max={48}
+                                                        step={1}
+                                                        placeholder="14"
+                                                        value={(o.buttonSize as number | undefined) ?? ''}
+                                                        onChange={(e) =>
+                                                            set({
+                                                                buttonSize:
+                                                                    e.target.value === ''
+                                                                        ? undefined
+                                                                        : Number(e.target.value),
+                                                            })
+                                                        }
+                                                        className={`${aCls} font-mono`}
+                                                        style={aSty}
+                                                    />
+                                                </div>
                                             </ConfigSection>
                                             <ConfigSection title={t('cfg.section.behavior')} sectionKey="behavior">
                                                 <Toggle
