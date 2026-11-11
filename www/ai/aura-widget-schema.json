@@ -496,6 +496,11 @@
       "type": "boolean",
       "default": false,
       "description": "Höhe automatisch an Inhalt anpassen: das Widget wird so hoch wie seine Zeilen/Einträge, gridPos.h wird dann ignoriert – auch als Kind einer Gruppe, die dann mitwächst. Nicht im Layout custom (Meldungen/Dynamische Liste: auch nicht count). Adapter-Logs: Höhe wächst bis visibleLimit Zeilen. HTML: das Dokument im iframe meldet seine Höhe selbst (auch bei htmlApi false), braucht eine Sandbox mit Skripten; hat Vorrang vor mobileHeight."
+    },
+    "fontSize": {
+      "type": "number",
+      "default": 12,
+      "description": "Schriftgröße in px. 0 = automatisch."
     }
   },
   "types": {
@@ -7350,6 +7355,11 @@
           "type": "boolean",
           "default": false
         },
+        "buttonSize": {
+          "type": "number",
+          "default": 14,
+          "description": "Symbolgröße der Neustart- und Update-Schaltflächen in px (10–48); der Innenabstand wächst mit (30 %), damit die Touchfläche auf Tablets größer wird."
+        },
         "compact": {
           "type": "boolean",
           "default": false,
@@ -7360,6 +7370,10 @@
           "ref": "FilterMode",
           "default": "all",
           "description": "Welche Einträge die Liste beim Öffnen zeigt."
+        },
+        "fontSize": {
+          "description": "Schriftgröße der Instanzliste in px (8–32) für Name, Version, Status, Zusammenfassung, Filter-Pillen und Suche; Nebentexte folgen mit 0,833em. Nicht gesetzt = 12 px mal globaler Schriftskalierung. Der Titel bleibt unberührt.",
+          "type": "number"
         },
         "icon": {
           "type": "string",
@@ -16699,6 +16713,7 @@
         "collapsePosition",
         "conditions",
         "defaultCollapsed",
+        "fontSize",
         "fullscreenPosition",
         "fullscreenScreen",
         "fullscreenWidget",
@@ -16746,11 +16761,6 @@
         "firstColHeader": {
           "type": "boolean",
           "default": false
-        },
-        "fontSize": {
-          "type": "number",
-          "default": 12,
-          "description": "Schriftgröße in px. 0 = automatisch."
         },
         "footerBg": {
           "type": "string",
