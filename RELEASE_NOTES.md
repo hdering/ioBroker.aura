@@ -9,3 +9,4 @@
 # Kind (recommended): start the bullet with 'feat:' or 'fix:' - the release turns it
 # into the New feature / Bug fix marker; unmarked entries are asked for (or stay unmarked).
 - feat: Adapter logs - all five ioBroker log levels (Silly, Debug, Info, Warn, Error) can be filtered separately; Silly entries no longer appear under Debug (#969)
+- feat: Adapter logs - adjustable font size for the log table (#970)

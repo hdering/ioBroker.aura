@@ -1623,6 +1623,12 @@ export const WIDGET_OPTION_NOTES = {
             description:
                 'Vorbelegung des Suchfelds (Teilstring in Meldung oder Quelle, ohne Groß/Klein; mehrere Begriffe mit "|" oder-verknüpft, z. B. "Beschattung | Beleuchtung"). Das Widget startet gefiltert; der Betrachter kann den Text im Suchfeld ändern oder leeren.',
         },
+        fontSize: {
+            type: 'number',
+            default: 10,
+            description:
+                'Schriftgröße der Logtabelle in px (8–24) für Quelle, Zeitstempel, Typ und Nachricht; die Typ-Plakette folgt mit 0,9em.',
+        },
     },
     weather: {
         dataSource: { description: '"online" holt die Daten selbst, "adapter" liest sie aus adapterLocationPath.' },

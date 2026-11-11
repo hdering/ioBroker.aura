@@ -30,6 +30,8 @@ const SEVERITY_COLOR: Record<Severity, string> = {
 
 const DEFAULT_BUFFER = 500;
 const DEFAULT_VISIBLE = 200;
+// Table font size in px (#970); the level badge follows at 0.9em.
+const DEFAULT_FONT_SIZE = 10;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -71,6 +73,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     const bufferSize = Math.max(50, Math.min(5000, (o.bufferSize as number) || DEFAULT_BUFFER));
     const visibleLimit = Math.max(20, Math.min(bufferSize, (o.visibleLimit as number) || DEFAULT_VISIBLE));
     const newestFirst = o.newestFirst !== false;
+    const fontSize = Math.max(8, Math.min(24, Number(o.fontSize) || DEFAULT_FONT_SIZE));
     const defaultLevels = (() => {
         const raw = o.levels as Severity[] | undefined;
         if (Array.isArray(raw) && raw.length > 0)
@@ -456,7 +459,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                 : 'Warte auf Log-Einträge…'}
                     </div>
                 ) : (
-                    <table className="w-full text-[10px] font-mono border-collapse">
+                    <table className="w-full font-mono border-collapse" style={{ fontSize, lineHeight: 1.4 }}>
                         <thead
                             className="sticky top-0 z-10"
                             style={{
@@ -502,8 +505,9 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
                                         </td>
                                         <td className="px-1.5 py-0.5 align-top whitespace-nowrap">
                                             <span
-                                                className="inline-block px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase"
+                                                className="inline-block px-1.5 py-0.5 rounded font-semibold uppercase"
                                                 style={{
+                                                    fontSize: '0.9em',
                                                     background: `${color}22`,
                                                     color,
                                                     border: `1px solid ${color}55`,

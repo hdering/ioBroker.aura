@@ -16176,6 +16176,31 @@ function WidgetFrameInner({
                                                     />
                                                 </div>
                                             </div>
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Schriftgröße Tabelle <span className="opacity-60">(px, 8–24)</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={8}
+                                                    max={24}
+                                                    step={1}
+                                                    value={(o.fontSize as number | undefined) ?? 10}
+                                                    onChange={(e) =>
+                                                        set({
+                                                            fontSize: Math.max(
+                                                                8,
+                                                                Math.min(24, Number(e.target.value) || 10),
+                                                            ),
+                                                        })
+                                                    }
+                                                    className={`${lCls} font-mono`}
+                                                    style={lSty}
+                                                />
+                                            </div>
                                             <Toggle
                                                 label="Kompakte Darstellung"
                                                 k="compact"

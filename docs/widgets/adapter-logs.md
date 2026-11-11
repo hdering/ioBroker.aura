@@ -19,6 +19,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `compact` | `false` | lange Nachrichten auf 120 Zeichen kürzen |
 | `newestFirst` | `true` | neueste Einträge oben |
+| `fontSize` | `10` | Schriftgröße der Tabelle in px (8–24) |
 
 ### Filter & Suche
 
