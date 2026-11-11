@@ -8,10 +8,12 @@ import { useContentAutoHeight } from '../../hooks/useContentAutoHeight';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
-type Severity = 'debug' | 'info' | 'warn' | 'error';
-const SEVERITY_ORDER: Severity[] = ['debug', 'info', 'warn', 'error'];
+// The five ioBroker log levels, finest first (#969).
+type Severity = 'silly' | 'debug' | 'info' | 'warn' | 'error';
+const SEVERITY_ORDER: Severity[] = ['silly', 'debug', 'info', 'warn', 'error'];
 
 const SEVERITY_LABEL: Record<Severity, string> = {
+    silly: 'Silly',
     debug: 'Debug',
     info: 'Info',
     warn: 'Warn',
@@ -19,6 +21,7 @@ const SEVERITY_LABEL: Record<Severity, string> = {
 };
 
 const SEVERITY_COLOR: Record<Severity, string> = {
+    silly: '#a78bfa',
     debug: '#94a3b8',
     info: '#3b82f6',
     warn: '#f59e0b',
@@ -47,8 +50,7 @@ function formatTime(ts: number): string {
 }
 
 function normalizeSeverity(s: LogEntry['severity']): Severity {
-    if (s === 'silly') return 'debug';
-    if (s === 'debug' || s === 'info' || s === 'warn' || s === 'error') return s;
+    if (s === 'silly' || s === 'debug' || s === 'info' || s === 'warn' || s === 'error') return s;
     return 'info';
 }
 
@@ -225,7 +227,7 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
 
     // Counts (over whole buffer)
     const counts = useMemo(() => {
-        const c: Record<Severity, number> = { debug: 0, info: 0, warn: 0, error: 0 };
+        const c: Record<Severity, number> = { silly: 0, debug: 0, info: 0, warn: 0, error: 0 };
         for (const e of bufferRef.current) c[normalizeSeverity(e.severity)]++;
         return c;
     }, [tick]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -1,6 +1,6 @@
 # Adapter-Logs
 
-Live-Log-Stream aller Adapter, abgefragt über die aura-Instanz. Filtert nach Schweregrad (Debug/Info/Warn/Error), Adapter und Freitext. Mit Auto-Scroll, Pause und Puffer-Leeren. Anonyme Web-Nutzer erhalten Logs nicht direkt von `iobroker.web`, daher läuft die Abfrage über aura.
+Live-Log-Stream aller Adapter, abgefragt über die aura-Instanz. Filtert nach Schweregrad (Silly/Debug/Info/Warn/Error), Adapter und Freitext. Mit Auto-Scroll, Pause und Puffer-Leeren. Anonyme Web-Nutzer erhalten Logs nicht direkt von `iobroker.web`, daher läuft die Abfrage über aura.
 
 ## Einstellungen
 
@@ -25,7 +25,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | Option | Standard | |
 | --- | --- | --- |
 | `showFilter` | `true` | Filter-Pills (Schweregrad + Adapter) anzeigen |
-| `levels` | `info`, `warn`, `error` | vorausgewählte Schweregrade (`debug` · `info` · `warn` · `error`) |
+| `levels` | `info`, `warn`, `error` | vorausgewählte Schweregrade (`silly` · `debug` · `info` · `warn` · `error`) |
 | `adapterFilter` | — | Backend-Vorfilter, kommagetrennt: `aura, admin` (alle Instanzen) oder `aura.0, admin.1` (exakte Instanz) |
 | `showSearch` | `true` | Freitext-Suchfeld (Nachricht + Quelle) |
 

@@ -1611,6 +1611,10 @@ export const WIDGET_OPTION_NOTES = {
         showHeader: { description: 'Zeile mit den Spaltentiteln anzeigen.' },
     },
     adapterlogs: {
+        levels: {
+            description:
+                'Beim Start aktive Schweregrade, wie in ioBroker: "silly", "debug", "info", "warn", "error". Standard: info, warn, error.',
+        },
         adapterFilter: {
             description:
                 'Instanz-Vorfilter im Backend, kommagetrennt: "aura, admin" = alle Instanzen dieser Adapter, "aura.0" = genau diese Instanz. Leer = alle.',

@@ -16033,6 +16033,7 @@ function WidgetFrameInner({
                                         set({ levels: next });
                                     };
                                     const LEVEL_OPTS: { key: string; label: string; color: string }[] = [
+                                        { key: 'silly', label: 'Silly', color: '#a78bfa' },
                                         { key: 'debug', label: 'Debug', color: '#94a3b8' },
                                         { key: 'info', label: 'Info', color: '#3b82f6' },
                                         { key: 'warn', label: 'Warn', color: '#f59e0b' },
