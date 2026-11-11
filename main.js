@@ -1512,7 +1512,26 @@ class Aura extends utils.Adapter {
 
     async _initPinVault() {
         const dir = this._instanceDataDir();
-        this.vault = new VaultFile(dir);
+        // info.vaultRevision = time of the last vault write. Says nothing about the
+        // content; an unlocked frontend re-reads its view (/pin/content) when it
+        // moves — otherwise an MCP write into a protected tab only showed after F5.
+        await this.setObjectNotExistsAsync('info.vaultRevision', {
+            type: 'state',
+            common: {
+                name: 'Last change of the PIN vault (for unlocked frontends)',
+                type: 'number',
+                role: 'value.time',
+                read: true,
+                write: false,
+                def: 0,
+            },
+            native: {},
+        });
+        this.vault = new VaultFile(dir, {
+            onSave: () => {
+                this.setStateAsync('info.vaultRevision', { val: Date.now(), ack: true }).catch(() => {});
+            },
+        });
         const data = this.vault.load();
         if (!data.serverSecret) {
             data.serverSecret = generateServerSecret();

@@ -197,6 +197,54 @@ try {
     r = await call('POST', 'pin/unlock', { body: { key: 'section:sLocked', pin: '1234' } });
     ok(r.status === 200 && r.json.unlockToken, 'unlock accepts the right PIN and returns a token');
     ok(r.json.content.tabs[0].widgets[0].id === 'wSecret', 'unlock returns the protected content');
+    const unlockToken = r.json.unlockToken;
+
+    // ── pin/content: re-read an unlocked view (MCP wrote into the vault) ─────
+    {
+        const d = vault.load();
+        d.sections['section:sLocked'].content.tabs[0].widgets.push({ id: 'wNew', type: 'value' });
+        vault.save(d);
+    }
+    r = await call('POST', 'pin/content', { token: unlockToken, body: { key: 'section:sLocked' } });
+    ok(
+        r.status === 200 && r.json.content.tabs[0].widgets.some((w) => w.id === 'wNew'),
+        'pin/content returns the current vault content',
+    );
+    r = await call('POST', 'pin/content', { body: { key: 'section:sLocked' } });
+    ok(r.status === 401, 'pin/content without a grant → 401');
+    r = await call('POST', 'pin/content', { token: unlockToken, body: { key: 'tab:other:x' } });
+    ok(r.status === 401, 'pin/content: a grant for another view → 401');
+    r = await call('POST', 'pin/content', { token: adminToken, body: { key: 'section:sLocked' } });
+    ok(r.status === 401, 'pin/content: an admin token is no view grant → 401');
+    {
+        // A grant from before the PIN changed no longer reads the view.
+        const d = vault.load();
+        const { salt, hash } = d.sections['section:sLocked'];
+        d.sections['section:sLocked'].hash = 'x' + hash.slice(1);
+        vault.save(d);
+        r = await call('POST', 'pin/content', { token: unlockToken, body: { key: 'section:sLocked' } });
+        ok(r.status === 401, 'pin/content: grant for an old PIN → 401');
+        const d2 = vault.load();
+        d2.sections['section:sLocked'].salt = salt;
+        d2.sections['section:sLocked'].hash = hash;
+        vault.save(d2);
+    }
+    r = await call('POST', 'pin/content', { token: unlockToken, body: { key: 'section:sLocked' } });
+    ok(r.status === 200, 'pin/content works again with the original PIN');
+    {
+        // Back to the seeded content — the removal checks below count its widgets.
+        const d = vault.load();
+        const w = d.sections['section:sLocked'].content.tabs[0].widgets;
+        d.sections['section:sLocked'].content.tabs[0].widgets = w.filter((x) => x.id !== 'wNew');
+        vault.save(d);
+    }
+    {
+        // Every vault write notifies (main.js bumps info.vaultRevision from it).
+        let saves = 0;
+        const v2 = new vaultMod.VaultFile(dir, { onSave: () => saves++ });
+        v2.save(v2.load());
+        ok(saves === 1, 'VaultFile calls onSave after a write');
+    }
 
     r = await call('POST', 'pin/unlock', { body: { key: 'section:doesNotExist', pin: '1234' } });
     ok(r.status === 401, 'unlock for an unknown key → 401 (no oracle)');

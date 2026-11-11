@@ -266,6 +266,24 @@ export async function vaultCodeDelete(token: string, id: string): Promise<'ok' |
     return status === 409 ? 'inUse' : 'error';
 }
 
+export type ContentOutcome =
+    | { ok: true; content: unknown; pinRelock: UnlockResult['pinRelock'] }
+    /** `denied` = the grant no longer holds (PIN changed, expired); `gone` = the view is no longer protected. */
+    | { ok: false; reason: 'denied' | 'gone' | 'error' };
+
+/**
+ * The current content of a view this viewer already unlocked — re-read when the
+ * vault changes (MCP, another editor), so the open view follows without a reload.
+ */
+export async function pinContent(key: string, unlockToken: string): Promise<ContentOutcome> {
+    const { status, json } = await request('POST', 'pin/content', { body: { key }, token: unlockToken });
+    if (status === 200 && json)
+        return { ok: true, content: json.content, pinRelock: json.pinRelock === 'session' ? 'session' : 'leave' };
+    if (status === 401) return { ok: false, reason: 'denied' };
+    if (status === 404 && json) return { ok: false, reason: 'gone' };
+    return { ok: false, reason: 'error' };
+}
+
 export type UnlockOutcome =
     | { ok: true; result: UnlockResult }
     | { ok: false; reason: 'wrong' | 'ratelimited' | 'error'; retryAfter?: number };

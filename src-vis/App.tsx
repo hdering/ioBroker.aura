@@ -17,6 +17,7 @@ import {
 import { useCustomJs } from './hooks/useCustomJs';
 import { useCustomCss } from './hooks/useCustomCss';
 import { useConfigSync } from './hooks/useConfigSync';
+import { useUnlockedContentRefresh } from './hooks/useUnlockedContentRefresh';
 import { useActiveSelectionSync } from './hooks/useActiveSelectionSync';
 import { useVersionGuard } from './hooks/useVersionGuard';
 import { useConnectionLost } from './hooks/useConnectionLost';
@@ -783,6 +784,7 @@ export default function App() {
 
     // React to external changes on aura.0.config.dashboard (subscription + polling)
     useConfigSync(connected, ioBrokerConfigLoaded, { ignoreDirty: true });
+    useUnlockedContentRefresh(connected);
 
     // Detect adapter upgrades: if the live adapter version diverges from the
     // bundled one (e.g. after a npm install of a new aura release), reload.
@@ -1314,7 +1316,12 @@ export default function App() {
             }
             const res = await pinUnlock(pinTarget.key, code);
             if (!res.ok) return false;
-            setUnlockContent(pinTarget.key, res.result.content, res.result.pinRelock);
+            setUnlockContent(
+                pinTarget.key,
+                res.result.content,
+                res.result.pinRelock,
+                res.result.unlockToken || undefined,
+            );
             unlockPin(pinTarget.key, res.result.pinRelock);
             return true;
         },
