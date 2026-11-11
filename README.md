@@ -122,6 +122,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.113.0 (2026-11-11)
+- 🌟 **New feature:** Adapter logs - all five ioBroker log levels (Silly, Debug, Info, Warn, Error) can be filtered separately; Silly entries no longer appear under Debug ([#969](https://github.com/hdering/ioBroker.aura/issues/969))
+- 🌟 **New feature:** Adapter logs - adjustable font size for the log table ([#970](https://github.com/hdering/ioBroker.aura/issues/970))
+- 🌟 **New feature:** Adapter status - adjustable font size and larger restart/update buttons with bigger touch targets ([#971](https://github.com/hdering/ioBroker.aura/issues/971))
+- 🌟 **New feature:** Layouts - flow columns can be filled by height (masonry) or compactly with as few columns as needed, centred; columns are only re-dealt when a tab opens or the window width changes ([#939](https://github.com/hdering/ioBroker.aura/issues/939))
+
+
 ### 0.112.1 (2026-11-10)
 - 🐛 **Bug fix:** MCP - a tab created in a PIN-protected section now goes into the PIN vault when the section is released for MCP editing, and is refused otherwise; the editor and "remove PIN" no longer drop tabs that exist only in the tab bar
 
@@ -282,26 +289,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🐛 **Bug fix:** Datapoints - after a dropped connection, widgets show the values fetched on reconnect instead of keeping their old ones until the next change; most visible on "last update" timestamps of rarely reporting sensors ([#900](https://github.com/hdering/ioBroker.aura/issues/900))
 
 
-### 0.99.0 (2026-10-31)
-- 🌟 **New feature:** Shutter - the actuator convention (0 % = open) can now be set in the up/down and push-button control modes too ([#876](https://github.com/hdering/ioBroker.aura/issues/876))
-- 🐛 **Bug fix:** Datapoints shown in the header, tab bar and section menu now load together with the active tab instead of last
-- 🐛 **Bug fix:** Thermostat - header items in the dial layout get a row of their own above the scale instead of overlapping it on narrow cards
-- 🐛 **Bug fix:** Thermostat and other widgets - switching to the custom layout keeps the status symbols when only own status items are configured
-- 🐛 **Bug fix:** AI assistant (MCP) - height checks now count the header subtitle and report content that reaches into the card padding or is cut off without scrolling; the custom layout template carries the status badges cell; every browser measurement names the frontend build it came from, and one from an outdated browser no longer claims that nothing is cut off
-- 🐛 **Bug fix:** Gauge, HTTP action and Countdown - new widgets start one or two rows taller, so their content no longer reaches into the card edge or gets cut off
-- 🐛 **Bug fix:** iFrame - with the proxy enabled, searching in single-page apps such as Paperless-ngx no longer ends in "Missing url parameter"; plain search forms keep their input too ([#881](https://github.com/hdering/ioBroker.aura/issues/881))
-- 🌟 **New feature:** Slideshow - the folder can now come from a datapoint, so a script or timer can switch the album ([#880](https://github.com/hdering/ioBroker.aura/issues/880))
-- 🌟 **New feature:** Dashboard values appear right away instead of after the whole object database has loaded; widgets only read the objects of the datapoints they show, and the status overview gets its datapoints from the adapter instead of downloading every object — which matters most on large installations and mobile connections ([#882](https://github.com/hdering/ioBroker.aura/issues/882))
-- 🌟 **New feature:** The dashboard no longer downloads its whole configuration again every 30 seconds and after every reconnect; it only reads what changed, which saves a lot of traffic on mobile connections ([#882](https://github.com/hdering/ioBroker.aura/issues/882))
-- 🌟 **New feature:** Aura's web server lets the browser cache the app files and sends them compressed (5.7 MB → 1.4 MB), so the dashboard opens much faster, especially on mobile connections ([#882](https://github.com/hdering/ioBroker.aura/issues/882))
-- 🌟 **New feature:** The editor warns when an image is embedded as Base64: it is saved with the configuration and loaded by every device on every start, so larger images are better added as a file or URL ([#882](https://github.com/hdering/ioBroker.aura/issues/882))
-- 🐛 **Bug fix:** HTML widget - images and CSS backgrounds with ioBroker paths such as `/adapter/<name>/…` now load, like in vis and Lovelace ([#885](https://github.com/hdering/ioBroker.aura/issues/885))
-- 🐛 **Bug fix:** Dynamic list - "remove entries that are no longer found" works again when a list-wide display is set; the sync no longer copies that display into every entry, existing lists are cleaned up on the next sync, and the "only relevant datapoints" switch now shows its actual default (on) ([#886](https://github.com/hdering/ioBroker.aura/issues/886))
-- 🐛 **Bug fix:** Widget management - the search now also finds datapoints used inside widget options, e.g. the series of the advanced chart, custom-grid cells, background images and the widgets inside groups, panels and device cards (also by their title); rows without a main datapoint show the first one they use ([#887](https://github.com/hdering/ioBroker.aura/issues/887))
-- 🌟 **New feature:** Dynamic list - the periodic search for new datapoints now runs in the adapter, so lists stay up to date even when no browser has them open, and several open devices no longer each save the dashboard ([#893](https://github.com/hdering/ioBroker.aura/issues/893))
-- 🐛 **Bug fix:** Device card - the conditions and badges editors of a child widget show `{{dp}}` again instead of the resolved datapoint, so editing a rule no longer replaces the placeholder with the datapoint of the preview device ([#894](https://github.com/hdering/ioBroker.aura/issues/894))
-
-
 ## License
 
 MIT License
@@ -313,6 +300,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
