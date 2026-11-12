@@ -102,6 +102,14 @@ eq('JSON: top-level clients as a comma list', parseSpeechPayload('{"text":"Hallo
     text: 'Hallo',
     target: { clients: ['flur', 'kueche'] },
 });
+eq(
+    "JSON: VIS's FFFFFFFF (SayIt default) means every device",
+    parseSpeechPayload('{"file":"/sayit.0/tts.mp3","volume":30,"clients":["FFFFFFFF"]}'),
+    { file: '/sayit.0/tts.mp3', volume: 30 },
+);
+eq('JSON: FFFFFFFF in lower case too', parseSpeechPayload('{"text":"Hallo","target":{"clients":"ffffffff"}}'), {
+    text: 'Hallo',
+});
 eq('JSON: file wins over text', parseSpeechPayload('{"file":"/sayit.0/tts.mp3","text":"x"}'), {
     file: '/sayit.0/tts.mp3',
 });

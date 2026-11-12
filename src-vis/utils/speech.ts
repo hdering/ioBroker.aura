@@ -133,7 +133,10 @@ export function parseSpeechPayload(raw: unknown): SpeechRequest | null {
         const tt = t as Record<string, unknown>;
         const target: MessageTarget = {};
         // `clients` at the top level is accepted as a shorthand for target.clients.
-        const clients = strList(tt.clients ?? p.clients);
+        // VIS's "every browser" id (FFFFFFFF, SayIt's default for its browser
+        // instance) means every device here too, not a client of that name.
+        const rawClients = strList(tt.clients ?? p.clients);
+        const clients = rawClients?.some((c) => /^f{8}$/i.test(c)) ? undefined : rawClients;
         if (clients) target.clients = clients;
         const layout = str(tt.layout, 128);
         if (layout) target.layout = layout;
