@@ -2773,9 +2773,10 @@ class Aura extends utils.Adapter {
         });
         await this.setObjectNotExistsAsync(`${base}.info.lastSeen`, {
             type: 'state',
-            common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
+            common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: false, def: 0 },
             native: {},
         });
+        await this._alignCommon(`${base}.info.lastSeen`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.info.resolutionWidth`, {
             type: 'state',
             common: {
@@ -2784,11 +2785,12 @@ class Aura extends utils.Adapter {
                 role: 'value',
                 unit: 'px',
                 read: true,
-                write: true,
+                write: false,
                 def: 0,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.info.resolutionWidth`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.info.resolutionHeight`, {
             type: 'state',
             common: {
@@ -2797,11 +2799,12 @@ class Aura extends utils.Adapter {
                 role: 'value',
                 unit: 'px',
                 read: true,
-                write: true,
+                write: false,
                 def: 0,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.info.resolutionHeight`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.info.userAgent`, {
             type: 'state',
             common: { name: 'User agent', type: 'string', role: 'text', read: true, write: true, def: '' },
@@ -3494,7 +3497,7 @@ class Aura extends utils.Adapter {
             common: {
                 name: 'Pause auto-return for N minutes (counts down to 0)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 'min',
                 min: 0,
                 max: IDLE_SNOOZE_MAX_MIN,
@@ -3504,12 +3507,13 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idleReturn.snoozeMinutes`, { role: 'level.timer' });
         await this.setObjectNotExistsAsync(`${base}.idleReturn.delay`, {
             type: 'state',
             common: {
                 name: 'Auto-return delay for this client (-1 = use dashboard setting, 0 = off)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 's',
                 min: -1,
                 max: IDLE_DELAY_MAX_SEC,
@@ -3519,6 +3523,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idleReturn.delay`, { role: 'level.timer' });
     }
 
     /** clients.<id>.popup.close (#861) — own backfill, the tree short-circuits on navigate.url. */
@@ -3567,11 +3572,12 @@ class Aura extends utils.Adapter {
                 type: 'boolean',
                 role: 'indicator',
                 read: true,
-                write: true,
+                write: false,
                 def: false,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idle.active`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.idle.enabled`, {
             type: 'state',
             common: {
@@ -3579,17 +3585,18 @@ class Aura extends utils.Adapter {
                 type: 'boolean',
                 role: 'indicator',
                 read: true,
-                write: true,
+                write: false,
                 def: true,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idle.enabled`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.idle.delay`, {
             type: 'state',
             common: {
                 name: 'Idle after N seconds on this client (-1 = use dashboard setting, 0 = off)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 's',
                 min: -1,
                 max: IDLE_DELAY_MAX_SEC,
@@ -3599,6 +3606,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon(`${base}.idle.delay`, { role: 'level.timer' });
     }
 
     /**
@@ -3633,11 +3641,12 @@ class Aura extends utils.Adapter {
                 type: 'boolean',
                 role: 'indicator',
                 read: true,
-                write: true,
+                write: false,
                 def: false,
             },
             native: {},
         });
+        await this._alignCommon(`${base}.speech.playing`, { write: false });
         await this.setObjectNotExistsAsync(`${base}.speech.lastResult`, {
             type: 'state',
             common: {
@@ -4656,7 +4665,7 @@ class Aura extends utils.Adapter {
             common: {
                 name: 'Pause auto-return on all clients for N minutes (counts down to 0)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 'min',
                 min: 0,
                 max: IDLE_SNOOZE_MAX_MIN,
@@ -4666,12 +4675,13 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon('idleReturn.snoozeMinutes', { role: 'level.timer' });
         await this.setObjectNotExistsAsync('idleReturn.delay', {
             type: 'state',
             common: {
                 name: 'Auto-return delay for all clients (-1 = use dashboard setting, 0 = off)',
                 type: 'number',
-                role: 'value',
+                role: 'level.timer',
                 unit: 's',
                 min: -1,
                 max: IDLE_DELAY_MAX_SEC,
@@ -4681,6 +4691,7 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._alignCommon('idleReturn.delay', { role: 'level.timer' });
 
         this.subscribeStates('calendar.request');
         this.subscribeStates('calendar.clientError');
