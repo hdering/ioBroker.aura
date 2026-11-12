@@ -40,6 +40,11 @@ Einstellungen mit **↻** neben der Auswahl **Komponente** neu einlesen. Dort l�
 andere Komponente umstellen. Nach einem Neustart von ioBroker liest Aura die Liste selbst neu; fehlt
 dabei noch eine Komponente (Upload läuft), versucht Aura es eine Minute lang alle 10 s erneut.
 
+Eine **aktualisierte** Komponente, die bereits auf der Seite zu sehen ist, läuft bis zum
+nächsten Neuladen der Seite in der alten Version weiter — ein Browser kann ein Element nicht
+neu definieren. Danach lädt er die neue Version: Aura hängt die Adapterversion an die
+Adressen von Manifest und Modul, damit keine alte Datei aus dem Browser-Cache kommt.
+
 ## Einstellungen
 
 | Option | | |

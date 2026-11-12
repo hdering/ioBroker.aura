@@ -8,6 +8,9 @@
  * answers `/adapter/…` from the file storage and `/lib/esm/react-*.js` itself, and
  * behind the web adapter extension (`/aura/`) web serves both, so
  * `getWebComponentSources(…, document.baseURI)` finds them either way.
+ *
+ * Manifest and module URLs carry the adapter version, so after an update the next
+ * page load fetches the new files instead of cached ones.
  */
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -28,10 +31,19 @@ import {
     subscribeObjectDirect,
     subscribeStateDirect,
 } from '../hooks/useIoBroker';
-import { createWebComponentSocket, objectIdOfRow, type HostState } from './webComponentHost';
+import {
+    createWebComponentSocket,
+    mergeCatalog,
+    objectIdOfRow,
+    versionedModule,
+    versionedSources,
+    type HostState,
+} from './webComponentHost';
 
 let catalog: Promise<LoadedWebComponent[]> | null = null;
 const catalogListeners = new Set<() => void>();
+// What the last read gave - a read again is merged into it (mergeCatalog).
+let catalogLoaded: LoadedWebComponent[] = [];
 
 /** A short catalog (none or not every component) is read again after this long ... */
 export const SHORT_CATALOG_RETRY_MS = 10_000;
@@ -46,10 +58,14 @@ async function readCatalog(): Promise<{ list: LoadedWebComponent[]; complete: bo
         .map((row) => row.value as unknown as { _id: string; common?: { version?: string; webComponents?: unknown } })
         .filter((obj) => obj && Array.isArray(obj.common?.webComponents) && obj.common.webComponents.length)
         .map((obj) => ({ _id: obj._id, common: obj.common ?? {} }));
-    if (!instances.length) return { list: [], complete: false };
-    const sources = getWebComponentSources(instances, document.baseURI);
-    const list = await loadWebComponents(sources, { log: console });
-    return { list, complete: list.length >= sources.length };
+    if (!instances.length) {
+        catalogLoaded = [];
+        return { list: [], complete: false };
+    }
+    const sources = versionedSources(getWebComponentSources(instances, document.baseURI));
+    const loaded = await loadWebComponents(sources, { log: console });
+    catalogLoaded = mergeCatalog(loaded.map(versionedModule), catalogLoaded, (tag) => !!customElements.get(tag));
+    return { list: catalogLoaded, complete: loaded.length >= sources.length };
 }
 
 /**
