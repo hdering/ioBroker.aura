@@ -75,7 +75,7 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(e.message));
 await page.route('**/adapter/aura-demo/webcomponents/**', (route) => {
     const url = route.request().url();
-    if (url.endsWith('.json')) {
+    if (new URL(url).pathname.endsWith('.json')) {
         return route.fulfill({ contentType: 'application/json', body: JSON.stringify(manifest) });
     }
     return route.fulfill({ contentType: 'text/javascript', body: moduleJs });

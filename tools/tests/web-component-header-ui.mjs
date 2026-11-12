@@ -67,7 +67,7 @@ async function openPage(options, header) {
     page.on('pageerror', (e) => errors.push(e.message));
     await page.route('**/adapter/aura-demo/webcomponents/**', (route) => {
         const url = route.request().url();
-        if (url.endsWith('.json')) {
+        if (new URL(url).pathname.endsWith('.json')) {
             return route.fulfill({ contentType: 'application/json', body: JSON.stringify(manifest) });
         }
         if (url.endsWith('.svg')) return route.fulfill({ contentType: 'image/svg+xml', body: svg });

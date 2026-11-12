@@ -70,7 +70,7 @@ async function openPage(options, o = {}) {
     page.on('pageerror', (e) => errors.push(e.message));
     await page.route(`**/adapter/${adapter}/webcomponents/**`, (route) => {
         const url = route.request().url();
-        if (url.endsWith('.json')) {
+        if (new URL(url).pathname.endsWith('.json')) {
             return route.fulfill({ contentType: 'application/json', body: JSON.stringify(manifestFor(tag)) });
         }
         return route.fulfill({ contentType: 'text/javascript', body: moduleFor(tag) });
